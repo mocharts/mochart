@@ -22,6 +22,7 @@
   "scripts": {
     "dev": "npm run dev -w @mochart/demo-vanilla",
     "dev:basic": "npm run dev -w @mochart/demo-basic",
+    "dev:showcase": "npm run dev -w @mochart/showcase",
     "dev:docs": "npm run dev -w @mochart/docs",
     "dev:editor": "npm run dev -w @mochart/editor",
     "build": "npm run build -w @mochart/demo-vanilla",
