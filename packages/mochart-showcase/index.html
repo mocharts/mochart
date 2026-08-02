@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Mochart Showcase</title>
+    <script>
+      // Pre-hydration theme guard: apply the dark class before first paint.
+      // Mirrors the docs site (VitePress) appearance key and semantics; the
+      // in-app theme controller (demo-common initTheme) takes over after boot.
+      (function () {
+        try {
+          var stored = localStorage.getItem('vitepress-theme-appearance') || 'auto';
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (stored === 'auto' ? prefersDark : stored === 'dark') {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) { /* storage unavailable: stay light */ }
+      })();
+    </script>
+</head>
+<body>
+    <noscript>This page requires Javascript to be enabled.</noscript>
+    <div id="root"></div>
+    <script>
+      // Vite replaces %BASE_URL% at build time. Derive the router base from it,
+      // and finish the GitHub Pages 404 redirect (see scripts/build-pages.mjs)
+      // by restoring the originally requested URL before the app boots.
+      (function () {
+        var base = '%BASE_URL%';
+        window.__config = { routerBasePath: base.length > 1 ? base.replace(/\/+$/, '') : base };
+        var redirect = sessionStorage.getItem('mochart:redirect');
+        if (redirect !== null) {
+          sessionStorage.removeItem('mochart:redirect');
+          if (redirect.indexOf(base) === 0) {
+            history.replaceState(null, '', redirect);
+          }
+        }
+      })();
+    </script>
+    <script type="module" src="/main/index.ts"></script>
+</body>
+</html>

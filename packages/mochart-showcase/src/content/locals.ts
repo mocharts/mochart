@@ -1,0 +1,216 @@
+// New demos authored for the showcase (the gaps the demo-data gallery demos
+// don't cover). Configs use the same vocabulary as the shipped demo JSON;
+// datasets are small, handwritten, and deterministic.
+
+import type { DataRow, DemoConfig, RandomConfig } from '@mochart/demo-data';
+
+/**
+ * A complete generic random spec (the generic generator trusts its shape, so
+ * every field must be present) with per-demo overrides merged in.
+ */
+export function makeGenericRandom(overrides: {
+  groupCount?: number;
+  groupDate?: Partial<RandomConfig['group']['date']> & { enabled?: boolean };
+  seriesMin?: number;
+  seriesMax?: number;
+} = {}): RandomConfig {
+  return {
+    group: {
+      count: overrides.groupCount ?? 12,
+      order: { sort: true },
+      missing: { probability: 0 },
+      reuse: { globalPercentage: 0.5, stepPercentage: 0.5 },
+      number: { min: -100, max: 100, interval: 1 },
+      string: { minLength: 3, maxLength: 10 },
+      date: {
+        min: overrides.groupDate?.min ?? '2026-01-01',
+        max: overrides.groupDate?.max ?? '2026-12-31',
+        interval: overrides.groupDate?.interval ?? 1,
+        intervalUnit: overrides.groupDate?.intervalUnit ?? 'day'
+      }
+    },
+    series: {
+      number: { min: overrides.seriesMin ?? 0, max: overrides.seriesMax ?? 500, round: true, limitToAxisConfig: true },
+      missing: { probability: 0 },
+      reuse: { global: false, step: true }
+    }
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Date/time axis
+// ---------------------------------------------------------------------------
+
+export const timeSeriesConfig: DemoConfig = {
+  version: '1.0.0',
+  titleConfig: { title: 'Sessions — March 2026' },
+  groupAxisConfig: {
+    property: 'date',
+    valueLabel: 'Date',
+    type: 'date',
+    scale: 'linear',
+    dateUTC: true,
+    title: 'Date',
+    tickLabelFormat: '%b %d',
+    valueFormat: '%B %d',
+    gridLines: true
+  },
+  seriesAxisConfigs: [
+    { id: 'SA0', base: 0, min: 0, title: 'Sessions', gridLines: true }
+  ],
+  seriesConfigs: [
+    { axis: 'SA0', property: 'sessions', title: 'Sessions', renderer: 'area' },
+    { axis: 'SA0', property: 'visitors', title: 'Unique visitors', renderer: 'line' }
+  ]
+};
+
+export const timeSeriesData: DataRow[] = [
+  { date: '2026-03-01T00:00:00Z', sessions: 182, visitors: 121 },
+  { date: '2026-03-03T00:00:00Z', sessions: 264, visitors: 178 },
+  { date: '2026-03-05T00:00:00Z', sessions: 241, visitors: 152 },
+  { date: '2026-03-07T00:00:00Z', sessions: 128, visitors: 89 },
+  { date: '2026-03-09T00:00:00Z', sessions: 305, visitors: 214 },
+  { date: '2026-03-11T00:00:00Z', sessions: 356, visitors: 243 },
+  { date: '2026-03-13T00:00:00Z', sessions: 289, visitors: 197 },
+  { date: '2026-03-15T00:00:00Z', sessions: 176, visitors: 118 },
+  { date: '2026-03-17T00:00:00Z', sessions: 312, visitors: 208 },
+  { date: '2026-03-19T00:00:00Z', sessions: 384, visitors: 262 },
+  { date: '2026-03-21T00:00:00Z', sessions: 341, visitors: 226 },
+  { date: '2026-03-23T00:00:00Z', sessions: 219, visitors: 149 },
+  { date: '2026-03-25T00:00:00Z', sessions: 398, visitors: 274 },
+  { date: '2026-03-27T00:00:00Z', sessions: 421, visitors: 291 },
+  { date: '2026-03-29T00:00:00Z', sessions: 366, visitors: 247 },
+  { date: '2026-03-31T00:00:00Z', sessions: 302, visitors: 203 }
+];
+
+export const timeSeriesRandom = makeGenericRandom({
+  groupCount: 16,
+  groupDate: { min: '2026-03-01', max: '2026-03-31', interval: 2, intervalUnit: 'day' },
+  seriesMin: 50,
+  seriesMax: 450
+});
+
+// ---------------------------------------------------------------------------
+// Focus styles (normal / focused / defocused style states)
+// ---------------------------------------------------------------------------
+
+export const focusStylesConfig: DemoConfig = {
+  version: '1.0.0',
+  titleConfig: { title: 'Quarterly Output by Plant' },
+  groupAxisConfig: {
+    property: 'quarter',
+    valueLabel: 'Quarter',
+    type: 'string',
+    scale: 'ordinal'
+  },
+  seriesAxisConfigs: [
+    { id: 'SA0', base: 0, min: 0, gridLines: true }
+  ],
+  seriesAllConfig: {
+    axis: 'SA0',
+    renderer: 'bar',
+    // The whole demo is these three states: hover a bar or a legend entry and
+    // the focused series thickens its outline while the rest fade right back.
+    shapeStyle: {
+      normal: { fillOpacity: 0.85, strokeOpacity: 1 },
+      focused: { fillOpacity: 1, strokeOpacity: 1, strokeWidth: 2 },
+      defocused: { fillOpacity: 0.15, strokeOpacity: 0.25 }
+    }
+  },
+  seriesConfigs: [
+    { property: 'north', title: 'North plant' },
+    { property: 'south', title: 'South plant' },
+    { property: 'east', title: 'East plant' }
+  ]
+};
+
+export const focusStylesData: DataRow[] = [
+  { quarter: 'Q1 25', north: 214, south: 162, east: 98 },
+  { quarter: 'Q2 25', north: 236, south: 148, east: 121 },
+  { quarter: 'Q3 25', north: 198, south: 173, east: 133 },
+  { quarter: 'Q4 25', north: 261, south: 189, east: 152 },
+  { quarter: 'Q1 26', north: 247, south: 205, east: 168 },
+  { quarter: 'Q2 26', north: 279, south: 217, east: 181 }
+];
+
+export const focusStylesRandom = makeGenericRandom({ groupCount: 6, seriesMin: 60, seriesMax: 300 });
+
+// ---------------------------------------------------------------------------
+// currentColor chrome
+// ---------------------------------------------------------------------------
+
+export const currentColorConfig: DemoConfig = {
+  version: '1.0.0',
+  titleConfig: { title: 'Ink Follows the Page' },
+  groupAxisConfig: {
+    property: 'day',
+    valueLabel: 'Day',
+    type: 'string',
+    scale: 'ordinal'
+  },
+  seriesAxisConfigs: [
+    { id: 'SA0', base: 0, min: 0, gridLines: true }
+  ],
+  seriesConfigs: [
+    {
+      axis: 'SA0',
+      property: 'ink',
+      title: 'currentColor bars',
+      renderer: 'bar',
+      shapeStyle: {
+        normal: { fillColor: 'currentColor', strokeColor: 'currentColor', fillOpacity: 0.3, strokeOpacity: 0.85 }
+      }
+    },
+    {
+      axis: 'SA0',
+      property: 'accent',
+      title: 'Accent line',
+      renderer: 'line'
+    }
+  ]
+};
+
+export const currentColorData: DataRow[] = [
+  { day: 'Mon', ink: 84, accent: 52 },
+  { day: 'Tue', ink: 117, accent: 74 },
+  { day: 'Wed', ink: 96, accent: 88 },
+  { day: 'Thu', ink: 132, accent: 79 },
+  { day: 'Fri', ink: 154, accent: 101 },
+  { day: 'Sat', ink: 68, accent: 63 },
+  { day: 'Sun', ink: 49, accent: 45 }
+];
+
+export const currentColorRandom = makeGenericRandom({ groupCount: 7, seriesMin: 30, seriesMax: 180 });
+
+// ---------------------------------------------------------------------------
+// Editor playground (config & validation)
+// ---------------------------------------------------------------------------
+
+export const editorConfig: DemoConfig = {
+  version: '1.0.0',
+  titleConfig: { title: 'Edit Me' },
+  groupAxisConfig: {
+    property: 'month',
+    valueLabel: 'Month',
+    type: 'string',
+    scale: 'ordinal'
+  },
+  seriesAxisConfigs: [
+    { id: 'SA0', base: 0, min: 0, title: 'Units', gridLines: true }
+  ],
+  seriesConfigs: [
+    { axis: 'SA0', property: 'planned', title: 'Planned', renderer: 'bar' },
+    { axis: 'SA0', property: 'actual', title: 'Actual', renderer: 'line' }
+  ]
+};
+
+export const editorData: DataRow[] = [
+  { month: 'Jan', planned: 120, actual: 132 },
+  { month: 'Feb', planned: 140, actual: 128 },
+  { month: 'Mar', planned: 155, actual: 161 },
+  { month: 'Apr', planned: 150, actual: 147 },
+  { month: 'May', planned: 170, actual: 183 },
+  { month: 'Jun', planned: 185, actual: 179 }
+];
+
+export const editorRandom = makeGenericRandom({ groupCount: 6, seriesMin: 80, seriesMax: 250 });
