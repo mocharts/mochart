@@ -8,7 +8,7 @@ export default function getDescriptions() {
     endAngle: 'the angle (in degrees, clockwise from the top) at which the last slice ends (use startAngle -90 and endAngle 90 for a half/gauge pie)',
     padAngle: 'the angle (in degrees) of the gap between adjacent slices',
     cornerRadius: 'the corner radius (in pixels) applied to the slice corners',
-    focusOffsetFraction: 'offset the focused slice away from the center by this fraction (0 to 1) of the outer radius (an exploded slice)',
+    focusOffsetFraction: 'offset the focused slice away from the center by this fraction (0 to 1) of the outer radius (an exploded slice); the layout reserves this room, so the slices shrink by the same fraction rather than leaving the plot when exploded',
     label: {
       description: 'the labels drawn on the slices',
       properties: {

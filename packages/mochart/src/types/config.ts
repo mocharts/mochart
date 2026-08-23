@@ -738,7 +738,9 @@ export interface PieConfig {
   cornerRadius: number;
   /**
    * Offset the focused slice away from the center by this fraction (0 to 1) of
-   * the outer radius (an exploded slice).
+   * the outer radius (an exploded slice); the layout reserves this room, so the
+   * slices shrink by the same fraction rather than leaving the plot when
+   * exploded.
    *
    * @default 0
    */

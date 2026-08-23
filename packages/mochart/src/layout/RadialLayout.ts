@@ -57,13 +57,14 @@ function getSpanUnitBounds(startAngle: number, endAngle: number): UnitBounds {
  * is scaled to fill the rect and centered, so partial pies use the space their
  * missing slices would waste. The span comes from the config — never the
  * current slice angles — so the layout holds still while values animate.
+ * The radius also leaves room for focusOffsetFraction, so an exploded slice stays inside the rect.
  */
 export function getRadialLayoutInfo(seriesLayoutInfo: LayoutInfo, pieConfig: PieConfig): RadialLayoutInfo {
   const { width, height } = seriesLayoutInfo;
   const bounds = getSpanUnitBounds(pieConfig.startAngle, pieConfig.endAngle);
   const unitWidth = Math.max(bounds.maxX - bounds.minX, 1e-6);
   const unitHeight = Math.max(bounds.maxY - bounds.minY, 1e-6);
-  const maxRadius = Math.max(Math.min(width / unitWidth, height / unitHeight), 0);
+  const maxRadius = Math.max(Math.min(width / unitWidth, height / unitHeight), 0) / (1 + pieConfig.focusOffsetFraction);
   const outerRadius = maxRadius * pieConfig.outerRadiusFraction;
   const innerRadius = outerRadius * pieConfig.innerRadiusFraction;
   return {
