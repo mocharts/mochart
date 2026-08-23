@@ -42,16 +42,16 @@ export function getClippedEdges(mochartConfig: EnhancedMochartConfig, chartData:
 }
 
 function setClippedEdges(clippedEdges: ClippedEdges, mochartConfig: EnhancedMochartConfig,
-  axisConfig: { min: unknown; max: unknown; reversed: boolean }, drawnDomain: NullableDomain,
+  axisConfig: { min: unknown; max: unknown; minOffset: number; maxOffset: number; reversed: boolean }, drawnDomain: NullableDomain,
   renderedDomain: NullableDomain, isCategoryAxis: boolean): void {
   if (drawnDomain[0] === null || renderedDomain[0] === null || renderedDomain[1] === null) {
     return;
   }
-  // only an explicit bound can clip: an auto end is computed from the data it would be hiding
-  if (axisConfig.min !== AUTO && drawnDomain[0] < renderedDomain[0]) {
+  // an explicit bound or an offset can clip: a plain auto end is computed from the data it would be hiding
+  if ((axisConfig.min !== AUTO || axisConfig.minOffset !== 0) && drawnDomain[0] < renderedDomain[0]) {
     clippedEdges[getClippedEdge(mochartConfig, axisConfig.reversed, isCategoryAxis, false)] = true;
   }
-  if (axisConfig.max !== AUTO && drawnDomain[1]! > renderedDomain[1]) {
+  if ((axisConfig.max !== AUTO || axisConfig.maxOffset !== 0) && drawnDomain[1]! > renderedDomain[1]) {
     clippedEdges[getClippedEdge(mochartConfig, axisConfig.reversed, isCategoryAxis, true)] = true;
   }
 }

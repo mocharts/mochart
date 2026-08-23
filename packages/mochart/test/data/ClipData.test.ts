@@ -47,6 +47,16 @@ describe('value axis bounds', () => {
     expect(edges({})).toEqual(noClippedEdges);
     expect(edges({ valueAxes: [{ min: 0 }] })).toEqual(noClippedEdges);
   });
+
+  it('reports an auto bound narrowed inside the data by an offset, like the explicit bound it equals', () => {
+    expect(clipped({ valueAxes: [{ min: 'auto', minOffset: 20 }] })).toEqual(['bottom']);
+    expect(clipped({ valueAxes: [{ min: 20 }] })).toEqual(['bottom']);
+    expect(clipped({ valueAxes: [{ max: 'auto', maxOffset: -20 }] })).toEqual(['top']);
+  });
+
+  it('reports nothing for an offset that widens the auto bound', () => {
+    expect(edges({ valueAxes: [{ minOffset: -20, maxOffset: 20 }] })).toEqual(noClippedEdges);
+  });
 });
 
 describe('edge mapping', () => {
