@@ -22,11 +22,19 @@ jobs:
       fail-fast: false
       matrix:
         node-version: ['22', '24']
-        # Site builds and uploads run on one leg only: artifact names are
-        # workflow-global, so a second upload of the same name fails.
+        # Work that is not Node-version-specific runs on one leg only, split
+        # so the two legs finish at about the same time: coverage (whose
+        # thresholds need checking once; instrumenting roughly doubles the
+        # unit-test step) and the site build (artifact names are
+        # workflow-global, so a second upload of the same name fails) on 24,
+        # the browser e2e suites (the browser runs the code; Node only serves
+        # it) on 22.
         include:
           - node-version: '24'
+            coverage: true
             site: true
+          - node-version: '22'
+            e2e: true
     # Mirrors the two deploy jobs' conditions so a site is only built for a
     # deploy that will actually happen; otherwise one build verifies the site.
     env:
@@ -47,14 +55,21 @@ jobs:
       # Published manifests must be dist-only: pnpm swaps in publishConfig.exports
       # at pack time, stripping the monorepo-only development condition.
       - run: npm run check:publish
-      - run: npm test
+      - if: matrix.coverage
+        run: npm test
+      # The same tests uninstrumented: the flag is forwarded to every
+      # workspace's test script and overrides the three that pass --coverage.
+      - if: ${{ !matrix.coverage }}
+        run: npm test -- --coverage.enabled=false
       # Browser binaries are tied to the resolved @playwright/test version, so
       # keying on it invalidates the cache exactly when a bump needs new ones.
-      - id: playwright
+      - if: matrix.e2e
+        id: playwright
         run: |
           version="$(node -p "require('@playwright/test/package.json').version")"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
+      - if: matrix.e2e
+        uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           # The engine list is in the key: a cache saved for a narrower set would
@@ -63,8 +78,10 @@ jobs:
       # All three engines the core README claims support for; firefox and webkit
       # run only the @smoke-tagged subset. --with-deps covers WebKit's extra
       # system libraries, which the runner image does not ship.
-      - run: npx playwright install --with-deps chromium firefox webkit
-      - id: e2e
+      - if: matrix.e2e
+        run: npx playwright install --with-deps chromium firefox webkit
+      - if: matrix.e2e
+        id: e2e
         run: npm run test:e2e
       # trace: 'on-first-retry' writes traces under test-results; without this
       # they die with the runner, which is the only place the failure happened.
