@@ -2741,7 +2741,9 @@ export interface SeriesBarConfig {
    * the same position — e.g. a ranged bar whose `property` and `rangeProperty`
    * values are equal — is expanded to this extent, centered on its position, so
    * it stays visible as a tick mark: e.g. the open/close ticks of an OHLC bar,
-   * or a candlestick doji body.
+   * or a candlestick doji body. At the default `0` such a bar — including a
+   * plain bar whose value equals the axis base — draws nothing and has no hit
+   * area.
    *
    * @default 0
    */

@@ -283,7 +283,7 @@ export function getColumnGenerator(seriesConfig: EnhancedSeriesConfig, seriesPos
   const columnGenerator: (index: number) => string = (i: number) => {
     pathGenerator = path();
     categoryPosition = seriesPositionData.getOffsetCategoryPosition(null, i)!;
-    seriesValueExtent = Math.max(minColumnSize, seriesPositionData.getSeriesExtent(null, i));
+    seriesValueExtent = seriesPositionData.getSeriesExtent(null, i);
     seriesPosition = seriesPositionData.getSeriesPosition(null, i)!;
     seriesPriorPosition = seriesPositionData.getPriorSeriesPosition(null, i)!;
     seriesCurrentPosition = seriesPositionData.getCurrentSeriesPosition(null, i)!;
