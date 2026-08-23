@@ -2717,7 +2717,7 @@ export interface SeriesBarConfig {
    * (the full category slot, or the series’ sub-slot when grouped), so a narrow
    * bar can overlay a full-width one from another series — e.g. a candlestick
    * wick behind its body, or a bullet-chart measure over its backing range. The
-   * narrowed bar is centered by default; `barAlignFraction` moves it within the
+   * narrowed bar is centered by default; `alignFraction` moves it within the
    * slot.
    *
    * @default 1

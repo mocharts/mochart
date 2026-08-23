@@ -189,7 +189,7 @@ export function getDetails() {
       minSize: 'Only used with a `markerProperty`: the size the smallest marker property value scales down to; the largest takes `size`.'
     } },
     bar: { properties: {
-      widthFraction: 'Only affects the `bar` renderer. Narrows each bar within its layout slot (the full category slot, or the series’ sub-slot when grouped), so a narrow bar can overlay a full-width one from another series — e.g. a candlestick wick behind its body, or a bullet-chart measure over its backing range. The narrowed bar is centered by default; `barAlignFraction` moves it within the slot.',
+      widthFraction: 'Only affects the `bar` renderer. Narrows each bar within its layout slot (the full category slot, or the series’ sub-slot when grouped), so a narrow bar can overlay a full-width one from another series — e.g. a candlestick wick behind its body, or a bullet-chart measure over its backing range. The narrowed bar is centered by default; `alignFraction` moves it within the slot.',
       alignFraction: 'Only affects the `bar` renderer, and only when `widthFraction` is less than 1. Lets narrowed bars from different series share one slot side by side — e.g. the left open tick and right close tick of an OHLC bar.',
       minExtent: 'Only affects the `bar` renderer. A bar whose two ends resolve to (nearly) the same position — e.g. a ranged bar whose `property` and `rangeProperty` values are equal — is expanded to this extent, centered on its position, so it stays visible as a tick mark: e.g. the open/close ticks of an OHLC bar, or a candlestick doji body. At the default `0` such a bar — including a plain bar whose value equals the axis base — draws nothing and has no hit area.'
     } },
