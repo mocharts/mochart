@@ -147,7 +147,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
     const tickTextStyle = this.tickTextStyle!;
     const hiddenTickTextStyle = this.hiddenTickTextStyle!;
 
-    const tickTextDY = vertical ? '0.35em' : '0.35em';
+    const tickTextDY = '0.35em';
 
     let tickX = 0;
     let tickY = 0;

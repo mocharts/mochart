@@ -233,30 +233,21 @@ export function truncateSVGText(textElement: SVGTextContentElement, maxTextLengt
     }
   }
   else if (textLength <= maxTextLength) {
-    if (lastText === undefined && truncatedText === undefined) {
+    // both are unit-boundary prefixes of text, so the shorter string is also the one with fewer units
+    if (lastText === undefined || lastText.length < truncatedText.length) {
+      const textUnitList = textUnits(text);
       return {
         text,
-        truncatedText: text,
-        lastText: text
-      }
+        truncatedText: joinUnits(textUnitList, prefixUnitCount(textUnitList, truncatedText) + 1),
+        lastText: truncatedText
+      };
     }
     else {
-      // both are unit-boundary prefixes of text, so the shorter string is also the one with fewer units
-      if (lastText === undefined || lastText.length < truncatedText.length) {
-        const textUnitList = textUnits(text);
-        return {
-          text,
-          truncatedText: joinUnits(textUnitList, prefixUnitCount(textUnitList, truncatedText) + 1),
-          lastText: truncatedText
-        };
-      }
-      else {
-        return {
-          text,
-          truncatedText,
-          lastText: truncatedText
-        };
-      }
+      return {
+        text,
+        truncatedText,
+        lastText: truncatedText
+      };
     }
   }
   return truncationData;

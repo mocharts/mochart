@@ -354,30 +354,16 @@ function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, s
           seriesFocusDomain = mergeDomain(seriesFocusDomain, configFocusDomain);
         }
         if (seriesFocusDomain[0] !== null) { // if the domain has no values then min ([0]) and max ([1]) will both be null
-          if (seriesFocusDomain[0] !== undefined || seriesFocusDomain[1] !== undefined) {
-            if (seriesFocusDomain[0] !== undefined && seriesFocusDomain[1] !== undefined) {
-              if (seriesFocusDomain[0] !== seriesFocusDomain[1]) {
-                seriesPercentages = [
-                  getPercentageForDomain(axisDomain, seriesFocusDomain[0], ascending),
-                  getPercentageForDomain(axisDomain, seriesFocusDomain[1]!, ascending)
-                ];
-              }
-              else {
-                seriesPercentages = [
-                  getPercentageForDomain(axisDomain, seriesFocusDomain[0], ascending)
-                ];
-              }
-            }
-            else if (seriesFocusDomain[0] !== undefined) {
-              seriesPercentages = [
-                getPercentageForDomain(axisDomain, seriesFocusDomain[0], ascending)
-              ];
-            }
-            else {
-              seriesPercentages = [
-                getPercentageForDomain(axisDomain, seriesFocusDomain[1]!, ascending)
-              ];
-            }
+          if (seriesFocusDomain[0] !== seriesFocusDomain[1]) {
+            seriesPercentages = [
+              getPercentageForDomain(axisDomain, seriesFocusDomain[0], ascending),
+              getPercentageForDomain(axisDomain, seriesFocusDomain[1]!, ascending)
+            ];
+          }
+          else {
+            seriesPercentages = [
+              getPercentageForDomain(axisDomain, seriesFocusDomain[0], ascending)
+            ];
           }
         }
       }

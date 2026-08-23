@@ -244,11 +244,6 @@ export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: Axi
   let titleBoundsHeight = 0;
   // TODO - check axisConfig.visible higher up...
   if (axisConfig.visible && axisConfig.title.text !== NONE && axisConfig.title.truncationEnabled) {
-    let { size: tickLabelSize } = axisConfig.tickLabel;
-    if (tickLabelSize === AUTO) {
-      tickLabelSize = axisLayoutInfo.tickLabelSize;
-    }
-
     const titleOffset = notAfter ? axisConfig.title.marginOuter + axisConfig.title.paddingOuter : totalTickLabelSize + axisConfig.title.marginInner + axisConfig.title.paddingInner;
 
     titleBoundsX = vertical ? titleOffset : 0;
