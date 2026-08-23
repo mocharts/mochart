@@ -1,17 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Dev server on vite.config's pinned 5173; --strictPort so a clash fails loudly.
-// Resolves the development export condition, so tests run against src.
+// Local runs use the dev server on vite.config's pinned 5173 (--strictPort so a clash fails loudly);
+// it resolves the development export condition, so tests run against src and edits show up live.
 const devServer = {
   command: 'npm run dev -- --strictPort',
   url: 'http://localhost:5173',
-  reuseExistingServer: !process.env.CI
+  reuseExistingServer: true
 };
 
-// CI-only second server: builds the demo against the library dist bundles and
-// serves it on vite preview's pinned 4173, so the published build is executed,
-// not just bundled. The timeout covers the build step.
-// Reproduce locally with: CI=1 npx playwright test --project=chromium-dist
+// CI builds the demo against the library dist bundles and serves it on vite preview's pinned 4173,
+// so the published build is what every project executes; the bundle also loads far faster than
+// the dev server's per-module requests. The timeout covers the build step.
+// Reproduce locally with: CI=1 npx playwright test
 const previewServer = {
   command: 'npm run build && npm run preview -- --strictPort',
   url: 'http://localhost:4173',
@@ -19,32 +19,27 @@ const previewServer = {
   timeout: 180_000
 };
 
+const isCI = !!process.env.CI;
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  // the runner's default is half its cores; the tests are short page loads, so all four stay busy
+  workers: isCI ? 4 : undefined,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: isCI ? previewServer.url : devServer.url,
     trace: 'on-first-retry'
   },
   // Chromium runs everything; Gecko and WebKit run the @smoke subset, so the
   // three engines the core README claims support for are all exercised without
   // tripling the gate. Tag a test with `smokeTag` from e2e/helpers to add it.
-  // In CI, chromium-dist runs the @smoke subset once more against the preview
-  // server's dist-based build.
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox', use: { ...devices['Desktop Firefox'] }, grep: /@smoke/ },
-    { name: 'webkit', use: { ...devices['Desktop Safari'] }, grep: /@smoke/ },
-    ...(process.env.CI
-      ? [{
-          name: 'chromium-dist',
-          use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4173' },
-          grep: /@smoke/
-        }]
-      : [])
+    { name: 'webkit', use: { ...devices['Desktop Safari'] }, grep: /@smoke/ }
   ],
-  webServer: process.env.CI ? [devServer, previewServer] : [devServer]
+  webServer: isCI ? previewServer : devServer
 });
