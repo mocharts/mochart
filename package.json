@@ -46,7 +46,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "deadcode": "knip",
-    "typecheck": "tsc -p scripts && npm run typecheck --workspaces --if-present"
+    "typecheck": "node scripts/typecheck.mjs"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^1.0.0",

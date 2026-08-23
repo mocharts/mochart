@@ -33,4 +33,7 @@ const source = [
 ].join('\n');
 
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-fs.writeFileSync(outputPath, source);
+// write-then-rename so a concurrent reader (another workspace's typecheck) never sees a partial file
+const tempPath = outputPath + '.tmp';
+fs.writeFileSync(tempPath, source);
+fs.renameSync(tempPath, outputPath);
