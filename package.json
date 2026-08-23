@@ -39,7 +39,7 @@
     "pack:libs": "node scripts/pack-libs.mjs",
     "release:version": "changeset version && npm run stamp-version -w @mochart/core && npm install --package-lock-only --ignore-scripts",
     "release:publish": "npm run publish:libs && changeset git-tag",
-    "test": "npm test --workspaces --if-present",
+    "test": "npm test --workspaces --if-present --",
     "test:e2e": "npm run test:e2e -w @mochart/demo-basic && npm run test:e2e -w @mochart/demo-vanilla",
     "screenshots": "node scripts/screenshots/capture.mjs",
     "screenshots:compare": "node scripts/screenshots/compare.mjs",
