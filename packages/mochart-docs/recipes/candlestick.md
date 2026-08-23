@@ -18,8 +18,9 @@ import * as candlestickVolume from '../examples/candlestickVolume'
 
 - Each item is `{ label, open, high, low, close }`. A candle is **up** when
   the close is at or above the open, **down** otherwise. Labels must be
-  unique, every price must be a finite number and `high` may not be below
-  `low` — the helper throws otherwise, so one bad tick can't blank the chart.
+  unique, every price must be a finite number, `high` may not be below
+  `low`, and `open` and `close` must lie within them — the helper throws
+  otherwise, so one bad tick can't blank the chart.
 - The helper returns `{ candles, data, categoryAxis, series }`. The candles
   are four ordinary `bar` series — an up and a down body spanning from `open`
   via [`rangeProperty`](/reference/series#series.rangeProperty), and an up

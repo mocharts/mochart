@@ -285,8 +285,21 @@ describe('createCandlestick', () => {
       .toThrow(/createCandlestick: Mon has high 1 below low 3/);
   });
 
-  it('still accepts a flat candle where every value is equal', () => {
+  it('throws when the open or close lies outside low–high', () => {
+    expect(() => createCandlestick([{ label: 'Mon', open: 100, high: 50, low: 40, close: 45 }]))
+      .toThrow(/createCandlestick: Mon has open 100 outside low 40 – high 50/);
+    expect(() => createCandlestick([{ label: 'Mon', open: 45, high: 50, low: 40, close: 30 }]))
+      .toThrow(/createCandlestick: Mon has close 30 outside low 40 – high 50/);
+  });
+
+  it('still accepts a flat candle where every value is equal, and an open or close on a bound', () => {
     expect(() => createCandlestick([{ label: 'Mon', open: 2, high: 2, low: 2, close: 2 }])).not.toThrow();
+    expect(() => createCandlestick([{ label: 'Mon', open: 1, high: 3, low: 1, close: 3 }])).not.toThrow();
+  });
+
+  it('names computeCandlesticks when called directly', () => {
+    expect(() => computeCandlesticks([{ label: 'Mon', open: 2, high: 1, low: 3, close: 2.5 }]))
+      .toThrow(/computeCandlesticks: Mon has high 1 below low 3/);
   });
 
   describe('config round-trip', () => {

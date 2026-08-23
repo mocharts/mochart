@@ -160,10 +160,15 @@ const DEFAULT_VOLUME_GAP_FRACTION = 0.05;
 const DEFAULT_VOLUME_LABEL = 'Volume';
 
 export function computeCandlesticks(items: readonly CandlestickItem[]): Candlestick[] {
-  checkUniqueLabels('createCandlestick', 'labels', items.map((item) => item.label));
+  return computeCandlesticksFor('computeCandlesticks', items);
+}
+
+/** computeCandlesticks naming the public helper it serves, so its errors name the function the caller called */
+export function computeCandlesticksFor(helperName: string, items: readonly CandlestickItem[]): Candlestick[] {
+  checkUniqueLabels(helperName, 'labels', items.map((item) => item.label));
   return items.map((item) => {
     const { label, open, high, low, close, volume } = item;
-    checkCandleValues(label, { open, high, low, close });
+    checkCandleValues(helperName, label, { open, high, low, close });
     return {
       label, open, high, low, close,
       ...(volume !== undefined ? { volume } : {}),
@@ -174,20 +179,28 @@ export function computeCandlesticks(items: readonly CandlestickItem[]): Candlest
 }
 
 // one bad tick would otherwise reach getDataErrors, which blanks the entire chart
-function checkCandleValues(label: string, values: Record<string, number | undefined>): void {
+function checkCandleValues(helperName: string, label: string, values: Record<string, number | undefined>): void {
   for (const key of ['open', 'high', 'low', 'close']) {
     const value = values[key];
     if (typeof value !== 'number' || !Number.isFinite(value)) {
-      throw new Error(`createCandlestick: ${label} has a missing or non-finite ${key}: ${String(value)}`);
+      throw new Error(`${helperName}: ${label} has a missing or non-finite ${key}: ${String(value)}`);
     }
   }
-  if (values['high']! < values['low']!) {
-    throw new Error(`createCandlestick: ${label} has high ${values['high']} below low ${values['low']}`);
+  const high = values['high']!;
+  const low = values['low']!;
+  if (high < low) {
+    throw new Error(`${helperName}: ${label} has high ${high} below low ${low}`);
+  }
+  for (const key of ['open', 'close']) {
+    const value = values[key]!;
+    if (value < low || value > high) {
+      throw new Error(`${helperName}: ${label} has ${key} ${value} outside low ${low} – high ${high}`);
+    }
   }
 }
 
 /** Resolves the shared candlestick/OHLC `volume` option; null when disabled. */
-export function getVolumeOptions(volume: boolean | CandlestickVolumeOptions | undefined): Required<CandlestickVolumeOptions> | null {
+export function getVolumeOptions(helperName: string, volume: boolean | CandlestickVolumeOptions | undefined): Required<CandlestickVolumeOptions> | null {
   if (volume === undefined || volume === false) {
     return null;
   }
@@ -196,13 +209,13 @@ export function getVolumeOptions(volume: boolean | CandlestickVolumeOptions | un
   const gapFraction = options.gapFraction ?? DEFAULT_VOLUME_GAP_FRACTION;
   // the pane split divides by heightFraction and by the price share, so each pane needs a real slice
   if (!(heightFraction > 0 && heightFraction < 1)) {
-    throw new Error(`createCandlestick: volume heightFraction must be between 0 and 1, got ${heightFraction}`);
+    throw new Error(`${helperName}: volume heightFraction must be between 0 and 1, got ${heightFraction}`);
   }
   if (!(gapFraction >= 0 && gapFraction < 1)) {
-    throw new Error(`createCandlestick: volume gapFraction must be at least 0 and below 1, got ${gapFraction}`);
+    throw new Error(`${helperName}: volume gapFraction must be at least 0 and below 1, got ${gapFraction}`);
   }
   if (heightFraction + gapFraction >= 1) {
-    throw new Error(`createCandlestick: volume heightFraction + gapFraction must be below 1, got ${heightFraction} + ${gapFraction}`);
+    throw new Error(`${helperName}: volume heightFraction + gapFraction must be below 1, got ${heightFraction} + ${gapFraction}`);
   }
   return {
     heightFraction,
@@ -295,12 +308,12 @@ export function buildDirectionRows(
 }
 
 export function createCandlestick(items: readonly CandlestickItem[], options: CreateCandlestickOptions = {}): CandlestickData {
-  const candles = computeCandlesticks(items);
+  const candles = computeCandlesticksFor('createCandlestick', items);
   const wickWidthFraction = options.wickWidthFraction ?? DEFAULT_WICK_WIDTH_FRACTION;
   const bodyWidthFraction = options.bodyWidthFraction ?? 1;
   const rangeTitle = options.rangeTitle ?? DEFAULT_RANGE_TITLE;
   const hollow = options.hollow ?? false;
-  const volumeOptions = getVolumeOptions(options.volume);
+  const volumeOptions = getVolumeOptions('createCandlestick', options.volume);
 
   // The hollow up candle's below-body wick segment spans low→open and needs the open under an
   // up-only property (the shared `open` exists on every row, so it can't gate by direction).

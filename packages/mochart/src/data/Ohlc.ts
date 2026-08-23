@@ -1,5 +1,5 @@
 import {
-  computeCandlesticks, DIRECTIONS, DEFAULT_TITLES, DEFAULT_COLORS, CATEGORY_PROPERTY, DEFAULT_RANGE_TITLE,
+  computeCandlesticksFor, DIRECTIONS, DEFAULT_TITLES, DEFAULT_COLORS, CATEGORY_PROPERTY, DEFAULT_RANGE_TITLE,
   PRICE_AXIS_ID, getVolumeOptions, buildVolumeValueAxisConfigs, buildVolumeSeriesConfigs, buildDirectionRows
 } from './Candlestick';
 import type { Candlestick, CandlestickDirection, CandlestickItem, CandlestickVolumeOptions } from './Candlestick';
@@ -101,14 +101,14 @@ const DEFAULT_OPEN_TITLE = 'Open';
 const DEFAULT_CLOSE_TITLE = 'Close';
 
 export function createOhlc(items: readonly CandlestickItem[], options: CreateOhlcOptions = {}): OhlcData {
-  const candles = computeCandlesticks(items);
+  const candles = computeCandlesticksFor('createOhlc', items);
   const lineWidthFraction = options.lineWidthFraction ?? DEFAULT_LINE_WIDTH_FRACTION;
   const tickWidthFraction = options.tickWidthFraction ?? DEFAULT_TICK_WIDTH_FRACTION;
   const tickExtent = options.tickExtent ?? DEFAULT_TICK_EXTENT;
   const rangeTitle = options.rangeTitle ?? DEFAULT_RANGE_TITLE;
   const openTitle = options.openTitle ?? DEFAULT_OPEN_TITLE;
   const closeTitle = options.closeTitle ?? DEFAULT_CLOSE_TITLE;
-  const volumeOptions = getVolumeOptions(options.volume);
+  const volumeOptions = getVolumeOptions('createOhlc', options.volume);
 
   const data = buildDirectionRows(candles, DIRECTIONS, volumeOptions);
 

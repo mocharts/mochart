@@ -91,7 +91,12 @@ const DEFAULT_COLORS: Record<WaterfallDirection, string> = {
 };
 
 export function computeWaterfallSteps(items: readonly WaterfallItem[], base = 0): WaterfallStep[] {
-  checkUniqueLabels('createWaterfall', 'labels', items.map((item) => item.label));
+  return computeWaterfallStepsFor('computeWaterfallSteps', items, base);
+}
+
+/** computeWaterfallSteps naming the public helper it serves, so its errors name the function the caller called */
+function computeWaterfallStepsFor(helperName: string, items: readonly WaterfallItem[], base: number): WaterfallStep[] {
+  checkUniqueLabels(helperName, 'labels', items.map((item) => item.label));
   let running = base;
   return items.map((item) => {
     const { label } = item;
@@ -111,7 +116,7 @@ export function computeWaterfallSteps(items: readonly WaterfallItem[], base = 0)
 
 export function createWaterfall(items: readonly WaterfallItem[], options: CreateWaterfallOptions = {}): WaterfallData {
   const base = options.base ?? 0;
-  const steps = computeWaterfallSteps(items, base);
+  const steps = computeWaterfallStepsFor('createWaterfall', items, base);
 
   const data = steps.map((step) => ({
     [CATEGORY_PROPERTY]: step.label,

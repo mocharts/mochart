@@ -109,12 +109,19 @@ describe('createOhlc', () => {
     expect(seriesConfigs).toHaveLength(6);
   });
 
-  // createOhlc shares computeCandlesticks, so it inherits the guard
+  // createOhlc shares the candlestick guards, and its errors name createOhlc
   it('throws when two bars share a label', () => {
     expect(() => createOhlc([
       { label: 'Mon', open: 1, high: 3, low: 0, close: 2 },
       { label: 'Mon', open: 2, high: 4, low: 1, close: 1.5 }
-    ])).toThrow(/labels must be unique, duplicates: Mon/);
+    ])).toThrow(/^createOhlc: labels must be unique, duplicates: Mon/);
+  });
+
+  it('names createOhlc in the candle and volume errors', () => {
+    expect(() => createOhlc([{ label: 'Mon', open: 2, high: 1, low: 3, close: 2.5 }]))
+      .toThrow(/^createOhlc: Mon has high 1 below low 3/);
+    expect(() => createOhlc([{ label: 'Mon', open: 1, high: 3, low: 0, close: 2 }], { volume: { heightFraction: 2 } }))
+      .toThrow(/^createOhlc: volume heightFraction/);
   });
 
   describe('config round-trip', () => {

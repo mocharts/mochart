@@ -148,6 +148,8 @@ describe('createWaterfall', () => {
       { label: 'Other', value: 20 },
       { label: 'Other', value: -30 }
     ])).toThrow(/createWaterfall: labels must be unique, duplicates: Other/);
+    expect(() => computeWaterfallSteps([{ label: 'Other', value: 20 }, { label: 'Other', value: -30 }]))
+      .toThrow(/computeWaterfallSteps: labels must be unique, duplicates: Other/);
   });
 
   describe('config round-trip', () => {
