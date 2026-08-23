@@ -989,15 +989,25 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   /** the visually-hidden aria-live node; keyboard navigation speaks the tooltip through it */
   liveRegionNode: Node | null = null;
   private announceTimer: ReturnType<typeof setTimeout> | null = null;
-  private pendingAnnouncement: string | null = null;
+  private pendingAnnouncement: { text: string; categoryIndex: number | null } | null = null;
   private lastAnnouncement = '';
+  private lastAnnouncedCategoryIndex: number | null = null;
 
   /** the live region and message live inside ChartBody, so the references have to go when the body does */
   private clearBody(): void {
     this.body.set(null);
-    this.liveRegionNode = null;
+    this.setLiveRegionNode(null);
     this.messageRef = null;
     this.cancelAnnouncement();
+  }
+
+  /** a new or dropped region starts with nothing spoken, so the latch must not swallow its first announcement */
+  private setLiveRegionNode(liveRegionNode: Node | null): void {
+    if (liveRegionNode !== this.liveRegionNode) {
+      this.liveRegionNode = liveRegionNode;
+      this.lastAnnouncement = '';
+      this.lastAnnouncedCategoryIndex = null;
+    }
   }
 
   private cancelAnnouncement(): void {
@@ -1020,17 +1030,17 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         getTooltipAnnouncement(this.renderedConfig(), getCategorySeriesValueObject(chartData!, categoryIndex));
       if (announcement === '') {
         this.cancelAnnouncement();
-        this.writeAnnouncement(announcement);
+        this.writeAnnouncement(announcement, null);
         return;
       }
       // a single step speaks at once; a held arrow key adds only the category it settles on,
       // so the region never queues one announcement per category passed through
       if (this.announceTimer === null) {
-        this.writeAnnouncement(announcement);
+        this.writeAnnouncement(announcement, categoryIndex);
       }
       else {
         clearTimeout(this.announceTimer);
-        this.pendingAnnouncement = announcement;
+        this.pendingAnnouncement = { text: announcement, categoryIndex };
       }
       this.announceTimer = setTimeout(this.flushAnnouncement, announceSettleDelay);
     }
@@ -1039,17 +1049,18 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   private flushAnnouncement = (): void => {
     this.announceTimer = null;
     if (this.pendingAnnouncement !== null) {
-      const announcement = this.pendingAnnouncement;
+      const { text, categoryIndex } = this.pendingAnnouncement;
       this.pendingAnnouncement = null;
-      this.writeAnnouncement(announcement);
+      this.writeAnnouncement(text, categoryIndex);
     }
   }
 
-  // an unchanged string is a no-op: several screen readers drop a repeated announcement anyway,
-  // and rewriting it churns the live region for nothing
-  private writeAnnouncement(announcement: string): void {
-    if (this.liveRegionNode !== null && announcement !== this.lastAnnouncement) {
+  // re-announcing the same category with the same text is a no-op (a clamped arrow): rewriting it
+  // churns the live region for nothing; a different category with the same text still speaks
+  private writeAnnouncement(announcement: string, categoryIndex: number | null): void {
+    if (this.liveRegionNode !== null && (announcement !== this.lastAnnouncement || categoryIndex !== this.lastAnnouncedCategoryIndex)) {
       this.lastAnnouncement = announcement;
+      this.lastAnnouncedCategoryIndex = categoryIndex;
       this.liveRegionNode.textContent = announcement;
     }
   }
@@ -1201,7 +1212,10 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       }
       else {
         this.chartRef = null;
+        this.clearBody();
+        this.setSimpleContent(null, null);
         this.setPresent(false);
+        this.restoreTornDownFocus(focusedNode);
       }
       return;
     }
@@ -1425,7 +1439,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     // the keyboard announcer: visually hidden, spoken via role="status"
     const liveRegion = accessibility ? body.liveRegionSlot.set('div', () => htmlEl('div')) : body.liveRegionSlot.set(null);
     liveRegion?.set({ role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true', style: liveRegionStyle });
-    this.liveRegionNode = liveRegion !== null ? liveRegion.node : null;
+    this.setLiveRegionNode(liveRegion !== null ? liveRegion.node : null);
     body.clips.sync(clips);
     body.background.set(Background, { config: mochartConfig.chart, classKey: 'background', spacingRelative: false, spacingLayoutInfo: chartContentLayoutInfo });
     body.title.set(Title, { mochartConfig, titleLayoutInfo, titlePrefixLayoutInfo,

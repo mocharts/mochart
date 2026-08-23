@@ -2,9 +2,9 @@
  * Plot-area keyboard accessibility: the series-area rect is a button tab stop — Enter/Space toggles the
  * tooltip (aria-expanded tracks it), arrows/Home/End step categories, Escape closes, reopening resumes.
  */
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
-import { mountContainer, trackHandle, lastHandle } from './helpers';
+import { mountContainer, trackHandle, lastHandle, mockBoundingClientRect } from './helpers';
 import { createChart, createDefaultChart } from '../../src/createChart';
 import { enhanceConfig } from '../../src/config/helper';
 import { ArrayOfObjectsDataProvider } from '../../src/data/DataProvider';
@@ -206,6 +206,85 @@ describe('plot keyboard semantics', () => {
 
     key(rect, 'Escape');
     expect(liveText(container)).toBe('');
+  });
+
+  // Regression: the region deduped on the announcement string alone, so with the category hidden from
+  // the tooltip a step between two categories with equal values said nothing
+  it('announces a step onto a different category whose text is identical', async () => {
+    const flat = [{ month: 'Jan', sales: 10 }, { month: 'Feb', sales: 10 }];
+    const container = mountContainer();
+    trackHandle(createDefaultChart(container, {
+      config: makeConfig({ series: [{ id: 'S0', property: 'sales' }], tooltip: { showCategory: false } }),
+      data: flat, width: 800, height: 600
+    }));
+    const rect = plotRect(container);
+    const region = container.querySelector('[role="status"]')!;
+    const writes: string[] = [];
+    new MutationObserver(records => records.forEach(() => writes.push(region.textContent ?? ''))).observe(region, { childList: true, characterData: true, subtree: true });
+
+    key(rect, 'Enter');
+    expect(liveText(container)).toBe('Series S0: 10.00');
+    key(rect, 'ArrowRight');
+    await settleAnnouncement();
+    // the same text written again for Feb; a clamped arrow on the last category writes nothing
+    expect(writes.length).toBe(2);
+    key(rect, 'ArrowRight');
+    await settleAnnouncement();
+    expect(writes.length).toBe(2);
+  });
+
+  // Regression: the dedupe latch outlived the live region, so a tooltip closed while accessibility was
+  // off and reopened once it was back on left the fresh region empty
+  it('announces into a recreated live region after accessibility is toggled off and on', async () => {
+    mockBoundingClientRect(800, 600);
+    const container = mountContainer();
+    const handle = trackHandle(createChart(container, {
+      mochartConfig: enhanceConfig(makeConfig()), dataProvider: new ArrayOfObjectsDataProvider(rows), width: 800, height: 600
+    }));
+    key(plotRect(container), 'Enter');
+    expect(liveText(container)).toBe('Jan: Series S0: 10.00, Series S1: 5.00');
+
+    // no region while accessibility is off, so closing the tooltip by pointer has nothing to silence
+    handle.update({ mochartConfig: enhanceConfig(makeConfig({ accessibility: { enabled: false } })) });
+    expect(container.querySelector('[role="status"]')).toBeNull();
+    const root = container.querySelector(getCssSelector('chart'))!;
+    root.dispatchEvent(new MouseEvent('mouseenter', { clientX: 100, clientY: 100, bubbles: true }));
+    root.dispatchEvent(new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true }));
+    expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
+
+    handle.update({ mochartConfig: enhanceConfig(makeConfig()) });
+    expect(liveText(container)).toBe('');
+    key(plotRect(container), 'Enter'); // reopens at the remembered category
+    await settleAnnouncement();
+    expect(liveText(container)).toBe('Jan: Series S0: 10.00, Series S1: 5.00');
+    vi.restoreAllMocks();
+  });
+
+  // Regression: the no-config, no-error, not-loading state only detached the root, leaving the body,
+  // its live region and a pending announcement alive behind it — and the stale region came back as-is
+  it('tears the body down when the config goes away without an error or loading', async () => {
+    const container = mountContainer();
+    const handle = trackHandle(createChart(container, {
+      mochartConfig: enhanceConfig(makeConfig()), dataProvider: new ArrayOfObjectsDataProvider(rows), width: 800, height: 600
+    }));
+    const root = container.querySelector(getCssSelector('chart'))!;
+    key(plotRect(container), 'Enter');
+    key(plotRect(container), 'ArrowRight'); // pending inside the settle window
+
+    handle.update({ mochartConfig: null, dataProvider: null });
+    expect(container.children.length).toBe(0);
+    expect(root.children.length).toBe(0);
+    await settleAnnouncement();
+
+    // the rebuilt body speaks again, reopening at the remembered category: a fresh region that is written to
+    handle.update({ mochartConfig: enhanceConfig(makeConfig()), dataProvider: new ArrayOfObjectsDataProvider(rows) });
+    const region = container.querySelector('[role="status"]')!;
+    expect(region.textContent).toBe('');
+    const writes: string[] = [];
+    new MutationObserver(records => records.forEach(() => writes.push(region.textContent ?? ''))).observe(region, { childList: true, characterData: true, subtree: true });
+    key(plotRect(container), 'Enter');
+    await settleAnnouncement();
+    expect(writes).toEqual(['Feb: Series S0: 20.00, Series S1: 8.00']);
   });
 
   it('has no live region when chart accessibility is disabled', () => {
