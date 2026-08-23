@@ -3674,7 +3674,7 @@ table thead td { border-bottom-width: 2px; }
 </td>
 </tr>
 <tr id="series.colorProperty">
-<td><a href="#series.colorProperty">colorProperty</a></td><td>the property to retrieve from the data provider for the series color values (use null for none, to color by style instead)</td><td><p>should be a string naming a data property or be equal to null when chart type is xy and renderer is bar, and colorScale is not null</p>
+<td><a href="#series.colorProperty">colorProperty</a></td><td>the property to retrieve from the data provider for the series color values (use null for none, to color by style instead)<br/><br/>The values retrieved for this property must be numbers, like `property`, mapped through `colorScale`; a missing value takes `colorScale.missing`.</td><td><p>should be a string naming a data property or be equal to null when chart type is xy and renderer is bar, and colorScale is not null</p>
 <p>should be equal to null when chart type is not xy or renderer is not bar, or colorScale is null</p>
 </td><td><div>null</div>
 </td>
@@ -3851,7 +3851,7 @@ table thead td { border-bottom-width: 2px; }
 </td>
 </tr>
 <tr id="series.errorLowProperty">
-<td><a href="#series.errorLowProperty">errorLowProperty</a></td><td>the property to retrieve from the data provider for the absolute lower error bound values used to draw error bars (use null for none)<br/><br/>The bounds are absolute values in value axis units, not deltas from the series value, and they join the value axis domain so the whiskers never clip. Either bound can be used alone for a one-sided error bar; a category whose bound is undefined just omits that side of the whisker. Error bars draw on `bar`, `line`, `area` and `none` renderer series (centered on each bar — including grouped sub-slot bars — or on each point), but not on stacked series, where absolute bounds have no meaning against the cumulative stack position.</td><td><p>should be equal to null when stack is not null</p>
+<td><a href="#series.errorLowProperty">errorLowProperty</a></td><td>the property to retrieve from the data provider for the absolute lower error bound values used to draw error bars (use null for none)<br/><br/>The values retrieved for this property must be numbers, like `property`. The bounds are absolute values in value axis units, not deltas from the series value, and they join the value axis domain so the whiskers never clip. Either bound can be used alone for a one-sided error bar; a category whose bound is undefined just omits that side of the whisker. Error bars draw on `bar`, `line`, `area` and `none` renderer series (centered on each bar — including grouped sub-slot bars — or on each point), but not on stacked series, where absolute bounds have no meaning against the cumulative stack position.</td><td><p>should be equal to null when stack is not null</p>
 <p>should be a string naming a data property or be equal to null when stack is null</p>
 </td><td><div>null</div>
 </td>
@@ -4073,7 +4073,7 @@ table thead td { border-bottom-width: 2px; }
 </td>
 </tr>
 <tr id="series.labelProperty">
-<td><a href="#series.labelProperty">labelProperty</a></td><td>the property to retrieve from the data provider for the series label values (use null for none)</td><td>should be a string naming a data property or be equal to null</td><td><div>null</div>
+<td><a href="#series.labelProperty">labelProperty</a></td><td>the property to retrieve from the data provider for the series label values (use null for none)<br/><br/>The values retrieved for this property must be numbers, like `property` — formatted by `label.format`, not label text; a missing value draws no label for that category.</td><td>should be a string naming a data property or be equal to null</td><td><div>null</div>
 </td>
 </tr>
 <tr id="series.marker">
@@ -4192,7 +4192,7 @@ table thead td { border-bottom-width: 2px; }
 </td>
 </tr>
 <tr id="series.markerProperty">
-<td><a href="#series.markerProperty">markerProperty</a></td><td>the property to retrieve from the data provider for the marker size values (use null for none)</td><td>should be a string naming a data property or be equal to null</td><td><div>null</div>
+<td><a href="#series.markerProperty">markerProperty</a></td><td>the property to retrieve from the data provider for the marker size values (use null for none)<br/><br/>The values retrieved for this property must be numbers, like `property`; a missing value draws no marker for that category.</td><td>should be a string naming a data property or be equal to null</td><td><div>null</div>
 </td>
 </tr>
 <tr id="series.missingValueMode">
@@ -4218,11 +4218,11 @@ table thead td { border-bottom-width: 2px; }
 </td>
 </tr>
 <tr id="series.property">
-<td><a href="#series.property">property</a></td><td>the property to retrieve from the data provider for the series values<br/><br/>The chart reads this property from each category of the data provider to get the series value — it is the only series property without a default, so every series must set it. Use `getDataErrors` to check a dataset against the configured properties.</td><td>should be a string naming a data property</td><td><div>required</div>
+<td><a href="#series.property">property</a></td><td>the property to retrieve from the data provider for the series values<br/><br/>The chart reads this property from each category of the data provider to get the series value — it is the only series property without a default, so every series must set it. The values retrieved for this property must be numbers; `null`, `undefined` or `NaN` reads as a missing value. Use `getDataErrors` to check a dataset against the configured properties.</td><td>should be a string naming a data property</td><td><div>required</div>
 </td>
 </tr>
 <tr id="series.rangeProperty">
-<td><a href="#series.rangeProperty">rangeProperty</a></td><td>the property to retrieve from the data provider for the secondary series values (use null for none)<br/><br/>When set, the series shape spans from the `rangeProperty` value to the `property` value instead of starting at the axis base — producing floating bars, a banded (low/high) area, or a pair of lines with the `line` renderer.</td><td>should be a string naming a data property or be equal to null</td><td><div>null</div>
+<td><a href="#series.rangeProperty">rangeProperty</a></td><td>the property to retrieve from the data provider for the secondary series values (use null for none)<br/><br/>The values retrieved for this property must be numbers, like `property`. When set, the series shape spans from the `rangeProperty` value to the `property` value instead of starting at the axis base — producing floating bars, a banded (low/high) area, or a pair of lines with the `line` renderer.</td><td>should be a string naming a data property or be equal to null</td><td><div>null</div>
 </td>
 </tr>
 <tr id="series.renderer">
@@ -4380,7 +4380,7 @@ table thead td { border-bottom-width: 2px; }
 </td>
 </tr>
 <tr id="series.tooltipProperty">
-<td><a href="#series.tooltipProperty">tooltipProperty</a></td><td>the property to retrieve from the data provider for the values shown for the series in the tooltip in place of the series values (use null for none)</td><td>should be a string naming a data property or be equal to null</td><td><div>null</div>
+<td><a href="#series.tooltipProperty">tooltipProperty</a></td><td>the property to retrieve from the data provider for the values shown for the series in the tooltip in place of the series values (use null for none)<br/><br/>The values retrieved for this property must be numbers, like `property`, formatted by the series `valueFormat`; a missing value shows the tooltip's missing-value text for that category.</td><td>should be a string naming a data property or be equal to null</td><td><div>null</div>
 </td>
 </tr>
 <tr id="series.useAxisFocus">

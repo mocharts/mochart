@@ -59,10 +59,12 @@ The rules the chart holds the values to:
 - **The config's category property defines the category count.** Every other
   requested property must return the same number of values; a mismatch is a
   hard data error naming both counts.
-- **Every value is a `DataValue`.** Series values must be finite numbers,
-  with `null`, `undefined` and `NaN` all reading as a missing value (`null`
-  is how JSON writes a hole in the data, `NaN` is what a failed parse leaves
-  behind; the chart normalizes every missing value to `NaN` internally).
+- **Every value is a `DataValue`.** Series values — and the `rangeProperty`,
+  error-bound, `markerProperty`, `labelProperty`, `tooltipProperty` and
+  `colorProperty` values — must be finite numbers, with `null`, `undefined`
+  and `NaN` all reading as a missing value (`null` is how JSON writes a hole
+  in the data, `NaN` is what a failed parse leaves behind; the chart
+  normalizes every missing value to `NaN` internally).
   Category values are strings, numbers, or `Date`s matching
   `categoryAxis.type`; key values are strings or numbers.
 - **`undefined` in place of the array means "not in the data".** That is

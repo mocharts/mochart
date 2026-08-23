@@ -3000,14 +3000,16 @@ export interface SeriesConfig {
    *
    * The chart reads this property from each category of the data provider to
    * get the series value — it is the only series property without a default, so
-   * every series must set it. Use `getDataErrors` to check a dataset against
-   * the configured properties.
+   * every series must set it. The values retrieved for this property must be
+   * numbers; `null`, `undefined` or `NaN` reads as a missing value. Use
+   * `getDataErrors` to check a dataset against the configured properties.
    */
   property?: string;
   /**
    * The property to retrieve from the data provider for the secondary series
    * values (use null for none).
    *
+   * The values retrieved for this property must be numbers, like `property`.
    * When set, the series shape spans from the `rangeProperty` value to the
    * `property` value instead of starting at the axis base — producing floating
    * bars, a banded (low/high) area, or a pair of lines with the `line`
@@ -3020,6 +3022,7 @@ export interface SeriesConfig {
    * The property to retrieve from the data provider for the absolute lower
    * error bound values used to draw error bars (use null for none).
    *
+   * The values retrieved for this property must be numbers, like `property`.
    * The bounds are absolute values in value axis units, not deltas from the
    * series value, and they join the value axis domain so the whiskers never
    * clip. Either bound can be used alone for a one-sided error bar; a category
@@ -3045,12 +3048,19 @@ export interface SeriesConfig {
    * The property to retrieve from the data provider for the marker size values
    * (use null for none).
    *
+   * The values retrieved for this property must be numbers, like `property`; a
+   * missing value draws no marker for that category.
+   *
    * @default null
    */
   markerProperty: string | null;
   /**
    * The property to retrieve from the data provider for the series label values
    * (use null for none).
+   *
+   * The values retrieved for this property must be numbers, like `property` —
+   * formatted by `label.format`, not label text; a missing value draws no label
+   * for that category.
    *
    * @default null
    */
@@ -3060,12 +3070,19 @@ export interface SeriesConfig {
    * the series in the tooltip in place of the series values (use null for
    * none).
    *
+   * The values retrieved for this property must be numbers, like `property`,
+   * formatted by the series `valueFormat`; a missing value shows the tooltip's
+   * missing-value text for that category.
+   *
    * @default null
    */
   tooltipProperty: string | null;
   /**
    * The property to retrieve from the data provider for the series color values
    * (use null for none, to color by style instead).
+   *
+   * The values retrieved for this property must be numbers, like `property`,
+   * mapped through `colorScale`; a missing value takes `colorScale.missing`.
    *
    * @default null
    */
