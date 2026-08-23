@@ -15,6 +15,10 @@ export function getTooltipLayoutInfo(mochartConfig: EnhancedMochartConfig, toolt
     return defaultLayout;
   }
   const { tooltip: tooltipConfig, plot: plotConfig } = mochartConfig;
+  const snappedOffset = tooltipConfig.snapToCategory ? categoryValueData!.positions[focusedCategoryIndex] : undefined;
+  if (tooltipConfig.snapToCategory && snappedOffset === undefined) {
+    return defaultLayout;
+  }
   const { chartContentLayoutInfo, seriesLayoutInfo, containerLayoutInfo } = layoutInfo!;
   let { width, height } = tooltipBounds;
   // A null border width leaves the css unset, so the border occupies nothing — and neither does a border with no color.
@@ -23,7 +27,7 @@ export function getTooltipLayoutInfo(mochartConfig: EnhancedMochartConfig, toolt
   const { padding } = tooltipConfig;
   width += 2 * borderWidth + padding.left + padding.right;
   height += 2 * borderWidth + padding.top + padding.bottom;
-  const categoryOffset = tooltipConfig.snapToCategory ? categoryValueData!.positions[focusedCategoryIndex] : tooltipCategoryPercentage * seriesLayoutInfo.categoryExtent;
+  const categoryOffset = snappedOffset !== undefined ? snappedOffset : tooltipCategoryPercentage * seriesLayoutInfo.categoryExtent;
   const seriesOffset = tooltipSeriesPercentage * seriesLayoutInfo.valueExtent;
 
   let tooltipLayoutInfo = {

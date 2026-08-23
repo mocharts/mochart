@@ -34,6 +34,24 @@ describe('tooltip keepInside clamping', () => {
   });
 });
 
+describe('snapToCategory with no category to snap to', () => {
+  const snapping = { ...mochartConfig, tooltip: { ...mochartConfig.tooltip, snapToCategory: true } } as EnhancedMochartConfig;
+
+  // Regression: index -1 (the closed tooltip) read positions[-1] and stored NaN bounds in the chart state
+  it('returns the default layout for an index outside the positions, never NaN', () => {
+    const closed = getTooltipLayoutInfo(snapping, { width: 40, height: 30 }, layoutInfo, { positions: [20, 60, 100] }, -1, 0, 0);
+    const gone = getTooltipLayoutInfo(snapping, { width: 40, height: 30 }, layoutInfo, { positions: [20, 60, 100] }, 3, 0, 0);
+    expect(closed).toEqual(getTooltipLayoutInfo(snapping, null));
+    expect(gone).toEqual(getTooltipLayoutInfo(snapping, null));
+    expect(Object.values(closed).every(Number.isFinite)).toBe(true);
+  });
+
+  it('still snaps to a category that is there', () => {
+    const bounds = getTooltipLayoutInfo(snapping, { width: 40, height: 30 }, layoutInfo, { positions: [20, 60, 100] }, 1, 0, 0);
+    expect(bounds.x).toBe(10 + 60 - 20);
+  });
+});
+
 describe('fitRectangleWithinRectangle', () => {
   it('keeps a rectangle that fits inside the bounds', () => {
     expect(fitRectangleWithinRectangle({ x: 0, y: 0, width: 200, height: 80 }, { x: 10, y: 10, width: 100, height: 50 }))

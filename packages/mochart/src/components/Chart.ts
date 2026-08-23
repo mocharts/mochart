@@ -258,16 +258,17 @@ function getBoundsAreDifferent(oldBounds: Bounds, newBounds: Bounds): boolean {
 }
 
 const getInitialState = (): ChartState => ({
-  uniqueIds: null, layoutInfo: null, tooltipLayoutInfo: null, chartTextBoundsData: {} as ChartTextBoundsData, tooltipBounds: null, axisData: null, stackData: null, clippedEdges: noClippedEdges,
+  uniqueIds: null, layoutInfo: null, tooltipLayoutInfo: null, chartTextBoundsData: {} as ChartTextBoundsData, axisData: null, stackData: null, clippedEdges: noClippedEdges,
   ...getInitialTooltipState()
 });
 
-const getInitialTooltipState = (): Pick<ChartState, 'tooltipVisible' | 'tooltipCategoryIndex' | 'tooltipCategoryPercentage' | 'tooltipSeriesPercentage' | 'tooltipValueObject'> => ({
+const getInitialTooltipState = (): Pick<ChartState, 'tooltipVisible' | 'tooltipCategoryIndex' | 'tooltipCategoryPercentage' | 'tooltipSeriesPercentage' | 'tooltipValueObject' | 'tooltipBounds'> => ({
   tooltipVisible: false,
   tooltipCategoryIndex: -1,
   tooltipCategoryPercentage: null,
   tooltipSeriesPercentage: null,
-  tooltipValueObject: null
+  tooltipValueObject: null,
+  tooltipBounds: null
 });
 
 /**
@@ -742,8 +743,8 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         if (mochartConfigChanged) {
           ({ uniqueIds } = this.constructUniqueIds(mochartConfig));
         }
-        const { tooltipVisible, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipSeriesPercentage, tooltipValueObject } = tooltipStateSource;
-        const newState = { uniqueIds, layoutInfo, axisData, stackData, clippedEdges, tooltipVisible, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipSeriesPercentage, tooltipValueObject };
+        const { tooltipVisible, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipSeriesPercentage, tooltipValueObject, tooltipBounds } = tooltipStateSource;
+        const newState = { uniqueIds, layoutInfo, axisData, stackData, clippedEdges, tooltipVisible, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipSeriesPercentage, tooltipValueObject, tooltipBounds };
         return this.applyLayoutInfo(mochartConfig, newState);
       }
       else {
