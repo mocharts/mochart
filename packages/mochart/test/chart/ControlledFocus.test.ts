@@ -256,6 +256,49 @@ describe('synchronous host re-entrancy', () => {
     chart.destroy();
   });
 
+  // Regression: the outer update() reported its pre-re-entry filter snapshot after a re-entrant
+  // update() from onFocus had committed a newer host filter, so the host wrote the stale set back
+  it('drops a pending filter report superseded by a re-entrant update() from onFocus', () => {
+    const { createChart, enhanceConfig, ArrayOfObjectsDataProvider } = mochart;
+    const makeConfig = (categoryProperty: string) => enhanceConfig({
+      version: '1.0.0',
+      animation: { enabled: false },
+      categoryAxis: { property: categoryProperty, type: 'string', scale: 'ordinal' },
+      series: [
+        { id: 'sales', property: 'sales', renderer: 'line' },
+        { id: 'costs', property: 'costs', renderer: 'line' }
+      ]
+    });
+    const rows = data.map((row, index) => ({ ...row, week: 'W' + index }));
+    const container = mountContainer();
+    const onSeriesFilter = vi.fn();
+    let chart: ReturnType<typeof createChart> | null = null;
+    const onFocus = vi.fn(() => {
+      chart!.update({ focusedCategoryIndex: -1, filteredSeriesIds: { sales: true } });
+    });
+    chart = createChart(container, {
+      mochartConfig: makeConfig('month'),
+      dataProvider: new ArrayOfObjectsDataProvider(rows),
+      width: 300, height: 200,
+      focusedCategoryIndex: 1, filteredSeriesIds: { costs: true },
+      onFocus, onSeriesFilter
+    });
+    runFrames();
+
+    // structural change resets focus and filters; the host picks a new filter from onFocus
+    chart.update({
+      mochartConfig: makeConfig('week'),
+      dataProvider: new ArrayOfObjectsDataProvider(rows),
+      focusedCategoryIndex: 1, filteredSeriesIds: { costs: true }
+    });
+    runFrames();
+
+    expect(onFocus).toHaveBeenCalledTimes(1);
+    expect(onSeriesFilter).not.toHaveBeenCalled();
+    expect(seriesIds(container)).toEqual([getIdCssClass('series', 'costs')]);
+    chart.destroy();
+  });
+
   // Regression: update() fired onFocus then onSeriesFilter with no destroyed check between them, so a
   // host tearing the chart down inside the first callback still heard the second from a destroyed chart
   it('stops notifying once the host destroys the chart from a callback', () => {
@@ -497,6 +540,47 @@ describe('controlled focus props', () => {
     expect(onFocus).toHaveBeenCalledTimes(1);
     expect(onFocus).toHaveBeenCalledWith(expect.objectContaining({ focusedCategoryIndex: 0 }));
     expect(onSeriesFilter).not.toHaveBeenCalled();
+    chart.destroy();
+  });
+
+  // Regression: the reset was reported but then undone by re-applying the unchanged controlled
+  // value, so the chart rendered the host's stale filter while telling the host it was empty
+  it('renders the reset it reports when the host carries a controlled value along unchanged, until the host re-asserts it', () => {
+    const { createChart, enhanceConfig, ArrayOfObjectsDataProvider } = mochart;
+    const makeConfig = (categoryProperty: string) => enhanceConfig({
+      version: '1.0.0',
+      animation: { enabled: false },
+      categoryAxis: { property: categoryProperty, type: 'string', scale: 'ordinal' },
+      series: [
+        { id: 'sales', property: 'sales', renderer: 'line' },
+        { id: 'costs', property: 'costs', renderer: 'line' }
+      ]
+    });
+    const rows = data.map((row, index) => ({ ...row, week: 'W' + index }));
+    const container = mountContainer();
+    const onSeriesFilter = vi.fn();
+    const filtered = { costs: true };
+    const chart = createChart(container, {
+      mochartConfig: makeConfig('month'),
+      dataProvider: new ArrayOfObjectsDataProvider(rows),
+      width: 300, height: 200,
+      filteredSeriesIds: filtered, onSeriesFilter
+    });
+    runFrames();
+    expect(seriesIds(container)).toEqual([getIdCssClass('series', 'sales')]);
+
+    // structural change, the same filter object carried along, and a host that does not echo
+    chart.update({ mochartConfig: makeConfig('week'), dataProvider: new ArrayOfObjectsDataProvider(rows), filteredSeriesIds: filtered });
+    runFrames();
+    expect(onSeriesFilter).toHaveBeenCalledTimes(1);
+    expect(onSeriesFilter).toHaveBeenCalledWith({ filteredSeriesIds: {} });
+    expect(seriesIds(container)).toEqual([getIdCssClass('series', 'sales'), getIdCssClass('series', 'costs')]);
+
+    // the host re-asserts its value on its next render: the chart follows it, silently
+    chart.update({ filteredSeriesIds: filtered });
+    runFrames();
+    expect(onSeriesFilter).toHaveBeenCalledTimes(1);
+    expect(seriesIds(container)).toEqual([getIdCssClass('series', 'sales')]);
     chart.destroy();
   });
 });

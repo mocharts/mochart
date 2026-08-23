@@ -54,15 +54,16 @@ export class ChartController {
       this.focusInput(this.props, this.readDataProvider), this.focusInput(props, readDataProvider), this.lastCategoryValues);
     this.props = props;
     this.readDataProvider = readDataProvider;
-    this.focus.applyExternal(props);
     this.applyInput();
+    const filterGeneration = this.focus.filterGeneration;
     // notify after the commit, through the latest committed props: hosts replace callback
     // closures on every render, and a host may synchronously update() again from onFocus
     if (changes.focus) {
       this.props.onFocus?.(changes.focus);
     }
-    // a host may also destroy() from the first callback; the second must not reach a destroyed chart
-    if (changes.seriesFilter && !this.destroyed) {
+    // a host may also destroy() from the first callback, or change the filters from it, in which
+    // case the second callback would reach a destroyed chart or report a superseded filter set
+    if (changes.seriesFilter && !this.destroyed && this.focus.filterGeneration === filterGeneration) {
       this.props.onSeriesFilter?.(changes.seriesFilter);
     }
   }
