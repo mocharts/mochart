@@ -177,6 +177,28 @@ describe('the no-size state', () => {
     expect(svg?.getAttribute('width')).toBe(String(WIDTH));
   });
 
+  // Regression: the root message tracked one inserted node, and inserting a fragment empties it, so every
+  // resync appended another copy of the factory's content and left the previous one in place
+  it('replaces, not stacks, a fragment returned by the factory across resyncs', () => {
+    const container = mountContainer();
+    const getNoSizeComponent = () => {
+      const fragment = document.createDocumentFragment();
+      fragment.appendChild(document.createTextNode('no '));
+      fragment.appendChild(document.createTextNode('size'));
+      return fragment;
+    };
+    const handle = trackHandle(createDefaultChart(container, {
+      config, data: rows, width: 100, height: 0, getNoSizeComponent
+    } as DefaultChartProps));
+    expect(container.textContent).toBe('no size');
+    handle.update({ width: 200 });
+    handle.update({ width: 300 });
+    expect(container.textContent).toBe('no size');
+    handle.update({ height: HEIGHT });
+    expect(container.querySelector('svg')).not.toBeNull();
+    expect(container.textContent).not.toContain('no size');
+  });
+
   // Regression: only an exact 0 took the no-size route, so negative and non-finite sizes reached the svg
   it('takes the no-size route for any non-positive or non-finite size', () => {
     for (const [width, height] of [[0, HEIGHT], [WIDTH, 0], [-100, -50], [NaN, HEIGHT], [WIDTH, NaN]]) {

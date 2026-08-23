@@ -374,7 +374,8 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   chartEventHandler: Record<string, (event: ChartPointerEvent) => void>;
   _simpleFactory: ChartContentFactory | null = null;
   _simpleFactoryContext: ChartFactoryContext | null = null;
-  _simpleNode: Node | null = null;
+  /** what the last factory call put in the root: a fragment's children, recorded before insertion empties it */
+  _simpleNodes: Node[] = [];
 
   constructor() {
     super();
@@ -1266,14 +1267,14 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     }
     this._simpleFactory = factory;
     this._simpleFactoryContext = context;
-    if (this._simpleNode && this._simpleNode.parentNode) {
-      this._simpleNode.parentNode.removeChild(this._simpleNode);
+    for (const simpleNode of this._simpleNodes) {
+      simpleNode.parentNode?.removeChild(simpleNode);
     }
-    this._simpleNode = null;
+    this._simpleNodes = [];
     const node = factory ? factoryContentToNode(factory(context!)) : null;
     if (node) {
+      this._simpleNodes = node instanceof DocumentFragment ? Array.from(node.childNodes) : [node];
       this.root.node.insertBefore(node, this.simpleContent.anchor);
-      this._simpleNode = node;
     }
   }
 
