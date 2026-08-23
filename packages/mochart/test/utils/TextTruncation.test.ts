@@ -194,6 +194,15 @@ describe('updateTruncation', () => {
     expect(truncationData).toEqual({ text: 'Hello World', truncatedText: 'Hell', lastText: 'Hel' });
   });
 
+  // Regression: the single path pushed a settled first pass through setState while the array path did not
+  it('asks for no further check when a first pass already fits, single or array', () => {
+    const single = updateTruncation(ELLIPSIS, null, 'Hello', 100, el(50));
+    expect(single.checkTruncation).toBe(false);
+    expect(single.truncationData).toEqual({ text: 'Hello', truncatedText: 'Hello', lastText: 'Hello' });
+    const array = updateTruncation(ELLIPSIS, null, ['ab', 'cd'], 100, [el(50), el(50)]);
+    expect(array.checkTruncation).toBe(false);
+  });
+
   it('seeds and measures an array of elements', () => {
     const { truncationData } = updateTruncation(ELLIPSIS, null, ['ab', 'cd'], 100, [el(50), el(50)]);
     expect(Array.isArray(truncationData)).toBe(true);

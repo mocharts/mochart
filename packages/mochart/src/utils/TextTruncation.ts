@@ -77,9 +77,6 @@ export function updateTruncation(truncationText: string, oldTruncationData: Trun
         }
         newTruncationData.push(aTruncateData);
       }
-      if (truncationData === null) {
-        needsTruncation = true;
-      }
       truncationData = newTruncationData;
     }
   }
@@ -89,7 +86,7 @@ export function updateTruncation(truncationText: string, oldTruncationData: Trun
     }
     if (domElement !== null) {
       truncationData = truncateSVGText(domElement as SVGTextContentElement, maxLength, truncationText, truncationData as TruncationData);
-      if (oldTruncationData === null || truncationData === null || truncationData.truncatedText !== truncationData.lastText) {
+      if (truncationData.truncatedText !== truncationData.lastText) {
         needsTruncation = true;
       }
     }
