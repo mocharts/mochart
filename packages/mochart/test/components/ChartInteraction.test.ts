@@ -122,6 +122,24 @@ describe('chart mouse events', () => {
     expect(rightClicks.length).toBe(0);
   });
 
+  // Regression: the message states detached the pointer handlers without clearing isMouseWithinChart,
+  // so no enter fired after the chart came back until the pointer left the plot once
+  it('treats the first motion after a no-size round trip as an enter again', () => {
+    const enters: ChartEventPayload[] = [];
+    const container = mountChart(makeConfig(), { onChartMouseEnter: payload => { enters.push(payload); } });
+    const root = chartRoot(container);
+    mouse(root, 'mouseenter', 100, 100);
+    expect(enters.length).toBe(1);
+
+    const handle = lastHandle();
+    handle.update({ height: 0 });
+    expect(container.querySelector('svg')).toBeNull();
+    handle.update({ height: HEIGHT });
+
+    mouse(chartRoot(container), 'mousemove', 100, 100);
+    expect(enters.length).toBe(2);
+  });
+
   it('reports chartX and chartY relative to the plot, not to the chart container', () => {
     const clicks: ChartEventPayload[] = [];
     const container = mountChart(makeConfig(), { onChartClick: payload => { clicks.push(payload); } });

@@ -1214,6 +1214,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       }
       else {
         this.chartRef = null;
+        this.isMouseWithinChart = false;
         this.clearBody();
         this.setSimpleContent(null, null);
         this.setPresent(false);
@@ -1251,6 +1252,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     const accessibility = mochartConfig ? accessibilityActive(mochartConfig.accessibility) : true;
     this.setPresent(true);
     this.chartRef = null;
+    this.isMouseWithinChart = false;
     // -1: never a tab stop, but focusable for the teardown restore below, which reads out the message
     this.root.set({ className, style, [mochartVersionAttribute]: getVersionString(),
       'aria-hidden': mochartConfig?.accessibility.hidden ? 'true' : null, tabindex: accessibility ? '-1' : null });
