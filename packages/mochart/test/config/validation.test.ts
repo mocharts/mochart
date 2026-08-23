@@ -1051,8 +1051,28 @@ describe('axis bounds validation', () => {
   const boundsErrors = (config: unknown) => errorsFor(config).filter(error => error.includes(BOUNDS));
 
   it('getAxisBoundsMessage quotes the max it was compared against', () => {
-    expect(getAxisBoundsMessage(5)).toBe(BOUNDS + '5');
-    expect(getAxisBoundsMessage('2020-01-01')).toBe(BOUNDS + '"2020-01-01"');
+    expect(getAxisBoundsMessage('max', 5)).toBe(BOUNDS + '5');
+    expect(getAxisBoundsMessage('max', '2020-01-01')).toBe(BOUNDS + '"2020-01-01"');
+  });
+
+  // Regression: the soft pair was never cross-checked, and softMin above softMax silently inverts an auto domain
+  it('reports softMin above softMax, on softMin, wherever the pair can be authored', () => {
+    const SOFT = 'should not be above the softMax property of the same axis: ';
+    const softErrors = (config: unknown) => errorsFor(config).filter(error => error.includes(SOFT));
+    expect(softErrors(withValueAxes([{ id: 'A', softMin: 100, softMax: 0 }]))).toEqual([
+      'valueAxes[0] - softMin - ' + SOFT + '0'
+    ]);
+    expect(softErrors(withValueAxes([{ id: 'A' }], { softMin: 100, softMax: 0 })).length).toBe(1);
+    expect(softErrors(withCategoryAxis({ property: 'p', type: 'number', scale: 'linear', softMin: 100, softMax: 0 })).length).toBe(1);
+  });
+
+  it('accepts a legal or one-sided soft pair', () => {
+    const SOFT = 'should not be above the softMax property of the same axis: ';
+    const softErrors = (config: unknown) => errorsFor(config).filter(error => error.includes(SOFT));
+    expect(softErrors(withValueAxes([{ id: 'A', softMin: 0, softMax: 100 }]))).toEqual([]);
+    expect(softErrors(withValueAxes([{ id: 'A', softMin: 5, softMax: 5 }]))).toEqual([]);
+    expect(softErrors(withValueAxes([{ id: 'A', softMin: 100 }]))).toEqual([]);
+    expect(softErrors(withValueAxes([{ id: 'A', softMin: 100, softMax: null }]))).toEqual([]);
   });
 
   describe('boundValue', () => {

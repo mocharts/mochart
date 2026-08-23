@@ -136,8 +136,8 @@ export default function getValidators(thresholdValue = validators.number(), tick
 }
 
 /** min above max is a mistake (axis.reversed is the way to invert an axis); min === max stays legal, as auto produces it from flat data. */
-export function getAxisBoundsMessage(max: unknown): string {
-  return 'should not be above the max property of the same axis: ' + JSON.stringify(max);
+export function getAxisBoundsMessage(maxKey: string, max: unknown): string {
+  return 'should not be above the ' + maxKey + ' property of the same axis: ' + JSON.stringify(max);
 }
 
 export function validateAxisBounds(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
@@ -161,9 +161,15 @@ function checkAxisBounds(section: unknown, sectionKey: string, index: number | u
   if (!isConfigObject(section)) {
     return;
   }
-  const { min, max } = section;
-  // an AUTO end is computed from the data, so there is no authored pair to compare
-  if (min === AUTO || max === AUTO || min === undefined || max === undefined) {
+  checkAxisBoundsPair(section, 'min', 'max', AUTO, sectionKey, index, errors, errorDetails);
+  checkAxisBoundsPair(section, 'softMin', 'softMax', NONE, sectionKey, index, errors, errorDetails);
+}
+
+function checkAxisBoundsPair(section: ConfigObject, minKey: string, maxKey: string, unset: unknown, sectionKey: string, index: number | undefined, errors: string[], errorDetails: LocatedValidationMessage[]): void {
+  const min = section[minKey];
+  const max = section[maxKey];
+  // an unset end (auto for min/max, null for the soft pair) is computed from the data, so there is no authored pair to compare
+  if (min === unset || max === unset || min === undefined || max === undefined) {
     return;
   }
   const dateAxis = section['type'] === TYPE_DATE;
@@ -172,7 +178,7 @@ function checkAxisBounds(section: unknown, sectionKey: string, index: number | u
   if (minValue === null || maxValue === null || minValue <= maxValue) {
     return;
   }
-  const message = getAxisBoundsMessage(max);
-  errors.push(getPropertyMessage(sectionKey, 'min', message, index));
-  errorDetails.push({ path: index === undefined ? [sectionKey, 'min'] : [sectionKey, index, 'min'], message });
+  const message = getAxisBoundsMessage(maxKey, max);
+  errors.push(getPropertyMessage(sectionKey, minKey, message, index));
+  errorDetails.push({ path: index === undefined ? [sectionKey, minKey] : [sectionKey, index, minKey], message });
 }
