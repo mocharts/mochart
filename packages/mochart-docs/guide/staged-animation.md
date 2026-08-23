@@ -183,7 +183,8 @@ values (`true`) or from the base value (`false`).
 
 When the user's system requests reduced motion (the `prefers-reduced-motion:
 reduce` accessibility setting), the chart applies every update instantly, as
-if `animate` were `false`. The preference is watched live — flipping the OS
-setting takes effect immediately, without re-creating the chart. Set
+if [`animation.enabled`](/reference/animation#animation.enabled) were `false`.
+The preference is watched live — flipping the OS setting takes effect
+immediately, without re-creating the chart. Set
 [`accessibility.respectReducedMotion`](/reference/accessibility#accessibility.respectReducedMotion)
 to `false` to keep animating regardless of the preference.
