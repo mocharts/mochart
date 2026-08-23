@@ -51,8 +51,8 @@ export function createSpacingLayoutInfo(bounds: SpacingBoundsInput, margin: Marg
   const marginBounds = inner ? spacious ? getSpacingInnerBounds(bounds, margin) : bounds : getSpacingOuterBounds(bounds, padding);
   const paddingBounds = inner ? spacious ? getSpacingInnerBounds(bounds, margin, padding) : bounds : bounds;
   bounds = inner ? bounds : getSpacingOuterBounds(bounds, margin, padding);
-  const marginRelativeBounds = spacious ? getRelativeBounds(bounds, marginBounds) : bounds;
-  const paddingRelativeBounds = spacious ? getRelativeBounds(bounds, paddingBounds) : bounds;
+  const marginRelativeBounds = getRelativeBounds(bounds, marginBounds);
+  const paddingRelativeBounds = getRelativeBounds(bounds, paddingBounds);
   return {
     ...bounds,
     marginBounds,

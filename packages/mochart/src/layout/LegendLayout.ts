@@ -1,5 +1,5 @@
 import { ALIGN_LEFT, ALIGN_CENTER, AUTO } from '../config/core/constants';
-import { getLegendItemBoundsList } from '../utils/TextMeasurement';
+import { getLegendItemBoundsList, getLegendSeriesConfigs } from '../utils/TextMeasurement';
 import { leaderSeriesId } from '../utils/SeriesFocus';
 import { createSpacingLayoutInfo, getSpacingLeft, getSpacingWidth, getSpacingTop, getSpacingHeight } from './SpacingLayoutInfo';
 import type { Bounds, TextBounds } from '../types/geometry';
@@ -59,8 +59,8 @@ interface LegendItemPlacements {
 
 // one placement pass shared by the height and layout passes, so both wrap identically
 function placeLegendItems(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, contentBounds: Bounds, plotBounds: { x: number; width: number }): LegendItemPlacements | null {
-  const { legend: legendConfig, series: seriesConfigs } = mochartConfig;
-  if (legendConfig.visible !== true || seriesConfigs.length === 0) return null;
+  const { legend: legendConfig } = mochartConfig;
+  if (legendConfig.visible !== true || getLegendSeriesConfigs(mochartConfig).length === 0) return null;
   const { margin, padding, alignedToAxes } = legendConfig;
   const { margin: itemMargin, padding: itemPadding } = legendConfig.item;
   const { spacing: iconSpacing } = legendConfig.icon;
@@ -160,8 +160,7 @@ export function getLegendLayoutInfo(mochartConfig: EnhancedMochartConfig, chartT
     }
 
     const legendWidth = maxX - legendMinSpacingX + legendSpacingWidth;
-    // Clamped for the no-item legend (every series showInLegend: false), where
-    // the spacing arithmetic would go negative and produce an invalid clip rect.
+    // clamped: a box too small for one item would go negative and produce an invalid clip rect
     const legendItemTextWidth = Math.max(0, legendWidth - legendSpacingWidth - itemSpacingWidth - iconWidth);
 
     let legendX = legendMinX;
