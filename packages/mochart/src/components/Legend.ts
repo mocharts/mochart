@@ -59,7 +59,9 @@ interface LegendItemProps {
   seriesIsFocused: boolean;
   seriesIsDefocused: boolean;
   seriesFocusPercentage: number | null;
-  /** clicking does something (filter or focus), so the item is keyboard-reachable */
+  /** clicking filters or focuses the series, so the item shows the pointer cursor */
+  clickable: boolean;
+  /** clickable and accessibility is on, so the item is keyboard-reachable */
   interactive: boolean;
   /** the roving tab stop: one legend item is Tab-reachable, arrows move between items */
   tabStop: boolean;
@@ -189,6 +191,7 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
               uniqueIds, colorPaletteConfig, seriesIndex,
               seriesIsFiltered, seriesIsFocused, seriesIsDefocused,
               seriesFocusPercentage, clipPath,
+              clickable: legendItemClickable(mochartConfig, seriesConfig),
               interactive: itemIsInteractive(seriesConfig),
               tabStop: id === effectiveRovingId,
               showsFilterState: accessibility && legendConfig.filterOnClick
@@ -335,8 +338,9 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
 
     const { dy, transform: textTransform } = centerTextY({ x: x + iconWidth, y, height: itemInnerHeight });
 
-    const { interactive, tabStop, showsFilterState } = this.props;
+    const { clickable, interactive, tabStop, showsFilterState } = this.props;
     this.root.set({ className: mochartCssClasses['legendItem'] + seriesConfig.id, transform,
+      cursor: clickable ? 'pointer' : null,
       dataSeriesId: interactive ? seriesConfig.id : null,
       tabindex: interactive ? (tabStop ? '0' : '-1') : null,
       role: interactive ? 'button' : null,

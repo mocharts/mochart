@@ -452,7 +452,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
     if (styles !== null && styles.minWidth === minWidth && styles.lineSpacing === lineSpacing && styles.minTargetSize === minTargetSize) {
       return styles;
     }
-    const targetStyle: LineStyle = minTargetSize > 0 ? { minHeight: minTargetSize } : {};
+    const targetStyle: LineStyle = minTargetSize > 0 ? { minHeight: minTargetSize, cursor: 'pointer' } : { cursor: 'pointer' };
     const lastLineStyle: LineStyle = minWidth !== null ? { ...baseLineStyle, minWidth } : baseLineStyle;
     const lineStyle: LineStyle = { ...lastLineStyle, paddingBottom: lineSpacing };
     return this.lineStyles = { minWidth, lineSpacing, minTargetSize, lineStyle, lastLineStyle,
