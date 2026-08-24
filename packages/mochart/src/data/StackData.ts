@@ -45,7 +45,7 @@ export function getStackData(mochartConfig: EnhancedMochartConfig, chartData: Ch
   const { values: rawValues } = raw;
   const { values: filteredValues } = filtered;
 
-  const categoryValues = chartData.categoryData.values.raw;
+  const categoryValues = chartData.categoryData.values.key;
   const outerPositiveSeriesIds = getStackOuterSeriesIds(seriesStackConfigs, categoryValues.length);
   const filteredOuterPositiveSeriesIds = getStackOuterSeriesIds(seriesStackConfigs, categoryValues.length);
   const outerNegativeSeriesIds = getStackOuterSeriesIds(seriesStackConfigs, categoryValues.length);

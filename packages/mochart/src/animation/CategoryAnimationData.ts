@@ -57,14 +57,14 @@ function categoryValueIsLess(left: CategoryValue, right: CategoryValue): boolean
 }
 
 export function getInitialCategoryDeltaData(_categoryAxisConfig: CategoryAxisConfig, newCategoryData: CategoryData): CategoryDeltaData {
-  const indices = newCategoryData.values.raw.map((_value, index) => index);
+  const indices = newCategoryData.values.key.map((_value, index) => index);
   return {
     values: {
       old: [],
-      merged: newCategoryData.values.raw,
-      added: newCategoryData.values.raw,
+      merged: newCategoryData.values.key,
+      added: newCategoryData.values.key,
       removed: [],
-      new: newCategoryData.values.raw,
+      new: newCategoryData.values.key,
       displayMerged: newCategoryData.values.display
     },
     indices: {
@@ -89,8 +89,8 @@ export function getInitialCategoryDeltaData(_categoryAxisConfig: CategoryAxisCon
 
 export function getCategoryDeltaData(categoryAxisConfig: CategoryAxisConfig, oldCategoryData: CategoryData, newCategoryData: CategoryData): CategoryDeltaData {
   // *** It is assumed that all rawCategory values are pre-sorted, unique, and not undefined
-  const categoryValuesOld = oldCategoryData.values.raw;
-  const categoryValuesNew = newCategoryData.values.raw;
+  const categoryValuesOld = oldCategoryData.values.key;
+  const categoryValuesNew = newCategoryData.values.key;
 
   const getMapKey = categoryMapKeyFor(categoryAxisConfig);
   const isLess = categoryValueIsLessFor(categoryAxisConfig, categoryValuesOld, categoryValuesNew);

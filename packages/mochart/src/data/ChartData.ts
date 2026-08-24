@@ -74,5 +74,5 @@ export function getCategorySeriesValueObject(chartData: ChartData, categoryIndex
 export type CategorySeriesValueObject = ReturnType<typeof getCategorySeriesValueObject>;
 
 export function getChartDataCategoryCount(chartData: ChartData | null): number {
-  return chartData ? chartData.categoryData.values.raw.length : 0;
+  return chartData ? chartData.categoryData.values.key.length : 0;
 }

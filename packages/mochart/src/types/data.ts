@@ -135,7 +135,7 @@ export interface AxisData {
 }
 
 export interface CategoryValues {
-  raw: readonly CategoryValue[];
+  key: readonly CategoryValue[];
   display: readonly CategoryValue[];
   parsed: readonly CategoryValue[];
   numeric: number[];
@@ -159,7 +159,7 @@ export interface CategoryData {
 export interface CategoryValueObject {
   axisDomain: CategoryAxisDomain;
   values: {
-    raw: CategoryValue | undefined;
+    key: CategoryValue | undefined;
     display: CategoryValue | undefined;
     parsed: CategoryValue | undefined;
     numeric: number | undefined;

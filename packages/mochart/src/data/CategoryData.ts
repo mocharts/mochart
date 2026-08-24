@@ -19,23 +19,23 @@ export function getCategoryKeyProperty(categoryAxisConfig: CategoryAxisConfig): 
 export function getCategoryData(categoryAxisConfig: CategoryAxisConfig, dataProvider: DataProvider): CategoryData {
   // config/provider mismatches and duplicate/missing categories are getDataErrors' job; this hot path trusts its input
   const displayCategoryValues = readCategoryValues(dataProvider, categoryAxisConfig.property!);
-  let rawCategoryValues: readonly CategoryValue[] = displayCategoryValues;
+  let keyCategoryValues: readonly CategoryValue[] = displayCategoryValues;
   if (categoryAxisConfig.keyProperty !== NONE) {
     // the keys identify categories across data changes; the property values stay the typed, positioned, shown values
     // a category with no key value keys as its property value, as it would with no keyProperty at all
     const keyValues = readAlignedValues(dataProvider, categoryAxisConfig.keyProperty, displayCategoryValues.length);
-    rawCategoryValues = displayCategoryValues.map((propertyValue, i) => (keyValues[i] ?? propertyValue) as CategoryValue);
+    keyCategoryValues = displayCategoryValues.map((propertyValue, i) => (keyValues[i] ?? propertyValue) as CategoryValue);
   }
-  return getCategoryDataFromValues(categoryAxisConfig, rawCategoryValues, displayCategoryValues);
+  return getCategoryDataFromValues(categoryAxisConfig, keyCategoryValues, displayCategoryValues);
 }
 
 export function getCategoryDataFromValues(
   categoryAxisConfig: CategoryAxisConfig,
-  rawCategoryValues: readonly CategoryValue[],
+  keyCategoryValues: readonly CategoryValue[],
   displayCategoryValues: readonly CategoryValue[],
   numericCategoryValueOffsets: readonly number[] | null = null
 ): CategoryData {
-  const categoryValues = getCategoryValues(categoryAxisConfig, rawCategoryValues, displayCategoryValues, numericCategoryValueOffsets);
+  const categoryValues = getCategoryValues(categoryAxisConfig, keyCategoryValues, displayCategoryValues, numericCategoryValueOffsets);
   const axisDomain = getCategoryAxisDomain(categoryAxisConfig, categoryValues.parsed);
   // an ordinal domain is index-based and already handled when collapsed, so it is never widened
   const renderAxisDomain = categoryAxisConfig.scale === SCALE_ORDINAL ? axisDomain : getRenderAxisDomain(categoryAxisConfig, axisDomain);
@@ -58,14 +58,14 @@ export function getCategoryDataWithNumericValues(categoryData: CategoryData, num
 
 function getCategoryValues(
   categoryAxisConfig: CategoryAxisConfig,
-  rawCategoryValues: readonly CategoryValue[],
+  keyCategoryValues: readonly CategoryValue[],
   displayCategoryValues: readonly CategoryValue[],
   numericCategoryValueOffsets: readonly number[] | null = null
 ): CategoryValues {
   const parsedCategoryValues = getParsedCategoryValues(categoryAxisConfig, displayCategoryValues);
   const numericCategoryValues = getNumericCategoryValues(categoryAxisConfig, parsedCategoryValues, numericCategoryValueOffsets);
   return {
-    raw: rawCategoryValues,
+    key: keyCategoryValues,
     display: displayCategoryValues,
     parsed: parsedCategoryValues,
     numeric: numericCategoryValues
@@ -138,7 +138,7 @@ export function getCategoryValueObject(categoryData: CategoryData, categoryIndex
   return {
     axisDomain,
     values: {
-      raw: values.raw[categoryIndex],
+      key: values.key[categoryIndex],
       display: values.display[categoryIndex],
       parsed: values.parsed[categoryIndex],
       numeric: values.numeric[categoryIndex]

@@ -16,7 +16,7 @@ describe('getCategoryData', () => {
     const provider = new ArrayOfObjectsDataProvider(
       [{ month: 'Jan' }, { month: 'Feb' }, { month: 'Mar' }]);
     const categoryData = getCategoryData(config.categoryAxis, provider);
-    expect(categoryData.values.raw).toEqual(['Jan', 'Feb', 'Mar']);
+    expect(categoryData.values.key).toEqual(['Jan', 'Feb', 'Mar']);
     // without a keyProperty the values are their own keys
     expect(categoryData.values.display).toEqual(['Jan', 'Feb', 'Mar']);
   });
@@ -29,7 +29,7 @@ describe('getCategoryData', () => {
         { id: 'b', label: 'Beta' }
       ]);
     const categoryData = getCategoryData(config.categoryAxis, provider);
-    expect(categoryData.values.raw).toEqual(['a', 'b']);
+    expect(categoryData.values.key).toEqual(['a', 'b']);
     expect(categoryData.values.display).toEqual(['Alpha', 'Beta']);
   });
 });
@@ -45,13 +45,13 @@ describe('missing keyProperty values', () => {
         { label: 'Beta' },
         { id: 'c', label: 'Gamma' }
       ]);
-    expect(getCategoryData(config.categoryAxis, provider).values.raw).toEqual(['a', 'Beta', 'c']);
+    expect(getCategoryData(config.categoryAxis, provider).values.key).toEqual(['a', 'Beta', 'c']);
   });
 
   it('keys every category by its property value when the key property is absent from the data', () => {
     const config = ordinalConfig({ property: 'label', keyProperty: 'id' });
     const provider = new ArrayOfObjectsDataProvider([{ label: 'Alpha' }, { label: 'Beta' }]);
-    expect(getCategoryData(config.categoryAxis, provider).values.raw).toEqual(['Alpha', 'Beta']);
+    expect(getCategoryData(config.categoryAxis, provider).values.key).toEqual(['Alpha', 'Beta']);
   });
 });
 
@@ -116,7 +116,7 @@ describe('getCategoryDataWithRenderAxisDomain / getCategoryDataWithNumericValues
     const updated = getCategoryDataWithNumericValues(categoryData, [10, 20]);
     expect(updated).not.toBe(categoryData);
     expect(updated.values.numeric).toEqual([10, 20]);
-    expect(updated.values.raw).toBe(categoryData.values.raw);
+    expect(updated.values.key).toBe(categoryData.values.key);
   });
 });
 
@@ -126,7 +126,7 @@ describe('getCategoryValueObject', () => {
     const categoryData = getCategoryDataFromValues(config.categoryAxis, ['a', 'b', 'c'], ['A', 'B', 'C']);
     const obj = getCategoryValueObject(categoryData, 1);
     // parsed values derive from the display values (identity for string axes)
-    expect(obj.values).toEqual({ raw: 'b', display: 'B', parsed: 'B', numeric: 1 });
+    expect(obj.values).toEqual({ key: 'b', display: 'B', parsed: 'B', numeric: 1 });
     expect(obj.axisDomain).toEqual(categoryData.axisDomain);
   });
 });

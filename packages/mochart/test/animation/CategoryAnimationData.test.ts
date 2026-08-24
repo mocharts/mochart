@@ -230,7 +230,7 @@ describe('getCategoryDeltaData with a linear axis (sorted merge)', () => {
   it('reuses the new values when nothing was removed', () => {
     const newData = categoryDataFor(linearNumber, [1, 2, 3]);
     const delta = getCategoryDeltaData(linearNumber.categoryAxis, categoryDataFor(linearNumber, [2]), newData);
-    expect(delta.values.merged).toBe(newData.values.raw);
+    expect(delta.values.merged).toBe(newData.values.key);
     expect(delta.indices).toEqual({ old: [1], new: [0, 1, 2], added: [0, 2], removed: [], reordered: false });
     expect(delta.outerCounts.added).toEqual({ before: 1, after: 1 });
   });
@@ -238,7 +238,7 @@ describe('getCategoryDeltaData with a linear axis (sorted merge)', () => {
   it('keeps the old values when everything is removed and nothing added', () => {
     const oldData = categoryDataFor(linearNumber, [1, 2]);
     const delta = getCategoryDeltaData(linearNumber.categoryAxis, oldData, categoryDataFor(linearNumber, []));
-    expect(delta.values.merged).toBe(oldData.values.raw);
+    expect(delta.values.merged).toBe(oldData.values.key);
     expect(delta.indices).toEqual({ old: [0, 1], new: [], added: [], removed: [0, 1], reordered: false });
   });
 

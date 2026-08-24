@@ -261,7 +261,7 @@ export function getFilteredValue(chartData: ChartData, seriesConfig: EnhancedSer
       max: null
     };
     let base = chartData.seriesData.axisBases[seriesConfig.valueAxisConfig.id];
-    newValueObject.plain = chartData.categoryData.values.raw.map(categoryValue => categoryValue !== undefined ? (base ?? MISSING_VALUE) : MISSING_VALUE);
+    newValueObject.plain = chartData.categoryData.values.key.map(categoryValue => categoryValue !== undefined ? (base ?? MISSING_VALUE) : MISSING_VALUE);
     if (seriesConfig.rangeProperty !== NONE && newValueObject.range === null) {
       newValueObject.range = newValueObject.plain;
     }
@@ -273,11 +273,11 @@ export function getFilteredValue(chartData: ChartData, seriesConfig: EnhancedSer
     }
     if (seriesConfig.markerProperty !== NONE&& newValueObject.marker === null) {
       base = chartData.seriesData.raw.domains[seriesConfig.id]['marker'][0];
-      newValueObject.marker = chartData.categoryData.values.raw.map(categoryValue => categoryValue !== undefined ? (base ?? MISSING_VALUE) : MISSING_VALUE);
+      newValueObject.marker = chartData.categoryData.values.key.map(categoryValue => categoryValue !== undefined ? (base ?? MISSING_VALUE) : MISSING_VALUE);
     }
     if (seriesConfig.tooltipProperty !== NONE && newValueObject.tooltip === null) {
       base = chartData.seriesData.raw.domains[seriesConfig.id]['tooltip'][0];
-      newValueObject.tooltip = chartData.categoryData.values.raw.map(categoryValue => categoryValue !== undefined ? (base ?? MISSING_VALUE) : MISSING_VALUE);
+      newValueObject.tooltip = chartData.categoryData.values.key.map(categoryValue => categoryValue !== undefined ? (base ?? MISSING_VALUE) : MISSING_VALUE);
     }
   }
   return newValueObject

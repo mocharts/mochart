@@ -34,7 +34,7 @@ function getPercentageForDomain(domain: [number, number], value: number, ascendi
 
 export function getFocusData(mochartConfig: EnhancedMochartConfig, chartData: ChartData, focusedCategoryIndex: number, focusedValueAxisId: string | null, focusedSeriesId: string | null, computeDomainPercentages = true): FocusData {
   const { valueAxes: valueAxisConfigs, series: seriesConfigs } = mochartConfig;
-  const categoryValues = chartData.categoryData.values.raw;
+  const categoryValues = chartData.categoryData.values.key;
   // any index that is not a real slot is unfocused, never a sparse write onto the array
   if (!Number.isInteger(focusedCategoryIndex) || focusedCategoryIndex < 0 || focusedCategoryIndex >= categoryValues.length) {
     focusedCategoryIndex = -1;

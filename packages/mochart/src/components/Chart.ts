@@ -719,8 +719,8 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
           if (dataChanged && prevProps.chartData !== null) {
             let { tooltipCategoryIndex, tooltipValueObject } = this.state;
             if (tooltipCategoryIndex >= 0) {
-              const oldCategoryValues = prevProps.chartData.categoryData.values.raw;
-              const newCategoryValues = chartData.categoryData.values.raw;
+              const oldCategoryValues = prevProps.chartData.categoryData.values.key;
+              const newCategoryValues = chartData.categoryData.values.key;
               if (oldCategoryValues && newCategoryValues) {
                 const categoryValue = oldCategoryValues[tooltipCategoryIndex];
                 tooltipCategoryIndex = indexOfCategoryValue(mochartConfig.categoryAxis, newCategoryValues, categoryValue);
@@ -1491,7 +1491,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
       body.tooltip.set(Tooltip, { mochartConfig, tooltipValueObject: tooltipValueObject!, tooltipCategoryIndex, focusedCategoryIndex,
         focusedSeriesId, valueAxisFocusPercentages, seriesFocusPercentages,
-        tooltipVisible, categoryCount: chartData.categoryData.values.raw.length,
+        tooltipVisible, categoryCount: chartData.categoryData.values.key.length,
         tooltipLayoutInfo: tooltipLayoutInfo!, tooltipBounds, svgUniqueId,
         // Escape and a click inside close the same way, focus included
         onClose: this.closeTooltip, onEscape: this.closeTooltip, updateTooltipCategoryIndex: this.updateTooltipCategoryIndex,

@@ -73,7 +73,7 @@ describe('isDataProviderValid', () => {
 describe('getChartData', () => {
   it('builds category and series data from a provider', () => {
     const { chartData } = makeChartData();
-    expect(chartData.categoryData.values.raw).toEqual(['Jan', 'Feb', 'Mar']);
+    expect(chartData.categoryData.values.key).toEqual(['Jan', 'Feb', 'Mar']);
     expect(chartData).toHaveProperty('seriesData');
   });
 });
@@ -121,7 +121,7 @@ describe('getCategorySeriesValueObject', () => {
   it('exposes the category and series values at an index', () => {
     const { chartData } = makeChartData();
     const obj = getCategorySeriesValueObject(chartData, 1);
-    expect(obj.category.values.raw).toBe('Feb');
+    expect(obj.category.values.key).toBe('Feb');
     expect(obj).toHaveProperty('series');
   });
 });
