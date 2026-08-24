@@ -387,7 +387,7 @@ describe('getFilteredValue', () => {
         axisBases: { y: base },
         raw: { domains: { s1: { marker: over.markerDomain ?? [3, 9], tooltip: over.tooltipDomain ?? [2, 8] } } }
       },
-      categoryData: { values: { raw: categories } }
+      categoryData: { values: { key: categories } }
     } as unknown as ChartData;
   }
 
