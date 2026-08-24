@@ -34,6 +34,27 @@ describe('getCategoryData', () => {
   });
 });
 
+// Regression: a category with no keyProperty value kept undefined as its key, so all such
+// categories shared one key and the animation merge collapsed them into a single slot
+describe('missing keyProperty values', () => {
+  it('keys a category by its property value when its key value is missing', () => {
+    const config = ordinalConfig({ property: 'label', keyProperty: 'id' });
+    const provider = new ArrayOfObjectsDataProvider(
+      [
+        { id: 'a', label: 'Alpha' },
+        { label: 'Beta' },
+        { id: 'c', label: 'Gamma' }
+      ]);
+    expect(getCategoryData(config.categoryAxis, provider).values.raw).toEqual(['a', 'Beta', 'c']);
+  });
+
+  it('keys every category by its property value when the key property is absent from the data', () => {
+    const config = ordinalConfig({ property: 'label', keyProperty: 'id' });
+    const provider = new ArrayOfObjectsDataProvider([{ label: 'Alpha' }, { label: 'Beta' }]);
+    expect(getCategoryData(config.categoryAxis, provider).values.raw).toEqual(['Alpha', 'Beta']);
+  });
+});
+
 describe('getNumericCategoryValues', () => {
   it('numbers ordinal values by their index', () => {
     const config = ordinalConfig();

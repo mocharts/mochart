@@ -22,7 +22,9 @@ export function getCategoryData(categoryAxisConfig: CategoryAxisConfig, dataProv
   let rawCategoryValues: readonly CategoryValue[] = displayCategoryValues;
   if (categoryAxisConfig.keyProperty !== NONE) {
     // the keys identify categories across data changes; the property values stay the typed, positioned, shown values
-    rawCategoryValues = readAlignedValues(dataProvider, categoryAxisConfig.keyProperty, displayCategoryValues.length) as CategoryValue[];
+    // a category with no key value keys as its property value, as it would with no keyProperty at all
+    const keyValues = readAlignedValues(dataProvider, categoryAxisConfig.keyProperty, displayCategoryValues.length);
+    rawCategoryValues = displayCategoryValues.map((propertyValue, i) => (keyValues[i] ?? propertyValue) as CategoryValue);
   }
   return getCategoryDataFromValues(categoryAxisConfig, rawCategoryValues, displayCategoryValues);
 }
