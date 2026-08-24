@@ -142,19 +142,19 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
           if (hasBase) {
             if (labelAboveBaseMinPositionFraction !== NONE && !(labelAboveBaseMinPositionFraction === AUTO && labelMinPositionFraction === NONE)) {
               const percent = (labelAboveBaseMinPositionFraction === AUTO ? labelMinPositionFraction : labelAboveBaseMinPositionFraction)!;
-              aboveBaseMinValue = domainExtent === 0 ? (domainMin + 1) : (base + percent * domainExtent);
+              aboveBaseMinValue = base + percent * domainExtent;
             }
             if (labelAboveBaseMaxPositionFraction !== NONE && !(labelAboveBaseMaxPositionFraction === AUTO && labelMaxPositionFraction === NONE)) {
               const percent = (labelAboveBaseMaxPositionFraction === AUTO ? labelMaxPositionFraction : labelAboveBaseMaxPositionFraction)!;
-              aboveBaseMaxValue = domainExtent === 0 ? (domainMax - 1) : (domainMax - percent * domainExtent);
+              aboveBaseMaxValue = domainMax - percent * domainExtent;
             }
             if (labelBelowBaseMinPositionFraction !== NONE && !(labelBelowBaseMinPositionFraction === AUTO && labelMinPositionFraction === NONE)) {
               const percent = (labelBelowBaseMinPositionFraction === AUTO ? labelMinPositionFraction : labelBelowBaseMinPositionFraction)!;
-              belowBaseMinValue = domainExtent === 0 ? (domainMin + 1) : (base - percent * domainExtent);
+              belowBaseMinValue = base - percent * domainExtent;
             }
             if (labelBelowBaseMaxPositionFraction !== NONE && !(labelBelowBaseMaxPositionFraction === AUTO && labelMaxPositionFraction === NONE)) {
               const percent = (labelBelowBaseMaxPositionFraction === AUTO ? labelMaxPositionFraction : labelBelowBaseMaxPositionFraction)!;
-              belowBaseMaxValue = domainExtent === 0 ? (domainMax - 1) : (domainMin + percent * domainExtent);
+              belowBaseMaxValue = domainMin + percent * domainExtent;
             }
             withinPercentages = (seriesValue: number) => {
               if (seriesValue >= base) {
@@ -167,10 +167,10 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
           }
           else {
             if (labelMinPositionFraction !== NONE) {
-              minValue = domainExtent === 0 ? domainMin + 1 : domainMin + labelMinPositionFraction * domainExtent;
+              minValue = domainMin + labelMinPositionFraction * domainExtent;
             }
             if (labelMaxPositionFraction !== NONE) {
-              maxValue = domainExtent === 0 ? domainMax - 1 : domainMax - labelMaxPositionFraction * domainExtent;
+              maxValue = domainMax - labelMaxPositionFraction * domainExtent;
             }
 
             withinPercentages = (seriesValue: number) => {
@@ -181,7 +181,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
         if (seriesConfig.label.minRangeFraction !== NONE) {
           const oldWithinPercentages = withinPercentages;
           const hasStack = seriesConfig.stack !== NONE;
-          const minAbsoluteValue = domainExtent === 0 ? domainMin + 1 : seriesConfig.label.minRangeFraction * domainExtent;
+          const minAbsoluteValue = seriesConfig.label.minRangeFraction * domainExtent;
 
           if (hasStack) {
             if (hasBase) {
