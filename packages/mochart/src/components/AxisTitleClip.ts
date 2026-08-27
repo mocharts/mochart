@@ -23,13 +23,13 @@ export default class AxisTitleClip extends Renderer<AxisTitleClipProps> {
   sync() {
     const { axisConfig, chartContentLayoutInfo, axisLayoutInfo, axisTitleClipPathUniqueId } = this.props;
     if (axisConfig.visible && axisConfig.title.text !== NONE && axisConfig.title.truncationEnabled) {
-      const { width: cWidth } = chartContentLayoutInfo;
+      const { width: cWidth, height: cHeight } = chartContentLayoutInfo;
       const { titleBoundsX, titleBoundsY, titleBoundsWidth, titleBoundsHeight, vertical } = axisLayoutInfo;
 
       const x = vertical ? 0 : titleBoundsX;
       const y = vertical ? titleBoundsY : 0;
       const width = vertical ? cWidth : titleBoundsWidth;
-      const height = vertical ? titleBoundsHeight : cWidth;
+      const height = vertical ? titleBoundsHeight : cHeight;
 
       this.setPresent(true);
       this.root.set({ id: axisTitleClipPathUniqueId });
