@@ -89,7 +89,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     edgeKeys.forEach((edge, index) => {
       const band = this.getBand(edge);
       const bounds = labelBounds[index];
-      if (!clippedEdges[edge] || bounds.width <= 0 || bounds.height <= 0) {
+      if (depths[edge] <= 0) {
         band.group.node.remove();
         return;
       }
@@ -135,7 +135,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     // hidden rather than removed when it does not fit, so it stays measurable and the band depth
     // does not shrink out from under it
     const available = vertical ? bounds.height : bounds.width;
-    const fits = this.state.textBounds === null || this.state.textBounds.width <= available;
+    const fits = available > 0 && (this.state.textBounds === null || this.state.textBounds.width <= available);
     band.textValue.set(label);
     // the label is not a hit target: the pointer falls through to the band behind it, which still
     // triggers the <title>, and the text never shows an I-beam or takes a selection

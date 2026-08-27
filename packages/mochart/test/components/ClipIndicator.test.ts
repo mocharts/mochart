@@ -310,6 +310,14 @@ describe('mitred corners', () => {
     series: [{ property: 'v', renderer: 'line' }]
   });
 
+  // the same window, left open on the right: top, bottom and left clip, right does not
+  const threeEdges = (clipIndicator: Record<string, unknown>) => makeConfig({
+    categoryAxis: { property: 'c', type: 'date', scale: 'linear', min: '2020-02-01', max: '2020-07-01' },
+    valueAxes: [{ min: 0, max: 10 }],
+    clipIndicator,
+    series: [{ property: 'v', renderer: 'line' }]
+  });
+
   it('draws all four edges, each spanning its full side of the plot', () => {
     const container = mount(fourEdges({ size: 8 }), dateRows);
     const edges = byEdge(container);
@@ -334,6 +342,28 @@ describe('mitred corners', () => {
     expect(edges.top!.points).toContainEqual(innerTopRight);
     expect(edges.right!.points).toContainEqual(outerTopRight);
     expect(edges.right!.points).toContainEqual(innerTopRight);
+  });
+
+  // Regression: the per-edge test read the band's label rect, which is the part left clear of the
+  // perpendicular bands — empty once those two span the extent — so a band with real depth vanished
+  it('keeps a band whose perpendicular neighbours leave its label no room', () => {
+    // 355x255 plot: top and bottom take the 127.5 half-share each, so the left band's label rect is 0 tall
+    const container = mount(threeEdges({ size: 150 }), dateRows);
+    const edges = byEdge(container);
+    const plot = plotRect(container);
+    expect(Object.keys(edges).sort()).toEqual(['bottom', 'left', 'top']);
+    // the inner corners collapse onto one point: the band is the triangle between its neighbours' diagonals
+    expect(edges.left!.width).toBe(150);
+    expect(edges.left!.height).toBe(plot.height);
+    expect(edges.left!.points).toEqual([
+      [plot.x, plot.y],
+      [plot.x + 150, plot.y + plot.height / 2],
+      [plot.x + 150, plot.y + plot.height / 2],
+      [plot.x, plot.y + plot.height]
+    ]);
+    // nowhere to put the text, so it hides rather than drawing into the collapsed rect
+    expect(edges.left!.visibility).toBe('hidden');
+    expect(edges.top!.visibility).toBeNull();
   });
 
   it('drops the indicator when no band has room', () => {
