@@ -97,7 +97,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
       band.group.set({ className: mochartCssClasses['clipIndicatorBand'] + edge });
       band.shape.set({ d: getBandPath(seriesLayoutInfo, depths, edge), ...strokeAttributes,
         fill: bandFill, fillOpacity });
-      this.syncLabel(band, edge, bounds, label);
+      this.syncLabel(band, edge, bounds, depths, label);
     });
   }
 
@@ -121,7 +121,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     return 'url(#' + patternUniqueId + ')';
   }
 
-  private syncLabel(band: Band, edge: EdgeKey, bounds: Bounds, label: string | null): void {
+  private syncLabel(band: Band, edge: EdgeKey, bounds: Bounds, depths: BandDepths, label: string | null): void {
     if (label === NONE) {
       band.text.node.remove();
       return;
@@ -134,8 +134,11 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
       + (angle === 0 ? '' : ' rotate(' + angle + ')');
     // hidden rather than removed when it does not fit, so it stays measurable and the band depth
     // does not shrink out from under it
-    const available = vertical ? bounds.height : bounds.width;
-    const fits = available > 0 && (this.state.textBounds === null || this.state.textBounds.width <= available);
+    const textHeight = this.state.textBounds?.height ?? this.state.fontSize ?? defaultFontSize;
+    const available = getLabelRun(this.props.seriesLayoutInfo, depths, edge, textHeight);
+    // both dimensions: the text runs along the band, and its glyph box is as deep as the band across it
+    const fits = available > 0 && (this.state.textBounds === null
+      || (this.state.textBounds.width <= available && this.state.textBounds.height <= depths[edge]));
     band.textValue.set(label);
     // the label is not a hit target: the pointer falls through to the band behind it, which still
     // triggers the <title>, and the text never shows an I-beam or takes a selection
@@ -226,6 +229,24 @@ function getBandPath(seriesLayoutInfo: LayoutInfo, depths: BandDepths, edge: Edg
   }
   pathGenerator.closePath();
   return pathGenerator.toString();
+}
+
+/**
+ * The run the label has along the band, which is longer than the rectangle it is centred in: the band
+ * narrows towards the plot edge, and the text sits halfway into the band's depth, so at that line the
+ * perpendicular bands have eaten half their depth rather than all of it. The glyph box leans further in
+ * than the text's own line, so it is measured where that box ends.
+ */
+function getLabelRun(seriesLayoutInfo: LayoutInfo, depths: BandDepths, edge: EdgeKey, textHeight: number): number {
+  const vertical = edge === 'left' || edge === 'right';
+  const extent = vertical ? seriesLayoutInfo.height : seriesLayoutInfo.width;
+  const near = vertical ? depths.top : depths.left;
+  const far = vertical ? depths.bottom : depths.right;
+  const depth = depths[edge];
+  const fraction = depth > 0 ? Math.min(1, (depth + textHeight) / (2 * depth)) : 1;
+  // the label rect's centre, which is where syncLabel puts the text
+  const centre = (extent + near - far) / 2;
+  return Math.max(0, 2 * Math.min(centre - near * fraction, extent - far * fraction - centre));
 }
 
 /** The band's usable rectangle — the part clear of its neighbours, where the label is centred. */

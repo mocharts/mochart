@@ -361,9 +361,53 @@ describe('mitred corners', () => {
       [plot.x + 150, plot.y + plot.height / 2],
       [plot.x, plot.y + plot.height]
     ]);
-    // nowhere to put the text, so it hides rather than drawing into the collapsed rect
-    expect(edges.left!.visibility).toBe('hidden');
+    // the label keeps its run along the text's own line, where the band has not tapered (AXIS-9)
+    expect(edges.left!.visibility).toBeNull();
     expect(edges.top!.visibility).toBeNull();
+  });
+
+  // Regression (AXIS-9): the label was measured against the neighbour-free rectangle, which shrinks by
+  // the full depth of both perpendicular bands, though the text sits halfway into the band where they
+  // have taken only half of it. A 73px label on this 255px-tall plot used to hide from size 92 up.
+  describe('label room along the band', () => {
+    function withMeasuredLabel<T>(width: number, height: number, body: () => T): T {
+      const proto = SVGElement.prototype as unknown as Record<string, unknown>;
+      const previous = { length: proto.getComputedTextLength, box: proto.getBBox };
+      proto.getComputedTextLength = () => width;
+      proto.getBBox = () => ({ x: 0, y: 0, width, height });
+      try {
+        return body();
+      }
+      finally {
+        proto.getComputedTextLength = previous.length;
+        proto.getBBox = previous.box;
+      }
+    }
+
+    const leftLabelVisibility = (size: number, labelWidth: number) => withMeasuredLabel(labelWidth, 12,
+      () => byEdge(mount(threeEdges({ size, label: 'more data' }), dateRows)).left!.visibility);
+
+    it('keeps a label the perpendicular bands have not actually reached', () => {
+      expect(leftLabelVisibility(100, 73)).toBeNull();
+      expect(leftLabelVisibility(150, 73)).toBeNull();
+    });
+
+    it('still hides a label longer than the run it has', () => {
+      expect(leftLabelVisibility(100, 400)).toBe('hidden');
+    });
+
+    // the other dimension of the same rule: nothing measured the text across the band, so an explicit
+    // size below the text height drew a label that overflowed the band onto the plot
+    it('hides a label deeper than the band it sits in', () => {
+      const visibilities = (size: number) => withMeasuredLabel(73, 12, () => {
+        const edges = byEdge(mount(threeEdges({ size, label: 'more data' }), dateRows));
+        return { left: edges.left!.visibility, top: edges.top!.visibility, bottom: edges.bottom!.visibility };
+      });
+      // a band shallower than the 12px glyph box cannot hold the text, whichever way it runs
+      expect(visibilities(8)).toEqual({ left: 'hidden', top: 'hidden', bottom: 'hidden' });
+      // exactly deep enough still shows it
+      expect(visibilities(12)).toEqual({ left: null, top: null, bottom: null });
+    });
   });
 
   it('drops the indicator when no band has room', () => {
