@@ -11,7 +11,7 @@ import { mountContainer, trackHandle, lastHandle } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
 import type { ChartSliceClickPayload } from '../../src/types/chart';
 import type { MochartInputConfig } from '../../src/types/config';
-import { getCssSelector, getDescendantCssSelector } from '../../src/utils/ChartDom';
+import { getCssSelector, getDescendantCssSelector, getIdCssSelector } from '../../src/utils/ChartDom';
 
 const rows = [{ category: 'total', s0: 30, s1: 50, s2: 20 }];
 
@@ -90,6 +90,23 @@ describe('pie slice keyboard semantics', () => {
       expect(group.getAttribute('aria-hidden')).toBe('true');
       expect(group.getAttribute('tabindex')).toBeNull();
     }
+  });
+
+  it('keeps follower slices pointer-only', () => {
+    const container = mountChart(makeConfig({
+      series: [
+        { id: 'S0', property: 's0', title: 'Subscriptions' },
+        { id: 'S1', property: 's1', followSeries: 'S0' },
+        { id: 'S2', property: 's2', title: 'Hardware' }
+      ]
+    }), () => {});
+    // the follower activates its leader, so a tab stop of its own would put the leader in the order twice
+    expect(slices(container).map(item => item.getAttribute('data-series-id'))).toEqual(['S0', 'S2']);
+    const follower = container.querySelector(getCssSelector('seriesContainer') + ' ' + getIdCssSelector('series', 'S1'))!;
+    expect(follower.getAttribute('aria-hidden')).toBe('true');
+    expect(follower.getAttribute('tabindex')).toBeNull();
+    expect(follower.getAttribute('role')).toBeNull();
+    expect(follower.getAttribute('aria-label')).toBeNull();
   });
 
   it('has no keyboard semantics when chart accessibility is disabled', () => {

@@ -92,7 +92,7 @@ export function seriesIsInteractive(accessibility: boolean, seriesConfig: Enhanc
   return accessibility && seriesConfig.followSeries === NONE && (seriesConfig.focusOnClick || onSeriesShapeClick !== null);
 }
 
-/** a pie slice is keyboard-reachable when clicking it does something (focus or selection) */
+/** a pie slice is keyboard-reachable when clicking it does something (focus or selection); followers stay pointer-only */
 export function sliceIsInteractive(accessibility: boolean, seriesConfig: EnhancedSeriesConfig, onSliceClick: unknown): boolean {
-  return accessibility && (seriesConfig.focusOnClick || onSliceClick !== undefined);
+  return accessibility && seriesConfig.followSeries === NONE && (seriesConfig.focusOnClick || onSliceClick !== undefined);
 }
