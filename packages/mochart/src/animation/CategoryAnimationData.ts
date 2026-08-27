@@ -110,7 +110,7 @@ export function getCategoryDeltaData(categoryAxisConfig: CategoryAxisConfig, old
 }
 
 export function mergedIndexForNewIndex(categoryDeltaData: CategoryDeltaData, newCategoryIndex: number): number {
-  return categoryDeltaData.indices.new[newCategoryIndex];
+  return categoryDeltaData.indices.new[newCategoryIndex] ?? -1;
 }
 
 // the merged indices already carry the keyed old/new matching, so these need no re-keying
@@ -523,10 +523,11 @@ function getOrdinalCategoryValueDeltaData(oldNumericValues: number[], newNumeric
   for (let i = 0; i < count; i++) {
     deltas.push(newNumericValues[i] - oldNumericValues[i]);
   }
+  const domainExtent = Number(categoryAxisDomain[1]);
   return {
     start: oldNumericValues,
     deltas,
-    deltaPercentage: getMaxAbsoluteValue(deltas) / Number(categoryAxisDomain[1]),
+    deltaPercentage: domainExtent > 0 ? getMaxAbsoluteValue(deltas) / domainExtent : 0,
     end: newNumericValues
   }
 }

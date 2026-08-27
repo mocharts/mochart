@@ -347,6 +347,16 @@ describe('index lookups', () => {
     expect(mergedIndexForNewIndex(delta, 2)).toBe(3);
   });
 
+  // all three lookups answer -1 for an index the list does not hold; startFocusTween reads the
+  // undefined this used to return as "no override" and focuses the unmapped index instead
+  it('answers -1 for an out-of-range index in every direction', () => {
+    expect(mergedIndexForNewIndex(delta, 3)).toBe(-1);
+    expect(mergedIndexForNewIndex(delta, 99)).toBe(-1);
+    expect(oldIndexForNewIndex(delta, 99)).toBe(-1);
+    expect(newIndexForMergedIndex(delta, 99)).toBe(-1);
+    expect(newIndexForOldIndex(delta, 99)).toBe(-1);
+  });
+
   it('maps between old and new indices, with -1 for added and removed values', () => {
     expect(oldIndexForNewIndex(delta, 0)).toBe(0);
     expect(oldIndexForNewIndex(delta, 1)).toBe(-1);
@@ -444,6 +454,17 @@ describe('ordinal expansion and contraction category deltas', () => {
     const next = { categoryData: categoryDataFor(ordinalString, ['a', 'b', 'c']) };
     const prev = { categoryData: getCategoryDataWithNumericValues(next.categoryData, delta.indices.new) };
     expect(getContractionCategoryValueDeltaData(ordinalString.categoryAxis, delta, prev, next, domain)).toBeNull();
+  });
+
+  // every sibling pacing denominator is guarded the same way; a collapsed domain paces nothing.
+  // Defensive: the callers skip the delta entirely when the domain does not move, so no update
+  // reaches this with a zero domain today.
+  it('paces at zero rather than dividing by a collapsed domain', () => {
+    const delta = deltaFor(ordinalString, ['a', 'b'], ['a']);
+    const next = { categoryData: categoryDataFor(ordinalString, ['a']) };
+    const prev = { categoryData: getCategoryDataWithNumericValues(next.categoryData, delta.indices.new) };
+    const result = getContractionCategoryValueDeltaData(ordinalString.categoryAxis, delta, prev, next, [0, 0]);
+    expect(result!.deltaPercentage).toBe(0);
   });
 
   it('has no deltas for a linear axis', () => {
