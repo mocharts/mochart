@@ -445,6 +445,24 @@ describe('hasConfigStructureChange', () => {
     expect(hasConfigStructureChange(withId('a'), withId('b'))).toBe(true);
   });
 
+  // every data property a series names is structural: the tween interpolates the arrays behind them,
+  // so a swap would animate between two unrelated columns before landing on the new one
+  it('reports a change when a series data property differs', () => {
+    const withProperty = (key: string, value: string | null) =>
+      makeConfig({
+        categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+        series: [{ property: 'sales', [key]: value }]
+      });
+    // colorProperty is left out: the validator ties colorScale to it, so it cannot be toggled alone
+    for (const key of ['rangeProperty', 'errorLowProperty', 'errorHighProperty',
+                       'markerProperty', 'labelProperty', 'tooltipProperty']) {
+      expect(hasConfigStructureChange(withProperty(key, 'note'), withProperty(key, 'note'))).toBe(false);
+      expect(hasConfigStructureChange(withProperty(key, null), withProperty(key, 'note'))).toBe(true);
+      expect(hasConfigStructureChange(withProperty(key, 'note'), withProperty(key, null))).toBe(true);
+      expect(hasConfigStructureChange(withProperty(key, 'note'), withProperty(key, 'other'))).toBe(true);
+    }
+  });
+
   // showInLegend only decides legend membership, so it must not tear the chart down and replay its opening animation
   it('reports no change when only a series showInLegend differs', () => {
     const withShowInLegend = (showInLegend: boolean) =>

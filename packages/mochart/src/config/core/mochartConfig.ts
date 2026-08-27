@@ -494,6 +494,7 @@ export function hasConfigStructureChange(configOld: MochartConfig | null, config
         seriesConfig.markerProperty !== newSeriesConfig.markerProperty ||
         seriesConfig.colorProperty !== newSeriesConfig.colorProperty ||
         seriesConfig.labelProperty !== newSeriesConfig.labelProperty ||
+        seriesConfig.tooltipProperty !== newSeriesConfig.tooltipProperty ||
         seriesConfig.axis !== newSeriesConfig.axis ||
         seriesConfig.stack !== newSeriesConfig.stack ||
         seriesConfig.group !== newSeriesConfig.group) {
