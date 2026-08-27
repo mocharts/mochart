@@ -431,6 +431,11 @@ export function hasConfigStructureChange(configOld: MochartConfig | null, config
   if (!configOld || !configNew) {
     return configOld !== configNew;
   }
+  const oldComplete = configOld.chart !== undefined && configOld.categoryAxis !== undefined;
+  const newComplete = configNew.chart !== undefined && configNew.categoryAxis !== undefined;
+  if (!oldComplete || !newComplete) {
+    return oldComplete !== newComplete;
+  }
   if (configOld.validation.valid !== configNew.validation.valid || !configNew.validation.valid) {
     return true;
   }

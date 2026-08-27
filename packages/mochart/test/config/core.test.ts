@@ -394,6 +394,22 @@ describe('hasConfigStructureChange', () => {
     expect(hasConfigStructureChange(null, null)).toBe(false);
   });
 
+  // buildMochartConfig drops the object sections for a non-object config, and for one built against a
+  // defaults graph without them; comparing two such configs used to throw on the first section it read
+  it('treats a config with no sections like no config at all', () => {
+    const sectionless = [
+      buildMochartConfig(null),
+      buildMochartConfig({}, {}),
+      buildMochartConfig({}, { chart: { type: 'xy' } })
+    ];
+    for (const config of sectionless) {
+      expect(hasConfigStructureChange(config, config)).toBe(false);
+      expect(hasConfigStructureChange(config, base())).toBe(true);
+      expect(hasConfigStructureChange(base(), config)).toBe(true);
+    }
+    expect(hasConfigStructureChange(sectionless[0], sectionless[1])).toBe(false);
+  });
+
   it('reports a change when the new config is invalid', () => {
     const invalid = makeConfig({}) as MochartConfig;
     expect(hasConfigStructureChange(base(), invalid)).toBe(true);
