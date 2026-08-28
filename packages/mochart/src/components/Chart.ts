@@ -536,7 +536,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       if (valid) {
         const uniqueIdState = this.constructUniqueIds(mochartConfig);
         const domAccessors = this.chartRef ? getDomAccessors(this.chartRef) : null;
-        const chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors);
+        const chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts);
 
         const layoutInfo = getChartLayoutInfo(mochartConfig, chartData, chartTextBoundsData, width, height);
         let axisData = null;
@@ -600,7 +600,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       const { chartData, width, height } = this.props;
       const mochartConfig = this.renderedConfig();
       const domAccessors = getDomAccessors(this.chartRef);
-      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors);
+      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts);
       chartTextBoundsData = getChartTextBoundsDataWithMutations(this.state.chartTextBoundsData, chartTextBoundsData);
       let layoutInfo = this.state.layoutInfo;
       if (chartTextBoundsData !== this.state.chartTextBoundsData || layoutInfo === null) {
@@ -648,7 +648,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       const { chartData, width, height } = this.props;
       const mochartConfig = this.renderedConfig();
       const domAccessors = getDomAccessors(this.chartRef);
-      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors);
+      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts);
       chartTextBoundsData = getChartTextBoundsDataWithMutations(this.state.chartTextBoundsData, chartTextBoundsData);
       if (chartTextBoundsData !== this.state.chartTextBoundsData) {
         let layoutInfo = getChartLayoutInfo(mochartConfig, chartData, chartTextBoundsData, width, height);

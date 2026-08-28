@@ -138,6 +138,28 @@ describe('empty rendered text', () => {
     expect(getChartTextBoundsData(mochartConfig, domAccessors).hasDefault).toBe(false);
   });
 
+  // Regression: an axis that draws nothing while its series are filtered was still measured, and the
+  // zero-element result read as unmeasurable — pinning hasDefault for as long as the filter was on
+  it('does not pin hasDefault for a value axis that draws nothing while all its series are filtered', () => {
+    const mochartConfig = enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', visible: false },
+      legend: { visible: false },
+      valueAxes: [{ id: 'v1' }, { id: 'v2', title: { text: 'Hidden' }, visibleWhenAllFiltered: false }],
+      series: [{ property: 'p0', axis: 'v1' }, { property: 'p1', axis: 'v2' }]
+    } as never) as EnhancedMochartConfig;
+    const domAccessors = {
+      getValueAxisTicksDomElementsForId: (id: string) => id === 'v1' ? [textElement('1', 8, 10)] : [],
+      getValueAxisTitleDomElementForId: () => null,
+      getValueAxisThresholdTitleDomElementsForId: () => []
+    } as unknown as ChartDomAccessors;
+
+    // v2 draws while it still has a series, so its missing elements are a measurement to retry
+    expect(getChartTextBoundsData(mochartConfig, domAccessors, { v1: 1, v2: 1 }).hasDefault).toBe(true);
+    // with its series filtered off it draws nothing, so there is nothing to measure and nothing to retry
+    expect(getChartTextBoundsData(mochartConfig, domAccessors, { v1: 1, v2: 0 }).hasDefault).toBe(false);
+  });
+
   it('still falls back to default bounds for a non-empty title that cannot be measured yet', () => {
     const mochartConfig = enhanceConfig({
       version: '1.0.0',

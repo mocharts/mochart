@@ -2,7 +2,7 @@ import { getWithMutations } from './WithMutations';
 import { arrayToMap, idAccessor } from './utils';
 import { NONE, SCALE_ORDINAL } from '../config/core/constants';
 import { isObject } from '../config/defaults/utils';
-import type { EnhancedMochartConfig } from '../types/enhanced';
+import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced';
 import type { ChartDomAccessors } from '../types/chart';
 import type { ChartTextBoundsData } from '../types/layout';
 import { resolveThresholds } from '../config/defaults/axisConfig';
@@ -16,7 +16,7 @@ const defaultBounds = { width: 20, height: 20, default: true };
 // not `default`, which would make hasDefault retry a legend that can never be measured
 const unmeasuredBounds = { width: 0, height: 0 };
 
-export function getChartTextBoundsData(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): ChartTextBoundsData {
+export function getChartTextBoundsData(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null, axisSeriesCounts?: Record<string, number>): ChartTextBoundsData {
   const titleTextBounds = getTitleTextBounds(mochartConfig, domAccessors);
   const titleTextRawBounds = getTitleTextRawBounds(mochartConfig, domAccessors);
   const titlePrefixBounds = getTitlePrefixBounds(mochartConfig, domAccessors);
@@ -25,8 +25,8 @@ export function getChartTextBoundsData(mochartConfig: EnhancedMochartConfig, dom
   const categoryAxisSizeTickBounds = getCategoryAxisSizeTickLabelBounds(mochartConfig, domAccessors);
   const categoryAxisTitleBounds = getCategoryAxisTitleBounds(mochartConfig, domAccessors);
   const categoryAxisThresholdTitleBounds = getCategoryAxisThresholdTitleBounds(mochartConfig, domAccessors);
-  const valueAxisTickBounds = getValueAxisTickLabelBounds(mochartConfig, domAccessors);
-  const valueAxisTitleBounds = getValueAxisTitleBounds(mochartConfig, domAccessors);
+  const valueAxisTickBounds = getValueAxisTickLabelBounds(mochartConfig, domAccessors, axisSeriesCounts);
+  const valueAxisTitleBounds = getValueAxisTitleBounds(mochartConfig, domAccessors, axisSeriesCounts);
   const valueAxisThresholdTitleBounds = getValueAxisThresholdTitleBounds(mochartConfig, domAccessors);
   const legendBounds = getLegendBounds(mochartConfig, domAccessors);
   const legendItemTextBounds = getLegendItemTextBounds(mochartConfig, domAccessors);
@@ -341,11 +341,15 @@ export function getCategoryAxisThresholdTitleBounds(mochartConfig: EnhancedMocha
 
 
 
-export function getValueAxisTickLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): Record<string, TextBounds> {
+function axisIsDrawn(valueAxisConfig: EnhancedValueAxisConfig, axisSeriesCounts: Record<string, number> | undefined): boolean {
+  return valueAxisConfig.visible && (valueAxisConfig.visibleWhenAllFiltered || (axisSeriesCounts?.[valueAxisConfig.id] ?? 0) > 0);
+}
+
+export function getValueAxisTickLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null, axisSeriesCounts?: Record<string, number>): Record<string, TextBounds> {
   const { valueAxes: valueAxisConfigs } = mochartConfig;
   const valueAxisTickBounds = arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => {
     let aValueAxisTickBounds: TextBounds = emptyBounds;
-    if (valueAxisConfig.visible) {
+    if (axisIsDrawn(valueAxisConfig, axisSeriesCounts)) {
       aValueAxisTickBounds = getSvgMaxBounds(domAccessors, ['getValueAxisTicksDomElementsForId', valueAxisConfig.id], defaultBounds);
     }
     return aValueAxisTickBounds;
@@ -353,11 +357,11 @@ export function getValueAxisTickLabelBounds(mochartConfig: EnhancedMochartConfig
   return valueAxisTickBounds;
 }
 
-export function getValueAxisTitleBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): Record<string, TextBounds> {
+export function getValueAxisTitleBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null, axisSeriesCounts?: Record<string, number>): Record<string, TextBounds> {
   const { valueAxes: valueAxisConfigs } = mochartConfig;
   const valueAxisTitleBounds = arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => {
     let aValueAxisTitleBounds: TextBounds = emptyBounds;
-    if (valueAxisConfig.visible && valueAxisConfig.title.text !== NONE) {
+    if (axisIsDrawn(valueAxisConfig, axisSeriesCounts) && valueAxisConfig.title.text !== NONE) {
       aValueAxisTitleBounds = getSvgBounds(domAccessors, ['getValueAxisTitleDomElementForId', valueAxisConfig.id], defaultBounds);
     }
     return aValueAxisTitleBounds;
