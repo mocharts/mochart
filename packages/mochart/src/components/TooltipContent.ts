@@ -512,7 +512,6 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
 
     this.root.set({ className: mochartCssClasses['tooltipContent'], onClick: this.onClick,
       onKeyDown: accessibility && visible ? this.onRootKeyDown : null });
-    this.controlsContainer.set({ className: mochartCssClasses['tooltipControls'] });
     this.controls.set(TooltipControls, { mochartConfig, categoryCount, updateTooltipCategoryIndex,
       tooltipCategoryIndex, focusedCategoryIndex,
       onFocus, mode, toggleMode, sizing: !visible, minWidth });
