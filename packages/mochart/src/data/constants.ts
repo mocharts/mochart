@@ -26,8 +26,6 @@ export type ExtraCopyKey = typeof copyKeyMarker | typeof copyKeyLabel | typeof c
 
 export const valueKeys: ValueKey[] = [keyPlain, keyRange, keyErrorLow, keyErrorHigh, keyStack, keyPrior, keyMarker, keyLabel, keyColor, keyTooltip];
 
-export const positionOrComputedOrExtraKeys: ValueKey[] = [keyPlain, keyRange, keyErrorLow, keyErrorHigh, keyStack, keyPrior, keyMarker, keyLabel, keyColor, keyTooltip];
-
 export const positionKeys: PositionKey[] = [keyPlain, keyRange, keyErrorLow, keyErrorHigh];
 
 export const positionOrComputedKeys: PositionOrComputedKey[] = [keyPlain, keyRange, keyErrorLow, keyErrorHigh, keyStack, keyPrior];

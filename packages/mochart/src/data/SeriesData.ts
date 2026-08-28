@@ -3,7 +3,7 @@ import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData';
 import { readNumericValues } from './PropertyData';
 import { AUTO, NONE, RENDERER_AREA, RENDERER_BAR } from '../config/core/constants';
 
-import { keyPlain, keyPrior, valueKeys, positionKeys, extraKeys, extraCopyKeys, positionOrComputedOrExtraKeys } from './constants';
+import { keyPlain, keyPrior, valueKeys, positionKeys, extraKeys, extraCopyKeys } from './constants';
 
 import { createArrayFilledWithZero, arrayToMap, mapMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils';
 import type { DataProvider, CategoryData, CategoryValue, NullableDomain, NumericValues, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObject, SeriesValueObjects } from '../types/data';
@@ -366,7 +366,7 @@ function getSeriesDomainObjects(seriesValueObjects: SeriesValueObjects): SeriesD
 
 function getSeriesDomainObject(seriesValueObject: SeriesValueObject): SeriesDomainObject {
   const seriesDomainObject: SeriesDomainObject = {};
-  for (const key of positionOrComputedOrExtraKeys) {
+  for (const key of valueKeys) {
     if (key !== keyPrior) {
       setSeriesDomain(seriesDomainObject, seriesValueObject, key);
     }

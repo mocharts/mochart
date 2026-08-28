@@ -19,7 +19,7 @@ import {
 import { getMaxAxisDomains, getCombinedDomainAxisIds, getCombinedAxisDomainDeltas, getCombinedCategoryDomainDelta,
   shouldCombineDomainChange, setAxisDeltaFactors, setDeltaFactor, withAxisDomainsForIds, withSeriesDomainsForAxes } from './DomainAnimationData';
 
-import { keyPlain, positionKeys, positionOrComputedKeys, positionOrComputedOrExtraKeys, extraAndCopyKeys } from '../data/constants';
+import { keyPlain, positionKeys, positionOrComputedKeys, valueKeys, extraAndCopyKeys } from '../data/constants';
 
 import { NONE, SCALE_ORDINAL } from '../config/core/constants';
 
@@ -881,7 +881,7 @@ function setValueDeltaFactors(valueDeltaObject: SeriesValueDeltaMap, deltaPercen
 }
 
 function setValueDeltaFactorForObject(valueDeltaDataObject: SeriesValueDelta, deltaPercentage: number): void {
-  for (const key of positionOrComputedOrExtraKeys) {
+  for (const key of valueKeys) {
     setValueDeltaFactorForValues(valueDeltaDataObject, key, deltaPercentage);
   }
 }
