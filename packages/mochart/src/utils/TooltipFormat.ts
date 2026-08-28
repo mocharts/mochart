@@ -52,7 +52,9 @@ function getValueText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSeries
         seriesValueText = String(valueFormat(filterValueObject[key]!));
       }
       else {
-        seriesValueText = getFilteredValueText(tooltipConfig, String(valueFormat(axisBases[seriesConfig.valueAxisConfig.id]!)));
+        const axisBase = axisBases[seriesConfig.valueAxisConfig.id];
+        seriesValueText = getFilteredValueText(tooltipConfig,
+          axisBase !== null ? String(valueFormat(axisBase)) : tooltipConfig.missingValueText);
       }
     }
     else {

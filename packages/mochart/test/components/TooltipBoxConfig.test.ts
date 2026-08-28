@@ -59,6 +59,13 @@ function modeLabels(button: HTMLElement): HTMLElement[] {
   return Array.from(button.querySelectorAll<HTMLElement>('span > span'));
 }
 
+/** the value each series row of one tooltip copy shows */
+function rowValues(container: Element, box: 'tooltip' | 'tooltipSizer'): string[] {
+  return Array.from(container.querySelectorAll<HTMLElement>(
+    getCssSelector(box) + ' ' + getCssSelector('tooltipSeriesLine') + ' ' + getCssSelector('tooltipLineValue')))
+    .map(value => value.textContent!);
+}
+
 function tooltipStyle(container: Element): CSSStyleDeclaration {
   const box = container.querySelector<HTMLElement>(getCssSelector('tooltip'));
   expect(box).not.toBeNull();
@@ -122,6 +129,20 @@ describe('tooltip size for filtering', () => {
     // the rows that are left are in both
     expect(hasRow(container, 'tooltip', 'S1')).toBe(true);
     expect(hasRow(container, 'tooltipSizer', 'S1')).toBe(true);
+  });
+
+  // Regression: the axis base sizing the placeholder is null once every series on the axis is
+  // filtered out, and d3 formatted that null as a real zero
+  it('shows the missing-value text when a fully filtered axis has no base to place', () => {
+    const container = mountChart({
+      valueAxes: [{ id: 'V0', adjustForFiltering: true }],
+      tooltip: { filteredValueText: null, filteredValueCharacter: null }
+    });
+    filterSeries(container, 'S0');
+    filterSeries(container, 'S1');
+    openTooltip(container);
+
+    expect(rowValues(container, 'tooltip')).toEqual(['N/A', 'N/A']);
   });
 
   it('changes nothing while no series is filtered', () => {
