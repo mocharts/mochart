@@ -3,7 +3,7 @@ import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData';
 import { readNumericValues } from './PropertyData';
 import { AUTO, NONE, RENDERER_AREA, RENDERER_BAR } from '../config/core/constants';
 
-import { keyPlain, valueKeys, positionKeys, extraKeys, extraCopyKeys, positionOrComputedOrExtraKeys } from './constants';
+import { keyPlain, keyPrior, valueKeys, positionKeys, extraKeys, extraCopyKeys, positionOrComputedOrExtraKeys } from './constants';
 
 import { createArrayFilledWithZero, arrayToMap, mapMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils';
 import type { DataProvider, CategoryData, CategoryValue, NullableDomain, NumericValues, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObject, SeriesValueObjects } from '../types/data';
@@ -367,12 +367,14 @@ function getSeriesDomainObjects(seriesValueObjects: SeriesValueObjects): SeriesD
 function getSeriesDomainObject(seriesValueObject: SeriesValueObject): SeriesDomainObject {
   const seriesDomainObject: SeriesDomainObject = {};
   for (const key of positionOrComputedOrExtraKeys) {
-    setSeriesDomain(seriesDomainObject, seriesValueObject, key);
+    if (key !== keyPrior) {
+      setSeriesDomain(seriesDomainObject, seriesValueObject, key);
+    }
   }
   let domain = nullDomain;
   if (seriesValueObject.plain !== null) {
     if (seriesValueObject.stack !== null) {
-      domain = mergeDomain(seriesDomainObject.stack, seriesDomainObject.prior);
+      domain = mergeDomain(seriesDomainObject.stack, seriesValueObject.prior !== null ? getDomainForValues(seriesValueObject.prior) : nullDomain);
     }
     else {
       domain = seriesValueObject.range !== null ? mergeDomain(seriesDomainObject.plain, seriesDomainObject.range) : seriesDomainObject.plain;
