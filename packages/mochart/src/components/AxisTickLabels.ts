@@ -95,7 +95,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
 
     const truncationEnabled = axisConfig.tickLabel.truncationEnabled ?? false;
     let truncationChanged = false;
-    let integrityChanged = true;
+    let dataIntact = true;
     if (truncationEnabled) {
       const sizeChanged = layoutInfoExtentChanged(prevProps.axisLayoutInfo, axisLayoutInfo) ||
         layoutInfoExtentChanged(prevProps.plotLayoutInfo, plotLayoutInfo) ||
@@ -105,9 +105,9 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
       const ticksChanged = axisTicks !== prevProps.axisTicks;
       truncationChanged = getTruncationChanged(sizeChanged, ticksChanged, prevProps, props);
       const axisTickCount = axisTicks !== null ? axisTicks.length : 0;
-      integrityChanged = Array.isArray(this.truncation.data) && axisTickCount === this.truncation.data.length;
+      dataIntact = Array.isArray(this.truncation.data) && axisTickCount === this.truncation.data.length;
     }
-    return this.truncation.prepare(truncationEnabled, truncationChanged, false, integrityChanged,
+    return this.truncation.prepare(truncationEnabled, truncationChanged, false, dataIntact,
       truncationChanged ? this.tickLabelStrings : undefined);
   }
 

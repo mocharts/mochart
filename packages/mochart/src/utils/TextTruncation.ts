@@ -13,12 +13,12 @@ function refreshTruncationData(truncationData: TruncationData, newText: string |
   return { text, truncatedText: text };
 }
 
-export function prepareTruncation(truncationEnabled: boolean, truncationChanged: boolean, oldTruncationData: TruncationDataValue, integrityChanged = true, newText?: string | string[]) {
+export function prepareTruncation(truncationEnabled: boolean, truncationChanged: boolean, oldTruncationData: TruncationDataValue, dataIntact = true, newText?: string | string[]) {
   let truncationData: TruncationDataValue = null;
   const checkTruncation = truncationEnabled && (truncationChanged || oldTruncationData === null);
   if (truncationEnabled) {
     if (truncationChanged) {
-      if (oldTruncationData !== null && integrityChanged) {
+      if (oldTruncationData !== null && dataIntact) {
         truncationData = Array.isArray(oldTruncationData)
           ? oldTruncationData.map((td, i) => refreshTruncationData(td, (newText as string[] | undefined)?.[i]))
           : refreshTruncationData(oldTruncationData, newText as string | undefined);
@@ -119,12 +119,12 @@ export class TruncationTracker {
     return null;
   }
 
-  /** derive() on update; `reset` drops the accumulated data first (text changed, or the layout settled) */
-  prepare(enabled: boolean, changed: boolean, reset: boolean, integrityChanged = true, newText?: string | string[]): TruncationState {
+  /** derive() on update; `reset` drops the accumulated data first (text changed, or the layout settled), `dataIntact` false discards it as no longer matching */
+  prepare(enabled: boolean, changed: boolean, reset: boolean, dataIntact = true, newText?: string | string[]): TruncationState {
     if (reset) {
       this.data = null;
     }
-    const { checkTruncation, truncationData } = prepareTruncation(enabled, changed, this.data, integrityChanged, newText);
+    const { checkTruncation, truncationData } = prepareTruncation(enabled, changed, this.data, dataIntact, newText);
     this.data = truncationData;
     // latched, never cleared here: a props update landing mid-refinement must not cancel the pending check
     if (checkTruncation) {
