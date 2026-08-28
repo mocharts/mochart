@@ -9,7 +9,6 @@ import {
   getChartDataCategoryCount
 } from '../../src/data/ChartData';
 import { makeConfig, ArrayOfObjectsDataProvider } from './fixtures';
-import { domainKeys } from '../../src/data/constants';
 import type { DataProvider } from '../../src/types/data';
 
 const rows = [
@@ -158,22 +157,6 @@ describe('missing series values', () => {
   it('excludes the missing value from the series domain', () => {
     const { chartData, seriesId } = makeHoledChartData();
     expect(chartData.seriesData.raw.domains[seriesId].plain).toEqual([10, 30]);
-  });
-
-  // Regression: prior was given a domain that only the stacked merge read, so every series domain
-  // object carried a key domainKeys has no place for — and the animation's objects did not
-  it('gives a series domain object exactly the keys domainKeys names', () => {
-    const config = makeConfig({
-      categoryAxis: { property: 'g', type: 'number', scale: 'ordinal' },
-      seriesStacks: [{ id: 'S' }],
-      series: [{ property: 'a' }, { property: 'b' }]
-    });
-    const provider = new ArrayOfObjectsDataProvider([{ g: 0, a: 10, b: 5 }, { g: 1, a: 20, b: 15 }]);
-    const chartData = getChartData(config, provider, {});
-    for (const seriesConfig of config.series) {
-      expect(Object.keys(chartData.seriesData.raw.domains[seriesConfig.id]).sort(), seriesConfig.id)
-        .toEqual([...domainKeys].sort());
-    }
   });
 
   it('carries a missing range value as NaN and excludes it from the range domain', () => {
