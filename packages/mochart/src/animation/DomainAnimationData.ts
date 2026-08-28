@@ -335,10 +335,6 @@ export function getTransitionAxisExpansionData(mochartConfig: EnhancedMochartCon
       getMaxAxisDomains(prevChartData.seriesData.filtered.renderAxisDomains, newChartData.seriesData.filtered.renderAxisDomains),
       prevChartData.seriesData.filtered.renderAxisDomains, combinedAxisIds);
   }
-  // a base follows its axis's raw or filtered domain, so either changing moves it
-  if (rawSet.valueAxisDomainDeltas.deltaPercentage !== 0 || filteredSet.valueAxisDomainDeltas.deltaPercentage !== 0) {
-    finalValueAxisBases = getValueAxisBases(valueAxisConfigs, finalRawValueAxisDomains, finalFilteredValueAxisDomains);
-  }
   if (rawSet.seriesDomainDeltas.deltaPercentage !== 0) {
     endRawSeriesDomains = getMaxSeriesDomains(rawSet.startSeriesDomains, rawSet.endSeriesDomains);
     finalRawSeriesDomains = withSeriesDomainsForAxes(
@@ -350,6 +346,12 @@ export function getTransitionAxisExpansionData(mochartConfig: EnhancedMochartCon
     finalFilteredSeriesDomains = withSeriesDomainsForAxes(
       getMaxSeriesDomains(prevChartData.seriesData.filtered.domains, newChartData.seriesData.filtered.domains),
       prevChartData.seriesData.filtered.domains, seriesConfigs, combinedAxisIds);
+  }
+  // a base follows the series domains it reads and the axis bounds it is held within, so either changing moves it
+  if (rawSet.valueAxisDomainDeltas.deltaPercentage !== 0 || filteredSet.valueAxisDomainDeltas.deltaPercentage !== 0 ||
+    rawSet.seriesDomainDeltas.deltaPercentage !== 0 || filteredSet.seriesDomainDeltas.deltaPercentage !== 0) {
+    finalValueAxisBases = getValueAxisBases(valueAxisConfigs, finalRawSeriesDomains, finalFilteredSeriesDomains,
+      finalRawValueAxisDomains, finalFilteredValueAxisDomains);
   }
 
   const hasDomainDelta = hasAnyDomainDelta(rawSet, filteredSet);

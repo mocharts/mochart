@@ -134,9 +134,10 @@ describe('value axis focus range placement', () => {
     const axisHeight = rect(group, getCssSelector('axisTickLabels') + ' rect').height;
 
     expect(range.y).toBeGreaterThan(0);
-    // the focused category's value runs down to the axis base, which sits at the
-    // bottom of the axis
-    expect(range.y + range.height).toBe(axisHeight);
+    // the focused category's value runs down to the axis base — the smallest value on the axis,
+    // which the bottom margin leaves just short of the axis end
+    expect(range.y + range.height).toBeLessThan(axisHeight);
+    expect(range.y + range.height).toBeCloseTo(472.55, 1);
   });
 
   // The golden snapshots never activate an axis focus, so its style is pinned here.

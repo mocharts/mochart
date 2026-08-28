@@ -32,7 +32,7 @@ export function isExplicitCollapsedDomain(axisConfig: AxisDomainConfig, axisDoma
 }
 
 /** The domain scales/ticks are built from: the semantic domain itself (same reference) unless collapsed,
- * then a widened copy so values render off the midline; bound consumers (base, clip) keep the semantic one. */
+ * then a widened copy so values render off the midline; clip detection keeps the domain itself. */
 export function getRenderAxisDomain(axisConfig: AxisDomainConfig, axisDomain: CategoryAxisDomain): CategoryAxisDomain {
   const [min, max] = axisDomain;
   if (min === null || max === null || numericValue(min) !== numericValue(max)) {

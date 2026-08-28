@@ -128,8 +128,9 @@ describe('expansion final axis bases (raw-only domain change)', () => {
       dataFor([{ c: 0, a: 5, b: 10 }, { c: 1, a: 8, b: 20 }]),
       dataFor([{ c: 0, a: -22, b: 10 }, { c: 1, a: 8, b: 20 }, { c: 2, a: 3, b: 15 }]));
     const final = cad.axisExpansionData.final!;
-    expect(final.seriesData.raw.renderAxisDomains[axisId][0]).toBeLessThan(0);
-    expect(final.seriesData.axisBases[axisId]).toBe(final.seriesData.raw.renderAxisDomains[axisId][0]);
+    expect(final.seriesData.raw.renderAxisDomains[axisId][0]).toBeLessThan(-22);
+    // the base is the smallest value, not the axis bound the margin puts below it
+    expect(final.seriesData.axisBases[axisId]).toBe(-22);
     // the entering bar starts at the base, so it has zero height instead of spanning the old base to the new min
     expect(getStartChartData(cad).seriesData.raw.values[seriesB].plain![2]).toBe(final.seriesData.axisBases[axisId]);
   });

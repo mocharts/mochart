@@ -86,8 +86,8 @@ describe('getFocusData', () => {
   it('reduces to a single value plus the axis base when a category and series are both focused', () => {
     const { config, chartData, s0 } = makeChart();
     const fd = getFocusData(config, chartData, 1, null, s0);
-    // series S0 at category 1 is value 20; paired with the axis base 3.75
-    expect(fd.seriesFocusDomainPercentages).toEqual([0.4090909090909091, 1]);
+    // series S0 at category 1 is value 20; paired with the axis base 5, the smallest value on the axis
+    expect(fd.seriesFocusDomainPercentages).toEqual([0.4090909090909091, 0.9545454545454546]);
   });
 
   it('skips domain percentages when computeDomainPercentages is false', () => {

@@ -2489,9 +2489,12 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * The numeric base value of the axis, used for animation and relative
    * positioning for shapes (use null for none).
    *
-   * The value that bars and areas grow from, and the resting position shapes
-   * animate from/to when series enter or leave. With mixed positive/negative
-   * data the base separates the two directions.
+   * The value shapes are measured from: bars and areas grow from it,
+   * `missingValueMode: 'base'` puts missing values on it, and shapes animate
+   * from it when series enter or leave. With mixed positive/negative data it
+   * separates the two directions. When left unspecified, shapes are drawn from
+   * the bottom of the plot, and animate from `min` when it is set, otherwise
+   * from the smallest value on the axis.
    *
    * Default:
    * - `0` — when chart.type is pie

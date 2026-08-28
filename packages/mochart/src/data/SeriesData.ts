@@ -1,7 +1,7 @@
 import { nullDomain, getDomainForValues, mergeDomain } from './DomainData';
 import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData';
 import { readNumericValues } from './PropertyData';
-import { NONE } from '../config/core/constants';
+import { AUTO, NONE } from '../config/core/constants';
 
 import { keyPlain, valueKeys, positionKeys, extraKeys, extraCopyKeys, positionOrComputedOrExtraKeys } from './constants';
 
@@ -22,8 +22,8 @@ export function getSeriesData(mochartConfig: EnhancedMochartConfig, dataProvider
   const seriesFilteredFlags = getSeriesFilteredFlags(seriesConfigs, filteredSeriesMap);
   const filteredSeriesBundle = getFilteredSeriesBundle(valueAxisConfigs, seriesConfigs, seriesStackConfigs, keyCategoryValues, rawSeriesBundle, seriesFilteredFlags);
 
-  // bases derive from the render domains: a semantic (collapsed) min would draw zero-height bars
-  const axisBases = getValueAxisBases(valueAxisConfigs, rawSeriesBundle.data.renderAxisDomains, filteredSeriesBundle.data.renderAxisDomains);
+  const axisBases = getValueAxisBases(valueAxisConfigs, rawSeriesBundle.data.domains, filteredSeriesBundle.data.domains,
+    rawSeriesBundle.data.renderAxisDomains, filteredSeriesBundle.data.renderAxisDomains);
   const axisSeriesCounts = getSeriesContainerVisibleSeriesCounts(valueAxisConfigs, seriesFilteredFlags);
 
   return {
@@ -451,11 +451,21 @@ export function calculateValueAxisDomain(valueAxisConfig: EnhancedValueAxisConfi
   return axisDomain;
 }
 
-export function getValueAxisBases(valueAxisConfigs: EnhancedValueAxisConfig[], rawValueAxisDomains: Record<string, NullableDomain>, filteredValueAxisDomains: Record<string, NullableDomain>): Record<string, number | null> {
-  return arrayToMap(valueAxisConfigs, idAccessor,
-    valueAxisConfig =>
-      valueAxisConfig.base !== NONE ? valueAxisConfig.base :
-        valueAxisConfig.adjustForFiltering ? filteredValueAxisDomains[valueAxisConfig.id][0] : rawValueAxisDomains[valueAxisConfig.id][0])
+export function getValueAxisBases(valueAxisConfigs: EnhancedValueAxisConfig[], rawSeriesDomains: SeriesDomainObjects, filteredSeriesDomains: SeriesDomainObjects,
+  rawValueAxisDomains: Record<string, NullableDomain>, filteredValueAxisDomains: Record<string, NullableDomain>): Record<string, number | null> {
+  return arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => {
+    if (valueAxisConfig.base !== NONE) {
+      return valueAxisConfig.base;
+    }
+    // a declared min is the floor shapes are drawn from; otherwise the smallest value, so nothing
+    // animates into the margin the axis adds below it
+    if (valueAxisConfig.min !== AUTO) {
+      return valueAxisConfig.min as number;
+    }
+    const adjust = valueAxisConfig.adjustForFiltering;
+    const dataMin = calculateValueAxisDomain(valueAxisConfig, adjust ? filteredSeriesDomains : rawSeriesDomains)[0];
+    return dataMin !== null ? dataMin : (adjust ? filteredValueAxisDomains : rawValueAxisDomains)[valueAxisConfig.id][0];
+  })
 }
 
 export function getSeriesContainerVisibleSeriesCounts(seriesContainerConfigs: SeriesContainerConfig[], filteredSeriesFlags: Record<string, boolean>): Record<string, number> {
