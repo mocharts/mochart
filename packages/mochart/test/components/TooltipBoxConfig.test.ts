@@ -46,6 +46,19 @@ function hasRow(container: Element, box: 'tooltip' | 'tooltipSizer', seriesId: s
   return container.querySelector(getCssSelector(box) + ' ' + getIdCssSelector('tooltipSeriesLine', seriesId)) !== null;
 }
 
+/** the mode button of one tooltip copy: the shown box, or the hidden sizer that reserves its width */
+function modeButton(container: Element, box: 'tooltip' | 'tooltipSizer'): HTMLElement {
+  const buttons = Array.from(container.querySelectorAll<HTMLElement>(
+    getCssSelector(box) + ' ' + getCssSelector('tooltipControls') + ' button'));
+  expect(buttons.length).toBe(3);
+  return buttons[1];
+}
+
+/** the two overlaid labels of a mode button: the one it shows, then the one it is only sized for */
+function modeLabels(button: HTMLElement): HTMLElement[] {
+  return Array.from(button.querySelectorAll<HTMLElement>('span > span'));
+}
+
 function tooltipStyle(container: Element): CSSStyleDeclaration {
   const box = container.querySelector<HTMLElement>(getCssSelector('tooltip'));
   expect(box).not.toBeNull();
@@ -119,6 +132,35 @@ describe('tooltip size for filtering', () => {
       expect(hasRow(container, 'tooltipSizer', 'S0')).toBe(true);
       expect(hasRow(container, 'tooltipSizer', 'S1')).toBe(true);
     }
+  });
+});
+
+describe('tooltip mode button size', () => {
+  const modeTexts = { showControls: true, filterModeText: 'Filtern', focusModeText: 'Fokussierung' };
+
+  it('measures the sizer against both mode texts, so either mode fits the box it gets', () => {
+    const container = mountChart({ tooltip: modeTexts });
+    openTooltip(container);
+
+    const [shown, reserved] = modeLabels(modeButton(container, 'tooltipSizer'));
+    expect(shown.textContent).toBe('Filtern');
+    expect(reserved.textContent).toBe('Fokussierung');
+    expect(reserved.style.visibility).toBe('hidden');
+
+    // the shown button carries its own label alone: nothing to read out or clip
+    expect(modeButton(container, 'tooltip').textContent).toBe('Filtern');
+  });
+
+  it('moves both copies to the same mode, since only the shown button can be clicked', () => {
+    const container = mountChart({ tooltip: modeTexts });
+    openTooltip(container);
+
+    modeButton(container, 'tooltip').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(modeButton(container, 'tooltip').textContent).toBe('Fokussierung');
+    const [shown, reserved] = modeLabels(modeButton(container, 'tooltipSizer'));
+    expect(shown.textContent).toBe('Fokussierung');
+    expect(reserved.textContent).toBe('Filtern');
   });
 });
 

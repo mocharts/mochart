@@ -1,6 +1,8 @@
 import { Renderer, htmlEl } from '../render';
 
 import TooltipContent from './TooltipContent';
+import { MODE_FOCUS, MODE_FILTER } from './TooltipControls';
+import type { TooltipMode } from './TooltipControls';
 
 import { mochartCssClasses } from '../utils/ChartDom';
 import { cssBorderWidth, cssStyleColor } from '../utils/style';
@@ -30,12 +32,24 @@ interface TooltipProps {
   onSeriesFilter: (seriesId: string) => void;
 }
 
-export default class Tooltip extends Renderer<TooltipProps> {
+interface TooltipState { mode: TooltipMode }
+
+export default class Tooltip extends Renderer<TooltipProps, TooltipState> {
   root = htmlEl('div');
   sizer = htmlEl('div');
   sizerContent = this.slot(this.sizer);
   tooltip = htmlEl('div');
   tooltipContent = this.slot(this.tooltip);
+
+  constructor() {
+    super();
+    this.state = { mode: MODE_FILTER };
+  }
+
+  toggleMode = () => {
+    const { mode } = this.state;
+    this.setState({ mode: mode === MODE_FILTER ? MODE_FOCUS : MODE_FILTER });
+  }
 
   create() {
     this.root.append(this.sizer, this.tooltip);
@@ -90,7 +104,8 @@ export default class Tooltip extends Renderer<TooltipProps> {
         mochartConfig, tooltipValueObject, tooltipCategoryIndex, focusedCategoryIndex,
         focusedSeriesId, valueAxisFocusPercentages, seriesFocusPercentages,
         svgUniqueId, updateTooltipCategoryIndex,
-        onClose, onEscape, onFocus, onSeriesFilter, categoryCount
+        onClose, onEscape, onFocus, onSeriesFilter, categoryCount,
+        mode: this.state.mode, toggleMode: this.toggleMode
       };
 
       this.setPresent(true);

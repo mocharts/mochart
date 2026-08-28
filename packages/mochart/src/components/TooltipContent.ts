@@ -13,6 +13,7 @@ import { getPieTooltipPercentFormat, pieLabelTypeUsesPercent } from '../data/Pie
 import { NONE, CHART_TYPE_PIE, ALIGN_RIGHT } from '../config/core/constants';
 
 import TooltipControls, { MODE_FOCUS, MODE_FILTER } from './TooltipControls';
+import type { TooltipMode } from './TooltipControls';
 import SeriesColorIcon from './SeriesColorIcon';
 import type { ColorPaletteConfig } from '../types/config';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
@@ -79,6 +80,8 @@ interface TooltipContentProps {
   focusedCategoryIndex: number;
   focusedSeriesId: string | null;
   visible: boolean;
+  mode: TooltipMode;
+  toggleMode: () => void;
   tooltipCategoryIndex: number;
   updateTooltipCategoryIndex: (categoryIndex: number) => void;
   minWidth?: number | null;
@@ -92,7 +95,7 @@ interface TooltipContentProps {
   seriesFocusPercentages: FocusPercentageMap;
 }
 
-interface TooltipContentState { mode: typeof MODE_FOCUS | typeof MODE_FILTER; rovingRowKey: string | null }
+interface TooltipContentState { rovingRowKey: string | null }
 
 type AlignedLineEl = El & { leftHandle: El; labelHandle: El; spacerHandle: El; valueHandle: El };
 type PlainLineEl = El & { textHandle: El };
@@ -306,7 +309,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
 
   constructor() {
     super();
-    this.state = { mode: MODE_FILTER, rovingRowKey: null };
+    this.state = { rovingRowKey: null };
   }
 
   private interactiveRowNodes(): HTMLElement[] {
@@ -341,22 +344,11 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
     }
   }
 
-  toggleMode = () => {
-    let { mode } = this.state;
-    if (mode === MODE_FILTER) {
-      mode = MODE_FOCUS;
-    }
-    else if (mode === MODE_FOCUS) {
-      mode = MODE_FILTER;
-    }
-    this.setState({ mode });
-  }
-
   // the category row's hover-focus stays opt-in (focusCategoryOnHover): its pointerleave
   // clears the category focus, which would break the applyFocus pin as the pointer crosses the tooltip
   onCategoryPointerEnter = (_event: Event) => {
     const { mochartConfig, tooltipCategoryIndex, onFocus } = this.props;
-    const { mode } = this.state;
+    const { mode } = this.props;
     const { tooltip: tooltipConfig } = mochartConfig;
     const { showControls, focusCategoryOnHover } = tooltipConfig;
     const shouldFocus = focusCategoryOnHover && (showControls ? mode === MODE_FILTER : true);
@@ -379,7 +371,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
 
   onCategoryClick = (event: Event) => {
     const { mochartConfig, tooltipCategoryIndex, focusedCategoryIndex, onFocus } = this.props;
-    const { mode } = this.state;
+    const { mode } = this.props;
     const { tooltip: tooltipConfig } = mochartConfig;
     const { showControls, focusCategoryOnClick } = tooltipConfig;
     const shouldFocus = showControls ? mode === MODE_FOCUS : focusCategoryOnClick;
@@ -391,7 +383,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
 
   onSeriesPointerEnter = (_event: Event, seriesId: string) => {
     const { mochartConfig, tooltipValueObject, onFocus } = this.props;
-    const { mode } = this.state;
+    const { mode } = this.props;
     const { tooltip: tooltipConfig } = mochartConfig;
     const { showControls, focusSeriesOnHover } = tooltipConfig;
     const shouldFocus = showControls ? mode === MODE_FILTER : focusSeriesOnHover;
@@ -415,7 +407,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
   }
 
   onSeriesClick = (event: Event, seriesId: string) => {
-    const { mode } = this.state;
+    const { mode } = this.props;
     const { mochartConfig, focusedSeriesId, onFocus, onSeriesFilter } = this.props;
     const { tooltip: tooltipConfig } = mochartConfig;
     const { showControls, focusSeriesOnClick, filterSeriesOnClick } = tooltipConfig;
@@ -490,8 +482,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
 
   sync() {
     const { mochartConfig, tooltipValueObject, categoryCount, focusedCategoryIndex, focusedSeriesId, visible, tooltipCategoryIndex, updateTooltipCategoryIndex,
-      minWidth = null, adjustForFiltering = true, svgUniqueId, onFocus, valueAxisFocusPercentages, seriesFocusPercentages } = this.props;
-    const { mode } = this.state;
+      minWidth = null, adjustForFiltering = true, svgUniqueId, onFocus, valueAxisFocusPercentages, seriesFocusPercentages, mode, toggleMode } = this.props;
 
     const { chart: chartConfig, pie: pieConfig, tooltip: tooltipConfig, categoryAxis: categoryAxisConfig, valueAxes: valueAxisConfigs, series: seriesConfigs, seriesIndicesById: seriesConfigIndicesById, colorPalette: colorPaletteConfig } = mochartConfig;
 
@@ -527,7 +518,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
     this.controlsContainer.set({ className: mochartCssClasses['tooltipControls'] });
     this.controls.set(TooltipControls, { mochartConfig, categoryCount, updateTooltipCategoryIndex,
       tooltipCategoryIndex, focusedCategoryIndex,
-      onFocus, mode, toggleMode: this.toggleMode, minWidth });
+      onFocus, mode, toggleMode, sizing: !visible, minWidth });
 
     // the click-target floor for a row, keyed off what a click does rather than off the current mode, copy, or the row's own interactivity
     const { minTargetSize } = mochartConfig.accessibility;

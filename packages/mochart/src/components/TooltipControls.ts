@@ -12,16 +12,23 @@ interface TooltipControlsProps {
   onFocus: (focus: InternalFocus) => void;
   updateTooltipCategoryIndex: (categoryIndex: number) => void;
   toggleMode: () => void;
-  mode: string;
+  mode: TooltipMode;
+  sizing?: boolean;
   minWidth?: number | null;
 }
 
 export const MODE_FOCUS = 'focus';
 export const MODE_FILTER = 'filter';
 
+export type TooltipMode = typeof MODE_FOCUS | typeof MODE_FILTER;
+
 const buttonWidth = 35;
 
 const modeContainerStyle = { flex: '1 1 auto', minWidth: 0 };
+
+const modeStackStyle = { display: 'grid' };
+const modeLabelStyle = { gridArea: '1 / 1' };
+const modeAltStyle = { gridArea: '1 / 1', visibility: 'hidden' };
 
 // currentColor keeps the buttons legible on any host theme; hover/active tints live in mochart.css
 const buttonStyle = {
@@ -46,7 +53,11 @@ export default class TooltipControls extends Renderer<TooltipControlsProps> {
   prevButton = htmlEl('button');
   modeContainer = htmlEl('div');
   modeButton = htmlEl('button');
+  modeStack = htmlEl('span');
+  modeLabel = htmlEl('span');
   modeText = textEl();
+  modeAlt = htmlEl('span');
+  modeAltText = textEl();
   nextContainer = htmlEl('div');
   nextButton = htmlEl('button');
 
@@ -88,7 +99,10 @@ export default class TooltipControls extends Renderer<TooltipControlsProps> {
   create() {
     this.prevButton.append(textEl('‹'));
     this.prevContainer.append(this.prevButton);
-    this.modeButton.append(this.modeText);
+    this.modeLabel.append(this.modeText);
+    this.modeAlt.append(this.modeAltText);
+    this.modeStack.append(this.modeLabel, this.modeAlt);
+    this.modeButton.append(this.modeStack);
     this.modeContainer.append(this.modeButton);
     this.nextButton.append(textEl('›'));
     this.nextContainer.append(this.nextButton);
@@ -97,7 +111,7 @@ export default class TooltipControls extends Renderer<TooltipControlsProps> {
   }
 
   sync() {
-    const { mochartConfig, categoryCount, tooltipCategoryIndex, minWidth, mode } = this.props;
+    const { mochartConfig, categoryCount, tooltipCategoryIndex, minWidth, mode, sizing = false } = this.props;
     const { tooltip: tooltipConfig, accessibility: accessibilityConfig } = mochartConfig;
     if (tooltipConfig.showControls) {
       // shown buttons are always click targets, so they take the target floor in both directions
@@ -128,7 +142,11 @@ export default class TooltipControls extends Renderer<TooltipControlsProps> {
         'aria-disabled': prevDisabled ? 'true' : null, tabindex: buttonTabindex, onClick: this.onCategoryPrevClick });
       this.modeContainer.set({ style: modeContainerStyle });
       this.modeButton.set({ type: 'button', style: { ...buttonStyle, ...targetStyle }, tabindex: buttonTabindex, onClick: this.onTooltipModeClick });
+      this.modeStack.set({ style: modeStackStyle });
+      this.modeLabel.set({ style: modeLabelStyle });
       this.modeText.set(mode === MODE_FILTER ? tooltipConfig.filterModeText : tooltipConfig.focusModeText);
+      this.modeAlt.set({ style: modeAltStyle });
+      this.modeAltText.set(sizing ? (mode === MODE_FILTER ? tooltipConfig.focusModeText : tooltipConfig.filterModeText) : '');
       this.nextContainer.set({ style: containerStyle });
       this.nextButton.set({ type: 'button', style: { ...(nextDisabled ? disabledButtonStyle : buttonStyle), ...targetStyle },
         title: accessibilityConfig.tooltipNextLabel, 'aria-label': accessibilityConfig.tooltipNextLabel,
