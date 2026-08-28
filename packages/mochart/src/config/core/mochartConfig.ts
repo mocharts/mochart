@@ -163,13 +163,41 @@ function validateValidation(validation: unknown): asserts validation is ConfigVa
   }
 }
 
+let defaultsSectionKeys: string[] | undefined;
+
+const getDefaultsSectionKeys = (): string[] => defaultsSectionKeys ?? (defaultsSectionKeys = Object.keys(getDefaults({})));
+
+function getSectionCount(configSection: unknown): number {
+  if (Array.isArray(configSection)) {
+    return filterConfigs(configSection).length;
+  }
+  return filterConfig(configSection) ? 1 : 0;
+}
+
+function validateDefaults(config: ConfigRecord, defaults: ConfigRecord): void {
+  for (const sectionKey of getDefaultsSectionKeys()) {
+    const defaultsSection = defaults[sectionKey];
+    if (defaultsSection === undefined) {
+      throw new Error('mochartConfig defaults are missing the ' + sectionKey + ' section');
+    }
+    if (Array.isArray(defaultsSection)) {
+      const sectionCount = getSectionCount(config[sectionKey]);
+      if (sectionCount > 0 && sectionCount !== defaultsSection.length) {
+        throw new Error('mochartConfig defaults are for a different config: ' + sectionKey + ' has ' +
+          sectionCount + ' entries, its defaults have ' + defaultsSection.length);
+      }
+    }
+  }
+}
+
 // the *Defaults section still applies to an implicit entry, which is the only entry valueAxes ever has
 const copyDefaultsList = (defaultsSection: unknown[], allSection: ConfigRecord): unknown[] =>
   defaultsSection.map(entry => isObject(entry) ? deepMerge<ConfigRecord>(entry, allSection) : entry);
 
-/** A fully independent config with `defaults` merged in: the result shares no object with either argument. `defaults` is derived from the config when omitted; pass it to share one graph across calls or to use a custom graph. */
+/** A fully independent config with `defaults` merged in: the result shares no object with either argument. `defaults` is derived from the config when omitted; pass it to reuse one set across calls on the same config. Throws if the defaults were not derived from this config. */
 export function getConfigWithDefaults(configWithoutDefaults: unknown, defaults: ConfigRecord = getDefaults(configWithoutDefaults)): ConfigRecord {
   if (isObject(configWithoutDefaults)) {
+    validateDefaults(configWithoutDefaults, defaults);
     const config = { ...configWithoutDefaults };
     const sectionKeys = Object.keys(defaults);
     let allSection: ConfigRecord, configSection: unknown, defaultsSection: unknown, listCount: number, i: number, aConfig: unknown, allKey: string | undefined;
@@ -275,10 +303,11 @@ function removeSectionDefaults(defaultSectionValue: unknown, allSection: ConfigR
   }
 }
 
-/** The minimal config: a fully independent copy of `config` with every value that matches `defaults` (or the config's own `*Defaults` sections) removed. Inverse of `getConfigWithDefaults`; `defaults` is derived from the config when omitted. */
+/** The minimal config: a fully independent copy of `config` with every value that matches `defaults` (or the config's own `*Defaults` sections) removed. Inverse of `getConfigWithDefaults`; `defaults` is derived from the config when omitted, and throws if the defaults given were not derived from this config. */
 export function getConfigWithoutDefaults(config: unknown, defaults: ConfigRecord = getDefaults(config)): ConfigRecord {
   const minimal: ConfigRecord = {};
   if (isObject(config) && isObject(defaults)) {
+    validateDefaults(config, defaults);
     const sectionKeys = Object.keys(config);
     for (const sectionKey of sectionKeys) {
       const configSection = config[sectionKey];

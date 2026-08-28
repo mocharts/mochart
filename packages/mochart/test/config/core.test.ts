@@ -12,6 +12,9 @@ import { enhanceConfig } from '../../src/config/helper';
 import validateConfig from '../../src/config/validation/mochartConfig';
 import type { MochartConfig } from '../../src/types/config';
 
+// defaults have to cover every section, so fill the rest in from the real ones
+const defaultsWith = (sections: Record<string, unknown>) => ({ ...getDefaults({}), ...sections });
+
 describe('sectionKeyAllMap', () => {
   it('maps list section keys to their "all" config key', () => {
     expect(sectionKeyAllMap.series).toBe('seriesDefaults');
@@ -67,24 +70,24 @@ describe('getConfigWithDefaults', () => {
   });
 
   it('fills in a missing object section from defaults', () => {
-    const result = getConfigWithDefaults({}, { title: { size: 10 } });
+    const result = getConfigWithDefaults({}, defaultsWith({ title: { size: 10 } }));
     expect(result.title).toEqual({ size: 10 });
   });
 
   it('merges defaults under the provided object section', () => {
-    const result = getConfigWithDefaults({ title: { size: 20 } }, { title: { size: 10, color: 'red' } });
+    const result = getConfigWithDefaults({ title: { size: 20 } }, defaultsWith({ title: { size: 10, color: 'red' } }));
     expect(result.title).toEqual({ size: 20, color: 'red' });
   });
 
   it('drops undefined values from the defaults before merging', () => {
-    const result = getConfigWithDefaults({}, { title: { size: 10, color: undefined } });
+    const result = getConfigWithDefaults({}, defaultsWith({ title: { size: 10, color: undefined } }));
     expect(result.title).toEqual({ size: 10 });
   });
 
   it('applies list defaults element-wise and merges the all-config', () => {
     const result = getConfigWithDefaults(
       { series: [{ property: 'a' }], seriesDefaults: { renderer: 'bar' } },
-      { series: [{ order: 0 }] }
+      defaultsWith({ series: [{ order: 0 }] })
     );
     // per-element defaults, then allSection, then the element's own values
     expect(result.series).toEqual([{ order: 0, renderer: 'bar', property: 'a' }]);
@@ -94,7 +97,7 @@ describe('getConfigWithDefaults', () => {
   it('merges the all-config into the defaults list when the section is not declared', () => {
     const result = getConfigWithDefaults(
       { valueAxisDefaults: { visible: false, title: { text: 'T' } } },
-      { valueAxes: [{ id: 'VA0', visible: true, title: { text: null } }] }
+      defaultsWith({ valueAxes: [{ id: 'VA0', visible: true, title: { text: null } }] })
     );
     expect(result.valueAxes).toEqual([{ id: 'VA0', visible: false, title: { text: 'T' } }]);
   });
@@ -102,13 +105,13 @@ describe('getConfigWithDefaults', () => {
   it('merges the all-config into the defaults list when every entry is ignored', () => {
     const result = getConfigWithDefaults(
       { valueAxes: [{ ignore: true }], valueAxisDefaults: { visible: false } },
-      { valueAxes: [{ id: 'VA0', visible: true }] }
+      defaultsWith({ valueAxes: [{ id: 'VA0', visible: true }] })
     );
     expect(result.valueAxes).toEqual([{ id: 'VA0', visible: false }]);
   });
 
   it('leaves the defaults list alone when there is no all-config', () => {
-    const result = getConfigWithDefaults({}, { valueAxes: [{ id: 'VA0', visible: true }] });
+    const result = getConfigWithDefaults({}, defaultsWith({ valueAxes: [{ id: 'VA0', visible: true }] }));
     expect(result.valueAxes).toEqual([{ id: 'VA0', visible: true }]);
   });
 });
@@ -120,18 +123,18 @@ describe('getConfigWithoutDefaults', () => {
   });
 
   it('strips values equal to the defaults and keeps the rest', () => {
-    expect(getConfigWithoutDefaults({ title: { size: 10, text: 'T' } }, { title: { size: 10 } }))
+    expect(getConfigWithoutDefaults({ title: { size: 10, text: 'T' } }, defaultsWith({ title: { size: 10 } })))
       .toEqual({ title: { text: 'T' } });
   });
 
   it('drops a section holding nothing but defaults', () => {
-    expect(getConfigWithoutDefaults({ title: { size: 10 } }, { title: { size: 10 } })).toEqual({});
+    expect(getConfigWithoutDefaults({ title: { size: 10 } }, defaultsWith({ title: { size: 10 } }))).toEqual({});
   });
 
   it('strips list values equal to the config\'s own all-config section', () => {
     expect(getConfigWithoutDefaults(
       { series: [{ renderer: 'bar', property: 'a' }], seriesDefaults: { renderer: 'bar' } },
-      { series: [{}] }
+      defaultsWith({ series: [{}] })
     )).toEqual({ series: [{ property: 'a' }], seriesDefaults: { renderer: 'bar' } });
   });
 
@@ -157,21 +160,21 @@ describe('getConfigWithoutDefaults', () => {
   it('strips default-equal members inside a grouped key', () => {
     expect(getConfigWithoutDefaults(
       { categoryAxis: { property: 'x', tickLabel: { rotation: 45, size: 12, format: null } } },
-      { categoryAxis: { property: 'x', tickLabel: { rotation: 0, size: 12, format: null } } }
+      defaultsWith({ categoryAxis: { property: 'x', tickLabel: { rotation: 0, size: 12, format: null } } })
     )).toEqual({ categoryAxis: { tickLabel: { rotation: 45 } } });
   });
 
   it('drops a group whose members all match, and the section with it', () => {
     expect(getConfigWithoutDefaults(
       { categoryAxis: { property: 'x', tickLabel: { size: 12 } } },
-      { categoryAxis: { property: 'x', tickLabel: { size: 12 } } }
+      defaultsWith({ categoryAxis: { property: 'x', tickLabel: { size: 12 } } })
     )).toEqual({});
   });
 
   it('recurses through nested groups', () => {
     expect(getConfigWithoutDefaults(
       { series: [{ shapeStyle: { normal: { fillColor: '#ff0000', fillOpacity: 1 }, focused: { fillOpacity: 1 } } }] },
-      { series: [{ shapeStyle: { normal: { fillColor: '#000000', fillOpacity: 1 }, focused: { fillOpacity: 1 } } }] }
+      defaultsWith({ series: [{ shapeStyle: { normal: { fillColor: '#000000', fillOpacity: 1 }, focused: { fillOpacity: 1 } } }] })
     )).toEqual({ series: [{ shapeStyle: { normal: { fillColor: '#ff0000' } } }] });
   });
 
@@ -179,7 +182,7 @@ describe('getConfigWithoutDefaults', () => {
   it('compares an array member whole rather than stripping its entries', () => {
     expect(getConfigWithoutDefaults(
       { categoryAxis: { thresholds: [{ value: 1 }, { value: 2 }] } },
-      { categoryAxis: { thresholds: [{ value: 1 }, { value: 9 }] } }
+      defaultsWith({ categoryAxis: { thresholds: [{ value: 1 }, { value: 9 }] } })
     )).toEqual({ categoryAxis: { thresholds: [{ value: 1 }, { value: 2 }] } });
   });
 
@@ -197,7 +200,7 @@ describe('getConfigWithoutDefaults', () => {
   });
 
   it('keeps sections the defaults do not know about', () => {
-    expect(getConfigWithoutDefaults({ id: 'x', title: { text: 'T' } }, { title: {} }))
+    expect(getConfigWithoutDefaults({ id: 'x', title: { text: 'T' } }, defaultsWith({ title: {} })))
       .toEqual({ id: 'x', title: { text: 'T' } });
   });
 
@@ -221,6 +224,33 @@ describe('getConfigWithoutDefaults', () => {
     };
     const minimal = getConfigWithoutDefaults(config, getDefaults(config));
     expect(minimal.valueAxes).toBeUndefined();
+  });
+});
+
+// Regression: entries the given defaults did not cover were copied through with no defaults at all
+describe('defaults built for a different config', () => {
+  const oneSeries = { categoryAxis: { property: 'x' }, series: [{ id: 'S0', property: 'a' }] };
+  const twoSeries = { categoryAxis: { property: 'x' }, series: [{ id: 'S0', property: 'a' }, { id: 'S1', property: 'b' }] };
+
+  it('rejects defaults whose list is short for the config', () => {
+    const stale = getDefaults(oneSeries);
+    expect(() => getConfigWithDefaults(twoSeries, stale)).toThrow(/series has 2 entries, its defaults have 1/);
+    expect(() => getConfigWithoutDefaults(twoSeries, stale)).toThrow(/series has 2 entries, its defaults have 1/);
+    expect(() => buildMochartConfig(twoSeries, stale)).toThrow(/series has 2 entries, its defaults have 1/);
+    expect(() => validateConfig(twoSeries, stale)).toThrow(/series has 2 entries, its defaults have 1/);
+  });
+
+  it('rejects defaults missing a section the config never names', () => {
+    const withoutLegend = { ...getDefaults(twoSeries) } as Record<string, unknown>;
+    delete withoutLegend.legend;
+    expect(() => getConfigWithDefaults(twoSeries, withoutLegend)).toThrow(/missing the legend section/);
+  });
+
+  // an undeclared list takes an implicit entry: the one place the counts legitimately differ
+  it('accepts defaults for a list the config leaves empty or ignores', () => {
+    for (const aConfig of [{ ...twoSeries, valueAxes: [] }, { ...twoSeries, valueAxes: [{ ignore: true }] }]) {
+      expect(() => getConfigWithDefaults(aConfig, getDefaults(aConfig))).not.toThrow();
+    }
   });
 });
 
@@ -270,7 +300,7 @@ describe('with/without defaults round-trip', () => {
 describe('clone contracts', () => {
   it('getConfigWithDefaults shares nothing with either argument', () => {
     const config = { title: { text: 'T' }, series: [{ property: 'a', styles: { normal: { fillColor: 'red' } } }] };
-    const defaults = { title: { size: 10 }, series: [{ order: 0 }] };
+    const defaults = defaultsWith({ title: { size: 10 }, series: [{ order: 0 }] }) as { title: { size: number }; series: { order: number }[] };
     const result = getConfigWithDefaults(config, defaults);
     config.title.text = 'changed';
     config.series[0]!.styles.normal.fillColor = 'blue';
@@ -282,7 +312,7 @@ describe('clone contracts', () => {
 
   it('getConfigWithoutDefaults shares nothing with its config', () => {
     const config = { title: { text: 'T', margin: { top: 1 } } };
-    const result = getConfigWithoutDefaults(config, { title: { size: 10 } });
+    const result = getConfigWithoutDefaults(config, defaultsWith({ title: { size: 10 } }));
     config.title.margin.top = 99;
     expect(result.title).toEqual({ text: 'T', margin: { top: 1 } });
   });
@@ -290,7 +320,7 @@ describe('clone contracts', () => {
   it('copies date values instead of sharing them', () => {
     const min = new Date('2026-01-01T00:00:00Z');
     const time = min.getTime();
-    const result = getConfigWithDefaults({ categoryAxis: { min } }, {});
+    const result = getConfigWithDefaults({ categoryAxis: { min } }, getDefaults({}));
     const cloned = (result.categoryAxis as { min: Date }).min;
     expect(cloned).not.toBe(min);
     min.setTime(0);
@@ -366,10 +396,7 @@ describe('buildMochartConfig', () => {
   });
 
   it('orders series configs by their order property', () => {
-    const built = buildMochartConfig(
-      { series: [{ id: 'a', order: 2 }, { id: 'b', order: 1 }] },
-      { series: [] }
-    );
+    const built = buildMochartConfig({ series: [{ id: 'a', order: 2 }, { id: 'b', order: 1 }] });
     expect((built.series as { id: string }[]).map(s => s.id)).toEqual(['b', 'a']);
     expect((built as unknown as { seriesById: Record<string, unknown> }).seriesById).toHaveProperty('a');
     expect((built as unknown as { seriesById: Record<string, unknown> }).seriesById).toHaveProperty('b');
@@ -394,14 +421,9 @@ describe('hasConfigStructureChange', () => {
     expect(hasConfigStructureChange(null, null)).toBe(false);
   });
 
-  // buildMochartConfig drops the object sections for a non-object config, and for one built against a
-  // defaults graph without them; comparing two such configs used to throw on the first section it read
+  // a non-object config is the only route to a sectionless build now that short defaults throw
   it('treats a config with no sections like no config at all', () => {
-    const sectionless = [
-      buildMochartConfig(null),
-      buildMochartConfig({}, {}),
-      buildMochartConfig({}, { chart: { type: 'xy' } })
-    ];
+    const sectionless = [buildMochartConfig(null), buildMochartConfig(5)];
     for (const config of sectionless) {
       expect(hasConfigStructureChange(config, config)).toBe(false);
       expect(hasConfigStructureChange(config, base())).toBe(true);

@@ -147,7 +147,7 @@ validateConfig(config, defaults?, strict?)   // → { valid, errors, warnings }
 validateConfigDetailed(config, defaults?, strict?)
                                              // → { valid, errors, warnings, diagnostics }
 migrateConfig(config)                        // → a copy upgraded to the current format version
-getDefaults(config)                          // → the defaults graph derived from the config
+getDefaults(config)                          // → the default values derived from the config
 getConfigWithDefaults(config, defaults?)     // → the config with every default value filled in
 getConfigWithoutDefaults(config, defaults?)  // → the minimal config: every default-matching value removed
 getDataErrors(mochartConfig, dataProvider)   // → string[] of readable data problems
@@ -155,8 +155,16 @@ getDataErrors(mochartConfig, dataProvider)   // → string[] of readable data pr
 
 Every `defaults` parameter is optional: when omitted it is derived from the
 config, which is what one-off calls want. Pass it explicitly — from
-`getDefaults(config)` — to share one defaults graph across several calls on
-the same config, or to substitute a custom graph.
+`getDefaults(config)` — to reuse one set of defaults across several calls on
+the same config.
+
+Defaults belong to the config they were derived from. Every default depends on
+the whole config, not just on the property it fills: a second series turns the
+default `legend.visible` from `false` to `true`, for instance. So defaults
+passed for a config they were not derived from are rejected — a section they
+leave out, or a `series`/`valueAxes` list they do not cover, throws rather than
+filling the config in halfway. Derive them again after editing the config; the
+saving they offer is worth less than a chart built from the wrong defaults.
 
 `strict` defaults to `true`, which is what the chart entry points use:
 warnings — an unknown config property, for instance — make the config
@@ -181,8 +189,8 @@ warnings, which is what a live-preview editor wants.
   [`version`](/guide/config-model#validation) to the current format,
   returning a copy; a config with no `version` is stamped with the current
   one.
-- `getDefaults` returns the defaults graph for a config — the values every
-  omitted property falls back to. It takes the config because some defaults
+- `getDefaults` returns the default values for a config — what every omitted
+  property falls back to. It takes the config because some defaults
   are conditional (pie mode hides the axes, a sole value axis becomes every
   series' default `axis`, and so on).
 - `getConfigWithDefaults` returns the config a chart would actually run:
@@ -352,8 +360,8 @@ buildMochartConfig(config, defaults?, validation?): MochartConfig
 The build step of `enhanceConfig` alone: defaults applied, `*Defaults`
 sections merged, and cross-references resolved, with the given validation
 result attached (or a blank valid one). Unlike `enhanceConfig` it neither
-migrates nor validates — call it directly only to share one defaults graph
-or validation result across several steps, the way
+migrates nor validates — call it directly only to reuse one set of defaults
+or one validation result across several steps, the way
 [`@mochart/demo-common`](https://github.com/mocharts/mochart/tree/main/packages/mochart-demo-common)
 derives a chart build and its editor views from a single `getDefaults` call.
 
