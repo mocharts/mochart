@@ -1,5 +1,5 @@
-// Builds the config-reference model for every docs surface (generated JSON, legacy
-// mochart-docs.html, JSDoc codegen) from the same per-section sources the runtime uses —
+// Builds the config-reference model for every docs surface (generated JSON, JSDoc
+// codegen) from the same per-section sources the runtime uses —
 // descriptions, validators, and (conditional) defaults — and cross-checks their keys stay in sync.
 
 import {

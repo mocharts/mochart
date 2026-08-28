@@ -55,8 +55,8 @@ Everything documentation-shaped is **generated from those sources**, so they
 can never drift from the code:
 
 - `scripts/configReferenceModel.ts` assembles the structured model;
-  `scripts/generator.ts` (`npm run generate-docs -w @mochart/core`) renders
-  `mochart-docs.html` and emits `generated/config-reference.json`. It **exits
+  `scripts/generator.ts` (`npm run generate-docs -w @mochart/core`) emits
+  `generated/config-reference.json`. It **exits
   non-zero when the three sources disagree** on a section's keys — at every
   level of nesting, and inside the shape of an array's elements, whose
   defaults come from the `itemDefaults` the section descriptor declares. The
@@ -131,11 +131,11 @@ show on hover, so the hovers and the reference pages cannot disagree.
 - All three models render through one dynamic route,
   `packages/mochart-docs/reference/[section].md`.
 
-All three JSON models are gitignored build artifacts (the standalone
-`mochart-docs.html` render is not — it is tracked, so regenerating it can show
-up as a diff). `npm run gen -w @mochart/docs` rebuilds all three, and the docs
-`dev`, `build`, and `test` scripts each run it first — so these generators gate
-the docs build *and* root `npm test`.
+All three JSON models are gitignored build artifacts. `npm run gen -w @mochart/docs`
+rebuilds all three, and the docs `dev`, `build`, and `test` scripts each run it
+first — so these generators gate the docs build *and* root `npm test`.
+`generator.ts` can also render the model as one standalone html page, by passing
+an output path as its first argument; nothing in the repo asks for it.
 
 ### What fails the generators
 

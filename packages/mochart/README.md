@@ -156,9 +156,9 @@ and property is optional and falls back to a sensible default — only
 | `pie` | pie/donut slice geometry and slice labels when `chart.type` is `pie`: radii, angles, label type and formats, tooltip values |
 | `chart` / `colorPalette` / `linearGradients` / `radialGradients` | chart-wide style, palette, and gradient definitions |
 
-The full property-by-property reference is generated from the validation
-schema: `npm run generate-docs -w @mochart/core` writes
-[mochart-docs.html](mochart-docs.html) plus
+The full property-by-property reference is at
+[mochart.org/reference](https://mochart.org/reference/), generated from the
+validation schema: `npm run generate-docs -w @mochart/core` writes
 `generated/config-reference.json`, the structured model that the
 [@mochart/docs](../mochart-docs/README.md) site renders into its config
 reference pages, and `generated/api-reference.json`, the model behind that
@@ -322,7 +322,7 @@ Build-free static HTML examples (script tag and ES module) live in
 npm run build -w @mochart/core          # bundle to dist/ with vite
 npm test -w @mochart/core               # vitest with v8 coverage (includes golden snapshot tests)
 npm run typecheck -w @mochart/core
-npm run generate-docs -w @mochart/core   # regenerate mochart-docs.html + generated/{config,api}-reference.json
+npm run generate-docs -w @mochart/core   # regenerate generated/{config,api}-reference.json
 npm run generate-jsdoc -w @mochart/core  # regenerate the JSDoc on src/types/config.ts from the config docs
 ```
 
