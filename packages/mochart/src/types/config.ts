@@ -2492,9 +2492,9 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * The value shapes are measured from: bars and areas grow from it,
    * `missingValueMode: 'base'` puts missing values on it, and shapes animate
    * from it when series enter or leave. With mixed positive/negative data it
-   * separates the two directions. When left unspecified, shapes are drawn from
-   * the bottom of the plot, and animate from `min` when it is set, otherwise
-   * from the smallest value on the axis.
+   * separates the two directions. When left unspecified, un-ranged bar and area
+   * series use the minimum end of the axis, and other series use `min` when it
+   * is set, otherwise the smallest value in the data.
    *
    * Default:
    * - `0` — when chart.type is pie
