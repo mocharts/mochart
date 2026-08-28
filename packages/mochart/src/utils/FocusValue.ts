@@ -21,7 +21,7 @@ export function getCategoryFocusPercentage(categoryFocusPercentage: FocusPercent
   return getCombinedFocusPercentage(categoryFocusPercentage, seriesFocusPercentage);
 }
 
-function getCombinedFocusPercentage(percentageA: FocusPercentage, percentageB: FocusPercentage): FocusPercentage {
+export function getCombinedFocusPercentage(percentageA: FocusPercentage, percentageB: FocusPercentage): FocusPercentage {
   if (percentageA === null && percentageB === null) {
     return null;
   }

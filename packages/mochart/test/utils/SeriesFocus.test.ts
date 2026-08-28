@@ -8,9 +8,24 @@ function seriesConfig(overrides: Partial<EnhancedSeriesConfig> = {}): EnhancedSe
 }
 
 describe('getSeriesFocusPercentage', () => {
-  it('takes the larger of the axis and series focus when useAxisFocus is set', () => {
+  it('takes the stronger of the axis and series focus when they agree', () => {
     expect(getSeriesFocusPercentage(seriesConfig(), { VA0: 0.75 }, { S0: 0.5 })).toBe(0.75);
     expect(getSeriesFocusPercentage(seriesConfig(), { VA0: 0.25 }, { S0: 0.5 })).toBe(0.5);
+    expect(getSeriesFocusPercentage(seriesConfig(), { VA0: -0.25 }, { S0: -0.5 })).toBe(-0.5);
+  });
+
+  // Regression: folding with Math.max read a null series focus as 0, so focusing an axis left the
+  // series on every other axis at normal while those axes' own chrome defocused
+  it('defocuses a series whose axis is defocused and which has no focus of its own', () => {
+    expect(getSeriesFocusPercentage(seriesConfig(), { VA0: -1 }, { S0: null })).toBe(-1);
+    expect(getSeriesFocusPercentage(seriesConfig(), { VA0: 1 }, { S0: null })).toBe(1);
+  });
+
+  // the fold the axis chrome uses, so a tweening series and its axis stay together
+  it('blends an axis and series focus that oppose each other', () => {
+    expect(getSeriesFocusPercentage(seriesConfig(), { VA0: 0.5 }, { S0: -0.5 })).toBe(0.25);
+    // the endpoints still resolve the way taking the larger did
+    expect(getSeriesFocusPercentage(seriesConfig(), { VA0: 1 }, { S0: -1 })).toBe(1);
   });
 
   it('uses only the series focus when useAxisFocus is off', () => {
