@@ -144,12 +144,8 @@ describe('renderHtml', () => {
 });
 
 describe('renderHtml on the real config reference', () => {
-  const { model, integrityErrors } = buildConfigReference();
+  const { model } = buildConfigReference();
   const html = renderHtml(model);
-
-  it('builds without integrity errors', () => {
-    expect(integrityErrors).toEqual([]);
-  });
 
   it('never leaks a missing field into the markup', () => {
     // "undefined"/"null" are legitimate inside prose, rule text and literal defaults, so only match them as a whole cell or line

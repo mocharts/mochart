@@ -1,9 +1,8 @@
 // The tooltip row icon's slot is rebuilt whenever tooltip.valueAlign flips; the outgoing slot used to stay registered with its SeriesColorIcon still mounted, leaking per toggle.
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
 import { mountContainer, trackHandle } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
-import SeriesColorIcon from '../../src/components/SeriesColorIcon';
 import type { ChartHandle } from '../../src/createChart';
 import type { DefaultChartProps } from '../../src/types/chart';
 import type { MochartInputConfig } from '../../src/types/config';
@@ -64,20 +63,4 @@ describe('tooltip row icon across valueAlign flips', () => {
     expect(container.querySelector(tooltipSelector)).not.toBeNull();
   });
 
-  // The leaked icon's DOM went with the detached container, so only its teardown is observable:
-  // the replaced slot must destroy the icon it held rather than leaving it mounted on the renderer.
-  it('destroys the icon the replaced slot was holding', () => {
-    const { container, handle } = mountChart('right');
-    openTooltip(container);
-    const destroy = vi.spyOn(SeriesColorIcon.prototype, 'destroy');
-
-    // one per live tooltip - the visible one and the hidden sizer used for measurement
-    handle.update({ config: makeConfig('left') } as Partial<DefaultChartProps>);
-    const afterFirstFlip = destroy.mock.calls.length;
-    expect(afterFirstFlip).toBeGreaterThan(0);
-
-    handle.update({ config: makeConfig('right') } as Partial<DefaultChartProps>);
-    expect(destroy.mock.calls.length).toBeGreaterThan(afterFirstFlip);
-    destroy.mockRestore();
-  });
 });

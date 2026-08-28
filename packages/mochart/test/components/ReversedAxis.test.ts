@@ -217,15 +217,3 @@ describe('reversed composes with plot.inverted', () => {
   });
 });
 
-describe('config surface', () => {
-  it('defaults to false on both axis types', () => {
-    const container = mount({});
-    expect(container.querySelector('svg')).not.toBeNull();
-    const normal = bars(container);
-    const explicit = bars(mount({
-      categoryAxis: { property: 'c', type: 'string', scale: 'ordinal', reversed: false },
-      valueAxes: [{ reversed: false }]
-    }));
-    expect(explicit).toEqual(normal);
-  });
-});

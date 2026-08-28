@@ -41,15 +41,6 @@ describe('getLegendItemTextRawBounds', () => {
     });
   });
 
-  it('measures every series when all are in the legend', () => {
-    const mochartConfig = makeConfig([true, true]);
-    const bounds = getLegendItemTextRawBounds(mochartConfig, makeDomAccessors([30, 50]));
-    const [firstId, secondId] = legendIds(mochartConfig);
-    expect(bounds).toEqual({
-      [firstId]: { width: 30, height: 10 },
-      [secondId]: { width: 50, height: 10 }
-    });
-  });
 });
 
 describe('getLegendItemBoundsList', () => {

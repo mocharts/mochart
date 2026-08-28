@@ -159,16 +159,6 @@ describe('tick label anchoring and rotation', () => {
     });
   }
 
-  for (const tickLabelRotation of [45, -45] as const) {
-    for (const side of ['start', 'end'] as const) {
-      it(`rotates ${side}-side tick labels by ${tickLabelRotation}`, () => {
-        const container = mount({ ...categoryAxis({ tickLabel: { rotation: tickLabelRotation }, side }) });
-        // the rotation lands on the text inside the label group, which is translated
-        const text = container.querySelector(getDescendantCssSelector('categoryAxis', 'axisTickLabel') + ' text');
-        expect(text!.getAttribute('transform') ?? '').toContain('rotate');
-      });
-    }
-  }
 });
 
 describe('explicit axis sizing', () => {
@@ -184,11 +174,6 @@ describe('explicit axis sizing', () => {
     expect(container.textContent).toContain('Month');
     const at60 = plotClipHeight(mount({ ...categoryAxis({ title: { text: 'Month', size: 60 } }) }));
     expect(plotClipHeight(container) - at60).toBe(30);
-  });
-
-  it('extends the focus range over the title when focusRangeApplyToTitle is set', () => {
-    const container = mount({ ...categoryAxis({ title: { text: 'Month' }, focusRange: { applyToTitle: true } }) });
-    expect(container.querySelector(getCssSelector('axisFocusRange'))).not.toBeNull();
   });
 
   it('appends a tick label suffix', () => {

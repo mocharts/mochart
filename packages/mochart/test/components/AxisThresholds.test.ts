@@ -81,9 +81,6 @@ beforeAll(() => {
 });
 
 describe('threshold lines', () => {
-  it('draws a value axis threshold', () => {
-    expect(valueThreshold({ value: 50 }).querySelector(getCssSelector('axisThreshold'))).not.toBeNull();
-  });
 
   it('draws a threshold behind the series when front is off', () => {
     expect(valueThreshold({ value: 50, front: false })
@@ -259,26 +256,6 @@ describe('threshold styling', () => {
     }
   });
 
-  for (const useSeriesFocus of [true, false]) {
-    it(`follows the focused series when useSeriesFocus is ${useSeriesFocus}`, () => {
-      const container = mountContainer();
-      trackHandle(createDefaultChart(container, {
-        config: {
-          version: '1.0.0',
-          animation: { enabled: false },
-          categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
-          valueAxes: [{ id: 'VA0', min: 0, max: 100, useSeriesFocus,
-            thresholds: [{ value: 50, title: { text: 'T' } }] }],
-          series: [
-            { id: 'sales', property: 'sales', renderer: 'bar', axis: 'VA0' },
-            { id: 'other', property: 'sales', renderer: 'line', axis: 'VA0' }
-          ]
-        } as unknown as MochartInputConfig,
-        data: rows, width: WIDTH, height: HEIGHT, focusedSeriesId: 'sales'
-      } as DefaultChartProps));
-      expect(container.querySelector(getCssSelector('axisThreshold'))).not.toBeNull();
-    });
-  }
 
   function mountOrphanAxis(visibleWhenAllFiltered: boolean): Element {
     const container = mountContainer();

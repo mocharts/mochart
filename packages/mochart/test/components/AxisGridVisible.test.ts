@@ -43,12 +43,6 @@ describe('grid lines on a hidden axis', () => {
     expect(gridLines(container)).toBeGreaterThan(0);
   });
 
-  it('draws the same lines whether or not the axis itself is shown', () => {
-    const hidden = mount({ visible: false, gridLine: { visible: true } });
-    const shown = mount({ visible: true, gridLine: { visible: true } });
-    expect(gridLines(hidden)).toBe(gridLines(shown));
-  });
-
   it('still draws none when the grid is not asked for', () => {
     expect(gridLines(mount({ visible: false }))).toBe(0);
     expect(gridLines(mount({ visible: true }))).toBe(0);

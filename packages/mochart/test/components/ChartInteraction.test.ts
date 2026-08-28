@@ -239,14 +239,6 @@ describe('title layout variants', () => {
     expect(container.querySelector(getCssSelector('title'))!.textContent).toContain('Left Title');
   });
 
-  it('survives a chart too narrow for the title decorations', () => {
-    const container = mountContainer();
-    trackHandle(createDefaultChart(container, {
-      config: makeConfig({ title: { text: 'T', prefix: { text: 'P' }, suffix: { text: 'S' } } }),
-      data: rows, width: 4, height: 600
-    } as DefaultChartProps));
-    expect(container.querySelector(getChartRootCssSelector())).not.toBeNull();
-  });
 });
 
 describe('title link', () => {

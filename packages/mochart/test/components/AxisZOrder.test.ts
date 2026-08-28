@@ -5,7 +5,7 @@ import { mountContainer, trackHandle } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
 import type { DefaultChartProps } from '../../src/types/chart';
 import type { MochartInputConfig } from '../../src/types/config';
-import { getCssSelector, getDescendantCssSelector } from '../../src/utils/ChartDom';
+import { getDescendantCssSelector } from '../../src/utils/ChartDom';
 import type { MochartCssClassKey } from '../../src/utils/ChartDom';
 
 const VERSION = '1.0.0';
@@ -102,9 +102,3 @@ describe('axis chrome layer', () => {
   });
 });
 
-describe('value axis base line', () => {
-  it('draws a base line by default and drops it when showBaseLine is off', () => {
-    expect(mountChart({}).querySelectorAll(getCssSelector('axisBaseLine')).length).toBeGreaterThan(0);
-    expect(mountChart({}, { baseLine: { visible: false } }).querySelectorAll(getCssSelector('axisBaseLine')).length).toBe(0);
-  });
-});

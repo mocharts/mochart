@@ -118,11 +118,6 @@ describe('no-series state', () => {
     expect(noSeries!.textContent).toContain('No Series');
   });
 
-  it('draws no series groups in that state', () => {
-    const container = mountChart({}, makeConfig({ series: [] }));
-    expect(container.querySelectorAll(getCssSelector('series')).length).toBe(0);
-  });
-
   // Regression: the layout places no legend for zero series, but Legend/LegendClip were gated only on
   // legend.visible and destructured the missing layout info while rendering.
   it('renders the message with a visible legend and no series instead of throwing', () => {

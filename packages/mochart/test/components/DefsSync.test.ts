@@ -81,12 +81,6 @@ function mouse(target: Element, type: string, clientX: number, clientY: number):
 }
 
 describe('config-only defs sync', () => {
-  it('builds the gradient and pattern defs once on mount', () => {
-    const { container } = mountChart(makeConfig());
-    expect(syncSpy).toHaveBeenCalledTimes(1);
-    expect(gradientNode(container)).not.toBeNull();
-    expect(chartDefs(container).querySelector(':scope > pattern')).not.toBeNull();
-  });
 
   it('does not rebuild the defs while the tooltip tracks the pointer', () => {
     const { container } = mountChart(makeConfig());

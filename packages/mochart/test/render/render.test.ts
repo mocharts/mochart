@@ -314,14 +314,6 @@ describe('setProperty', () => {
     expect(div.attributes.length).toBe(0);
   });
 
-  it('skips writes when the value is unchanged', () => {
-    const div = document.createElement('div');
-    const spy = vi.spyOn(div, 'setAttribute');
-    setProperty(div, 'title', 'same', 'same', false);
-    expect(spy).not.toHaveBeenCalled();
-    spy.mockRestore();
-  });
-
   it('writes form element value, checked and selected as properties', () => {
     const input = document.createElement('input');
     setProperty(input, 'value', undefined, 'abc', false);

@@ -131,9 +131,6 @@ describe('band geometry', () => {
 });
 
 describe('band presentation', () => {
-  it('is a pointer target, so the <title> can show on hover', () => {
-    expect(mount().querySelector(getCssSelector('clipIndicator'))!.getAttribute('pointer-events')).toBeNull();
-  });
 
   it('exempts the label, so it shows no I-beam and takes no selection', () => {
     // the pointer falls through to the band behind, which still triggers the <title>

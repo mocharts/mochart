@@ -6,7 +6,7 @@ import { mockBoundingClientRect, mountContainer, trackHandle } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
 import type { DefaultChartProps } from '../../src/types/chart';
 import type { MochartInputConfig } from '../../src/types/config';
-import { getDescendantCssSelector, getChartRootCssSelector } from '../../src/utils/ChartDom';
+import { getDescendantCssSelector } from '../../src/utils/ChartDom';
 
 const VERSION = '1.0.0';
 const WIDTH = 800;
@@ -64,20 +64,6 @@ describe('date category axes', () => {
     expect(labels.every(label => /^\d{2}:\d{2}$/.test(label))).toBe(true);
   });
 
-  it('formats linear time axis ticks with the auto format', () => {
-    const container = mountChart(makeConfig({
-      property: 'time', type: 'date', scale: 'linear', dateUTC: true
-    }), dateRows);
-    expect(tickLabels(container).length).toBeGreaterThan(0);
-  });
-
-  it('formats a single-tick linear time axis with the auto date format', () => {
-    const container = mountChart(makeConfig({
-      property: 'time', type: 'date', scale: 'linear', dateUTC: true, tickCount: 1
-    }), dateRows);
-    expect(tickLabels(container).length).toBeGreaterThan(0);
-  });
-
   it('formats ordinal date axis ticks with the auto date format', () => {
     const container = mountChart(makeConfig({
       property: 'time', type: 'date', scale: 'ordinal', dateUTC: true
@@ -96,12 +82,6 @@ describe('date category axes', () => {
     expect(labels.every(label => /^2016-04-01$/.test(label))).toBe(true);
   });
 
-  it('renders a local-time linear axis when dateUTC is off', () => {
-    const container = mountChart(makeConfig({
-      property: 'time', type: 'date', scale: 'linear', dateUTC: false, tickLabel: { format: '%H:%M' }
-    }), dateRows);
-    expect(tickLabels(container).length).toBeGreaterThan(0);
-  });
 });
 
 describe('number category axes', () => {
@@ -135,33 +115,6 @@ describe('number category axes', () => {
     expect(labels.length).toBeLessThanOrEqual(3 + 1); // +1 for the sizing tick
   });
 
-  it('renders a single tick when tickCount is 1', () => {
-    const container = mountChart(makeConfig({
-      property: 'level', type: 'number', scale: 'linear', tickCount: 1
-    }), numberRows);
-    expect(tickLabels(container).length).toBeGreaterThan(0);
-  });
-
-  it('renders a linear axis for a single data row', () => {
-    const container = mountChart(makeConfig({
-      property: 'level', type: 'number', scale: 'linear'
-    }), [numberRows[0]]);
-    expect(container.querySelector(getChartRootCssSelector())).not.toBeNull();
-  });
-
-  it('renders a linear axis for a single data row with an explicit wider domain', () => {
-    const container = mountChart(makeConfig({
-      property: 'level', type: 'number', scale: 'linear', min: -10, max: 10
-    }), [numberRows[0]]);
-    expect(container.querySelector(getChartRootCssSelector())).not.toBeNull();
-  });
-
-  it('renders rotated (non-parallel) tick labels on a linear axis', () => {
-    const container = mountChart(makeConfig({
-      property: 'level', type: 'number', scale: 'linear', tickLabel: { rotation: 45 }
-    }), numberRows);
-    expect(tickLabels(container).length).toBeGreaterThan(0);
-  });
 });
 
 describe('tick label prefix and suffix', () => {

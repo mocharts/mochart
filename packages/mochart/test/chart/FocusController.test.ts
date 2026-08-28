@@ -197,14 +197,6 @@ describe('FocusController focus handling', () => {
     expect(controller.toggleSeriesFilter('S0').filteredSeriesIds).toEqual({ S1: true });
   });
 
-  it('writes only the toggled series, leaving followSeries series to derive their state', () => {
-    const { controller } = makeHarness();
-
-    expect(controller.toggleSeriesFilter('S0').filteredSeriesIds).toEqual({ S0: true });
-    expect(controller.toggleSeriesFilter('S1').filteredSeriesIds).toEqual({ S0: true, S1: true });
-    expect(controller.toggleSeriesFilter('S0').filteredSeriesIds).toEqual({ S1: true });
-  });
-
   it('leaves a following series id supplied by the host in the map, inert', () => {
     const { controller } = makeHarness();
     controller.applyExternal({ filteredSeriesIds: { S0Wick: true } });

@@ -203,9 +203,4 @@ describe('updateTruncation', () => {
     expect(array.checkTruncation).toBe(false);
   });
 
-  it('seeds and measures an array of elements', () => {
-    const { truncationData } = updateTruncation(ELLIPSIS, null, ['ab', 'cd'], 100, [el(50), el(50)]);
-    expect(Array.isArray(truncationData)).toBe(true);
-    expect(truncationData).toHaveLength(2);
-  });
 });

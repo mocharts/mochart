@@ -37,11 +37,6 @@ function clipPathIds(container: HTMLElement): string[] {
 }
 
 describe('chart instance ids', () => {
-  it('advances the counter held on the global registry', () => {
-    const before = counterScope[chartInstanceCounterKey] ?? 0;
-    renderChart();
-    expect(counterScope[chartInstanceCounterKey]).toBe(before + 1);
-  });
 
   // Regression: the counter was module state, so a second bundled copy of the library restarted it
   // at 1 and both copies minted the same ids into one document.

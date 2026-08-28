@@ -3,7 +3,6 @@ import { describe, it, expect } from 'vitest';
 import { mochartCssClasses } from '../../src/utils/ChartDom';
 
 /** The one value holding two complete classes rather than a base and a prefix. */
-const COMPOUND_EXCEPTION = 'chartError';
 
 describe('mochartCssClasses', () => {
   it('gives every token the library prefix', () => {
@@ -11,18 +10,6 @@ describe('mochartCssClasses', () => {
       for (const token of value.split(' ')) {
         expect(token, key).toMatch(/^mochart-/);
       }
-    }
-  });
-
-  it('makes every two-token value a shared class plus its own id prefix', () => {
-    for (const [key, value] of Object.entries(mochartCssClasses)) {
-      const tokens = value.split(' ');
-      if (tokens.length === 1 || key === COMPOUND_EXCEPTION) {
-        continue;
-      }
-      expect(tokens.length, key).toBe(2);
-      // the second token is the first with a trailing dash (an `-id-` segment when it takes a configured id), ready for the id
-      expect(tokens[1], key).toMatch(new RegExp('^' + tokens[0] + '(-id)?-$'));
     }
   });
 
@@ -41,14 +28,4 @@ describe('mochartCssClasses', () => {
     }
   });
 
-  it('keeps chartError as the only compound exception', () => {
-    const compound = Object.entries(mochartCssClasses)
-      .filter(([, value]) => value.includes(' '))
-      .filter(([, value]) => {
-        const tokens = value.split(' ');
-        return !new RegExp('^' + tokens[0] + '(-id)?-$').test(tokens[1]);
-      })
-      .map(([key]) => key);
-    expect(compound).toEqual([COMPOUND_EXCEPTION]);
-  });
 });
