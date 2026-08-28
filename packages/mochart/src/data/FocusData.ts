@@ -292,7 +292,7 @@ function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, s
   if (isFocused(focusedCategoryIndex) || isFocused(focusedSeriesId)) {
     if (isFocused(focusedSeriesId)) {
       const seriesConfig = mochartConfig.seriesById[focusedSeriesId];
-      const { axisBases, raw, filtered } = seriesData;
+      const { seriesBases, raw, filtered } = seriesData;
       const { id } = seriesConfig;
       const axis = seriesConfig.axis!;
       const valueAxisConfig = seriesConfig.valueAxisConfig!;
@@ -300,7 +300,7 @@ function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, s
       const ascending = mochartConfig.plot.inverted !== valueAxisConfig.reversed;
       const axisDomains = valueAxisConfig.adjustForFiltering ? filtered.renderAxisDomains : raw.renderAxisDomains;
       const axisDomain = axisDomains[axis] as [number, number];
-      const axisBase = axisBases[axis];
+      const axisBase = seriesBases[id];
 
       const { values } = filtered;
       // the focused series plus its same-axis followSeries followers, so a composite

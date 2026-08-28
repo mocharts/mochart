@@ -62,7 +62,7 @@ function emptyNotCopiedValueDelta(): NumericValuesDelta {
 
 export function getInitialValueChangeData(mochartConfig: EnhancedMochartConfig, newChartData: ChartData): ValueChangeData {
   const initialValues = getInitialSeriesValueObjects(mochartConfig.series, newChartData.seriesData.raw.domains,
-    newChartData.seriesData.raw.values, newChartData.seriesData.raw.priorIndices, newChartData.seriesData.axisBases);
+    newChartData.seriesData.raw.values, newChartData.seriesData.raw.priorIndices, newChartData.seriesData.seriesBases);
   const initialFilteredValues = getInitialFilteredSeriesValueObjects(mochartConfig.seriesStacks,
     initialValues, newChartData.seriesData.filteredFlags);
 
@@ -192,22 +192,22 @@ function enhanceValueObject(valueObject: SeriesValueObject): void {
 
 // getValueDeltaData functions
 
-function getInitialSeriesValueObjects(seriesConfigs: EnhancedSeriesConfig[], seriesDomains: SeriesDomainObjects, rawSeriesValueObjects: SeriesValueObjects, _seriesPriorIndices: number[] | undefined, axisBases: Record<string, number | null>): SeriesValueObjects {
+function getInitialSeriesValueObjects(seriesConfigs: EnhancedSeriesConfig[], seriesDomains: SeriesDomainObjects, rawSeriesValueObjects: SeriesValueObjects, _seriesPriorIndices: number[] | undefined, seriesBases: Record<string, number | null>): SeriesValueObjects {
   const valueObjects = mapMap(rawSeriesValueObjects, () => ({} as SeriesValueObject));
   for (const positionOrComputedKey of positionOrComputedKeys) {
-    setInitialSeriesValues(valueObjects, seriesConfigs, rawSeriesValueObjects, positionOrComputedKey, axisBases);
+    setInitialSeriesValues(valueObjects, seriesConfigs, rawSeriesValueObjects, positionOrComputedKey, seriesBases);
   }
-  setAllInitialExtraSeriesValues(valueObjects, seriesConfigs, seriesDomains, rawSeriesValueObjects, axisBases);
+  setAllInitialExtraSeriesValues(valueObjects, seriesConfigs, seriesDomains, rawSeriesValueObjects, seriesBases);
   setMinMax(valueObjects);
 
   return valueObjects;
 }
 
-function setInitialSeriesValues(valueObjects: SeriesValueObjects, seriesConfigs: EnhancedSeriesConfig[], rawValueObjects: SeriesValueObjects, valueKey: PositionOrComputedKey, axisBases: Record<string, number | null>): void {
+function setInitialSeriesValues(valueObjects: SeriesValueObjects, seriesConfigs: EnhancedSeriesConfig[], rawValueObjects: SeriesValueObjects, valueKey: PositionOrComputedKey, seriesBases: Record<string, number | null>): void {
   for (const seriesConfig of seriesConfigs) {
-    const { id, axis } = seriesConfig;
+    const { id } = seriesConfig;
     if (rawValueObjects[id][valueKey] !== null) {
-      valueObjects[id][valueKey] = createArrayWithValueIfNotMissing(rawValueObjects[id][valueKey]!, axisBases[axis!] ?? MISSING_VALUE);
+      valueObjects[id][valueKey] = createArrayWithValueIfNotMissing(rawValueObjects[id][valueKey]!, seriesBases[id] ?? MISSING_VALUE);
     }
     else {
       valueObjects[id][valueKey] = null;
@@ -215,15 +215,15 @@ function setInitialSeriesValues(valueObjects: SeriesValueObjects, seriesConfigs:
   }
 }
 
-function setAllInitialExtraSeriesValues(seriesValueObjects: SeriesValueObjects, seriesConfigs: EnhancedSeriesConfig[], seriesDomains: SeriesDomainObjects, rawSeriesValueObjects: SeriesValueObjects, axisBases: Record<string, number | null>): void {
+function setAllInitialExtraSeriesValues(seriesValueObjects: SeriesValueObjects, seriesConfigs: EnhancedSeriesConfig[], seriesDomains: SeriesDomainObjects, rawSeriesValueObjects: SeriesValueObjects, seriesBases: Record<string, number | null>): void {
   let valueObject, rawValueObject;
   for (const seriesConfig of seriesConfigs) {
-    const { id, axis } = seriesConfig;
+    const { id } = seriesConfig;
     valueObject = seriesValueObjects[id];
     rawValueObject = rawSeriesValueObjects[id];
     setInitialExtraSeriesValues(valueObject, rawValueObject, 'marker', 'markerCopyKey', seriesDomains[id].marker[0] ?? MISSING_VALUE);
     setInitialExtraSeriesValues(valueObject, rawValueObject, 'color', 'colorCopyKey', seriesDomains[id].color[0] ?? MISSING_VALUE);
-    setInitialExtraSeriesValues(valueObject, rawValueObject, 'label', 'labelCopyKey', axisBases[axis!] ?? MISSING_VALUE);
+    setInitialExtraSeriesValues(valueObject, rawValueObject, 'label', 'labelCopyKey', seriesBases[id] ?? MISSING_VALUE);
     setInitialExtraSeriesValues(valueObject, rawValueObject, 'tooltip', 'tooltipCopyKey', seriesDomains[id].tooltip[0] ?? MISSING_VALUE);
   }
 }
@@ -403,19 +403,19 @@ function getSeriesValuesWithChanges(values: NumericValues | null, baseIndices: n
 
 function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], startSeriesData: SeriesData, endSeriesData: SeriesData): void {
   for (const seriesConfig of seriesConfigs) {
-    const { id, axis } = seriesConfig;
-    const axisBase = startSeriesData.axisBases[axis!] ?? MISSING_VALUE;
+    const { id } = seriesConfig;
+    const seriesBase = startSeriesData.seriesBases[id] ?? MISSING_VALUE;
     const startValueObject = startSeriesData.raw.values[id];
     const endValueObject = endSeriesData.raw.values[id];
 
     for (const key of positionKeys) {
-      setBaseValuesForChanges(startValueObject, endValueObject, key, axisBase);
+      setBaseValuesForChanges(startValueObject, endValueObject, key, seriesBase);
     }
 
     const startRawSeriesDomainObject = startSeriesData.raw.domains[id];
 
     for (const { extraKey, copyKey } of extraAndCopyKeys) {
-      setBaseExtraValuesForChanges(startValueObject, endValueObject, extraKey, copyKey, axisBase, startRawSeriesDomainObject, extraKey !== 'label');
+      setBaseExtraValuesForChanges(startValueObject, endValueObject, extraKey, copyKey, seriesBase, startRawSeriesDomainObject, extraKey !== 'label');
     }
     setStackBaseValuesForChanges(startValueObject, endValueObject);
 
@@ -424,12 +424,12 @@ function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], start
 
     for (const key of positionKeys) {
       if (areValueReferencesDifferent(startFilteredValueObject, endFilteredValueObject, startValueObject, endValueObject, key)) {
-        setBaseValuesForChanges(startFilteredValueObject, endFilteredValueObject, key, axisBase);
+        setBaseValuesForChanges(startFilteredValueObject, endFilteredValueObject, key, seriesBase);
       }
     }
     for (const { extraKey, copyKey } of extraAndCopyKeys) {
       if (areValueReferencesDifferent(startFilteredValueObject, endFilteredValueObject, startValueObject, endValueObject, extraKey)) {
-        setBaseExtraValuesForChanges(startFilteredValueObject, endFilteredValueObject, extraKey, copyKey, axisBase, startRawSeriesDomainObject, extraKey !== 'label');
+        setBaseExtraValuesForChanges(startFilteredValueObject, endFilteredValueObject, extraKey, copyKey, seriesBase, startRawSeriesDomainObject, extraKey !== 'label');
       }
     }
     if (areValueReferencesDifferent(startFilteredValueObject, endFilteredValueObject, startValueObject, endValueObject, 'stack')) {
@@ -438,13 +438,13 @@ function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], start
   };
 }
 
-function setBaseExtraValuesForChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, valueKey: ExtraKey, valueCopyKey: ExtraCopyKey, axisBase: number, seriesDomainObject: SeriesDomainObject, useSeriesDomain: boolean): void {
+function setBaseExtraValuesForChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, valueKey: ExtraKey, valueCopyKey: ExtraCopyKey, seriesBase: number, seriesDomainObject: SeriesDomainObject, useSeriesDomain: boolean): void {
   if (typeof startValueObject[valueCopyKey] === 'string') {
     startValueObject[valueKey] = startValueObject[startValueObject[valueCopyKey]! as ValueKey] as NumericValues | null;
     endValueObject[valueKey] = endValueObject[startValueObject[valueCopyKey]! as ValueKey] as NumericValues | null;
   }
   else {
-    let valueBase: number = axisBase;
+    let valueBase: number = seriesBase;
     if (useSeriesDomain) {
       valueBase = seriesDomainObject[valueKey][0] ?? MISSING_VALUE;
     }
@@ -452,18 +452,18 @@ function setBaseExtraValuesForChanges(startValueObject: SeriesValueObject, endVa
   }
 }
 
-function setBaseValuesForChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, valueKey: ValueKey, axisBase: number): void {
+function setBaseValuesForChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, valueKey: ValueKey, seriesBase: number): void {
   const startValues = startValueObject[valueKey];
   const endValues = endValueObject[valueKey];
   if (startValues !== endValues) { // not both null
     if (startValues === null) {
-      startValueObject[valueKey] = createArrayWithValueIfNotMissing(endValues!, axisBase);
+      startValueObject[valueKey] = createArrayWithValueIfNotMissing(endValues!, seriesBase);
     }
     else if (endValues === null) {
-      endValueObject[valueKey] = createArrayWithValueIfNotMissing(startValues, axisBase);
+      endValueObject[valueKey] = createArrayWithValueIfNotMissing(startValues, seriesBase);
     }
     else {
-      setArrayValuesIfOneIsMissing(startValues, endValues, axisBase);
+      setArrayValuesIfOneIsMissing(startValues, endValues, seriesBase);
     }
   }
 }

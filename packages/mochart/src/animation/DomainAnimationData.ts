@@ -4,7 +4,7 @@ import { getCategoryDataWithRenderAxisDomain, getCategoryDataWithNumericValues }
 
 import { getChartDataWithData, getChartDataWithRenderAxisDomains, getChartDataWithSeriesData } from '../data/ChartData';
 
-import { getSeriesDataWithRenderAxisDomains, getSeriesDataWithAxisBases, getSeriesDataWithDomains, getValueAxisBases } from '../data/SeriesData';
+import { getSeriesDataWithRenderAxisDomains, getSeriesDataWithSeriesBases, getSeriesDataWithDomains, getSeriesBases } from '../data/SeriesData';
 
 import { domainKeys } from '../data/constants';
 
@@ -307,7 +307,7 @@ export function getTransitionAxisExpansionData(mochartConfig: EnhancedMochartCon
   let endSeriesData = prevChartData.seriesData;
   let finalRawValueAxisDomains = prevChartData.seriesData.raw.renderAxisDomains;
   let finalFilteredValueAxisDomains = prevChartData.seriesData.filtered.renderAxisDomains;
-  let finalValueAxisBases = prevChartData.seriesData.axisBases;
+  let finalSeriesBases = prevChartData.seriesData.seriesBases;
   let finalRawSeriesDomains = prevChartData.seriesData.raw.domains;
   let finalFilteredSeriesDomains = prevChartData.seriesData.filtered.domains;
 
@@ -350,7 +350,7 @@ export function getTransitionAxisExpansionData(mochartConfig: EnhancedMochartCon
   // a base follows the series domains it reads and the axis bounds it is held within, so either changing moves it
   if (rawSet.valueAxisDomainDeltas.deltaPercentage !== 0 || filteredSet.valueAxisDomainDeltas.deltaPercentage !== 0 ||
     rawSet.seriesDomainDeltas.deltaPercentage !== 0 || filteredSet.seriesDomainDeltas.deltaPercentage !== 0) {
-    finalValueAxisBases = getValueAxisBases(valueAxisConfigs, finalRawSeriesDomains, finalFilteredSeriesDomains,
+    finalSeriesBases = getSeriesBases(seriesConfigs, finalRawSeriesDomains, finalFilteredSeriesDomains,
       finalRawValueAxisDomains, finalFilteredValueAxisDomains);
   }
 
@@ -358,7 +358,7 @@ export function getTransitionAxisExpansionData(mochartConfig: EnhancedMochartCon
   if (hasDomainDelta) {
     endSeriesData = getSeriesDataWithAllDomains(endSeriesData, endRawValueAxisDomains, endFilteredValueAxisDomains, endRawSeriesDomains, endFilteredSeriesDomains);
     finalSeriesData = getSeriesDataWithAllDomains(finalSeriesData, finalRawValueAxisDomains, finalFilteredValueAxisDomains, finalRawSeriesDomains, finalFilteredSeriesDomains);
-    finalSeriesData = getSeriesDataWithAxisBases(finalSeriesData, finalValueAxisBases);
+    finalSeriesData = getSeriesDataWithSeriesBases(finalSeriesData, finalSeriesBases);
   }
 
   if (categoryAxisDomainDelta.deltaPercentage !== 0 || hasDomainDelta) {

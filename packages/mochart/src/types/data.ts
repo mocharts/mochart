@@ -43,7 +43,8 @@ export interface SeriesDataSet {
 }
 
 export interface SeriesData {
-  axisBases: Record<string, number | null>;
+  /** Per series: the value it is drawn from and animates to when it enters or leaves. */
+  seriesBases: Record<string, number | null>;
   axisSeriesCounts: Record<string, number>;
   raw: SeriesDataSet;
   filteredFlags: Record<string, boolean>;

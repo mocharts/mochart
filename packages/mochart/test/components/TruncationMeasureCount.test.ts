@@ -125,7 +125,7 @@ describe('truncation measurement cost', () => {
       initial: { tickLabels: 1285, title: 251, axisTitle: 138, legendItem: 500, other: 0 },
       valuesAnimated: { tickLabels: 6594, title: 1104, axisTitle: 580, legendItem: 2208, other: 0 },
       resized: { tickLabels: 136, title: 14, axisTitle: 22, legendItem: 26, other: 0 },
-      categoriesChurned: { tickLabels: 4239, title: 568, axisTitle: 298, legendItem: 1136, other: 0 }
+      categoriesChurned: { tickLabels: 4281, title: 576, axisTitle: 302, legendItem: 1152, other: 0 }
     });
   });
 

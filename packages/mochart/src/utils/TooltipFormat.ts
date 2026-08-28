@@ -13,7 +13,7 @@ import type { ValueFormatter } from './ValueFormat';
 
 type CategorySeriesValueObject = Partial<Record<ValueKey, number | null | undefined>>;
 interface CategorySeriesSlice {
-  axisBases: Record<string, number | null>;
+  seriesBases: Record<string, number | null>;
   raw: { values: Record<string, CategorySeriesValueObject>; domains: SeriesDomainObjects };
   filtered: { values: Record<string, CategorySeriesValueObject>; domains: SeriesDomainObjects };
 }
@@ -38,7 +38,7 @@ function getFilteredValueText(tooltipConfig: TooltipConfig, defaultValueText: st
 }
 
 function getValueText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSeriesConfig, adjustForFiltering: boolean, valueFormat: ValueFormatter, series: CategorySeriesSlice, key: ValueKey): string | null {
-  const { raw, filtered, axisBases } = series;
+  const { raw, filtered, seriesBases } = series;
   const seriesId = seriesConfig.id;
   const seriesValueObject = raw.values[seriesId];
   const filterValueObject = filtered.values[seriesId];
@@ -51,9 +51,9 @@ function getValueText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSeries
         seriesValueText = String(valueFormat(filterValueObject[key]!));
       }
       else {
-        const axisBase = axisBases[seriesConfig.valueAxisConfig.id];
+        const seriesBase = seriesBases[seriesConfig.id];
         seriesValueText = getFilteredValueText(tooltipConfig,
-          axisBase !== null ? String(valueFormat(axisBase)) : tooltipConfig.missingValueText);
+          seriesBase !== null && seriesBase !== undefined ? String(valueFormat(seriesBase)) : tooltipConfig.missingValueText);
       }
     }
     else {

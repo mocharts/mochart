@@ -1,7 +1,7 @@
 import { nullDomain, getDomainForValues, mergeDomain } from './DomainData';
 import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData';
 import { readNumericValues } from './PropertyData';
-import { AUTO, NONE } from '../config/core/constants';
+import { AUTO, NONE, RENDERER_AREA, RENDERER_BAR } from '../config/core/constants';
 
 import { keyPlain, valueKeys, positionKeys, extraKeys, extraCopyKeys, positionOrComputedOrExtraKeys } from './constants';
 
@@ -22,12 +22,12 @@ export function getSeriesData(mochartConfig: EnhancedMochartConfig, dataProvider
   const seriesFilteredFlags = getSeriesFilteredFlags(seriesConfigs, filteredSeriesMap);
   const filteredSeriesBundle = getFilteredSeriesBundle(valueAxisConfigs, seriesConfigs, seriesStackConfigs, keyCategoryValues, rawSeriesBundle, seriesFilteredFlags);
 
-  const axisBases = getValueAxisBases(valueAxisConfigs, rawSeriesBundle.data.domains, filteredSeriesBundle.data.domains,
+  const seriesBases = getSeriesBases(seriesConfigs, rawSeriesBundle.data.domains, filteredSeriesBundle.data.domains,
     rawSeriesBundle.data.renderAxisDomains, filteredSeriesBundle.data.renderAxisDomains);
   const axisSeriesCounts = getSeriesContainerVisibleSeriesCounts(valueAxisConfigs, seriesFilteredFlags);
 
   return {
-    axisBases,
+    seriesBases,
     axisSeriesCounts,
     raw: rawSeriesBundle.data,
     filteredFlags: seriesFilteredFlags,
@@ -41,8 +41,8 @@ export function getSeriesDataWithRenderAxisDomains(seriesData: SeriesData, rawRe
   return Object.assign({}, seriesData, { raw, filtered });
 }
 
-export function getSeriesDataWithAxisBases(seriesData: SeriesData, valueAxisBases: SeriesData['axisBases']): SeriesData {
-  return Object.assign({}, seriesData, { axisBases: valueAxisBases });
+export function getSeriesDataWithSeriesBases(seriesData: SeriesData, seriesBases: SeriesData['seriesBases']): SeriesData {
+  return Object.assign({}, seriesData, { seriesBases });
 }
 
 export function getSeriesDataWithSeriesCounts(seriesData: SeriesData, valueAxisSeriesCounts: Record<string, number>): SeriesData {
@@ -451,20 +451,26 @@ export function calculateValueAxisDomain(valueAxisConfig: EnhancedValueAxisConfi
   return axisDomain;
 }
 
-export function getValueAxisBases(valueAxisConfigs: EnhancedValueAxisConfig[], rawSeriesDomains: SeriesDomainObjects, filteredSeriesDomains: SeriesDomainObjects,
+export function getSeriesBases(seriesConfigs: EnhancedSeriesConfig[], rawSeriesDomains: SeriesDomainObjects, filteredSeriesDomains: SeriesDomainObjects,
   rawValueAxisDomains: Record<string, NullableDomain>, filteredValueAxisDomains: Record<string, NullableDomain>): Record<string, number | null> {
-  return arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => {
+  return arrayToMap(seriesConfigs, idAccessor, seriesConfig => {
+    const valueAxisConfig = seriesConfig.valueAxisConfig!;
     if (valueAxisConfig.base !== NONE) {
       return valueAxisConfig.base;
     }
-    // a declared min is the floor shapes are drawn from; otherwise the smallest value, so nothing
-    // animates into the margin the axis adds below it
+    const adjust = valueAxisConfig.adjustForFiltering;
+    const axisDomain = (adjust ? filteredValueAxisDomains : rawValueAxisDomains)[valueAxisConfig.id];
+    // an un-ranged bar or area is drawn from the axis end, so it has to animate to the same place
+    const drawnFromTheAxisEnd = (seriesConfig.renderer === RENDERER_BAR || seriesConfig.renderer === RENDERER_AREA) &&
+      seriesConfig.rangeProperty === NONE;
+    if (drawnFromTheAxisEnd) {
+      return axisDomain[0];
+    }
     if (valueAxisConfig.min !== AUTO) {
       return valueAxisConfig.min as number;
     }
-    const adjust = valueAxisConfig.adjustForFiltering;
     const dataMin = calculateValueAxisDomain(valueAxisConfig, adjust ? filteredSeriesDomains : rawSeriesDomains)[0];
-    return dataMin !== null ? dataMin : (adjust ? filteredValueAxisDomains : rawValueAxisDomains)[valueAxisConfig.id][0];
+    return dataMin !== null ? dataMin : axisDomain[0];
   })
 }
 
@@ -504,10 +510,10 @@ function getCategorySeriesValueObject(seriesValueObject: SeriesValueObject, cate
 }
 
 export function getSeriesValueObjects(seriesData: SeriesData, categoryIndex: number) {
-  const { axisBases, axisSeriesCounts, filteredFlags, raw, filtered } = seriesData;
+  const { seriesBases, axisSeriesCounts, filteredFlags, raw, filtered } = seriesData;
 
   return {
-    axisBases,
+    seriesBases,
     axisSeriesCounts,
     filteredFlags,
     raw:  {

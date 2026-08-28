@@ -8,7 +8,7 @@ import type { EnhancedSeriesConfig } from '../../src/types/enhanced';
 // layer. Build small typed-loose fixtures rather than a full ChartData.
 type ValueObj = Record<string, number | null | undefined>;
 interface Slice {
-  axisBases: Record<string, number | null>;
+  seriesBases: Record<string, number | null>;
   raw: { values: Record<string, ValueObj>; domains: unknown };
   filtered: { values: Record<string, ValueObj>; domains: unknown };
 }
@@ -42,9 +42,9 @@ function makeSeriesConfig(over: Partial<EnhancedSeriesConfig> = {}): EnhancedSer
   } as EnhancedSeriesConfig;
 }
 
-function makeSlice(raw: ValueObj, filtered: ValueObj = raw, axisBases: Record<string, number | null> = { y: 0 }): Slice {
+function makeSlice(raw: ValueObj, filtered: ValueObj = raw, seriesBases: Record<string, number | null> = { s1: 0 }): Slice {
   return {
-    axisBases,
+    seriesBases,
     raw: { values: { s1: raw }, domains: {} },
     filtered: { values: { s1: filtered }, domains: {} }
   };
@@ -321,7 +321,7 @@ describe('getSeriesText', () => {
       const { valueText } = getSeriesText(
         makeTooltipConfig({ adjustForFiltering: true, filteredValueCharacter: '#' }),
         makeSeriesConfig(), identity,
-        makeSlice({ plain: 42 }, { plain: null }, { y: 100 }) as never, // base "100" => 3 chars
+        makeSlice({ plain: 42 }, { plain: null }, { s1: 100 }) as never, // base "100" => 3 chars
         true,
         pieValues({ valueType: 'percentValue', fraction: 0, rawFraction: 0.2, filtered: true })
       );
@@ -344,7 +344,7 @@ describe('getSeriesText', () => {
         makeTooltipConfig({ adjustForFiltering: true }),
         makeSeriesConfig(),
         identity,
-        makeSlice({ plain: 42 }, { plain: 30 }, { y: 0 }) as never,
+        makeSlice({ plain: 42 }, { plain: 30 }, { s1: 0 }) as never,
         true
       );
       expect(valueText).toBe('30');
@@ -355,7 +355,7 @@ describe('getSeriesText', () => {
         makeTooltipConfig({ adjustForFiltering: true, filteredValueText: '***' }),
         makeSeriesConfig(),
         identity,
-        makeSlice({ plain: 42 }, { plain: null }, { y: 99 }) as never, // filtered null => filtered
+        makeSlice({ plain: 42 }, { plain: null }, { s1: 99 }) as never, // filtered null => filtered
         true
       );
       expect(valueText).toBe('***');
@@ -366,7 +366,7 @@ describe('getSeriesText', () => {
         makeTooltipConfig({ adjustForFiltering: true, filteredValueCharacter: '#' }),
         makeSeriesConfig(),
         identity,
-        makeSlice({ plain: 42 }, { plain: null }, { y: 100 }) as never, // base "100" => 3 chars
+        makeSlice({ plain: 42 }, { plain: null }, { s1: 100 }) as never, // base "100" => 3 chars
         true
       );
       expect(valueText).toBe('###');
