@@ -1,7 +1,7 @@
 // Renders one config section of the reference model to a markdown page.
 // Used by reference/[section].paths.ts at build time.
 
-import type { DefaultValue, PropertyDoc, SectionDoc } from './model';
+import type { DefaultValue, PropertyDoc, SectionDoc, ShapeRuleDoc } from './model';
 import type { UsageIndex } from './usageIndex';
 
 // h2 for a top-level property through h6 for the deepest member
@@ -26,6 +26,15 @@ function colorChip(color: string): string {
 
 function renderRules(rules: string[]): string {
   return rules.map(rule => '`' + rule + '`').join('; ');
+}
+
+/**
+ * A shape rule naming its members instead of quoting their own rules, which each member's heading
+ * carries below. The names link down, so the rule doubles as the property's contents.
+ */
+function renderShapeRule(shapeRule: ShapeRuleDoc, anchorPrefix: string): string {
+  const keys = shapeRule.keys.map(key => '[`' + key + '`](#' + anchorPrefix + '.' + key + ')').join(', ');
+  return shapeRule.lead + ' { ' + keys + ' }' + (shapeRule.tail !== undefined ? ' ' + shapeRule.tail : '');
 }
 
 function renderUsage(key: string, usage: UsageIndex): string | null {
@@ -82,7 +91,10 @@ function renderProperty(sectionId: string, property: PropertyDoc, usage: UsageIn
   else {
     lines.push('- **Default:** ' + renderDefaultValue(property.default ?? { kind: 'none' }));
   }
-  lines.push('- **Validation:** ' + renderRules(property.rules));
+  // the shape rule replaces the first rule only: uniqueness and reference rules follow it unchanged
+  lines.push('- **Validation:** ' + (property.shapeRule !== undefined
+    ? renderShapeRule(property.shapeRule, anchor) + (property.rules.length > 1 ? '; ' + renderRules(property.rules.slice(1)) : '')
+    : renderRules(property.rules)));
   const usageLine = renderUsage(anchor, usage);
   if (usageLine !== null) {
     lines.push(usageLine);
@@ -129,6 +141,11 @@ export function renderSectionPage(section: SectionDoc, usage: UsageIndex): strin
         ' a value set on an individual entry wins over the shared one.'
       );
     }
+    lines.push('');
+  }
+  if (section.shapeRule) {
+    // the section states its own shape the way every nested property below states theirs
+    lines.push('- **Validation:** ' + renderShapeRule(section.shapeRule, section.id));
     lines.push('');
   }
   const requiredKeys = section.requiredKeys ?? [];

@@ -19,11 +19,20 @@ export interface ConditionalDefaultValue {
   condition: string;
 }
 
+/** `lead` names the shape, `keys` its members, `tail` whatever the rule allows besides it. */
+export interface ShapeRuleDoc {
+  lead: string;
+  keys: string[];
+  tail?: string;
+}
+
 export interface PropertyDoc {
   key: string;
   description: string;
   details?: string;
   rules: string[];
+  /** The shape rule without its members' own rules, for the members documented below it. */
+  shapeRule?: ShapeRuleDoc;
   default?: DefaultValue;
   conditionalDefaults?: ConditionalDefaultValue[];
   /** The members of a nested object property, documented the same way. */
@@ -41,6 +50,7 @@ export interface SectionDoc {
   allKey?: string;
   allDescription?: string;
   shape: 'object' | 'array';
+  shapeRule?: ShapeRuleDoc;
   /** Top-level properties a value must be supplied for. */
   requiredKeys?: string[];
   properties: PropertyDoc[];

@@ -190,6 +190,8 @@ export interface PropertyDoc {
   details?: string;
   /** Validation rule messages, including uniqueness/reference constraints. */
   rules: string[];
+  /** The shape rule with its members' own rules left out, for pages that document those members below. */
+  shapeRule?: ShapeRuleDoc;
   default?: DefaultValue;
   conditionalDefaults?: ConditionalDefaultValue[];
   /** Machine-readable value information used by config editors. */
@@ -202,6 +204,13 @@ export interface PropertyDoc {
   itemShape?: boolean;
   /** True when the property has no default and a value must be supplied. */
   required?: boolean;
+}
+
+/** `lead` names the shape, `keys` its members, `tail` whatever the rule allows besides it ("or be equal to null"). */
+export interface ShapeRuleDoc {
+  lead: string;
+  keys: string[];
+  tail?: string;
 }
 
 export type EditorValueType = 'any' | 'array' | 'boolean' | 'number' | 'object' | 'string';
@@ -236,6 +245,8 @@ export interface SectionDoc {
   allExcludedKeys?: string[];
   /** 'object' for single sections, 'array' for config lists. */
   shape: 'object' | 'array';
+  /** The section's own shape rule, stated the way its nested properties state theirs. */
+  shapeRule?: ShapeRuleDoc;
   /** Top-level properties a value must be supplied for, in the order they are documented. */
   requiredKeys?: string[];
   properties: PropertyDoc[];
@@ -496,7 +507,7 @@ function isColorArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.length > 0 && !value.some(aValue => !isColor(aValue));
 }
 
-// Levels of nesting a default literal spells out before collapsing to `{ … }`;
+// Levels of nesting a default literal spells out before collapsing to `{ … }` / `[ … ]`;
 // a collapsed object's members are documented as nested properties of their own.
 const literalObjectDepth = 1;
 
@@ -511,6 +522,9 @@ function formatLiteral(value: unknown, depth = 0): string {
     return '"' + value + '"';
   }
   if (Array.isArray(value)) {
+    if (depth >= literalObjectDepth) {
+      return '[ … ]';
+    }
     return '[' + value.map(item => formatLiteral(item, depth + 1)).join(', ') + ']';
   }
   if (typeof value === 'object') {
@@ -582,6 +596,24 @@ function getSectionKeyRules(sectionValidator: SectionValidatorInfo): Record<stri
     });
   }
   return sectionKeyRules;
+}
+
+/** Splits a shape rule into its lead, its member keys and whatever it allows besides the shape. */
+function buildShapeRule(rule: string | undefined, keys: string[]): ShapeRuleDoc | undefined {
+  if (rule === undefined) {
+    return undefined;
+  }
+  const open = rule.indexOf('{');
+  const close = rule.lastIndexOf('}');
+  if (open === -1 || close < open) {
+    return undefined;
+  }
+  const shapeRule: ShapeRuleDoc = { lead: rule.slice(0, open).trim(), keys };
+  const tail = rule.slice(close + 1).trim();
+  if (tail !== '') {
+    shapeRule.tail = tail;
+  }
+  return shapeRule;
 }
 
 function getPropertyRules(validator: Validator, sectionRules: string[] | undefined): string[] {
@@ -768,6 +800,7 @@ function buildPropertyDoc(source: PropertySource): PropertyDoc {
   if (nested) {
     const nestedRegular = nestedDefaults(regularDefault);
     const nestedConditional = conditionalDefaultBranch(conditionalDefault);
+    property.shapeRule = buildShapeRule(property.rules[0], Object.keys(nested).sort());
     property.properties = Object.keys(nested).sort().map(memberKey => buildPropertyDoc({
       key: memberKey,
       path: source.path + '.' + memberKey,
@@ -784,6 +817,7 @@ function buildPropertyDoc(source: PropertySource): PropertyDoc {
     // an array of objects: the members documented are each element's, and the defaults are the entry defaults
     const entryDefaults = nestedDefaults(source.itemDefaults);
     property.itemShape = true;
+    property.shapeRule = buildShapeRule(property.rules[0], Object.keys(itemNested).sort());
     property.properties = Object.keys(itemNested).sort().map(memberKey => buildPropertyDoc({
       key: memberKey,
       path: source.path + '[].' + memberKey,
@@ -831,6 +865,13 @@ function buildSectionDoc(source: SectionSource, sectionValidators: SectionValida
     description: sectionDescriptions[source.id],
     shape: sectionValidator.validator.validatorName === 'arrayOf' ? 'array' : 'object',
     properties
+  };
+  // the section validator holds no member list of its own — its properties are validated separately —
+  // so the rule is composed rather than split, in the wording its nested properties use
+  section.shapeRule = {
+    lead: (section.shape === 'array' ? 'should be an array with elements that should be an object' : 'should be an object') +
+      ' with any of the properties',
+    keys: properties.map(property => property.key)
   };
   const requiredKeys = properties.filter(property => property.required).map(property => property.key);
   if (requiredKeys.length > 0) {
