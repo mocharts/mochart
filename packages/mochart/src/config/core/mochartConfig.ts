@@ -1,7 +1,7 @@
 import { NONE } from './constants';
 import { filterConfig, filterConfigs, getConfigKey } from './configUtils';
 import { deepClone, deepMerge, deepMergeAll, withoutUndefined } from './deepMerge';
-import { getDefaults } from '../defaults/mochartConfig';
+import { getDefaults, implicitEntrySectionKeys } from '../defaults/mochartConfig';
 import type { ConfigValidation, MochartConfig } from '../../types/config';
 
 type ConfigRecord = Record<string, unknown>;
@@ -328,8 +328,11 @@ export function getConfigWithoutDefaults(config: unknown, defaults: ConfigRecord
               newSection = removeSectionDefaults(defaultSections[i], allSection, filteredConfigSection[i]);
               newSections.push(newSection);
             }
-            // defaults-only sections (e.g. seriesStacks: []) stay out, like empty objects below
-            if (newSections.length > 0) {
+            // defaults-only sections (e.g. seriesStacks: []) stay out, like empty objects below,
+            // as does the lone implicit entry, which comes back on its own when the section is absent
+            const implicitOnly = newSections.length === 1 && implicitEntrySectionKeys.indexOf(sectionKey) !== -1 &&
+              isObject(newSections[0]) && Object.keys(newSections[0]).length === 0;
+            if (newSections.length > 0 && !implicitOnly) {
               minimal[sectionKey] = newSections;
             }
           }

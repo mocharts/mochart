@@ -50,6 +50,8 @@ function getConfigCount(configs: unknown): number {
   return Array.isArray(configs) ? filterConfigs(configs).length : (filterConfig(configs) ? 1 : 0);
 }
 
+export const implicitEntrySectionKeys = ['valueAxes'];
+
 export function getDefaults(config: MochartInputConfig | unknown): Record<string, unknown> {
   if (isObject(config)) {
     const inputConfig = config as MochartInputConfig;

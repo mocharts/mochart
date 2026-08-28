@@ -225,6 +225,25 @@ describe('getConfigWithoutDefaults', () => {
     const minimal = getConfigWithoutDefaults(config, getDefaults(config));
     expect(minimal.valueAxes).toBeUndefined();
   });
+
+  // Regression: the implicit axis strips to {} and was kept, so every minimal config carried valueAxes: [{}]
+  it('leaves the lone implicit value axis out of the round-trip', () => {
+    const config = { categoryAxis: { property: 'x' }, series: [{ id: 'S0', property: 'y' }] };
+    const minimal = getConfigWithoutDefaults(getConfigWithDefaults(config));
+    expect(minimal).toEqual({ categoryAxis: { property: 'x' }, series: [{ property: 'y' }] });
+    expect(getConfigWithDefaults(minimal)).toEqual(getConfigWithDefaults(config));
+  });
+
+  // dropping these would lose an axis, and unstack the series whose stripped stack: 'SS0' only holds while the stack exists
+  it('keeps an all-empty list that would not come back on its own', () => {
+    for (const section of [{ valueAxes: [{}, {}] }, { seriesStacks: [{}] }, { seriesGroups: [{}] }]) {
+      const config = { categoryAxis: { property: 'x' }, series: [{ property: 'y' }, { property: 'z' }], ...section };
+      const minimal = getConfigWithoutDefaults(getConfigWithDefaults(config));
+      const [sectionKey] = Object.keys(section);
+      expect(minimal[sectionKey], sectionKey).toEqual((section as Record<string, unknown>)[sectionKey]);
+      expect(getConfigWithDefaults(minimal), sectionKey).toEqual(getConfigWithDefaults(config));
+    }
+  });
 });
 
 // Regression: entries the given defaults did not cover were copied through with no defaults at all
