@@ -700,20 +700,29 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
         let tooltipStateSource: ChartState | ReturnType<typeof getInitialTooltipState> = this.state;
         if (chartData !== null) {
-          if (oldAxisData === null || mochartConfigChanged || sizeChanged || (categoryAxisChanged && valueAxisChanged)) {
-            axisData = getAxisDataWithMutations(oldAxisData, mochartConfig, layoutInfo!, chartData);
+          // data with no categories carries none of this, the way init() leaves it for a chart mounted with it;
+          // the old values have to go rather than just be left standing, or they outlive the categories they place
+          if (getChartDataCategoryCount(chartData) === 0) {
+            axisData = null;
+            stackData = null;
+            clippedEdges = noClippedEdges;
           }
           else {
-            if (categoryAxisChanged) {
-              axisData = getAxisDataForCategoryChange(axisData!, mochartConfig, layoutInfo!, chartData);
+            if (oldAxisData === null || mochartConfigChanged || sizeChanged || (categoryAxisChanged && valueAxisChanged)) {
+              axisData = getAxisDataWithMutations(oldAxisData, mochartConfig, layoutInfo!, chartData);
             }
-            else if (valueAxisChanged) {
-              axisData = getAxisDataForSeriesChange(axisData!, mochartConfig, layoutInfo!, chartData);
+            else {
+              if (categoryAxisChanged) {
+                axisData = getAxisDataForCategoryChange(axisData!, mochartConfig, layoutInfo!, chartData);
+              }
+              else if (valueAxisChanged) {
+                axisData = getAxisDataForSeriesChange(axisData!, mochartConfig, layoutInfo!, chartData);
+              }
             }
-          }
-          if (mochartConfigChanged || dataChanged) {
-            stackData = getStackDataWithMutations(oldStackData, mochartConfig, chartData);
-            clippedEdges = getClippedEdgesWithMutations(clippedEdges, mochartConfig, chartData);
+            if (mochartConfigChanged || dataChanged) {
+              stackData = getStackDataWithMutations(oldStackData, mochartConfig, chartData);
+              clippedEdges = getClippedEdgesWithMutations(clippedEdges, mochartConfig, chartData);
+            }
           }
 
           if (dataChanged && prevProps.chartData !== null) {

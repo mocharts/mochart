@@ -81,6 +81,23 @@ describe('no-data state', () => {
     expect(container.querySelector(getCssSelector('noData'))).toBeNull();
   });
 
+  // emptying drops the derived axis data, so refilling rebuilds it the way a mount does
+  // rather than updating the data built over no categories
+  it('draws the same after emptying and refilling as it does freshly mounted', () => {
+    const later = [{ month: 'Mar', sales: 30 }, { month: 'Apr', sales: 5 }, { month: 'May', sales: 12 }];
+    const ticks = (element: Element) =>
+      Array.from(element.querySelectorAll(getCssSelector('axisTickLabel') + ' text')).map(label => label.textContent);
+
+    const container = mountContainer();
+    const handle = trackHandle(createDefaultChart(container, {
+      config: makeConfig(), data: rows, width: WIDTH, height: HEIGHT
+    } as DefaultChartProps));
+    handle.update({ config: makeConfig(), data: [], width: WIDTH, height: HEIGHT } as DefaultChartProps);
+    handle.update({ config: makeConfig(), data: later, width: WIDTH, height: HEIGHT } as DefaultChartProps);
+
+    expect(ticks(container)).toEqual(ticks(mountChart({}, makeConfig(), later)));
+  });
+
   // the empty plot runs both axis passes, so parts flagged *Front still draw
   it('draws front-flagged axis parts while there is no data', () => {
     const config = makeConfig({
