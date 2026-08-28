@@ -4,6 +4,9 @@
 import type { DefaultValue, PropertyDoc, SectionDoc } from './model';
 import type { UsageIndex } from './usageIndex';
 
+// h2 for a top-level property through h6 for the deepest member
+const MAX_PROPERTY_DEPTH = 4;
+
 function renderDefaultValue(value: DefaultValue): string {
   switch (value.kind) {
     case 'color':
@@ -35,9 +38,14 @@ function renderUsage(key: string, usage: UsageIndex): string | null {
   return '- **Used in:** ' + rendered + (extra !== undefined ? ' · +' + extra + ' more' : '');
 }
 
-/** Heading level for a property: `###` at the top, one deeper per nesting level. */
+/** Heading level for a property: `##` at the top, one deeper per nesting level. */
 function headingPrefix(depth: number): string {
-  return '#'.repeat(Math.min(3 + depth, 6));
+  if (depth > MAX_PROPERTY_DEPTH) {
+    // clamping instead would head a property at the same level as its own parent
+    throw new Error('config reference nests ' + (depth + 1) + ' levels deep, past the ' +
+      (MAX_PROPERTY_DEPTH + 1) + ' markdown headings has room for');
+  }
+  return '#'.repeat(2 + depth);
 }
 
 /** Render one property, then each member of the object — or of each array element — it holds; a member's anchor extends its parent's. */
@@ -101,6 +109,11 @@ function upperFirst(text: string): string {
 
 export function renderSectionPage(section: SectionDoc, usage: UsageIndex): string {
   const lines: string[] = [];
+  // properties take h2, so the outline lists them rather than their members
+  lines.push('---');
+  lines.push('outline: 2');
+  lines.push('---');
+  lines.push('');
   lines.push('# ' + section.title);
   lines.push('');
   lines.push(upperFirst(section.description) + '.');
@@ -139,8 +152,6 @@ export function renderSectionPage(section: SectionDoc, usage: UsageIndex): strin
     );
     lines.push('');
   }
-  lines.push('## Properties');
-  lines.push('');
   for (const property of section.properties) {
     lines.push(renderProperty(section.id, property, usage));
   }
