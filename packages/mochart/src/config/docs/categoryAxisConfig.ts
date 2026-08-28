@@ -29,7 +29,7 @@ export default function getDescriptions() {
         truncationEnabled: 'whether or not to use text truncation (true) when the axis tick labels would overlap each other instead of skipping ticks (false)',
         truncationText: 'the truncation text to append to the axis tick label text when its content is truncated',
         truncationMinLength: 'the minimum length (in pixels) to allow tick label text perpendicular to the axis, applied when truncationMaxFraction would allow less',
-        truncationMaxFraction: 'the maximum fraction (0 - 1) of the chart bounds to allow any tick label text to occupy when they are perpendicular to the axis'
+        truncationMaxFraction: 'the maximum fraction (0 - 1) of the plot bounds to allow any tick label text to occupy when they are perpendicular to the axis'
       }
     }
   };

@@ -527,3 +527,49 @@ export function describeConfigUpdateGoldens(): void {
     });
   });
 }
+
+// ---------------------------------------------------------------------------
+// Rotated category tick labels — the perpendicular truncation path, where the tick-label budget and
+// the clip rect are sized from a fraction of a layout box rather than from the tick spacing. Every
+// demo golden has parallel labels, so nothing else covers it.
+// ---------------------------------------------------------------------------
+
+const rotatedTickLabelVariants = [
+  { stage: 'rotated', inverted: false },
+  { stage: 'rotated-inverted', inverted: true }
+];
+
+export function describeRotatedTickLabelGoldens(): void {
+  describe('rotated category tick labels', () => {
+    // long category values, a title, a legend and truncation already on: only the rotation is missing
+    const demo = allDemos.find((aDemo) => aDemo.id === 'truncated-text')!;
+
+    it.each(rotatedTickLabelVariants)('truncates and clips $stage labels', async ({ stage, inverted }) => {
+      const mochartConfig = buildMochartConfig(demo.config, {
+        animate: false,
+        mutate: (raw) => {
+          raw.categoryAxis.tickLabel.rotation = 45;
+          raw.plot.inverted = inverted;
+        }
+      });
+      const rows = loadJson(dataPaths[demo.data]);
+      const container = createContainer();
+
+      const chart = mochart.createChart(container, {
+        mochartConfig,
+        dataProvider: makeProvider(rows),
+        width: WIDTH,
+        height: HEIGHT
+      });
+
+      // before any frame runs: the first sync renders untruncated, so the clip rect is the only
+      // thing bounding the labels here
+      await expectSnapshot(container, demo.id, stage + '-mount');
+      runFrames();
+      await expectSnapshot(container, demo.id, stage + '-settled');
+
+      chart.destroy();
+      expect(container.innerHTML).toBe('');
+    });
+  });
+}

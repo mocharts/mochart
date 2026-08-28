@@ -1949,7 +1949,7 @@ export interface CategoryAxisTickLabelConfig extends AxisTickLabelConfig {
    */
   truncationMinLength: number;
   /**
-   * The maximum fraction (0 - 1) of the chart bounds to allow any tick label
+   * The maximum fraction (0 - 1) of the plot bounds to allow any tick label
    * text to occupy when they are perpendicular to the axis.
    *
    * @default 0.2

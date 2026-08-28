@@ -1422,7 +1422,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       { key: 'category-axis-title-clip', ctor: AxisTitleClip, props: { axisConfig: mochartConfig.categoryAxis, chartContentLayoutInfo,
         axisLayoutInfo: categoryAxisLayoutInfo, axisTitleClipPathUniqueId: categoryAxisTitleClipPathUniqueId } },
       { key: 'category-axis-tick-label-clip', ctor: CategoryAxisTickLabelClip, props: { mochartConfig, maxTickLabelLength,
-        chartContentLayoutInfo, categoryAxisLayoutInfo,
+        plotLayoutInfo, categoryAxisLayoutInfo,
         categoryAxisTickLabelClipPathUniqueId } }
     );
 
