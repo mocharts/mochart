@@ -29,7 +29,7 @@ export default class AxisGrid extends Renderer<AxisGridProps> {
 
   sync() {
     const { vertical, axisConfig, seriesLayoutInfo, axisFocusPercentage, seriesFocusPercentage, axisGridClass, axisTicks } = this.props;
-    if (axisConfig.visible && axisConfig.gridLine.visible) {
+    if (axisConfig.gridLine.visible) {
       const styleAttributes = styleToAttributes(getAxisFocusStyle(axisFocusPercentage, seriesFocusPercentage,
         axisConfig.useSeriesFocus ?? false, axisConfig.gridLine.style));
 

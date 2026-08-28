@@ -178,7 +178,7 @@ export default function getDescriptions() {
     minOffset: 'the numeric offset to apply to the minimum value of the axis',
     maxOffset: 'the numeric offset to apply to the maximum value of the axis',
 
-    visible: 'whether the axis should be visible'
+    visible: 'whether the axis should be visible (its line, tick marks, tick labels and title). Its grid, base and threshold lines are controlled by their own visibility properties, and can remain visible when the axis is hidden',
   };
 }
 

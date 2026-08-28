@@ -2303,7 +2303,9 @@ export interface AxisConfigBase {
    */
   title: AxisTitleConfig;
   /**
-   * Whether the axis should be visible.
+   * Whether the axis should be visible (its line, tick marks, tick labels and
+   * title). Its grid, base and threshold lines are controlled by their own
+   * visibility properties, and can remain visible when the axis is hidden.
    *
    * Category axis defaults:
    * - `false` — when chart.type is pie
