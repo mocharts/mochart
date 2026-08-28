@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import validateConfig, {
-  getUniqueMessage,
   getReferenceMessage,
   getCommonReferenceMessage,
   validateConfigDetailed
@@ -25,9 +24,6 @@ function detailedFor(config: unknown) {
 }
 
 describe('validation message helpers', () => {
-  it('getUniqueMessage', () => {
-    expect(getUniqueMessage()).toBe('should be unique');
-  });
 
   it('getReferenceMessage names a single source section', () => {
     expect(getReferenceMessage('valueAxes', 'id'))

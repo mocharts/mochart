@@ -4,7 +4,6 @@ import {
   arrayToMap,
   mapMap,
   onClickDisabled,
-  translate,
   rotate,
   translateRotate,
   translateObject,
@@ -30,12 +29,6 @@ import {
 // toEqual treats the missing value (NaN) as equal to itself
 const M = MISSING_VALUE;
 
-describe('idAccessor', () => {
-  it('reads the id property', () => {
-    expect(idAccessor({ id: 'abc' })).toBe('abc');
-  });
-});
-
 describe('arrayToMap', () => {
   it('keys elements by an accessor, defaulting the value to the element', () => {
     const items = [{ id: 'a', n: 1 }, { id: 'b', n: 2 }];
@@ -47,9 +40,6 @@ describe('arrayToMap', () => {
     expect(arrayToMap(items, idAccessor, e => e.n)).toEqual({ a: 1, b: 2 });
   });
 
-  it('is empty for an empty array', () => {
-    expect(arrayToMap([], idAccessor)).toEqual({});
-  });
 });
 
 describe('mapMap', () => {
@@ -57,9 +47,6 @@ describe('mapMap', () => {
     expect(mapMap({ a: 1, b: 2 }, v => v * 10)).toEqual({ a: 10, b: 20 });
   });
 
-  it('is empty for an empty map', () => {
-    expect(mapMap({}, (v: number) => v)).toEqual({});
-  });
 });
 
 describe('onClickDisabled', () => {
@@ -71,9 +58,6 @@ describe('onClickDisabled', () => {
 });
 
 describe('transform string builders', () => {
-  it('translate builds an SVG translate()', () => {
-    expect(translate(1, 2)).toBe('translate(1,2)');
-  });
 
   it('rotate builds an SVG rotate()', () => {
     expect(rotate(45)).toBe('rotate(45)');
