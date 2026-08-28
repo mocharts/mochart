@@ -164,12 +164,13 @@ describe('background clicks', () => {
   it('are handled by the chart root alone, with no listener on a background', () => {
     const listeners: string[] = [];
     const addEventListener = Element.prototype.addEventListener;
-    const spy = vi.spyOn(Element.prototype, 'addEventListener').mockImplementation(function (this: Element, type: string, ...rest: never[]) {
-      if (type === 'click' && /background/.test(this.getAttribute('class') ?? '')) {
-        listeners.push(this.getAttribute('class')!);
-      }
-      return addEventListener.call(this, type, ...(rest as never[]));
-    } as typeof addEventListener);
+    const spy = vi.spyOn(Element.prototype, 'addEventListener').mockImplementation(
+      function (this: Element, ...args: Parameters<typeof addEventListener>) {
+        if (args[0] === 'click' && /background/.test(this.getAttribute('class') ?? '')) {
+          listeners.push(this.getAttribute('class')!);
+        }
+        return addEventListener.apply(this, args);
+      });
     mountChart(makeConfig());
     spy.mockRestore();
 
