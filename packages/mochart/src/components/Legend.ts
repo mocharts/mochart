@@ -56,8 +56,6 @@ interface LegendItemProps {
   colorPaletteConfig: ColorPaletteConfig;
   seriesIndex: number;
   seriesIsFiltered: boolean;
-  seriesIsFocused: boolean;
-  seriesIsDefocused: boolean;
   seriesFocusPercentage: number | null;
   /** clicking filters or focuses the series, so the item shows the pointer cursor */
   clickable: boolean;
@@ -139,7 +137,7 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
 
   sync() {
     const { mochartConfig, legendLayoutInfo, legendItemTextLayoutInfo, legendItemLayoutInfos,
-      legendItemRawLayoutInfos, filteredFlags, uniqueIds, focusedSeriesId, valueAxisFocusPercentages, seriesFocusPercentages } = this.props;
+      legendItemRawLayoutInfos, filteredFlags, uniqueIds, valueAxisFocusPercentages, seriesFocusPercentages } = this.props;
     const { legendClipPathUniqueId } = uniqueIds;
     const { legend: legendConfig } = mochartConfig;
     if (legendConfig.visible && legendLayoutInfo !== undefined && legendItemTextLayoutInfo !== undefined &&
@@ -178,8 +176,6 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
           const i = itemIndex++;
           const seriesIndex = seriesConfigIndicesById[id];
           const seriesIsFiltered = filteredFlags[id] === true;
-          const seriesIsFocused = focusedSeriesId === leaderSeriesId(mochartConfig, id);
-          const seriesIsDefocused = !seriesIsFocused && focusedSeriesId !== null;
           const seriesFocusPercentage = getSeriesFocusPercentage(seriesConfig, valueAxisFocusPercentages, seriesFocusPercentages);
 
           items.push({
@@ -189,7 +185,7 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
               legendItemLayoutInfo: legendItemLayoutInfos[i],
               legendItemRawLayoutInfo: legendItemRawLayoutInfos[i], legendItemTextLayoutInfo,
               uniqueIds, colorPaletteConfig, seriesIndex,
-              seriesIsFiltered, seriesIsFocused, seriesIsDefocused,
+              seriesIsFiltered,
               seriesFocusPercentage, clipPath,
               clickable: legendItemClickable(mochartConfig, seriesConfig),
               interactive: itemIsInteractive(seriesConfig),
@@ -315,7 +311,7 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
 
   sync() {
     const { legendConfig, seriesConfig, legendItemLayoutInfo, legendItemTextLayoutInfo, uniqueIds, clipPath, colorPaletteConfig,
-      seriesIndex, seriesIsFiltered, seriesIsFocused, seriesIsDefocused, seriesFocusPercentage } = this.props;
+      seriesIndex, seriesIsFiltered, seriesFocusPercentage } = this.props;
     const { truncationEnabled, truncationText, strikeThroughFiltered } = legendConfig;
     const { spacing: iconSpacing } = legendConfig.icon;
     const { textStyle: itemTextStyle } = legendConfig.item;
@@ -355,7 +351,6 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
     this.background.set(Background, { config: legendConfig.item, classKey: 'legendItemBackground', spacingRelative: true, spacingLayoutInfo: legendItemLayoutInfo });
     this.iconGroup.set({ className: mochartCssClasses['legendItemIcon'], transform: iconTransform });
     this.icon.set(SeriesColorIcon, { seriesContextConfig: legendConfig, seriesConfig, pieMode: this.props.pieMode,
-      focused: seriesIsFocused, defocused: seriesIsDefocused,
       focusPercentage: seriesFocusPercentage, colorPaletteConfig, seriesIndex,
       seriesShowColorProperty: 'showColorInLegend', uniqueIds,
       seriesIsFiltered, renderHTML: false, resolvedIconSize: iconSize });

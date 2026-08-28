@@ -51,8 +51,6 @@ interface TooltipSeriesLineProps {
   mochartConfig: EnhancedMochartConfig;
   seriesConfig: EnhancedSeriesConfig;
   seriesIndex: number;
-  seriesIsFocused: boolean;
-  seriesIsDefocused: boolean;
   seriesIsFiltered: boolean;
   seriesFocusPercentage: FocusPercentage;
   colorPaletteConfig: ColorPaletteConfig;
@@ -250,7 +248,7 @@ export class TooltipSeriesLine extends Renderer<TooltipSeriesLineProps> {
   }
 
   sync() {
-    const { mochartConfig, seriesConfig, seriesIndex, seriesIsFocused, seriesIsDefocused, seriesIsFiltered, seriesFocusPercentage,
+    const { mochartConfig, seriesConfig, seriesIndex, seriesIsFiltered, seriesFocusPercentage,
       colorPaletteConfig, svgUniqueId, visible, labelText, valueText, style, rowKey, interactive, tabStop, showsFilterState,
       onPointerLeave } = this.props;
     const { tooltip: tooltipConfig } = mochartConfig;
@@ -271,7 +269,6 @@ export class TooltipSeriesLine extends Renderer<TooltipSeriesLineProps> {
 
     const iconProps = {
       seriesContextConfig: tooltipConfig, seriesConfig, pieMode: mochartConfig.chart.type === CHART_TYPE_PIE,
-      focused: seriesIsFocused, defocused: seriesIsDefocused,
       focusPercentage: seriesFocusPercentage, colorPaletteConfig, seriesIndex,
       svgUniqueId: svgUniqueId + '-tooltip', seriesShowColorProperty: 'showColorInTooltip' as const,
       seriesIsFiltered, iconClassName: mochartCssClasses['tooltipLineIcon'],
@@ -481,7 +478,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
   }
 
   sync() {
-    const { mochartConfig, tooltipValueObject, categoryCount, focusedCategoryIndex, focusedSeriesId, visible, tooltipCategoryIndex, updateTooltipCategoryIndex,
+    const { mochartConfig, tooltipValueObject, categoryCount, focusedCategoryIndex, visible, tooltipCategoryIndex, updateTooltipCategoryIndex,
       minWidth = null, adjustForFiltering = true, svgUniqueId, onFocus, valueAxisFocusPercentages, seriesFocusPercentages, mode, toggleMode } = this.props;
 
     const { chart: chartConfig, pie: pieConfig, tooltip: tooltipConfig, categoryAxis: categoryAxisConfig, valueAxes: valueAxisConfigs, series: seriesConfigs, seriesIndicesById: seriesConfigIndicesById, colorPalette: colorPaletteConfig } = mochartConfig;
@@ -560,8 +557,6 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
       // so a candlestick range row acts on the whole candle
       const focusSeriesId = seriesConfig.followSeries ?? seriesId;
       const seriesIsFiltered = filteredFlags[seriesId];
-      const seriesIsFocused = focusSeriesId === focusedSeriesId;
-      const seriesIsDefocused = !seriesIsFocused && focusedSeriesId !== null;
       const seriesFocusPercentage = getSeriesFocusPercentage(seriesConfig, valueAxisFocusPercentages, seriesFocusPercentages);
       // the sizer keeps a row the visible box drops so the width stays put, but collapses it so the
       // measured height — which positions the box — is the height the visible box will have
@@ -590,7 +585,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
           tooltipLines.push({
             key: rowKey,
             ctor: TooltipSeriesLine,
-            props: { mochartConfig, seriesConfig, seriesIndex, seriesIsFocused, seriesIsDefocused, seriesIsFiltered, seriesFocusPercentage,
+            props: { mochartConfig, seriesConfig, seriesIndex, seriesIsFiltered, seriesFocusPercentage,
               colorPaletteConfig, svgUniqueId, visible, labelText, valueText,
               style: rowCollapsed ? collapsedLineStyle : rowIsTarget ? targetLineStyle : lineStyle,
               rowKey, interactive: rowInteractive, tabStop: false,

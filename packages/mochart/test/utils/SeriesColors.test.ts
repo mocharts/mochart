@@ -156,7 +156,7 @@ describe('getSeriesColorGenerator', () => {
     it(`produces colors for a ${interpolation ?? 'default'} interpolation`, () => {
       const gen = getSeriesColorGenerator(
         series({ colorScale: { min: '#000000', max: '#ffffff', interpolation, base: { value: null } } }),
-        null, rawDomains, filteredValues
+        rawDomains, filteredValues
       );
       expect(typeof gen(1)).toBe('string');
     });
@@ -165,7 +165,6 @@ describe('getSeriesColorGenerator', () => {
   it('splits above/below the color base into two scales', () => {
     const gen = getSeriesColorGenerator(
       series({ colorScale: { interpolation: null, base: { value: 5, belowMin: '#000000', belowMax: '#0000ff', aboveMin: '#ff0000', aboveMax: '#ffffff' } } }),
-      null,
       { color: [0, 10] } as never,
       { color: [0, 5, 10] } as never
     );
@@ -177,7 +176,7 @@ describe('getSeriesColorGenerator', () => {
   it('returns the missing color for a row without a color value', () => {
     const gen = getSeriesColorGenerator(
       series({ colorScale: { min: '#000000', max: '#ffffff', missing: '#123456', interpolation: 'rgb', base: { value: null } } }),
-      null, rawDomains, { color: [0, MISSING_VALUE, 10] } as never
+      rawDomains, { color: [0, MISSING_VALUE, 10] } as never
     );
     expect(gen(1)).toBe('#123456');
     expect(typeof gen(0)).toBe('string');
@@ -187,7 +186,6 @@ describe('getSeriesColorGenerator', () => {
   it('returns the missing color for a row without a color value on a base-split scale', () => {
     const gen = getSeriesColorGenerator(
       series({ colorScale: { missing: '#123456', interpolation: null, base: { value: 5, belowMin: '#000000', belowMax: '#0000ff', aboveMin: '#ff0000', aboveMax: '#ffffff' } } }),
-      null,
       { color: [0, 10] } as never,
       { color: [0, MISSING_VALUE, 10] } as never
     );
@@ -197,7 +195,6 @@ describe('getSeriesColorGenerator', () => {
   it('returns the missing color for every row when no row has a color value', () => {
     const gen = getSeriesColorGenerator(
       series({ colorScale: { min: '#000000', max: '#ffffff', missing: '#123456', interpolation: 'rgb', base: { value: null } } }),
-      null,
       { color: [null, null] } as never,
       { color: [MISSING_VALUE, MISSING_VALUE, MISSING_VALUE] } as never
     );
@@ -209,7 +206,7 @@ describe('getSeriesColorGenerator', () => {
   it('returns null for missing rows when missing is null, deferring to the series colors', () => {
     const gen = getSeriesColorGenerator(
       series({ colorScale: { min: '#000000', max: '#ffffff', missing: null, interpolation: 'rgb', base: { value: null } } }),
-      null, rawDomains, { color: [0, MISSING_VALUE, 10] } as never
+      rawDomains, { color: [0, MISSING_VALUE, 10] } as never
     );
     expect(gen(1)).toBe(null);
     expect(typeof gen(0)).toBe('string');

@@ -244,7 +244,7 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
       let seriesFillColor = seriesConfig.renderer === RENDERER_LINE ? 'none' : getSeriesFillColor(colorPaletteConfig, seriesConfig, seriesIndex, seriesFocusPercentage);
       let seriesColorGenerator = null;
       if (seriesConfig.colorProperty !== NONE) {
-        seriesColorGenerator = getSeriesColorGenerator(seriesConfig, seriesFocusPercentage, rawDomains, filteredValues);
+        seriesColorGenerator = getSeriesColorGenerator(seriesConfig, rawDomains, filteredValues);
       }
       const { strokeWidth: seriesStrokeWidth, strokeDashArray: seriesStrokeDashArray, strokeOpacity: seriesStrokeOpacity, fillOpacity: seriesFillOpacity } = getFocusStyle(seriesFocusPercentage, seriesConfig.shapeStyle);
 

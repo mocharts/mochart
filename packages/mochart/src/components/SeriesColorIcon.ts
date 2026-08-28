@@ -32,8 +32,6 @@ interface SeriesColorIconProps {
   seriesIndex: number;
   colorPaletteConfig: ColorPaletteConfig;
   seriesIsFiltered: boolean;
-  focused: boolean;
-  defocused: boolean;
   focusPercentage: number | null;
   iconClassName?: string | null;
   svgUniqueId?: string;

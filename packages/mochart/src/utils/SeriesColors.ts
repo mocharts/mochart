@@ -197,9 +197,10 @@ function buildScale(colorRange: readonly (string | null)[], colorDomain: readonl
 /**
  * Per-datum colors for a `colorProperty` series. Rows without a color value (all rows when the
  * domain is `[null, null]`) get the scale's `missing` color; `missing: null` returns `null` and
- * the caller falls back to the series' own colors.
+ * the caller falls back to the series' own colors. The colors do not vary with focus: a color scale
+ * has no focused/defocused ramp to resolve against, so only the style's opacities move.
  */
-export function getSeriesColorGenerator(seriesConfig: EnhancedSeriesConfig, _focusPercentage: FocusPercentage, rawDomains: SeriesDomainObject, filteredValues: SeriesValueObject): (index: number) => string | null {
+export function getSeriesColorGenerator(seriesConfig: EnhancedSeriesConfig, rawDomains: SeriesDomainObject, filteredValues: SeriesValueObject): (index: number) => string | null {
   const colorValues = filteredValues.color as NumericValues;
   const interpolator = getColorInterpolator(seriesConfig);
 
