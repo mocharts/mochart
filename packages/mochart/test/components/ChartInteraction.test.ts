@@ -159,7 +159,24 @@ describe('chart mouse events', () => {
 });
 
 describe('background clicks', () => {
-  // every Background is rendered without an onClick prop, so the click reaches the chart root by bubbling
+  // Regression: Background carried a click listener whose body checked for a callback no call site
+  // passed, so every chart attached a handful of listeners that could never do anything
+  it('are handled by the chart root alone, with no listener on a background', () => {
+    const listeners: string[] = [];
+    const addEventListener = Element.prototype.addEventListener;
+    const spy = vi.spyOn(Element.prototype, 'addEventListener').mockImplementation(function (this: Element, type: string, ...rest: never[]) {
+      if (type === 'click' && /background/.test(this.getAttribute('class') ?? '')) {
+        listeners.push(this.getAttribute('class')!);
+      }
+      return addEventListener.call(this, type, ...(rest as never[]));
+    } as typeof addEventListener);
+    mountChart(makeConfig());
+    spy.mockRestore();
+
+    expect(listeners).toEqual([]);
+  });
+
+  // the click reaches the chart root by bubbling, which is what makes the missing listeners fine
   it('reach the chart click callback by bubbling', () => {
     const clicks: ChartEventPayload[] = [];
     const container = mountChart(makeConfig(), { onChartClick: payload => { clicks.push(payload); } });

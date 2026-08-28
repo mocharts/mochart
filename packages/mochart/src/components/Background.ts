@@ -17,17 +17,9 @@ interface BackgroundProps {
   classKey: CssClassKey;
   spacingRelative: boolean;
   spacingLayoutInfo: SpacingLayoutInfo | Bounds;
-  onClick?: () => void;
 }
 
 export default class Background extends Renderer<BackgroundProps> {
-  backgroundClick = () => {
-    const { onClick } = this.props;
-    if (onClick) {
-      onClick();
-    }
-  }
-
   root = svgEl('g');
   rect = svgEl('rect');
 
@@ -43,7 +35,7 @@ export default class Background extends Renderer<BackgroundProps> {
       : spacingLayoutInfo;
     const { x, y, width, height } = bounds;
     const backgroundProps = styleToAttributes(config.backgroundStyle);
-    this.root.set({ className: mochartCssClasses[classKey], onClick: this.backgroundClick });
+    this.root.set({ className: mochartCssClasses[classKey] });
     this.rect.set({ x, y, width, height, ...backgroundProps });
   }
 }
