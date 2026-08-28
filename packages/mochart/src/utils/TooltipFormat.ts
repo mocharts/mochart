@@ -3,11 +3,10 @@ import { getSeriesLabel } from './SeriesTitle';
 import { getCategoryFormat, getSeriesFormats } from './ValueFormat';
 import { formatPieLabelType, pieLabelTypeUsesPercent, getPieTooltipPercentFormat } from '../data/PieLabel';
 import { getPieSliceFractionMap } from '../data/PieData';
-import { MISSING_VALUE } from './utils';
 import type { PieTooltipValueType } from '../config/core/constants';
 import type { TooltipConfig } from '../types/config';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced';
-import type { ChartData, SeriesDomainObjects, SeriesValueObject } from '../types/data';
+import type { SeriesDomainObjects } from '../types/data';
 import type { CategorySeriesValueObject as ChartCategorySeriesValueObject } from '../data/ChartData';
 import type { ValueKey } from '../data/constants';
 import type { ValueFormatter } from './ValueFormat';
@@ -239,48 +238,4 @@ export function getTooltipAnnouncement(mochartConfig: EnhancedMochartConfig, too
     return rows.join(', ');
   }
   return rows.length === 0 ? categoryPart : categoryPart + ': ' + rows.join(', ');
-}
-
-export function getFilteredValue(chartData: ChartData, seriesConfig: EnhancedSeriesConfig, valueObject: SeriesValueObject): SeriesValueObject {
-  let newValueObject = valueObject;
-  if (newValueObject.plain === null) {
-    newValueObject = {
-      plain: null,
-      range: null,
-      errorLow: null,
-      errorHigh: null,
-      stack: null,
-      prior: null,
-      marker: null,
-      label: null,
-      color: null,
-      tooltip: null,
-      markerCopyKey: null,
-      labelCopyKey: null,
-      colorCopyKey: null,
-      tooltipCopyKey: null,
-      min: null,
-      max: null
-    };
-    let base = chartData.seriesData.axisBases[seriesConfig.valueAxisConfig.id];
-    newValueObject.plain = chartData.categoryData.values.key.map(categoryValue => categoryValue !== undefined ? (base ?? MISSING_VALUE) : MISSING_VALUE);
-    if (seriesConfig.rangeProperty !== NONE && newValueObject.range === null) {
-      newValueObject.range = newValueObject.plain;
-    }
-    if (seriesConfig.errorLowProperty !== NONE && newValueObject.errorLow === null) {
-      newValueObject.errorLow = newValueObject.plain;
-    }
-    if (seriesConfig.errorHighProperty !== NONE && newValueObject.errorHigh === null) {
-      newValueObject.errorHigh = newValueObject.plain;
-    }
-    if (seriesConfig.markerProperty !== NONE&& newValueObject.marker === null) {
-      base = chartData.seriesData.raw.domains[seriesConfig.id]['marker'][0];
-      newValueObject.marker = chartData.categoryData.values.key.map(categoryValue => categoryValue !== undefined ? (base ?? MISSING_VALUE) : MISSING_VALUE);
-    }
-    if (seriesConfig.tooltipProperty !== NONE && newValueObject.tooltip === null) {
-      base = chartData.seriesData.raw.domains[seriesConfig.id]['tooltip'][0];
-      newValueObject.tooltip = chartData.categoryData.values.key.map(categoryValue => categoryValue !== undefined ? (base ?? MISSING_VALUE) : MISSING_VALUE);
-    }
-  }
-  return newValueObject
 }

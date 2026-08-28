@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { getSeriesText, getFilteredValue } from '../../src/utils/TooltipFormat';
-import { MISSING_VALUE } from '../../src/utils/utils';
+import { getSeriesText } from '../../src/utils/TooltipFormat';
 import type { PieTooltipValues } from '../../src/utils/TooltipFormat';
 import type { TooltipConfig } from '../../src/types/config';
-import type { ChartData, SeriesValueObject } from '../../src/types/data';
 import type { EnhancedSeriesConfig } from '../../src/types/enhanced';
 
 // getSeriesText walks a "category series slice" shaped like the runtime's data
@@ -373,58 +371,5 @@ describe('getSeriesText', () => {
       );
       expect(valueText).toBe('###');
     });
-  });
-});
-
-describe('getFilteredValue', () => {
-  const seriesConfig = makeSeriesConfig({ valueAxisConfig: { id: 'y' } as EnhancedSeriesConfig['valueAxisConfig'] });
-
-  function makeChartData(over: Partial<{ base: number; categories: (unknown)[]; markerDomain: number[]; tooltipDomain: number[] }> = {}): ChartData {
-    const base = over.base ?? 5;
-    const categories = over.categories ?? ['a', 'b', undefined];
-    return {
-      seriesData: {
-        axisBases: { y: base },
-        raw: { domains: { s1: { marker: over.markerDomain ?? [3, 9], tooltip: over.tooltipDomain ?? [2, 8] } } }
-      },
-      categoryData: { values: { key: categories } }
-    } as unknown as ChartData;
-  }
-
-  it('returns the original object unchanged when the plain value is not null', () => {
-    const valueObject = { plain: [1, 2, 3] } as unknown as SeriesValueObject;
-    expect(getFilteredValue(makeChartData(), seriesConfig, valueObject)).toBe(valueObject);
-  });
-
-  it('fills plain values from the axis base, keeping category holes missing', () => {
-    const valueObject = { plain: null } as unknown as SeriesValueObject;
-    const out = getFilteredValue(makeChartData({ base: 5 }), seriesConfig, valueObject);
-    expect(out.plain).toEqual([5, 5, MISSING_VALUE]);
-  });
-
-  it('mirrors plain into range when a range property is configured', () => {
-    const valueObject = { plain: null, range: null } as unknown as SeriesValueObject;
-    const out = getFilteredValue(makeChartData({ base: 5 }), makeSeriesConfig({ rangeProperty: 'hi' }), valueObject);
-    expect(out.range).toEqual(out.plain);
-  });
-
-  it('fills marker values from the marker domain minimum', () => {
-    const valueObject = { plain: null, marker: null } as unknown as SeriesValueObject;
-    const out = getFilteredValue(
-      makeChartData({ base: 5, markerDomain: [3, 9] }),
-      makeSeriesConfig({ markerProperty: 'm' }),
-      valueObject
-    );
-    expect(out.marker).toEqual([3, 3, MISSING_VALUE]);
-  });
-
-  it('fills tooltip values from the tooltip domain minimum', () => {
-    const valueObject = { plain: null, tooltip: null } as unknown as SeriesValueObject;
-    const out = getFilteredValue(
-      makeChartData({ base: 5, tooltipDomain: [2, 8] }),
-      makeSeriesConfig({ tooltipProperty: 't' }),
-      valueObject
-    );
-    expect(out.tooltip).toEqual([2, 2, MISSING_VALUE]);
   });
 });
