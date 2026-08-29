@@ -13,7 +13,6 @@ import type {
   AnimationChartData,
   AxisTransitionData,
   ChartAnimationData,
-  EmptyAxisDeltaData,
   CategoryDeltaData,
   ValueChangeData
 } from '../types/animation';
@@ -37,9 +36,9 @@ export function getChartAnimationData(
 
   if (fromEmpty) {
     categoryDeltaData = getInitialCategoryDeltaData(mochartConfig.categoryAxis, newChartData.categoryData);
-    axisExpansionData = emptyAxisDeltaData as EmptyAxisDeltaData;
+    axisExpansionData = emptyAxisDeltaData();
     valueChangeData = getInitialValueChangeData(mochartConfig, newChartData) as ValueChangeData;
-    axisContractionData = emptyAxisDeltaData as EmptyAxisDeltaData;
+    axisContractionData = emptyAxisDeltaData();
   }
   else {
     if (oldChartData === null) {

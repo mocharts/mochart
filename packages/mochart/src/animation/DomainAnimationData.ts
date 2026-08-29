@@ -18,7 +18,7 @@ import type { AxisDomains, ChartData, CategoryAxisDomain, DomainValue, NullableD
 import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
 import type {
   AxisDeltaData, CompleteNumericArrayDelta, DomainDelta, DomainDeltaMap, CategoryDeltaData,
-  NumericDomain, SeriesDomainDelta, SeriesDomainDeltaMap
+  EmptyAxisDeltaData, NumericDomain, SeriesDomainDelta, SeriesDomainDeltaMap
 } from '../types/animation';
 
 // Various constants
@@ -32,17 +32,13 @@ function emptyValueAxisDomainDelta(): DomainDeltaMap {
   return { deltaPercentage: 0, deltas: null };
 }
 
-const emptySeriesDomainDelta = {
-  deltaPercentage: 0,
-  deltas: null
-};
+function emptySeriesDomainDelta(): SeriesDomainDeltaMap {
+  return { deltaPercentage: 0, deltas: null };
+}
 
-export const emptyAxisDeltaData = {
-  start: null,
-  deltaPercentage: 0,
-  deltas: null,
-  end: null
-};
+export function emptyAxisDeltaData(): EmptyAxisDeltaData {
+  return { start: null, deltaPercentage: 0, deltas: null, end: null };
+}
 
 // Various utility functions
 
@@ -559,7 +555,7 @@ function getSeriesDomainDeltas(seriesConfigs: EnhancedSeriesConfig[], fromDomain
     deltaPercentage = Math.max(deltaPercentage, domainDelta.deltaPercentage);
     deltas[id] = domainDelta;
   }
-  return deltaPercentage === 0 ? emptySeriesDomainDelta : {
+  return deltaPercentage === 0 ? emptySeriesDomainDelta() : {
     deltaPercentage,
     deltas
   };
