@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { deepClone, deepMerge, deepMergeAll, isPlainObject, withoutUndefined } from '../../src/config/core/deepMerge';
 import { enhanceConfig } from '../../src/config/helper';
+import { getConfigWithDefaults, getConfigWithoutDefaults } from '../../src/config/core/mochartConfig';
 import { getDefaults } from '../../src/config/defaults/mochartConfig';
 import { validateConfigDetailed } from '../../src/config/validation/mochartConfig';
 import type { MochartInputConfig } from '../../src/types/config';
@@ -329,5 +330,56 @@ describe('axis focus-state styles', () => {
     expect(detailed.diagnostics.some(diagnostic =>
       diagnostic.severity === 'error' &&
       diagnostic.path.join('.') === 'categoryAxis.axisLine.style.normal.strokeColor')).toBe(true);
+  });
+});
+
+describe('prototypes on merged and cloned configs', () => {
+  const protoOf = (value: object) => Object.getPrototypeOf(value);
+
+  it('gives merges and clones Object.prototype', () => {
+    expect(protoOf(deepMerge({ a: 1 }, { b: 2 }))).toBe(Object.prototype);
+    expect(protoOf(deepMergeAll({ a: 1 }, { b: 2 }))).toBe(Object.prototype);
+    expect(protoOf(deepClone({ a: { b: 1 } }).a)).toBe(Object.prototype);
+    expect(protoOf(withoutUndefined({ a: 1, b: undefined }))).toBe(Object.prototype);
+  });
+
+  it('keeps a JSON-owned __proto__ key as data instead of a prototype', () => {
+    // __proto__ is the only accessor on Object.prototype, so it is the only name whose write matters
+    const source = JSON.parse('{"__proto__":{"polluted":true},"a":1,"nested":{"__proto__":{"polluted":true}},"list":[{"__proto__":{"polluted":true}}]}');
+    for (const merged of [deepMerge({}, source), deepClone(source), withoutUndefined({ ...source, b: undefined })]) {
+      const record = merged as Record<string, Record<string, unknown>[] & Record<string, unknown>>;
+      for (const object of [record, record['nested']!, record['list']![0]!]) {
+        expect(protoOf(object)).toBe(Object.prototype);
+        expect(Object.prototype.hasOwnProperty.call(object, '__proto__')).toBe(true);
+      }
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    }
+  });
+
+  it('merges a key named after a prototype member from the source, not from Object.prototype', () => {
+    // the target has no own `constructor`, so the inherited one must not be read as a merge target
+    expect(deepMerge({ a: 1 }, { constructor: { x: 1 } })).toEqual({ a: 1, constructor: { x: 1 } });
+    expect(deepMerge({ constructor: { x: 1 } }, { constructor: { y: 2 } })).toEqual({ constructor: { x: 1, y: 2 } });
+    for (const name of ['toString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'toLocaleString']) {
+      expect(deepMerge({ a: 1 }, { [name]: { x: 1 } })).toEqual({ a: 1, [name]: { x: 1 } });
+      expect(deepClone({ [name]: { x: 1 } })).toEqual({ [name]: { x: 1 } });
+    }
+  });
+
+  it('gives every public config result Object.prototype, at every level', () => {
+    const raw = { version: V, categoryAxis: { property: 'p' }, series: [{ property: 'a' }] } as unknown as MochartInputConfig;
+    const enhanced = enhanceConfig(raw);
+    expect(protoOf(enhanced.chart)).toBe(Object.prototype);
+    expect(protoOf(enhanced.series[0]!)).toBe(Object.prototype);
+
+    const withDefaults = getConfigWithDefaults(raw) as Record<string, Record<string, unknown>>;
+    expect(protoOf(withDefaults)).toBe(Object.prototype);
+    expect(protoOf(withDefaults['chart']!)).toBe(Object.prototype);
+    // the idioms a host reaches for, all broken by a null prototype
+    expect(Object.prototype.hasOwnProperty.call(withDefaults, 'chart')).toBe(true);
+    expect((withDefaults as { hasOwnProperty(key: string): boolean }).hasOwnProperty('chart')).toBe(true);
+    expect(withDefaults instanceof Object).toBe(true);
+
+    expect(protoOf(getConfigWithoutDefaults(withDefaults))).toBe(Object.prototype);
   });
 });

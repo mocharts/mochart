@@ -3,6 +3,18 @@
 
 type MergeRecord = Record<string, unknown>;
 
+// merged configs carry Object.prototype for their hosts, so a __proto__ key has to be written as data
+const hasOwn = (record: MergeRecord, key: string): boolean => Object.prototype.hasOwnProperty.call(record, key);
+
+function setKey(record: MergeRecord, key: string, value: unknown): void {
+  if (key === '__proto__') {
+    Object.defineProperty(record, key, { value, enumerable: true, writable: true, configurable: true });
+  }
+  else {
+    record[key] = value;
+  }
+}
+
 /** A plain data object; arrays, class instances, functions and `null` are values rather than structures. */
 export function isPlainObject(value: unknown): value is MergeRecord {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
@@ -18,9 +30,9 @@ export function withoutUndefined<T extends object>(object: T): T {
   const source = object as MergeRecord;
   const keysFiltered = keys.filter(key => source[key] !== undefined);
   if (keysFiltered.length < keys.length) {
-    const clone: MergeRecord = Object.create(null);
+    const clone: MergeRecord = {};
     for (const key of keysFiltered) {
-      clone[key] = source[key];
+      setKey(clone, key, source[key]);
     }
     return clone as T;
   }
@@ -29,12 +41,12 @@ export function withoutUndefined<T extends object>(object: T): T {
 
 /** Merge `source` over `target` without mutating either. Key order is target-first, which fixes the order of the svg attributes written from a merged style. */
 export function deepMerge<T extends object>(target: T | null | undefined, source: object | null | undefined): T {
-  const merged: MergeRecord = Object.create(null); // null proto: a JSON-owned __proto__ key must not rewrite the merged prototype
+  const merged: MergeRecord = {};
   if (target) {
     const targetRecord = target as MergeRecord;
     for (const key of Object.keys(targetRecord)) {
       if (targetRecord[key] !== undefined) {
-        merged[key] = targetRecord[key];
+        setKey(merged, key, targetRecord[key]);
       }
     }
   }
@@ -45,10 +57,10 @@ export function deepMerge<T extends object>(target: T | null | undefined, source
       if (sourceValue === undefined) {
         continue;
       }
-      const targetValue = merged[key];
-      merged[key] = (isPlainObject(targetValue) && isPlainObject(sourceValue))
+      const targetValue = hasOwn(merged, key) ? merged[key] : undefined;
+      setKey(merged, key, (isPlainObject(targetValue) && isPlainObject(sourceValue))
         ? deepMerge(targetValue, sourceValue)
-        : sourceValue;
+        : sourceValue);
     }
   }
   return merged as T;
@@ -89,9 +101,9 @@ const cloneEntries = (value: unknown[], ancestors: Set<unknown>): unknown[] =>
   value.map(entry => cloneValue(entry, ancestors));
 
 const cloneKeys = (value: MergeRecord, ancestors: Set<unknown>): MergeRecord => {
-  const clone: MergeRecord = Object.create(null); // null proto: a JSON-owned __proto__ key must not rewrite the clone prototype
+  const clone: MergeRecord = {};
   for (const key of Object.keys(value)) {
-    clone[key] = cloneValue(value[key], ancestors);
+    setKey(clone, key, cloneValue(value[key], ancestors));
   }
   return clone;
 };
