@@ -19,8 +19,7 @@ export function getRegularDefaults() {
 export function getConditionalDefaults(configWithRegularDefaults: LinearGradientConfig, index: number) {
   return {
     id: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'linear gradient index', default: 'LG' + index, defaultText: 'LG${index}' },
-      { ...defaultRule, default: 'LG' + index }
+      { ...defaultRule, default: 'LG' + index, defaultText: 'LG${index}' }
     ], configWithRegularDefaults, index)
   }
 }

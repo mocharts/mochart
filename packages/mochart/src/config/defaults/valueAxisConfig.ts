@@ -61,12 +61,10 @@ export function getConditionalDefaults(configWithRegularDefaults: ValueAxisConfi
       { ...defaultRule, default: NONE }
     ], configWithRegularDefaults, index),
     id: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'value axis index', default: 'VA' + index, defaultText: 'VA${index}' },
-      { ...defaultRule, default: 'VA' + index }
+      { ...defaultRule, default: 'VA' + index, defaultText: 'VA${index}' }
     ], configWithRegularDefaults, index),
     order: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'value axis index', default: index, defaultText: '${index}' },
-      { ...defaultRule, default: index }
+      { ...defaultRule, default: index, defaultText: '${index}' }
     ], configWithRegularDefaults, index)
   };
 }

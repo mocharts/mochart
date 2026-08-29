@@ -24,8 +24,7 @@ export function getConditionalDefaults(configWithRegularDefaults: PatternConfig,
   const dotPattern = ({ type }: PatternConfig) => type === PATTERN_TYPE_DOTS;
   return {
     id: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'pattern index', default: 'P' + index, defaultText: 'P${index}' },
-      { ...defaultRule, default: 'P' + index }
+      { ...defaultRule, default: 'P' + index, defaultText: 'P${index}' }
     ], configWithRegularDefaults, index),
     rotation: conditionalDefault([
       { condition: linePattern, suffix: 'when type is lines or crosshatch', default: 45 },

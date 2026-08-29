@@ -550,6 +550,14 @@ export function formatDefaultValue(value: unknown): DefaultValue {
   return { kind: 'literal', text: formatLiteral(value) };
 }
 
+function soleDefaultValue(conditionalDefault: { rules?: AnyRule[] }): DefaultValue | undefined {
+  const rule = (conditionalDefault.rules ?? [])[0];
+  if (rule === undefined) {
+    return undefined;
+  }
+  return rule.defaultText ? { kind: 'literal', text: rule.defaultText } : formatDefaultValue(rule.default);
+}
+
 function formatConditionalDefaults(conditionalDefault: { rules?: AnyRule[] }): ConditionalDefaultValue[] {
   return (conditionalDefault.rules ?? []).filter(rule => rule.suffix !== null).map(rule => ({
     value: rule.defaultText ? { kind: 'literal', text: rule.defaultText } as DefaultValue : formatDefaultValue(rule.default),
@@ -787,7 +795,14 @@ function buildPropertyDoc(source: PropertySource): PropertyDoc {
     property.details = detailText;
   }
   if (isConditionalDefaultLeaf(conditionalDefault)) {
-    property.conditionalDefaults = formatConditionalDefaults(conditionalDefault);
+    const conditionalDefaults = formatConditionalDefaults(conditionalDefault);
+    if (conditionalDefaults.length > 0) {
+      property.conditionalDefaults = conditionalDefaults;
+    }
+    else {
+      // a computed default with nothing to branch on: conditionalDefault is only how it is declared
+      property.default = soleDefaultValue(conditionalDefault) ?? formatDefaultValue(regularDefault);
+    }
   }
   else {
     // a nested branch is a default for members, not for this property, which keeps its regular default

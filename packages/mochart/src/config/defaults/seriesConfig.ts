@@ -150,24 +150,19 @@ const notCategoryIndexColorSuffix = 'when neither shapeStyle.normal.strokeColor 
 export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, index: number, soleValueAxisId: string | null, soleSeriesStackId: string | null, soleSeriesGroupId: string | null, soleGradientConfigId: string | null, solePatternConfigId: string | null, pieMode = false) {
   return {
     id: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series index', default: 'S' + index, defaultText: 'S${index}' },
-      { ...defaultRule, default: 'S' + index }
+      { ...defaultRule, default: 'S' + index, defaultText: 'S${index}' }
     ], configWithRegularDefaults, index),
     order: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series index', default: index, defaultText: '${index}' },
-      { ...defaultRule, default: index }
+      { ...defaultRule, default: index, defaultText: '${index}' }
     ], configWithRegularDefaults, index),
     axis: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'value axis', default: soleValueAxisId === null ? undefined : soleValueAxisId, defaultText: 'sole axis id' },
-      { ...defaultRule, default: soleValueAxisId === null ? undefined : soleValueAxisId }
+      { ...defaultRule, default: soleValueAxisId === null ? undefined : soleValueAxisId, defaultText: 'sole axis id' }
     ], configWithRegularDefaults, index),
     stack: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series stack', default: soleSeriesStackId, defaultText: 'sole stack id' },
-      { ...defaultRule, default: soleSeriesStackId }
+      { ...defaultRule, default: soleSeriesStackId, defaultText: 'sole stack id' }
     ], configWithRegularDefaults, index),
     group: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series group', default: soleSeriesGroupId, defaultText: 'sole group id' },
-      { ...defaultRule, default: soleSeriesGroupId }
+      { ...defaultRule, default: soleSeriesGroupId, defaultText: 'sole group id' }
     ], configWithRegularDefaults, index),
     gradient: conditionalDefault([
       { condition: config => supportsAutomaticGradient(config, pieMode), suffix: 'when chart type is pie or renderer is area or bar, colorProperty is null, and no shapeStyle fillColor is ' + COLOR_CATEGORY_INDEX, default: soleGradientConfigId, defaultText: 'sole gradient id' },

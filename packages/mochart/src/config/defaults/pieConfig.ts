@@ -49,8 +49,7 @@ export function getConditionalDefaults(configWithRegularDefaults: PieConfig) {
   const { startAngle } = configWithRegularDefaults;
   return {
     endAngle: conditionalDefault([
-      { condition: () => true, suffix: 'a full circle from startAngle', default: startAngle + 360, defaultText: 'startAngle + 360' },
-      { ...defaultRule, default: startAngle + 360 }
+      { ...defaultRule, default: startAngle + 360, defaultText: '${startAngle} + 360' }
     ], configWithRegularDefaults, null)
   };
 }

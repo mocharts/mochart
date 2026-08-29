@@ -722,8 +722,7 @@ export interface PieConfig {
    * The angle (in degrees, clockwise from the top) at which the last slice ends
    * (use startAngle -90 and endAngle 90 for a half/gauge pie).
    *
-   * Default:
-   * - `startAngle + 360` — a full circle from startAngle
+   * @default ${startAngle} + 360
    */
   endAngle: number;
   /**
@@ -2455,16 +2454,14 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * Referenced by `series[].axis` (and `seriesStacks[].axis`) to assign series
    * to this axis. With a single axis the ids can be omitted everywhere.
    *
-   * Default:
-   * - `VA${index}` — value axis index
+   * @default VA${index}
    */
   id: string;
   /**
    * The unique integer order of the value axis controlling its order of
    * appearance.
    *
-   * Default:
-   * - `${index}` — value axis index
+   * @default ${index}
    */
   order: number;
   /**
@@ -3001,15 +2998,13 @@ export interface SeriesConfig {
   /**
    * The unique identifier for the series.
    *
-   * Default:
-   * - `S${index}` — series index
+   * @default S${index}
    */
   id: string;
   /**
    * The unique integer order of the series controlling its order of appearance.
    *
-   * Default:
-   * - `${index}` — series index
+   * @default ${index}
    */
   order: number;
   /**
@@ -3134,8 +3129,7 @@ export interface SeriesConfig {
    * With a single configured axis this can be omitted — it defaults to that
    * axis id.
    *
-   * Default:
-   * - `sole axis id` — value axis
+   * @default sole axis id
    */
   axis?: string;
   /**
@@ -3150,8 +3144,7 @@ export interface SeriesConfig {
    * sole stack id when exactly one stack is configured; use `null` to opt a
    * series out.
    *
-   * Default:
-   * - `sole stack id` — series stack
+   * @default sole stack id
    */
   stack: string | null;
   /**
@@ -3165,8 +3158,7 @@ export interface SeriesConfig {
    * group id when exactly one series group is configured; use `null` to opt a
    * series out.
    *
-   * Default:
-   * - `sole group id` — series group
+   * @default sole group id
    */
   group: string | null;
   /**
@@ -3499,15 +3491,13 @@ export interface SeriesStackConfig {
    * each segment’s baseline follows the tweened top of the segment below it
    * throughout a transition.
    *
-   * Default:
-   * - `SS${index}` — series stack index
+   * @default SS${index}
    */
   id: string;
   /**
    * The unique identifier of the value axis that the series stack belongs to.
    *
-   * Default:
-   * - `sole axis id` — value axis
+   * @default sole axis id
    */
   axis?: string;
   /**
@@ -3531,8 +3521,7 @@ export interface SeriesGroupConfig {
    * The unique identifier for the series group so it can be referenced by
    * series that belong to it.
    *
-   * Default:
-   * - `SG${index}` — series group index
+   * @default SG${index}
    */
   id: string;
 }
@@ -3561,8 +3550,7 @@ export interface LinearGradientConfig {
    * The unique identifier for the gradient so that it can be referenced for
    * use.
    *
-   * Default:
-   * - `LG${index}` — linear gradient index
+   * @default LG${index}
    */
   id: string;
   /**
@@ -3618,8 +3606,7 @@ export interface RadialGradientConfig {
    * The unique identifier for the gradient so that it can be referenced for
    * use.
    *
-   * Default:
-   * - `RG${index}` — radial gradient index
+   * @default RG${index}
    */
   id: string;
   /**
@@ -3682,8 +3669,7 @@ export interface PatternConfig {
   /**
    * The unique identifier for the pattern so that it can be referenced for use.
    *
-   * Default:
-   * - `P${index}` — pattern index
+   * @default P${index}
    */
   id: string;
   /** The built-in pattern type (lines, crosshatch, or dots). */

@@ -14,8 +14,7 @@ export function getRegularDefaults() {
 export function getConditionalDefaults(configWithRegularDefaults: SeriesGroupConfig, index: number) {
   return {
     id: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series group index', default: 'SG' + index, defaultText: 'SG${index}' },
-      { ...defaultRule, default: 'SG' + index }
+      { ...defaultRule, default: 'SG' + index, defaultText: 'SG${index}' }
     ], configWithRegularDefaults, index)
   }
 }
