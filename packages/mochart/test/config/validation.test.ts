@@ -630,14 +630,14 @@ describe('list-section shape validation', () => {
     expect(errors).toContainEqual(expect.stringContaining('series - should be an array with elements that should be an object'));
   });
 
-  it('flags a non-empty list section given an array of non-objects', () => {
+  it('flags a list section given an array of non-objects', () => {
     const errors = errorsFor({
       version: V,
       categoryAxis: { property: 'g' },
       valueAxes: ['x'],
       series: [{ property: 'v' }]
     });
-    expect(errors).toContainEqual(expect.stringContaining('valueAxes - should be a non-empty array'));
+    expect(errors).toContainEqual(expect.stringContaining('valueAxes - should be an array with elements that should be an object'));
   });
 
   it('still tolerates the single-object list-section shorthand', () => {

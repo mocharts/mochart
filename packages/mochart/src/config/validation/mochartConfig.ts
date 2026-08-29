@@ -55,7 +55,6 @@ function isConfigRecord(value: unknown): value is ConfigRecord {
 
 const objectValidator = validators.object();
 const arrayOfObjectsOrEmpty = validators.arrayOf(objectValidator, true);
-const arrayOfObjectsNonEmpty = validators.arrayOf(objectValidator, false);
 
 export const allValidator = validators.object();
 
@@ -173,7 +172,7 @@ export const configWithoutAllValidators: Record<string, ConfigSectionValidator> 
   },
   valueAxes: {
     list: true,
-    validator: arrayOfObjectsNonEmpty,
+    validator: arrayOfObjectsOrEmpty,
     validators: (_configSection: ConfigRecord, config?: ConfigRecord) => {
       const chart = config?.chart;
       return valueAxisValidators(isConfigRecord(chart) && chart.type === CHART_TYPE_PIE);
