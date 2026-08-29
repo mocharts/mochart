@@ -809,13 +809,22 @@ describe('style null semantics', () => {
 // Regression: curve alone used the exact-shape validator, so { param } (type from the default) was
 // rejected and unknown members were hard errors instead of the single unknown-key warning.
 describe('series curve validation', () => {
-  it('accepts a curve with only param, relying on the type default', () => {
-    const errors = errorsFor({
-      version: V,
-      categoryAxis: { property: 'p' },
-      series: [{ property: 'a', curve: { param: 0.5 } }]
-    });
-    expect(errors).toEqual([]);
+  it('accepts param on the two curve types that read it', () => {
+    for (const type of ['cardinal', 'catmullRom']) {
+      expect(errorsFor({ version: V, categoryAxis: { property: 'p' }, series: [{ property: 'a', curve: { type, param: 0.5 } }] }))
+        .toEqual([]);
+    }
+  });
+
+  it('rejects param on a curve type that ignores it, including the linear default', () => {
+    // the eight other types have no tension/alpha configurator, so param would silently do nothing
+    expect(errorsFor({ version: V, categoryAxis: { property: 'p' }, series: [{ property: 'a', curve: { type: 'step', param: 0.5 } }] }))
+      .toContainEqual(expect.stringContaining('curve.param'));
+    // an omitted type defaults to linear, which is one of the eight
+    expect(errorsFor({ version: V, categoryAxis: { property: 'p' }, series: [{ property: 'a', curve: { param: 0.5 } }] }))
+      .toContainEqual(expect.stringContaining('curve.param'));
+    expect(errorsFor({ version: V, categoryAxis: { property: 'p' }, series: [{ property: 'a', curve: { type: 'step' } }] }))
+      .toEqual([]);
   });
 
   it('still rejects invalid curve member values', () => {

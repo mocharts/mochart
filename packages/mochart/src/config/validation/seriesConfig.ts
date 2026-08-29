@@ -3,7 +3,8 @@ import { createStyleValidators, lineMembers, styleMembers } from './styleStateVa
 
 import {
   AUTO, NONE, RENDERERS, CURVE_TYPES, CAP_TYPES, LABEL_POSITIONS, COLOR_INTERPOLATIONS, MARKER_SHAPES, MARKER_SIZE_SCALES,
-  COLOR_SERIES, STYLE_SAME, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, MISSING_VALUE_MODES, RENDERER_AREA, RENDERER_BAR
+  COLOR_SERIES, STYLE_SAME, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, MISSING_VALUE_MODES, RENDERER_AREA, RENDERER_BAR,
+  CURVE_TYPE_CARDINAL, CURVE_TYPE_CATMULL_ROM
 } from '../core/constants';
 import type { DeepPartial, SeriesConfig } from '../../types/config';
 import type { Validator } from '@mochart/movalid';
@@ -15,6 +16,7 @@ type RendererCondition = Pick<SeriesConfig, 'renderer'>;
 type ColorRendererCondition = RendererCondition & { colorScale?: DeepPartial<SeriesConfig['colorScale']> | null };
 type PatternCondition = Pick<SeriesConfig, 'renderer' | 'gradient'>;
 type ShapeFillCondition = { shapeStyle?: DeepPartial<SeriesConfig['shapeStyle']> };
+type CurveCondition = { curve?: DeepPartial<SeriesConfig['curve']> };
 
 function seriesColor(allowSeries: boolean, allowSame: boolean): Validator {
   const keywords: string[] = [];
@@ -48,6 +50,15 @@ const categoryIndexFillRule = {
   suffix: 'when a shapeStyle fillColor is ' + COLOR_CATEGORY_INDEX
 };
 const colorPropertyNoneRule = { condition: ({ colorProperty }: ColorCondition) => colorProperty === NONE, suffix: colorPropertyNoneSuffix };
+const curveParamSuffix = 'when curve.type is ' + CURVE_TYPE_CARDINAL + ' or ' + CURVE_TYPE_CATMULL_ROM;
+const curveParamRule = {
+  condition: ({ curve }: CurveCondition) => curve?.type === CURVE_TYPE_CARDINAL || curve?.type === CURVE_TYPE_CATMULL_ROM,
+  suffix: curveParamSuffix
+};
+const curveNoParamRule = {
+  condition: ({ curve }: CurveCondition) => !(curve?.type === CURVE_TYPE_CARDINAL || curve?.type === CURVE_TYPE_CATMULL_ROM),
+  suffix: 'for the other curve types'
+};
 const colorBaseRule = { condition: ({ colorProperty, colorScale }: ColorCondition) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) !== NONE, suffix: colorBaseSuffix };
 const colorBaseNoneRule = { condition: ({ colorProperty, colorScale }: ColorCondition) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) === NONE, suffix: colorBaseNoneSuffix };
 
@@ -113,7 +124,10 @@ export default function getValidators(config: DeepPartial<SeriesConfig>, pieMode
     partialRangeIsMissing: validators.boolean(),
     curve: validators.partialObjectWithShape({
       type: validators.oneOf(CURVE_TYPES),
-      param: validators.numberMinMax(0, 1)
+      param: validators.conditional([
+        { ...curveParamRule, validator: validators.numberMinMax(0, 1) },
+        { ...curveNoParamRule, validator: validators.equal(undefined) }
+      ], config)
     }, true),
     bar: validators.partialObjectWithShape({
       widthFraction: validators.numberMinMax(0, 1),

@@ -2638,11 +2638,20 @@ export interface SeriesCurve {
   /** The d3-shape curve to interpolate the series shape with. */
   type: CurveType;
   /**
-   * The tension/alpha value (0 - 1) passed to the curve types that take one, or
-   * undefined to use the curve's own default.
+   * The tension value (0 - 1) for the cardinal curve type or the alpha value
+   * for catmullRom, or undefined to use the curve's own default (the other
+   * curve types take no param).
    */
   param?: number;
 }
+
+/** The two curve types with a tension/alpha configurator; the rest take no `param`. */
+export type ParamCurveType = 'cardinal' | 'catmullRom';
+
+/** `param` is only accepted on the two types that read it; `SeriesCurve` documents both members. */
+export type SeriesCurveOption =
+  | (Omit<SeriesCurve, 'type' | 'param'> & { type: ParamCurveType; param?: number })
+  | (Omit<SeriesCurve, 'type' | 'param'> & { type: Exclude<CurveType, ParamCurveType>; param?: never });
 
 /**
  * The two-sided half of a series color scale: a data threshold plus the color
@@ -3241,12 +3250,13 @@ export interface SeriesConfig {
    *
    * Only affects the `line` and `area` renderers. `type` selects the d3-shape
    * curve (`linear`, `monotoneX`, `natural`, `step`, `cardinal`, `catmullRom`,
-   * …) and `param` is passed to the curve’s tension/alpha configurator for the
-   * curve types that take one.
+   * …) and `param` sets the tension of a `cardinal` curve or the alpha of a
+   * `catmullRom` one — the only two types with a configurator, so the others
+   * reject it.
    *
    * @default { type: "linear" }
    */
-  curve: SeriesCurve;
+  curve: SeriesCurveOption;
   /**
    * The bars drawn by a bar renderer series: their width and placement within
    * the layout slot, and their minimum extent.

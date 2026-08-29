@@ -73,7 +73,7 @@ export default function getDescriptions() {
       description: 'the d3 curve type and param to use when drawing the series shape',
       properties: {
         type: 'the d3-shape curve to interpolate the series shape with',
-        param: 'the tension/alpha value (0 - 1) passed to the curve types that take one, or undefined to use the curve\'s own default'
+        param: 'the tension value (0 - 1) for the cardinal curve type or the alpha value for catmullRom, or undefined to use the curve\'s own default (the other curve types take no param)'
       }
     },
     bar: {
@@ -182,7 +182,7 @@ export function getDetails() {
     axis: 'Assigns the series to the value axis in `valueAxes` whose `id` matches. With a single configured axis this can be omitted — it defaults to that axis id.',
     stack: 'Series sharing the same stack id (an `id` from `seriesStacks`) are drawn stacked on one another and animate as a single unit, so the stack stays gapless mid-transition. All series of a stack must share the same `axis` and the same `group` (or all be ungrouped) — a stack cannot span groups, since each group lays its stacks out in its own sub-slots. Defaults to the sole stack id when exactly one stack is configured; use `null` to opt a series out.',
     group: 'Series sharing the same group id (an `id` from `seriesGroups`) are laid out side by side within each category slot — grouped/clustered bars. Series in the group that also share a `stack` share one sub-slot, so stacks placed in the same group become side-by-side stacked columns. Defaults to the sole group id when exactly one series group is configured; use `null` to opt a series out.',
-    curve: 'Only affects the `line` and `area` renderers. `type` selects the d3-shape curve (`linear`, `monotoneX`, `natural`, `step`, `cardinal`, `catmullRom`, …) and `param` is passed to the curve’s tension/alpha configurator for the curve types that take one.',
+    curve: 'Only affects the `line` and `area` renderers. `type` selects the d3-shape curve (`linear`, `monotoneX`, `natural`, `step`, `cardinal`, `catmullRom`, …) and `param` sets the tension of a `cardinal` curve or the alpha of a `catmullRom` one — the only two types with a configurator, so the others reject it.',
     missingValueMode: 'With `"connect"`, lines and areas bridge missing categories directly between the neighbouring defined values; with `"base"` the point is drawn at the value axis base value; the default `"break"` leaves a gap in the shape. For a series with a `rangeProperty`, a category counts as missing only when both properties are undefined — see `partialRangeIsMissing`.',
     allowAbsentDataProperties: 'Covers every data property the series names — `property`, `rangeProperty`, `errorLowProperty`, `errorHighProperty`, `markerProperty`, `labelProperty`, `tooltipProperty` and `colorProperty`. Kept `false` by default so a misspelled property name is still reported by `getDataErrors`; enable it for a series that may genuinely have no data behind it, which then draws nothing but keeps its legend and tooltip entries. A property that is present but has the wrong number of values is still an error.',
     partialRangeIsMissing: 'Only affects series with a `rangeProperty` (stacked series are unaffected). By default a category with just one of `property`/`rangeProperty` undefined keeps a zero-extent span collapsed at the defined value, so ranged areas stay connected through it. When `true` such categories count as missing instead, following the configured `missingValueMode` treatment.',
