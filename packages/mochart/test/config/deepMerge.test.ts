@@ -377,6 +377,8 @@ describe('prototypes on merged and cloned configs', () => {
     expect(protoOf(withDefaults['chart']!)).toBe(Object.prototype);
     // the idioms a host reaches for, all broken by a null prototype
     expect(Object.prototype.hasOwnProperty.call(withDefaults, 'chart')).toBe(true);
+    // calling it on the instance is the idiom under test, which is what the rule forbids
+    // eslint-disable-next-line no-prototype-builtins
     expect((withDefaults as { hasOwnProperty(key: string): boolean }).hasOwnProperty('chart')).toBe(true);
     expect(withDefaults instanceof Object).toBe(true);
 
