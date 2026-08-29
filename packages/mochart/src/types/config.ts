@@ -3769,28 +3769,61 @@ export interface DetailedConfigValidation extends ConfigValidation {
 
 /** The fully built config returned by buildMochartConfig (all defaults applied). */
 export interface MochartConfig {
+  /**
+   * An optional identifier for the config (any value; the chart only compares
+   * it — a changed id resets the chart)
+   */
   id?: unknown;
   /** Carried through from the input config when it supplied one; defaults never add it. */
   version?: string;
+  /** Configure the chart accessibility features and screen-reader labels */
   accessibility: AccessibilityConfig;
+  /** Configure the chart animation settings */
   animation: AnimationConfig;
+  /** Configure general settings of the chart */
   chart: ChartConfig;
+  /** Configure the color palettes to use for collections of series */
   colorPalette: ColorPaletteConfig;
+  /**
+   * Configure the band marking plot edges that have data hidden behind them
+   * (applies when chart.type is xy)
+   */
   clipIndicator: ClipIndicatorConfig;
+  /**
+   * Configure the crosshair styling and behavior when a category and/or series
+   * is focused (applies when chart.type is xy)
+   */
   crosshair: CrosshairConfig;
+  /** Configure the chart category axis content and styling */
   categoryAxis: CategoryAxisConfig;
+  /** Configure the chart legend which itemizes the series */
   legend: LegendConfig;
+  /** Configure linear gradients to be applied to series */
   linearGradients: LinearGradientConfig[];
+  /** Configure built-in patterns to be applied to series fills */
   patterns: PatternConfig[];
+  /**
+   * Configure the pie/donut slice geometry and slice labels (applies when
+   * chart.type is pie)
+   */
   pie: PieConfig;
+  /** Configure the chart plot content and styling */
   plot: PlotConfig;
+  /** Configure radial gradients to be applied to series */
   radialGradients: RadialGradientConfig[];
+  /** Configure the chart value axes content and styling */
   valueAxes: ValueAxisConfig[];
+  /** Configure the chart series */
   series: SeriesConfig[];
+  /** Configure the grouping of series */
   seriesGroups: SeriesGroupConfig[];
+  /** Configure the stacking of series */
   seriesStacks: SeriesStackConfig[];
+  /** Configure the chart title */
   title: TitleConfig;
+  /** Configure the chart tooltip styling and behavior */
   tooltip: TooltipConfig;
+  /** The validation result attached when the config was built: the valid flag, plus any error and warning messages. */
   validation: ConfigValidation;
 }
 
@@ -3821,6 +3854,10 @@ type DeepPartialEntry<T> = T extends { type: unknown } ? DeepPartial<T> & Pick<T
 
 /** The user-facing config accepted by buildMochartConfig, before defaults are applied. */
 export interface MochartInputConfig {
+  /**
+   * An optional identifier for the config (any value; the chart only compares
+   * it — a changed id resets the chart)
+   */
   id?: unknown;
   /**
    * The config format version. Optional: when omitted the config is read as
@@ -3828,30 +3865,65 @@ export interface MochartInputConfig {
    * releases can migrate them deterministically.
    */
   version?: string;
+  /** Configure the chart accessibility features and screen-reader labels */
   accessibility?: DeepPartial<AccessibilityConfig>;
+  /** Configure the chart animation settings */
   animation?: DeepPartial<AnimationConfig>;
+  /** Configure general settings of the chart */
   chart?: DeepPartial<ChartConfig>;
+  /** Configure the color palettes to use for collections of series */
   colorPalette?: DeepPartial<ColorPaletteConfig>;
+  /**
+   * Configure the band marking plot edges that have data hidden behind them
+   * (applies when chart.type is xy)
+   */
   clipIndicator?: DeepPartial<ClipIndicatorConfig>;
+  /**
+   * Configure the crosshair styling and behavior when a category and/or series
+   * is focused (applies when chart.type is xy)
+   */
   crosshair?: DeepPartial<CrosshairConfig>;
+  /** Configure the chart category axis content and styling */
   categoryAxis?: DeepPartial<CategoryAxisConfig>;
+  /** Configure the chart legend which itemizes the series */
   legend?: DeepPartial<LegendConfig>;
+  /**
+   * Configure the pie/donut slice geometry and slice labels (applies when
+   * chart.type is pie)
+   */
   pie?: DeepPartial<PieConfig>;
+  /** Configure the chart plot content and styling */
   plot?: DeepPartial<PlotConfig>;
+  /** Configure the chart title */
   title?: DeepPartial<TitleConfig>;
+  /** Configure the chart tooltip styling and behavior */
   tooltip?: DeepPartial<TooltipConfig>;
+  /** Configure linear gradients to be applied to series */
   linearGradients?: OneOrMany<DeepPartial<LinearGradientConfig>>;
+  /** Configure common properties for all linear gradients */
   linearGradientDefaults?: DeepPartial<LinearGradientConfig>;
+  /** Configure radial gradients to be applied to series */
   radialGradients?: OneOrMany<DeepPartial<RadialGradientConfig>>;
+  /** Configure common properties for all radial gradients */
   radialGradientDefaults?: DeepPartial<RadialGradientConfig>;
+  /** Configure built-in patterns to be applied to series fills */
   patterns?: OneOrMany<DeepPartialEntry<PatternInputConfig>>;
+  /** Configure common properties for all patterns */
   patternDefaults?: DeepPartial<PatternDefaultsConfig>;
+  /** Configure the chart value axes content and styling */
   valueAxes?: OneOrMany<DeepPartial<ValueAxisConfig>>;
+  /** Configure common properties for all value axes */
   valueAxisDefaults?: DeepPartial<ValueAxisConfig>;
+  /** Configure the chart series */
   series?: OneOrMany<DeepPartial<SeriesConfig>>;
+  /** Configure common properties for all series */
   seriesDefaults?: DeepPartial<SeriesConfig>;
+  /** Configure the grouping of series */
   seriesGroups?: OneOrMany<DeepPartial<SeriesGroupConfig>>;
+  /** Configure common properties for all series groups */
   seriesGroupDefaults?: DeepPartial<SeriesGroupConfig>;
+  /** Configure the stacking of series */
   seriesStacks?: OneOrMany<DeepPartial<SeriesStackConfig>>;
+  /** Configure common properties for all series stacks */
   seriesStackDefaults?: DeepPartial<SeriesStackConfig>;
 }

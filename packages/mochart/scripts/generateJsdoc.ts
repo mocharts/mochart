@@ -14,7 +14,8 @@ import {
   type ConditionalDefaultValue,
   type DefaultValue,
   type PropertyDoc,
-  type SectionDoc
+  type SectionDoc,
+  type TopLevelKeyDoc
 } from './configReferenceModel';
 
 const packageDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -287,7 +288,26 @@ function sharedSectionMemberDoc(entries: { name: string; property: PropertyDoc }
   return doc;
 }
 
-function buildInterfaceDocs(sections: SectionDoc[], warnings: string[]): Map<string, Map<string, MemberDoc>> {
+/** The two public config interfaces, documented from the top-level key descriptions rather than from a
+ * section: the enhanced config carries the sections themselves, the input config also their `*Defaults`. */
+const TOP_LEVEL_INTERFACES = { enhanced: 'MochartConfig', input: 'MochartInputConfig' };
+
+function topLevelMemberDocs(topLevel: TopLevelKeyDoc[], includeAllKeys: boolean): Map<string, MemberDoc> {
+  const memberDocs = new Map<string, MemberDoc>();
+  for (const key of topLevel) {
+    // version is hand-documented on each interface: the enhanced config says it is carried through
+    // rather than defaulted, which the one model description cannot say for both
+    if (key.key !== 'version') {
+      memberDocs.set(key.key, { description: key.description, defaultLines: [] });
+    }
+    if (includeAllKeys && key.allKey !== undefined && key.allDescription !== undefined) {
+      memberDocs.set(key.allKey, { description: key.allDescription, defaultLines: [] });
+    }
+  }
+  return memberDocs;
+}
+
+function buildInterfaceDocs(sections: SectionDoc[], topLevel: TopLevelKeyDoc[], warnings: string[]): Map<string, Map<string, MemberDoc>> {
   const bySection = new Map<string, Map<string, PropertyDoc>>();
   for (const section of sections) {
     bySection.set(section.id, new Map(section.properties.map(property => [property.key, property])));
@@ -312,6 +332,9 @@ function buildInterfaceDocs(sections: SectionDoc[], warnings: string[]): Map<str
     }
     interfaceDocs.set(interfaceName, memberDocs);
   }
+
+  interfaceDocs.set(TOP_LEVEL_INTERFACES.enhanced, topLevelMemberDocs(topLevel, false));
+  interfaceDocs.set(TOP_LEVEL_INTERFACES.input, topLevelMemberDocs(topLevel, true));
 
   // AxisConfigBase holds the properties shared by the category axis and the
   // value axes; where their defaults differ, both are documented.
@@ -484,7 +507,7 @@ export function buildDocumentedTypesSource(source: string): { output: string; wa
     throw new Error('Cannot generate JSDoc, config docs sources are out of sync:\n  - ' + integrityErrors.join('\n  - '));
   }
   const warnings: string[] = [];
-  const interfaceDocs = buildInterfaceDocs(model.sections, warnings);
+  const interfaceDocs = buildInterfaceDocs(model.sections, model.topLevel, warnings);
 
   const sourceFile = ts.createSourceFile('config.ts', source, ts.ScriptTarget.Latest, true);
   const edits: Edit[] = [];
