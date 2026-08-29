@@ -308,6 +308,7 @@ recur in code that builds configs:
 | `TYPE_STRING`, `TYPE_NUMBER`, `TYPE_DATE` | axis `type` values |
 | `SCALE_ORDINAL`, `SCALE_LINEAR` | axis `scale` values |
 | `CHART_TYPE_XY`, `CHART_TYPE_PIE` | [`chart.type`](/reference/chart#chart.type) values |
+| `CONFIG_VERSION` | the config format version — see [Version](#version) |
 
 The literal type each set of enumerated values forms is exported too, so a
 wrapper can name one in its own signature — `function setRenderer(renderer:
@@ -347,6 +348,12 @@ classes: `'mochart-chart mochart-chart-error'`.
 ## Version
 
 `getVersionString()` returns the library's package version, e.g. `'1.0.0'`.
+
+`CONFIG_VERSION` is the config *format* version — what `migrateConfig` stamps
+onto a config that has none, and what `config.version` is compared against. The
+two are separate values and free to diverge, so a host persisting user configs
+should compare a stored `version` against `CONFIG_VERSION`, never against
+`getVersionString()`.
 
 ## Advanced exports
 

@@ -1,6 +1,7 @@
 // every config union type and value constant must be exported by name; the type half is enforced at typecheck time — dropping an export fails `npm run typecheck` on this file
 import { describe, it, expect, expectTypeOf } from 'vitest';
 import * as mochart from '../../src';
+import { CONFIG_VERSION } from '../../src/config/core/constants';
 import type {
   CssStyle, MochartInputConfig, MochartConfig,
   Auto, Align, VerticalAlign, Anchor, Position, MissingValueMode, AxisSide, ThresholdTitleSide,
@@ -67,7 +68,8 @@ describe('public config type surface', () => {
       AUTO: 'auto', NONE: null,
       TYPE_STRING: 'string', TYPE_NUMBER: 'number', TYPE_DATE: 'date',
       SCALE_ORDINAL: 'ordinal', SCALE_LINEAR: 'linear',
-      CHART_TYPE_XY: 'xy', CHART_TYPE_PIE: 'pie'
+      CHART_TYPE_XY: 'xy', CHART_TYPE_PIE: 'pie',
+      CONFIG_VERSION
     };
     const exported = mochart as unknown as Record<string, unknown>;
     for (const [name, value] of Object.entries(expected)) {
@@ -75,7 +77,7 @@ describe('public config type surface', () => {
       expect(exported[name], name).toBe(value);
     }
     const removed = [
-      'CONFIG_VERSION', 'ALIGN_LEFT', 'RENDERER_BAR', 'CURVE_TYPE_LINEAR', 'MARKER_SHAPE_CIRCLE',
+      'ALIGN_LEFT', 'RENDERER_BAR', 'CURVE_TYPE_LINEAR', 'MARKER_SHAPE_CIRCLE',
       'PIE_LABEL_TYPE_VALUE', 'COLOR_SERIES', 'PATTERN_TYPE_LINES',
       'Chart', 'Legend', 'Crosshair', 'Tooltip', 'Renderer', 'El', 'svgEl',
       'FocusController', 'StaticDataSource', 'AnimatedDataSource', 'isDataProviderValid'

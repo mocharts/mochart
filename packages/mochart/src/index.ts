@@ -37,4 +37,5 @@ export type { CreateOhlcOptions, OhlcData } from './data/Ohlc';
 export { computePieFractions, createPie } from './data/Pie';
 export type { PieItem, CreatePieOptions, PieData } from './data/Pie';
 export { CHART_TYPE_XY, CHART_TYPE_PIE } from './config/core/constants';
+export { CONFIG_VERSION } from './config/core/constants';
 export { mochartCssClasses } from './utils/ChartDom';
