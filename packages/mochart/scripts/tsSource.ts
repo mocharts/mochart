@@ -18,6 +18,8 @@ export interface ParsedInterface {
   exported: boolean;
   extendsNames: string[];
   members: ParsedMember[];
+  /** Members the model cannot render — method signatures and computed names. */
+  skippedMembers: string[];
 }
 
 export function readSourceFile(filePath: string): { text: string; sourceFile: ts.SourceFile } {
@@ -75,8 +77,11 @@ export function parseInterfaces(filePath: string): Map<string, ParsedInterface> 
       }
     }
     const members: ParsedMember[] = [];
+    const skippedMembers: string[] = [];
     for (const member of statement.members) {
       if (!ts.isPropertySignature(member) || member.name === undefined || !ts.isIdentifier(member.name)) {
+        const name = member.name !== undefined && ts.isIdentifier(member.name) ? member.name.text : member.getText(sourceFile).split('(')[0]!.trim();
+        skippedMembers.push(name);
         continue;
       }
       members.push({
@@ -90,7 +95,8 @@ export function parseInterfaces(filePath: string): Map<string, ParsedInterface> 
       name: statement.name.text,
       exported: hasModifier(statement, ts.SyntaxKind.ExportKeyword),
       extendsNames,
-      members
+      members,
+      skippedMembers
     });
   }
   return interfaces;

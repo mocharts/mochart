@@ -2,6 +2,8 @@
 // interfaces in src/types/chart.ts, whose JSDoc also feeds the shipped .d.ts and hovers.
 // Every exported interface needs a page group or an internalInterfaces entry, and every
 // member a JSDoc description — violations are integrity errors that fail the generator.
+// The ratchet covers this one file: everything else on the public surface is checked by
+// mochart-docs/scripts/checkApiCoverage.ts against the hand-written reference/api.md.
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -218,6 +220,14 @@ export function buildApiReference(configModel: ConfigReferenceModel = buildConfi
   for (const name of Object.keys(internalInterfaces)) {
     if (!exportedNames.includes(name)) {
       integrityErrors.push(`internalInterfaces lists ${name}, which no longer exists in types/chart.ts`);
+    }
+  }
+  for (const [name, parsed] of interfaces) {
+    if (referenceByInterface.has(name) && parsed.skippedMembers.length > 0) {
+      integrityErrors.push(
+        `${name} has members the reference cannot render (${parsed.skippedMembers.join(', ')}) —` +
+        ' give them property syntax, or move the interface to internalInterfaces with a reason'
+      );
     }
   }
 
