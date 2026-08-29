@@ -96,16 +96,14 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
       onCategoryEnter: noOpCategory, onCategoryLeave: noOpCategory, onCategoryClick: noOpCategory };
   }
 
-  derive(props: SeriesProps, state: SeriesState, prevProps: SeriesProps | null): Partial<SeriesState> | null {
+  derive(props: SeriesProps, _state: SeriesState, prevProps: SeriesProps | null): Partial<SeriesState> | null {
     if (prevProps === null) {
       const initial = this.computeSeriesPositionData(props);
-      const { seriesPositionData } = initial;
-      return { ...initial, ...this.buildEventListeners(props, seriesPositionData) };
+      return { ...initial, ...this.buildEventListeners(props) };
     }
     const { categoryAxisConfig, seriesConfig, focusData, onFocus, onSeriesShapeClick, categoryValueData, valueAxisScale, filteredValues } = props;
     let categoryFocusChanged = false;
     let seriesFocusChanged = false;
-    let { seriesPositionData } = state;
     if (focusData !== prevProps.focusData) {
       if (focusData === null || prevProps.focusData === null) {
         categoryFocusChanged = true;
@@ -134,27 +132,23 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
     if (categoryAxisConfig !== prevProps.categoryAxisConfig || seriesConfig !== prevProps.seriesConfig ||
       categoryValueData !== prevProps.categoryValueData || valueAxisScaleChanged || filteredValues !== prevProps.filteredValues) {
       delta = this.computeSeriesPositionData(props);
-      seriesPositionData = delta.seriesPositionData ?? null;
       positionsChanged = true;
       updateState = true;
     }
-    // positionsChanged: the category-index listeners close over skipCategoryIndexMap
     if (positionsChanged || categoryFocusChanged || seriesFocusChanged || onFocus !== prevProps.onFocus || onSeriesShapeClick !== prevProps.onSeriesShapeClick) {
-      delta = { ...delta, ...this.buildEventListeners(props, seriesPositionData) };
+      delta = { ...delta, ...this.buildEventListeners(props) };
       updateState = true;
     }
     return updateState ? delta : null;
   }
 
-  buildEventListeners(props: SeriesProps, seriesPositionData: SeriesPositionData | null): Pick<SeriesState, 'onSeriesEnter' | 'onSeriesLeave' | 'onSeriesClick' | 'onCategoryEnter' | 'onCategoryLeave' | 'onCategoryClick'> {
+  buildEventListeners(props: SeriesProps): Pick<SeriesState, 'onSeriesEnter' | 'onSeriesLeave' | 'onSeriesClick' | 'onCategoryEnter' | 'onCategoryLeave' | 'onCategoryClick'> {
     const { seriesConfig, focusData, onFocus, onSeriesShapeClick } = props;
     // a follower series (followSeries) focuses as its leader, so clicking a
     // candlestick wick focuses (and toggles) the whole candle
     const seriesId = seriesConfig.followSeries ?? seriesConfig.id;
     const focusedCategoryIndex = focusData ? focusData.focusedCategoryIndex : -1;
     const focusedSeriesId = focusData ? focusData.focusedSeriesId : null;
-    const skipCategoryIndexMap = seriesPositionData ? seriesPositionData.skipCategoryIndexMap : {};
-    const getCategoryIndex = seriesPositionData?.skipped ? (categoryIndex: number) => skipCategoryIndexMap[categoryIndex] : (categoryIndex: number) => categoryIndex;
 
     let onSeriesEnter: SeriesState['onSeriesEnter'] = noOp;
     let onSeriesLeave = noOp;
@@ -167,7 +161,7 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
       onSeriesEnter = (event: Event) => { if (isHoverPointer(event)) { this.hoverActive = true; onFocus({ seriesId }); } };
       onSeriesLeave = () => { if (this.hoverActive) { this.hoverActive = false; onFocus({ seriesId: null }); } };
       if (seriesConfig.focusCategoryOnHover) {
-        onCategoryEnter = (categoryIndex: number) => { onFocus({ seriesId, categoryIndex: getCategoryIndex(categoryIndex) }); };
+        onCategoryEnter = (categoryIndex: number) => { onFocus({ seriesId, categoryIndex }); };
         onCategoryLeave = (_categoryIndex: number) => { onFocus({ seriesId: null, categoryIndex: null }); };
       }
       else {
@@ -176,7 +170,7 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
       }
     }
     else if (seriesConfig.focusCategoryOnHover) {
-      onCategoryEnter = (categoryIndex: number) => { onFocus({ categoryIndex: getCategoryIndex(categoryIndex) }); };
+      onCategoryEnter = (categoryIndex: number) => { onFocus({ categoryIndex }); };
       onCategoryLeave = (_categoryIndex: number) => { onFocus({ categoryIndex: null }); };
     }
     // clicks toggle focus per the focus*OnClick configs, and (independently)
@@ -189,20 +183,19 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
         onSeriesShapeClick?.(seriesId, -1, event);
       };
       onCategoryClick = (categoryIndex: number, event: Event) => {
-        const dataCategoryIndex = getCategoryIndex(categoryIndex);
         if (seriesConfig.focusOnClick) {
           onFocus(seriesConfig.focusCategoryOnClick
-            ? { seriesId: seriesId === focusedSeriesId ? null : seriesId, categoryIndex: dataCategoryIndex === focusedCategoryIndex ? -1 : dataCategoryIndex }
+            ? { seriesId: seriesId === focusedSeriesId ? null : seriesId, categoryIndex: categoryIndex === focusedCategoryIndex ? -1 : categoryIndex }
             : { seriesId: seriesId === focusedSeriesId ? null : seriesId });
         }
         else if (seriesConfig.focusCategoryOnClick) {
-          onFocus({ categoryIndex: dataCategoryIndex === focusedCategoryIndex ? -1 : dataCategoryIndex });
+          onFocus({ categoryIndex: categoryIndex === focusedCategoryIndex ? -1 : categoryIndex });
         }
-        onSeriesShapeClick?.(seriesId, dataCategoryIndex, event);
+        onSeriesShapeClick?.(seriesId, categoryIndex, event);
       };
     }
     else if (seriesConfig.focusCategoryOnClick) {
-      onCategoryClick = (categoryIndex: number) => { onFocus({ categoryIndex: getCategoryIndex(categoryIndex) === focusedCategoryIndex ? -1 : getCategoryIndex(categoryIndex) }); };
+      onCategoryClick = (categoryIndex: number) => { onFocus({ categoryIndex: categoryIndex === focusedCategoryIndex ? -1 : categoryIndex }); };
     }
 
     return { onSeriesEnter, onSeriesLeave, onSeriesClick, onCategoryEnter, onCategoryLeave, onCategoryClick };
@@ -344,7 +337,7 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
               }
             }
             const { strokeWidth: barStrokeWidth, strokeDashArray: barStrokeDashArray, strokeOpacity: barStrokeOpacity, fillOpacity: barFillOpacity } = getFocusStyle(focusPercentage, seriesConfig.shapeStyle);
-            const bar = this.barShapes.get(i);
+            const bar = this.barShapes.get(skipI);
             bar.attrs = { d: columnGenerator(i), className: bar.className,
               onPointerEnter: bar.onPointerEnter, onPointerLeave: bar.onPointerLeave, onClick: bar.onClick,
               stroke: barStrokeColor, strokeWidth: barStrokeWidth, strokeOpacity: barStrokeOpacity,

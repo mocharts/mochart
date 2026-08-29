@@ -71,7 +71,7 @@ describe('missingValueMode base', () => {
 });
 
 describe('missingValueMode connect category-index remapping', () => {
-  it('remaps click focus through the current data, not a stale map', () => {
+  it('names bars by the data category index, and focuses the one named', () => {
     const focuses: ChartFocus[] = [];
     const { container, handle } = mountChart(
       makeConfig({ renderer: 'bar', missingValueMode: 'connect', focusCategoryOnClick: true }),
@@ -79,12 +79,14 @@ describe('missingValueMode connect category-index remapping', () => {
       { onFocus: focus => { focuses.push(focus); } }
     );
 
-    // bars are keyed by compacted index: bar-1 is raw category 2 (Mar)
-    click(container.querySelector(getIdCssSelector('seriesBar', '1'))!);
+    // Feb is missing, so its bar is absent — the suffix skips 1 rather than compacting
+    expect(container.querySelector(getIdCssSelector('seriesBar', '1'))).toBeNull();
+    click(container.querySelector(getIdCssSelector('seriesBar', '2'))!);
     expect(focuses[focuses.length - 1]!.focusedCategoryIndex).toBe(2);
 
-    // same categories, but now Feb is defined and Mar is missing: bar-1 is raw category 1
+    // now Feb is defined and Mar is missing: bar-1 exists, bar-2 does not
     handle.update({ data: [{ month: 'Jan', sales: 10 }, { month: 'Feb', sales: 20 }, { month: 'Mar' }] } as Partial<DefaultChartProps>);
+    expect(container.querySelector(getIdCssSelector('seriesBar', '2'))).toBeNull();
     click(container.querySelector(getIdCssSelector('seriesBar', '1'))!);
     expect(focuses[focuses.length - 1]!.focusedCategoryIndex).toBe(1);
   });
@@ -95,10 +97,31 @@ describe('missingValueMode connect category-index remapping', () => {
       shapeStyle: { normal: { fillColor: 'categoryIndex' } }
     }), [{ month: 'Jan', sales: 10 }, { month: 'Feb' }, { month: 'Mar', sales: 30 }]);
 
-    // bar-1 is raw category 2, so it takes palette slot 2, not slot 1
-    const bar = container.querySelector(getIdCssSelector('seriesBar', '1'))!;
+    // bar-2 is raw category 2, so it takes palette slot 2, not slot 1
+    const bar = container.querySelector(getIdCssSelector('seriesBar', '2'))!;
     expect(bar.getAttribute('fill')).toBe(PALETTE_2);
     expect(bar.getAttribute('fill')).not.toBe(PALETTE_1);
+  });
+
+  // Regression: shapes were keyed by the compacted index, so a category appearing earlier in the
+  // series shifted every later shape's key — the retained list then handed one category's node to
+  // its neighbour and tweened the geometry across, instead of leaving it alone and adding a node.
+  it('keeps a category on its own node when an earlier category gains a value', () => {
+    const { container, handle } = mountChart(
+      makeConfig({ renderer: 'bar', missingValueMode: 'connect' }),
+      [{ month: 'Jan', sales: 10 }, { month: 'Feb' }, { month: 'Mar', sales: 30 }]
+    );
+    const marSelector = getIdCssSelector('seriesBar', '2');
+    const marBefore = container.querySelector(marSelector)!;
+    const marPathBefore = marBefore.getAttribute('d');
+    expect(marPathBefore).not.toBeNull();
+
+    handle.update({ data: [{ month: 'Jan', sales: 10 }, { month: 'Feb', sales: 20 }, { month: 'Mar', sales: 30 }] } as Partial<DefaultChartProps>);
+
+    const marAfter = container.querySelector(marSelector)!;
+    expect(marAfter).toBe(marBefore);
+    expect(marAfter.getAttribute('d')).toBe(marPathBefore);
+    expect(container.querySelectorAll(getCssSelector('seriesBar')).length).toBe(3);
   });
 
   it('keeps markerProperty sizes raw-indexed when marker values have their own gaps', () => {

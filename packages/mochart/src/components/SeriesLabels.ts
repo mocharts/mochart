@@ -253,7 +253,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
             const categoryPosition = isBar ? getOffsetCategoryPosition(null, i)! + categoryValueExtent / 2 : getCategoryPosition(null, i)!;
             x = inverted ? seriesPosition : categoryPosition;
             y = inverted ? categoryPosition : seriesPosition;
-            const label = this.labelShapes.get(i);
+            const label = this.labelShapes.get(skipI);
             label.attrs = { className: label.className, transform: translate(x, y),
               textAnchor, dy, stroke: labelStrokeColor, fill: labelFillColor, fillOpacity: labelFillOpacity, strokeOpacity: labelStrokeOpacity,
               strokeWidth: labelStrokeWidth, onPointerEnter: label.onPointerEnter, onPointerLeave: label.onPointerLeave, onClick: label.onClick };
