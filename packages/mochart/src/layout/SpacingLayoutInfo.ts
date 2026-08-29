@@ -17,8 +17,8 @@ export const getInnerWidth = (width: number, margin?: MarginPadding, padding?: M
 export const getSpacingOuterWidth = ({ width }: { width: number }, margin?: MarginPadding, padding?: MarginPadding): number => getOuterWidth(width, margin, padding);
 export const getSpacingInnerWidth = ({ width }: { width: number }, margin?: MarginPadding, padding?: MarginPadding): number => getInnerWidth(width, margin, padding);
 export const getSpacingHeight = (margin?: MarginPadding, padding?: MarginPadding): number => getAll(getTopBottom, margin, padding);
-export const getOuterHeight = (height: number, margin?: MarginPadding, padding?: MarginPadding): number => height + getSpacingHeight(margin, padding);
-export const getInnerHeight = (height: number, margin?: MarginPadding, padding?: MarginPadding): number => height - getSpacingHeight(margin, padding);
+export const getOuterHeight = (height: number, margin?: MarginPadding, padding?: MarginPadding): number => Math.ceil(height + getSpacingHeight(margin, padding));
+export const getInnerHeight = (height: number, margin?: MarginPadding, padding?: MarginPadding): number => Math.ceil(height - getSpacingHeight(margin, padding));
 export const getSpacingOuterHeight = ({ height }: { height: number }, margin?: MarginPadding, padding?: MarginPadding): number => getOuterHeight(height, margin, padding);
 export const getSpacingInnerHeight = ({ height }: { height: number }, margin?: MarginPadding, padding?: MarginPadding): number => getInnerHeight(height, margin, padding);
 export const getMaxSpacingHeight = (max: number, bounds: { height: number }, margin?: MarginPadding, padding?: MarginPadding): number => Math.max(max, getSpacingOuterHeight(bounds, margin, padding));
