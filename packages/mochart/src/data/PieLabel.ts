@@ -61,18 +61,20 @@ export function formatPieLabelType(labelType: PieLabelType, parts: PieLabelParts
 export interface PieLabelFormats {
   valueFormat: NumberFormat;
   percentFormat: NumberFormat;
+  tooltipPercentFormat: NumberFormat;
 }
 
-// compiled once per pie config: every slice reads these on every animation frame
+// compiled once per pie config: every slice reads these on every animation frame, and so does the open tooltip
 const pieLabelFormatsByConfig = new WeakMap<PieConfig, PieLabelFormats>();
 
-/** The slice label formatters, resolving auto per token. */
+/** The slice label formatters plus the tooltip's, resolving auto per token. */
 export function getPieLabelFormats(pieConfig: PieConfig): PieLabelFormats {
   let formats = pieLabelFormatsByConfig.get(pieConfig);
   if (formats === undefined) {
     formats = {
       valueFormat: format(pieConfig.label.valueFormat === AUTO ? AUTO_LABEL_VALUE_FORMAT : pieConfig.label.valueFormat),
-      percentFormat: format(pieConfig.label.percentFormat === AUTO ? AUTO_LABEL_PERCENT_FORMAT : pieConfig.label.percentFormat)
+      percentFormat: format(pieConfig.label.percentFormat === AUTO ? AUTO_LABEL_PERCENT_FORMAT : pieConfig.label.percentFormat),
+      tooltipPercentFormat: format(pieConfig.tooltip.percentFormat === AUTO ? AUTO_TOOLTIP_PERCENT_FORMAT : pieConfig.tooltip.percentFormat)
     };
     pieLabelFormatsByConfig.set(pieConfig, formats);
   }
@@ -85,5 +87,5 @@ export function getPieLabelFormats(pieConfig: PieConfig): PieLabelFormats {
  * there is no tooltipValueFormat to resolve here.
  */
 export function getPieTooltipPercentFormat(pieConfig: PieConfig): NumberFormat {
-  return format(pieConfig.tooltip.percentFormat === AUTO ? AUTO_TOOLTIP_PERCENT_FORMAT : pieConfig.tooltip.percentFormat);
+  return getPieLabelFormats(pieConfig).tooltipPercentFormat;
 }
