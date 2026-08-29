@@ -396,11 +396,12 @@ function expectEndpoint(container: Element, endpointValue: Endpoint): void {
     return;
   }
   if (state === 'dataError') {
-    expect(container.querySelector(getCssSelector('noData'))).not.toBeNull();
+    expect(container.querySelector(getCssSelector('error'))).not.toBeNull();
     expect(container.textContent).toContain('Invalid Data');
     return;
   }
   expect(container.querySelector('svg')).not.toBeNull();
+  expect(container.querySelector(getCssSelector('error'))).toBeNull();
   expect(container.querySelector(getCssSelector('noData'))).toBeNull();
   expect(container.querySelector(getCssSelector('loading'))).toBeNull();
 

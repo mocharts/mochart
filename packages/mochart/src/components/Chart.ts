@@ -1558,13 +1558,13 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         this.messageRef = null;
       }
       else {
-        const noDataContentFactory = isErrorActive(error) ? errorFactory
-          : hasChartData && categoryCount === 0 ? noDataFactory
-          : loadingFactory;
+        const [noDataContentFactory, noDataClassKey] = isErrorActive(error) ? [errorFactory, 'error'] as const
+          : hasChartData && categoryCount === 0 ? [noDataFactory, 'noData'] as const
+          : [loadingFactory, 'loading'] as const;
 
         const noDataEl = body.noDataSlot.set('div', () => htmlEl('div'));
         // -1: never a tab stop, but focusable for the teardown restore below, which reads out the message
-        noDataEl!.set({ className: mochartCssClasses['noData'], style: noDataStyle, tabindex: accessibility ? '-1' : null });
+        noDataEl!.set({ className: mochartCssClasses[noDataClassKey], style: noDataStyle, tabindex: accessibility ? '-1' : null });
         syncFactoryContent(noDataEl!, noDataContentFactory, this.factoryContext(width, height, error));
         this.messageRef = accessibility ? noDataEl!.node as HTMLElement : null;
       }

@@ -92,6 +92,7 @@ export const mochartCssClasses = {
     tooltipSizer: 'mochart-tooltip-sizer',
   clipIndicator: 'mochart-clip-indicator',
   clipIndicatorBand: 'mochart-clip-indicator-band mochart-clip-indicator-band-',
+  error: 'mochart-error',
   noData: 'mochart-no-data',
   noSeries: 'mochart-no-series',
   loading: 'mochart-loading',

@@ -65,6 +65,7 @@
 }
 
 /* Message overlays (and any custom factory content dropped into them). */
+.mochart-error div,
 .mochart-no-data div,
 .mochart-no-series div,
 .mochart-loading div {

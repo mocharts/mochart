@@ -36,7 +36,7 @@ function mountChart(extra: Partial<DefaultChartProps>): Element {
   return container;
 }
 
-const stateClassPattern = new RegExp('(' + [getCssClass('loading'), getCssClass('noData')].join('|') + ')');
+const stateClassPattern = new RegExp('(' + [getCssClass('loading'), getCssClass('noData'), getCssClass('error')].join('|') + ')');
 
 function stateClasses(container: Element): string[] {
   return [...container.querySelectorAll('[class]')]
@@ -62,23 +62,23 @@ describe('chart state arbitration', () => {
     expect(container.textContent).toContain('Loading...');
   });
 
-  it('shows the error content in the no-data slot for an error', () => {
+  it('shows the error content in its own slot class for an error', () => {
     const container = mountChart({ error: 'boom' });
-    expect(stateClasses(container)).toEqual([getCssClass('noData')]);
+    expect(stateClasses(container)).toEqual([getCssClass('error')]);
     expect(container.textContent).toContain('boom');
   });
 
   it('lets the error state win when error and loading are both set', () => {
     const container = mountChart({ error: 'boom', loading: true });
-    expect(stateClasses(container)).toEqual([getCssClass('noData')]);
+    expect(stateClasses(container)).toEqual([getCssClass('error')]);
     expect(container.textContent).toContain('boom');
     expect(container.textContent).not.toContain('Loading...');
   });
 
   it('treats explicitly provided falsy errors as the error state', () => {
-    expect(stateClasses(mountChart({ error: '' }))).toEqual([getCssClass('noData')]);
+    expect(stateClasses(mountChart({ error: '' }))).toEqual([getCssClass('error')]);
     const zeroError = mountChart({ error: 0 });
-    expect(stateClasses(zeroError)).toEqual([getCssClass('noData')]);
+    expect(stateClasses(zeroError)).toEqual([getCssClass('error')]);
     expect(zeroError.textContent).toContain('0');
   });
 
@@ -89,7 +89,7 @@ describe('chart state arbitration', () => {
 
   it('shows the message of an Error instance', () => {
     const container = mountChart({ error: new Error('fetch failed') });
-    expect(stateClasses(container)).toEqual([getCssClass('noData')]);
+    expect(stateClasses(container)).toEqual([getCssClass('error')]);
     expect(container.textContent).toContain('fetch failed');
     expect(container.textContent).not.toContain('{}');
   });
@@ -99,7 +99,7 @@ describe('chart state arbitration', () => {
     const circular: Record<string, unknown> = { code: 500 };
     circular.self = circular;
     const container = mountChart({ error: circular });
-    expect(stateClasses(container)).toEqual([getCssClass('noData')]);
+    expect(stateClasses(container)).toEqual([getCssClass('error')]);
     expect(container.textContent).toContain('[object Object]');
   });
 });

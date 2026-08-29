@@ -354,7 +354,7 @@ describe('plot keyboard semantics', () => {
     rect.focus();
 
     handle.update({ error: 'boom' });
-    const message = container.querySelector<HTMLElement>(getCssSelector('noData'))!;
+    const message = container.querySelector<HTMLElement>(getCssSelector('error'))!;
     expect(message.textContent).toContain('boom');
     expect(document.activeElement).toBe(message);
   });
