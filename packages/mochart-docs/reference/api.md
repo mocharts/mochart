@@ -91,7 +91,11 @@ interface ChartHandle<TProps> {
   hatch for hosts that mutate their data in place. A default chart rebuilds
   its provider over `data`; a managed chart calls the provider's optional
   `refresh()` hook, then re-reads it.
-- `destroy()` cancels running tweens and removes the chart's DOM.
+- `destroy()` cancels running tweens and removes the chart's DOM. It is
+  safe to call more than once, and `update`, `replace` and `refresh` no-op
+  afterwards — a late call from a pending timer or an unmounted component
+  does nothing at all, not even re-read the data or call the provider's
+  `refresh()` hook.
 
 ## Data providers
 

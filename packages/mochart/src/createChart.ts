@@ -24,7 +24,11 @@ export interface ChartHandle<TProps extends object = ManagedChartProps> {
    * suffices; a caching custom provider should implement `refresh()` to invalidate).
    */
   refresh(): void;
-  /** Cancel running tweens and remove the chart's DOM from the container. */
+  /**
+   * Cancel running tweens and remove the chart's DOM from the container. Safe to call more than
+   * once, and the other methods no-op afterwards — a late `update`/`replace`/`refresh` from a
+   * pending timer or an unmounted component does nothing at all, not even re-read the data.
+   */
   destroy(): void;
 }
 
@@ -54,8 +58,12 @@ export function createChart(container: Element, props: ManagedChartProps): Chart
   let currentProps = { ...props };
   let readDataProvider = wrapForReads(currentProps.dataProvider);
   const controller = new ChartController(container, currentProps, readDataProvider);
+  let destroyed = false;
   return {
     update(nextProps: Partial<ManagedChartProps>) {
+      if (destroyed) {
+        return;
+      }
       nextProps = withoutUndefinedKeys(nextProps);
       if (nextProps.dataProvider !== undefined && nextProps.dataProvider !== currentProps.dataProvider) {
         readDataProvider = wrapForReads(nextProps.dataProvider);
@@ -64,6 +72,9 @@ export function createChart(container: Element, props: ManagedChartProps): Chart
       controller.update(currentProps, readDataProvider);
     },
     replace(nextProps: ManagedChartProps) {
+      if (destroyed) {
+        return;
+      }
       if (nextProps.dataProvider !== currentProps.dataProvider) {
         readDataProvider = wrapForReads(nextProps.dataProvider);
       }
@@ -71,11 +82,15 @@ export function createChart(container: Element, props: ManagedChartProps): Chart
       controller.update(currentProps, readDataProvider);
     },
     refresh() {
+      if (destroyed) {
+        return;
+      }
       currentProps.dataProvider?.refresh?.();
       readDataProvider = wrapForReads(currentProps.dataProvider);
       controller.update(currentProps, readDataProvider);
     },
     destroy() {
+      destroyed = true;
       controller.destroy();
     }
   };
@@ -107,8 +122,12 @@ export function createDefaultChart(container: Element, props: DefaultChartProps)
   input.start(currentProps);
   // no delegate here: DefaultChartInput mints a new provider whenever it re-reads
   const controller = new ChartController(container, toManagedProps(currentProps, input), input.dataProvider);
+  let destroyed = false;
   return {
     update(nextProps: Partial<DefaultChartProps>) {
+      if (destroyed) {
+        return;
+      }
       nextProps = withoutUndefinedKeys(nextProps);
       const prevProps = currentProps;
       currentProps = { ...currentProps, ...nextProps };
@@ -116,16 +135,23 @@ export function createDefaultChart(container: Element, props: DefaultChartProps)
       controller.update(toManagedProps(currentProps, input), input.dataProvider);
     },
     replace(nextProps: DefaultChartProps) {
+      if (destroyed) {
+        return;
+      }
       const prevProps = currentProps;
       currentProps = { ...nextProps };
       input.update(prevProps, currentProps);
       controller.update(toManagedProps(currentProps, input), input.dataProvider);
     },
     refresh() {
+      if (destroyed) {
+        return;
+      }
       input.refresh(currentProps);
       controller.update(toManagedProps(currentProps, input), input.dataProvider);
     },
     destroy() {
+      destroyed = true;
       controller.destroy();
     }
   };

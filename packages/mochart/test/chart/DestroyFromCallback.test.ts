@@ -93,3 +93,41 @@ describe('destroy() after the host emptied the container', () => {
     expect(container.childNodes.length).toBe(0);
   });
 });
+
+// a debounced refresh that fires after unmount used to reach the host provider's refresh() hook,
+// for a re-read the destroyed controller then skipped
+describe('handle methods after destroy()', () => {
+  it('does not call the provider refresh hook from a late refresh()', () => {
+    const { createChart, enhanceConfig, ArrayOfObjectsDataProvider } = mochart;
+    const mochartConfig = enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+      series: [{ id: 'sales', property: 'sales', renderer: 'bar' }]
+    });
+    let refreshes = 0;
+    const provider = new ArrayOfObjectsDataProvider(data) as unknown as { refresh(): void };
+    provider.refresh = () => { refreshes++; };
+    const chart = createChart(mountContainer(), {
+      mochartConfig, dataProvider: provider, width: WIDTH, height: HEIGHT
+    } as never);
+    runFrames();
+
+    chart.refresh();
+    expect(refreshes).toBe(1);
+
+    chart.destroy();
+    chart.refresh();
+    expect(refreshes).toBe(1);
+  });
+
+  it('is safe to destroy twice and to update or replace afterwards', () => {
+    const { chart } = mountChart({});
+    chart.destroy();
+    expect(() => {
+      chart.destroy();
+      chart.update({ width: 400 } as never);
+      chart.replace({ width: 400 } as never);
+      chart.refresh();
+    }).not.toThrow();
+  });
+});
