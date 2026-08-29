@@ -26,6 +26,15 @@ describe('migrateConfig', () => {
     expect('version' in config).toBe(false);
   });
 
+  it('copies deeply, on the versioned branch too', () => {
+    // a migration step editing a nested object in place must not reach the caller's config
+    const config = { version: CONFIG_VERSION, categoryAxis: { property: 'x' } };
+    const migrated = migrateConfig(config);
+    expect(migrated).not.toBe(config);
+    expect(migrated['categoryAxis']).not.toBe(config.categoryAxis);
+    expect(migrated).toEqual(config);
+  });
+
   it('passes a non-object through untouched', () => {
     expect(migrateConfig(null as unknown as Record<string, unknown>)).toBeNull();
   });
