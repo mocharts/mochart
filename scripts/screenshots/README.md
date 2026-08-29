@@ -88,7 +88,7 @@ in the gallery at 1044 chars — the case that makes a panel's `max-height` bind
 # The feature this was built for: the phone overflow fold
 
 Below the phone tier the top bar and every control strip fold their secondary controls into `⋯`
-menus. Desktop is unchanged — that is the load-bearing constraint. Shipped 2026-07-30 across all six
+menus. Desktop is unchanged — that is the constraint everything else works around. Shipped 2026-07-30 across all six
 ports; this section is the durable rationale and the traps, not a work plan.
 
 ## Why

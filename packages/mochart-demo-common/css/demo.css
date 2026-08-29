@@ -1327,8 +1327,8 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
    2. The fold. Icon-only buttons still do not all fit across ~360px of usable
       width, so the ports move the ones that did not fit into an overflow menu
       (see the "Overflow menus" section above) and the rows that hold them stop
-      wrapping. `flex-wrap: nowrap` on the navigation row is the load-bearing
-      half of that: it is what converts "wrapped onto a second row" into "the
+      wrapping. `flex-wrap: nowrap` on the navigation row is the half of
+      that which does the work: it is what converts "wrapped onto a second row" into "the
       fold has to have taken these", and it is only safe because the fold ran.
       The tabs are the elastic element in that row — they shrink and ellipsis —
       because they are the only thing in it whose text is expendable.

@@ -83,7 +83,7 @@ export class Menu {
   };
 
   /**
-   * `untrack`, and it is load-bearing — this is the one method components call
+   * `untrack`, and it is required — this is the one method components call
    * from inside an `$effect` (NotesMenu closes the popover when the demo
    * changes under it; ExportShareMenu and OverflowMenu close on `disabled` /
    * `active`). `open`, `panel` and `trigger` are all `$state`, so *reading*

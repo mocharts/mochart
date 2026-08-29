@@ -88,8 +88,8 @@ function parseArgs(argv) {
     throw new Error('missing <outDir> argument');
   }
   options.baseUrl = options.baseUrl.replace(/\/+$/, '');
-  // `--base-url` implies `--no-server`, and this default is load-bearing rather
-  // than a convenience. The only server this harness knows how to start is
+  // `--base-url` implies `--no-server`, and this default is a safety measure
+  // rather than a convenience. The only server this harness knows how to start is
   // VANILLA's. Point it at another port, forget `--no-server`, and if that port
   // happens to be down it starts vanilla there instead — then captures vanilla,
   // diffs it against vanilla, and reports a flawless 147/147 for a port it
@@ -694,7 +694,7 @@ async function captureShot(browser, options, shot, outPath) {
     // Park the pointer and drop focus so no :hover / :focus-visible styling
     // leaks into the shot depending on where the last click happened.
     //
-    // Both are load-bearing for the open-menu shots in particular: opening a
+    // Both matter for the open-menu shots in particular: opening a
     // menu leaves the pointer on the trigger and focus in it, and the menu items
     // carry a :hover background. (0, 0) is safe to park on — every panel is
     // pinned at least one gap in from both edges it anchors to — and moving

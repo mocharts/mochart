@@ -167,7 +167,7 @@ export default tseslint.config(
       // OFF, and this one was measured rather than assumed: deleting a single
       // flagged `svelte-ignore state_referenced_locally` and re-running
       // svelte-check produced a real compiler warning at that exact position.
-      // The directives are load-bearing; ESLint simply cannot reproduce the
+      // The directives are doing real work; ESLint simply cannot reproduce the
       // compiler's analysis, so every finding here is a false positive.
       'svelte/no-unused-svelte-ignore': 'off',
       // `{' · '}` is a deliberate string literal, not a useless mustache — it

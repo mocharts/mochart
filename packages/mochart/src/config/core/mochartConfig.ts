@@ -281,7 +281,7 @@ function removeSectionDefaults(defaultSectionValue: unknown, allSection: ConfigR
     const sectionKeys = Object.keys(configSection);
     const newSection: ConfigRecord = {};
     for (const sectionKey of sectionKeys) {
-      // the all-config overrides the default, so an entry value equal to the default is still load-bearing under it
+      // the all-config overrides the default, so an entry value equal to the default still has an effect under it
       const effectiveDefault = allSection[sectionKey] !== undefined ? allSection[sectionKey] : defaultSection[sectionKey];
       const sectionValue = configSection[sectionKey];
       // a grouped key is a config of its own: strip its default-equal members instead of comparing the group whole
