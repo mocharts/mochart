@@ -56,9 +56,10 @@ export interface CreateOhlcOptions {
    * Add a volume pane: direction-colored volume bars along the bottom of the
    * plot on their own hidden `volume` axis, with the price series moved to a
    * `price` axis whose enlarged minimum margin reserves the lower plot band.
-   * Requires `volume` values on the items; pass `true` for the defaults or an
-   * options object to tune the pane. The result gains a `valueAxes`
-   * fragment to spread into the chart config alongside the series.
+   * Requires a finite `volume` on every item, enforced with a throw; pass
+   * `true` for the defaults or an options object to tune the pane. The result
+   * gains a `valueAxes` fragment to spread into the chart config alongside the
+   * series.
    *
    * @default false
    */
@@ -110,7 +111,7 @@ export function createOhlc(items: readonly CandlestickItem[], options: CreateOhl
   const closeTitle = options.closeTitle ?? DEFAULT_CLOSE_TITLE;
   const volumeOptions = getVolumeOptions('createOhlc', options.volume);
 
-  const data = buildDirectionRows(candles, DIRECTIONS, volumeOptions);
+  const data = buildDirectionRows('createOhlc', candles, DIRECTIONS, volumeOptions);
 
   // An ordinal scale so the bars keep even spacing when labels are dates with
   // gaps (weekends, holidays) — a linear/time scale would leave holes.

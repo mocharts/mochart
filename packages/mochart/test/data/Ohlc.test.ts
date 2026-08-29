@@ -102,6 +102,11 @@ describe('createOhlc', () => {
     expect(volumeAxis).toMatchObject({ id: 'volume', min: 0, visible: false });
   });
 
+  it('throws for an item with no volume, naming createOhlc', () => {
+    expect(() => createOhlc([{ label: 'Mon', open: 1, high: 3, low: 0, close: 2 }], { volume: true }))
+      .toThrow(/createOhlc: Mon has a missing or non-finite volume: undefined/);
+  });
+
   it('emits no volume fragments by default', () => {
     const { data, series: seriesConfigs, valueAxes: valueAxisConfigs } = createOhlc([{ label: 'Mon', open: 1, high: 3, low: 0, close: 2 }]);
     expect(valueAxisConfigs).toBeUndefined();

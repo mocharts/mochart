@@ -193,6 +193,16 @@ describe('createCandlestick', () => {
       expect(() => createCandlestick(items, { volume: { heightFraction: 0.95, gapFraction: 0 } })).not.toThrow();
       expect(() => createCandlestick(items, { volume: { heightFraction: 0.01, gapFraction: 0.98 } })).not.toThrow();
     });
+
+    it('throws for an item with no volume, rather than reserving the band for a blank pane', () => {
+      const noVolume = [{ label: 'Mon', open: 1, high: 3, low: 0, close: 2 }];
+      expect(() => createCandlestick(noVolume, { volume: true }))
+        .toThrow(/createCandlestick: Mon has a missing or non-finite volume: undefined/);
+      expect(() => createCandlestick([{ ...items[0]!, volume: Number.NaN }], { volume: true }))
+        .toThrow(/non-finite volume: NaN/);
+      // the option is genuinely optional: without the pane a missing volume is fine
+      expect(() => createCandlestick(noVolume)).not.toThrow();
+    });
   });
 
   describe('hollow', () => {

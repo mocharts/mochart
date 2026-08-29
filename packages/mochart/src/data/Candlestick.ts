@@ -83,9 +83,10 @@ export interface CreateCandlestickOptions {
    * Add a volume pane: direction-colored volume bars along the bottom of the
    * plot on their own hidden `volume` axis, with the price series moved to a
    * `price` axis whose enlarged minimum margin reserves the lower plot band.
-   * Requires `volume` values on the items; pass `true` for the defaults or an
-   * options object to tune the pane. The result gains a `valueAxes`
-   * fragment to spread into the chart config alongside the series.
+   * Requires a finite `volume` on every item, enforced with a throw; pass
+   * `true` for the defaults or an options object to tune the pane. The result
+   * gains a `valueAxes` fragment to spread into the chart config alongside the
+   * series.
    *
    * @default false
    */
@@ -275,11 +276,16 @@ export function buildVolumeSeriesConfigs(volumeOptions: Required<CandlestickVolu
 // the volume option, the open/volume) under direction-gated properties so each direction's series
 // only draws its own candles.
 export function buildDirectionRows(
+  helperName: string,
   candles: readonly Candlestick[],
   openDirections: readonly CandlestickDirection[],
   volumeOptions: Required<CandlestickVolumeOptions> | null
 ): Record<string, number | string | undefined>[] {
   return candles.map((candle) => {
+    if (volumeOptions !== null && (typeof candle.volume !== 'number' || !Number.isFinite(candle.volume))) {
+      // an unreported one leaves the pane blank while its axis margin still reserves the height
+      throw new Error(`${helperName}: ${candle.label} has a missing or non-finite volume: ${String(candle.volume)}`);
+    }
     const gated = (direction: CandlestickDirection, value: number | undefined) => candle.direction === direction ? value : undefined;
     const openProperties: Record<string, number | undefined> = {};
     for (const direction of openDirections) {
@@ -317,7 +323,7 @@ export function createCandlestick(items: readonly CandlestickItem[], options: Cr
 
   // The hollow up candle's below-body wick segment spans low→open and needs the open under an
   // up-only property (the shared `open` exists on every row, so it can't gate by direction).
-  const data = buildDirectionRows(candles, hollow ? ['up'] : [], volumeOptions);
+  const data = buildDirectionRows('createCandlestick', candles, hollow ? ['up'] : [], volumeOptions);
 
   // An ordinal scale so the candles keep even spacing when labels are dates
   // with gaps (weekends, holidays) — a linear/time scale would leave holes.
