@@ -3,14 +3,8 @@ export type * from './config';
 
 export type { Size, Bounds, MarginPadding, InnerOuter } from './geometry';
 
-// The DataProvider contract, plus the ChartData chain a ChartDataSource emits.
-export type {
-  CategoryValue, DomainValue, NullableDomain, CategoryAxisDomain,
-  NumericValue, NumericValues, AxisDomains,
-  SeriesValueObject, SeriesValueObjects, SeriesDomainObject, SeriesDomainObjects,
-  SeriesDataSet, SeriesData, CategoryValues, CategoryData, ChartData,
-  DataProvider, DataObject, DataValue, ArrayOfObjectsData, ObjectOfArraysData
-} from './data';
+// The DataProvider contract and the dataset shapes the default chart accepts.
+export type { DataProvider, DataObject, DataValue, ArrayOfObjectsData, ObjectOfArraysData } from './data';
 
 // InternalFocus stays internal: chart/ChartDataSource re-exports it for the sources and components only, never the package.
 export type {
@@ -20,5 +14,3 @@ export type {
   DefaultChartProps
 } from './chart';
 
-// The focus half of a ChartDataSource's output; the tween deltas stay internal.
-export type { FocusPercentage, FocusPercentageMap, FocusData } from './animation';
