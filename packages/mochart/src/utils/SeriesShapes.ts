@@ -14,7 +14,7 @@ type Connector = (pathGenerator: Path, first: number, second: number, third: num
 type OffsetInvertedCalculator = (first: number, second: number, third: number, extent: number, offsetSign: number, offset: number, expand: boolean, size: number) => { x: number; y: number; yOffset: number };
 type OffsetCalculator = (first: number, second: number, third: number, extent: number, offsetSign: number, offset: number, expand: boolean, size: number) => { x: number; y: number; xOffset: number };
 
-// 'linear', 'monotoneX', 'monotoneY', 'basis', 'bundle', 'cardinal', 'catmullRom', 'natural', 'step', 'stepBefore', 'stepAfter'
+// 'linear', 'monotoneX', 'monotoneY', 'basis', 'cardinal', 'catmullRom', 'natural', 'step', 'stepBefore', 'stepAfter'
 const curveTypeToCurveMap: Record<CurveType, CurveFactory | null> = {
   linear: null, // this is the default, so no need to assign it!
   monotoneX: curveMonotoneX,

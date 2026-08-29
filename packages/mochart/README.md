@@ -149,7 +149,7 @@ and property is optional and falls back to a sensible default — only
 | `seriesGroups` / `seriesStacks` | grouping and stacking of series |
 | `legend` | legend placement, item style, series filtering on click |
 | `tooltip` | tooltip content, formatting, positioning |
-| `crosshair` | crosshair line style and snapping |
+| `crosshair` | crosshair line style, focus behavior, and stacking against the tooltip |
 | `animation` | `enabled` on/off plus per-phase durations (initial, expansion, value change, contraction, focus) |
 | `accessibility` | keyboard and screen-reader access: `enabled`/`hidden` switches, label localization, `respectReducedMotion` |
 | `plot` | plot area (e.g. `inverted` for horizontal charts) |
@@ -197,8 +197,8 @@ Two dataset shapes are supported out of the box:
 - `ArrayOfObjectsDataProvider` — `[{ month: 'Jan', revenue: 10 }, …]`
 - `ObjectOfArraysDataProvider` — `{ month: ['Jan', …], revenue: [10, …] }`
 
-`createDefaultChart` wraps its `data` array in an `ArrayOfObjectsDataProvider`
-automatically; `createChart` accepts any object implementing the
+`createDefaultChart` wraps its `data` in whichever built-in provider matches
+its shape automatically; `createChart` accepts any object implementing the
 `DataProvider` interface. One member is required —
 `getPropertyValues(property)` returns all values of one named data property,
 index-aligned with every other property's values, or `undefined` when the

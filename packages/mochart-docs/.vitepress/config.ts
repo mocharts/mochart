@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress';
 import { loadConfigReference } from './lib/model';
 import { loadApiReference } from './lib/apiModel';
 import { depSourcemaps } from '../../../scripts/dep-sourcemaps';
+import { FRAMEWORK_PROPS_PAGE } from '../reference/[section].paths';
 
 // The deployed site nests the demo galleries next to the docs (see
 // scripts/build-pages.mjs), so demo links resolve only on the assembled site,
@@ -51,7 +52,7 @@ const apiItems = [
     text: page.title,
     link: '/reference/' + page.id
   })),
-  { text: 'Framework props', link: '/reference/framework-props' }
+  { text: 'Framework props', link: '/reference/' + FRAMEWORK_PROPS_PAGE }
 ];
 
 export default defineConfig({

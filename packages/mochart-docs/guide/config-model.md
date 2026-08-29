@@ -93,8 +93,9 @@ Style colors are written straight to the DOM, so any CSS color the browser
 understands works — named (`red`), hex 3/4/6/8, `rgb()`/`hsl()` in either
 syntax, `oklch()`, `var(--brand)`. The exception is the series color-scale
 bounds (`colorScale.min`, `colorScale.max`, `colorScale.missing`,
-`colorScale.base.*`) and `colorPalette` entries: mochart interpolates those
-itself, so they must be concrete colors — no keywords, no `var()`.
+`colorScale.base.*`), `colorPalette` entries, and gradient stop colors: mochart
+interpolates those itself, so they must be concrete colors — no keywords, no
+`var()`.
 
 Reference pages link to nested members with dotted anchors, so
 [`shapeStyle.normal.fillColor`](/reference/series#series.shapeStyle.normal.fillColor)

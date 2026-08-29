@@ -18,6 +18,7 @@
   },
   "include": [
     ".vitepress/**/*.ts",
+    "reference/**/*.ts",
     "examples/**/*.ts",
     "scripts/**/*.ts",
     "env.d.ts"

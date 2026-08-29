@@ -24,6 +24,7 @@ is the quickest way to reproduce a red build:
 npm run lint      # eslint over the whole repo
 npm run deadcode  # knip: unused exports, files and dependencies
 npm run typecheck # every workspace that has a typecheck script
+npm run check:publish # every package's publishConfig exports map is dist-only
 npm test          # tests in every workspace that has them
 npm run test:e2e  # Playwright suite (hosted by @mochart/demo-basic)
 ```
@@ -274,6 +275,7 @@ repository variables — see `.github/workflows/ci.yml`.
 | ESLint rules | `eslint .` → `npm run lint` |
 | Unused exports, files and dependencies | `knip` → `npm run deadcode` |
 | Types, per workspace | `tsc` / `svelte-check` / `vue-tsc` / `ngc` → `npm run typecheck` |
+| Publish manifests are dist-only | `npm run check:publish` |
 | Config sources key parity | generator exits 1 → `npm run gen` → root `npm test`, `build:pages` |
 | API model integrity: page groups and prop JSDoc | generator exits 1 → `npm run gen` → root `npm test`, `build:pages` |
 | Framework binding props against core props | `generateBindings.ts` exits 1 → `npm run gen` → root `npm test`, `build:pages` |

@@ -231,7 +231,7 @@ const PRICE_MAX_MARGIN_FRACTION = 0.05;
 // inflates its max until bars fill `heightFraction`; price pads its min clear of the band + gap.
 // Margins are relative to the pre-margin extent, so a band fraction `f` needs a margin of (1 - f) / f
 // when it is the only margin; the price axis keeps its top margin too, and both come out of the same
-// extent, so its bottom margin m1 has to satisfy m1 / (1 + m1 + m2) = f.
+// extent, so its bottom margin m1 has to satisfy m1 / (1 + m1 + m2) = f + g.
 export function buildVolumeValueAxisConfigs(volumeOptions: Required<CandlestickVolumeOptions>): Partial<ValueAxisConfig>[] {
   const { heightFraction, gapFraction } = volumeOptions;
   const priceHeightFraction = 1 - heightFraction - gapFraction;

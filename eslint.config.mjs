@@ -60,12 +60,7 @@ export default tseslint.config(
     ignores: ['**/*.config.ts'],
     languageOptions: {
       parserOptions: {
-        // The docs' two `reference/` route loaders are the only other files no
-        // tsconfig claims; an inferred default project types them. The option
-        // caps at 8 files, which is why the configs above can't use it too.
-        projectService: {
-          allowDefaultProject: ['packages/mochart-docs/reference/*.ts']
-        },
+        projectService: true,
         tsconfigRootDir: import.meta.dirname
       }
     },
