@@ -97,6 +97,11 @@ describe('createHeatmap', () => {
     expect(() => createHeatmap(rows(), { cellPadding: 0.49 })).not.toThrow();
   });
 
+  it('rejects a descending domain, naming the entry point the caller used', () => {
+    expect(() => createHeatmap(rows(), { domain: [100, 0] })).toThrow(/createHeatmap: invalid domain \[100, 0\]/);
+    expect(() => createHeatmap(rows(), { domain: [0, 0] })).not.toThrow();
+  });
+
   it('titles one bar series per row', () => {
     const { series: seriesConfigs } = createHeatmap(rows());
     expect(seriesConfigs.map((seriesConfig) => seriesConfig.title)).toEqual(['North', 'South', 'West']);

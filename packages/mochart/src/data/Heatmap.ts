@@ -47,7 +47,8 @@ export interface CreateHeatmapOptions extends CreateHeatmapColorScaleOptions {
   /**
    * The value domain the cell colors are scaled over. Defaults to the extent
    * of all cell values. Cell values outside an explicit domain are clamped
-   * toward the end colors.
+   * toward the end colors. `domain[0]` must be <= `domain[1]`; a descending
+   * domain throws an error.
    */
   domain?: [number, number];
   /**
@@ -151,6 +152,9 @@ export function createHeatmap(rows: readonly HeatmapRow[], options: CreateHeatma
   checkColumnLabels(options.columnLabels, columnCount);
 
   const explicitDomain = options.domain ?? null;
+  if (explicitDomain !== null && !(explicitDomain[1] >= explicitDomain[0])) {
+    throw new Error(`createHeatmap: invalid domain [${explicitDomain[0]}, ${explicitDomain[1]}]`);
+  }
   const domain = explicitDomain ?? getExtent(rows.flatMap((row) => row.values));
   const colorScale = createHeatmapColorScale(domain ?? [0, 1], options);
 
