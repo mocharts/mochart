@@ -457,7 +457,7 @@ describe('detailed validation', () => {
     expect(detailedFor(config).diagnostics).toContainEqual({
       path: ['series', 0],
       severity: 'warning',
-      message: 'had 1 invalid properties: unknownExtra',
+      message: 'had 1 invalid property: unknownExtra',
       invalidProperties: ['unknownExtra'],
       source: 'mochart'
     });

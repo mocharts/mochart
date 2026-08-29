@@ -22,8 +22,8 @@ and series filtering out of the box.
   interaction, with screen-reader roles, labels, and live value announcements
   — on by default; the `accessibility` config section localizes or disables
   it, and honors the reduced-motion system preference
-- **Extras**: axis thresholds and ranges, linear/radial gradients, series
-  markers and labels, stacked and grouped series
+- **Extras**: axis thresholds and ranges, linear/radial gradients, built-in
+  pattern fills, series markers and labels, stacked and grouped series
 - **Config validation**: configs are validated with
   [@mochart/movalid](../movalid/README.md), producing human-readable error messages
 
@@ -153,6 +153,8 @@ and property is optional and falls back to a sensible default — only
 | `animation` | `enabled` on/off plus per-phase durations (initial, expansion, value change, contraction, focus) |
 | `accessibility` | keyboard and screen-reader access: `enabled`/`hidden` switches, label localization, `respectReducedMotion` |
 | `plot` | plot area (e.g. `inverted` for horizontal charts) |
+| `clipIndicator` | the band marking plot edges that have data hidden behind them |
+| `patterns` / `patternDefaults` | built-in `lines`/`crosshatch`/`dots` fills series can reference, and their shared defaults |
 | `pie` | pie/donut slice geometry and slice labels when `chart.type` is `pie`: radii, angles, label type and formats, tooltip values |
 | `chart` / `colorPalette` / `linearGradients` / `radialGradients` | chart-wide style, palette, and gradient definitions |
 

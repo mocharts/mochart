@@ -129,11 +129,12 @@ function addWarningMessagesForObject(prefix: string, properties: string[], confi
     }
     if (invalidPropertyCount > 0) {
       let message: string;
+      const propertyNoun = invalidPropertyCount === 1 ? ' invalid property' : ' invalid properties';
       if (invalidPropertyCount > maxInvalidProperties) {
-        message = 'had ' + invalidPropertyCount + ' invalid properties, first ' + maxInvalidProperties + ' are: ' + invalidProperties;
+        message = 'had ' + invalidPropertyCount + propertyNoun + ', first ' + maxInvalidProperties + ' are: ' + invalidProperties.join(', ');
       }
       else {
-        message = 'had ' + invalidPropertyCount + ' invalid properties: ' + invalidProperties;
+        message = 'had ' + invalidPropertyCount + propertyNoun + ': ' + invalidProperties.join(', ');
       }
       warningMessages.push(properties.length === 0
         ? prefixErrorMessage(prefix, message, i)

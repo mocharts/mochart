@@ -100,7 +100,7 @@ describe('config validation', () => {
       valid: false,
       errors: [],
       warnings: [
-        'config - had 1 invalid properties: bad'
+        'config - had 1 invalid property: bad'
       ]
     });
   });
@@ -117,7 +117,7 @@ describe('config validation', () => {
       valid: false,
       errors: [],
       warnings: [
-        'categoryAxis - had 1 invalid properties: bad'
+        'categoryAxis - had 1 invalid property: bad'
       ]
     });
   });
