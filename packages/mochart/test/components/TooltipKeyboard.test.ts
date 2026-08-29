@@ -162,6 +162,26 @@ describe('tooltip row keyboard semantics', () => {
     expect((document.activeElement as HTMLElement).hasAttribute(focusRestoredAttribute)).toBe(true);
   });
 
+  // the legend hands a removed item's tab stop to the next item in config order, not the first;
+  // filtering a middle row used to send both the tab stop and the focus back to the top row
+  it('hands the tab stop and focus to the next row when a middle row is filtered away', () => {
+    const container = mountChart(makeConfig({ showControls: true, showFiltered: false }, {
+      series: [{ id: 'S0', property: 'sales' }, { id: 'S1', property: 'costs' }, { id: 'S2', property: 'sales' }]
+    }));
+    openTooltip(container);
+    expect(tooltipRows(container).map(row => row.getAttribute('data-row-key')))
+      .toEqual(['series-S0', 'series-S1', 'series-S2']);
+
+    const middle = tooltipRows(container)[1];
+    middle.focus();
+    key(middle, 'Enter');
+
+    const remaining = tooltipRows(container);
+    expect(remaining.map(row => row.getAttribute('data-row-key'))).toEqual(['series-S0', 'series-S2']);
+    expect((document.activeElement as HTMLElement).getAttribute('data-row-key')).toBe('series-S2');
+    expect(remaining.find(row => row.getAttribute('tabindex') === '0')!.getAttribute('data-row-key')).toBe('series-S2');
+  });
+
   it('adds the category row and focuses on Enter in focus mode', () => {
     const focuses: ChartFocus[] = [];
     const container = mountChart(makeConfig({ showControls: true }), {

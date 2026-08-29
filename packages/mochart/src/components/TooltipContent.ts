@@ -7,7 +7,7 @@ import type { PieTooltipValues } from '../utils/TooltipFormat';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
 import { mochartCssClasses } from '../utils/ChartDom';
 import { accessibilityActive, focusRestored, isHoverPointer, isKeyboardFocus } from '../utils/utils';
-import { moveRovingFocus } from '../utils/RovingFocus';
+import { moveRovingFocus, resolveRovingId } from '../utils/RovingFocus';
 import { getPieSliceFractionMap } from '../data/PieData';
 import { getPieTooltipPercentFormat, pieLabelTypeUsesPercent } from '../data/PieLabel';
 import { NONE, CHART_TYPE_PIE, ALIGN_RIGHT } from '../config/core/constants';
@@ -336,7 +336,9 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
   /** filtering with showFiltered off unmounts the acted-on row synchronously; keep focus inside the tooltip */
   private restoreRowFocus(activeElement: Element | null): void {
     if (activeElement !== null && activeElement !== document.body && !activeElement.isConnected) {
-      const fallback = this.interactiveRowNodes()[0] ?? this.controlsContainer.node.querySelector('button');
+      const rows = this.interactiveRowNodes();
+      const fallback = rows.find(row => row.getAttribute('tabindex') === '0')
+        ?? rows[0] ?? this.controlsContainer.node.querySelector('button');
       focusRestored(fallback);
     }
   }
@@ -603,8 +605,12 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
 
     // the remembered roving row keeps the tab stop while it exists; otherwise the first takes it
     const { rovingRowKey } = this.state;
-    const effectiveRovingKey = rovingRowKey !== null && interactiveRowKeys.indexOf(rovingRowKey) !== -1
-      ? rovingRowKey : interactiveRowKeys[0] ?? null;
+    // config indices, not rendered ones: a row filtering just unmounted still needs a position
+    const rowIndicesByKey: Record<string, number> = { category: -1 };
+    for (const seriesConfig of seriesConfigs) {
+      rowIndicesByKey['series-' + seriesConfig.id] = seriesConfigIndicesById[seriesConfig.id]!;
+    }
+    const effectiveRovingKey = resolveRovingId(rovingRowKey, interactiveRowKeys, rowIndicesByKey);
     if (effectiveRovingKey !== null) {
       const rovingLine = tooltipLines.find(line => line.key === effectiveRovingKey);
       (rovingLine!.props as { tabStop: boolean }).tabStop = true;
