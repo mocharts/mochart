@@ -114,7 +114,7 @@ export default function getDescriptions() {
         prefix: 'the text to prefix series label values with when drawing them on the plot (use null for none)',
         suffix: 'the text to append series label values with when drawing them on the plot (use null for none)',
         textStyle: styleStates('the style of the series label values', styleMembers, 'label', true),
-        minPositionFraction: 'the minimum position fraction (0 - 1) from the domain minimum for which series labels should be shown (use null for none)',
+        minPositionFraction: 'the minimum position fraction (0 - 1) from the domain minimum for which series labels should be shown, measured outward from the base instead when the value axis has one (use null for none)',
         maxPositionFraction: 'the maximum position fraction (0 - 1) from the domain maximum for which series labels should be shown (use null for none)',
         minRangeFraction: 'hide the label of any value whose shape spans less than this fraction (0 - 1) of the axis domain (use null for none)',
         offset: 'the series position offset (in pixels) to apply to all series label positions',

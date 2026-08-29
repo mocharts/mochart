@@ -2893,7 +2893,8 @@ export interface SeriesLabelConfig {
   offset: number;
   /**
    * The minimum position fraction (0 - 1) from the domain minimum for which
-   * series labels should be shown (use null for none).
+   * series labels should be shown, measured outward from the base instead when
+   * the value axis has one (use null for none).
    *
    * @default null
    */

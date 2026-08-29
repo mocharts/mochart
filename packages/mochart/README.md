@@ -286,6 +286,14 @@ always present:
 The plot-area states place their content over the plot with the axes drawn, so
 sizing a placeholder from `width`/`height` fits the box it actually occupies.
 
+`createDefaultChart` also validates the data against the config on every start,
+update and refresh. When they do not match — a series `property` that is not in
+the data, or columns of differing lengths — it replaces the provider with one
+reporting the error `'Invalid Data'`, so the chart enters the error state and
+`getErrorComponent` receives that bare string. The specific messages are not
+carried through; call `getDataErrors(mochartConfig, dataProvider)` yourself to
+see which property is at fault.
+
 ## Framework wrappers
 
 - [@mochart/angular](../mochart-angular/README.md) — Angular components

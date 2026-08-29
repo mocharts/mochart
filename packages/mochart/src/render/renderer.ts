@@ -45,9 +45,9 @@ export abstract class Renderer<P extends object, S extends object = Record<strin
   }
 
   /**
-   * Compute derived state from props. Runs before every sync, including the
-   * first (`prevProps === null` on mount). Return the state delta to merge,
-   * or null when nothing derived changes.
+   * Compute derived state from props. Runs on mount (`prevProps === null`) and on
+   * every `update()` that receives a new props object; `setState` does not re-derive.
+   * Return the state delta to merge, or null when nothing derived changes.
    */
   derive?(props: P, state: S, prevProps: P | null): Partial<S> | null;
   /** Override the default shallow-equal skip check. */
