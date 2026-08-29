@@ -1,6 +1,6 @@
 import {
   AUTO, NONE, RENDERER_AREA, RENDERER_BAR, RENDERER_LINE, RENDERER_NONE, MARKER_SHAPE_CIRCLE, MARKER_SIZE_SCALE_SQRT, CURVE_TYPE_LINEAR,
-  COLOR_SAME, COLOR_SERIES, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, COLOR_CURRENT, LABEL_POSITION_CENTER,
+  STYLE_SAME, COLOR_SERIES, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, COLOR_CURRENT, LABEL_POSITION_CENTER,
   COLOR_INTERPOLATION_HCL, MISSING_VALUE_MODE_BREAK, STYLE_STATES
 } from '../core/constants';
 
@@ -50,8 +50,8 @@ export function getRegularDefaults() {
       capSize: 6,
       style: {
         normal: { strokeColor: COLOR_SERIES, strokeOpacity: 0.9, strokeWidth: 1.5, strokeDashArray: NONE },
-        focused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: 1.5, strokeDashArray: COLOR_SAME },
-        defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.5, strokeWidth: 1.5, strokeDashArray: COLOR_SAME }
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 1.5, strokeDashArray: STYLE_SAME },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.5, strokeWidth: 1.5, strokeDashArray: STYLE_SAME }
       }
     },
     valueLabel: NONE,
@@ -66,8 +66,8 @@ export function getRegularDefaults() {
       suffix: NONE,
       textStyle: {
         normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.8, strokeWidth: 1, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: 0.8 },
-        focused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: 1, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME, fillOpacity: 1 },
-        defocused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: 1, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME, fillOpacity: 1 }
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 1, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 1, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 }
       },
       minPositionFraction: NONE,
       maxPositionFraction: NONE,
@@ -80,8 +80,8 @@ export function getRegularDefaults() {
     // Only the shape's colors are regular defaults; its opacities and widths are renderer-conditional.
     shapeStyle: {
       normal: { strokeColor: COLOR_SERIES_INDEX, strokeDashArray: NONE, fillColor: COLOR_SERIES_INDEX },
-      focused: { strokeColor: COLOR_SAME, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME },
-      defocused: { strokeColor: COLOR_SAME, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME }
+      focused: { strokeColor: STYLE_SAME, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME },
+      defocused: { strokeColor: STYLE_SAME, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME }
     },
     colorScale: {
       interpolation: NONE,
@@ -103,8 +103,8 @@ export function getRegularDefaults() {
       sizeScale: MARKER_SIZE_SCALE_SQRT,
       style: {
         normal: { strokeColor: COLOR_SERIES, strokeOpacity: 0.9, strokeWidth: 1, strokeDashArray: NONE, fillColor: COLOR_SERIES, fillOpacity: 0.9 },
-        focused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: 3, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME, fillOpacity: 1 },
-        defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.8, strokeWidth: 1, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME, fillOpacity: 0.8 }
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 3, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.8, strokeWidth: 1, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 0.8 }
       }
     },
     showInTooltip: true,

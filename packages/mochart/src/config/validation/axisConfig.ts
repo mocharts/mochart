@@ -3,14 +3,14 @@ import { filterConfig, getRawIndices } from '../core/configUtils';
 import { getPropertyMessage, isConfigObject } from './messages';
 import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators';
 
-import { AUTO, NONE, ANCHORS, COLOR_SAME, SIDES, THRESHOLD_TITLE_SIDES, TYPE_DATE } from '../core/constants';
+import { AUTO, NONE, ANCHORS, STYLE_SAME, SIDES, THRESHOLD_TITLE_SIDES, TYPE_DATE } from '../core/constants';
 
 import type { ConfigObject, LocatedValidationMessage } from './messages';
 import type { Validator } from '@mochart/movalid';
 
 // Never null: an axis writes stroke="none" so a host-css stroke cannot inherit onto its text.
 const { styleShape, styleStates } = createStyleValidators(allowSame =>
-  allowSame ? validators.svgColor().orEqual(COLOR_SAME) : validators.svgColor()
+  allowSame ? validators.svgColor().orEqual(STYLE_SAME) : validators.svgColor()
 );
 
 export const axisStyleValidators = { styleShape, styleStates, lineMembers, styleMembers };

@@ -1,4 +1,4 @@
-import { COLOR_SAME } from '../config/core/constants';
+import { STYLE_SAME } from '../config/core/constants';
 import type { FocusData, FocusPercentage, FocusPercentageMap } from '../types/animation';
 import type { Style, StrokeStyleStates, StyleStates } from '../types/config';
 import type { EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
@@ -88,7 +88,7 @@ export function getFocusedDefocused(focusPercentage: FocusPercentage): { focused
 
 /** `'same'` defers to whatever color the normal state uses. */
 export function getSameColor(color: string, normalColor: string): string {
-  return color === COLOR_SAME ? normalColor : color;
+  return color === STYLE_SAME ? normalColor : color;
 }
 
 export function getFocusPercentageColor(focusPercentage: FocusPercentage, normalColor: string, focusedColor: string, defocusedColor: string): string {
@@ -144,8 +144,8 @@ export function getFocusDiscreteValue<T>(focusPercentage: FocusPercentage, norma
 
 /** Resolve a per-state stroke width: 'same' or an absent member defers to normal; numbers interpolate, null stays unset. */
 export function getFocusStrokeWidth(focusPercentage: FocusPercentage, normalValue: number | null | undefined, focusedValue: number | null | 'same' | undefined, defocusedValue: number | null | 'same' | undefined): number | null {
-  const focused = focusedValue === undefined || focusedValue === COLOR_SAME ? normalValue : focusedValue;
-  const defocused = defocusedValue === undefined || defocusedValue === COLOR_SAME ? normalValue : defocusedValue;
+  const focused = focusedValue === undefined || focusedValue === STYLE_SAME ? normalValue : focusedValue;
+  const defocused = defocusedValue === undefined || defocusedValue === STYLE_SAME ? normalValue : defocusedValue;
   if (typeof normalValue === 'number' && typeof focused === 'number' && typeof defocused === 'number') {
     return getFocusValue(focusPercentage, normalValue, focused, defocused);
   }
@@ -154,8 +154,8 @@ export function getFocusStrokeWidth(focusPercentage: FocusPercentage, normalValu
 
 /** Resolve a per-state dash array: 'same' or an absent member defers to normal, and states switch discretely. */
 export function getFocusStrokeDashArray(focusPercentage: FocusPercentage, normalValue: string | null | undefined, focusedValue: string | null | 'same' | undefined, defocusedValue: string | null | 'same' | undefined): string | null {
-  const focused = focusedValue === undefined || focusedValue === COLOR_SAME ? normalValue : focusedValue;
-  const defocused = defocusedValue === undefined || defocusedValue === COLOR_SAME ? normalValue : defocusedValue;
+  const focused = focusedValue === undefined || focusedValue === STYLE_SAME ? normalValue : focusedValue;
+  const defocused = defocusedValue === undefined || defocusedValue === STYLE_SAME ? normalValue : defocusedValue;
   return getFocusDiscreteValue(focusPercentage, normalValue, focused, defocused) ?? null;
 }
 
@@ -198,8 +198,8 @@ export function getAxisFocusStyle(axisFocusPercentage: FocusPercentage | undefin
   for (const member of Object.keys(normal)) {
     const normalValue = normal[member];
     // 'same' (like an absent member) defers to the normal state, for geometry members as well as colors
-    const focusedValue = focused[member] === undefined || focused[member] === COLOR_SAME ? normalValue : focused[member];
-    const defocusedValue = defocused[member] === undefined || defocused[member] === COLOR_SAME ? normalValue : defocused[member];
+    const focusedValue = focused[member] === undefined || focused[member] === STYLE_SAME ? normalValue : focused[member];
+    const defocusedValue = defocused[member] === undefined || defocused[member] === STYLE_SAME ? normalValue : defocused[member];
     if (styleColorMembers.has(member)) {
       style[member] = getAxisFocusColor(axisFocusPercentage, seriesFocusPercentage, useSeriesFocus,
         normalValue as string, focusedValue as string, defocusedValue as string);

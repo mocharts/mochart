@@ -173,8 +173,9 @@ export const STYLE_STATES = [
   STYLE_STATE_NORMAL, STYLE_STATE_FOCUSED, STYLE_STATE_DEFOCUSED
 ] as const;
 
+export const STYLE_SAME = 'same';
+
 export const COLOR_SERIES = 'series'
-export const COLOR_SAME = 'same';
 export const COLOR_SERIES_INDEX = 'seriesIndex';
 export const COLOR_CATEGORY_INDEX ='categoryIndex';
 
@@ -239,7 +240,7 @@ export type CurveType =
   typeof CURVE_TYPE_STEP_BEFORE | typeof CURVE_TYPE_STEP_AFTER;
 export type CapType = typeof CAP_TYPE_POINT | typeof CAP_TYPE_CURVE | typeof CAP_TYPE_ROUND;
 export type LabelPosition = typeof LABEL_POSITION_INSIDE | typeof LABEL_POSITION_CENTER | typeof LABEL_POSITION_OUTSIDE;
-export type ColorMode = typeof COLOR_SERIES | typeof COLOR_SAME | typeof COLOR_SERIES_INDEX | typeof COLOR_CATEGORY_INDEX;
+export type ColorMode = typeof COLOR_SERIES | typeof STYLE_SAME | typeof COLOR_SERIES_INDEX | typeof COLOR_CATEGORY_INDEX;
 export type ColorInterpolation =
   typeof COLOR_INTERPOLATION_RGB | typeof COLOR_INTERPOLATION_HSL | typeof COLOR_INTERPOLATION_LAB | typeof COLOR_INTERPOLATION_HCL;
 export type MarkerShape =

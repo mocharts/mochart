@@ -1,6 +1,6 @@
 import validators from './validators';
 
-import { NONE, COLOR_SAME } from '../core/constants';
+import { NONE, STYLE_SAME } from '../core/constants';
 
 import type { Validator } from '@mochart/movalid';
 
@@ -23,9 +23,9 @@ export function createStyleValidators(color: StyleColorValidator) {
         return validators.opacity();
       case 'strokeWidth':
         // null (leave the attribute unset) is a supported width — getFocusStrokeWidth handles it
-        return allowSame ? validators.numberMin(0).orOneOf([NONE, COLOR_SAME]) : validators.numberMin(0).orEqual(NONE);
+        return allowSame ? validators.numberMin(0).orOneOf([NONE, STYLE_SAME]) : validators.numberMin(0).orEqual(NONE);
       case 'strokeDashArray':
-        return allowSame ? validators.dashArray().orOneOf([NONE, COLOR_SAME]) : validators.dashArray().orEqual(NONE);
+        return allowSame ? validators.dashArray().orOneOf([NONE, STYLE_SAME]) : validators.dashArray().orEqual(NONE);
     }
   }
 

@@ -1,4 +1,4 @@
-import { AUTO, NONE, ELLIPSIS, COLOR_CURRENT, COLOR_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants';
+import { AUTO, NONE, ELLIPSIS, COLOR_CURRENT, STYLE_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants';
 import { deepMerge } from '../core/deepMerge';
 import type { StrokeStyleStates, Style, StyleStates, ThresholdConfig } from '../../types/config';
 import type { MarginPadding } from '../../types/geometry';
@@ -12,8 +12,8 @@ export default function getDefaults() {
       marginInner: 0,
       style: {
         normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.65, strokeWidth: 1, strokeDashArray: NONE },
-        focused: { strokeColor: COLOR_SAME, strokeOpacity: 0.65, strokeWidth: COLOR_SAME, strokeDashArray: COLOR_SAME },
-        defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.325, strokeWidth: COLOR_SAME, strokeDashArray: COLOR_SAME }
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.65, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.325, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME }
       }
     },
 
@@ -48,8 +48,8 @@ export default function getDefaults() {
       // currentColor at 0.13 approximates the old '#e5e5e5' grid on a light page and still reads as a grid line on a dark one.
       style: {
         normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.13, strokeWidth: 1, strokeDashArray: '5, 5' },
-        focused: { strokeColor: COLOR_SAME, strokeOpacity: 0.17, strokeWidth: COLOR_SAME, strokeDashArray: COLOR_SAME },
-        defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.09, strokeWidth: COLOR_SAME, strokeDashArray: COLOR_SAME }
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.17, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.09, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME }
       }
     },
 
@@ -92,8 +92,8 @@ export default function getDefaults() {
       rotation: 0,
       textStyle: {
         normal: { strokeColor: 'none', strokeOpacity: 1, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: 1 },
-        focused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: 0, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME, fillOpacity: 1 },
-        defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.5, strokeWidth: 0, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME, fillOpacity: 0.5 }
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.5, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 0.5 }
       }
     },
 
@@ -104,8 +104,8 @@ export default function getDefaults() {
       marginInner: 0,
       style: {
         normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.65, strokeWidth: 1, strokeDashArray: NONE },
-        focused: { strokeColor: COLOR_SAME, strokeOpacity: 0.65, strokeWidth: COLOR_SAME, strokeDashArray: COLOR_SAME },
-        defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.325, strokeWidth: COLOR_SAME, strokeDashArray: COLOR_SAME }
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.65, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.325, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME }
       }
     },
 
@@ -122,8 +122,8 @@ export default function getDefaults() {
       paddingOuter: 3,
       textStyle: {
         normal: { strokeColor: 'none', strokeOpacity: 1, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: 1 },
-        focused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: 0, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME, fillOpacity: 1 },
-        defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.5, strokeWidth: 0, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME, fillOpacity: 0.5 }
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.5, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 0.5 }
       }
     },
     visible: true
@@ -136,8 +136,8 @@ export function getThresholdEntryDefaults() {
     front: true,
     style: {
       normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.65, strokeWidth: 1, strokeDashArray: NONE },
-      focused: { strokeColor: COLOR_SAME, strokeOpacity: 0.65, strokeWidth: COLOR_SAME, strokeDashArray: COLOR_SAME },
-      defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.325, strokeWidth: COLOR_SAME, strokeDashArray: COLOR_SAME }
+      focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.65, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME },
+      defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.325, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME }
     },
     title: {
       text: NONE,
@@ -148,8 +148,8 @@ export function getThresholdEntryDefaults() {
       // 'none' rather than null: stroke="none" firewalls a host-css stroke inheriting onto the text.
       textStyle: {
         normal: { strokeColor: 'none', strokeOpacity: 1, strokeWidth: NONE, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: 1 },
-        focused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: NONE, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME, fillOpacity: 1 },
-        defocused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: NONE, strokeDashArray: COLOR_SAME, fillColor: COLOR_SAME, fillOpacity: 1 }
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: NONE, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: NONE, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 }
       },
       backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 }
     }

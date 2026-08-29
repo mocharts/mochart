@@ -1,4 +1,4 @@
-import { NONE, TYPE_NUMBER, SCALE_LINEAR, COLOR_CURRENT, COLOR_SAME } from '../core/constants';
+import { NONE, TYPE_NUMBER, SCALE_LINEAR, COLOR_CURRENT, STYLE_SAME } from '../core/constants';
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
 
 import getAxisDefaults from './axisConfig';
@@ -24,8 +24,8 @@ export function getRegularDefaults() {
       front: false,
       style: {
         normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.65, strokeWidth: 1, strokeDashArray: NONE },
-        focused: { strokeColor: COLOR_SAME, strokeOpacity: 0.65, strokeWidth: COLOR_SAME, strokeDashArray: COLOR_SAME },
-        defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.325, strokeWidth: COLOR_SAME, strokeDashArray: COLOR_SAME }
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.65, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.325, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME }
       }
     },
 

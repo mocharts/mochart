@@ -2,7 +2,7 @@ import { scaleLinear } from 'd3-scale';
 import { interpolateRgb, interpolateHsl, interpolateLab, interpolateHcl } from 'd3-interpolate';
 
 import {
-  NONE, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, COLOR_SAME, COLOR_SERIES,
+  NONE, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, STYLE_SAME, COLOR_SERIES,
   COLOR_INTERPOLATION_HCL, COLOR_INTERPOLATION_HSL, COLOR_INTERPOLATION_LAB, COLOR_INTERPOLATION_RGB,
   RENDERER_AREA, RENDERER_BAR, RENDERER_LINE, STYLE_STATES
 } from '../config/core/constants';
@@ -59,7 +59,7 @@ function getColor(fillOrStrokeKey: FillOrStrokeKey, mapKey: ColorMapKey, colorPa
     if (value === COLOR_SERIES) {
       mapKey = 'series';
     }
-    else if (value === COLOR_SAME) {
+    else if (value === STYLE_SAME) {
       focusKey = 'normal';
     }
   }
