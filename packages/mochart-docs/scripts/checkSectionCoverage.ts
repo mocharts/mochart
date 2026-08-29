@@ -2,11 +2,16 @@
 // the core enhancer emits, so a new section can't silently lose its "Used in"
 // links (the drift CONTRIBUTING.md's "Adding a new config section" list warns
 // about). Object/list classification and the *Defaults companion map are
-// verified against core's `sectionKeyAllMap`.
+// verified against core's `sectionKeyAllMap`. Also checks that every example
+// config on the docs site is registered, so a new example page contributes
+// its links instead of silently contributing nothing.
 // Usage: tsx --conditions=development scripts/checkSectionCoverage.ts
 
 import { enhanceConfig, sectionKeyAllMap } from '@mochart/core';
-import { objectSectionIds, listSectionIds, allKeySectionMap } from '../.vitepress/lib/usageIndex';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { objectSectionIds, listSectionIds, allKeySectionMap, registeredExampleConfigs } from '../.vitepress/lib/usageIndex';
 
 const enhanced = enhanceConfig({
   version: '1.0.0',
@@ -49,12 +54,27 @@ for (const defaultsKey of Object.keys(allKeySectionMap)) {
   }
 }
 
+const examplesDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'examples');
+const exampleFiles = fs.readdirSync(examplesDir).filter((file) => file.endsWith('.ts')).sort();
+const registered = new Set<object>(registeredExampleConfigs);
+let exampleCount = 0;
+for (const file of exampleFiles) {
+  const exported = (await import(path.join(examplesDir, file))) as { config?: object };
+  if (exported.config === undefined) {
+    continue;
+  }
+  exampleCount++;
+  if (!registered.has(exported.config)) {
+    problems.push(`examples/${file} — exports a config but is not in docsExamples, so its properties get no "Used in" link`);
+  }
+}
+
 if (problems.length > 0) {
-  console.error('✗ usage-index section registries are out of sync with the core sections:\n');
+  console.error('✗ usage-index registries are out of sync:\n');
   for (const problem of problems) {
     console.error(`    ${problem}`);
   }
   process.exit(1);
 }
 
-console.log(`✓ usage index covers all ${sectionIds.length} config sections`);
+console.log(`✓ usage index covers all ${sectionIds.length} config sections and all ${exampleCount} example configs`);
