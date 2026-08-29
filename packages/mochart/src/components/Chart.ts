@@ -1466,7 +1466,9 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
       // keyboard tab stop on the series-area rect: Enter/Space toggles the tooltip, arrows step, Escape closes;
       // kept during loading — dropping tabindex would dump keyboard focus to <body>
-      const plotA11yProps = accessibility && (mochartConfig.tooltip.visible || mochartConfig.crosshair.visible) ? {
+      const plotInteractive = mochartConfig.tooltip.visible ||
+        (mochartConfig.chart.type !== CHART_TYPE_PIE && mochartConfig.crosshair.visible);
+      const plotA11yProps = accessibility && plotInteractive ? {
         ariaLabel: accessibilityConfig.plotLabel,
         ariaExpanded: String(tooltipVisible),
         onKeyDown: this.onPlotKeyDown

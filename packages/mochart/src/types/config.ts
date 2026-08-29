@@ -504,7 +504,9 @@ export interface ClipIndicatorConfig {
    * Whether to mark the plot edges that have data hidden behind them, which
    * happens when an axis min or max excludes some of the values.
    *
-   * @default true
+   * Default:
+   * - `false` — when chart.type is pie
+   * - `true` — when chart.type is xy
    */
   visible: boolean;
   /**
