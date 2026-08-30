@@ -20,7 +20,7 @@ compiles it (no build step).
 
 ## Contents
 
-`src/` holds 22 modules behind the `src/index.ts` barrel, grouped below by the
+`src/` holds 24 modules behind the `src/index.ts` barrel, grouped below by the
 part of a demo they serve.
 
 ### Editing a demo's config and data
@@ -34,6 +34,7 @@ reaches the chart.
 | `configEditing.ts` | Single-demo Config tab helpers: format/parse config JSON, with/without-defaults views, and the Invert / Slow section toggles. |
 | `dataEditing.ts` | Single-demo Data tab helpers: format/parse data JSON, filtered-view round-tripping, and apply-time validation (`getConfigDataError` is also the chart path's data check). |
 | `unusedDataProperties.ts` | The Data tab's "Unused" filter: collect the data properties a chart config actually reads, filter rows to them, and restore hidden properties after edits. |
+| `json.ts` | `parseJson` re-exported from [@mochart/editor](../mochart-editor/README.md), plus `getJsonError` / `getJsonErrorMessage` — the message a failed parse shows, naming the repeated key when that is the cause and reporting plain invalid JSON otherwise. |
 | `jsonEditorContent.ts` | `createJsonEditorContent` — a CodeMirror-backed drop-in for the demos' JSON textareas, loading [@mochart/editor](../mochart-editor/README.md) lazily so it stays out of the main chunk. |
 
 ### Demo modes and showcase pages
@@ -63,6 +64,7 @@ mechanical.
 | `theme.ts` | `initTheme` — the light/dark controller, synced two-way with the docs site by reading and writing the same `localStorage` key VitePress keeps its appearance choice in. `getChartExportOptions` supplies the current theme's chart-export background. |
 | `viewport.ts` | The viewport-width tiers the ports share with `demo.css`, and the mode policy that follows from them: `isPhoneViewport`, `watchPhoneViewport`, `getAvailableDemoModes`/`isDemoModeAvailable` (Multi is not offered on phones) and `phoneFallbackDemoMode`. |
 | `menu.ts` | The popover machinery behind the export/share dropdown, the notes panel and the phone overflow menus. Three layers, because the ports do not all need the same amount: `getMenuPosition` (pure geometry), `watchMenuDismiss` (outside-click / Escape / viewport-moved as one subscription), and `createMenuController` (the whole open/close dance against a trigger and panel element). |
+| `tabs.ts` | The Chart/Config/Data strip as ARIA tabs, the contract all six ports implement: the `DemoTab` shape, the `demoTabId` / `demoTabPanelId` pairing their `aria-labelledby` and `aria-controls` point at, and the id of the hidden note describing the Chart tab's pending badge. |
 | `shareState.ts` | Shareable per-mode view state in the URL hash: `buildShareUrl`/`encodeShareState` for the share menu, `consumeShareState`/`consumeSingleShareState` for the view that receives the link. The payload is JSON, deflate-compressed and base64url-encoded. |
 | `docsLinks.ts` | Links from a demo into the documentation site's config reference: `getReferenceSectionIds` (the reference sections a config actually uses) and `getReferenceSectionUrl`. |
 | `errorDataProvider.ts` | `createErrorDataProvider` — a provider stub that only reports an error, for demonstrating the chart's error state. |
