@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
 import { mountContainer, trackHandle, lastHandle, mockBoundingClientRect } from './helpers';
+import type { DefaultChartProps } from '../../src/types/chart';
 import { createChart, createDefaultChart } from '../../src/createChart';
 import { enhanceConfig } from '../../src/config/helper';
 import { ArrayOfObjectsDataProvider } from '../../src/data/DataProvider';
@@ -86,6 +87,26 @@ describe('plot keyboard stepping without snapToCategory', () => {
     key(rect, 'Enter');
     expect(tooltipText(container)).toContain('Mar');
     expect(tooltipLeft(container)).toBe(steppedMarLeft);
+  });
+
+  // Regression: a data change remapped the open tooltip's category index but kept the old fraction (the box stayed
+  // put while its content moved) and left the resume index unmapped (Enter after the shift reopened elsewhere)
+  it('moves the tooltip with its category when a data change shifts that category', () => {
+    const container = mountChart(makeConfig({ tooltip: { snapToCategory: false } }));
+    const rect = plotRect(container);
+    key(rect, 'Enter');
+    expect(tooltipText(container)).toContain('Jan');
+    const janLeft = tooltipLeft(container);
+
+    lastHandle().update({ data: [{ month: 'Dec', sales: 12, costs: 4 }, ...rows] } as Partial<DefaultChartProps>);
+    expect(tooltipText(container)).toContain('Jan');
+    const shiftedJanLeft = tooltipLeft(container);
+    expect(shiftedJanLeft).not.toBe(janLeft);
+    // reopening resumes on the shifted category, at the position an open on it gives
+    key(rect, 'Escape');
+    key(rect, 'Enter');
+    expect(tooltipText(container)).toContain('Jan');
+    expect(tooltipLeft(container)).toBe(shiftedJanLeft);
   });
 });
 

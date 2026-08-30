@@ -136,6 +136,13 @@ const seriesPatternIdPrefix = 'series__pattern__';
 const seriesColorGradientIdPrefix = 'seriescolor__gradient__';
 // on the global registry, not module state: two bundled copies of the library share one document's ids
 const chartInstanceCounterKey = Symbol.for('mochart.chartInstanceCounter');
+/** the unsnapped tooltip's position along the category axis, as a fraction of the category extent */
+function getCategoryFraction(axisData: AxisData, layoutInfo: ChartLayoutInfo, categoryIndex: number): number {
+  const positions = axisData.category!.valueData.positions;
+  const { categoryExtent } = layoutInfo.seriesLayoutInfo;
+  return categoryExtent > 0 ? (positions[categoryIndex] ?? 0) / categoryExtent : 0;
+}
+
 function nextChartInstanceId(): string {
   const scope = globalThis as unknown as Record<symbol, number | undefined>;
   const instance = (scope[chartInstanceCounterKey] ?? 0) + 1;
@@ -726,16 +733,26 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
           }
 
           if (dataChanged && prevProps.chartData !== null) {
+            const oldCategoryValues = prevProps.chartData.categoryData.values.key;
+            const newCategoryValues = chartData.categoryData.values.key;
+            if (oldCategoryValues && newCategoryValues) {
+              // the resume index follows its category too, or Enter after a shift reopens on a different one
+              const rememberedValue = oldCategoryValues[this.lastTooltipCategoryIndex];
+              const rememberedIndex = rememberedValue === undefined ? -1 : indexOfCategoryValue(mochartConfig.categoryAxis, newCategoryValues, rememberedValue);
+              if (rememberedIndex >= 0) {
+                this.lastTooltipCategoryIndex = rememberedIndex;
+              }
+            }
             let { tooltipCategoryIndex, tooltipValueObject } = this.state;
             if (tooltipCategoryIndex >= 0) {
-              const oldCategoryValues = prevProps.chartData.categoryData.values.key;
-              const newCategoryValues = chartData.categoryData.values.key;
               if (oldCategoryValues && newCategoryValues) {
                 const categoryValue = oldCategoryValues[tooltipCategoryIndex];
                 tooltipCategoryIndex = indexOfCategoryValue(mochartConfig.categoryAxis, newCategoryValues, categoryValue);
                 if (tooltipCategoryIndex >= 0) {
                   tooltipValueObject = getCategorySeriesValueObject(chartData, tooltipCategoryIndex);
-                  tooltipStateSource = { ...this.state, tooltipCategoryIndex, tooltipValueObject };
+                  // the unsnapped box follows the fraction, so a moved category must move it too
+                  const tooltipCategoryPercentage = getCategoryFraction(axisData!, layoutInfo!, tooltipCategoryIndex);
+                  tooltipStateSource = { ...this.state, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipValueObject };
                 }
                 else {
                   // the tooltip's category disappeared: close fully so the next
@@ -1079,10 +1096,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
   /** the category's position as a fraction of the category extent, as the pointer would report it */
   private getCategoryFraction(categoryIndex: number): number {
-    const { axisData, layoutInfo } = this.state;
-    const positions = axisData!.category!.valueData.positions;
-    const { categoryExtent } = layoutInfo!.seriesLayoutInfo;
-    return categoryExtent > 0 ? (positions[categoryIndex] ?? 0) / categoryExtent : 0;
+    return getCategoryFraction(this.state.axisData!, this.state.layoutInfo!, categoryIndex);
   }
 
   /** open/close via the pointer-click path, with the position synthesized from the category */
