@@ -21,12 +21,12 @@ order and stops at the first failure, so running them in the same order locally
 is the quickest way to reproduce a red build:
 
 ```sh
-npm run lint      # eslint over the whole repo
-npm run deadcode  # knip: unused exports, files and dependencies
-npm run typecheck # every workspace that has a typecheck script
+npm run lint          # eslint over the whole repo
+npm run deadcode      # knip: unused exports, files and dependencies
+npm run typecheck     # every workspace that has a typecheck script
 npm run check:publish # every package's publishConfig exports map is dist-only
-npm test          # tests in every workspace that has them
-npm run test:e2e  # Playwright suite (hosted by @mochart/demo-basic)
+npm test              # tests in every workspace that has them
+npm run test:e2e      # Playwright suite (hosted by @mochart/demo-basic)
 ```
 
 `test:e2e` needs a browser once per machine: `npx playwright install chromium`.
