@@ -107,6 +107,16 @@ colors per theme.
 For chrome there is nothing to configure: when your page (or the chart's
 container) sets a light text color on a dark background, the chart follows.
 
+The chart's own surfaces are transparent, so whatever sits behind the chart on
+your page shows through and follows the theme with it — no config needed. To
+give a surface its own background, every part that has one takes a
+`backgroundStyle`: [`chart`](/reference/chart#chart.backgroundStyle),
+[`plot`](/reference/plot#plot.backgroundStyle),
+[`legend`](/reference/legend#legend.backgroundStyle),
+[`title`](/reference/title#title.backgroundStyle) and the axes. Those are
+concrete colors like any other, so a config that sets them needs a per-theme
+variant.
+
 The tooltip is the one exception. It is an HTML overlay, and its background
 and border form a *surface* that must sit at the opposite end of the
 contrast pair from the text on top of it — something no inherited text
