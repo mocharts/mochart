@@ -19,7 +19,8 @@ import * as dateAxis from '../examples/dateAxis'
 - Date values in the data can be ISO strings (as in the example above),
   `Date` objects, or millisecond timestamps.
   [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC) decides whether
-  ticks are placed and labels formatted in UTC or local time.
+  ticks are placed and labels formatted in UTC or local time. It defaults to
+  `true`, so set it to `false` for data whose day boundaries are local ones.
 - [`tickLabel.format`](/reference/categoryAxis#categoryAxis.tickLabel.format)
   takes a d3 time-format string for date axes (`'%b %d'` → "Jun 01"), as does
   the category axis
