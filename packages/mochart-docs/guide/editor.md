@@ -83,10 +83,11 @@ generated from the same model as this site's
 for tooling that wants the raw model.
 
 Completions and hover text come from that build-time model, while validation
-diagnostics come from the installed `@mochart/core`. If the two are from
-different minor versions, the editor logs a console warning once: properties
-added or removed since the model was generated have no completions or hover
-text, but validation still reflects the installed core.
+diagnostics come from the installed `@mochart/core`. If their major or minor
+versions differ, the editor logs a console warning once: properties added or
+removed since the model was generated have no completions or hover text, but
+validation still reflects the installed core. A patch difference is not
+reported, because a patch release cannot add or remove config properties.
 
 ## Diagnostics
 
