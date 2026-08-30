@@ -21,6 +21,11 @@ const rows = [
 ];
 
 // only costs changes, and only at Jan (the tooltip's category); the axis domain is unchanged
+const salesChanged = [
+  { month: 'Jan', sales: 11, costs: 5 },
+  { month: 'Feb', sales: 20, costs: 8 },
+  { month: 'Mar', sales: 30, costs: 13 }
+];
 const costsChanged = [
   { month: 'Jan', sales: 10, costs: 6 },
   { month: 'Feb', sales: 20, costs: 8 },
@@ -90,6 +95,23 @@ describe('tooltip row sync', () => {
     expect(synced).toContain('S1');
     expect(synced).not.toContain('S0');
     expect(container.querySelector(getCssSelector('tooltip'))!.textContent).toContain('6');
+  });
+
+  // Regression: the collapsed sizer style was spread fresh each sync, so with showFiltered off the
+  // filtered series' collapsed rows re-synced on every content sync even when nothing of theirs changed
+  it('skips collapsed filtered rows when a data update touches only a visible series', () => {
+    const { container, handle } = mountChart(makeConfig({ showFiltered: false }));
+    handle.update({ filteredSeriesIds: { S1: true } } as Partial<DefaultChartProps>);
+    openTooltip(container);
+    const tooltip = container.querySelector(getCssSelector('tooltip'))!;
+    expect(tooltip.textContent).not.toContain('costs');
+
+    syncSpy.mockClear();
+    handle.update({ data: salesChanged } as Partial<DefaultChartProps>);
+    expect(tooltip.textContent).toContain('11');
+    const synced = syncedSeriesIds();
+    expect(synced).toContain('S0');
+    expect(synced).not.toContain('S1');
   });
 
   it('still routes row hover and click to the row series through the shared handlers', () => {

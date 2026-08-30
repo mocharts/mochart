@@ -28,6 +28,7 @@ type LineStyle = Record<string, string | number>;
 interface LineStyles {
   minWidth: number | null; lineSpacing: number; minTargetSize: number;
   lineStyle: LineStyle; targetLineStyle: LineStyle; lastLineStyle: LineStyle; lastTargetLineStyle: LineStyle;
+  collapsedLineStyle: LineStyle;
 }
 
 interface ValueFormats {
@@ -447,7 +448,8 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
     const lastLineStyle: LineStyle = minWidth !== null ? { ...baseLineStyle, minWidth } : baseLineStyle;
     const lineStyle: LineStyle = { ...lastLineStyle, paddingBottom: lineSpacing };
     return this.lineStyles = { minWidth, lineSpacing, minTargetSize, lineStyle, lastLineStyle,
-      targetLineStyle: { ...lineStyle, ...targetStyle }, lastTargetLineStyle: { ...lastLineStyle, ...targetStyle } };
+      targetLineStyle: { ...lineStyle, ...targetStyle }, lastTargetLineStyle: { ...lastLineStyle, ...targetStyle },
+      collapsedLineStyle: { ...lineStyle, height: 0, paddingTop: 0, paddingBottom: 0, overflow: 'hidden' } };
   }
 
   // the formatters build d3 scales/formats per series; rebuilt only when their inputs change
@@ -523,8 +525,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
     const categoryRowClickable = tooltipConfig.showControls || tooltipConfig.focusCategoryOnClick;
     const seriesRowClickable = (leaderSeriesId: string): boolean => tooltipConfig.showControls ||
       tooltipConfig.focusSeriesOnClick || (tooltipConfig.filterSeriesOnClick && mochartConfig.seriesById[leaderSeriesId].filterable);
-    const { lineStyle, targetLineStyle, lastLineStyle, lastTargetLineStyle } = this.getLineStyles(minWidth, tooltipConfig.lineSpacing, minTargetSize);
-    const collapsedLineStyle: LineStyle = { ...lineStyle, height: 0, paddingTop: 0, paddingBottom: 0, overflow: 'hidden' };
+    const { lineStyle, targetLineStyle, lastLineStyle, lastTargetLineStyle, collapsedLineStyle } = this.getLineStyles(minWidth, tooltipConfig.lineSpacing, minTargetSize);
 
     const tooltipLines: RendererItem[] = [];
 
