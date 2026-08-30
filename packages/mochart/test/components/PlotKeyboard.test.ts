@@ -10,7 +10,7 @@ import { createChart, createDefaultChart } from '../../src/createChart';
 import { enhanceConfig } from '../../src/config/helper';
 import { ArrayOfObjectsDataProvider } from '../../src/data/DataProvider';
 import type { MochartInputConfig } from '../../src/types/config';
-import { getCssSelector } from '../../src/utils/ChartDom';
+import { getCssSelector, getChartRootCssSelector } from '../../src/utils/ChartDom';
 import { focusRestoredAttribute } from '../../src/utils/utils';
 
 const rows = [
@@ -48,6 +48,9 @@ function tooltipText(container: Element): string {
   return container.querySelector(getCssSelector('tooltip'))?.textContent ?? '';
 }
 
+function mouse(target: Element, type: string, clientX: number, clientY: number): void {
+  target.dispatchEvent(new MouseEvent(type, { clientX, clientY, bubbles: true }));
+}
 // the live region speaks the first step at once and coalesces a burst, so a step inside the settle window lands after it
 const settleAnnouncement = () => new Promise(resolve => setTimeout(resolve, 200));
 
@@ -87,6 +90,23 @@ describe('plot keyboard stepping without snapToCategory', () => {
     key(rect, 'Enter');
     expect(tooltipText(container)).toContain('Mar');
     expect(tooltipLeft(container)).toBe(steppedMarLeft);
+  });
+
+  // Regression: re-entering the plot over the already-shown category cleared the tooltip bounds without a
+  // remeasure, so the box stayed visibility: hidden until the pointer crossed into another category
+  it('keeps the tooltip visible when the pointer re-enters over the open category', () => {
+    const container = mountChart(makeConfig({ tooltip: { followPointer: true } }));
+    const rect = plotRect(container);
+    key(rect, 'Enter');
+    const tooltip = () => container.querySelector<HTMLElement>(getCssSelector('tooltip'))!;
+    expect(tooltip().textContent).toContain('Jan');
+    expect(tooltip().style.visibility).not.toBe('hidden');
+
+    const root = container.querySelector(getChartRootCssSelector())!;
+    mouse(root, 'mouseenter', 100, 300);
+    mouse(root, 'mousemove', 100, 300);
+    expect(tooltip().textContent).toContain('Jan');
+    expect(tooltip().style.visibility).not.toBe('hidden');
   });
 
   // Regression: a data change remapped the open tooltip's category index but kept the old fraction (the box stayed

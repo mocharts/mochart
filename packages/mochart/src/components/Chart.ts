@@ -839,7 +839,9 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
           if (tooltipVisible) {
             // dataChanged: an open tooltip renders the new values, so its bounds
             // need remeasuring even when the chart text is untouched
-            if (dataChanged || !oldTooltipVisible || oldTooltipCategoryIndex !== tooltipCategoryIndex) {
+            // nulled bounds: reopening over the already-shown category clears them, and unmeasured bounds render hidden
+            const boundsCleared = prevState.tooltipBounds !== null && this.state.tooltipBounds === null;
+            if (dataChanged || !oldTooltipVisible || oldTooltipCategoryIndex !== tooltipCategoryIndex || boundsCleared) {
               this.calculateTooltipTextSize();
             }
           }
