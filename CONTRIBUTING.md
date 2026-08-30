@@ -29,7 +29,11 @@ npm test              # tests in every workspace that has them
 npm run test:e2e      # Playwright suites (demo-basic, then demo-vanilla)
 ```
 
-`test:e2e` needs a browser once per machine: `npx playwright install chromium`.
+`test:e2e` needs browsers once per machine:
+`npx playwright install chromium firefox webkit`. Chromium runs every spec;
+Firefox and WebKit run only the `@smoke` subset. On Linux add `--with-deps`
+for WebKit's extra system libraries, as CI does.
+
 CI then runs `build:pages` twice, once per base path; the checks that step
 carries are listed under [CI guardrails, in one
 place](#ci-guardrails-in-one-place).
