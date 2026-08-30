@@ -102,7 +102,8 @@ data.push({ month: 'Mar', revenue: 30 });
 The same rule applies to `config` on `DefaultChart` and to
 `mochartConfig`/`dataProvider` on `Chart`. For hosts that do mutate data in
 place, the `ref` prop exposes a `ChartRef` handle whose `refresh()`
-re-reads the current data, re-indexing the built-in providers:
+re-reads the current data. The built-in providers read live, so any in-place
+change is seen:
 
 ```tsx
 import { useRef } from 'react';

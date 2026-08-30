@@ -117,7 +117,8 @@ this.data.push({ month: 'Mar', revenue: 30 });
 The same rule applies to `config` on `mochart-default-chart` and to
 `mochartConfig`/`dataProvider` on `mochart-chart`. For hosts that do mutate
 data in place, the components expose `refresh()` as a public method — it
-re-reads the current data, re-indexing the built-in providers.
+re-reads the current data. The built-in providers read live, so any in-place
+change is seen.
 Reach it through a template reference variable or `@ViewChild`:
 
 ```ts
