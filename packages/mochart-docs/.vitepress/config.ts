@@ -113,6 +113,7 @@ function guideSidebar() {
       items: [
         { text: 'Getting started', link: '/guide/getting-started' },
         { text: 'The config model', link: '/guide/config-model' },
+        { text: 'Layout and spacing', link: '/guide/layout' },
         { text: 'Data providers', link: '/guide/data-providers' },
         { text: 'Staged animation', link: '/guide/staged-animation' },
         { text: 'Interaction', link: '/guide/interaction' },
@@ -151,6 +152,7 @@ function guideSidebar() {
         { text: 'Bar caps', link: '/recipes/bar-caps' },
         { text: 'Curves', link: '/recipes/curves' },
         { text: 'Markers and labels', link: '/recipes/markers-labels' },
+        { text: 'Chart title', link: '/recipes/title' },
         { text: 'Legend', link: '/recipes/legend' },
         { text: 'Tooltip formatting', link: '/recipes/tooltip-formatting' },
         { text: 'Histogram', link: '/recipes/histogram' },

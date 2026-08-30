@@ -55,6 +55,9 @@ import * as tickLabels from '../../examples/tickLabels';
 import * as tickLabelsDense from '../../examples/tickLabelsDense';
 import * as legend from '../../examples/legend';
 import * as legendSingle from '../../examples/legendSingle';
+import * as spacing from '../../examples/spacing';
+import * as title from '../../examples/title';
+import * as titleCaption from '../../examples/titleCaption';
 
 export interface UsageLink {
   text: string;
@@ -119,7 +122,10 @@ const docsExamples: { config: object; page: UsageLink }[] = [
   { config: tickLabels.config, page: { text: 'Tick labels', link: '/recipes/tick-labels' } },
   { config: tickLabelsDense.config, page: { text: 'Fewer ticks instead', link: '/recipes/tick-labels#fewer-ticks-instead' } },
   { config: legend.config, page: { text: 'Legend', link: '/recipes/legend' } },
-  { config: legendSingle.config, page: { text: 'A single-series key', link: '/recipes/legend#a-single-series-key' } }
+  { config: legendSingle.config, page: { text: 'A single-series key', link: '/recipes/legend#a-single-series-key' } },
+  { config: spacing.config, page: { text: 'Layout and spacing', link: '/guide/layout' } },
+  { config: title.config, page: { text: 'Chart title', link: '/recipes/title' } },
+  { config: titleCaption.config, page: { text: 'A caption under the chart', link: '/recipes/title#a-caption-under-the-chart' } }
 ];
 
 /** exported for scripts/checkSectionCoverage.ts: every examples/*.ts exporting a config must be here */

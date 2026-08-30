@@ -5,9 +5,10 @@ library (private, not published), built with [VitePress](https://vitepress.dev).
 
 The site has three legs:
 
-- **Guide** — getting started, the config model, data providers, staged
-  animation, interaction, accessibility, chart states, theming, image export,
-  the config editor, plus recipes for common chart shapes.
+- **Guide** — getting started, the config model, layout and spacing, data
+  providers, staged animation, interaction, accessibility, chart states,
+  theming, image export, the config editor, plus recipes for common chart
+  shapes.
 - **Reference** — three generated families plus two hand-written pages.
   `npm run gen` produces the three models, and the single dynamic route in
   [reference/](reference/) renders every generated page from them:
