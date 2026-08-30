@@ -28,6 +28,14 @@ describe('ArrayOfObjectsDataProvider', () => {
     expect(new ArrayOfObjectsDataProvider(partial).getPropertyValues('sales')).toEqual([1, undefined]);
   });
 
+  // Regression: `property in null` threw a TypeError, so one null entry crashed the data-error pass
+  it('treats a null entry as holding no properties instead of throwing', () => {
+    const holey = [{ month: 'Jan', sales: 1 }, null, { month: 'Mar', sales: 3 }] as unknown as Array<Record<string, unknown>>;
+    const provider = new ArrayOfObjectsDataProvider(holey);
+    expect(provider.getPropertyValues('sales')).toEqual([1, undefined, 3]);
+    expect(provider.getPropertyValues('absent')).toBeUndefined();
+  });
+
   it('returns empty values for any property of an empty dataset', () => {
     const provider = new ArrayOfObjectsDataProvider([] as Array<Record<string, unknown>>);
     expect(provider.getPropertyValues('anything')).toEqual([]);

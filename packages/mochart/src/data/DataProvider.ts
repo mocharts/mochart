@@ -7,11 +7,11 @@ export class ArrayOfObjectsDataProvider<TObject extends DataObject = DataObject>
   }
 
   getPropertyValues(property: string): readonly DataValue[] | undefined {
-    // a property in no object is absent, not N missing values
-    if (this.data.length > 0 && !this.data.some(obj => property in obj)) {
+    // a property in no object is absent, not N missing values; a null entry has no properties rather than throwing on `in`
+    if (this.data.length > 0 && !this.data.some(obj => obj != null && property in obj)) {
       return undefined;
     }
-    return this.data.map(obj => obj[property] as DataValue);
+    return this.data.map(obj => obj?.[property] as DataValue);
   }
 }
 

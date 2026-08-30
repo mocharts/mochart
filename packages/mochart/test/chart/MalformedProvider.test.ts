@@ -31,6 +31,23 @@ const ROWS = [{ month: 'Jan', sales: 10 }, { month: 'Feb', sales: 20 }];
 // a partially built provider, or a plain-JS host: the type forbids it, so only a cast reaches here
 const malformed = { rows: ROWS } as unknown as DataProvider;
 
+describe('a dataset with a null entry', () => {
+  // Regression: the `in` check threw a TypeError on the null entry, so the raw error replaced
+  // the descriptive data error
+  it('renders the error state instead of throwing', () => {
+    const container = mountContainer();
+    let chart: { destroy: () => void } | undefined;
+    expect(() => {
+      chart = mochart.createDefaultChart(container, {
+        config: CONFIG, data: [{ month: 'Jan', sales: 10 }, null], width: 300, height: 200
+      } as never);
+    }).not.toThrow();
+    runFrames();
+    expect(container.querySelectorAll(getCssSelector('seriesBar')).length).toBe(0);
+    chart!.destroy();
+  });
+});
+
 describe('a provider with no getPropertyValues', () => {
   it('renders the no-data state from createChart instead of throwing', () => {
     const container = mountContainer();
