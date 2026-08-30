@@ -58,8 +58,9 @@ import * as scatterBubble from '../examples/scatterBubble'
   that apply only to values above or below the value axis
   [`base`](/reference/valueAxes#valueAxes.base) — handy for labeling positive
   and negative bars differently. Their default `'auto'` inherits the plain
-  setting (the below-base offset mirrors it, so labels move away from the
-  base on both sides).
+  setting, except the below-base offset, which inherits the negated
+  `label.offset` so both sides shift the same distance in opposite
+  directions.
 - [`label.textStyle`](/reference/series#series.label.textStyle) styles the
   label text, again per focus state. Its colors accept the palette modes
   (`series`, `seriesIndex`, `categoryIndex`) as well as literal colors — see
