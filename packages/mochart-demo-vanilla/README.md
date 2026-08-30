@@ -24,7 +24,9 @@ routing is a tiny history-based router with the same URL scheme as the other
 demos. The JSON demo configs and datasets are shared from
 [@mochart/demo-data](../mochart-demo-data/README.md);
 [@mochart/demo-basic](../mochart-demo-basic/README.md) is a smaller
-no-framework harness of the same demos that hosts the e2e suite.
+no-framework harness of the same demos that hosts the core e2e suite. This
+package has its own suite in [e2e/](e2e/), covering the share links, editor
+tabs, export and phone fold that only the full gallery has.
 
 ## Install
 
@@ -41,10 +43,13 @@ From the repo root (`npm run dev` targets this package):
 ```sh
 npm run dev        # vite dev server on http://localhost:5179
 npm run build      # production build to dist/
+npm run test:e2e   # demo-basic's playwright suite, then this package's
 ```
 
 Or from this package: `npm run dev`, `npm run build`, `npm run preview`
-(port 4179), `npm run typecheck`.
+(port 4179), `npm run typecheck`, and `npm run test:e2e` for this suite
+alone. It runs Chromium only, in a desktop and a phone project, against the
+dev server on port 5179.
 
 ## Adding a demo
 
