@@ -287,6 +287,22 @@ function getValueAxisFocusDomainPercentages(mochartConfig: EnhancedMochartConfig
   return seriesPercentages;
 }
 
+// keyed on the copy-on-write value arrays: focus-tween frames reuse them by reference, so the
+// per-frame full-array scans collapse to lookups; data-tween frames rebuild the arrays and recompute
+const valuesDomainCache = new WeakMap<readonly number[], NullableDomain>();
+
+function getCachedDomainForValues(values: readonly number[] | null): NullableDomain {
+  if (values === null) {
+    return getDomainForValues(values);
+  }
+  let domain = valuesDomainCache.get(values);
+  if (domain === undefined) {
+    domain = getDomainForValues(values);
+    valuesDomainCache.set(values, domain);
+  }
+  return domain;
+}
+
 function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, seriesData: SeriesData, focusedCategoryIndex: number, focusedSeriesId: string | null): number[] {
   let seriesPercentages: number[] = [];
   if (isFocused(focusedCategoryIndex) || isFocused(focusedSeriesId)) {
@@ -338,8 +354,8 @@ function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, s
         for (const config of focusedSeriesConfigs) {
           const { max: maxValues, min: minValues } = values[config.id];
           let configFocusDomain: NullableDomain = [null, null];
-          const maxValuesDomain = getDomainForValues(maxValues);
-          const minValuesDomain = getDomainForValues(minValues);
+          const maxValuesDomain = getCachedDomainForValues(maxValues);
+          const minValuesDomain = getCachedDomainForValues(minValues);
           if (maxValuesDomain[0] !== null || minValuesDomain[0] !== null) {
             if (maxValuesDomain[0] !== null && minValuesDomain[0] !== null) {
               configFocusDomain = mergeDomain(maxValuesDomain, minValuesDomain);
