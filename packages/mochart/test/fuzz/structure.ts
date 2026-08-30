@@ -39,7 +39,9 @@ function nextCategoryValue(value: unknown): unknown {
     return value + 1;
   }
   if (typeof value === 'string') {
-    return value + ' (fuzz)';
+    // a date string keeps parsing as a date, or a date axis rejects the row as a data mismatch
+    const time = Date.parse(value);
+    return !Number.isNaN(time) && value.includes('-') ? new Date(time + 86400000).toISOString() : value + ' (fuzz)';
   }
   if (value instanceof Date) {
     return new Date(value.getTime() + 86400000);
