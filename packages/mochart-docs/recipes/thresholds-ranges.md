@@ -34,9 +34,13 @@ import * as thresholdRange from '../examples/thresholdRange'
   states stay at their defaults. `rangeProperty` works with the other
   renderers too: `bar` draws floating bars, and `line` draws the two bounds as
   a pair of lines sharing the series' style and legend entry.
-- The tooltip shows a ranged series as `low - high`, joined by
-  [`tooltip.rangeValueSeparator`](/reference/tooltip#tooltip.rangeValueSeparator).
-  A category with only one of the two values collapses to a zero-extent span
+- For ranged series the tooltip prints the `rangeProperty` value, then
+  [`tooltip.rangeValueSeparator`](/reference/tooltip#tooltip.rangeValueSeparator),
+  then the `property` value. That order comes from the config, not from the
+  two magnitudes, so the example above reads `low - high` because it puts
+  `p5` in `rangeProperty`. When both ends format to the same text, the tooltip
+  shows it once instead of repeating it either side of the separator.
+- A category with only one of the two values collapses to a zero-extent span
   at the defined one, so the band stays connected; set
   [`partialRangeIsMissing`](/reference/series#series.partialRangeIsMissing)
   to treat such categories as missing instead.
