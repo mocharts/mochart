@@ -244,6 +244,8 @@ async function main(): Promise<void> {
         fuzzer.runCase(base, spec, candidate, entry);
       }
     }
+    // the sweep is synchronous, so the event loop only turns here, which is what lets the SIGINT handler run
+    await new Promise(resolve => setImmediate(resolve));
     if (elapsedSeconds() - lastReport > 5) {
       lastReport = elapsedSeconds();
       // `done` is still the index of the unit just finished, so the count is one higher
