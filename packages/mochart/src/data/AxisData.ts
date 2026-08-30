@@ -453,7 +453,9 @@ function getTickCount(axisConfig: AxisConfigBase, axisRangeExtent: number, axisD
   const { tickCount, maxTickCount, minTickSpacing, minTickInterval } = axisConfig;
   let count;
   if (tickCount === AUTO) {
-    count = Math.max(1, Math.floor((axisRangeExtent + minTickSpacing) / (tickLabelSpace + minTickSpacing)));
+    // an invisible axis has no label width, so the divisor is floored at one pixel per tick
+    const tickSpace = Math.max(1, tickLabelSpace + minTickSpacing);
+    count = Math.max(1, Math.floor((axisRangeExtent + minTickSpacing) / tickSpace));
     if (minTickInterval > 0) {
       const intervalCount = Math.max(1, Math.floor(axisDomainExtent / minTickInterval) + 1);
       count = Math.min(intervalCount, count);

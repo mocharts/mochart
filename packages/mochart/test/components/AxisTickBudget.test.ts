@@ -99,4 +99,12 @@ describe('value axis tick budget', () => {
     expect(valueTickCount(mountChart({}, { tickCount: 6, maxTickCount: 2 }))).toBe(exact);
     expect(valueTickCount(mountChart({}, { tickCount: 6, minTickSpacing: 300 }))).toBe(exact);
   });
+
+  // Regression: an invisible axis has no label width, so with minTickSpacing 0 the auto count divided by zero and
+  // with maxTickCount 0 nothing clamped it, so d3 was asked for Infinity ticks and the chart never mounted
+  it('mounts an invisible axis with minTickSpacing 0 and no tick cap', () => {
+    const container = mountChart({}, { visible: false, maxTickCount: 0, minTickSpacing: 0, min: 1, max: 5 });
+    expect(valueTickCount(container)).toBe(0);
+    expect(container.querySelectorAll('rect').length).toBeGreaterThan(1);
+  });
 });
