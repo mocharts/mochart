@@ -265,6 +265,14 @@ logic through `@mochart/demo-common` and their configs/datasets through
   button or Config-tab docs links for the pattern: shared logic in
   demo-common, one thin component per framework).
 - Demo blurbs live as `description` fields in `demo-data/src/demos.json`.
+- The screenshot harness is what checks the equivalence: a 147-shot matrix of
+  demo, mode, tab and viewport, captured with `npm run screenshots` and
+  diffed with `npm run screenshots:compare`. Run it after changing shared
+  code, which can move layout in five packages you did not open, and to
+  verify a port renders identically to vanilla. It is not part of the gate,
+  and its reference sets are gitignored, so you capture a baseline yourself
+  before the change. See
+  [scripts/screenshots/README.md](scripts/screenshots/README.md).
 - There are two Playwright suites, and root `npm run test:e2e` runs both.
   `@mochart/demo-basic` holds the core one and is a minimal harness rather
   than a gallery, not deployed; `@mochart/demo-vanilla` has its own, covering
