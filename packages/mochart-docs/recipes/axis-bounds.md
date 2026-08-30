@@ -32,7 +32,13 @@ import * as axisReversed from '../examples/axisReversed'
 - Both bounds default to `auto`, which fits the domain to the data (plus
   [`minMarginFraction`](/reference/valueAxes#valueAxes.minMarginFraction) /
   [`maxMarginFraction`](/reference/valueAxes#valueAxes.maxMarginFraction)).
-  An `auto` end never clips.
+  An `auto` end never clips on its own.
+- [`minOffset`](/reference/valueAxes#valueAxes.minOffset) /
+  [`maxOffset`](/reference/valueAxes#valueAxes.maxOffset) shift an `auto` end
+  by a fixed amount once the data has been fitted, which is how you pad or
+  tighten a domain without pinning it to a number. Shifting a bound inward
+  hides data, so an offset end clips like an explicit one and gets the same
+  indicator band. They apply only to an end left on `auto`.
 - `min` must not be above `max` when both are set; the config is rejected
   otherwise. To run an axis backwards use `reversed`, below.
 - The same properties exist on the
