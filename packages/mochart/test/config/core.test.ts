@@ -155,6 +155,30 @@ describe('getConfigWithoutDefaults', () => {
     expect(getConfigWithDefaults(minimal, defaults)).toEqual(getConfigWithDefaults(config, defaults));
   });
 
+  // Regression: a list section given in single-object shorthand was compared against the whole defaults
+  // array, so no member ever matched and the entry came back verbatim, defaults and auto id included
+  it('minimizes a list section given in single-object shorthand', () => {
+    const config = {
+      categoryAxis: { property: 'c' },
+      series: { property: 'v', renderer: 'line', id: 'S0' }
+    };
+    const defaults = getDefaults(config);
+    const minimal = getConfigWithoutDefaults(config, defaults);
+    expect(minimal.series).toEqual({ property: 'v' });
+    expect(getConfigWithDefaults(minimal, defaults)).toEqual(getConfigWithDefaults(config, defaults));
+  });
+
+  it('drops a shorthand valueAxes entry holding nothing but defaults', () => {
+    const config = {
+      categoryAxis: { property: 'c' },
+      series: [{ property: 'v' }],
+      valueAxes: { id: 'VA0' }
+    };
+    const defaults = getDefaults(config) as { valueAxes: Record<string, unknown>[] };
+    const minimal = getConfigWithoutDefaults({ ...config, valueAxes: { id: defaults.valueAxes[0]!.id } }, defaults);
+    expect(minimal.valueAxes).toBeUndefined();
+  });
+
   // Regression: a grouped key was compared whole, so overriding one member kept every default-equal
   // sibling — after the flat-keys-to-groups regrouping that was nearly every property in the config
   it('strips default-equal members inside a grouped key', () => {

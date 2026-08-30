@@ -337,7 +337,10 @@ export function getConfigWithoutDefaults(config: unknown, defaults: ConfigRecord
             }
           }
           else if (isObject(configSection)) {
-            const newSection = removeSectionDefaults(defaultsSection, allSection, configSection);
+            // a list section in single-object shorthand minimizes against its lone entry's defaults, keeping the shorthand shape;
+            // an entry left empty stays out, which is the list branch's implicitOnly drop for the one-entry case
+            const defaultSectionValue = Array.isArray(defaultsSection) ? defaultsSection[0] : defaultsSection;
+            const newSection = removeSectionDefaults(defaultSectionValue, allSection, configSection);
             if (isObject(newSection) && Object.keys(newSection).length > 0) {
               minimal[sectionKey] = newSection;
             }
