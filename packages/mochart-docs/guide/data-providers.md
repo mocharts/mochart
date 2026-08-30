@@ -186,7 +186,9 @@ const errors = getDataErrors(enhanceConfig(config), new ArrayOfObjectsDataProvid
 Who runs this check depends on the entry point. Default charts
 (`createDefaultChart`, the bindings' `DefaultChart`) validate for you:
 they re-run `getDataErrors` whenever the config or data changes and show
-the error state when it fails. Managed charts (`createChart`, the
+the error state when it fails — with the fixed message `'Invalid Data'`,
+not the messages above, so call `getDataErrors` yourself to see which
+property is at fault. Managed charts (`createChart`, the
 bindings' `Chart`) trust the enhanced config and provider they are given
 — validation is the host's job there, so run `getDataErrors` whenever
 your config or data changes if the inputs aren't guaranteed valid.
