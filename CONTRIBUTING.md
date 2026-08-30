@@ -256,8 +256,10 @@ Points worth knowing when contributing:
   (`npm test -w @mochart/docs`) — a broken example fails the build.
 - The config reference pages and their "Used in" links are generated, as are
   the props, callbacks, enumerated-values, and framework-props pages; edit
-  the sources (above), not the pages. `reference/api.md` is the one reference
-  page still written by hand.
+  the sources (above), not the pages. Two reference pages are still written
+  by hand: `reference/api.md` (the exported functions and classes) and
+  `reference/index.md` (the overview, whose section table reads the config
+  model).
 - VitePress fails the build on dead internal links. Links into the demo
   galleries (`/vanilla/…`) resolve only on the assembled site and are
   exempted in `.vitepress/config.ts`; demo deep links need a trailing slash
