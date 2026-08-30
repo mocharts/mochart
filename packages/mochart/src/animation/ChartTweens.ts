@@ -117,16 +117,35 @@ function initMochartTween(): TweenEngine {
     // A cascade this deep within one frame means a zero-duration chain cycle;
     // defer the remainder to the next frame instead of hanging the loop.
     let passes = 0;
+    // a throwing tween is stopped with its chain, or it would starve later tweens and re-fire its final frame forever
+    let firstError: unknown = null;
+    let threw = false;
     while (tweenIds.length > 0 && ++passes <= MAX_UPDATE_PASSES) {
 			_pendingTweens = {};
 
       for (const tweenId of tweenIds) {
-        if (_tweens[tweenId] !== undefined && _tweens[tweenId].update(time) === false) {
-          delete _tweens[tweenId];
+        const tween = _tweens[tweenId];
+        if (tween === undefined) {
+          continue;
+        }
+        try {
+          if (tween.update(time) === false) {
+            delete _tweens[tweenId];
+          }
+        }
+        catch (error) {
+          tween.stop();
+          if (!threw) {
+            threw = true;
+            firstError = error;
+          }
         }
       }
 
       tweenIds = Object.keys(_pendingTweens);
+    }
+    if (threw) {
+      throw firstError;
     }
     return true;
   }

@@ -227,6 +227,36 @@ describe('tweenData', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('a data tween step that throws stops the chain, so no later step runs', () => {
+    const manager = makeManager();
+    const { events, record } = makeRecorder();
+    const completeCallback = vi.fn();
+    const throwingRecord = (data: AnimationChartData, event: DataTweenEvent): void => {
+      record(data, event);
+      if (event === dataTweenExpandUpdate) {
+        throw new Error('render failed');
+      }
+    };
+
+    manager.tweenData(makeConfig(), makeAnimationData({
+      axisExpansionData: phaseData(1, sentinel('expand', 'start'), sentinel('expand', 'final')),
+      valueChangeData: phaseData(1, sentinel('value', 'start'), sentinel('value', 'final'))
+    }), throwingRecord, { completeCallback });
+
+    let thrown: unknown = null;
+    while (thrown === null && vi.getTimerCount() > 0) {
+      try { vi.advanceTimersByTime(FRAME_MS); } catch (error) { thrown = error; }
+    }
+    expect(thrown).toEqual(new Error('render failed'));
+    const eventCount = events.length;
+    runFrames();
+
+    expect(events.length).toBe(eventCount);
+    expect(events.some(({ event }) => event === dataTweenExpandComplete || event === dataTweenValueStart)).toBe(false);
+    expect(completeCallback).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   // Regression: a tween cancelled from inside its own callback still fired its completion and started its
   // chained steps, so a superseded data tween kept running interleaved with its replacement
   it('a data tween replaced from inside its own callback runs none of its later steps', () => {
@@ -373,9 +403,9 @@ describe('tweenFocus', () => {
       try { vi.advanceTimersByTime(FRAME_MS); } catch (error) { thrown = error; }
     }
     expect(thrown).toEqual(new Error('render failed'));
-    // the throwing tween keeps driving on later frames
+    // the throwing tween is stopped, so it neither drives nor throws on later frames
     runFrames();
-    expect(updates).toBeGreaterThan(2);
+    expect(updates).toBe(2);
 
     const manager = makeManager();
     const updateCallback = vi.fn();
@@ -384,6 +414,34 @@ describe('tweenFocus', () => {
     runFrames();
     expect(updateCallback).toHaveBeenCalled();
     expect(completeCallback).toHaveBeenCalledTimes(1);
+  });
+
+  // Regression: an uncaught throw left the engine loop before the tweens registered after the
+  // thrower, and the thrower re-fired its final frame every frame until something stopped it
+  it('a throwing tween is stopped and the tweens after it still run in the same frame', () => {
+    const throwing = makeManager();
+    let throws = 0;
+    throwing.tweenFocus(makeConfig(), makeFocusData().animationData, () => {
+      throws++;
+      throw new Error('render failed');
+    });
+    const manager = makeManager();
+    const updateCallback = vi.fn();
+    const completeCallback = vi.fn();
+    manager.tweenFocus(makeConfig(), makeFocusData().animationData, updateCallback, { completeCallback });
+
+    let thrown: unknown = null;
+    while (thrown === null && vi.getTimerCount() > 0) {
+      try { vi.advanceTimersByTime(FRAME_MS); } catch (error) { thrown = error; }
+    }
+    expect(thrown).toEqual(new Error('render failed'));
+    // the later tween was reached in the frame that threw
+    expect(updateCallback).toHaveBeenCalled();
+
+    runFrames();
+    expect(throws).toBe(1);
+    expect(completeCallback).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   // Regression: a tween started from the final frame's updateCallback was clobbered by the
