@@ -14,7 +14,7 @@ const pie = createPie(
     { label: 'Other', value: 30 }
   ],
   // valuePercent puts each slice's share next to its value in the tooltip,
-  // e.g. "420 (48.8%)"
+  // e.g. "420 (44.7%)"
   { valueFormat: ',.0f', tooltipValueType: 'valuePercent' }
 );
 
