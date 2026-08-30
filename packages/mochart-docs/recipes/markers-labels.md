@@ -45,8 +45,11 @@ import * as scatterBubble from '../examples/scatterBubble'
   and
   [`label.minPositionFraction`](/reference/series#series.label.minPositionFraction) /
   [`label.maxPositionFraction`](/reference/series#series.label.maxPositionFraction),
-  which hide labels whose values sit too close to the domain's minimum or
-  maximum.
+  which hide labels whose values sit too close to the value axis
+  [`base`](/reference/valueAxes#valueAxes.base) or too close to the domain end
+  they run toward, each by a fraction of the domain extent. Where the axis has
+  no `base`, the guards use the domain minimum as the base. `base` defaults to
+  `0` on any axis with stacks.
 - `label.position`, `label.offset` and the two position-fraction guards each
   have a variant under [`label.aboveBase`](/reference/series#series.label.aboveBase) /
   [`label.belowBase`](/reference/series#series.label.belowBase)
