@@ -17,6 +17,7 @@ import { CHART_TYPE_PIE } from '../config/core/constants';
 import Background from './Background';
 import Title from './Title';
 import Plot from './Plot';
+import type { SeriesShapeA11yProps } from './SeriesBackground';
 import RadialPlot from './RadialPlot';
 import PlotEmpty from './PlotEmpty';
 import Legend from './Legend';
@@ -1015,6 +1016,17 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   /** where keyboard toggling reopens: the last category the tooltip showed */
   lastTooltipCategoryIndex = 0;
 
+  /** kept across syncs so the plot's shallow-equal skip holds while the label and expanded state are unchanged */
+  private plotA11yProps: SeriesShapeA11yProps | null = null;
+
+  private getPlotA11yProps(ariaLabel: string, ariaExpanded: string): SeriesShapeA11yProps {
+    const cached = this.plotA11yProps;
+    if (cached === null || cached.ariaLabel !== ariaLabel || cached.ariaExpanded !== ariaExpanded) {
+      this.plotA11yProps = { ariaLabel, ariaExpanded, onKeyDown: this.onPlotKeyDown };
+    }
+    return this.plotA11yProps!;
+  }
+
   /** the visually-hidden aria-live node; keyboard navigation speaks the tooltip through it */
   liveRegionNode: Node | null = null;
   private announceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1483,11 +1495,9 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       // kept during loading — dropping tabindex would dump keyboard focus to <body>
       const plotInteractive = mochartConfig.tooltip.visible ||
         (mochartConfig.chart.type !== CHART_TYPE_PIE && mochartConfig.crosshair.visible);
-      const plotA11yProps = accessibility && plotInteractive ? {
-        ariaLabel: accessibilityConfig.plotLabel,
-        ariaExpanded: String(tooltipVisible),
-        onKeyDown: this.onPlotKeyDown
-      } : null;
+      const plotA11yProps = accessibility && plotInteractive
+        ? this.getPlotA11yProps(accessibilityConfig.plotLabel, String(tooltipVisible))
+        : null;
 
       if (mochartConfig.chart.type === CHART_TYPE_PIE) {
         body.plot.set(RadialPlot, { mochartConfig, gradientIdMap, patternIdMap, seriesLayoutInfo,
