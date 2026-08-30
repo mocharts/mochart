@@ -106,6 +106,30 @@ describe('while loading, the chart does not commit', () => {
     mouse(root(container), 'mouseenter', 100, 100);
     expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
   });
+
+  it('leaves an already-open follow-pointer tooltip on its category', () => {
+    const focuses: ChartFocus[] = [];
+    const { container, handle } = mountChart(
+      makeConfig({ tooltip: { visible: true, followPointer: true, applyFocus: true } }),
+      { onFocus: focus => { focuses.push(focus); } }
+    );
+    const chartRoot = root(container);
+    mouse(chartRoot, 'mouseenter', 100, 300);
+    mouse(chartRoot, 'mousemove', 100, 300);
+    const opened = container.querySelector(getCssSelector('tooltip'))!.textContent;
+
+    handle.update({ loading: true } as Partial<DefaultChartProps>);
+    focuses.length = 0;
+    mouse(chartRoot, 'mousemove', 700, 300);
+    // the move path commits a category position too, so it is gated like the enter path
+    expect(container.querySelector(getCssSelector('tooltip'))!.textContent).toBe(opened);
+    expect(focuses).toEqual([]);
+
+    handle.update({ loading: false } as Partial<DefaultChartProps>);
+    mouse(chartRoot, 'mousemove', 700, 300);
+    expect(container.querySelector(getCssSelector('tooltip'))!.textContent).not.toBe(opened);
+    expect(focuses[focuses.length - 1]).toMatchObject({ focusedCategoryIndex: 2 });
+  });
 });
 
 describe('while loading, ids keep working', () => {

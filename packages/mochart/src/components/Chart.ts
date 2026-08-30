@@ -929,7 +929,8 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     const mochartConfig = this.renderedConfig();
     const eventPayload = this.getChartEventPayload(chartX, chartY);
     onChartMouseMove?.(eventPayload);
-    if (mochartConfig.tooltip.followPointer) {
+    // the enter path is gated too: while loading, nothing may commit a category position that the new data may not have
+    if (mochartConfig.tooltip.followPointer && !this.isLoading()) {
       const { tooltip: tooltipConfig, crosshair: crosshairConfig } = mochartConfig;
       const { valueFraction: seriesPercentage, categoryFraction, categoryIndex } = eventPayload;
       // same applyFocus gate as setTooltipOpen: enter, move and leave must agree on whether pointer interactions may change the focused category

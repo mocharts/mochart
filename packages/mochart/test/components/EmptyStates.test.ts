@@ -338,7 +338,7 @@ describe('state factory re-invocation', () => {
     const before = container.querySelector('.factory-marker')!;
     expect(calls.length).toBe(1);
 
-    // pointer tracking stays live while loading, so each followPointer move is a setState → syncBody
+    // the moves are reported to the host throughout, and must not rebuild the overlay content
     mouse(root, 'mouseenter', 100, 100);
     mouse(root, 'mousemove', 200, 100);
     mouse(root, 'mousemove', 300, 100);
