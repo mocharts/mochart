@@ -85,6 +85,7 @@ way:
 - the crosshair lines
 - legend item text, and the series-icon borders in the legend and tooltip
 - series value labels, and the pie center labels
+- the clip indicator band and its label
 
 Each comes with a tuned default opacity so a single value reads correctly
 over both light and dark backgrounds — grid lines at `strokeOpacity` 0.13,
