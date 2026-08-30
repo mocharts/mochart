@@ -54,7 +54,8 @@ There are also build-free static HTML examples in
 
 ## Getting started
 
-This repo uses npm workspaces:
+This repo uses npm workspaces, and needs Node 22.22.3 or newer (`.nvmrc`
+pins 24; CI runs both):
 
 ```sh
 npm install
