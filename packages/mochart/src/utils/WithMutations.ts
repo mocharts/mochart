@@ -20,13 +20,18 @@ export function getWithMutations(oldValue: unknown, newValue: unknown, customMut
   }
   else if (Array.isArray(oldValue) && Array.isArray(newValue)) {
     if (oldValue.length === newValue.length) {
-      const newArray = oldValue.map((v, i) => getWithMutations(v, newValue[i], customMutator));
-      if (oldValue.some((v, i) => !areValuesEqual(v, newArray[i]))) {
-        return newArray;
+      // allocated on the first changed element; the scanned prefix is unchanged, so it copies from oldValue
+      let newArray: unknown[] | null = null;
+      for (let i = 0; i < oldValue.length; i++) {
+        const merged = getWithMutations(oldValue[i], newValue[i], customMutator);
+        if (newArray === null && !areValuesEqual(oldValue[i], merged)) {
+          newArray = oldValue.slice(0, i);
+        }
+        if (newArray !== null) {
+          newArray.push(merged);
+        }
       }
-      else {
-        return oldValue;
-      }
+      return newArray !== null ? newArray : oldValue;
     }
     else {
       return newValue;
@@ -43,22 +48,23 @@ export function getWithMutations(oldValue: unknown, newValue: unknown, customMut
     const newKeys = Object.keys(newValue);
     // null proto: merged maps can be keyed by external ids (__proto__ must survive the merge)
     const oldKeyMap = oldKeys.reduce<Record<string, boolean>>((map, key) => { map[key] = true; return map }, Object.create(null));
-    const newObject: Record<string, unknown> = Object.create(null);
-    for (const newKey of newKeys) {
-      if (oldKeyMap[newKey]) {
-        newObject[newKey] = getWithMutations(oldObject[newKey], incomingObject[newKey], customMutator);
+    // allocated on the first changed or added member (or when a key was removed); the scanned prefix copies from oldObject
+    let newObject: Record<string, unknown> | null = oldKeys.length === newKeys.length ? null : Object.create(null);
+    for (let i = 0; i < newKeys.length; i++) {
+      const newKey = newKeys[i];
+      // areValuesEqual, like the array branch: a NaN member is unchanged when both sides hold NaN
+      const merged = oldKeyMap[newKey] ? getWithMutations(oldObject[newKey], incomingObject[newKey], customMutator) : incomingObject[newKey];
+      if (newObject === null && !(oldKeyMap[newKey] && areValuesEqual(oldObject[newKey], merged))) {
+        newObject = Object.create(null);
+        for (let j = 0; j < i; j++) {
+          newObject![newKeys[j]] = oldObject[newKeys[j]];
+        }
       }
-      else {
-        newObject[newKey] = incomingObject[newKey];
+      if (newObject !== null) {
+        newObject[newKey] = merged;
       }
     }
-    // areValuesEqual, like the array branch: a NaN member is unchanged when both sides hold NaN
-    if (oldKeys.length === newKeys.length && newKeys.every(newKey => oldKeyMap[newKey]) && oldKeys.every(oldKey => areValuesEqual(newObject[oldKey], oldObject[oldKey]))) {
-      return oldValue;
-    }
-    else {
-      return newObject;
-    }
+    return newObject !== null ? newObject : oldValue;
   }
   else if (customMutator !== undefined) {
     return customMutator(oldValue, newValue);
