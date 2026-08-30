@@ -91,9 +91,14 @@ And the rest:
 npm run build:pages         # assemble the deployable site into site/
 npm run preview:pages       # build and serve site/ at the root base path
 npm run preview:pages:serve # serve an already-built site/ without rebuilding
-npm run screenshots         # capture the demo screenshots
-npm run screenshots:compare # compare a fresh capture against the committed set
+npm run screenshots -- <out-dir>               # capture the demo screenshots
+npm run screenshots:compare -- <dir-a> <dir-b> # diff two captures
 ```
+
+The screenshot references are not committed, because font rasterization makes
+them machine-specific, so capture your own baseline before a change and diff
+the fresh capture against it. [scripts/screenshots/README.md](scripts/screenshots/README.md)
+has the matrix, the per-port dev server table and the options.
 
 Target a single package with `-w`, e.g. `npm test -w @mochart/core`. `lint` and
 `deadcode` exist only at the root; narrow them with `npx eslint <path>` and
