@@ -11,9 +11,10 @@ stable element ids, and hash routing. That makes it two things:
 
 1. The smallest possible integration example — closer to what you'd paste
    into your own project than the full galleries.
-2. The host of the Playwright e2e suite (see [e2e/](e2e/)), which depends on
-   this app's simple, stable DOM contract (`#chart-host`, toolbar button ids,
-   `/#<demo-id>` hash routing). Keep that contract stable when editing.
+2. The host of the core Playwright e2e suite (see [e2e/](e2e/)) — the vanilla
+   gallery has its own — which depends on this app's simple, stable DOM
+   contract (`#chart-host`, toolbar button ids, `/#<demo-id>` hash routing).
+   Keep that contract stable when editing.
 
 Live controls exercise mochart's
 [staged animations](../mochart/README.md#staged-animation):
@@ -44,10 +45,11 @@ From the repo root:
 
 ```sh
 npm run dev:basic  # vite dev server on http://localhost:5173
-npm run test:e2e   # playwright end-to-end tests (see e2e/)
+npm run test:e2e   # this suite (see e2e/), then the vanilla gallery's
 ```
 
-Or from this package: `npm run dev`, `npm run build`, `npm run preview`.
+Or from this package: `npm run dev`, `npm run build`, `npm run preview`, and
+`npm run test:e2e` for this suite alone.
 
 ## Adding a demo
 
