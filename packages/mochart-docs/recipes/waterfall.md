@@ -42,6 +42,7 @@ import * as waterfall from '../examples/waterfall'
   computed steps come back under `steps` — or call
   `computeWaterfallSteps(items, base)` alone for the math without the chart
   fragments.
-- The floating deltas visualize signed changes without ever plotting below
-  the axis; for charts whose bars themselves cross zero, see
+- Each bar spans from the running total before the step to the total after
+  it, so a bar crosses or sits below the base as soon as the running total
+  does. For bars rooted at the base whose own values carry the sign, see
   [positive and negative values](/recipes/positive-negative).
