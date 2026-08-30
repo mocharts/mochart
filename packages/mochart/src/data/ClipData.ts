@@ -7,6 +7,19 @@ import type { EnhancedMochartConfig } from '../types/enhanced';
 
 export const noClippedEdges: ClippedEdges = { top: false, right: false, bottom: false, left: false };
 
+// keyed on the parsed category values array, which value-tween frames reuse by reference,
+// so the per-frame rescan of every category collapses to a lookup
+const categoryDomainCache = new WeakMap<readonly DomainValue[], NullableDomain<DomainValue>>();
+
+function getCachedCategoryDomain(values: readonly DomainValue[]): NullableDomain<DomainValue> {
+  let domain = categoryDomainCache.get(values);
+  if (domain === undefined) {
+    domain = getCategoryDomainForValues(values);
+    categoryDomainCache.set(values, domain);
+  }
+  return domain;
+}
+
 export function hasClippedEdge(clippedEdges: ClippedEdges): boolean {
   return clippedEdges.top || clippedEdges.right || clippedEdges.bottom || clippedEdges.left;
 }
@@ -33,7 +46,7 @@ export function getClippedEdges(mochartConfig: EnhancedMochartConfig, chartData:
   const { categoryAxis: categoryAxisConfig } = mochartConfig;
   // an ordinal category axis validates min/max to "auto", so it can never clip
   if (categoryAxisConfig.scale !== SCALE_ORDINAL) {
-    const drawnDomain = getCategoryDomainForValues(chartData.categoryData.values.parsed as readonly DomainValue[]);
+    const drawnDomain = getCachedCategoryDomain(chartData.categoryData.values.parsed as readonly DomainValue[]);
     setClippedEdges(clippedEdges, mochartConfig, categoryAxisConfig, toNumericDomain(drawnDomain),
       toNumericDomain(chartData.categoryData.axisDomain), true);
   }
