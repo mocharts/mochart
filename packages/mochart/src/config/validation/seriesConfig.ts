@@ -69,6 +69,82 @@ const labelBaseSideValidators = () => validators.partialObjectWithShape({
   position: validators.oneOf([AUTO].concat(LABEL_POSITIONS))
 }, true);
 
+// entry-independent members, built once: getValidators only adds the conditional members, which read the entry at construction
+const staticMembers = {
+  id: validators.id(),
+  order: validators.integer(),
+  axis: validators.string(),
+  stack: validators.string().orEqual(NONE),
+  group: validators.string().orEqual(NONE),
+  property: validators.propertyRequired(),
+  rangeProperty: validators.propertyOptional(),
+  markerProperty: validators.propertyOptional(),
+  labelProperty: validators.propertyOptional(),
+  tooltipProperty: validators.propertyOptional(),
+  allowAbsentDataProperties: validators.boolean(),
+  ignore: validators.boolean(),
+  renderer: validators.oneOf(RENDERERS),
+  missingValueMode: validators.oneOf(MISSING_VALUE_MODES),
+  partialRangeIsMissing: validators.boolean(),
+  bar: validators.partialObjectWithShape({
+    widthFraction: validators.numberMinMax(0, 1),
+    alignFraction: validators.numberMinMax(0, 1),
+    minExtent: validators.numberMin(0)
+  }, true),
+  cap: validators.partialObjectWithShape({
+    size: validators.numberMin(0),
+    type: validators.oneOf(CAP_TYPES).orEqual(NONE),
+    expand: validators.boolean(),
+    onlyStackOuter: validators.boolean()
+  }, true),
+  errorBar: validators.partialObjectWithShape({
+    capSize: validators.numberMin(0),
+    style: seriesStyle.styleStates(lineMembers)
+  }, true),
+  valueLabel: validators.string().orEqual(NONE),
+  valueFormat: validators.numberFormat().orOneOf([NONE, AUTO]),
+  valuePrefix: validators.string().orEqual(NONE),
+  valueSuffix: validators.string().orEqual(NONE),
+  useTitleForValueLabel: validators.boolean(),
+  title: validators.string().orEqual(NONE),
+  shapeStyle: ownStyle.styleStates(styleMembers),
+  label: validators.partialObjectWithShape({
+    format: validators.numberFormat().orOneOf([NONE, AUTO]),
+    prefix: validators.string().orEqual(NONE),
+    suffix: validators.string().orEqual(NONE),
+    textStyle: seriesStyle.styleStates(styleMembers),
+    minPositionFraction: validators.numberMinMax(0, 1).orEqual(NONE),
+    maxPositionFraction: validators.numberMinMax(0, 1).orEqual(NONE),
+    minRangeFraction: validators.numberMinMax(0, 1).orEqual(NONE),
+    offset: validators.number(),
+    position: validators.oneOf(LABEL_POSITIONS),
+    aboveBase: labelBaseSideValidators(),
+    belowBase: labelBaseSideValidators()
+  }, true),
+  marker: validators.partialObjectWithShape({
+    shape: validators.oneOf([NONE, ...MARKER_SHAPES]),
+    minSize: validators.numberMin(0),
+    showForMissingValues: validators.boolean(),
+    size: validators.numberMin(0),
+    sizeScale: validators.oneOf(MARKER_SIZE_SCALES),
+    style: seriesStyle.styleStates(styleMembers)
+  }, true),
+  showInLegend: validators.boolean(),
+  showInTooltip: validators.boolean(),
+  showColorInLegend: validators.boolean(),
+  showColorInTooltip: validators.boolean(),
+  filterable: validators.boolean(),
+  followSeries: validators.string().orEqual(NONE),
+  focusOnHover: validators.boolean(),
+  focusOnClick: validators.boolean(),
+  focusCategoryOnHover: validators.boolean(),
+  focusCategoryOnClick: validators.boolean(),
+  showPointer: validators.boolean(),
+  useAxisFocus: validators.boolean(),
+  animateBaseFromAdjacent: validators.boolean()
+};
+
+
 export default function getValidators(config: DeepPartial<SeriesConfig>, pieMode = false) {
   const supportsFill = ({ renderer }: RendererCondition) =>
     pieMode || renderer === RENDERER_AREA || renderer === RENDERER_BAR;
@@ -95,13 +171,7 @@ export default function getValidators(config: DeepPartial<SeriesConfig>, pieMode
     suffix: 'when chart type is pie or renderer is area or bar, and gradient is ' + NONE
   };
   return {
-    id: validators.id(),
-    order: validators.integer(),
-    axis: validators.string(),
-    stack: validators.string().orEqual(NONE),
-    group: validators.string().orEqual(NONE),
-    property: validators.propertyRequired(),
-    rangeProperty: validators.propertyOptional(),
+    ...staticMembers,
     errorLowProperty: validators.conditional([
       { ...stackRule, validator: validators.equal(NONE) },
       { ...stackNoneRule, validator: validators.propertyOptional() },
@@ -110,59 +180,16 @@ export default function getValidators(config: DeepPartial<SeriesConfig>, pieMode
       { ...stackRule, validator: validators.equal(NONE) },
       { ...stackNoneRule, validator: validators.propertyOptional() },
     ], config),
-    markerProperty: validators.propertyOptional(),
-    labelProperty: validators.propertyOptional(),
-    tooltipProperty: validators.propertyOptional(),
     colorProperty: validators.conditional([
       { ...colorRendererRule, validator: validators.propertyOptional() },
       { ...nonColorRendererRule, validator: validators.equal(NONE) }
     ], config),
-    allowAbsentDataProperties: validators.boolean(),
-    ignore: validators.boolean(),
-    renderer: validators.oneOf(RENDERERS),
-    missingValueMode: validators.oneOf(MISSING_VALUE_MODES),
-    partialRangeIsMissing: validators.boolean(),
     curve: validators.partialObjectWithShape({
       type: validators.oneOf(CURVE_TYPES),
       param: validators.conditional([
         { ...curveParamRule, validator: validators.numberMinMax(0, 1) },
         { ...curveNoParamRule, validator: validators.equal(undefined) }
       ], config)
-    }, true),
-    bar: validators.partialObjectWithShape({
-      widthFraction: validators.numberMinMax(0, 1),
-      alignFraction: validators.numberMinMax(0, 1),
-      minExtent: validators.numberMin(0)
-    }, true),
-    cap: validators.partialObjectWithShape({
-      size: validators.numberMin(0),
-      type: validators.oneOf(CAP_TYPES).orEqual(NONE),
-      expand: validators.boolean(),
-      onlyStackOuter: validators.boolean()
-    }, true),
-    errorBar: validators.partialObjectWithShape({
-      capSize: validators.numberMin(0),
-      style: seriesStyle.styleStates(lineMembers)
-    }, true),
-    valueLabel: validators.string().orEqual(NONE),
-    valueFormat: validators.numberFormat().orOneOf([NONE, AUTO]),
-    valuePrefix: validators.string().orEqual(NONE),
-    valueSuffix: validators.string().orEqual(NONE),
-    useTitleForValueLabel: validators.boolean(),
-    title: validators.string().orEqual(NONE),
-    shapeStyle: ownStyle.styleStates(styleMembers),
-    label: validators.partialObjectWithShape({
-      format: validators.numberFormat().orOneOf([NONE, AUTO]),
-      prefix: validators.string().orEqual(NONE),
-      suffix: validators.string().orEqual(NONE),
-      textStyle: seriesStyle.styleStates(styleMembers),
-      minPositionFraction: validators.numberMinMax(0, 1).orEqual(NONE),
-      maxPositionFraction: validators.numberMinMax(0, 1).orEqual(NONE),
-      minRangeFraction: validators.numberMinMax(0, 1).orEqual(NONE),
-      offset: validators.number(),
-      position: validators.oneOf(LABEL_POSITIONS),
-      aboveBase: labelBaseSideValidators(),
-      belowBase: labelBaseSideValidators()
     }, true),
     gradient: validators.conditional([
       { ...nonFillRendererRule, validator: validators.equal(NONE) },
@@ -218,26 +245,5 @@ export default function getValidators(config: DeepPartial<SeriesConfig>, pieMode
         ], config)
       }, true)
     }, true).orEqual(NONE),
-    marker: validators.partialObjectWithShape({
-      shape: validators.oneOf([NONE, ...MARKER_SHAPES]),
-      minSize: validators.numberMin(0),
-      showForMissingValues: validators.boolean(),
-      size: validators.numberMin(0),
-      sizeScale: validators.oneOf(MARKER_SIZE_SCALES),
-      style: seriesStyle.styleStates(styleMembers)
-    }, true),
-    showInLegend: validators.boolean(),
-    showInTooltip: validators.boolean(),
-    showColorInLegend: validators.boolean(),
-    showColorInTooltip: validators.boolean(),
-    filterable: validators.boolean(),
-    followSeries: validators.string().orEqual(NONE),
-    focusOnHover: validators.boolean(),
-    focusOnClick: validators.boolean(),
-    focusCategoryOnHover: validators.boolean(),
-    focusCategoryOnClick: validators.boolean(),
-    showPointer: validators.boolean(),
-    useAxisFocus: validators.boolean(),
-    animateBaseFromAdjacent: validators.boolean()
   };
 }
