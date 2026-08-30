@@ -334,6 +334,7 @@ npm test -w @mochart/core               # vitest with v8 coverage (includes gold
 npm run typecheck -w @mochart/core
 npm run generate-docs -w @mochart/core   # regenerate generated/{config,api}-reference.json
 npm run generate-jsdoc -w @mochart/core  # regenerate the JSDoc on src/types/config.ts from the config docs
+npm run fuzz -w @mochart/core            # sweep every config property (see test/fuzz/README.md)
 ```
 
 The JSDoc on the config interfaces in `src/types/config.ts` is generated

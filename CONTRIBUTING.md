@@ -229,6 +229,26 @@ npx vitest run -u                          # (in packages/mochart) update snapsh
 Review golden diffs like code — an unexpected snapshot change usually means
 an unintended rendering change.
 
+## The config fuzzer
+
+`packages/mochart/test/fuzz/` sweeps every leaf config property across its
+candidate values on a spread of base configs, checking each result against
+four oracles: nothing throws or fails to settle, no `NaN` or negative extent
+reaches a rendered attribute, building config B directly matches updating to
+it from config A, and the inputs come back unmutated. It is not part of the
+gate — reach for it after changing config validation, defaults, or renderer
+state:
+
+```sh
+npm run fuzz -w @mochart/core                      # the full sweep, hours long
+npm run fuzz -w @mochart/core -- --sections=legend # one section, seconds
+```
+
+The report lands in `packages/mochart/.fuzz/` (gitignored, rewritten as the
+run goes, so a long run can be read while it works). See
+[test/fuzz/README.md](packages/mochart/test/fuzz/README.md) for the oracles
+in full.
+
 ## The demo galleries
 
 Six feature-equivalent galleries (vanilla + five framework ports) share their
