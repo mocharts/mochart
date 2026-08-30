@@ -16,6 +16,8 @@ export interface ParsedMember {
 export interface ParsedInterface {
   name: string;
   exported: boolean;
+  /** Declared type parameter names, e.g. ['C', 'S'] for StyleState<C, S>. */
+  typeParameters: string[];
   extendsNames: string[];
   members: ParsedMember[];
   /** Members the model cannot render — method signatures and computed names. */
@@ -94,6 +96,7 @@ export function parseInterfaces(filePath: string): Map<string, ParsedInterface> 
     interfaces.set(statement.name.text, {
       name: statement.name.text,
       exported: hasModifier(statement, ts.SyntaxKind.ExportKeyword),
+      typeParameters: (statement.typeParameters ?? []).map(parameter => parameter.name.text),
       extendsNames,
       members,
       skippedMembers
