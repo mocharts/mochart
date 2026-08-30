@@ -26,7 +26,7 @@ npm run deadcode      # knip: unused exports, files and dependencies
 npm run typecheck     # every workspace that has a typecheck script
 npm run check:publish # every package's publishConfig exports map is dist-only
 npm test              # tests in every workspace that has them
-npm run test:e2e      # Playwright suite (hosted by @mochart/demo-basic)
+npm run test:e2e      # Playwright suites (demo-basic, then demo-vanilla)
 ```
 
 `test:e2e` needs a browser once per machine: `npx playwright install chromium`.
@@ -237,8 +237,10 @@ logic through `@mochart/demo-common` and their configs/datasets through
   button or Config-tab docs links for the pattern: shared logic in
   demo-common, one thin component per framework).
 - Demo blurbs live as `description` fields in `demo-data/src/demos.json`.
-- The Playwright e2e suite lives in `@mochart/demo-basic`, which is a
-  minimal harness rather than a gallery and is not deployed.
+- There are two Playwright suites, and root `npm run test:e2e` runs both.
+  `@mochart/demo-basic` holds the core one and is a minimal harness rather
+  than a gallery, not deployed; `@mochart/demo-vanilla` has its own, covering
+  the editor, export, share menu and phone layout.
 
 ## The documentation site
 
