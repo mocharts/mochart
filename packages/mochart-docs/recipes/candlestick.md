@@ -97,9 +97,9 @@ whose [`maxMarginFraction`](/reference/valueAxes#valueAxes.maxMarginFraction)
 confines the bars to the bottom band (margins above 1 are allowed for exactly
 this banding). Spread that fragment into `valueAxes` as the example does.
 Tune the split with `volume: { heightFraction, gapFraction }` (defaults 0.2
-and 0.05; both are fractions below 1 and must sum to less than 1, or the call
-throws), relabel the tooltip rows with `valueLabel` (default "Volume"), or
-set `visible: true` on the volume axis fragment to show its scale. The volume
-bars follow their direction series — toggling or focusing Up takes its volume
-bars along — and stay out of the legend, with one volume row per day in the
-tooltip.
+and 0.05; `heightFraction` must be above 0 and `gapFraction` at least 0, both
+below 1, and they must sum to less than 1, or the call throws), relabel the
+tooltip rows with `valueLabel` (default "Volume"), or set `visible: true` on
+the volume axis fragment to show its scale. The volume bars follow their
+direction series — toggling or focusing Up takes its volume bars along — and
+stay out of the legend, with one volume row per day in the tooltip.
