@@ -153,10 +153,19 @@ function formatEta(done: number, total: number): string {
   return Math.floor(remaining / 60) + 'm' + String(remaining % 60).padStart(2, '0') + 's';
 }
 
-interface State { signature: string; done: number }
+interface State { signature: string; done: number; swept: string[] }
 
-function readState(options: Options, signature: string): { done: number; findings: FindingGroup[]; stats: Record<string, number> } {
-  const empty = { done: 0, findings: [], stats: {} };
+interface Unit { spec: PropertySpec | null; base: BaseCase; entry: number; structural?: StructuralCase[] }
+
+/** specs whose every selected unit has run without one valid case, so the report names them instead of counting them as swept */
+function unsweptSpecs(selected: Unit[], done: number, swept: Set<string>, untested: Set<string>): string[] {
+  const pending = new Set(selected.slice(done).map(unit => unit.spec?.id));
+  const finished = new Set(selected.slice(0, done).map(unit => unit.spec?.id));
+  return [...finished].filter((id): id is string => id !== undefined && !pending.has(id) && !swept.has(id) && !untested.has(id));
+}
+
+function readState(options: Options, signature: string): { done: number; swept: string[]; findings: FindingGroup[]; stats: Record<string, number> } {
+  const empty = { done: 0, swept: [], findings: [], stats: {} };
   if (!options.resume) {
     return empty;
   }
@@ -171,7 +180,7 @@ function readState(options: Options, signature: string): { done: number; finding
     return empty;
   }
   const report = loadJson(reportPath) as { summary: RunSummary; findings: FindingGroup[] };
-  return { done: state.done, findings: report.findings, stats: report.summary.stats };
+  return { done: state.done, swept: state.swept, findings: report.findings, stats: report.summary.stats };
 }
 
 async function main(): Promise<void> {
@@ -181,7 +190,7 @@ async function main(): Promise<void> {
 
   const bases = loadBases(library, options);
   const specs = selectSpecs(options);
-  const units: { spec: PropertySpec | null; base: BaseCase; entry: number; structural?: StructuralCase[] }[] = [];
+  const units: Unit[] = [];
   for (const spec of specs) {
     for (const base of bases) {
       const declared = entryCount(base.config, spec);
@@ -199,12 +208,15 @@ async function main(): Promise<void> {
   // a property the generator has no values for runs no cases, so it is named rather than counted as swept
   const untested = specs.filter(spec => candidateValues(spec, options.values).length === 0
     && !(spec.value.format !== undefined && SKIPPED_FORMATS.has(spec.value.format)));
+  const untestedIds = new Set(untested.map(spec => spec.id));
   const shard = options.shard;
   const shardUnits = shard ? units.filter((_, index) => index % shard.count === shard.index - 1) : units;
   const selected = options.limit === null ? shardUnits : shardUnits.slice(0, options.limit);
 
   const signature = JSON.stringify({ ...options, out: undefined, resume: undefined });
   const previous = readState(options, signature);
+  // spec ids with at least one case that ran
+  const swept = new Set(previous.swept);
 
   const fuzzer = new Fuzzer(library, { width: options.width, height: options.height, maxFrames: options.frames });
   fuzzer.restore(previous.findings, previous.stats);
@@ -214,12 +226,12 @@ async function main(): Promise<void> {
       startedAt,
       elapsedSeconds: elapsedSeconds(),
       bases: bases.map(base => base.id),
-      properties: { total: specs.length, untested: untested.map(spec => spec.id) },
+      properties: { total: specs.length, untested: [...untestedIds], unswept: unsweptSpecs(selected, done, swept, untestedIds) },
       units: { total: selected.length, done },
       stats: { ...fuzzer.stats }
     };
     writeReport(options.out, summary, fuzzer.getFindings());
-    fs.writeFileSync(path.join(options.out, 'state.json'), JSON.stringify({ signature, done } satisfies State));
+    fs.writeFileSync(path.join(options.out, 'state.json'), JSON.stringify({ signature, done, swept: [...swept] } satisfies State));
   };
 
   let done = previous.done;
@@ -241,7 +253,9 @@ async function main(): Promise<void> {
     }
     else {
       for (const candidate of candidateValues(spec, options.values)) {
-        fuzzer.runCase(base, spec, candidate, entry);
+        if (fuzzer.runCase(base, spec, candidate, entry) === 'ran') {
+          swept.add(spec.id);
+        }
       }
     }
     // the sweep is synchronous, so the event loop only turns here, which is what lets the SIGINT handler run

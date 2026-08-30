@@ -96,7 +96,8 @@ order and instance numbering are not observable, so they must not count as diffe
 - **List entries past the first** — `--list-entries` sweeps them, but the default is entry `[0]` only,
   because sweeping every declared entry costs roughly another 7,200 units.
 - **Properties with no generated values** — named under "Untested properties" in the report rather than
-  quietly counted as swept, so the header reads `properties swept: N of M`.
+  quietly counted as swept, so the header reads `properties swept: N of M`. Properties whose every
+  generated value is rejected before a case runs are named under "Properties with no valid case" the same way.
 - **Property pairs** — every case moves exactly one property. Interactions are tier 2 (a pairwise
   covering array) and tier 3 (long random walks).
 - **Inertness** — whether a property change did anything at all. Easy to add on top of the captured

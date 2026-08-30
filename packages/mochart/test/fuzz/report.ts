@@ -7,7 +7,7 @@ export interface RunSummary {
   startedAt: string;
   elapsedSeconds: number;
   bases: string[];
-  properties: { total: number; untested: string[] };
+  properties: { total: number; untested: string[]; unswept: string[] };
   units: { total: number; done: number };
   stats: Record<string, number>;
 }
@@ -60,7 +60,7 @@ function renderMarkdown(summary: RunSummary, findings: FindingGroup[]): string {
     '',
     '- started: ' + summary.startedAt,
     '- elapsed: ' + formatDuration(summary.elapsedSeconds),
-    '- properties swept: ' + formatCount(summary.properties.total - summary.properties.untested.length)
+    '- properties swept: ' + formatCount(summary.properties.total - summary.properties.untested.length - summary.properties.unswept.length)
       + ' of ' + formatCount(summary.properties.total),
     '- units (property × base): ' + formatCount(summary.units.done) + ' of ' + formatCount(summary.units.total),
     '- bases: ' + summary.bases.join(', '),
@@ -75,6 +75,11 @@ function renderMarkdown(summary: RunSummary, findings: FindingGroup[]): string {
     lines.push('## Untested properties — ' + formatCount(summary.properties.untested.length), '',
       'No candidate values were generated for these, so no case ever moved them.', '',
       ...summary.properties.untested.map(id => '- `' + id + '`'), '');
+  }
+  if (summary.properties.unswept.length > 0) {
+    lines.push('## Properties with no valid case — ' + formatCount(summary.properties.unswept.length), '',
+      'Every generated value was rejected by validation or the data before a case could run, so no case ever moved them.', '',
+      ...summary.properties.unswept.map(id => '- `' + id + '`'), '');
   }
   if (findings.length === 0) {
     lines.push('## No findings', '', 'Every case passed all four oracles.', '');
