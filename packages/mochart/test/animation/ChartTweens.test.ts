@@ -227,6 +227,31 @@ describe('tweenData', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('afterUpdate runs a queued callback once per frame after every step of the chain advanced', () => {
+    const manager = makeManager();
+    const { events, record } = makeRecorder();
+    const flushes: number[] = [];
+    const flush = () => { flushes.push(events.length); };
+    manager.tweenData(makeConfig(), makeAnimationData({
+      axisExpansionData: phaseData(0, sentinel('expand', 'start'), sentinel('expand', 'final')),
+      valueChangeData: phaseData(0, sentinel('value', 'start'), sentinel('value', 'final')),
+      axisContractionData: phaseData(0, sentinel('contraction', 'start'), sentinel('contraction', 'final'))
+    }), (data, event) => {
+      record(data, event);
+      // queued from every callback, run once
+      manager.afterUpdate(flush);
+      manager.afterUpdate(flush);
+    });
+    runFrames();
+    // the three zero-duration steps fire nine events inside one frame, then the single flush sees them all
+    expect(events.length).toBe(9);
+    expect(flushes).toEqual([9]);
+
+    // outside a pass the callback runs at once
+    manager.afterUpdate(flush);
+    expect(flushes).toEqual([9, 9]);
+  });
+
   it('a data tween step that throws stops the chain, so no later step runs', () => {
     const manager = makeManager();
     const { events, record } = makeRecorder();

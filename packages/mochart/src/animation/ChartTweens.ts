@@ -43,6 +43,8 @@ interface TweenEngine {
   add(tween: Tween): void;
   remove(tween: Tween): void;
   update(time?: number): boolean;
+  /** run once after the current update pass (the same callback is queued once), or now when no pass is running */
+  afterUpdate(callback: VoidCallback): void;
   create(duration: number, delay?: number): Tween;
 }
 
@@ -62,6 +64,8 @@ export interface ChartTweenManager {
   tweenData(mochartConfig: EnhancedMochartConfig, chartAnimationData: ChartAnimationData, updateCallback: DataUpdateCallback, options?: DataTweenOptions): void;
   cancelDataTween(): void;
   cancelTweens(): void;
+  /** see TweenEngine.afterUpdate: lets one render follow all the tween callbacks of a frame */
+  afterUpdate(callback: VoidCallback): void;
 }
 
 // Upper bound on same-frame chain cascades in the engine update loop; real
@@ -94,6 +98,8 @@ function initMochartTween(): TweenEngine {
   const _tweens: Record<string, Tween> = {};
   let _pendingTweens: Record<string, Tween> = {};
   let _nextTweenId = 0;
+  let _updating = false;
+  const _afterUpdate = new Set<VoidCallback>();
 
   const add = function(tween: Tween): void {
     _tweens[tween.id] = tween;
@@ -120,34 +126,55 @@ function initMochartTween(): TweenEngine {
     // a throwing tween is stopped with its chain, or it would starve later tweens and re-fire its final frame forever
     let firstError: unknown = null;
     let threw = false;
-    while (tweenIds.length > 0 && ++passes <= MAX_UPDATE_PASSES) {
-			_pendingTweens = {};
+    _updating = true;
+    try {
+      while (tweenIds.length > 0 && ++passes <= MAX_UPDATE_PASSES) {
+        _pendingTweens = {};
 
-      for (const tweenId of tweenIds) {
-        const tween = _tweens[tweenId];
-        if (tween === undefined) {
-          continue;
-        }
-        try {
-          if (tween.update(time) === false) {
-            delete _tweens[tweenId];
+        for (const tweenId of tweenIds) {
+          const tween = _tweens[tweenId];
+          if (tween === undefined) {
+            continue;
+          }
+          try {
+            if (tween.update(time) === false) {
+              delete _tweens[tweenId];
+            }
+          }
+          catch (error) {
+            tween.stop();
+            if (!threw) {
+              threw = true;
+              firstError = error;
+            }
           }
         }
-        catch (error) {
-          tween.stop();
-          if (!threw) {
-            threw = true;
-            firstError = error;
-          }
-        }
+
+        tweenIds = Object.keys(_pendingTweens);
       }
-
-      tweenIds = Object.keys(_pendingTweens);
+    }
+    finally {
+      _updating = false;
+      // the frame's last state still renders when a tween threw
+      const callbacks = [..._afterUpdate];
+      _afterUpdate.clear();
+      for (const callback of callbacks) {
+        callback();
+      }
     }
     if (threw) {
       throw firstError;
     }
     return true;
+  }
+
+  const afterUpdate = function(callback: VoidCallback): void {
+    if (_updating) {
+      _afterUpdate.add(callback);
+    }
+    else {
+      callback();
+    }
   }
 
   const create = function(duration: number, delay = 0): Tween {
@@ -275,6 +302,7 @@ function initMochartTween(): TweenEngine {
     add,
     remove,
     update,
+    afterUpdate,
     create
   };
 }
@@ -372,6 +400,9 @@ export function getChartTweenManager(): ChartTweenManager {
     cancelTweens: () => {
       self.cancelFocusTween();
       self.cancelDataTween();
+    },
+    afterUpdate: callback => {
+      MochartTween.afterUpdate(callback);
     }
   };
 

@@ -257,14 +257,15 @@ export class AnimatedDataSource implements ChartDataSource {
     else {
       this.focusData = getFocusDataWithMutations(this.focusData!, getFocusDataWithDomainPercentages(this.focusData!, mochartConfig, chartData));
     }
-    this.emit();
+    // one render per frame: chained steps and the focus tween all land in the same engine pass
+    this.tweenManager.afterUpdate(this.emit);
   }
 
   private updateFocusData = (focusData: FocusData): void => {
     // same invariant as updateChartData: the running tween implies a valid config
     const mochartConfig = this.input.mochartConfig!;
     this.focusData = getFocusDataWithMutations(this.focusData!, getFocusDataWithDomainPercentages(focusData, mochartConfig, this.chartData!));
-    this.emit();
+    this.tweenManager.afterUpdate(this.emit);
   }
 
   remapFocus({ valueAxisId, seriesId, categoryIndex }: InternalFocus): InternalFocus {
