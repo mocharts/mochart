@@ -10,7 +10,7 @@ import type { FrameStats } from './metrics';
 
 const scenarioSelect = document.getElementById('scenario') as HTMLSelectElement;
 const seriesInput = document.getElementById('series') as HTMLInputElement;
-const categoriesInput = document.getElementById('groups') as HTMLInputElement;
+const categoriesInput = document.getElementById('categories') as HTMLInputElement;
 const chartsInput = document.getElementById('charts') as HTMLInputElement;
 const animateCheck = document.getElementById('animate') as HTMLInputElement;
 const legendCheck = document.getElementById('legend') as HTMLInputElement;
