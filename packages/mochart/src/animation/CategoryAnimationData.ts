@@ -474,7 +474,13 @@ function getCategoryValuesMergedOrdered(
 function getBeforeCounts(comparatorIndices: readonly number[], indices: readonly number[]): number {
   let beforeCounts = 0;
   if (comparatorIndices.length > 0) {
-    const firstComparatorIndex = Math.min(...comparatorIndices);
+    // a plain loop: spreading six-figure category counts into Math.min overflows the call stack
+    let firstComparatorIndex = comparatorIndices[0];
+    for (let i = 1; i < comparatorIndices.length; i++) {
+      if (comparatorIndices[i] < firstComparatorIndex) {
+        firstComparatorIndex = comparatorIndices[i];
+      }
+    }
     const length = indices.length;
     for (let i=0; i<length; i++) {
       if (indices[i] < firstComparatorIndex) {
@@ -488,7 +494,12 @@ function getBeforeCounts(comparatorIndices: readonly number[], indices: readonly
 function getAfterCounts(comparatorIndices: readonly number[], indices: readonly number[]): number {
   let afterCounts = 0;
   if (comparatorIndices.length > 0) {
-    const lastComparatorIndex = Math.max(...comparatorIndices);
+    let lastComparatorIndex = comparatorIndices[0];
+    for (let i = 1; i < comparatorIndices.length; i++) {
+      if (comparatorIndices[i] > lastComparatorIndex) {
+        lastComparatorIndex = comparatorIndices[i];
+      }
+    }
     const length = indices.length;
     for (let i=0; i<length; i++) {
       if (indices[i] > lastComparatorIndex) {

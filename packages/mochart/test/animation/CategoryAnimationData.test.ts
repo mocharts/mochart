@@ -217,6 +217,18 @@ describe('getCategoryDeltaData with an ordinal axis (order-preserving merge)', (
   });
 });
 
+describe('getCategoryDeltaData at large category counts', () => {
+  // Regression: the outer-count helpers spread the per-category index arrays into Math.min/Math.max,
+  // which overflows the call stack somewhere above ~150k categories
+  it('handles 200k categories without a stack overflow', () => {
+    const values = Array.from({ length: 200000 }, (_, i) => 'c' + i);
+    const delta = deltaFor(ordinalString, values, values.slice(0, values.length - 1));
+    expect(delta.values.removed).toEqual(['c199999']);
+    expect(delta.values.added).toEqual([]);
+    expect(delta.outerCounts.removed).toEqual({ before: 0, after: 1 });
+  });
+});
+
 describe('getCategoryDeltaData with a linear axis (sorted merge)', () => {
   it('interleaves removed values into the new values by value', () => {
     const delta = deltaFor(linearNumber, [1, 2, 3, 4], [2, 3, 5]);
