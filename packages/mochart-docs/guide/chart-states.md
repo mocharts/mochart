@@ -35,6 +35,12 @@ the first two as well: `getLoading()` returning `true` shows the loading
 state, and `getError()` returning anything but `null`/`undefined` shows the
 error state, with the `error` prop taking precedence when both are set.
 
+The loading placeholder also shows before a chart has any data to draw — a
+`null` `dataProvider`, or one without `getPropertyValues`. That is the state
+the framework bindings sit in until their provider arrives, so a chart stuck
+on "Loading…" with `loading` never set means the provider is missing or does
+not satisfy the [interface](/guide/data-providers#the-provider-interface).
+
 When several states apply at once, the first of these wins: no size, config
 error, error, loading, no data, no series. So the error state hides the
 loading overlay, and the loading overlay paints over an empty dataset.
