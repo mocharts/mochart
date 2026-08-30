@@ -52,6 +52,13 @@ series: [
 ]
 ```
 
+Not every property can be shared. A value that has to differ per entry is
+rejected by validation rather than ignored, so it invalidates the whole
+config: `id` on any list, `order` on `series` and `valueAxes`, and `ignore`
+everywhere. [`patternDefaults`](/reference/patterns) also excludes `type` and
+the members that depend on it, since a pattern's type decides which of them
+apply.
+
 ## Styles and focus states
 
 Everything the chart draws is styled by a **style** object rather than by a
