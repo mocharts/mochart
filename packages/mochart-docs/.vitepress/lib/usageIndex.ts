@@ -51,6 +51,10 @@ import * as posNeg from '../../examples/posNeg';
 import * as posNegStacked from '../../examples/posNegStacked';
 import * as scatterBubble from '../../examples/scatterBubble';
 import * as theming from '../../examples/theming';
+import * as tickLabels from '../../examples/tickLabels';
+import * as tickLabelsDense from '../../examples/tickLabelsDense';
+import * as legend from '../../examples/legend';
+import * as legendSingle from '../../examples/legendSingle';
 
 export interface UsageLink {
   text: string;
@@ -111,7 +115,11 @@ const docsExamples: { config: object; page: UsageLink }[] = [
   { config: gauge.config, page: { text: 'Half pies and gauges', link: '/recipes/pie#half-pies-and-gauges' } },
   { config: posNeg.config, page: { text: 'Positive and negative values', link: '/recipes/positive-negative' } },
   { config: posNegStacked.config, page: { text: 'Stacking mixed signs', link: '/recipes/positive-negative#stacking-mixed-signs' } },
-  { config: scatterBubble.config, page: { text: 'Scatter and bubble', link: '/recipes/markers-labels' } }
+  { config: scatterBubble.config, page: { text: 'Scatter and bubble', link: '/recipes/markers-labels' } },
+  { config: tickLabels.config, page: { text: 'Tick labels', link: '/recipes/tick-labels' } },
+  { config: tickLabelsDense.config, page: { text: 'Fewer ticks instead', link: '/recipes/tick-labels#fewer-ticks-instead' } },
+  { config: legend.config, page: { text: 'Legend', link: '/recipes/legend' } },
+  { config: legendSingle.config, page: { text: 'A single-series key', link: '/recipes/legend#a-single-series-key' } }
 ];
 
 /** exported for scripts/checkSectionCoverage.ts: every examples/*.ts exporting a config must be here */
