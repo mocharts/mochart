@@ -85,9 +85,11 @@ The optional three are independent — implement only the ones you want:
 
 A provider object without a `getPropertyValues` *method* is invalid:
 `getDataErrors` reports `data provider must implement: getPropertyValues`, and
-the chart renders no data rather than failing mid-read. (A provider that lacks
-a particular *property* is a different case — see `allowAbsentDataProperties`
-under [Validating data against a config](#validating-data-against-a-config).)
+the chart sits in its [loading state](/guide/chart-states) rather than failing
+mid-read — it has no dataset, so it shows the same placeholder as a chart whose
+provider has not arrived yet. (A provider that lacks a particular *property* is
+a different case — see `allowAbsentDataProperties` under
+[Validating data against a config](#validating-data-against-a-config).)
 
 A complete custom provider over a store that already holds one array per
 property is one method:
