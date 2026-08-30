@@ -42,7 +42,10 @@ works. The filename is derived from the chart title with whitespace replaced
 by underscores (`Monthly Revenue` → `Monthly_Revenue.svg`), falling back to
 `export`. `exportSVG` returns `false` (and `exportPNG` resolves `false`) when
 no chart svg is found; otherwise they return `true` once the download has
-started.
+started. The PNG functions can also reject, such as when the browser refuses a
+canvas, cannot encode it, or will not rasterize the svg (the tainted-canvas
+case under [Web fonts](#web-fonts)). Give them a `catch` as well as checking
+the resolved value.
 
 ### Options
 

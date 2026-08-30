@@ -36,7 +36,9 @@ await exportPNG(element);
 Both functions look up the chart svg inside `element`, derive the filename
 from the chart title (falling back to `export`), and trigger a browser
 download. `exportSVG` returns `false` (and `exportPNG` resolves `false`)
-when no chart svg is found.
+when no chart svg is found. The PNG functions can also reject, such as when the
+browser refuses a canvas, cannot encode it, or will not rasterize the svg (see
+[Web fonts](#web-fonts)). Attach a `catch` as well.
 
 ### Options
 
