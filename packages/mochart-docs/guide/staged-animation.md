@@ -127,6 +127,7 @@ An edit counts as structural when it changes any of:
 - [`chart.type`](/reference/chart#chart.type)
 - the category axis
   [`property`](/reference/categoryAxis#categoryAxis.property),
+  [`keyProperty`](/reference/categoryAxis#categoryAxis.keyProperty),
   [`type`](/reference/categoryAxis#categoryAxis.type),
   [`scale`](/reference/categoryAxis#categoryAxis.scale) or
   [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC)
@@ -140,6 +141,7 @@ An edit counts as structural when it changes any of:
   [`markerProperty`](/reference/series#series.markerProperty),
   [`colorProperty`](/reference/series#series.colorProperty),
   [`labelProperty`](/reference/series#series.labelProperty),
+  [`tooltipProperty`](/reference/series#series.tooltipProperty),
   [`axis`](/reference/series#series.axis),
   [`stack`](/reference/series#series.stack) or
   [`group`](/reference/series#series.group)
