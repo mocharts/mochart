@@ -194,13 +194,14 @@ still reads in full. A tick label the chart suppressed to stop labels
 overlapping is `aria-hidden`, as is the hidden width probe an ordinal axis
 measures truncation against.
 
-Three kinds of text stay out of the reading order deliberately:
+Four kinds of text stay out of the reading order deliberately:
 
 | Not read | Why |
 | --- | --- |
 | per-point data labels ([`series.labelProperty`](/reference/series#series.labelProperty)) | they are bare numbers that name neither their series nor their category, and mid-animation they are the interpolated in-between value rather than the datum. The tooltip's live region reads the settled values *with* their series and category names, which is the same information in a comprehensible order |
 | threshold annotations ([`valueAxes.thresholds`](/reference/valueAxes#valueAxes.thresholds)) | they label a line drawn across the plot, and read out of that spatial context they say nothing about the data |
-| the axis title, when its axis group is named from it | it would otherwise be announced twice in a row |
+| the axis title, when the axis is announced using it | it would otherwise be read twice in a row |
+| the pie center ([`pie.centerLabel`](/reference/pie#pie.centerLabel), [`pie.centerTotal`](/reference/pie#pie.centerTotal)) | it is decoration drawn inside the ring rather than a labelled value, and the total restates what the slices already add up to. When the center is the headline figure, put it in a heading beside the chart |
 
 If you need the individual values readable rather than navigable, put a data
 table or text summary beside the chart; that is also the answer when both the
