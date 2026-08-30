@@ -1,8 +1,9 @@
 # Tooltip formatting
 
-How a value appears in the tooltip is per-series config: a d3-format string
-plus optional label, prefix and suffix. Click the chart to compare the two
-series' formatting.
+The category axis config determines how the category line is formatted, and a
+series' config how its own line is formatted. Each offers the same four
+properties: a d3-format string plus an optional label, prefix and suffix.
+Click the chart to compare them.
 
 <script setup>
 import * as tooltipFormat from '../examples/tooltipFormat'
@@ -14,7 +15,22 @@ import * as tooltipFormat from '../examples/tooltipFormat'
 
 ## How it works
 
-- [`valueFormat`](/reference/series#series.valueFormat) is a d3-format
+- The category axis config determines the formatting of the line at the top of
+  the tooltip:
+  [`categoryAxis.valueFormat`](/reference/categoryAxis#categoryAxis.valueFormat)
+  is a d3-format string for a `number` axis or a d3-time-format one for a
+  `date` axis, with `"auto"` (the default) following the axis
+  [`tickLabel.format`](/reference/categoryAxis#categoryAxis.tickLabel.format)
+  and `null` showing the raw value; a `string` axis has nothing to format.
+  Above, the ticks use `%b` and the tooltip line `%B`, so the axis reads
+  `Jan` where the tooltip reads `January`.
+  [`categoryAxis.valueLabel`](/reference/categoryAxis#categoryAxis.valueLabel)
+  puts a label before the value (none by default), and
+  [`categoryAxis.valuePrefix`](/reference/categoryAxis#categoryAxis.valuePrefix) /
+  [`categoryAxis.valueSuffix`](/reference/categoryAxis#categoryAxis.valueSuffix)
+  wrap it.
+- A series' config determines the formatting of its own line:
+  [`valueFormat`](/reference/series#series.valueFormat) is a d3-format
   string (`,.1f`, `.1%`, …); `"auto"` derives one from the data, preferring
   the value axis `tickLabel.format` when that is set.
   [`valuePrefix`](/reference/series#series.valuePrefix) and
