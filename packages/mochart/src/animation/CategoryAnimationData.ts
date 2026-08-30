@@ -92,7 +92,21 @@ export function getCategoryDeltaData(categoryAxisConfig: CategoryAxisConfig, old
   const categoryValuesOld = oldCategoryData.values.key;
   const categoryValuesNew = newCategoryData.values.key;
 
-  const getMapKey = categoryMapKeyFor(categoryAxisConfig);
+  // date axes key by a Date parse, and every downstream array reuses these value references, so one key per value serves all ~5 lookups;
+  // other axes key by String(value), which is cheaper than the cache itself
+  const rawMapKey = categoryMapKeyFor(categoryAxisConfig);
+  let getMapKey = rawMapKey;
+  if (categoryAxisConfig.type === TYPE_DATE && categoryAxisConfig.keyProperty === NONE) {
+    const keyCache = new Map<CategoryValue, string>();
+    getMapKey = value => {
+      let key = keyCache.get(value);
+      if (key === undefined) {
+        key = rawMapKey(value);
+        keyCache.set(value, key);
+      }
+      return key;
+    };
+  }
   const isLess = categoryValueIsLessFor(categoryAxisConfig, categoryValuesOld, categoryValuesNew);
   const mergedValuesWithoutDisplay = getCategoryMergedValuesData(categoryValuesOld, categoryValuesNew, categoryAxisConfig.scale !== SCALE_ORDINAL, getMapKey, isLess);
   const mergedIndicesData = getCategoryMergedIndicesData(categoryValuesOld, categoryValuesNew, mergedValuesWithoutDisplay, getMapKey);
