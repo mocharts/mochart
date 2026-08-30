@@ -112,7 +112,7 @@ this.data.push({ month: 'Mar', revenue: 30 });
 The same rule applies to `config` and to `mochartConfig`/`dataProvider`.
 For hosts that do mutate data in place, the `chartRef` prop — a callback
 ref, like Lit's own `ref()` directive — receives a `ChartRef` handle whose
-`refresh()` re-reads the current config/data, re-indexing the built-in
+`refresh()` re-reads the current data, re-indexing the built-in
 providers:
 
 ```ts

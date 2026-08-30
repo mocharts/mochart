@@ -111,7 +111,7 @@ to `config` on `DefaultChart` and to `mochartConfig`/`dataProvider` on
 For hosts that do mutate data in place, the `ref` prop exposes a `ChartRef`
 handle with the core
 [`refresh()`](/guide/data-providers#when-the-data-changes) escape hatch —
-it re-reads the current config/data (the built-in providers read live, so
+it re-reads the current data (the built-in providers read live, so
 any in-place change is seen):
 
 ```tsx

@@ -99,7 +99,7 @@ data.push({ month: 'Mar', revenue: 30 });
 The same rule applies to `config` on `DefaultChart` and to
 `mochartConfig`/`dataProvider` on `Chart`. For hosts that do mutate data in
 place, `bind:this` exposes a `ChartRef` handle with `refresh()`, which re-reads
-the current config/data, re-indexing the built-in providers:
+the current data, re-indexing the built-in providers:
 
 ```svelte
 <script lang="ts">

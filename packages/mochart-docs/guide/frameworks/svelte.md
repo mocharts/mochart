@@ -113,7 +113,7 @@ to change them. A prop change made before the component's first effect run
 For hosts that do mutate data in place, `bind:this` exposes a `ChartRef`
 handle with the core
 [`refresh()`](/guide/data-providers#when-the-data-changes) escape hatch —
-it re-reads the current config/data (the built-in providers read live, so
+it re-reads the current data (the built-in providers read live, so
 any in-place change is seen):
 
 ```svelte

@@ -123,7 +123,7 @@ provider) to change them.
 
 For hosts that do mutate data in place, the components expose the core
 [`refresh()`](/guide/data-providers#when-the-data-changes) escape hatch as
-a public method — it re-reads the current config/data (the built-in
+a public method — it re-reads the current data (the built-in
 providers read live, so any in-place change is seen). Reach it through a
 template reference variable or `@ViewChild`:
 

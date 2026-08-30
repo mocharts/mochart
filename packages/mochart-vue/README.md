@@ -105,7 +105,7 @@ data.value.push({ month: 'Mar', revenue: 30 });
 The same rule applies to `config` on `DefaultChart` and to
 `mochartConfig`/`dataProvider` on `Chart`. For hosts that do mutate data in
 place, a template ref on the component exposes `refresh()`, which re-reads
-the current config/data, re-indexing the built-in providers:
+the current data, re-indexing the built-in providers:
 
 ```vue
 <script setup>
