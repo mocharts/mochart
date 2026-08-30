@@ -29,7 +29,9 @@ By default those states change only opacity and width — their colors are
 same focus via
 [`legend.focusOnHover`](/reference/legend#legend.focusOnHover) (on
 by default) and
-[`legend.focusOnClick`](/reference/legend#legend.focusOnClick).
+[`legend.focusOnClick`](/reference/legend#legend.focusOnClick). A series with
+[`useAxisFocus`](/reference/series#series.useAxisFocus) shows as focused
+whenever the value axis it belongs to is.
 
 The `*OnHover` configs act on hovering pointers only — a mouse, a
 trackpad, or a pen held over the chart. A touch tap never counts as a hover
@@ -42,9 +44,12 @@ should be able to focus.
 Category focus has knobs of its own: the series'
 [`focusCategoryOnHover`](/reference/series#series.focusCategoryOnHover)
 and [`focusCategoryOnClick`](/reference/series#series.focusCategoryOnClick)
-focus the category the pointer is on, and a series with
-[`useAxisFocus`](/reference/series#series.useAxisFocus) shows as focused
-whenever the value axis it belongs to is.
+focus the category the pointer is on. Those are off by default, but the
+tooltip focuses its category anyway while
+[`tooltip.applyFocus`](/reference/tooltip#tooltip.applyFocus) or
+[`crosshair.applyFocus`](/reference/crosshair#crosshair.applyFocus) is set —
+both on by default — so a plain plot click reports a focused category through
+`onFocus`.
 
 ## Legend filtering
 
@@ -122,9 +127,9 @@ createDefaultChart(container, {
 });
 ```
 
-- `onFocus(focus)` — the focused series/category/value axis changed (pointer
-  over/out or click, per the series' `focusOnHover`/`focusOnClick`
-  config)
+- `onFocus(focus)` — the focused series/category/value axis changed (see
+  [Focus](#focus): series and legend focus are opt-in, tooltip-driven category
+  focus is on by default)
 - `onSeriesFilter(filter)` — a legend click toggled a series in or out of
   the filtered set
 - `onChartClick` / `onChartMouseEnter` / `onChartMouseMove` /
