@@ -19,7 +19,9 @@ import * as histogram from '../examples/histogram'
   default, with edges rounded to 1/2/5-style numbers. Override with
   `binCount` (approximate), `binWidth` (exact, wins over `binCount`) or
   `domain` to bin over a fixed range (values outside it are ignored);
-  `nice: false` divides the domain exactly instead of rounding. Bins are
+  `nice: false` divides the domain exactly instead of rounding. Either
+  override throws past 10000 bins, whether from a large `binCount` or a
+  `binWidth` small enough to need that many across the domain. Bins are
   half-open — a value on an edge falls into the upper bin, except the last
   bin, which includes its upper edge.
 - The returned `categoryAxis` fragment uses an ordinal axis with
