@@ -177,6 +177,14 @@ If a placeholder needs such a value, either move it to `app.provide()`, or
 component that closes over it. This is narrower than React, where a placeholder
 reads any ancestor's context; see [React](/guide/frameworks/react).
 
+A placeholder component is also mounted once and kept for the life of the
+chart. Leaving the state removes its markup, but the component instance stays
+mounted, so `onMounted` does not run again on re-entry and any watcher, timer
+or transition it started keeps running in between. Clear the prop (or destroy
+the chart) to unmount it. React and Svelte unmount their placeholders on state
+exit and mount a fresh one on re-entry, so a placeholder that assumes it is
+torn down needs adjusting when ported here.
+
 Every prop, with its type and its core counterpart, is listed in
 [Framework props](/reference/framework-props#vue).
 
