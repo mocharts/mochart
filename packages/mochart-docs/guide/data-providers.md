@@ -65,8 +65,9 @@ The rules the chart holds the values to:
   and `NaN` all reading as a missing value (`null` is how JSON writes a hole
   in the data, `NaN` is what a failed parse leaves behind; the chart
   normalizes every missing value to `NaN` internally).
-  Category values are strings, numbers, or `Date`s matching
-  `categoryAxis.type`; key values are strings or numbers.
+  Category values match `categoryAxis.type` — strings for `string`, finite
+  numbers for `number`, and for `date` any of a `Date`, an ISO date string
+  or an epoch number; key values are strings or numbers.
 - **`undefined` in place of the array means "not in the data".** That is
   distinct from an array of missing values, and `getDataErrors` reports
   which problem you have.
