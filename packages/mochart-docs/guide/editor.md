@@ -93,12 +93,13 @@ text, but validation still reflects the installed core.
 Both the built-in JSON syntax layer and the Mochart support report through
 `onDiagnostics` as `JsonEditorDiagnostic` objects: `from`/`to` document
 offsets, a `severity` (`JsonEditorSeverity`: `error`, `warning`, `info`, or
-`hint`), the `message`, a `source` of `'json'` or `'mochart'`, and — for
-Mochart validation problems — the config `path` (a `JsonPath`) the message
-is about. Mochart validation runs only once the text parses as JSON; until
-then only the syntax problems are reported. Unknown config properties are
-underlined on the offending key itself. The editable element's
-`aria-invalid` tracks whether any errors are present, and the editor's
+`hint`), the `message`, a `source` of `'json'` or `'mochart'`, and the config
+`path` (a `JsonPath`) the message is about, when it has one. Mochart
+validation problems always carry a path, and duplicate-key errors are the only
+JSON syntax problems that do. Mochart validation runs only once the text
+parses as JSON; until then only the syntax problems are reported. Unknown
+config properties are underlined on the offending key itself. The editable
+element's `aria-invalid` tracks whether any errors are present, and the editor's
 border color reflects it visually.
 
 A key repeated within one object is a `'json'` error on the later
