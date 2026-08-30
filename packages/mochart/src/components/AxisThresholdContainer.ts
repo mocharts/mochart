@@ -21,10 +21,23 @@ interface AxisThresholdContainerProps {
   focusData: FocusData;
 }
 
+const fullPositionRange: [number, number] = [0, 1];
+
 export default class AxisThresholdContainer extends Renderer<AxisThresholdContainerProps> {
   root = svgEl('g');
   categoryThreshold = this.slot(this.root);
   seriesThresholds = this.rendererList(this.root);
+
+  /** kept while config and domain hold, so AxisThreshold's shallow-equal skip is not defeated by a fresh array */
+  private categoryRange: { axisConfig: unknown; axisDomain: unknown; range: [number, number] } | null = null;
+
+  private getCategoryPositionRange(axisConfig: AxisThresholdContainerProps['mochartConfig']['categoryAxis'], axisDomain: ChartData['categoryData']['renderAxisDomain']): [number, number] {
+    const cached = this.categoryRange;
+    if (cached === null || cached.axisConfig !== axisConfig || cached.axisDomain !== axisDomain) {
+      this.categoryRange = { axisConfig, axisDomain, range: getCategorySpacingInfo(axisConfig, axisDomain, 1).categoryRange };
+    }
+    return this.categoryRange!.range;
+  }
 
   create() {
     return this.root.node;
@@ -45,7 +58,7 @@ export default class AxisThresholdContainer extends Renderer<AxisThresholdContai
       ariaHidden: accessibilityActive(mochartConfig.accessibility) ? 'true' : null });
 
     // the category scale maps its domain onto the slot-inset range (like the focus range does), so thresholds line up with ticks and data
-    const categoryPositionRange = getCategorySpacingInfo(categoryAxisConfig, categoryAxisDomain, 1).categoryRange;
+    const categoryPositionRange = this.getCategoryPositionRange(categoryAxisConfig, categoryAxisDomain);
     // ascending: a category axis renders ascending, a value axis only when horizontal (inverted); reversed flips either
     this.categoryThreshold.set(AxisThreshold, { front, plotConfig, axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
       hidden: false, seriesLayoutInfo, axisDomain: categoryAxisDomain, vertical: inverted, ascending: !categoryAxisConfig.reversed, positionRange: categoryPositionRange,
@@ -57,7 +70,7 @@ export default class AxisThresholdContainer extends Renderer<AxisThresholdContai
         key,
         ctor: AxisThreshold,
         props: { front, plotConfig, axisConfig, axisLayoutInfo: valueAxisLayoutInfos[id],
-          hidden: !axisConfig.visibleWhenAllFiltered && axisSeriesCounts[id] === 0, seriesLayoutInfo, axisDomain: valueAxisDomain, vertical: !inverted, ascending: inverted !== axisConfig.reversed, positionRange: [0, 1],
+          hidden: !axisConfig.visibleWhenAllFiltered && axisSeriesCounts[id] === 0, seriesLayoutInfo, axisDomain: valueAxisDomain, vertical: !inverted, ascending: inverted !== axisConfig.reversed, positionRange: fullPositionRange,
           axisFocusPercentage, seriesFocusPercentage, axisThresholdClass: mochartCssClasses['valueAxisThreshold'] + id }
       };
     }));

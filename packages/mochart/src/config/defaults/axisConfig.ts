@@ -176,11 +176,21 @@ export interface ResolvedThreshold {
   title: ResolvedThresholdTitle;
 }
 
+const noThresholds: ResolvedThreshold[] = [];
+// keyed by the config's thresholds array, which the clone contract keeps stable per enhanced config;
+// stable resolved identities let the threshold renderers' shallow-equal skips hold between frames
+const resolvedThresholdsCache = new WeakMap<readonly ThresholdConfig[], ResolvedThreshold[]>();
+
 export function resolveThresholds(thresholds: readonly ThresholdConfig[] | undefined): ResolvedThreshold[] {
   if (!Array.isArray(thresholds)) {
-    return [];
+    return noThresholds;
   }
-  return thresholds
-    .filter(entry => entry !== null && typeof entry === 'object' && (typeof entry.value === 'number' || typeof entry.value === 'string'))
-    .map(entry => deepMerge(getThresholdEntryDefaults(), entry as Record<string, unknown>) as unknown as ResolvedThreshold);
+  let resolved = resolvedThresholdsCache.get(thresholds);
+  if (resolved === undefined) {
+    resolved = thresholds
+      .filter(entry => entry !== null && typeof entry === 'object' && (typeof entry.value === 'number' || typeof entry.value === 'string'))
+      .map(entry => deepMerge(getThresholdEntryDefaults(), entry as Record<string, unknown>) as unknown as ResolvedThreshold);
+    resolvedThresholdsCache.set(thresholds, resolved);
+  }
+  return resolved;
 }
