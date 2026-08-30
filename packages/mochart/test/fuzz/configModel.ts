@@ -139,24 +139,27 @@ function stringCandidates(value: EditorValue): string[] {
   }
 }
 
-/** Scalar samples for one value descriptor: enum members first, then samples drawn from its types. */
-function scalarValues(value: EditorValue): unknown[] {
+/** Scalar samples for one value descriptor, grouped: enum members apart from the per-type families. */
+function scalarValueGroups(value: EditorValue): { enumValues: unknown[]; families: unknown[][] } {
   const types = new Set(value.types);
-  const values: unknown[] = [];
-  if (value.enum) {
-    values.push(...value.enum);
-  }
+  const families: unknown[][] = [];
   if (types.has('boolean')) {
-    values.push(true, false);
+    families.push([true, false]);
   }
   if (types.has('number')) {
-    values.push(...numberCandidates(value));
+    families.push(numberCandidates(value));
   }
   // a format names the string shape, so it generates strings whether or not the type says 'string'
   if (types.has('string') || value.format !== undefined) {
-    values.push(...stringCandidates(value));
+    families.push(stringCandidates(value));
   }
-  return values;
+  return { enumValues: value.enum ? [...value.enum] : [], families };
+}
+
+/** Scalar samples for one value descriptor: enum members first, then samples drawn from its types. */
+function scalarValues(value: EditorValue): unknown[] {
+  const { enumValues, families } = scalarValueGroups(value);
+  return [...enumValues, ...families.flat()];
 }
 
 /** One entry for an array property: a whole object for object items, a sample value otherwise. */
@@ -195,7 +198,13 @@ export function candidateValues(spec: PropertySpec, limit: number): Candidate[] 
   if (value.format !== undefined && SKIPPED_FORMATS.has(value.format)) {
     return [];
   }
-  const values = scalarValues(value);
+  // a large enum must not crowd out the other families: each keeps one slot inside the limit,
+  // or an svgColor member with a six-member enum would never see a literal color
+  const { enumValues, families } = scalarValueGroups(value);
+  const reserved = Math.min(families.filter(family => family.length > 0).length, Math.max(0, limit - 1));
+  const values = [...enumValues.slice(0, Math.max(1, limit - reserved)),
+    ...families.filter(family => family.length > 0).map(family => family[0]),
+    ...enumValues.slice(Math.max(1, limit - reserved)), ...families.flatMap(family => family.slice(1))];
   if (new Set(value.types).has('array')) {
     values.push(...arrayCandidates(value));
   }
