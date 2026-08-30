@@ -27,6 +27,11 @@ import * as groupedSeries from '../examples/groupedSeries'
   paired stacked bars. Put every series of both stacks in one group — the
   Stacked & Grouped demo in the gallery shows the result. A stack cannot span
   groups: its series must all share one `group`, which validation enforces.
+- The config fixes the cluster's sub-slots, one per stack and one per
+  unstacked series, so [filtering](/guide/interaction#legend-filtering) a
+  series out through the legend empties its slot and leaves the remaining
+  bars where they are. The cluster keeps the width and the spacing it
+  started with.
 - To overlay a narrower bar on a full-width one instead (a measure over its
   backing range), leave the series ungrouped and shrink the overlay with
   [`bar.widthFraction`](/reference/series#series.bar.widthFraction);
