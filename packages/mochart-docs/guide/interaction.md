@@ -109,7 +109,11 @@ focuses its series the way hovering its legend item does; in focus mode
 clicking a row pins focus on its series — or, on the category line, on the
 category. With the controls shown, the mode decides row behavior and the
 `focus…OnClick` / `filterSeriesOnClick` / `focusSeriesOnHover` settings
-above are not consulted. The mode button shows the active mode via
+above are not consulted.
+[`tooltip.focusCategoryOnHover`](/reference/tooltip#tooltip.focusCategoryOnHover)
+is the exception: hovering the category line focuses its category only where
+that is set as well, and only in filter mode. The mode button shows the
+active mode via
 [`tooltip.filterModeText`](/reference/tooltip#tooltip.filterModeText) /
 [`tooltip.focusModeText`](/reference/tooltip#tooltip.focusModeText)
 (`'Filter'` / `'Focus'` by default), and the step buttons take their
