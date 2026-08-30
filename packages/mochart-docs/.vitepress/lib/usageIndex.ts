@@ -231,7 +231,9 @@ export function buildUsageIndex(): UsageIndex {
   const allKeys = new Set([...docsLinks.keys(), ...demoLinks.keys()]);
   for (const key of allKeys) {
     const docs = docsLinks.get(key) ?? [];
-    const demos = demoLinks.get(key) ?? [];
+    // some demos carry a recipe's name and show a similar chart; the recipe is the better link
+    const docsTexts = new Set(docs.map(link => link.text));
+    const demos = (demoLinks.get(key) ?? []).filter(link => !docsTexts.has(link.text));
     perProperty[key] = [...docs.slice(0, docsLinkCap), ...demos.slice(0, demoLinkCap)];
     const hidden = Math.max(0, docs.length - docsLinkCap) + Math.max(0, demos.length - demoLinkCap);
     if (hidden > 0) {
