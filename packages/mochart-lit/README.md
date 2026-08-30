@@ -18,6 +18,8 @@ axis contraction, and gapless stacked transitions — no extra wiring needed.
 npm install @mochart/lit @mochart/core lit-html
 ```
 
+lit-html 3.
+
 ## The optional stylesheet
 
 If your app uses a global CSS reset (Tailwind's preflight, a
@@ -134,6 +136,11 @@ addRow(row: DataObject) {
   this.chart?.refresh();
 }
 ```
+
+The callback receives `null` when the directive disconnects, which destroys
+the chart rather than pausing it. A re-attached directive mounts a new one, so
+the opening animation plays again and any chart-managed focus or legend
+filtering starts over.
 
 ## Props
 

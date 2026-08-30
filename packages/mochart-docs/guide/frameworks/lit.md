@@ -153,6 +153,14 @@ The callback is called with the handle once the chart mounts and with
 `null` when the directive disconnects; the handle itself is stable across
 renders, so it is safe to hold onto.
 
+Disconnecting destroys the chart rather than pausing it. A directive that is
+re-attached mounts a new one, so the opening animation plays again and any
+chart-managed focus or legend filtering starts over. This happens whenever the
+host element leaves the DOM and returns, since `LitElement.disconnectedCallback`
+disconnects its root part: a view swap or a router that detaches views is
+enough. Keep state you need to survive that in your own component and pass it
+back in.
+
 ## Callbacks and states
 
 Both directives accept the [chart callbacks](/guide/interaction#callbacks)
