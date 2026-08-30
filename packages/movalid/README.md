@@ -52,7 +52,12 @@ All are called as `validators.name(...args)`:
 - **Combinators** — `or([...validators])`, `and([...validators])`,
   `not(validator)`
 - **Conditional** — `validators.conditional(rules, object)` picks the first
-  rule whose `condition(object)` matches and uses its `validator`
+  rule whose `condition(object)` matches and uses its `validator`. A rule's
+  optional `suffix` is appended to that validator's message, so it can say
+  when the rule applies (`should be a number when type is a`). When no rule
+  matches, the result rejects every value and its `errorMessage` is every
+  rule's message joined with ` or ` (`no conditional rule matched` for an
+  empty rule list)
 
 The bare type predicates are also exported directly for convenience:
 
