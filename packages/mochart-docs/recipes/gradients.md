@@ -7,9 +7,10 @@ series at one with
 [`gradient`](/reference/series#series.gradient). As with
 [stacks](/recipes/stacked-bars) and [groups](/recipes/grouped-series), a
 sole configured gradient is applied automatically — to every `area`/`bar`
-series (or pie slice) without a `colorProperty`, provided no
-[patterns](/recipes/patterns) are configured. With several gradients, or any
-patterns, select the gradient by id.
+series (or pie slice) that sets neither a `colorProperty` nor a
+`categoryIndex` fill, provided no [patterns](/recipes/patterns) are
+configured. With several gradients, or any patterns, select the gradient by
+id.
 
 <script setup>
 import * as gradients from '../examples/gradients'
@@ -37,7 +38,10 @@ import * as gradients from '../examples/gradients'
   color driven by data values, see [color by value](/recipes/color-by-value).
 - In an XY chart, a series can use a gradient only when its `renderer` is
   `area` or `bar`; pie slices can use one whatever the series renderer. A
-  series cannot combine `gradient` with `colorProperty` or `pattern`. Set
+  series cannot combine `gradient` with `colorProperty` or `pattern`, and a
+  series whose `shapeStyle` fill color is
+  [`categoryIndex`](/guide/theming#series-color-palettes) in any state cannot
+  set one either, because that fill already varies per category. Set
   `gradient: null` to opt a series out of an automatically applied sole
   gradient.
 - Legend and tooltip swatches reproduce the gradient.
