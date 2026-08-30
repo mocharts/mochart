@@ -22,24 +22,22 @@ Hovering or clicking a series (per its
 [`focusOnClick`](/reference/series#series.focusOnClick) config, both off by
 default) focuses it: the focused series is styled from the `focused` state of
 its [styles](/guide/config-model#styles-and-focus-states) and every other
-series from their `defocused` state, animated over
-[`focusDuration`](/reference/animation#animation.focusDuration).
-By default those states change only opacity and width — their colors are
-`'same'`, meaning "keep the normal state's color". The legend drives the
-same focus via
-[`legend.focusOnHover`](/reference/legend#legend.focusOnHover) (on
-by default) and
-[`legend.focusOnClick`](/reference/legend#legend.focusOnClick). A series with
-[`useAxisFocus`](/reference/series#series.useAxisFocus) shows as focused
-whenever the value axis it belongs to is.
+series from their `defocused` state. By default those states change only
+opacity and width — their colors are `'same'`, meaning "keep the normal
+state's color". The legend drives the same focus via
+[`legend.focusOnHover`](/reference/legend#legend.focusOnHover) (on by default)
+and [`legend.focusOnClick`](/reference/legend#legend.focusOnClick) (off).
 
-The `*OnHover` configs act on hovering pointers only — a mouse, a
-trackpad, or a pen held over the chart. A touch tap never counts as a hover
-(browsers emulate one right before the tap's click), so on touch screens a
-tap does only what the matching `*OnClick` config says; give touch users
-[`focusOnClick`](/reference/series#series.focusOnClick) or
-[`legend.focusOnClick`](/reference/legend#legend.focusOnClick) where they
-should be able to focus.
+A value axis is focused by hovering it
+([`valueAxes.focusOnHover`](/reference/valueAxes#valueAxes.focusOnHover), on
+by default) or clicking it
+([`valueAxes.focusOnClick`](/reference/valueAxes#valueAxes.focusOnClick), off).
+Series and axis focus feed each other: a series with
+[`useAxisFocus`](/reference/series#series.useAxisFocus) (on by default) shows
+as focused whenever the value axis it belongs to is, and an axis with
+[`useSeriesFocus`](/reference/valueAxes#valueAxes.useSeriesFocus) (on by
+default) shows as focused whenever one of its series is — the axis line, grid
+and ticks only; the axis's other series are unaffected.
 
 Category focus has knobs of its own: the series'
 [`focusCategoryOnHover`](/reference/series#series.focusCategoryOnHover)
@@ -50,6 +48,17 @@ tooltip focuses its category anyway while
 [`crosshair.applyFocus`](/reference/crosshair#crosshair.applyFocus) is set —
 both on by default — so a plain plot click reports a focused category through
 `onFocus`.
+
+The `*OnHover` configs act on hovering pointers only — a mouse, a
+trackpad, or a pen held over the chart. A touch tap never counts as a hover
+(browsers emulate one right before the tap's click), so on touch screens a
+tap does only what the matching `*OnClick` config says; give touch users
+[`focusOnClick`](/reference/series#series.focusOnClick) or
+[`legend.focusOnClick`](/reference/legend#legend.focusOnClick) where they
+should be able to focus.
+
+Every focus change — series, value axis or category — animates over
+[`focusDuration`](/reference/animation#animation.focusDuration).
 
 ## Legend filtering
 
