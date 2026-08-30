@@ -661,7 +661,8 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       if (chartTextBoundsData !== this.state.chartTextBoundsData) {
         let layoutInfo = getChartLayoutInfo(mochartConfig, chartData, chartTextBoundsData, width, height);
         layoutInfo = getChartLayoutInfoWithMutations(this.state.layoutInfo, layoutInfo);
-        this.setState({ chartTextBoundsData, layoutInfo });
+        // through applyLayoutInfo like every other layout commit, or the host's bounds notification is silently lost
+        this.setState(this.applyLayoutInfo(mochartConfig, { chartTextBoundsData, layoutInfo }));
       }
     }
   }
