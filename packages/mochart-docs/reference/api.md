@@ -188,7 +188,9 @@ warnings, which is what a live-preview editor wants.
   `validateConfig` result shape, and adds `diagnostics`: one entry per
   problem with a config `path` (keys and array indexes), `severity`
   (`'error'` | `'warning'`), `message`, and `source`, so an editor can
-  highlight the property responsible.
+  highlight the property responsible. An unknown-property warning also
+  carries `invalidProperties` — the offending key names — because its `path`
+  stops at the section that contains them.
 - `migrateConfig` upgrades a config written against an older
   [`version`](/guide/config-model#validation) to the current format,
   returning a copy; a config with no `version` is stamped with the current
