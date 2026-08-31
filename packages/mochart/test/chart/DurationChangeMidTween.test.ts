@@ -38,7 +38,8 @@ const MAX_FRAMES = 400;
 function makeConfig(animation: Durations = {}, categoryProperty = 'month') {
   return mochart.enhanceConfig({
     version: '1.0.0',
-    animation: { enabled: true, ...baseDurations, ...animation },
+    // linear easing keeps frame counts mapped straight onto durations
+    animation: { enabled: true, easing: 'linear', focusEasing: 'linear', ...baseDurations, ...animation },
     categoryAxis: { property: categoryProperty, type: 'string', scale: 'ordinal' },
     valueAxes: [{ id: 'value', min: 0, max: 100 }],
     series: [{ id: 'sales', property: 'sales', axis: 'value', renderer: 'bar' }]

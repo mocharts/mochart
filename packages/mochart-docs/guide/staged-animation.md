@@ -168,13 +168,22 @@ Nearly all knobs live in [`animation`](/reference/animation):
 | [`expansionDuration`](/reference/animation#animation.expansionDuration) | the axis expansion phase |
 | [`valueChangeDuration`](/reference/animation#animation.valueChangeDuration) | the value change phase (incl. category/series transitions and combined domain changes) |
 | [`contractionDuration`](/reference/animation#animation.contractionDuration) | the axis contraction phase |
+| [`easing`](/reference/animation#animation.easing) | how the data animation phases are paced |
 | [`focusDuration`](/reference/animation#animation.focusDuration) | hover/click focus emphasis transitions |
+| [`focusEasing`](/reference/animation#animation.focusEasing) | how focus transitions are paced |
 
 Durations are in milliseconds and are the *maximum* for the phase — smaller
 changes complete proportionally faster. On an axis running `0` to `100` with
 `valueChangeDuration: 1000`, a bar growing the full height of the axis takes
 1000 ms, one going from `50` to `100` takes 500 ms, and one going from `95` to
 `100` takes 50 ms.
+
+Both easing properties take `'linear'`, `'cubicIn'`, `'cubicOut'` or
+`'cubicInOut'`. `easing` paces each data animation phase on its own and
+defaults to `'cubicInOut'`, accelerating in and decelerating out.
+`focusEasing` paces focus transitions and defaults to `'cubicOut'`, which
+starts fast so hover feedback reads as immediate even when focus moves
+quickly between series or categories.
 
 The one knob that lives on the series instead:
 [`animateBaseFromAdjacent`](/reference/series#series.animateBaseFromAdjacent)

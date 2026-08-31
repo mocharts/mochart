@@ -69,6 +69,7 @@ const descriptions: Record<string, string> = {
   PieLabelType: 'What a pie slice label shows.',
   PieTooltipValueType: 'What a pie tooltip row shows: the slice value, its percent or both, without the series title the row already carries.',
   DomainChange: 'How an axis domain change animates relative to the value change.',
+  AnimationEasing: 'How an animation\'s progress is paced over its duration.',
   Auto: 'The `\'auto\'` keyword, accepted by members that otherwise take a number, a format string, or another enumeration.'
 };
 

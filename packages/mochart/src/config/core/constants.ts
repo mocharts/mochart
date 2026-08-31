@@ -64,6 +64,15 @@ export const DOMAIN_CHANGES = [
   AUTO, DOMAIN_CHANGE_COMBINED, DOMAIN_CHANGE_STAGED
 ];
 
+export const EASING_LINEAR = 'linear';
+export const EASING_CUBIC_IN = 'cubicIn';
+export const EASING_CUBIC_OUT = 'cubicOut';
+export const EASING_CUBIC_IN_OUT = 'cubicInOut';
+
+export const EASINGS = [
+  EASING_LINEAR, EASING_CUBIC_IN, EASING_CUBIC_OUT, EASING_CUBIC_IN_OUT
+];
+
 export const SIDE_START = 'start';
 export const SIDE_END = 'end';
 
@@ -220,6 +229,7 @@ export type Anchor = typeof ANCHOR_START | typeof ANCHOR_END | typeof ANCHOR_MID
 export type Position = typeof POSITION_TOP | typeof POSITION_BOTTOM;
 export type MissingValueMode = typeof MISSING_VALUE_MODE_BREAK | typeof MISSING_VALUE_MODE_CONNECT | typeof MISSING_VALUE_MODE_BASE;
 export type DomainChange = typeof AUTO | typeof DOMAIN_CHANGE_COMBINED | typeof DOMAIN_CHANGE_STAGED;
+export type AnimationEasing = typeof EASING_LINEAR | typeof EASING_CUBIC_IN | typeof EASING_CUBIC_OUT | typeof EASING_CUBIC_IN_OUT;
 export type AxisSide = typeof SIDE_START | typeof SIDE_END;
 export type ThresholdTitleSide = typeof TITLE_SIDE_LOW | typeof TITLE_SIDE_HIGH;
 export type ChartType = typeof CHART_TYPE_XY | typeof CHART_TYPE_PIE;

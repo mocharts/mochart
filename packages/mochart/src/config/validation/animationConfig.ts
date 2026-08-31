@@ -1,5 +1,5 @@
 import validators from './validators';
-import { DOMAIN_CHANGES } from '../core/constants';
+import { DOMAIN_CHANGES, EASINGS } from '../core/constants';
 
 export default function getValidators() {
   return {
@@ -10,6 +10,8 @@ export default function getValidators() {
     expansionDuration: validators.numberMin(0),
     valueChangeDuration: validators.numberMin(0),
     contractionDuration: validators.numberMin(0),
-    focusDuration: validators.numberMin(0)
+    easing: validators.oneOf(EASINGS),
+    focusDuration: validators.numberMin(0),
+    focusEasing: validators.oneOf(EASINGS)
   };
 }

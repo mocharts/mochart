@@ -21,7 +21,7 @@ export { NONE, AUTO, TYPE_DATE, TYPE_NUMBER, TYPE_STRING, SCALE_ORDINAL, SCALE_L
 export type {
   Auto, Align, TooltipValueAlign, VerticalAlign, Anchor, Position, MissingValueMode, AxisSide, ThresholdTitleSide,
   ChartType, PieLabelType, PieTooltipValueType, Scale, DataType, RendererType, PatternType, CurveType,
-  CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, DomainChange
+  CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, DomainChange, AnimationEasing
 } from './config/core/constants';
 export { getDataErrors } from './data/DataValidator';
 export { binValues, createHistogram } from './data/Histogram';

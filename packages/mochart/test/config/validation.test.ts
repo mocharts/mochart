@@ -1043,6 +1043,28 @@ describe('animation domain change validation', () => {
   });
 });
 
+// easing/focusEasing are closed enums: linear | cubicIn | cubicOut | cubicInOut
+describe('animation easing validation', () => {
+  const withAnimation = (animation: unknown) => ({
+    version: V,
+    categoryAxis: { property: 'p' },
+    series: [{ property: 'a' }],
+    animation
+  });
+
+  it('accepts each easing on both properties', () => {
+    for (const easing of ['linear', 'cubicIn', 'cubicOut', 'cubicInOut']) {
+      expect(errorsFor(withAnimation({ easing }))).toEqual([]);
+      expect(errorsFor(withAnimation({ focusEasing: easing }))).toEqual([]);
+    }
+  });
+
+  it('rejects an unknown easing on either property', () => {
+    expect(errorsFor(withAnimation({ easing: 'bouncy' })).some(error => error.includes('easing'))).toBe(true);
+    expect(errorsFor(withAnimation({ focusEasing: 'bouncy' })).some(error => error.includes('focusEasing'))).toBe(true);
+  });
+});
+
 describe('axis bounds validation', () => {
   const BOUNDS = 'should not be above the max property of the same axis: ';
   const withValueAxes = (valueAxes: unknown, valueAxisDefaults?: unknown) => ({

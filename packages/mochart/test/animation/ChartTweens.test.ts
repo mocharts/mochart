@@ -10,6 +10,7 @@ import {
   dataTweenContractStart, dataTweenContractUpdate, dataTweenContractComplete
 } from '../../src/animation/ChartTweens';
 import { getChartDataForAxisDelta, getChartDataForValueDelta } from '../../src/animation/ChartAnimation';
+import { getEasingFunction } from '../../src/animation/Easing';
 import { getFocusDataForPercent } from '../../src/animation/FocusAnimation';
 import type { ChartTweenManager, DataTweenEvent } from '../../src/animation/ChartTweens';
 
@@ -47,7 +48,7 @@ function makeAnimationData(overrides: Partial<Record<'axisExpansionData' | 'valu
   } as unknown as ChartAnimationData;
 }
 
-function makeConfig(overrides: Record<string, number> = {}): EnhancedMochartConfig {
+function makeConfig(overrides: Record<string, number | string> = {}): EnhancedMochartConfig {
   return {
     animation: {
       expansionDuration: 100,
@@ -502,5 +503,66 @@ describe('tweenFocus', () => {
     runFrames();
     expect(secondUpdate.mock.calls.length).toBe(updateCount);
     expect(secondComplete).not.toHaveBeenCalled();
+  });
+});
+
+// animation.easing / animation.focusEasing map each frame's linear progress through the configured
+// easing before it reaches the interpolators; the easing math itself is pinned by Easing.test.ts
+describe('easing', () => {
+  function valuePercentages(easing?: string): number[] {
+    const manager = makeManager();
+    const { events, record } = makeRecorder();
+    manager.tweenData(makeConfig(easing !== undefined ? { easing } : {}), makeAnimationData({
+      valueChangeData: phaseData(1, sentinel('value', 'start'), sentinel('value', 'final'))
+    }), record);
+    runFrames();
+    return events
+      .filter(({ event }) => event === dataTweenValueUpdate)
+      .map(({ data }) => (data as { percentage: number }).percentage);
+  }
+
+  function focusPercentages(focusEasing?: string): number[] {
+    const manager = makeManager();
+    const updates: unknown[] = [];
+    const animationData = { deltaPercentage: 1, start: sentinel('focus', 'start'), final: sentinel('focus', 'final') } as unknown as FocusAnimationData;
+    manager.tweenFocus(makeConfig(focusEasing !== undefined ? { focusEasing } : {}), animationData, (focusData: FocusData) => { updates.push(focusData); });
+    runFrames();
+    return updates
+      .filter(update => (update as { interpolated?: string }).interpolated === 'focus')
+      .map(update => (update as { percentage: number }).percentage);
+  }
+
+  it('data tween frames follow the configured easing', () => {
+    const linear = valuePercentages('linear');
+    vi.clearAllMocks();
+    const eased = valuePercentages('cubicInOut');
+    const cubicInOut = getEasingFunction('cubicInOut');
+
+    expect(eased.length).toBe(linear.length);
+    linear.forEach((percentage, i) => {
+      expect(eased[i]).toBeCloseTo(cubicInOut(percentage), 10);
+    });
+    // the easing actually bends the progress: some interior frame lags its linear counterpart
+    expect(linear.some((percentage, i) => Math.abs(eased[i]! - percentage) > 0.01)).toBe(true);
+  });
+
+  it('focus tween frames follow focusEasing, not easing', () => {
+    const linear = focusPercentages('linear');
+    vi.clearAllMocks();
+    const eased = focusPercentages('cubicOut');
+    const cubicOut = getEasingFunction('cubicOut');
+
+    expect(eased.length).toBe(linear.length);
+    linear.forEach((percentage, i) => {
+      expect(eased[i]).toBeCloseTo(cubicOut(percentage), 10);
+    });
+    expect(linear.some((percentage, i) => Math.abs(eased[i]! - percentage) > 0.01)).toBe(true);
+  });
+
+  it('a config without easing values falls back to linear progress', () => {
+    const explicit = valuePercentages('linear');
+    vi.clearAllMocks();
+    const fallback = valuePercentages();
+    expect(fallback).toEqual(explicit);
   });
 });

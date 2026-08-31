@@ -3,6 +3,9 @@ import { getFocusDataForPercent } from './FocusAnimation';
 
 import { getChartDataForAxisDelta, getChartDataForValueDelta } from './ChartAnimation';
 
+import { getEasingFunction } from './Easing';
+
+import type { EasingFunction } from './Easing';
 import type { EnhancedMochartConfig } from '../types/enhanced';
 import type { AnimationChartData, ChartAnimationData, FocusAnimationData, FocusData } from '../types/animation';
 
@@ -45,7 +48,7 @@ interface TweenEngine {
   update(time?: number): boolean;
   /** run once after the current update pass (the same callback is queued once), or now when no pass is running */
   afterUpdate(callback: VoidCallback): void;
-  create(duration: number, delay?: number): Tween;
+  create(duration: number, delay?: number, easing?: EasingFunction): Tween;
 }
 
 interface FocusTweenOptions {
@@ -177,7 +180,7 @@ function initMochartTween(): TweenEngine {
     }
   }
 
-  const create = function(duration: number, delay = 0): Tween {
+  const create = function(duration: number, delay = 0, easing?: EasingFunction): Tween {
     const id = _nextTweenId++;
     let startTime = 0;
     let isPlaying = false;
@@ -218,7 +221,7 @@ function initMochartTween(): TweenEngine {
       percentage = percentage > 1 ? 1 : percentage;
 
       if (onUpdateCallback !== null) {
-			  onUpdateCallback(percentage);
+			  onUpdateCallback(easing !== undefined ? easing(percentage) : percentage);
         if (stopped) {
           return false;
         }
@@ -421,7 +424,7 @@ function buildFocusTween(
   // delay the start of the focus tween by a few milliseconds to allow it to be canceled if another tween is built
   // immediately after, like when we mouseover the series, and then mouseout but immediately mouseover a series marker
   const delay = 5;
-  const focusTween = MochartTween.create(duration, delay);
+  const focusTween = MochartTween.create(duration, delay, getEasingFunction(mochartConfig.animation.focusEasing));
   focusTween.onStart(() => {
     updateCallback(focusAnimationData.start);
     startCallback();
@@ -515,10 +518,11 @@ function buildDataTween(
       });
     }
   }
+  const easing = getEasingFunction(mochartConfig.animation.easing);
   let firstTween: Tween | null = null;
   let lastTween: Tween | null = null;
   for (let i=0; i<tweenData.length; i++) {
-    const newTween = MochartTween.create(tweenData[i].duration);
+    const newTween = MochartTween.create(tweenData[i].duration, 0, easing);
     if (i === 0) {
       newTween.onStart(() => {
         tweenData[i].onStart();
