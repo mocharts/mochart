@@ -90,6 +90,12 @@ past the edge of the chart.
 Cutting the text changes only what is drawn. The chart's accessible name and
 the name a clickable title is announced by both use the full text you set.
 
+A pointer can still get at the full text:
+[`truncationTooltipEnabled`](/reference/title#title.truncationTooltipEnabled)
+(on by default) gives the truncated title an svg `<title>` holding the full text,
+which browsers show as their native tooltip while a mouse or pen rests on
+it. Touch has no hover, so nothing shows there.
+
 ## A caption under the chart
 
 The same row makes a source note when it is moved below the plot, aligned to

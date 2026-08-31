@@ -2,7 +2,7 @@ import { Renderer, svgEl, textEl } from '../render';
 
 import { mochartCssClasses } from '../utils/ChartDom';
 import { layoutInfoExtentChanged } from '../layout/LayoutInfo';
-import { getTruncatedText, TruncationTracker } from '../utils/TextTruncation';
+import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation';
 import { getClipPathReference } from '../utils/svgUtils';
 import { getAxisFocusStyle } from '../utils/FocusValue';
 import { styleToAttributes } from '../utils/style';
@@ -32,6 +32,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
   text = svgEl('text');
   textValue = textEl();
   truncation = new TruncationTracker();
+  tooltip = new TruncationTooltip();
 
   constructor() {
     super();
@@ -82,6 +83,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
         stroke, strokeOpacity,
         fill, fillOpacity, strokeWidth });
       this.textValue.set(title);
+      this.tooltip.sync(this.text, axisConfig.title.truncationTooltipEnabled, axisConfig.title.text!, title);
     }
     else {
       this.setPresent(false);

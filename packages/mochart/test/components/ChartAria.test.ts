@@ -117,6 +117,21 @@ describe('chart aria semantics', () => {
   });
 });
 
+describe('title text in the reading order', () => {
+  it('hides the drawn title text because the svg is already named from it', () => {
+    const container = mountChart(makeConfig({ title: { text: 'Monthly sales', prefix: { text: 'Q1' } } }));
+    expect(container.querySelector('svg')!.getAttribute('aria-label')).toBe('Monthly sales');
+    expect(container.querySelector(getCssSelector('titleText'))!.getAttribute('aria-hidden')).toBe('true');
+    // the prefix is not part of the svg name, so it still reads
+    expect(container.querySelector(getCssSelector('titlePrefix'))!.getAttribute('aria-hidden')).toBeNull();
+  });
+
+  it('keeps a linked title\'s text readable, since that text names the link', () => {
+    const container = mountChart(makeConfig({ title: { text: 'Monthly sales', link: 'https://example.com' } }));
+    expect(container.querySelector(getCssSelector('titleText'))!.getAttribute('aria-hidden')).toBeNull();
+  });
+});
+
 // Regression: the title got an onClick with no tabindex, role or key handler, so onTitleClick was pointer-only
 describe('clickable title', () => {
   it('exposes button semantics and fires on Enter and Space', () => {

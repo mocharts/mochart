@@ -1,6 +1,7 @@
 // What a screen reader reads inside the plot: tick labels are exposed in named axis groups, noise text stays aria-hidden
 import { describe, it, expect, beforeAll } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
+import { getRenderedText } from '../golden/textMetrics';
 import { mountContainer, trackHandle } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
 import type { DefaultChartProps } from '../../src/types/chart';
@@ -71,8 +72,8 @@ describe('axis text in the accessibility tree', () => {
     const texts = [...container.querySelectorAll('text')];
     const hidden = texts.filter(text => ariaHiddenAncestor(text) !== null);
     expect(texts.length).toBe(19);
-    expect(hidden.length).toBe(3);
-    // the ordinal width probe plus the two overlap-suppressed end ticks
+    // the ordinal width probe, the two overlap-suppressed end ticks, and the drawn chart title the svg is named from
+    expect(hidden.length).toBe(4);
     expect(hidden.filter(text => (text.getAttribute('style') ?? '').includes('hidden')).length).toBe(3);
   });
 
@@ -178,11 +179,11 @@ describe('truncated tick labels', () => {
     // character-proportional measurements so truncation actually engages in jsdom
     const svgProto = (globalThis as unknown as { SVGElement: { prototype: Record<string, unknown> } }).SVGElement.prototype;
     svgProto.getComputedTextLength = function (this: SVGTextContentElement) {
-      return (this.textContent ?? '').length * 9.7;
+      return getRenderedText(this).length * 9.7;
     };
     svgProto.getSubStringLength = (_start: number, count: number) => count * 9.7;
     svgProto.getBBox = function (this: SVGGraphicsElement) {
-      return { x: 0, y: 0, width: (this.textContent ?? '').length * 9.7, height: 12 };
+      return { x: 0, y: 0, width: getRenderedText(this).length * 9.7, height: 12 };
     };
   });
 

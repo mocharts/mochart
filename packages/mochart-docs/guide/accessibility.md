@@ -169,8 +169,11 @@ pie slices are named with their series title and current share.
 ## Reading the chart
 
 A screen reader user who *reads* the chart rather than operating it gets its
-text as well as its tab stops. The chart title, the legend's series names and
-every axis tick label are text in the reading order.
+text as well as its tab stops. The legend's series names and every axis tick
+label are text in the reading order. The chart title is not: the svg is
+already named from it, so reading the drawn text as well would say the title
+twice in a row. A linked title keeps its text readable, because that text is
+the link's name.
 
 Tick labels are grouped so that a run of them arrives with the scale it
 belongs to: each axis is a `role="group"` named for the axis, so the reading
@@ -194,13 +197,22 @@ still reads in full. A tick label the chart suppressed to stop labels
 overlapping is `aria-hidden`, as is the hidden width probe an ordinal axis
 measures truncation against.
 
-Four kinds of text stay out of the reading order deliberately:
+Pointer users get the full text another way. While
+[`truncationTooltipEnabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncationTooltipEnabled)
+is on (the default), a truncated tick label also carries an svg `<title>`
+holding its full text, which browsers show as their native tooltip when a
+mouse or pen rests on the label; the chart title, the legend and the axis
+titles have the same setting. It changes nothing for assistive tech, and
+touch, which has no hover, never shows it.
+
+Five kinds of text stay out of the reading order deliberately:
 
 | Not read | Why |
 | --- | --- |
 | per-point data labels ([`series.labelProperty`](/reference/series#series.labelProperty)) | they are bare numbers that name neither their series nor their category, and mid-animation they are the interpolated in-between value rather than the datum. The tooltip's live region reads the settled values *with* their series and category names, which is the same information in a comprehensible order |
 | threshold annotations ([`valueAxes.thresholds`](/reference/valueAxes#valueAxes.thresholds)) | they label a line drawn across the plot, and read out of that spatial context they say nothing about the data |
 | the axis title, when the axis is announced using it | it would otherwise be read twice in a row |
+| the chart title, when it is not a link | the svg is already named from it, so it would otherwise be read twice in a row; a linked title keeps its text because that text is the link's name |
 | the pie center ([`pie.centerLabel`](/reference/pie#pie.centerLabel), [`pie.centerTotal`](/reference/pie#pie.centerTotal)) | it is decoration drawn inside the ring rather than a labelled value, and the total restates what the slices already add up to. When the center is the headline figure, put it in a heading beside the chart |
 
 If you need the individual values readable rather than navigable, put a data

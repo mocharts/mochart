@@ -45,6 +45,11 @@ import * as tickLabelsDense from '../examples/tickLabelsDense'
   [`truncationMinLength`](/reference/categoryAxis#categoryAxis.tickLabel.truncationMinLength)
   pixels — that floor is what keeps the labels above legible on a short
   chart.
+- [`truncationTooltipEnabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncationTooltipEnabled)
+  (on by default) gives each truncated label an svg `<title>` holding its full
+  text, which browsers show as their native tooltip while a mouse or pen
+  rests on the label. Touch has no hover, so nothing shows there; screen
+  readers already get the full text through `aria-label`.
 - With truncation off, nothing is cut: the axis drops ticks until the
   remaining labels fit, as in the [next example](#fewer-ticks-instead).
 - [`anchor`](/reference/categoryAxis#categoryAxis.tickLabel.anchor) sets

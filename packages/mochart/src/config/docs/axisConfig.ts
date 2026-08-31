@@ -162,6 +162,7 @@ export default function getDescriptions() {
         backgroundStyle: style('the styles to apply to the axis title background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
         truncationEnabled: 'whether to apply text truncation to the contents of the axis title when it would overflow the axis bounds',
         truncationText: 'the truncation text to append to the axis title when its length exceeds the bounds of the axis',
+        truncationTooltipEnabled: 'whether a truncated axis title shows its full text as the browser’s native tooltip while a pointer rests on it',
         size: 'the space (in pixels) perpendicular to the axis direction to allocate for the axis title (use "auto" to derive from the font size)',
         marginInner: 'the margin (in pixels) to show between the axis title and the inside of the axis',
         marginOuter: 'the margin (in pixels) to show between the axis title and the outside of the axis',

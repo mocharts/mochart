@@ -96,13 +96,25 @@ describe('getSvgMaxWidthAndHeight', () => {
 // Regression: an element whose text is '' measures 0x0 forever, which used to read as unmeasurable
 // (default bounds) — layout reserved a phantom 20x20 and hasDefault re-measured the DOM every render.
 describe('empty rendered text', () => {
-  const textElement = (textContent: string, width: number, height: number): SVGGraphicsElement =>
-    ({ textContent, getBBox: () => ({ x: 0, y: 0, width, height }) } as unknown as SVGGraphicsElement);
+  const textElement = (textContent: string, width: number, height: number): SVGGraphicsElement => {
+    const element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    element.textContent = textContent;
+    element.getBBox = () => ({ x: 0, y: 0, width, height }) as DOMRect;
+    return element;
+  };
 
   it('measures an empty text element as empty rather than unmeasured', () => {
     expect(getSvgWidthAndHeight(textElement('', 0, 0))).toEqual({ width: 0, height: 0, empty: true });
     expect(getSvgWidthAndHeight(textElement('  ', 0, 0))).toEqual({ width: 0, height: 0, empty: true });
     expect(getSvgWidthAndHeight(textElement('abc', 30, 10))).toEqual({ width: 30, height: 10 });
+  });
+
+  it('ignores a truncation tooltip <title> child when deciding the drawn text is empty', () => {
+    const element = textElement('', 0, 0);
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    title.textContent = 'The full label the tooltip shows';
+    element.appendChild(title);
+    expect(getSvgWidthAndHeight(element)).toEqual({ width: 0, height: 0, empty: true });
   });
 
   it('measures all-empty tick labels as empty, but keeps a hidden non-empty label unmeasured', () => {

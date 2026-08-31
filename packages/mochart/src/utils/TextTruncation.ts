@@ -1,3 +1,6 @@
+import { svgEl, textEl } from '../render';
+import type { El } from '../render';
+
 export interface TruncationData {
   text: string;
   truncatedText?: string;
@@ -141,6 +144,30 @@ export class TruncationTracker {
     this.check = checkTruncation;
     if (checkTruncation) {
       host.setState({ truncationData });
+    }
+  }
+}
+
+/** The svg <title> a truncated text element carries while truncationTooltipEnabled is on: browsers show
+ * it as their native tooltip when a pointer rests on the text. Absent whenever the drawn text is the full text. */
+export class TruncationTooltip {
+  private readonly title = svgEl('title');
+  private readonly value = textEl();
+
+  constructor() {
+    this.title.append(this.value);
+  }
+
+  sync(text: El, enabled: boolean, fullText: string, shownText: string): void {
+    if (enabled && shownText !== fullText) {
+      // appended once: sync runs every tween frame, and appendChild would move an attached node each time
+      if (this.title.node.parentNode !== text.node) {
+        text.append(this.title);
+      }
+      this.value.set(fullText);
+    }
+    else {
+      this.title.node.remove();
     }
   }
 }

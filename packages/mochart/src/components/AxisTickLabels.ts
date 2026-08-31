@@ -2,7 +2,7 @@ import { Renderer, svgEl, textEl } from '../render';
 
 import { mochartCssClasses } from '../utils/ChartDom';
 import { layoutInfoExtentChanged } from '../layout/LayoutInfo';
-import { getTruncatedText, TruncationTracker } from '../utils/TextTruncation';
+import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation';
 import { SCALE_ORDINAL } from '../config/core/constants';
 import { translate } from '../utils/utils';
 import { getClipPathReference } from '../utils/svgUtils';
@@ -23,7 +23,7 @@ const hiddenStyle = { visibility: 'hidden' };
 
 type AxisDisplayConfig = Omit<AxisConfigBase, 'tickLabel'> &
   Pick<CategoryAxisConfig, 'scale'> &
-  { tickLabel: AxisTickLabelConfig & Partial<Pick<CategoryAxisTickLabelConfig, 'truncationEnabled' | 'truncationText' | 'truncationMinLength' | 'truncationMaxFraction'>> } &
+  { tickLabel: AxisTickLabelConfig & Partial<Pick<CategoryAxisTickLabelConfig, 'truncationEnabled' | 'truncationText' | 'truncationTooltipEnabled' | 'truncationMinLength' | 'truncationMaxFraction'>> } &
   Partial<Pick<EnhancedValueAxisConfig, 'useSeriesFocus'>>;
 
 interface AxisTickLabelsProps {
@@ -39,7 +39,7 @@ interface AxisTickLabelsProps {
 }
 type AxisTickLabelsState = TruncationState;
 type SizeLabelEl = El & { textHandle: El; valueHandle: TextEl };
-interface TickLabelHandle { root: El; text: El; value: TextEl }
+interface TickLabelHandle { root: El; text: El; value: TextEl; tooltip: TruncationTooltip }
 
 function getTruncationChanged(sizeChanged: boolean, ticksChanged: boolean, oldProps: AxisTickLabelsProps, newProps: AxisTickLabelsProps): boolean {
   if (sizeChanged) {
@@ -156,6 +156,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
 
     const truncationEnabled = axisConfig.tickLabel.truncationEnabled ?? false;
     const truncationText = axisConfig.tickLabel.truncationText ?? '';
+    const truncationTooltipEnabled = axisConfig.tickLabel.truncationTooltipEnabled ?? false;
     const useSeriesFocus = axisConfig.useSeriesFocus ?? false;
     const tickLabels = this.getTruncatedLabels(truncationEnabled, truncationText, truncationData);
 
@@ -176,7 +177,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
         const value = textEl();
         text.append(value);
         root.append(text);
-        return { root, text, value };
+        return { root, text, value, tooltip: new TruncationTooltip() };
       },
       update: (handle, tick, i) => {
         if (vertical) {
@@ -194,6 +195,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
           ariaHidden: accessibility && tick.hidden ? 'true' : null,
           ariaLabel: accessibility && !tick.hidden && tickLabels[i] !== fullLabel ? fullLabel : null });
         handle.value.set(tickLabels[i]);
+        handle.tooltip.sync(handle.text, truncationTooltipEnabled && !tick.hidden, fullLabel, tickLabels[i]);
       }
     });
 

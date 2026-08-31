@@ -115,6 +115,7 @@ export default function getDefaults() {
       backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 },
       truncationEnabled: true,
       truncationText: ELLIPSIS,
+      truncationTooltipEnabled: true,
       size: AUTO,
       marginInner: 2,
       marginOuter: 2,

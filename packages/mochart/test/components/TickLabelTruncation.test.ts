@@ -2,6 +2,7 @@
 // updates instead of being wiped and re-measured (with one untruncated frame).
 import { describe, it, expect, beforeAll } from 'vitest';
 import { mountContainer, trackHandle } from './helpers';
+import { getRenderedText } from '../golden/textMetrics';
 import { createDefaultChart } from '../../src/createChart';
 import type { ChartHandle } from '../../src/createChart';
 import type { DefaultChartProps } from '../../src/types/chart';
@@ -39,7 +40,7 @@ beforeAll(() => {
   const svgProto = (globalThis as any).SVGElement.prototype;
   svgProto.getComputedTextLength = function (this: SVGTextContentElement) {
     measureCalls++;
-    return (this.textContent ?? '').length * PX_PER_CHAR;
+    return getRenderedText(this).length * PX_PER_CHAR;
   };
   svgProto.getSubStringLength = (_start: number, count: number) => {
     measureCalls++;
@@ -48,7 +49,7 @@ beforeAll(() => {
   // proportional like the text lengths: zero-size bboxes would keep the
   // default-bounds re-measure marker set, which wipes truncation every update
   svgProto.getBBox = function (this: SVGGraphicsElement) {
-    return { x: 0, y: 0, width: (this.textContent ?? '').length * PX_PER_CHAR, height: 12 };
+    return { x: 0, y: 0, width: getRenderedText(this).length * PX_PER_CHAR, height: 12 };
   };
 });
 
@@ -56,7 +57,7 @@ describe('tick-label truncation state across updates', () => {
   it('keeps the measured truncation and stops measuring once settled', () => {
     const { container, handle } = mountChart();
     const labelTexts = () => [...container.querySelectorAll(getDescendantCssSelector('categoryAxis', 'axisTickLabel') + ' text')]
-      .map(label => label.textContent ?? '');
+      .map(label => getRenderedText(label));
 
     // a real prop change flushes the tail of the mount-time measurement passes
     handle.update({ focusedCategoryIndex: 0 } as Partial<DefaultChartProps>);
@@ -77,7 +78,7 @@ describe('tick-label truncation state across updates', () => {
   it('re-truncates from the new labels when a data update replaces them', () => {
     const { container, handle } = mountChart();
     const labelTexts = () => [...container.querySelectorAll(getDescendantCssSelector('categoryAxis', 'axisTickLabel') + ' text')]
-      .map(label => label.textContent ?? '');
+      .map(label => getRenderedText(label));
     const isTruncationOf = (rendered: string, full: string) =>
       rendered.endsWith('…') && rendered.length > 1 && full.startsWith(rendered.slice(0, -1));
 

@@ -45,7 +45,8 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
       ], config),
       truncationMaxFraction: validators.numberMinMax(0, 1),
       truncationMinLength: validators.numberMin(0),
-      truncationText: validators.string()
+      truncationText: validators.string(),
+      truncationTooltipEnabled: validators.boolean()
     }, pieMode),
 
     dateUTC: validators.boolean(),

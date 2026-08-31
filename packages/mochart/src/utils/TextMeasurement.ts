@@ -164,10 +164,21 @@ function getSvgWidth(domElement: SVGGraphicsElement, boundingBox: { width: numbe
   return typeof textElement.getComputedTextLength === 'function' ? textElement.getComputedTextLength() : boundingBox.width;
 }
 
-// empty text legitimately measures 0x0; flagged so it is not mistaken for an unmeasurable element and retried forever
+const TEXT_NODE = 3;
+
+// empty text legitimately measures 0x0; flagged so it is not mistaken for an unmeasurable element and retried forever.
+// Direct text nodes only: a truncation tooltip <title> child holds the full text of a label whose drawn text is empty.
 function hasEmptyText(domElement: SVGGraphicsElement): boolean {
-  const { textContent } = domElement;
-  return typeof textContent === 'string' && textContent.trim() === '';
+  if (typeof domElement.textContent !== 'string') {
+    return false;
+  }
+  let text = '';
+  for (let child = domElement.firstChild; child !== null; child = child.nextSibling) {
+    if (child.nodeType === TEXT_NODE) {
+      text += child.nodeValue;
+    }
+  }
+  return text.trim() === '';
 }
 
 export function getSvgMaxWidthAndHeight(domElements: ArrayLike<SVGGraphicsElement>): TextBounds {

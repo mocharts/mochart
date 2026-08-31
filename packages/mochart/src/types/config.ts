@@ -984,6 +984,18 @@ export interface TitleConfig {
    */
   truncationText: string;
   /**
+   * Whether a truncated title shows its full text as the browser’s native
+   * tooltip while a pointer rests on it.
+   *
+   * When `true`, a truncated title carries an svg `<title>` holding the full
+   * text, which browsers show as their native tooltip (not the chart `tooltip`)
+   * while a mouse or pen rests on it. Touch has no hover, so nothing shows
+   * there; the chart’s accessible name already uses the full text.
+   *
+   * @default true
+   */
+  truncationTooltipEnabled: boolean;
+  /**
    * Whether the title should be aligned between the axes (true) or the chart
    * bounds (false).
    *
@@ -1224,6 +1236,19 @@ export interface LegendConfig {
    * @default "…"
    */
   truncationText: string;
+  /**
+   * Whether a truncated legend item shows its full series title as the
+   * browser’s native tooltip while a pointer rests on it.
+   *
+   * When `true`, a truncated legend item carries an svg `<title>` holding the
+   * full text, which browsers show as their native tooltip (not the chart
+   * `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing
+   * shows there; a keyboard-reachable item is already named from the full
+   * series title.
+   *
+   * @default true
+   */
+  truncationTooltipEnabled: boolean;
   /**
    * Whether the legend should be aligned between the axes (true) or the chart
    * bounds (false).
@@ -1943,6 +1968,19 @@ export interface CategoryAxisTickLabelConfig extends AxisTickLabelConfig {
    */
   truncationText: string;
   /**
+   * Whether a truncated tick label shows its full text as the browser’s native
+   * tooltip while a pointer rests on it.
+   *
+   * When `true`, a truncated tick label carries an svg `<title>` holding the
+   * full text, which browsers show as their native tooltip (not the chart
+   * `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing
+   * shows there; assistive tech already gets the full text through
+   * `aria-label`.
+   *
+   * @default true
+   */
+  truncationTooltipEnabled: boolean;
+  /**
    * The minimum length (in pixels) to allow tick label text perpendicular to
    * the axis, applied when truncationMaxFraction would allow less.
    *
@@ -2005,6 +2043,18 @@ export interface AxisTitleConfig {
    * @default "…"
    */
   truncationText: string;
+  /**
+   * Whether a truncated axis title shows its full text as the browser’s native
+   * tooltip while a pointer rests on it.
+   *
+   * When `true`, a truncated axis title carries an svg `<title>` holding the
+   * full text, which browsers show as their native tooltip (not the chart
+   * `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing
+   * shows there; the axis group is already named from the full title.
+   *
+   * @default true
+   */
+  truncationTooltipEnabled: boolean;
   /**
    * The space (in pixels) perpendicular to the axis direction to allocate for
    * the axis title (use "auto" to derive from the font size).
@@ -2283,8 +2333,8 @@ export interface AxisConfigBase {
    * Category axis default: `{ front: false, anchor: "auto", backgroundStyle: {
    * … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5,
    * paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0,
-   * textStyle: { … }, truncationText: "…", truncationMinLength: 0,
-   * truncationMaxFraction: 0.2 }`.
+   * textStyle: { … }, truncationText: "…", truncationTooltipEnabled: true,
+   * truncationMinLength: 0, truncationMaxFraction: 0.2 }`.
    * Value axis default: `{ front: false, anchor: "auto", backgroundStyle: { …
    * }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5,
    * paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0,
@@ -2300,7 +2350,7 @@ export interface AxisConfigBase {
   /**
    * The title shown alongside the axis.
    *
-   * @default { text: null, front: false, backgroundStyle: { … }, truncationEnabled: true, truncationText: "…", size: "auto", marginInner: 2, marginOuter: 2, paddingInner: 3, paddingOuter: 3, textStyle: { … } }
+   * @default { text: null, front: false, backgroundStyle: { … }, truncationEnabled: true, truncationText: "…", truncationTooltipEnabled: true, size: "auto", marginInner: 2, marginOuter: 2, paddingInner: 3, paddingOuter: 3, textStyle: { … } }
    */
   title: AxisTitleConfig;
   /**
@@ -2384,7 +2434,7 @@ export interface CategoryAxisConfig extends AxisConfigBase {
   /**
    * The labels shown at each tick along the axis.
    *
-   * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, truncationText: "…", truncationMinLength: 0, truncationMaxFraction: 0.2 }
+   * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, truncationText: "…", truncationTooltipEnabled: true, truncationMinLength: 0, truncationMaxFraction: 0.2 }
    */
   tickLabel: CategoryAxisTickLabelConfig;
   /**

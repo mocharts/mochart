@@ -2,7 +2,7 @@ import { Renderer, svgEl, textEl, Slot } from '../render';
 
 import { mochartCssClasses } from '../utils/ChartDom';
 import { layoutInfoExtentChanged } from '../layout/LayoutInfo';
-import { getTruncatedText, TruncationTracker } from '../utils/TextTruncation';
+import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation';
 import { NONE } from '../config/core/constants';
 import { onClickDisabled, centerTextY, translate, translateObject } from '../utils/utils';
 import { getClipPathReference } from '../utils/svgUtils';
@@ -46,6 +46,7 @@ export default class Title extends Renderer<TitleProps, TitleState> {
   background = this.slot(this.root);
   wrapper = this.elSlot(this.root);
   truncation = new TruncationTracker();
+  tooltip = new TruncationTooltip();
   sections: Partial<Record<TitleSectionKey, TitleSection>> = {};
 
   constructor() {
@@ -106,7 +107,7 @@ export default class Title extends Renderer<TitleProps, TitleState> {
     return section;
   }
 
-  syncSection(wrapperEl: El, titleKey: TitleSectionKey, titleBackgroundKey: TitleBackgroundKey, titleValue: string | null, titleSectionLayoutInfo: SpacingLayoutInfo, backgroundStyle: Style, textStyle: Style, visible: boolean, clipPath: string | null = null): void {
+  syncSection(wrapperEl: El, titleKey: TitleSectionKey, titleBackgroundKey: TitleBackgroundKey, titleValue: string | null, titleSectionLayoutInfo: SpacingLayoutInfo, backgroundStyle: Style, textStyle: Style, visible: boolean, clipPath: string | null = null, ariaHidden = false): void {
     if (titleValue) {
       const section = this.getSection(titleKey);
       const { paddingBounds } = titleSectionLayoutInfo;
@@ -122,7 +123,8 @@ export default class Title extends Renderer<TitleProps, TitleState> {
         section.backgroundSlot.set(null);
       }
       section.clipGroup.set({ clipPath });
-      section.text.set({ ...styleToAttributes(textStyle), className: mochartCssClasses[titleKey], dy, transform });
+      section.text.set({ ...styleToAttributes(textStyle), className: mochartCssClasses[titleKey], dy, transform,
+        ariaHidden: ariaHidden ? 'true' : null });
       section.value.set(titleValue);
       wrapperEl.node.appendChild(section.root.node);
     }
@@ -139,7 +141,7 @@ export default class Title extends Renderer<TitleProps, TitleState> {
     const { title: titleConfig } = mochartConfig;
 
     if (titleConfig.text !== NONE) {
-      const { text: title, prefix, suffix, truncationEnabled, truncationText, link, linkDisabled,
+      const { text: title, prefix, suffix, truncationEnabled, truncationText, truncationTooltipEnabled, link, linkDisabled,
         textBackgroundStyle: titleBackgroundStyle, textStyle: titleTextStyle
       } = titleConfig;
       const { text: titlePrefix, backgroundStyle: prefixBackgroundStyle, textStyle: prefixTextStyle } = prefix;
@@ -182,12 +184,18 @@ export default class Title extends Renderer<TitleProps, TitleState> {
       // (re-)append in order; appendChild moves already-attached nodes
       this.syncSection(wrapperEl, 'titlePrefix', 'titlePrefixBackground',
         titlePrefix, titlePrefixLayoutInfo, prefixBackgroundStyle, prefixTextStyle, true);
+      // the svg is already named from the full title text, so the drawn copy would read twice in a row;
+      // a linked title keeps its text readable because that text is the link's name
       this.syncSection(wrapperEl, 'titleText', 'titleTextBackground',
-        titleText, titleTextLayoutInfo, titleBackgroundStyle, titleTextStyle, true, clipPath);
+        titleText, titleTextLayoutInfo, titleBackgroundStyle, titleTextStyle, true, clipPath, accessibility && !link);
       this.syncSection(wrapperEl, 'titleTextRaw', 'titleTextBackground',
         title, titleTextRawLayoutInfo, titleBackgroundStyle, titleTextStyle, false);
       this.syncSection(wrapperEl, 'titleSuffix', 'titleSuffixBackground',
         titleSuffix, titleSuffixLayoutInfo, suffixBackgroundStyle, suffixTextStyle, true);
+      const textSection = this.sections.titleText;
+      if (textSection !== undefined) {
+        this.tooltip.sync(textSection.text, truncationTooltipEnabled, title, titleText);
+      }
     }
     else {
       this.setPresent(false);

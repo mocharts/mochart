@@ -8,6 +8,7 @@ export default function getDescriptions() {
     linkDisabled: 'whether to prevent default navigation behaviour when the link is clicked',
     truncationEnabled: 'whether to use text truncation when the title width exceeds the width of the chart',
     truncationText: 'the truncation text to append to the title when its width exceeds the width of the chart',
+    truncationTooltipEnabled: 'whether a truncated title shows its full text as the browser’s native tooltip while a pointer rests on it',
     alignedToAxes: 'whether the title should be aligned between the axes (true) or the chart bounds (false)',
     align: 'the alignment for the title (left, center, right)',
     verticalAlign: 'the vertical alignment of the prefix/text/suffix within the title (top, middle, bottom)',
@@ -39,5 +40,10 @@ export default function getDescriptions() {
         textStyle: style('the styles to apply to the box text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)')
       }
     }
+  };
+}
+export function getDetails() {
+  return {
+    truncationTooltipEnabled: 'When `true`, a truncated title carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; the chart’s accessible name already uses the full text.'
   };
 }

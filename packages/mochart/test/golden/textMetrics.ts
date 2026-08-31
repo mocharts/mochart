@@ -51,8 +51,22 @@ export function getTextHeight(): number {
   return EM_PX * LINE_HEIGHT_FRACTION;
 }
 
+/** The text a browser measures: the element's own text, never a <title> child (the truncation tooltip holds the full text of an ellipsised label). */
+export function getRenderedText(element: Element): string {
+  let text = '';
+  for (let child = element.firstChild; child !== null; child = child.nextSibling) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      text += child.nodeValue ?? '';
+    }
+    else if (child.nodeName !== 'title') {
+      text += child.textContent ?? '';
+    }
+  }
+  return text;
+}
+
 function getTextContent(element: Element): string {
-  return element.textContent ?? '';
+  return getRenderedText(element);
 }
 
 /**

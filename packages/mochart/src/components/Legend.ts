@@ -4,7 +4,7 @@ import type { RendererItem } from '../render';
 import { mochartCssClasses } from '../utils/ChartDom';
 import { layoutInfoExtentChanged } from '../layout/LayoutInfo';
 import { resolveLegendIconSize, legendItemClickable } from '../layout/LegendLayout';
-import { getTruncatedText, TruncationTracker } from '../utils/TextTruncation';
+import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation';
 import { accessibilityActive, translate, translateObject, centerTextY, isHoverPointer, isKeyboardFocus } from '../utils/utils';
 import { moveRovingFocus, resolveRovingId, focusedSeriesNode, restoreSeriesFocus } from '../utils/RovingFocus';
 import { getClipPathReference } from '../utils/svgUtils';
@@ -224,6 +224,7 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
   textRaw = svgEl('text');
   textRawValue = textEl();
   truncation = new TruncationTracker();
+  tooltip = new TruncationTooltip();
 
   constructor() {
     super();
@@ -312,7 +313,7 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
   sync() {
     const { legendConfig, seriesConfig, legendItemLayoutInfo, legendItemTextLayoutInfo, uniqueIds, clipPath, colorPaletteConfig,
       seriesIndex, seriesIsFiltered, seriesFocusPercentage } = this.props;
-    const { truncationEnabled, truncationText, strikeThroughFiltered } = legendConfig;
+    const { truncationEnabled, truncationText, truncationTooltipEnabled, strikeThroughFiltered } = legendConfig;
     const { spacing: iconSpacing } = legendConfig.icon;
     const { textStyle: itemTextStyle } = legendConfig.item;
     const itemTextAttributes = styleToAttributes(itemTextStyle);
@@ -357,6 +358,7 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
     this.textGroup.set({ className: mochartCssClasses['legendItemText'], clipPath });
     this.text.set({ ...itemTextAttributes, textDecoration, transform: textTransform, dy });
     this.textValue.set(seriesLabelText);
+    this.tooltip.sync(this.text, truncationTooltipEnabled, seriesLabel, seriesLabelText);
     this.textRawGroup.set({ className: mochartCssClasses['legendItemTextRaw'], style: hiddenStyle });
     // the hidden measurement text carries the same style so its metrics match the visible text
     this.textRaw.set({ ...itemTextAttributes, textDecoration, transform: textTransform, dy });

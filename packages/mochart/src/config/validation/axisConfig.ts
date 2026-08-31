@@ -120,6 +120,7 @@ export default function getValidators(thresholdValue = validators.number(), tick
       backgroundStyle: validators.style(),
       truncationEnabled: validators.boolean(),
       truncationText: validators.string(),
+      truncationTooltipEnabled: validators.boolean(),
       size: validators.numberMin(0).orEqual(AUTO),
       marginInner: validators.numberMin(0),
       marginOuter: validators.numberMin(0),

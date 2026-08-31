@@ -19,6 +19,7 @@ export default function getValidators() {
     linkDisabled: validators.boolean(),
     truncationEnabled: validators.boolean(),
     truncationText: validators.string(),
+    truncationTooltipEnabled: validators.boolean(),
     alignedToAxes: validators.boolean(),
     align: validators.oneOf(ALIGNS),
     verticalAlign: validators.oneOf(VERTICAL_ALIGNS),

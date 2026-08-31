@@ -28,6 +28,7 @@ export default function getDescriptions() {
         format: 'the d3 format string (d3-format for number, d3-time-format for date) to be applied to the category values when displayed in axis tick labels (use null for none, use "auto" to derive from data)',
         truncationEnabled: 'whether or not to use text truncation (true) when the axis tick labels would overlap each other instead of skipping ticks (false)',
         truncationText: 'the truncation text to append to the axis tick label text when its content is truncated',
+        truncationTooltipEnabled: 'whether a truncated tick label shows its full text as the browser’s native tooltip while a pointer rests on it',
         truncationMinLength: 'the minimum length (in pixels) to allow tick label text perpendicular to the axis, applied when truncationMaxFraction would allow less',
         truncationMaxFraction: 'the maximum fraction (0 - 1) of the plot bounds to allow any tick label text to occupy when they are perpendicular to the axis'
       }
@@ -36,6 +37,8 @@ export default function getDescriptions() {
 }
 export function getDetails() {
   return {
+    tickLabel: { properties: { truncationTooltipEnabled: 'When `true`, a truncated tick label carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; assistive tech already gets the full text through `aria-label`.' } },
+    title: { properties: { truncationTooltipEnabled: 'When `true`, a truncated axis title carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; the axis group is already named from the full title.' } },
     property: 'The chart reads this property from each entry of the data provider to get the category value: the values must match `type`, they position a linear axis, and they are what tick labels and the tooltip show. They must be unique unless `keyProperty` is set. It is required — the only category axis property without a default.',
     type: 'How category values are interpreted: `string` for labels, `number` for numeric values, and `date` for date values (`dateUTC` controls their timezone handling). The type drives parsing, tick label formatting, and which `scale` options make sense.',
     scale: '`ordinal` places the categories at evenly spaced positions in data order regardless of their values; `linear` positions `number`/`date` category values proportionally along the axis, so uneven spacing in the data shows as uneven spacing in the chart.',

@@ -12,6 +12,7 @@ export function getRegularDefaults() {
     position: POSITION_BOTTOM,
     truncationEnabled: true,
     truncationText: ELLIPSIS,
+    truncationTooltipEnabled: true,
     alignedToAxes: true,
     align: ALIGN_CENTER,
     margin: { top: 5, right: 0, bottom: 0, left: 0 },

@@ -8,6 +8,7 @@ export default function getValidators() {
     position: validators.oneOf(POSITIONS),
     truncationEnabled: validators.boolean(),
     truncationText: validators.string(),
+    truncationTooltipEnabled: validators.boolean(),
     alignedToAxes: validators.boolean(),
     align: validators.oneOf(ALIGNS),
     margin: validators.margin(),
