@@ -18,6 +18,12 @@ import { getCssSelector, getIdCssSelector, mochartVersionAttribute } from '../..
 import { installTextMetrics } from './textMetrics';
 import { FRAME_MS, installFakeFrameClock, runFrames, advanceFrames, mountContainer } from '../components/helpers';
 
+/** Settle like runFrames, and fail on a chart that still schedules work at the frame cap. */
+function settle(): void {
+  runFrames();
+  expect(vi.getTimerCount(), 'chart never settled').toBe(0);
+}
+
 export interface Demo { id: string; config: string; data: string; random?: string; generator?: string; goldenCategoryShift?: number }
 /** Rows are decoded from arbitrary demo JSON, so values are intentionally loose. */
 type Row = Record<string, any>;
@@ -247,25 +253,25 @@ export function describeDemoGoldens(demos: Demo[]): void {
         height: HEIGHT
       });
 
-      runFrames();
+      settle();
       await expectSnapshot(container, demo.id, 'initial');
 
       if (demo.generator) {
         // generator demos: step the app's random mode; successive steps change
         // values and churn categories (dropped columns/steps, day counts)
         chart.update({ dataProvider: generatorProvider(demo, mochartConfig, 1) });
-        runFrames();
+        settle();
         await expectSnapshot(container, demo.id, 'random-1');
 
         // the 1 → 2 transition is app-reachable, so snapshot it mid-tween too
         chart.update({ dataProvider: generatorProvider(demo, mochartConfig, 2) });
         advanceFrames(3);
         await expectSnapshot(container, demo.id, 'random-2-mid-tween');
-        runFrames();
+        settle();
         await expectSnapshot(container, demo.id, 'random-2');
 
         chart.update({ dataProvider: generatorProvider(demo, mochartConfig, 3) });
-        runFrames();
+        settle();
         await expectSnapshot(container, demo.id, 'random-3');
       }
       else {
@@ -274,23 +280,24 @@ export function describeDemoGoldens(demos: Demo[]): void {
         chart.update({ dataProvider: makeProvider(changedRows) });
         advanceFrames(3);
         await expectSnapshot(container, demo.id, 'values-mid-tween');
-        runFrames();
+        settle();
         await expectSnapshot(container, demo.id, 'values-settled');
 
         // category addition, run to completion
         const addedRows = addCategoryRow(mochartConfig, changedRows);
         chart.update({ dataProvider: makeProvider(addedRows) });
-        runFrames();
+        settle();
         await expectSnapshot(container, demo.id, 'category-added');
 
         // category removal, run to completion
         const removedRows = removeCategoryRow(addedRows);
         chart.update({ dataProvider: makeProvider(removedRows) });
-        runFrames();
+        settle();
         await expectSnapshot(container, demo.id, 'category-removed');
       }
 
       chart.destroy();
+      expect(vi.getTimerCount(), 'timers left after destroy').toBe(0);
       expect(container.innerHTML).toBe('');
     });
 
@@ -305,7 +312,7 @@ export function describeDemoGoldens(demos: Demo[]): void {
         width: WIDTH,
         height: HEIGHT
       });
-      runFrames();
+      settle();
       await expectSnapshot(container, demo.id, 'static');
 
       chart.update({
@@ -313,10 +320,11 @@ export function describeDemoGoldens(demos: Demo[]): void {
           ? generatorProvider(demo, mochartConfig, 1)
           : makeProvider(transformValues(mochartConfig, originalRows))
       });
-      runFrames();
+      settle();
       await expectSnapshot(container, demo.id, 'static-updated');
 
       chart.destroy();
+      expect(vi.getTimerCount(), 'timers left after destroy').toBe(0);
       expect(container.innerHTML).toBe('');
     });
 
@@ -334,16 +342,17 @@ export function describeDemoGoldens(demos: Demo[]): void {
           width: WIDTH,
           height: HEIGHT
         });
-        runFrames();
+        settle();
 
         const shiftedRows = shiftCategories(mochartConfig, originalRows, demo.goldenCategoryShift!);
         chart.update({ dataProvider: makeProvider(shiftedRows) });
         advanceFrames(3);
         await expectSnapshot(container, demo.id, 'slide-mid-tween');
-        runFrames();
+        settle();
         await expectSnapshot(container, demo.id, 'slide-settled');
 
         chart.destroy();
+        expect(vi.getTimerCount(), 'timers left after destroy').toBe(0);
         expect(container.innerHTML).toBe('');
       });
     }
@@ -380,7 +389,7 @@ export function describeFilteringGoldens(): void {
         width: WIDTH,
         height: HEIGHT
       });
-      runFrames();
+      settle();
 
       clickFirstLegendItem(container);
       advanceFrames(3);
@@ -406,15 +415,16 @@ export function describeFilteringGoldens(): void {
       }
       expect(anyFilteredPresent()).toBe(false);
       await expect(normalizeHtml(lastPresentHtml)).toMatchFileSnapshot(snapshotFile(demo.id, 'filter-last-frame'));
-      runFrames();
+      settle();
       await expectSnapshot(container, demo.id, 'filter-settled');
 
       // unfilter: the series animates back in from the same resting value
       clickFirstLegendItem(container);
-      runFrames();
+      settle();
       await expectSnapshot(container, demo.id, 'filter-restored');
 
       chart.destroy();
+      expect(vi.getTimerCount(), 'timers left after destroy').toBe(0);
       expect(container.innerHTML).toBe('');
     });
   });
@@ -437,7 +447,7 @@ export function describeConfigUpdateGoldens(): void {
         width: WIDTH,
         height: HEIGHT
       });
-      runFrames();
+      settle();
       return { container, chart };
     }
 
@@ -459,10 +469,11 @@ export function describeConfigUpdateGoldens(): void {
       chart.update({ mochartConfig: changedConfig });
       advanceFrames(3);
       await expectSnapshot(container, demo.id, 'config-nonstructural-mid-tween');
-      runFrames();
+      settle();
       await expectSnapshot(container, demo.id, 'config-nonstructural-settled');
 
       chart.destroy();
+      expect(vi.getTimerCount(), 'timers left after destroy').toBe(0);
       expect(container.innerHTML).toBe('');
     });
 
@@ -480,7 +491,7 @@ export function describeConfigUpdateGoldens(): void {
       expect(mochart.hasConfigStructureChange(mochartConfig, removedConfig)).toBe(true);
 
       chart.update({ mochartConfig: removedConfig });
-      runFrames();
+      settle();
       await expectSnapshot(container, demo.id, 'config-series-removed');
 
       // restoring the original config rebuilds back to the exact initial DOM
@@ -488,10 +499,11 @@ export function describeConfigUpdateGoldens(): void {
       expect(mochart.hasConfigStructureChange(removedConfig, restoredConfig)).toBe(true);
 
       chart.update({ mochartConfig: restoredConfig });
-      runFrames();
+      settle();
       expect(normalizeHtml(container.innerHTML)).toBe(initialHtml);
 
       chart.destroy();
+      expect(vi.getTimerCount(), 'timers left after destroy').toBe(0);
       expect(container.innerHTML).toBe('');
     });
 
@@ -505,13 +517,13 @@ export function describeConfigUpdateGoldens(): void {
       const changedRows = transformValues(staticConfig, rows);
       chart.update({ mochartConfig: staticConfig, dataProvider: makeProvider(changedRows) });
       const appliedHtml = normalizeHtml(container.innerHTML);
-      runFrames();
+      settle();
       expect(normalizeHtml(container.innerHTML)).toBe(appliedHtml);
       await expectSnapshot(container, demo.id, 'config-animate-off');
 
       // animate back on with unchanged data settles to the same DOM, style attributes included — an emptied style removes its attribute, so neither path leaves style="" behind
       chart.update({ mochartConfig: animatedConfig });
-      runFrames();
+      settle();
       expect(normalizeHtml(container.innerHTML)).toBe(appliedHtml);
 
       // and the next data change tweens again
@@ -519,10 +531,11 @@ export function describeConfigUpdateGoldens(): void {
       chart.update({ dataProvider: makeProvider(tweenedRows) });
       advanceFrames(3);
       await expectSnapshot(container, demo.id, 'config-animate-on-mid-tween');
-      runFrames();
+      settle();
       await expectSnapshot(container, demo.id, 'config-animate-on-settled');
 
       chart.destroy();
+      expect(vi.getTimerCount(), 'timers left after destroy').toBe(0);
       expect(container.innerHTML).toBe('');
     });
   });
@@ -565,10 +578,11 @@ export function describeRotatedTickLabelGoldens(): void {
       // before any frame runs: the first sync renders untruncated, so the clip rect is the only
       // thing bounding the labels here
       await expectSnapshot(container, demo.id, stage + '-mount');
-      runFrames();
+      settle();
       await expectSnapshot(container, demo.id, stage + '-settled');
 
       chart.destroy();
+      expect(vi.getTimerCount(), 'timers left after destroy').toBe(0);
       expect(container.innerHTML).toBe('');
     });
   });
