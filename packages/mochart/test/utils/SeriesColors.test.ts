@@ -173,6 +173,25 @@ describe('getSeriesColorGenerator', () => {
     expect(typeof gen(2)).toBe('string');
   });
 
+  // Regression: a collapsed domain took d3's range midpoint, so all-equal values rendered the
+  // blend halfway between the ramp ends instead of a ramp colour
+  it('gives all-equal color values the min ramp colour instead of the midpoint', () => {
+    const gen = getSeriesColorGenerator(
+      series({ colorScale: { min: '#000000', max: '#ffffff', interpolation: 'rgb', base: { value: null } } }),
+      { color: [5, 5] } as never, { color: [5, 5, 5] } as never
+    );
+    expect(gen(0)).toBe('#000000');
+    expect(gen(2)).toBe('#000000');
+  });
+
+  it('gives a value exactly at the base aboveMin when no value lies above it', () => {
+    const gen = getSeriesColorGenerator(
+      series({ colorScale: { interpolation: null, base: { value: 5, belowMin: '#000000', belowMax: '#0000ff', aboveMin: '#ff0000', aboveMax: '#ffffff' } } }),
+      { color: [0, 5] } as never, { color: [0, 3, 5] } as never
+    );
+    expect(gen(2)).toBe('#ff0000');
+  });
+
   it('returns the missing color for a row without a color value', () => {
     const gen = getSeriesColorGenerator(
       series({ colorScale: { min: '#000000', max: '#ffffff', missing: '#123456', interpolation: 'rgb', base: { value: null } } }),

@@ -189,6 +189,10 @@ function getColorInterpolator(seriesConfig: EnhancedSeriesConfig): ColorInterpol
 }
 
 function buildScale(colorRange: readonly (string | null)[], colorDomain: readonly number[], interpolator: ColorInterpolator | null): ColorScale {
+  // d3 maps every input of a collapsed domain to the range midpoint; the domain start's colour is the consistent answer
+  if (colorDomain[0] === colorDomain[1]) {
+    return (() => colorRange[0]) as unknown as ColorScale;
+  }
   const colorScale = scaleLinear() as unknown as ColorScale;
   colorScale.range(colorRange).domain(colorDomain);
   return interpolator ? colorScale.interpolate(interpolator) : colorScale;
