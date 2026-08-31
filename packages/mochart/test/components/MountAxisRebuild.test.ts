@@ -5,7 +5,7 @@
  * config/size change forced a full rebuild.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import { installTextMetrics } from '../golden/textMetrics';
+import { installTextMetrics, getRenderedText } from '../golden/textMetrics';
 import { mountContainer, trackHandle, mockBoundingClientRect } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
 import type { DefaultChartProps } from '../../src/types/chart';
@@ -67,7 +67,7 @@ describe('mount-time remeasure after tick label truncation', () => {
       const container = mountContainer();
       const handle = trackHandle(createDefaultChart(container, { config: rotated, data: rows, width: WIDTH, height: 300 } as DefaultChartProps));
       const plotHeight = () => Number(container.querySelector(getCssSelector('seriesBackground') + ' rect')!.getAttribute('height'));
-      const labels = () => [...container.querySelectorAll(getCssSelector('categoryAxis') + ' ' + getCssSelector('axisTickLabel') + ' text')].map(text => text.textContent);
+      const labels = () => [...container.querySelectorAll(getCssSelector('categoryAxis') + ' ' + getCssSelector('axisTickLabel') + ' text')].map(text => getRenderedText(text));
       const mounted = plotHeight();
       // the labels did truncate at mount
       expect(labels()[0]).toMatch(/…$/);
