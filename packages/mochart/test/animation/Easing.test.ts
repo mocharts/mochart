@@ -60,10 +60,8 @@ describe('getEasingFunction', () => {
     }
   });
 
-  it('back and elastic overshoot their targets in between', () => {
-    expect(Math.max(...grid.map(getEasingFunction('backOut')))).toBeGreaterThan(1);
+  it('elastic leaves the 0 to 1 range in between (the interpolators clamp at the target)', () => {
     expect(Math.max(...grid.map(getEasingFunction('elasticOut')))).toBeGreaterThan(1);
-    expect(Math.min(...grid.map(getEasingFunction('backIn')))).toBeLessThan(0);
     expect(Math.min(...grid.map(getEasingFunction('elasticIn')))).toBeLessThan(0);
   });
 

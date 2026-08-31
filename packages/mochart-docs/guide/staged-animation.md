@@ -178,15 +178,15 @@ changes complete proportionally faster. On an axis running `0` to `100` with
 1000 ms, one going from `50` to `100` takes 500 ms, and one going from `95` to
 `100` takes 50 ms.
 
-Both easing properties take `'linear'` or one of seven families — sine,
-quad, cubic, quint, back, elastic and bounce — each as In (starts slow),
-Out (starts fast) and InOut variants: `'quintOut'`, `'backInOut'` and so
-on. sine through quint accelerate progressively more sharply. back
-overshoots the target and settles, elastic oscillates around it before
-settling, and bounce lands in diminishing bounces; back and elastic
-briefly push values and axis domains past their targets mid-animation.
+Both easing properties take `'linear'` or one of six families (sine, quad,
+cubic, quint, elastic and bounce), each as In (starts slow), Out (starts
+fast) and InOut variants: `'quintOut'`, `'elasticInOut'` and so on. sine
+through quint accelerate progressively more sharply. elastic approaches
+its target with a decaying oscillation and bounce lands in diminishing
+bounces; eased progress is clamped at the target, so no easing overshoots
+past it.
 `easing` paces each data animation phase on its own and defaults to
-`'cubicInOut'`, accelerating in and decelerating out. `focusEasing` paces
+`'sineInOut'`, which accelerates in and decelerates out gently. `focusEasing` paces
 focus transitions and defaults to `'cubicOut'`, which starts fast so hover
 feedback reads as immediate even when focus moves quickly between series
 or categories.

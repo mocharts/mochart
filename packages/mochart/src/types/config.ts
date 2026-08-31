@@ -413,13 +413,13 @@ export interface AnimationConfig {
    * expansion, value change, and axis contraction, each eased on its own.
    * `'linear'` runs at constant speed. The sine, quad, cubic and quint families
    * accelerate progressively more sharply, each as In (starts slow), Out
-   * (starts fast) and InOut (both); the default is `'cubicInOut'`. back
-   * overshoots the target and settles, elastic oscillates around it before
-   * settling, and bounce lands in diminishing bounces; with back and elastic,
-   * values and axis domains briefly pass their targets mid-animation. Focus
-   * transitions are paced by `focusEasing` instead.
+   * (starts fast) and InOut (both); the default is `'sineInOut'`, the gentlest
+   * of them. elastic approaches its target with a decaying oscillation and
+   * bounce lands in diminishing bounces; eased progress is clamped at the
+   * target, so no easing overshoots past it. Focus transitions are paced by
+   * `focusEasing` instead.
    *
-   * @default "cubicInOut"
+   * @default "sineInOut"
    */
   easing: AnimationEasing;
   /**

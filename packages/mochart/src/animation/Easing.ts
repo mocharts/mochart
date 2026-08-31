@@ -4,21 +4,18 @@ import {
   EASING_QUAD_IN, EASING_QUAD_OUT, EASING_QUAD_IN_OUT,
   EASING_CUBIC_IN, EASING_CUBIC_OUT, EASING_CUBIC_IN_OUT,
   EASING_QUINT_IN, EASING_QUINT_OUT, EASING_QUINT_IN_OUT,
-  EASING_BACK_IN, EASING_BACK_OUT, EASING_BACK_IN_OUT,
   EASING_ELASTIC_IN, EASING_ELASTIC_OUT, EASING_ELASTIC_IN_OUT,
   EASING_BOUNCE_IN, EASING_BOUNCE_OUT, EASING_BOUNCE_IN_OUT
 } from '../config/core/constants';
 
 import type { AnimationEasing } from '../config/core/constants';
 
-/** Maps a tween's linear progress (0 to 1) onto eased progress; endpoints are exact, back/elastic overshoot in between. */
+/** Maps a tween's linear progress (0 to 1) onto eased progress; endpoints are exact, elastic leaves the range in between. */
 export type EasingFunction = (percentage: number) => number;
 
 const HALF_PI = Math.PI / 2;
 
-// Penner overshoot/oscillation constants
-const BACK = 1.70158;
-const BACK_IN_OUT = BACK * 1.525;
+// Penner oscillation constants
 const ELASTIC = (2 * Math.PI) / 3;
 const ELASTIC_IN_OUT = (2 * Math.PI) / 4.5;
 
@@ -54,11 +51,6 @@ const RAW_EASING_FUNCTIONS: Record<AnimationEasing, EasingFunction> = {
   [EASING_QUINT_IN]: percentage => percentage ** 5,
   [EASING_QUINT_OUT]: percentage => 1 - (1 - percentage) ** 5,
   [EASING_QUINT_IN_OUT]: percentage => percentage < 0.5 ? 16 * percentage ** 5 : 1 - 16 * (1 - percentage) ** 5,
-  [EASING_BACK_IN]: percentage => (BACK + 1) * percentage ** 3 - BACK * percentage ** 2,
-  [EASING_BACK_OUT]: percentage => 1 + (BACK + 1) * (percentage - 1) ** 3 + BACK * (percentage - 1) ** 2,
-  [EASING_BACK_IN_OUT]: percentage => percentage < 0.5
-    ? ((2 * percentage) ** 2 * ((BACK_IN_OUT + 1) * 2 * percentage - BACK_IN_OUT)) / 2
-    : ((2 * percentage - 2) ** 2 * ((BACK_IN_OUT + 1) * (2 * percentage - 2) + BACK_IN_OUT) + 2) / 2,
   [EASING_ELASTIC_IN]: percentage => -(2 ** (10 * percentage - 10)) * Math.sin((10 * percentage - 10.75) * ELASTIC),
   [EASING_ELASTIC_OUT]: percentage => 2 ** (-10 * percentage) * Math.sin((10 * percentage - 0.75) * ELASTIC) + 1,
   [EASING_ELASTIC_IN_OUT]: percentage => percentage < 0.5

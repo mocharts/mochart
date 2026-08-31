@@ -77,9 +77,6 @@ export const EASING_CUBIC_IN_OUT = 'cubicInOut';
 export const EASING_QUINT_IN = 'quintIn';
 export const EASING_QUINT_OUT = 'quintOut';
 export const EASING_QUINT_IN_OUT = 'quintInOut';
-export const EASING_BACK_IN = 'backIn';
-export const EASING_BACK_OUT = 'backOut';
-export const EASING_BACK_IN_OUT = 'backInOut';
 export const EASING_ELASTIC_IN = 'elasticIn';
 export const EASING_ELASTIC_OUT = 'elasticOut';
 export const EASING_ELASTIC_IN_OUT = 'elasticInOut';
@@ -93,7 +90,6 @@ export const EASINGS = [
   EASING_QUAD_IN, EASING_QUAD_OUT, EASING_QUAD_IN_OUT,
   EASING_CUBIC_IN, EASING_CUBIC_OUT, EASING_CUBIC_IN_OUT,
   EASING_QUINT_IN, EASING_QUINT_OUT, EASING_QUINT_IN_OUT,
-  EASING_BACK_IN, EASING_BACK_OUT, EASING_BACK_IN_OUT,
   EASING_ELASTIC_IN, EASING_ELASTIC_OUT, EASING_ELASTIC_IN_OUT,
   EASING_BOUNCE_IN, EASING_BOUNCE_OUT, EASING_BOUNCE_IN_OUT
 ];
@@ -260,7 +256,6 @@ export type AnimationEasing =
   typeof EASING_QUAD_IN | typeof EASING_QUAD_OUT | typeof EASING_QUAD_IN_OUT |
   typeof EASING_CUBIC_IN | typeof EASING_CUBIC_OUT | typeof EASING_CUBIC_IN_OUT |
   typeof EASING_QUINT_IN | typeof EASING_QUINT_OUT | typeof EASING_QUINT_IN_OUT |
-  typeof EASING_BACK_IN | typeof EASING_BACK_OUT | typeof EASING_BACK_IN_OUT |
   typeof EASING_ELASTIC_IN | typeof EASING_ELASTIC_OUT | typeof EASING_ELASTIC_IN_OUT |
   typeof EASING_BOUNCE_IN | typeof EASING_BOUNCE_OUT | typeof EASING_BOUNCE_IN_OUT;
 export type AxisSide = typeof SIDE_START | typeof SIDE_END;
