@@ -148,7 +148,7 @@ export class TruncationTracker {
   }
 }
 
-/** The svg <title> a truncated text element carries while truncationTooltipEnabled is on: browsers show
+/** The svg <title> a truncated text element carries while truncation.tooltipEnabled is on: browsers show
  * it as their native tooltip when a pointer rests on the text. Absent whenever the drawn text is the full text. */
 export class TruncationTooltip {
   private readonly title = svgEl('title');

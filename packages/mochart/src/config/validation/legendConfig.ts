@@ -1,14 +1,13 @@
 import validators from './validators';
 import getSeriesIconValidators from './seriesIconConfig';
+import getTruncationValidators from './truncationConfig';
 import { ALIGNS, POSITIONS } from '../core/constants';
 
 export default function getValidators() {
   return {
     visible: validators.boolean(),
     position: validators.oneOf(POSITIONS),
-    truncationEnabled: validators.boolean(),
-    truncationText: validators.string(),
-    truncationTooltipEnabled: validators.boolean(),
+    truncation: validators.partialObjectWithShape(getTruncationValidators(), true),
     alignedToAxes: validators.boolean(),
     align: validators.oneOf(ALIGNS),
     margin: validators.margin(),

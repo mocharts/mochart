@@ -1,6 +1,7 @@
-import { NONE, POSITION_BOTTOM, ALIGN_CENTER, ELLIPSIS, COLOR_CURRENT } from '../core/constants';
+import { NONE, POSITION_BOTTOM, ALIGN_CENTER, COLOR_CURRENT } from '../core/constants';
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
 import { getRegularDefaults as getSeriesIconRegularDefaults } from './seriesIconConfig';
+import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
 import type { DeepPartial, LegendConfig } from '../../types/config';
 
 export default function getDefaults(config: DeepPartial<LegendConfig> = {}, seriesCount: number): Partial<LegendConfig> {
@@ -10,9 +11,7 @@ export default function getDefaults(config: DeepPartial<LegendConfig> = {}, seri
 export function getRegularDefaults() {
   return {
     position: POSITION_BOTTOM,
-    truncationEnabled: true,
-    truncationText: ELLIPSIS,
-    truncationTooltipEnabled: true,
+    truncation: getTruncationDefaults(),
     alignedToAxes: true,
     align: ALIGN_CENTER,
     margin: { top: 5, right: 0, bottom: 0, left: 0 },

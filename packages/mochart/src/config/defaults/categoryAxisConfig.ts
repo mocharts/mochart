@@ -1,7 +1,8 @@
-import { AUTO, NONE, TYPE_STRING, SCALE_LINEAR, SCALE_ORDINAL, ELLIPSIS, SIDE_START, SIDE_END } from '../core/constants';
+import { AUTO, NONE, TYPE_STRING, SCALE_LINEAR, SCALE_ORDINAL, SIDE_START, SIDE_END } from '../core/constants';
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
 
 import getAxisDefaults from './axisConfig';
+import { getDefaultsWithoutEnabled as getTruncationDefaultsWithoutEnabled } from './truncationConfig';
 import type { DeepPartial, CategoryAxisConfig } from '../../types/config';
 
 export default function getDefaults(config: DeepPartial<CategoryAxisConfig> = {}, inverted: boolean, pieMode = false): Partial<CategoryAxisConfig> {
@@ -29,10 +30,7 @@ export function getRegularDefaults() {
 
     tickLabel: {
       ...axisDefaults.tickLabel,
-      truncationText: ELLIPSIS,
-      truncationTooltipEnabled: true,
-      truncationMinLength: 0,
-      truncationMaxFraction: 0.2
+      truncation: { ...getTruncationDefaultsWithoutEnabled(), minLength: 0, maxFraction: 0.2 }
     },
 
     type: TYPE_STRING,
@@ -67,11 +65,13 @@ export function getConditionalDefaults(configWithRegularDefaults: CategoryAxisCo
       { ...defaultRule, default: 10 }
     ], configWithRegularDefaults, inverted),
     tickLabel: {
-      truncationEnabled: conditionalDefault([
-        { condition: ({ type }, _inverted) => type === TYPE_STRING, suffix: "when type is string", default: true },
-        { condition: ({ type }, _inverted) => type !== TYPE_STRING, suffix: "when type is not string", default: false },
-        { ...defaultRule, default: false }
-      ], configWithRegularDefaults, inverted)
+      truncation: {
+        enabled: conditionalDefault([
+          { condition: ({ type }, _inverted) => type === TYPE_STRING, suffix: "when type is string", default: true },
+          { condition: ({ type }, _inverted) => type !== TYPE_STRING, suffix: "when type is not string", default: false },
+          { ...defaultRule, default: false }
+        ], configWithRegularDefaults, inverted)
+      }
     }
   };
 }

@@ -90,6 +90,7 @@ const sharedInterfaceSources: SharedInterfaceSource[] = [
   { interfaceName: 'LegendItemConfig', sectionId: 'legend', propertyKey: 'item', includeDefaults: true },
   { interfaceName: 'SeriesIconBorderStyle', sectionId: 'legend', propertyKey: 'icon.borderStyle', includeDefaults: true },
   { interfaceName: 'TitleAffixConfig', sectionId: 'title', propertyKey: 'prefix' },
+  { interfaceName: 'TickLabelTruncationConfig', sectionId: 'categoryAxis', propertyKey: 'tickLabel.truncation', members: ['minLength', 'maxFraction'], includeDefaults: true },
   { interfaceName: 'PieLabelConfig', sectionId: 'pie', propertyKey: 'label', includeDefaults: true },
   { interfaceName: 'PieTooltipConfig', sectionId: 'pie', propertyKey: 'tooltip', includeDefaults: true },
   { interfaceName: 'CrosshairLineConfig', sectionId: 'crosshair', propertyKey: 'categoryLine', includeDefaults: true },
@@ -128,14 +129,25 @@ const sharedAxisInterfaces: SharedAxisInterface[] = [
  * section wording it differently has its wording documented alongside. */
 interface SharedSectionInterface {
   interfaceName: string;
-  /** The sections that share it, in the order their prose is documented. */
-  sections: { id: string; name: string }[];
+  /** The sections that share it, in the order their prose is documented; a section holding the shape
+   * somewhere other than the shared propertyKey gives its own. */
+  sections: { id: string; name: string; propertyKey?: string }[];
   members: string[];
   /** Dotted path to the nested property holding the shape; omit when the sections extend the interface. */
   propertyKey?: string;
 }
 
 const sharedSectionInterfaces: SharedSectionInterface[] = [
+  {
+    interfaceName: 'TruncationConfig',
+    sections: [
+      { id: 'title', name: 'the title', propertyKey: 'truncation' },
+      { id: 'legend', name: 'the legend', propertyKey: 'truncation' },
+      { id: 'categoryAxis', name: 'an axis title', propertyKey: 'title.truncation' },
+      { id: 'categoryAxis', name: 'the category axis tick labels', propertyKey: 'tickLabel.truncation' }
+    ],
+    members: ['enabled', 'text', 'tooltipEnabled']
+  },
   {
     interfaceName: 'SeriesIconConfig',
     sections: [{ id: 'legend', name: 'legend' }, { id: 'tooltip', name: 'tooltip' }],
@@ -246,7 +258,8 @@ function mergedAxisMemberDoc(categoryProperty: PropertyDoc, seriesProperty: Prop
   return doc;
 }
 
-/** The first section's prose, then any section wording it differently, then the default: one tag when the sections agree, a line each when they do not. */
+/** The first section's prose, then any section wording it differently, then the default: one tag when every
+ * section agrees, and a line naming the departures when a conditional default in one of them does not. */
 function sharedSectionMemberDoc(entries: { name: string; property: PropertyDoc }[]): MemberDoc {
   const first = entries[0]!;
   const doc: MemberDoc = {
@@ -269,20 +282,35 @@ function sharedSectionMemberDoc(entries: { name: string; property: PropertyDoc }
   const texts = entries.map(entry => entry.property.conditionalDefaults
     ? undefined
     : defaultValueText(entry.property.default ?? { kind: 'none' }));
-  const allSimple = entries.every(entry => !entry.property.conditionalDefaults);
-  if (allSimple && texts.every(text => text === texts[0])) {
-    if (texts[0] !== undefined) {
-      doc.defaultTag = texts[0];
+  const plain = entries.filter(entry => !entry.property.conditionalDefaults);
+  const plainTexts = texts.filter((_text, index) => !entries[index]!.property.conditionalDefaults);
+  const sharedText = plain.length > 0 && plainTexts.every(text => text === plainTexts[0]) ? plainTexts[0] : undefined;
+  if (sharedText !== undefined) {
+    // only the sections departing from the shared default need saying; a tag would state it as the whole story
+    const departures: string[] = [];
+    for (const entry of entries) {
+      for (const conditional of entry.property.conditionalDefaults ?? []) {
+        const text = defaultValueText(conditional.value);
+        if (text !== sharedText) {
+          departures.push('in ' + entry.name + ' `' + (text ?? 'none') + '` ' + conditional.condition);
+        }
+      }
+    }
+    if (departures.length === 0) {
+      doc.defaultTag = sharedText;
+    }
+    else {
+      doc.defaultLines.push('Default: `' + sharedText + '`, and ' + departures.join(', and ') + '.');
     }
     return doc;
   }
   for (const [index, entry] of entries.entries()) {
     if (entry.property.conditionalDefaults) {
-      doc.defaultLines.push(entry.name + ' defaults:');
+      doc.defaultLines.push('Defaults in ' + entry.name + ':');
       doc.defaultLines.push(...conditionalDefaultLines(entry.property.conditionalDefaults).slice(1));
     }
     else if (texts[index] !== undefined) {
-      doc.defaultLines.push(entry.name + ' default: `' + texts[index] + '`.');
+      doc.defaultLines.push('Default in ' + entry.name + ': `' + texts[index] + '`.');
     }
   }
   return doc;
@@ -392,9 +420,10 @@ function buildInterfaceDocs(sections: SectionDoc[], topLevel: TopLevelKeyDoc[], 
     for (const member of shared.members) {
       const entries: { name: string; property: PropertyDoc }[] = [];
       for (const section of shared.sections) {
-        const property = shared.propertyKey === undefined
+        const propertyKey = section.propertyKey ?? shared.propertyKey;
+        const property = propertyKey === undefined
           ? bySection.get(section.id)?.get(member)
-          : findPropertyDoc(bySection.get(section.id), shared.propertyKey + '.' + member);
+          : findPropertyDoc(bySection.get(section.id), propertyKey + '.' + member);
         if (property) {
           entries.push({ name: section.name, property });
         }

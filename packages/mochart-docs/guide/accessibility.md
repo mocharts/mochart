@@ -198,7 +198,7 @@ overlapping is `aria-hidden`, as is the hidden width probe an ordinal axis
 measures truncation against.
 
 Pointer users get the full text another way. While
-[`truncationTooltipEnabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncationTooltipEnabled)
+[`truncation.tooltipEnabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncation.tooltipEnabled)
 is on (the default), a truncated tick label also carries an svg `<title>`
 holding its full text, which browsers show as their native tooltip when a
 mouse or pen rests on the label; the chart title, the legend and the axis

@@ -22,7 +22,7 @@ export default class TitleClip extends Renderer<TitleClipProps> {
 
   sync() {
     const { titleConfig, chartContentLayoutInfo, titleTextLayoutInfo, titleClipPathUniqueId } = this.props;
-    if (titleConfig.text !== NONE && titleConfig.truncationEnabled) {
+    if (titleConfig.text !== NONE && titleConfig.truncation.enabled) {
       const { y, height } = chartContentLayoutInfo;
       const { x, paddingRelativeBounds } = titleTextLayoutInfo;
       const { width } = paddingRelativeBounds;

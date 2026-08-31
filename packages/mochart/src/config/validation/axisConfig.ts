@@ -1,4 +1,5 @@
 import validators, { boundValue } from './validators';
+import getTruncationValidators from './truncationConfig';
 import { filterConfig, getRawIndices } from '../core/configUtils';
 import { getPropertyMessage, isConfigObject } from './messages';
 import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators';
@@ -118,9 +119,7 @@ export default function getValidators(thresholdValue = validators.number(), tick
       text: validators.string().orEqual(NONE),
       front: validators.boolean(),
       backgroundStyle: validators.style(),
-      truncationEnabled: validators.boolean(),
-      truncationText: validators.string(),
-      truncationTooltipEnabled: validators.boolean(),
+      truncation: group(getTruncationValidators()),
       size: validators.numberMin(0).orEqual(AUTO),
       marginInner: validators.numberMin(0),
       marginOuter: validators.numberMin(0),

@@ -36,8 +36,7 @@ export const config: MochartInputConfig = {
       padding: { top: 0, right: 2, bottom: 0, left: 2 },
       textStyle: { fillColor: 'currentColor', fillOpacity: 0.55 }
     },
-    truncationEnabled: true,
-    truncationText: '…'
+    truncation: { enabled: true, text: '…' }
   },
   categoryAxis: { property: 'week', type: 'string', scale: 'ordinal' },
   valueAxes: [{ id: 'VA0', title: { text: 'Pallets' }, min: 0 }],

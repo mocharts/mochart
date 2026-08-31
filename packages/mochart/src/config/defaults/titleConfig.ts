@@ -1,4 +1,5 @@
-import { NONE, POSITION_TOP, ALIGN_CENTER, VERTICAL_ALIGN_MIDDLE, ELLIPSIS, COLOR_CURRENT } from '../core/constants';
+import { NONE, POSITION_TOP, ALIGN_CENTER, VERTICAL_ALIGN_MIDDLE, COLOR_CURRENT } from '../core/constants';
+import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
 
 export default function getDefaults() {
   return {
@@ -6,9 +7,7 @@ export default function getDefaults() {
     position: POSITION_TOP,
     link: NONE,
     linkDisabled: false,
-    truncationEnabled: true,
-    truncationText: ELLIPSIS,
-    truncationTooltipEnabled: true,
+    truncation: getTruncationDefaults(),
     alignedToAxes: true,
     align: ALIGN_CENTER,
     verticalAlign: VERTICAL_ALIGN_MIDDLE,

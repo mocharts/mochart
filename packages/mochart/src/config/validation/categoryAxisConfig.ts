@@ -3,6 +3,7 @@ import validators from './validators';
 import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_STRING, TYPE_NUMBER, TYPE_DATE } from '../core/constants';
 
 import getAxisValidators, { getTickLabelValidators } from './axisConfig';
+import getTruncationValidators from './truncationConfig';
 import { getPropertyMessage, isConfigObject } from './messages';
 import type { CategoryAxisConfig } from '../../types/config';
 import type { ConfigObject, LocatedValidationMessage } from './messages';
@@ -39,14 +40,14 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
         { ...typeNumberRule, validator: validators.numberFormat().orOneOf([NONE, AUTO]) },
         { ...defaultRule, validator: validators.any() }
       ], config),
-      truncationEnabled: validators.conditional([
-        { ...scaleLinearRule, validator: validators.equal(false) },
-        { ...defaultRule, validator: validators.boolean() }
-      ], config),
-      truncationMaxFraction: validators.numberMinMax(0, 1),
-      truncationMinLength: validators.numberMin(0),
-      truncationText: validators.string(),
-      truncationTooltipEnabled: validators.boolean()
+      truncation: validators.partialObjectWithShape({
+        ...getTruncationValidators(validators.conditional([
+          { ...scaleLinearRule, validator: validators.equal(false) },
+          { ...defaultRule, validator: validators.boolean() }
+        ], config)),
+        maxFraction: validators.numberMinMax(0, 1),
+        minLength: validators.numberMin(0)
+      }, true)
     }, pieMode),
 
     dateUTC: validators.boolean(),

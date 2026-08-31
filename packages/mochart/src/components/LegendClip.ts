@@ -21,7 +21,7 @@ export default class LegendClip extends Renderer<LegendClipProps> {
 
   sync() {
     const { legendConfig, chartContentLayoutInfo, legendItemTextLayoutInfo, legendClipPathUniqueId } = this.props;
-    if (legendConfig.visible && legendConfig.truncationEnabled && legendItemTextLayoutInfo !== undefined) {
+    if (legendConfig.visible && legendConfig.truncation.enabled && legendItemTextLayoutInfo !== undefined) {
       const { y, height } = chartContentLayoutInfo;
       const { x, width } = legendItemTextLayoutInfo;
 

@@ -16,7 +16,7 @@ export const config: MochartInputConfig = {
     maxTickCount: 8,
     tickLabel: {
       format: '%b %d',
-      truncationEnabled: false,
+      truncation: { enabled: false },
       marginInner: 4,
       textStyle: { normal: { fillOpacity: 0.75 } }
     }

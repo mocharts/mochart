@@ -34,13 +34,17 @@ const baseConfig = {
     "scale": "ordinal",
     "title": {
       "text": "Category Axis Title",
-      "truncationEnabled": true,
-      "truncationText": "..."
+      "truncation": {
+        "enabled": true,
+        "text": "..."
+      }
     },
     "tickLabel": {
-      "truncationEnabled": true,
-      "truncationText": "...",
-      "truncationMaxFraction": 0.20,
+      "truncation": {
+        "enabled": true,
+        "text": "...",
+        "maxFraction": 0.20
+      },
       "anchor": "auto",
       "rotation": 0
     },

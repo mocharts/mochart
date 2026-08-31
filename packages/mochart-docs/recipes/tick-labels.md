@@ -8,7 +8,7 @@ it faces ([`rotation`](/reference/categoryAxis#categoryAxis.tickLabel.rotation),
 happens when the labels need more room than the axis has. There are two ways
 out of that: cut the labels short, or draw fewer of them. Which one the axis
 takes depends on
-[`truncationEnabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncationEnabled)
+[`truncation.enabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncation.enabled)
 and on whether the labels run along the axis or across it.
 
 Value axes take the same `tickLabel` settings apart from the truncation ones
@@ -32,20 +32,20 @@ import * as tickLabelsDense from '../examples/tickLabelsDense'
   labels are already perpendicular, and only a rotation past 70° lays them
   along the axis. Perpendicular labels take up their text height along the
   axis instead of their width, so more ticks fit.
-- [`truncationEnabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncationEnabled)
+- [`truncation.enabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncation.enabled)
   defaults to `true` on a `string` axis and `false` on `number` and `date`
   axes. When it is on, a label that does not fit is cut and
-  [`truncationText`](/reference/categoryAxis#categoryAxis.tickLabel.truncationText)
+  [`truncation.text`](/reference/categoryAxis#categoryAxis.tickLabel.truncation.text)
   is appended. The room a label gets depends on its direction: a label
   running along the axis is clipped to the width of its category slot, so
   every category keeps a label; a perpendicular label may occupy up to
-  [`truncationMaxFraction`](/reference/categoryAxis#categoryAxis.tickLabel.truncationMaxFraction)
+  [`truncation.maxFraction`](/reference/categoryAxis#categoryAxis.tickLabel.truncation.maxFraction)
   of the plot bounds (the plot height for a horizontal axis, its width for a
   vertical one), and never less than
-  [`truncationMinLength`](/reference/categoryAxis#categoryAxis.tickLabel.truncationMinLength)
+  [`truncation.minLength`](/reference/categoryAxis#categoryAxis.tickLabel.truncation.minLength)
   pixels — that floor is what keeps the labels above legible on a short
   chart.
-- [`truncationTooltipEnabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncationTooltipEnabled)
+- [`truncation.tooltipEnabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncation.tooltipEnabled)
   (on by default) gives each truncated label an svg `<title>` holding its full
   text, which browsers show as their native tooltip while a mouse or pen
   rests on the label. Touch has no hover, so nothing shows there; screen

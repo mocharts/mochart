@@ -220,7 +220,7 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
     }
     else {
       let tickLabelSpace = axisLayoutInfo.tickLabelSpace;
-      if (axisConfig.scale === SCALE_ORDINAL && axisConfig.tickLabel.truncationEnabled && axisLayoutInfo.tickLabelParallel) {
+      if (axisConfig.scale === SCALE_ORDINAL && axisConfig.tickLabel.truncation.enabled && axisLayoutInfo.tickLabelParallel) {
         tickLabelSpace = axisLayoutInfo.minTickSize;
       }
       tickCount = Math.max(1, getTickCount(axisConfig, categoryAxisRangeExtent, categoryAxisDomainExtent, tickLabelSpace));
@@ -255,7 +255,7 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
     }
     if (axisConfig.scale === SCALE_ORDINAL) {
       const tickInterval = Math.ceil(categoryValues.length / tickCount);
-      if (axisConfig.tickLabel.truncationEnabled && axisLayoutInfo.tickLabelParallel) {
+      if (axisConfig.tickLabel.truncation.enabled && axisLayoutInfo.tickLabelParallel) {
         ticks = scaleTicks.map((scaleTick, i) => createOrdinalTickObject(scaleTick as number, categoryValues, categoryPositions, tickLabelFormatter, () => i % tickInterval !== 0));
       }
       else {

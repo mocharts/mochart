@@ -36,8 +36,7 @@ export const config: MochartInputConfig = {
     },
     icon: { size: 10, spacing: 6 },
     strikeThroughFiltered: true,
-    truncationEnabled: true,
-    truncationText: '…'
+    truncation: { enabled: true, text: '…' }
   }
 };
 

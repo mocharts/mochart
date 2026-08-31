@@ -143,7 +143,7 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
     if (legendConfig.visible && legendLayoutInfo !== undefined && legendItemTextLayoutInfo !== undefined &&
       legendItemLayoutInfos !== undefined && legendItemRawLayoutInfos !== undefined) {
       const { series: seriesConfigs, seriesIndicesById: seriesConfigIndicesById, colorPalette: colorPaletteConfig } = mochartConfig;
-      const { truncationEnabled } = legendConfig;
+      const { enabled: truncationEnabled } = legendConfig.truncation;
       const transform = translateObject(legendLayoutInfo);
 
       const clipPath = truncationEnabled ? getClipPathReference(legendClipPathUniqueId) : null;
@@ -288,10 +288,10 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
 
   derive(props: LegendItemProps, _state: LegendItemState, prevProps: LegendItemProps | null): Partial<LegendItemState> | null {
     if (prevProps === null) {
-      return this.truncation.mount(props.legendConfig.truncationEnabled);
+      return this.truncation.mount(props.legendConfig.truncation.enabled);
     }
     const { legendConfig, seriesConfig, legendLayoutInfo, legendItemLayoutInfo, legendItemRawLayoutInfo } = props;
-    const truncationEnabled = legendConfig.truncationEnabled;
+    const truncationEnabled = legendConfig.truncation.enabled;
     const truncationChanged = truncationEnabled &&
       (layoutInfoExtentChanged(prevProps.legendItemLayoutInfo, legendItemLayoutInfo) || layoutInfoExtentChanged(prevProps.legendItemRawLayoutInfo, legendItemRawLayoutInfo));
     const seriesTitleChanged = prevProps.seriesConfig.title !== seriesConfig.title;
@@ -313,7 +313,8 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
   sync() {
     const { legendConfig, seriesConfig, legendItemLayoutInfo, legendItemTextLayoutInfo, uniqueIds, clipPath, colorPaletteConfig,
       seriesIndex, seriesIsFiltered, seriesFocusPercentage } = this.props;
-    const { truncationEnabled, truncationText, truncationTooltipEnabled, strikeThroughFiltered } = legendConfig;
+    const { strikeThroughFiltered } = legendConfig;
+    const { enabled: truncationEnabled, text: truncationText, tooltipEnabled: truncationTooltipEnabled } = legendConfig.truncation;
     const { spacing: iconSpacing } = legendConfig.icon;
     const { textStyle: itemTextStyle } = legendConfig.item;
     const itemTextAttributes = styleToAttributes(itemTextStyle);
@@ -374,7 +375,7 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
       const domElement = this.root.node.querySelector<SVGTextContentElement>(getLegendItemTextCssSelector());
       const { legendConfig, seriesConfig, legendItemTextLayoutInfo } = this.props;
       const { width } = legendItemTextLayoutInfo;
-      const { truncationText } = legendConfig;
+      const { text: truncationText } = legendConfig.truncation;
       const title = getSeriesTitle(seriesConfig);
       const maxLength = Math.max(width, 0);
       this.truncation.update(this, truncationText, title, maxLength, domElement);

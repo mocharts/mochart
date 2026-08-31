@@ -1,5 +1,6 @@
-import { AUTO, NONE, ELLIPSIS, COLOR_CURRENT, STYLE_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants';
+import { AUTO, NONE, COLOR_CURRENT, STYLE_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants';
 import { deepMerge } from '../core/deepMerge';
+import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
 import type { StrokeStyleStates, Style, StyleStates, ThresholdConfig } from '../../types/config';
 import type { MarginPadding } from '../../types/geometry';
 import type { ThresholdTitleSide } from '../core/constants';
@@ -113,9 +114,7 @@ export default function getDefaults() {
       text: NONE,
       front: false,
       backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 },
-      truncationEnabled: true,
-      truncationText: ELLIPSIS,
-      truncationTooltipEnabled: true,
+      truncation: getTruncationDefaults(),
       size: AUTO,
       marginInner: 2,
       marginOuter: 2,

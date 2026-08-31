@@ -1,4 +1,5 @@
 import validators from './validators';
+import getTruncationValidators from './truncationConfig';
 
 import { NONE, POSITIONS, ALIGNS, VERTICAL_ALIGNS } from '../core/constants';
 
@@ -17,9 +18,7 @@ export default function getValidators() {
     position: validators.oneOf(POSITIONS),
     link: validators.string().orEqual(NONE),
     linkDisabled: validators.boolean(),
-    truncationEnabled: validators.boolean(),
-    truncationText: validators.string(),
-    truncationTooltipEnabled: validators.boolean(),
+    truncation: validators.partialObjectWithShape(getTruncationValidators(), true),
     alignedToAxes: validators.boolean(),
     align: validators.oneOf(ALIGNS),
     verticalAlign: validators.oneOf(VERTICAL_ALIGNS),

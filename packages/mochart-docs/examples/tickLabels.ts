@@ -1,7 +1,7 @@
 // Long team names on a horizontal category axis. Rotating the labels -45°
 // makes them perpendicular to the axis, so each one is truncated to a
-// fraction of the plot height (truncationMaxFraction) rather than to the
-// width of its category slot; truncationMinLength keeps a readable minimum
+// fraction of the plot height (truncation.maxFraction) rather than to the
+// width of its category slot; truncation.minLength keeps a readable minimum
 // when the chart is short.
 import type { MochartInputConfig } from '@mochart/core';
 
@@ -15,10 +15,7 @@ export const config: MochartInputConfig = {
     title: { text: 'Team' },
     tickLabel: {
       rotation: -45,
-      truncationEnabled: true,
-      truncationMaxFraction: 0.35,
-      truncationMinLength: 72,
-      truncationText: '…'
+      truncation: { enabled: true, maxFraction: 0.35, minLength: 72, text: '…' }
     }
   },
   valueAxes: [{ id: 'VA0', title: { text: 'Open tickets' }, min: 0 }],

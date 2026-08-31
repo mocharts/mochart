@@ -1,5 +1,5 @@
 /**
- * The native tooltip on truncated text: while a group's truncationTooltipEnabled is on, a text element
+ * The native tooltip on truncated text: while a group's truncation.tooltipEnabled is on, a text element
  * whose drawn string was truncated carries an svg <title> holding the full string, so a resting pointer shows
  * it. Text that fits carries none, and each group's switch acts on its own text only.
  */
@@ -123,7 +123,7 @@ describe('the native tooltip on truncated text', () => {
 
   it('lets each group switch off its own tooltips without touching the others', () => {
     const { container } = mountChart(config => {
-      config.legend.truncationTooltipEnabled = false;
+      config.legend.truncation.tooltipEnabled = false;
     });
     expect(texts(container, LEGEND_TEXTS + ' > title').length).toBe(0);
     expect(tooltipOf(container.querySelector(TITLE_TEXT)!)).not.toBeNull();
@@ -132,12 +132,12 @@ describe('the native tooltip on truncated text', () => {
     expect(texts(container, CATEGORY_TICK_TEXTS + ' > title').length).toBeGreaterThan(0);
 
     const { container: offContainer, mochartConfig } = mountChart(config => {
-      config.title.truncationTooltipEnabled = false;
-      config.legend.truncationTooltipEnabled = false;
-      config.categoryAxis.tickLabel.truncationTooltipEnabled = false;
-      config.categoryAxis.title.truncationTooltipEnabled = false;
+      config.title.truncation.tooltipEnabled = false;
+      config.legend.truncation.tooltipEnabled = false;
+      config.categoryAxis.tickLabel.truncation.tooltipEnabled = false;
+      config.categoryAxis.title.truncation.tooltipEnabled = false;
       for (const valueAxisConfig of config.valueAxes) {
-        valueAxisConfig.title.truncationTooltipEnabled = false;
+        valueAxisConfig.title.truncation.tooltipEnabled = false;
       }
     });
     expect(texts(offContainer, 'text > title').length).toBe(0);

@@ -53,9 +53,9 @@ import * as legendSingle from '../examples/legendSingle'
   [placeholder](/reference/legend#legend.icon.showPlaceholders) in
   [`unfilteredColor`](/reference/legend#legend.icon.unfilteredColor) /
   [`filteredColor`](/reference/legend#legend.icon.filteredColor).
-- [`truncationEnabled`](/reference/legend#legend.truncationEnabled) (on by
+- [`truncation.enabled`](/reference/legend#legend.truncation.enabled) (on by
   default) cuts a title that is wider than the legend has room for and
-  appends [`truncationText`](/reference/legend#legend.truncationText).
+  appends [`truncation.text`](/reference/legend#legend.truncation.text).
 - Clicking an item [filters](/guide/interaction#legend-filtering) its series out
   and back in while [`filterOnClick`](/reference/legend#legend.filterOnClick)
   is on (the default); a filtered item's icon switches to

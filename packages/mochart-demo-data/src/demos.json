@@ -32,7 +32,7 @@
       "id": "tick-prune",
       "title": "Long Tick Label Pruning",
       "description": "A date axis with long formatted tick labels, pruned as space runs out instead of overlapping.",
-      "notes": "The category axis is type date on an ordinal scale with tickLabel.format \"%B %e, %Y\", so each of the 26 daily category values wants a label as long as \"March 18, 2016\" over a single area series. Date axes leave tickLabel.truncationEnabled at its false default, so rather than shortening the text the axis fits a tick count to the available width and then shows only every nth label, also hiding any label that would overhang the plot edge and always keeping one. Narrowing the chart drops the surviving labels in steps instead of letting them collide.",
+      "notes": "The category axis is type date on an ordinal scale with tickLabel.format \"%B %e, %Y\", so each of the 26 daily category values wants a label as long as \"March 18, 2016\" over a single area series. Date axes leave tickLabel.truncation.enabled at its false default, so rather than shortening the text the axis fits a tick count to the available width and then shows only every nth label, also hiding any label that would overhang the plot edge and always keeping one. Narrowing the chart drops the surviving labels in steps instead of letting them collide.",
       "config": "long-tick-label-config.json",
       "data": "mixed-categories-positive-values-data.json",
       "random": "positive-random.json"
@@ -50,7 +50,7 @@
       "id": "ordinal",
       "title": "Category Ordinal",
       "description": "String category values placed in even slots by an ordinal category scale.",
-      "notes": "The category axis is type string with scale ordinal, so the 26 three-letter categories (AAA through ZZZ) each get an equal slot in data order, with a line series over value1 and an area series over value2 sharing one value axis. Because the type is string, tickLabel.truncationEnabled defaults to true, so crowded labels are shortened with an ellipsis instead of being skipped the way the date axes in the other tick demos are.",
+      "notes": "The category axis is type string with scale ordinal, so the 26 three-letter categories (AAA through ZZZ) each get an equal slot in data order, with a line series over value1 and an area series over value2 sharing one value axis. Because the type is string, tickLabel.truncation.enabled defaults to true, so crowded labels are shortened with an ellipsis instead of being skipped the way the date axes in the other tick demos are.",
       "config": "category-ordinal-config.json",
       "data": "mixed-categories-mixed-values-data.json",
       "random": "default-random.json"
@@ -59,7 +59,7 @@
       "id": "ordinal-dates",
       "title": "Ordinal Dates",
       "description": "Date category values kept on an ordinal scale, with month-formatted tick labels.",
-      "notes": "The category axis is type date but scale ordinal, so every month gets the same slot width regardless of how many days it has, and tickLabel.format \"%B %Y\" (matched by valueFormat for the tooltip) spells the months out in full. tickLabel.truncationEnabled is explicitly false, so those wide labels are dropped rather than shortened, and the value axis fixes min at 0 with a currency tickLabel.format of \"$.0f\". The data is 25 consecutive months in which many have no total at all, so the single stacked bar series leaves visible gaps.",
+      "notes": "The category axis is type date but scale ordinal, so every month gets the same slot width regardless of how many days it has, and tickLabel.format \"%B %Y\" (matched by valueFormat for the tooltip) spells the months out in full. tickLabel.truncation.enabled is explicitly false, so those wide labels are dropped rather than shortened, and the value axis fixes min at 0 with a currency tickLabel.format of \"$.0f\". The data is 25 consecutive months in which many have no total at all, so the single stacked bar series leaves visible gaps.",
       "config": "ordinal-dates-config.json",
       "data": "ordinal-dates-data.json",
       "random": "default-random.json"
@@ -304,7 +304,7 @@
       "id": "truncated-text",
       "title": "Truncated Text",
       "description": "Over-long title, axis, legend and tick label text fitted by the truncation settings.",
-      "notes": "The chart title is deliberately too long and carries a prefix and suffix in their own boxes, with truncationEnabled/truncationText trimming it to \"...\" instead of overflowing; both axis titles do the same through title.truncationEnabled. The category axis truncates tick labels to their slot (tickLabel.truncationEnabled) rather than dropping ticks, with tickLabel.truncationMaxFraction capping how much of the chart a label may occupy when it runs perpendicular to the axis. The category values are the \"categoryDisplay\" phrases (up to \"Supercalifragilisticexpialidocious is long\"), keyed by the numeric \"category\" property through keyProperty, and every box in the chart is stroked grey so the bounds the text is being fitted into are visible. The third and fourth series exist only to give the legend more long titles to truncate — their properties are absent from the data, which allowAbsentDataProperties permits.",
+      "notes": "The chart title is deliberately too long and carries a prefix and suffix in their own boxes, with truncation.enabled/truncation.text trimming it to \"...\" instead of overflowing; both axis titles do the same through title.truncation.enabled. The category axis truncates tick labels to their slot (tickLabel.truncation.enabled) rather than dropping ticks, with tickLabel.truncation.maxFraction capping how much of the chart a label may occupy when it runs perpendicular to the axis. The category values are the \"categoryDisplay\" phrases (up to \"Supercalifragilisticexpialidocious is long\"), keyed by the numeric \"category\" property through keyProperty, and every box in the chart is stroked grey so the bounds the text is being fitted into are visible. The third and fourth series exist only to give the legend more long titles to truncate — their properties are absent from the data, which allowAbsentDataProperties permits.",
       "config": "truncated-text-config.json",
       "data": "long-category-string-values-data.json",
       "random": "default-random.json"

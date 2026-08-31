@@ -41,10 +41,10 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
 
   derive(props: AxisTitleProps, _state: AxisTitleState, prevProps: AxisTitleProps | null): Partial<AxisTitleState> | null {
     if (prevProps === null) {
-      return this.truncation.mount(props.axisConfig.title.truncationEnabled);
+      return this.truncation.mount(props.axisConfig.title.truncation.enabled);
     }
     const { axisConfig, axisLayoutInfo } = props;
-    const truncationEnabled = axisConfig.title.text !== NONE && axisConfig.title.truncationEnabled;
+    const truncationEnabled = axisConfig.title.text !== NONE && axisConfig.title.truncation.enabled;
     const truncationChanged = truncationEnabled && layoutInfoExtentChanged(prevProps.axisLayoutInfo, axisLayoutInfo);
     return this.truncation.prepare(truncationEnabled, truncationChanged, prevProps.axisConfig.title.text !== axisConfig.title.text);
   }
@@ -60,14 +60,14 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
     if (axisConfig.title.text !== NONE) {
       const { axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage } = this.props;
       const { truncationData } = this.state;
-      const title = getTruncatedText(axisConfig.title.truncationEnabled, axisConfig.title.truncationText, axisConfig.title.text!, truncationData);
+      const title = getTruncatedText(axisConfig.title.truncation.enabled, axisConfig.title.truncation.text, axisConfig.title.text!, truncationData);
 
       const titleTextDY = '0.35em'; // more or less centers the text vertically http://stackoverflow.com/questions/12250403/vertical-alignment-of-text-element-in-svg
       const titleTextAnchor = 'middle';
       const { titleTextX, titleTextY, titleTextAngle } = axisLayoutInfo;
       const titleTextTransform = 'translate(' + Math.floor(titleTextX) + ',' + Math.floor(titleTextY) + ') rotate(' + titleTextAngle + ')';
 
-      const clipPath = axisConfig.title.truncationEnabled ? getClipPathReference(titleClipPathUniqueId) : null;
+      const clipPath = axisConfig.title.truncation.enabled ? getClipPathReference(titleClipPathUniqueId) : null;
 
       const useSeriesFocus = axisConfig.useSeriesFocus ?? false;
       // destructured rather than spread whole: this attribute order is what the golden snapshots record
@@ -83,7 +83,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
         stroke, strokeOpacity,
         fill, fillOpacity, strokeWidth });
       this.textValue.set(title);
-      this.tooltip.sync(this.text, axisConfig.title.truncationTooltipEnabled, axisConfig.title.text!, title);
+      this.tooltip.sync(this.text, axisConfig.title.truncation.tooltipEnabled, axisConfig.title.text!, title);
     }
     else {
       this.setPresent(false);
@@ -99,7 +99,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
       const domElement = this.root.node.querySelector<SVGTextContentElement>(getAxisTitleCssSelector());
       const { axisConfig, axisLayoutInfo } = this.props;
       const maxLength = axisLayoutInfo.vertical ? axisLayoutInfo.height : axisLayoutInfo.width;
-      const { text: title, truncationText: titleTruncationText } = axisConfig.title;
+      const { text: title, truncation: { text: titleTruncationText } } = axisConfig.title;
       this.truncation.update(this, titleTruncationText, title!, maxLength, domElement);
     }
   }

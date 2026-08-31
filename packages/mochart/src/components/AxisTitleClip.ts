@@ -22,7 +22,7 @@ export default class AxisTitleClip extends Renderer<AxisTitleClipProps> {
 
   sync() {
     const { axisConfig, chartContentLayoutInfo, axisLayoutInfo, axisTitleClipPathUniqueId } = this.props;
-    if (axisConfig.visible && axisConfig.title.text !== NONE && axisConfig.title.truncationEnabled) {
+    if (axisConfig.visible && axisConfig.title.text !== NONE && axisConfig.title.truncation.enabled) {
       const { width: cWidth, height: cHeight } = chartContentLayoutInfo;
       const { titleBoundsX, titleBoundsY, titleBoundsWidth, titleBoundsHeight, vertical } = axisLayoutInfo;
 

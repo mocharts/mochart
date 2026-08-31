@@ -79,9 +79,9 @@ import * as titleCaption from '../examples/titleCaption'
 
 ## When the title does not fit
 
-[`truncationEnabled`](/reference/title#title.truncationEnabled) is on by
+[`truncation.enabled`](/reference/title#title.truncation.enabled) is on by
 default: a title wider than the row it is aligned within is cut and
-[`truncationText`](/reference/title#title.truncationText) (`…`) is appended.
+[`truncation.text`](/reference/title#title.truncation.text) (`…`) is appended.
 Only the text section is cut. The prefix and the suffix keep their full
 width, and if those two alone fill the row the text is dropped rather than
 squeezed. Turning truncation off means nothing is cut, so a long title runs
@@ -91,7 +91,7 @@ Cutting the text changes only what is drawn. The chart's accessible name and
 the name a clickable title is announced by both use the full text you set.
 
 A pointer can still get at the full text:
-[`truncationTooltipEnabled`](/reference/title#title.truncationTooltipEnabled)
+[`truncation.tooltipEnabled`](/reference/title#title.truncation.tooltipEnabled)
 (on by default) gives the truncated title an svg `<title>` holding the full text,
 which browsers show as their native tooltip while a mouse or pen rests on
 it. Touch has no hover, so nothing shows there.

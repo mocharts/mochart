@@ -905,6 +905,43 @@ export interface CrosshairConfig {
   showBehindTooltip: boolean;
 }
 
+/** The truncation applied to text that would overflow the space available to it. */
+export interface TruncationConfig {
+  /**
+   * Whether to use text truncation when the title width exceeds the width of
+   * the chart.
+   *
+   * In the legend: whether to use text truncation when a legend item width
+   * exceeds the width of the chart. In an axis title: whether to apply text
+   * truncation to the contents of the axis title when it would overflow the
+   * axis bounds. In the category axis tick labels: whether or not to use text
+   * truncation (true) when the axis tick labels would overlap each other
+   * instead of skipping ticks (false).
+   *
+   * Default: `true`, and in the category axis tick labels `false` when type is
+   * not string.
+   */
+  enabled: boolean;
+  /**
+   * The truncation text to append when text is truncated.
+   *
+   * @default "…"
+   */
+  text: string;
+  /**
+   * Whether truncated text shows its full string as the browser’s native
+   * tooltip while a pointer rests on it.
+   *
+   * When `true`, a truncated title carries an svg `<title>` holding the full
+   * text, which browsers show as their native tooltip (not the chart `tooltip`)
+   * while a mouse or pen rests on it. Touch has no hover, so nothing shows
+   * there; the chart’s accessible name already uses the full text.
+   *
+   * @default true
+   */
+  tooltipEnabled: boolean;
+}
+
 /** A prefix or suffix box beside the title text: its text, spacing and styles. */
 export interface TitleAffixConfig {
   /** The text to display in the box (use null for none). */
@@ -970,31 +1007,12 @@ export interface TitleConfig {
    */
   linkDisabled: boolean;
   /**
-   * Whether to use text truncation when the title width exceeds the width of
-   * the chart.
+   * The truncation applied to the title when its width exceeds the width of the
+   * chart.
    *
-   * @default true
+   * @default { enabled: true, text: "…", tooltipEnabled: true }
    */
-  truncationEnabled: boolean;
-  /**
-   * The truncation text to append to the title when its width exceeds the width
-   * of the chart.
-   *
-   * @default "…"
-   */
-  truncationText: string;
-  /**
-   * Whether a truncated title shows its full text as the browser’s native
-   * tooltip while a pointer rests on it.
-   *
-   * When `true`, a truncated title carries an svg `<title>` holding the full
-   * text, which browsers show as their native tooltip (not the chart `tooltip`)
-   * while a mouse or pen rests on it. Touch has no hover, so nothing shows
-   * there; the chart’s accessible name already uses the full text.
-   *
-   * @default true
-   */
-  truncationTooltipEnabled: boolean;
+  truncation: TruncationConfig;
   /**
    * Whether the title should be aligned between the axes (true) or the chart
    * bounds (false).
@@ -1223,32 +1241,12 @@ export interface LegendConfig {
    */
   position: Position;
   /**
-   * Whether to use text truncation when a legend item width exceeds the width
+   * The truncation applied to legend item text when its width exceeds the width
    * of the chart.
    *
-   * @default true
+   * @default { enabled: true, text: "…", tooltipEnabled: true }
    */
-  truncationEnabled: boolean;
-  /**
-   * The truncation text to append to legend item text when its width exceeds
-   * the width of the chart.
-   *
-   * @default "…"
-   */
-  truncationText: string;
-  /**
-   * Whether a truncated legend item shows its full series title as the
-   * browser’s native tooltip while a pointer rests on it.
-   *
-   * When `true`, a truncated legend item carries an svg `<title>` holding the
-   * full text, which browsers show as their native tooltip (not the chart
-   * `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing
-   * shows there; a keyboard-reachable item is already named from the full
-   * series title.
-   *
-   * @default true
-   */
-  truncationTooltipEnabled: boolean;
+  truncation: TruncationConfig;
   /**
    * Whether the legend should be aligned between the axes (true) or the chart
    * bounds (false).
@@ -1949,51 +1947,33 @@ export interface AxisTickLabelConfig {
   textStyle: StyleStates;
 }
 
-/** The category axis tick labels, adding the truncation applied when they would overlap. */
-export interface CategoryAxisTickLabelConfig extends AxisTickLabelConfig {
-  /**
-   * Whether or not to use text truncation (true) when the axis tick labels
-   * would overlap each other instead of skipping ticks (false).
-   *
-   * Default:
-   * - `true` — when type is string
-   * - `false` — when type is not string
-   */
-  truncationEnabled: boolean;
-  /**
-   * The truncation text to append to the axis tick label text when its content
-   * is truncated.
-   *
-   * @default "…"
-   */
-  truncationText: string;
-  /**
-   * Whether a truncated tick label shows its full text as the browser’s native
-   * tooltip while a pointer rests on it.
-   *
-   * When `true`, a truncated tick label carries an svg `<title>` holding the
-   * full text, which browsers show as their native tooltip (not the chart
-   * `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing
-   * shows there; assistive tech already gets the full text through
-   * `aria-label`.
-   *
-   * @default true
-   */
-  truncationTooltipEnabled: boolean;
+/** The axis tick label truncation, adding the limits on the space a label may take. */
+export interface TickLabelTruncationConfig extends TruncationConfig {
   /**
    * The minimum length (in pixels) to allow tick label text perpendicular to
-   * the axis, applied when truncationMaxFraction would allow less.
+   * the axis, applied when maxFraction would allow less.
    *
    * @default 0
    */
-  truncationMinLength: number;
+  minLength: number;
   /**
    * The maximum fraction (0 - 1) of the plot bounds to allow any tick label
    * text to occupy when they are perpendicular to the axis.
    *
    * @default 0.2
    */
-  truncationMaxFraction: number;
+  maxFraction: number;
+}
+
+/** The category axis tick labels, adding the truncation applied when they would overlap. */
+export interface CategoryAxisTickLabelConfig extends AxisTickLabelConfig {
+  /**
+   * The truncation applied to the axis tick labels when they would overlap each
+   * other.
+   *
+   * @default { text: "…", tooltipEnabled: true, minLength: 0, maxFraction: 0.2 }
+   */
+  truncation: TickLabelTruncationConfig;
 }
 
 /** The value axis tick labels, adding the filtering adjustment of their bounds. */
@@ -2030,31 +2010,12 @@ export interface AxisTitleConfig {
    */
   backgroundStyle: Style;
   /**
-   * Whether to apply text truncation to the contents of the axis title when it
-   * would overflow the axis bounds.
+   * The truncation applied to the axis title when it would overflow the axis
+   * bounds.
    *
-   * @default true
+   * @default { enabled: true, text: "…", tooltipEnabled: true }
    */
-  truncationEnabled: boolean;
-  /**
-   * The truncation text to append to the axis title when its length exceeds the
-   * bounds of the axis.
-   *
-   * @default "…"
-   */
-  truncationText: string;
-  /**
-   * Whether a truncated axis title shows its full text as the browser’s native
-   * tooltip while a pointer rests on it.
-   *
-   * When `true`, a truncated axis title carries an svg `<title>` holding the
-   * full text, which browsers show as their native tooltip (not the chart
-   * `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing
-   * shows there; the axis group is already named from the full title.
-   *
-   * @default true
-   */
-  truncationTooltipEnabled: boolean;
+  truncation: TruncationConfig;
   /**
    * The space (in pixels) perpendicular to the axis direction to allocate for
    * the axis title (use "auto" to derive from the font size).
@@ -2333,8 +2294,7 @@ export interface AxisConfigBase {
    * Category axis default: `{ front: false, anchor: "auto", backgroundStyle: {
    * … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5,
    * paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0,
-   * textStyle: { … }, truncationText: "…", truncationTooltipEnabled: true,
-   * truncationMinLength: 0, truncationMaxFraction: 0.2 }`.
+   * textStyle: { … }, truncation: { … } }`.
    * Value axis default: `{ front: false, anchor: "auto", backgroundStyle: { …
    * }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5,
    * paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0,
@@ -2350,7 +2310,7 @@ export interface AxisConfigBase {
   /**
    * The title shown alongside the axis.
    *
-   * @default { text: null, front: false, backgroundStyle: { … }, truncationEnabled: true, truncationText: "…", truncationTooltipEnabled: true, size: "auto", marginInner: 2, marginOuter: 2, paddingInner: 3, paddingOuter: 3, textStyle: { … } }
+   * @default { text: null, front: false, backgroundStyle: { … }, truncation: { … }, size: "auto", marginInner: 2, marginOuter: 2, paddingInner: 3, paddingOuter: 3, textStyle: { … } }
    */
   title: AxisTitleConfig;
   /**
@@ -2434,7 +2394,7 @@ export interface CategoryAxisConfig extends AxisConfigBase {
   /**
    * The labels shown at each tick along the axis.
    *
-   * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, truncationText: "…", truncationTooltipEnabled: true, truncationMinLength: 0, truncationMaxFraction: 0.2 }
+   * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, truncation: { … } }
    */
   tickLabel: CategoryAxisTickLabelConfig;
   /**

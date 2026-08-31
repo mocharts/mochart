@@ -299,7 +299,7 @@ export function getCategoryAxisTickLabelBounds(mochartConfig: EnhancedMochartCon
 
 export function getCategoryAxisSizeTickLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
   let categoryAxisSizeTickBounds: TextBounds = emptyBounds;
-  if (mochartConfig.categoryAxis.visible && mochartConfig.categoryAxis.scale === SCALE_ORDINAL && mochartConfig.categoryAxis.tickLabel.truncationEnabled) {
+  if (mochartConfig.categoryAxis.visible && mochartConfig.categoryAxis.scale === SCALE_ORDINAL && mochartConfig.categoryAxis.tickLabel.truncation.enabled) {
     categoryAxisSizeTickBounds = getSvgBounds(domAccessors, 'getCategoryAxisSizeTickDomElement', defaultBounds);
   }
   return categoryAxisSizeTickBounds;

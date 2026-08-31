@@ -128,8 +128,10 @@
       "fillOpacity": 0.1,
       "strokeWidth": 1
     },
-    "truncationEnabled": true,
-    "truncationText": "..."
+    "truncation": {
+      "enabled": true,
+      "text": "..."
+    }
   },
   "legend": {
     "margin": {
@@ -186,21 +188,27 @@
     "type": "string",
     "scale": "ordinal",
     "tickLabel": {
-      "truncationEnabled": true,
-      "truncationText": "...",
-      "truncationMaxFraction": 0.2
+      "truncation": {
+        "enabled": true,
+        "text": "...",
+        "maxFraction": 0.2
+      }
     },
     "title": {
       "text": "A Category Axis Title That Has Really Long Text That Should Not Overflow The Boundaries",
-      "truncationEnabled": true,
-      "truncationText": "..."
+      "truncation": {
+        "enabled": true,
+        "text": "..."
+      }
     }
   },
   "valueAxes": {
     "title": {
       "text": "A Value Axis Title That Has Really Long Text That Should Not Overflow The Boundaries",
-      "truncationEnabled": true,
-      "truncationText": "..."
+      "truncation": {
+        "enabled": true,
+        "text": "..."
+      }
     }
   },
   "series": [

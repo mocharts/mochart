@@ -72,11 +72,11 @@ export default class Title extends Renderer<TitleProps, TitleState> {
 
   derive(props: TitleProps, _state: TitleState, prevProps: TitleProps | null): Partial<TitleState> | null {
     if (prevProps === null) {
-      return this.truncation.mount(props.mochartConfig.title.truncationEnabled);
+      return this.truncation.mount(props.mochartConfig.title.truncation.enabled);
     }
     const { mochartConfig, titleLayoutInfo, titleTextLayoutInfo, titleTextRawLayoutInfo } = props;
     const { title: titleConfig } = mochartConfig;
-    const truncationEnabled = titleConfig.text !== NONE && titleConfig.truncationEnabled;
+    const truncationEnabled = titleConfig.text !== NONE && titleConfig.truncation.enabled;
     const truncationChanged = truncationEnabled &&
       (layoutInfoExtentChanged(prevProps.titleTextLayoutInfo, titleTextLayoutInfo) || layoutInfoExtentChanged(prevProps.titleTextRawLayoutInfo, titleTextRawLayoutInfo));
     const titleChanged = prevProps.mochartConfig.title.text !== titleConfig.text;
@@ -141,9 +141,10 @@ export default class Title extends Renderer<TitleProps, TitleState> {
     const { title: titleConfig } = mochartConfig;
 
     if (titleConfig.text !== NONE) {
-      const { text: title, prefix, suffix, truncationEnabled, truncationText, truncationTooltipEnabled, link, linkDisabled,
+      const { text: title, prefix, suffix, truncation, link, linkDisabled,
         textBackgroundStyle: titleBackgroundStyle, textStyle: titleTextStyle
       } = titleConfig;
+      const { enabled: truncationEnabled, text: truncationText, tooltipEnabled: truncationTooltipEnabled } = truncation;
       const { text: titlePrefix, backgroundStyle: prefixBackgroundStyle, textStyle: prefixTextStyle } = prefix;
       const { text: titleSuffix, backgroundStyle: suffixBackgroundStyle, textStyle: suffixTextStyle } = suffix;
 
@@ -212,7 +213,7 @@ export default class Title extends Renderer<TitleProps, TitleState> {
       const { mochartConfig, titleTextLayoutInfo } = this.props;
       const { title: titleConfig } = mochartConfig;
       const { width } = titleTextLayoutInfo;
-      const { text: title, truncationText, textMargin, textPadding } = titleConfig;
+      const { text: title, truncation: { text: truncationText }, textMargin, textPadding } = titleConfig;
       const maxLength = Math.max(width - getSpacingWidth(textMargin, textPadding), 0);
       this.truncation.update(this, truncationText, title!, maxLength, domElement);
     }

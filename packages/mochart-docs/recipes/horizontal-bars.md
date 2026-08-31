@@ -22,7 +22,7 @@ import * as horizontal from '../examples/horizontal'
   it below the plot.
 - Long category labels usually fit better on a horizontal chart — combine with
   the category axis
-  [`tickLabel.truncationEnabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncationEnabled)
+  [`tickLabel.truncation`](/reference/categoryAxis#categoryAxis.tickLabel.truncation)
   settings when they still overflow.
 - The staged animation phases are orientation-aware; axis expansion grows
   the value domain to the right instead of upward.

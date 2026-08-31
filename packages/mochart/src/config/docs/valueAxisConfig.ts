@@ -43,7 +43,7 @@ export default function getDescriptions() {
 }
 export function getDetails() {
   return {
-    title: { properties: { truncationTooltipEnabled: 'When `true`, a truncated axis title carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; the axis group is already named from the full title.' } },
+    title: { properties: { truncation: { properties: { tooltipEnabled: 'When `true`, a truncated axis title carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; the axis group is already named from the full title.' } } } },
     id: 'Referenced by `series[].axis` (and `seriesStacks[].axis`) to assign series to this axis. With a single axis the ids can be omitted everywhere.',
     min: 'With `"auto"` the minimum is computed from the data (including stacking) on every update, and changes animate through the staged axis expansion/contraction phases. Set a number to pin the bound instead. Values outside of the defined range are clipped rather than allowed to overflow the plot area of the chart.',
     max: 'With `"auto"` the maximum is computed from the data (including stacking) on every update, and changes animate through the staged axis expansion/contraction phases. Set a number to pin the bound instead. Values outside of the defined range are clipped rather than allowed to overflow the plot area of the chart.',

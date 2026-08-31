@@ -135,7 +135,7 @@ describe('Mochart support completions', () => {
   it('offers value completions, not property names, after the colon of an unparsed value', async () => {
     const legendOptions = await completionOptions('{"legend":{"visible": t|}}');
     expect(labels(legendOptions)).toContain('true');
-    expect(labels(legendOptions)).not.toContain('truncationEnabled');
+    expect(labels(legendOptions)).not.toContain('truncation');
     const typeOptions = await completionOptions('{"chart":{"type": |}}');
     expect(labels(typeOptions)).toEqual(expect.arrayContaining(['"xy"', '"pie"']));
     expect(labels(typeOptions)).not.toContain('margin');

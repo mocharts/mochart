@@ -24,7 +24,9 @@
     "scale": "ordinal",
     "tickLabel": {
       "format": "%B %Y",
-      "truncationEnabled": false
+      "truncation": {
+        "enabled": false
+      }
     },
     "valueFormat": "%B %Y",
     "valueLabel": "Category",
