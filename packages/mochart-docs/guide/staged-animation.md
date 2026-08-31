@@ -178,12 +178,18 @@ changes complete proportionally faster. On an axis running `0` to `100` with
 1000 ms, one going from `50` to `100` takes 500 ms, and one going from `95` to
 `100` takes 50 ms.
 
-Both easing properties take `'linear'`, `'cubicIn'`, `'cubicOut'` or
-`'cubicInOut'`. `easing` paces each data animation phase on its own and
-defaults to `'cubicInOut'`, accelerating in and decelerating out.
-`focusEasing` paces focus transitions and defaults to `'cubicOut'`, which
-starts fast so hover feedback reads as immediate even when focus moves
-quickly between series or categories.
+Both easing properties take `'linear'` or one of seven families — sine,
+quad, cubic, quint, back, elastic and bounce — each as In (starts slow),
+Out (starts fast) and InOut variants: `'quintOut'`, `'backInOut'` and so
+on. sine through quint accelerate progressively more sharply. back
+overshoots the target and settles, elastic oscillates around it before
+settling, and bounce lands in diminishing bounces; back and elastic
+briefly push values and axis domains past their targets mid-animation.
+`easing` paces each data animation phase on its own and defaults to
+`'cubicInOut'`, accelerating in and decelerating out. `focusEasing` paces
+focus transitions and defaults to `'cubicOut'`, which starts fast so hover
+feedback reads as immediate even when focus moves quickly between series
+or categories.
 
 The one knob that lives on the series instead:
 [`animateBaseFromAdjacent`](/reference/series#series.animateBaseFromAdjacent)

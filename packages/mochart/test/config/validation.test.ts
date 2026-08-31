@@ -8,6 +8,7 @@ import { getAxisBoundsMessage } from '../../src/config/validation/axisConfig';
 import { boundValue } from '../../src/config/validation/validators';
 import { getDefaults } from '../../src/config/defaults/mochartConfig';
 import { getConfigWithDefaults } from '../../src/config/core/mochartConfig';
+import { EASINGS } from '../../src/config/core/constants';
 
 const V = '1.0.0';
 
@@ -1043,7 +1044,7 @@ describe('animation domain change validation', () => {
   });
 });
 
-// easing/focusEasing are closed enums: linear | cubicIn | cubicOut | cubicInOut
+// easing/focusEasing are closed enums over the EASINGS constant
 describe('animation easing validation', () => {
   const withAnimation = (animation: unknown) => ({
     version: V,
@@ -1053,7 +1054,7 @@ describe('animation easing validation', () => {
   });
 
   it('accepts each easing on both properties', () => {
-    for (const easing of ['linear', 'cubicIn', 'cubicOut', 'cubicInOut']) {
+    for (const easing of EASINGS) {
       expect(errorsFor(withAnimation({ easing }))).toEqual([]);
       expect(errorsFor(withAnimation({ focusEasing: easing }))).toEqual([]);
     }

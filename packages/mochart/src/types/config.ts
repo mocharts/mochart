@@ -407,14 +407,17 @@ export interface AnimationConfig {
    */
   contractionDuration: number;
   /**
-   * The easing applied to the data animation phases: linear, cubicIn, cubicOut,
-   * or cubicInOut.
+   * The easing applied to the data animation phases.
    *
    * The pacing of every data animation phase: the initial render, axis
    * expansion, value change, and axis contraction, each eased on its own.
-   * `'linear'` runs at constant speed, `'cubicIn'` starts slow and accelerates,
-   * `'cubicOut'` starts fast and decelerates, and `'cubicInOut'` (the default)
-   * does both. Focus transitions are paced by `focusEasing` instead.
+   * `'linear'` runs at constant speed. The sine, quad, cubic and quint families
+   * accelerate progressively more sharply, each as In (starts slow), Out
+   * (starts fast) and InOut (both); the default is `'cubicInOut'`. back
+   * overshoots the target and settles, elastic oscillates around it before
+   * settling, and bounce lands in diminishing bounces; with back and elastic,
+   * values and axis domains briefly pass their targets mid-animation. Focus
+   * transitions are paced by `focusEasing` instead.
    *
    * @default "cubicInOut"
    */
@@ -431,8 +434,7 @@ export interface AnimationConfig {
    */
   focusDuration: number;
   /**
-   * The easing applied to focus transitions: linear, cubicIn, cubicOut, or
-   * cubicInOut.
+   * The easing applied to focus transitions.
    *
    * The pacing of focus transitions, with the same values as `easing`. The
    * default `'cubicOut'` starts fast and decelerates, so the emphasis change

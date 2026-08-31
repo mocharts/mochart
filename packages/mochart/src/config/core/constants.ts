@@ -65,12 +65,37 @@ export const DOMAIN_CHANGES = [
 ];
 
 export const EASING_LINEAR = 'linear';
+export const EASING_SINE_IN = 'sineIn';
+export const EASING_SINE_OUT = 'sineOut';
+export const EASING_SINE_IN_OUT = 'sineInOut';
+export const EASING_QUAD_IN = 'quadIn';
+export const EASING_QUAD_OUT = 'quadOut';
+export const EASING_QUAD_IN_OUT = 'quadInOut';
 export const EASING_CUBIC_IN = 'cubicIn';
 export const EASING_CUBIC_OUT = 'cubicOut';
 export const EASING_CUBIC_IN_OUT = 'cubicInOut';
+export const EASING_QUINT_IN = 'quintIn';
+export const EASING_QUINT_OUT = 'quintOut';
+export const EASING_QUINT_IN_OUT = 'quintInOut';
+export const EASING_BACK_IN = 'backIn';
+export const EASING_BACK_OUT = 'backOut';
+export const EASING_BACK_IN_OUT = 'backInOut';
+export const EASING_ELASTIC_IN = 'elasticIn';
+export const EASING_ELASTIC_OUT = 'elasticOut';
+export const EASING_ELASTIC_IN_OUT = 'elasticInOut';
+export const EASING_BOUNCE_IN = 'bounceIn';
+export const EASING_BOUNCE_OUT = 'bounceOut';
+export const EASING_BOUNCE_IN_OUT = 'bounceInOut';
 
 export const EASINGS = [
-  EASING_LINEAR, EASING_CUBIC_IN, EASING_CUBIC_OUT, EASING_CUBIC_IN_OUT
+  EASING_LINEAR,
+  EASING_SINE_IN, EASING_SINE_OUT, EASING_SINE_IN_OUT,
+  EASING_QUAD_IN, EASING_QUAD_OUT, EASING_QUAD_IN_OUT,
+  EASING_CUBIC_IN, EASING_CUBIC_OUT, EASING_CUBIC_IN_OUT,
+  EASING_QUINT_IN, EASING_QUINT_OUT, EASING_QUINT_IN_OUT,
+  EASING_BACK_IN, EASING_BACK_OUT, EASING_BACK_IN_OUT,
+  EASING_ELASTIC_IN, EASING_ELASTIC_OUT, EASING_ELASTIC_IN_OUT,
+  EASING_BOUNCE_IN, EASING_BOUNCE_OUT, EASING_BOUNCE_IN_OUT
 ];
 
 export const SIDE_START = 'start';
@@ -229,7 +254,15 @@ export type Anchor = typeof ANCHOR_START | typeof ANCHOR_END | typeof ANCHOR_MID
 export type Position = typeof POSITION_TOP | typeof POSITION_BOTTOM;
 export type MissingValueMode = typeof MISSING_VALUE_MODE_BREAK | typeof MISSING_VALUE_MODE_CONNECT | typeof MISSING_VALUE_MODE_BASE;
 export type DomainChange = typeof AUTO | typeof DOMAIN_CHANGE_COMBINED | typeof DOMAIN_CHANGE_STAGED;
-export type AnimationEasing = typeof EASING_LINEAR | typeof EASING_CUBIC_IN | typeof EASING_CUBIC_OUT | typeof EASING_CUBIC_IN_OUT;
+export type AnimationEasing =
+  typeof EASING_LINEAR |
+  typeof EASING_SINE_IN | typeof EASING_SINE_OUT | typeof EASING_SINE_IN_OUT |
+  typeof EASING_QUAD_IN | typeof EASING_QUAD_OUT | typeof EASING_QUAD_IN_OUT |
+  typeof EASING_CUBIC_IN | typeof EASING_CUBIC_OUT | typeof EASING_CUBIC_IN_OUT |
+  typeof EASING_QUINT_IN | typeof EASING_QUINT_OUT | typeof EASING_QUINT_IN_OUT |
+  typeof EASING_BACK_IN | typeof EASING_BACK_OUT | typeof EASING_BACK_IN_OUT |
+  typeof EASING_ELASTIC_IN | typeof EASING_ELASTIC_OUT | typeof EASING_ELASTIC_IN_OUT |
+  typeof EASING_BOUNCE_IN | typeof EASING_BOUNCE_OUT | typeof EASING_BOUNCE_IN_OUT;
 export type AxisSide = typeof SIDE_START | typeof SIDE_END;
 export type ThresholdTitleSide = typeof TITLE_SIDE_LOW | typeof TITLE_SIDE_HIGH;
 export type ChartType = typeof CHART_TYPE_XY | typeof CHART_TYPE_PIE;
