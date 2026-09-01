@@ -414,10 +414,9 @@ export interface AnimationConfig {
    * `'linear'` runs at constant speed. The sine, quad, cubic and quint families
    * accelerate progressively more sharply, each as In (starts slow), Out
    * (starts fast) and InOut (both); the default is `'sineInOut'`, the gentlest
-   * of them. elastic approaches its target with a decaying oscillation and
-   * bounce lands in diminishing bounces; eased progress is clamped at the
-   * target, so no easing overshoots past it. Focus transitions are paced by
-   * `focusEasing` instead.
+   * of them. bounce lands in diminishing bounces. Every easing stays between
+   * its start and its target. Focus transitions are paced by `focusEasing`
+   * instead.
    *
    * @default "sineInOut"
    */

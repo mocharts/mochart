@@ -435,13 +435,13 @@ function setValueSeriesValuesForDelta(
   percentage: number
 ): void {
   const valueDelta = valueDeltaObject[valueKey] as NumericValuesDelta;
-  if (valueDelta.deltaPercentage < deltaPercentage) {
+  if (valueDelta.deltas === null || valueDelta.deltaPercentage < deltaPercentage) {
     valueObject[valueKey] = endValueObject[valueKey];
   }
   else {
     valueObject[valueKey] = getValuesForDelta(
       startValueObject[valueKey] as NumericValues,
-      valueDelta.deltas!,
+      valueDelta.deltas,
       valueDelta.deltaFactor! * percentage
     );
   }
@@ -461,13 +461,13 @@ function setFilteredValueSeriesValuesForDelta(
   if (valueDelta.deltaCopied === true) {
     valueObject[valueKey] = rawValueObject[valueKey];
   }
-  else if (valueDelta.deltaPercentage < deltaPercentage) {
+  else if (valueDelta.deltas === null || valueDelta.deltaPercentage < deltaPercentage) {
     valueObject[valueKey] = endValueObject[valueKey];
   }
   else {
     valueObject[valueKey] = getValuesForDelta(
       startValueObject[valueKey] as NumericValues,
-      valueDelta.deltas!,
+      valueDelta.deltas,
       valueDelta.deltaFactor! * percentage
     );
   }

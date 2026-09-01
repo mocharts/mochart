@@ -11,8 +11,8 @@ interface Curve { name: string; points: string }
 const curves = ref<Curve[]>([]);
 
 const SAMPLES = 120;
-// vertical padding inside the 100x100 viewBox, sized for elastic's excursions outside 0 to 1
-const pad = 22;
+// vertical padding inside the 100x100 viewBox, keeping the 0 and 1 guides clear of the edges
+const pad = 10;
 
 onMounted(async () => {
   const { EASINGS, getEasingFunction } = await import('@mochart/core');

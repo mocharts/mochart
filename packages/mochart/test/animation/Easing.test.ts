@@ -60,13 +60,8 @@ describe('getEasingFunction', () => {
     }
   });
 
-  it('elastic leaves the 0 to 1 range in between (the interpolators clamp at the target)', () => {
-    expect(Math.max(...grid.map(getEasingFunction('elasticOut')))).toBeGreaterThan(1);
-    expect(Math.min(...grid.map(getEasingFunction('elasticIn')))).toBeLessThan(0);
-  });
-
-  it('the bounce family stays within 0 to 1', () => {
-    for (const easing of ['bounceIn', 'bounceOut', 'bounceInOut'] as AnimationEasing[]) {
+  it('every easing stays within 0 to 1 (the interpolators rely on it)', () => {
+    for (const easing of EASINGS as AnimationEasing[]) {
       const fn = getEasingFunction(easing);
       for (const percentage of grid) {
         expect(fn(percentage), easing).toBeGreaterThanOrEqual(0);
