@@ -17,6 +17,7 @@
     "url": "https://github.com/mocharts/mochart.git",
     "directory": "packages/movalid"
   },
+  "homepage": "https://mochart.org",
   "bugs": {
     "url": "https://github.com/mocharts/mochart/issues"
   },
@@ -30,9 +31,6 @@
     }
   },
   "type": "module",
-  "engines": {
-    "node": ">=22.22.3"
-  },
   "sideEffects": false,
   "main": "./dist/validators.js",
   "module": "./dist/validators.js",

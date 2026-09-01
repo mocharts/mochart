@@ -35,9 +35,6 @@
     }
   },
   "type": "module",
-  "engines": {
-    "node": ">=22.22.3"
-  },
   "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.js",
