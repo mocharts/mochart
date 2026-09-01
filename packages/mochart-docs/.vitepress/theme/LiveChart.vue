@@ -32,6 +32,8 @@ const props = withDefaults(defineProps<{
   chartProps?: Record<string, unknown>;
   /** Render a button that flips the given state prop live (the chart-states guide). */
   toggle?: 'loading' | 'error';
+  /** Render a select that applies the chosen animation.easing live (the staged-animation guide). */
+  easingPicker?: boolean;
 }>(), {
   altData: undefined,
   height: 320,
@@ -42,7 +44,8 @@ const props = withDefaults(defineProps<{
   color: undefined,
   events: false,
   chartProps: undefined,
-  toggle: undefined
+  toggle: undefined,
+  easingPicker: false
 });
 
 // Deep link into the vanilla gallery with this chart's config/data as the
@@ -73,6 +76,9 @@ const demoLinkTitle = computed(() => props.showcase === undefined
 
 const host = ref<HTMLElement | null>(null);
 const showingAlt = ref(false);
+// filled on mount from the chart module, the list the config validator accepts
+const easings = ref<string[]>([]);
+const selectedEasing = ref(String((props.config.animation as Record<string, unknown> | undefined)?.easing ?? 'sineInOut'));
 let chart: ChartHandle | null = null;
 let observer: ResizeObserver | null = null;
 
@@ -103,7 +109,10 @@ function logEvent(name: string, payload?: unknown) {
 }
 
 onMounted(async () => {
-  const { createDefaultChart } = await import('@mochart/core');
+  const { createDefaultChart, EASINGS } = await import('@mochart/core');
+  if (props.easingPicker) {
+    easings.value = [...EASINGS];
+  }
   const el = host.value;
   if (el === null) {
     return;
@@ -139,6 +148,14 @@ onBeforeUnmount(() => {
   chart?.destroy();
   chart = null;
 });
+
+function applyEasing() {
+  if (chart === null) {
+    return;
+  }
+  const animation = { ...(props.config.animation as Record<string, unknown> | undefined ?? {}), easing: selectedEasing.value };
+  chart.update({ config: { ...props.config, animation } });
+}
 
 function toggleData() {
   if (chart === null || props.altData === undefined) {
@@ -210,7 +227,13 @@ async function download(format: 'svg' | 'png') {
         Interact with the chart — its events appear here.
       </div>
     </div>
-    <div v-if="altData || exportButtons || demoUrl || toggle" class="live-chart-controls">
+    <div v-if="altData || exportButtons || demoUrl || toggle || easingPicker" class="live-chart-controls">
+      <label v-if="easingPicker" class="live-chart-easing">
+        easing
+        <select v-model="selectedEasing" @change="applyEasing">
+          <option v-for="easingName in easings" :key="easingName" :value="easingName">{{ easingName }}</option>
+        </select>
+      </label>
       <button v-if="toggle" type="button" @click="toggleState">
         {{ stateLabel }}
       </button>

@@ -93,6 +93,24 @@
   margin-left: 8px;
 }
 
+.live-chart-easing {
+  margin-right: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vp-c-text-2);
+}
+
+.live-chart-easing select {
+  margin-left: 6px;
+  border: 1px solid var(--vp-c-brand-1);
+  color: var(--vp-c-brand-1);
+  background-color: transparent;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .live-chart-controls .live-chart-demo-link {
   margin-left: 12px;
   font-size: 13px;

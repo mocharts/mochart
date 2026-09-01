@@ -30,6 +30,7 @@ import * as heatmap from '../../examples/heatmap';
 import * as errorBars from '../../examples/errorBars';
 import * as accessibility from '../../examples/accessibility';
 import * as animationCategoryDomain from '../../examples/animation-category-domain';
+import * as animationEasing from '../../examples/animation-easing';
 import * as animationValueDomain from '../../examples/animation-value-domain';
 import * as axisBounds from '../../examples/axisBounds';
 import * as axisReversed from '../../examples/axisReversed';
@@ -79,6 +80,7 @@ const docsExamples: { config: object; page: UsageLink }[] = [
   { config: hero.config, page: { text: 'Home', link: '/' } },
   { config: basic.config, page: { text: 'Getting started', link: '/guide/getting-started' } },
   { config: animation.config, page: { text: 'Staged animation', link: '/guide/staged-animation' } },
+  { config: animationEasing.config, page: { text: 'Staged animation', link: '/guide/staged-animation#tuning' } },
   { config: interaction.config, page: { text: 'Interaction', link: '/guide/interaction' } },
   { config: palette.config, page: { text: 'Colors and theming', link: '/guide/theming#series-color-palettes' } },
   { config: stackedBars.config, page: { text: 'Stacked bars', link: '/recipes/stacked-bars' } },

@@ -16,7 +16,9 @@ export { enhanceConfig } from './config/helper';
 export { createSparklineConfig } from './config/helper/sparkline';
 export type { CreateSparklineConfigOptions } from './config/helper/sparkline';
 // other enumerated config values are written as string literals; the union types below name them
-export { NONE, AUTO, TYPE_DATE, TYPE_NUMBER, TYPE_STRING, SCALE_ORDINAL, SCALE_LINEAR } from './config/core/constants';
+export { NONE, AUTO, TYPE_DATE, TYPE_NUMBER, TYPE_STRING, SCALE_ORDINAL, SCALE_LINEAR, EASINGS } from './config/core/constants';
+export { getEasingFunction } from './animation/Easing';
+export type { EasingFunction } from './animation/Easing';
 // the union types every config member is declared with, so a host can name one in its own signatures
 export type {
   Auto, Align, TooltipValueAlign, VerticalAlign, Anchor, Position, MissingValueMode, AxisSide, ThresholdTitleSide,

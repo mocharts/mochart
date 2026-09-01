@@ -314,6 +314,7 @@ recur in code that builds configs:
 | `TYPE_STRING`, `TYPE_NUMBER`, `TYPE_DATE` | axis `type` values |
 | `SCALE_ORDINAL`, `SCALE_LINEAR` | axis `scale` values |
 | `CHART_TYPE_XY`, `CHART_TYPE_PIE` | [`chart.type`](/reference/chart#chart.type) values |
+| `EASINGS` | every [`animation.easing`](/reference/animation#animation.easing) / [`animation.focusEasing`](/reference/animation#animation.focusEasing) value, in reference order |
 | `CONFIG_VERSION` | the config format version — see [Version](#version) |
 
 The literal type each set of enumerated values forms is exported too, so a
@@ -321,6 +322,19 @@ wrapper can name one in its own signature — `function setRenderer(renderer:
 RendererType)` — instead of indexing into a config type as
 `SeriesConfig['renderer']`. [Enumerated values](/reference/enumerations) lists
 every one of them with its values and the config members that use it.
+
+One of those sets also has its implementation exported:
+
+```ts
+getEasingFunction(easing: AnimationEasing): EasingFunction
+```
+
+Returns the function behind an [`animation.easing`](/reference/animation#animation.easing)
+name: an `EasingFunction` maps linear progress (0 to 1) onto eased progress
+with exact endpoints. The chart's tweens call it internally; it is exported
+so a host can pace its own animations to match the chart, or plot the
+shapes — the [easing gallery](/guide/staged-animation#tuning) draws its
+thumbnails with it.
 
 ## Styling hooks
 

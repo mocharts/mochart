@@ -9,6 +9,7 @@ phases, so only one kind of change is in motion at a time.
 import * as animation from '../examples/animation'
 import * as valueDomain from '../examples/animation-value-domain'
 import * as categoryDomain from '../examples/animation-category-domain'
+import * as easing from '../examples/animation-easing'
 </script>
 
 Watch the phases — the alternate dataset adds categories *and* raises the
@@ -190,6 +191,16 @@ past it.
 focus transitions and defaults to `'cubicOut'`, which starts fast so hover
 feedback reads as immediate even when focus moves quickly between series
 or categories.
+
+Each easing's shape, eased progress plotted over time:
+
+<EasingGallery />
+
+Names alone don't convey motion, so try them live: pick an easing and
+replay the data change. Both datasets share the same value extent, so the
+replay is a pure value change with nothing else moving.
+
+<LiveChart :config="easing.config" :data="easing.data" :alt-data="easing.altData" easing-picker />
 
 The one knob that lives on the series instead:
 [`animateBaseFromAdjacent`](/reference/series#series.animateBaseFromAdjacent)
