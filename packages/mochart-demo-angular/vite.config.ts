@@ -14,7 +14,11 @@ export default defineConfig({
       // dist ships partial-Ivy declarations, and the plugin's linker skips
       // workspace-symlinked packages (they resolve outside node_modules).
       '@mochart/angular': fileURLToPath(new URL('../mochart-angular/src/index.ts', import.meta.url))
-    }
+    },
+    // The binding's own @angular imports resolve from its package, which can hold
+    // a different patch of Angular than this app; two copies in one bundle throw
+    // NG0203 the moment the binding calls inject().
+    dedupe: ['@angular/core', '@angular/common', '@angular/platform-browser']
   },
   // The angular plugin compiles with AOT against tsconfig.app.json (its
   // default); tsconfig.json stays noEmit for the ngc typecheck script.
