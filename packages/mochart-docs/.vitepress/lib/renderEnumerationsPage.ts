@@ -2,7 +2,7 @@
 // one entry per exported union type, with its values and the config members
 // typed with it. Used by reference/[section].paths.ts at build time.
 
-import type { EnumerationDoc, EnumerationsPageDoc } from './apiModel';
+import type { EnumerationDoc, EnumerationsPageDoc } from './apiModel.ts';
 
 function renderEntry(entry: EnumerationDoc): string {
   const lines: string[] = [];

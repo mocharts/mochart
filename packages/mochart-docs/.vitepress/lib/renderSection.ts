@@ -1,8 +1,8 @@
 // Renders one config section of the reference model to a markdown page.
 // Used by reference/[section].paths.ts at build time.
 
-import type { DefaultValue, PropertyDoc, SectionDoc, ShapeRuleDoc } from './model';
-import type { UsageIndex } from './usageIndex';
+import type { DefaultValue, PropertyDoc, SectionDoc, ShapeRuleDoc } from './model.ts';
+import type { UsageIndex } from './usageIndex.ts';
 
 // h2 for a top-level property through h6 for the deepest member
 const MAX_PROPERTY_DEPTH = 4;

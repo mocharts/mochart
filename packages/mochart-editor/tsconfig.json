@@ -10,6 +10,9 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
+    // for the playground vite config's .mts import; the emitting tsconfig.build.json overrides both
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "types": ["vite/client"]
   },
   "include": ["src", "test", "playground"]

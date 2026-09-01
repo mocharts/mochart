@@ -2,7 +2,7 @@
 // cross-binding name mapping, then each binding's own props. Used by
 // reference/[section].paths.ts at build time.
 
-import type { BindingDoc, BindingGroupDoc, BindingReferenceModel } from './bindingModel';
+import type { BindingDoc, BindingGroupDoc, BindingReferenceModel } from './bindingModel.ts';
 
 /** Table cells are pipe-separated, so a union type has to escape its pipes. */
 function cell(text: string): string {

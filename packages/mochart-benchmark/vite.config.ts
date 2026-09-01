@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { depSourcemaps } from '../../scripts/dep-sourcemaps';
+import { depSourcemaps } from '../../scripts/dep-sourcemaps.mts';
 
 // Each demo gallery pins its own port so they can run side by side.
 export default defineConfig({

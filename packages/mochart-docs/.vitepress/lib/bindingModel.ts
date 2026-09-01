@@ -6,13 +6,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { BindingReferenceModel } from '../../scripts/bindingReferenceModel';
+import type { BindingReferenceModel } from '../../scripts/bindingReferenceModel.ts';
 
 export type {
   BindingDoc,
   BindingGroupDoc,
   BindingReferenceModel
-} from '../../scripts/bindingReferenceModel';
+} from '../../scripts/bindingReferenceModel.ts';
 
 export const bindingModelPath = path.join(
   path.dirname(fileURLToPath(import.meta.url)),

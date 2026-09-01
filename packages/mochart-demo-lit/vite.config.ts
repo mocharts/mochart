@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { depSourcemaps } from '../../scripts/dep-sourcemaps';
+import { depSourcemaps } from '../../scripts/dep-sourcemaps.mts';
 
 // Lit needs no compiler plugin; plain vite serves and bundles it.
 export default defineConfig({

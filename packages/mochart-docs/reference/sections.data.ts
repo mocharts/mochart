@@ -1,4 +1,4 @@
-import { loadConfigReference, modelPath, type ConfigReferenceModel } from '../.vitepress/lib/model';
+import { loadConfigReference, modelPath, type ConfigReferenceModel } from '../.vitepress/lib/model.ts';
 
 declare const data: ConfigReferenceModel;
 export { data };

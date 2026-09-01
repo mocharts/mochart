@@ -14,7 +14,9 @@
     "noUncheckedIndexedAccess": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    // the config chain uses explicit .ts extensions for Vite's native configLoader
+    "allowImportingTsExtensions": true
   },
   "include": [
     ".vitepress/**/*.ts",

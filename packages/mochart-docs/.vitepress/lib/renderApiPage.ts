@@ -2,7 +2,7 @@
 // Used by reference/[section].paths.ts at build time, alongside the config
 // section pages rendered by renderSection.ts.
 
-import type { ApiGroupDoc, ApiGroupLink, ApiPageDoc, ApiPropertyDoc } from './apiModel';
+import type { ApiGroupDoc, ApiGroupLink, ApiPageDoc, ApiPropertyDoc } from './apiModel.ts';
 
 function renderLinks(links: ApiGroupLink[]): string {
   const rendered = links.map(link => '[`' + link.title + '`](' + link.link + ')');

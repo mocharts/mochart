@@ -1,8 +1,8 @@
 import { defineConfig } from 'vitepress';
-import { loadConfigReference } from './lib/model';
-import { loadApiReference } from './lib/apiModel';
-import { depSourcemaps } from '../../../scripts/dep-sourcemaps';
-import { FRAMEWORK_PROPS_PAGE } from '../reference/[section].paths';
+import { loadConfigReference } from './lib/model.ts';
+import { loadApiReference } from './lib/apiModel.ts';
+import { depSourcemaps } from '../../../scripts/dep-sourcemaps.mts';
+import { FRAMEWORK_PROPS_PAGE } from '../reference/[section].paths.ts';
 
 // The deployed site nests the demo galleries next to the docs (see
 // scripts/build-pages.mjs), so demo links resolve only on the assembled site,
