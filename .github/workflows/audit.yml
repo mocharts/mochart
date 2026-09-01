@@ -23,8 +23,8 @@ jobs:
           cache: npm
       # --ignore-scripts: an audit needs the tree resolved, not the packages built
       - run: npm ci --ignore-scripts
-      # --omit=dev: vitepress pins vite 5, whose esbuild advisories have no fix until
-      # vitepress 2 ships stable. They are dev-server only and never reach a build.
+      # --omit=dev: only production dependencies fail the job; an advisory against a
+      # dev-only tool never reaches a published package or a built site.
       - run: npm audit --omit=dev --audit-level=high
       # dev dependencies still reported, without failing the job
       - run: npm audit --audit-level=high || true
