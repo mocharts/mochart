@@ -41,6 +41,12 @@ for (const dir of readdirSync(packagesDir)) {
   const extra = pubKeys.filter((key) => !devKeys.includes(key));
   if (missing.length) fail(`publishConfig.exports drops subpaths: ${missing.join(', ')}`);
   if (extra.length) fail(`publishConfig.exports has subpaths absent from exports: ${extra.join(', ')}`);
+
+  // npmjs.com renders the README with no repo around it, so relative links are dead there.
+  const readme = readFileSync(join(packagesDir, dir, 'README.md'), 'utf8');
+  for (const [, target] of readme.matchAll(/\]\(([^)\s]+)/g)) {
+    if (!/^(https?:\/\/|#)/.test(target)) fail(`README.md has a relative link, dead on npmjs.com: ${target}`);
+  }
 }
 
 // End-to-end proof on the cheapest package: pack with pnpm and inspect the

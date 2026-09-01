@@ -7,7 +7,7 @@ Every validator is a factory: calling `validators.number()` returns a plain
 predicate function `(value) => boolean` that also carries metadata —
 `errorMessage`, `getErrorMessage(value)`, `allowedValues`, `rangeValues`,
 `nestedValues`, and `isEnum` — so callers can both check values and report
-readable errors. [@mochart/core](../mochart/README.md) uses it for config
+readable errors. [@mochart/core](https://github.com/mocharts/mochart/tree/main/packages/mochart) uses it for config
 validation.
 
 ## Usage

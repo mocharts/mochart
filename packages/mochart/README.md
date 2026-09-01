@@ -25,7 +25,7 @@ and series filtering out of the box.
 - **Extras**: axis thresholds and ranges, linear/radial gradients, built-in
   pattern fills, series markers and labels, stacked and grouped series
 - **Config validation**: configs are validated with
-  [@mochart/movalid](../movalid/README.md), producing human-readable error messages
+  [@mochart/movalid](https://github.com/mocharts/mochart/tree/main/packages/movalid), producing human-readable error messages
 
 ## Staged animation
 
@@ -162,7 +162,7 @@ The full property-by-property reference is at
 [mochart.org/reference](https://mochart.org/reference/), generated from the
 validation schema: `npm run generate-docs -w @mochart/core` writes
 `generated/config-reference.json`, the structured model that the
-[@mochart/docs](../mochart-docs/README.md) site renders into its config
+[@mochart/docs](https://github.com/mocharts/mochart/tree/main/packages/mochart-docs) site renders into its config
 reference pages, and `generated/api-reference.json`, the model behind that
 site's props and callbacks pages. The command fails if the descriptions,
 validators, and defaults ever disagree on a section's keys, or if a prop
@@ -190,7 +190,7 @@ chart stays an ordinary xy or pie chart rather than a special mode.
 - `createPie(slices, options)` — a pie or donut; `computePieFractions` returns just the slice shares
 - `createSparklineConfig(config, options)` — strips a chart config down to a tiny inline chart: axes, legend, tooltip and markers off, margins collapsed
 
-See the [chart helpers reference](../mochart-docs/reference/api.md) for the full options.
+See the [chart helpers reference](https://mochart.org/reference/api) for the full options.
 
 ## Data providers
 
@@ -210,7 +210,7 @@ property values are numbers with `null`/`undefined` as missing values,
 category property values are strings, numbers, or `Date`s, and key property
 values are strings or numbers. `getError`, `getLoading`, and `refresh` are
 optional. See the
-[data providers guide](../mochart-docs/guide/data-providers.md) for the full
+[data providers guide](https://mochart.org/guide/data-providers) for the full
 contract.
 
 ## Interaction callbacks
@@ -296,11 +296,11 @@ see which property is at fault.
 
 ## Framework wrappers
 
-- [@mochart/angular](../mochart-angular/README.md) — Angular components
-- [@mochart/lit](../mochart-lit/README.md) — lit-html directives
-- [@mochart/react](../mochart-react/README.md) — React components
-- [@mochart/svelte](../mochart-svelte/README.md) — Svelte 5 components
-- [@mochart/vue](../mochart-vue/README.md) — Vue 3 components
+- [@mochart/angular](https://github.com/mocharts/mochart/tree/main/packages/mochart-angular) — Angular components
+- [@mochart/lit](https://github.com/mocharts/mochart/tree/main/packages/mochart-lit) — lit-html directives
+- [@mochart/react](https://github.com/mocharts/mochart/tree/main/packages/mochart-react) — React components
+- [@mochart/svelte](https://github.com/mocharts/mochart/tree/main/packages/mochart-svelte) — Svelte 5 components
+- [@mochart/vue](https://github.com/mocharts/mochart/tree/main/packages/mochart-vue) — Vue 3 components
 
 Each wrapper adds automatic container sizing (omit `width`/`height` to track
 the container) on top of the same chart props.
@@ -323,8 +323,8 @@ default-bounds fallbacks.
 ## Examples
 
 Build-free static HTML examples (script tag and ES module) live in
-[example/](example/README.md). The full demo gallery is the
-[@mochart/demo-vanilla](../mochart-demo-vanilla/README.md) package.
+[example/](https://github.com/mocharts/mochart/tree/main/packages/mochart/example). The full demo gallery is the
+[@mochart/demo-vanilla](https://github.com/mocharts/mochart/tree/main/packages/mochart-demo-vanilla) package.
 
 ## Development
 
