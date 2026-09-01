@@ -32,6 +32,10 @@
       "entry": ["e2e/*.spec.ts"],
       "includeEntryExports": true
     },
+    "packages/mochart-demo-e2e": {
+      "entry": ["e2e/*.spec.ts"],
+      "includeEntryExports": true
+    },
     "packages/mochart-demo-data": { "includeEntryExports": true },
     "packages/mochart-demo-vanilla": { "includeEntryExports": true },
     "packages/mochart-demo-react": { "includeEntryExports": true },
