@@ -70,7 +70,8 @@ Actions to create and approve pull requests**.
 - **`stampVersion: src/version.ts is out of date`** — the version PR was edited
   by hand after generation; run `npm run stamp-version -w @mochart/core`.
 - **npm 403 / OIDC error** — the trusted publisher on npmjs.com for that
-  package must be `mocharts/mochart`, workflow `ci.yml`, no environment. Also
+  package must be `mocharts/mochart`, workflow `ci.yml`, no environment, with
+  `npm publish` in its allowed actions. Also
   the job needs npm ≥ 11.5 (the job prints `npm --version`; Node 24 bundles a
   compatible one).
 - **A package published, the rest did not** — just re-run the job; published
@@ -101,44 +102,15 @@ npx changeset pre exit
 `pnpm publish --tag`. Merge the pre-mode toggle like any other change; the
 Version Packages PR follows.
 
-## First release (1.0.0) — manual, one time
-
-Trusted publishing can only be configured on packages that already exist on
-npm, so the first publish happens from a maintainer machine.
-
-1. Confirm the `@mochart` scope on npm belongs to you and log in
-   (`npm login`; publishing prompts for a 2FA code, pass `--otp=123456`
-   through to every publish if you prefer).
-2. `git status` clean on `main`, `npm ci` fresh, then verify:
-   `npm run lint && npm run typecheck && npm test && npm run pack:libs -- --smoke`.
-3. Publish (all nine, in dependency order):
-   ```sh
-   npm run publish:libs
-   ```
-   `check:publish` runs first. To rehearse: `node scripts/publish-libs.mjs --dry-run`.
-4. Tag and push:
-   ```sh
-   npx changeset git-tag
-   git push --follow-tags
-   ```
-5. Create one GitHub Release for the tag `@mochart/core@1.0.0` with the body
-   "Initial release." (the per-package `CHANGELOG.md` files already carry that
-   entry).
-6. On npmjs.com, for **each of the nine packages**: Settings → Trusted
-   Publisher → GitHub Actions → owner `mocharts`, repository `mochart`,
-   workflow filename `ci.yml`, environment blank.
-7. Set the repository variable `ENABLE_NPM_RELEASE=true` and enable "Allow
-   GitHub Actions to create and approve pull requests" (see above).
-
-From here on, releases follow "Cutting a release". After 1.0.0 is out, replace
-this section with the "Adding a new published package" note below.
-
 ## Adding a new published package
 
 A package that is not on npm yet cannot be trusted-published, so its first
 version is a manual publish (`npm run publish:libs` after adding it to
 `scripts/publish-libs.mjs`, `scripts/pack-libs.mjs`, `build:libs`, and the
-`fixed` group in `.changeset/config.json`), followed by the trusted-publisher
-registration in step 6 above. It also needs `publishConfig.exports`,
+`fixed` group in `.changeset/config.json`; the publish authenticates with the
+account's 2FA in the browser). Then register the trusted publisher for it on
+npmjs.com: package Settings → Trusted Publisher → GitHub Actions, owner
+`mocharts`, repository `mochart`, workflow filename `ci.yml`, environment
+blank, with `npm publish` in the allowed actions. It also needs `publishConfig.exports`,
 `repository.directory`, `files` including `CHANGELOG.md`, and a `CHANGELOG.md`
 starting with `# <package name>`.
