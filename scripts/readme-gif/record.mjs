@@ -21,7 +21,9 @@ import { execFileSync } from 'node:child_process';
 import { createReadStream, existsSync, mkdirSync, renameSync, rmSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
+
+import { scenes } from './scenes.mjs';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const repoRoot = resolve(here, '..', '..');
@@ -111,7 +113,6 @@ async function main() {
   if (!existsSync(distBundle)) {
     throw new Error(`${distBundle} is missing; run "npm run build -w @mochart/core" first`);
   }
-  const { scenes } = await import(pathToFileURL(join(here, 'scenes.mjs')));
   const sceneNames = options.scene === null ? Object.keys(scenes) : [options.scene];
   const themes = options.theme === null ? ['light', 'dark'] : [options.theme];
   for (const name of sceneNames) {
