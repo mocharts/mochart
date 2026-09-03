@@ -2,6 +2,11 @@
 
 Animated interactive SVG charting library with zero framework dependencies.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mocharts/mochart/main/assets/stacked-dark.gif">
+  <img alt="A stacked bar chart animating through a data update: the value axis expands, the bars grow, a new category joins, then the axes contract back" src="https://raw.githubusercontent.com/mocharts/mochart/main/assets/stacked-light.gif" width="800">
+</picture>
+
 Full documentation with live examples: [mochart.org](https://mochart.org).
 
 Charts are drawn with a retained-mode renderer — updates write only the DOM

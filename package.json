@@ -41,6 +41,7 @@
     "release:publish": "npm run publish:libs && changeset git-tag",
     "test": "npm test --workspaces --if-present --",
     "test:e2e": "npm run test:e2e -w @mochart/demo-basic && npm run test:e2e -w @mochart/demo-vanilla && npm run test:e2e -w @mochart/demo-e2e",
+    "gif:readme": "node scripts/readme-gif/record.mjs",
     "screenshots": "node scripts/screenshots/capture.mjs",
     "screenshots:compare": "node scripts/screenshots/compare.mjs",
     "lint": "eslint .",

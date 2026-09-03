@@ -4,6 +4,11 @@ Monorepo for **mochart**, an animated interactive SVG charting library with
 zero framework dependencies, plus its framework wrappers, demo gallery, and
 the **@mochart/movalid** validation library it uses for config validation.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mocharts/mochart/main/assets/stacked-dark.gif">
+  <img alt="A stacked bar chart animating through a data update: the value axis expands, the bars grow, a new category joins, then the axes contract back" src="https://raw.githubusercontent.com/mocharts/mochart/main/assets/stacked-light.gif" width="800">
+</picture>
+
 **Documentation, live examples, and the demo gallery: [mochart.org](https://mochart.org)**
 
 What sets mochart apart is its
