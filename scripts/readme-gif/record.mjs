@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 // Records the README animation clips. See README.md beside this file.
 //
-// Serves the repo root over HTTP (the page imports the built @mochart/core
-// bundle as an ES module, which file:// cannot do), opens record.html in
+// Serves the repo root over HTTP (see serve.mjs), opens record.html in
 // Chromium with Playwright video recording on, runs one scene per theme, and
 // converts each clip to a looping GIF plus an MP4 with ffmpeg.
 //
@@ -18,15 +17,12 @@
 
 import { chromium } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
-import { createReadStream, existsSync, mkdirSync, renameSync, rmSync, statSync } from 'node:fs';
-import { createServer } from 'node:http';
-import { extname, join, normalize, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, mkdirSync, renameSync, rmSync, statSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
 import { scenes } from './scenes.mjs';
+import { repoRoot, serveRepo } from './serve.mjs';
 
-const here = fileURLToPath(new URL('.', import.meta.url));
-const repoRoot = resolve(here, '..', '..');
 const SCALE = 2;
 const distBundle = join(repoRoot, 'packages', 'mochart', 'dist', 'mochart.js');
 
@@ -51,24 +47,6 @@ function parseArgs(argv) {
     throw new Error('usage: record.mjs <outDir> [--scene name] [--theme light|dark] [--fps n] [--width px] [--keep-video]');
   }
   return options;
-}
-
-const mimeTypes = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.map': 'application/json' };
-
-function serveRepo() {
-  const server = createServer((request, response) => {
-    const path = normalize(decodeURIComponent(new URL(request.url, 'http://localhost').pathname));
-    const file = join(repoRoot, path);
-    if (!file.startsWith(repoRoot) || !existsSync(file) || statSync(file).isDirectory()) {
-      response.writeHead(404).end();
-      return;
-    }
-    response.writeHead(200, { 'content-type': mimeTypes[extname(file)] ?? 'application/octet-stream' });
-    createReadStream(file).pipe(response);
-  });
-  return new Promise((resolveServer) => {
-    server.listen(0, '127.0.0.1', () => resolveServer({ server, port: server.address().port }));
-  });
 }
 
 async function recordClip(browser, port, scene, theme, outDir, options) {

@@ -42,6 +42,7 @@
     "test": "npm test --workspaces --if-present --",
     "test:e2e": "npm run test:e2e -w @mochart/demo-basic && npm run test:e2e -w @mochart/demo-vanilla && npm run test:e2e -w @mochart/demo-e2e",
     "gif:readme": "node scripts/readme-gif/record.mjs",
+    "og:image": "node scripts/og-image/capture.mjs",
     "screenshots": "node scripts/screenshots/capture.mjs",
     "screenshots:compare": "node scripts/screenshots/compare.mjs",
     "lint": "eslint .",

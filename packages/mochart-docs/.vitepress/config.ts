@@ -55,13 +55,36 @@ const apiItems = [
   { text: 'Framework props', link: '/reference/' + FRAMEWORK_PROPS_PAGE }
 ];
 
+const siteTitle = 'mochart';
+const siteDescription = 'Animated interactive SVG charting library with zero framework dependencies';
+// Link previews need an absolute image URL, so the canonical host is fixed here
+// rather than derived from the base path; scripts/og-image renders the file into public/.
+const siteOrigin = 'https://mochart.org';
+
 export default defineConfig({
   base,
-  title: 'mochart',
-  description: 'Animated interactive SVG charting library with zero framework dependencies',
+  title: siteTitle,
+  description: siteDescription,
   srcExclude: ['README.md'],
-  // inline SVG favicon, the same mark the demo galleries use: the site ships no /favicon.ico
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%233e63dd'/%3E%3Crect x='3' y='9' width='2.5' height='4' fill='%23fff'/%3E%3Crect x='6.75' y='6' width='2.5' height='7' fill='%23fff'/%3E%3Crect x='10.5' y='3' width='2.5' height='10' fill='%23fff'/%3E%3C/svg%3E" }]],
+  head: [
+    // inline SVG favicon, the same mark the demo galleries use: the site ships no /favicon.ico
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%233e63dd'/%3E%3Crect x='3' y='9' width='2.5' height='4' fill='%23fff'/%3E%3Crect x='6.75' y='6' width='2.5' height='7' fill='%23fff'/%3E%3Crect x='10.5' y='3' width='2.5' height='10' fill='%23fff'/%3E%3C/svg%3E" }],
+    // social preview card for links to the site; og:title is per page, see transformPageData
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:site_name', content: siteTitle }],
+    ['meta', { property: 'og:description', content: siteDescription }],
+    ['meta', { property: 'og:image', content: siteOrigin + '/og-image.png' }],
+    ['meta', { property: 'og:image:width', content: '1200' }],
+    ['meta', { property: 'og:image:height', content: '630' }],
+    ['meta', { property: 'og:image:alt', content: 'mochart: animated interactive SVG charts, beside a stacked bar chart drawn by the library' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }]
+  ],
+  // Mirrors the <title> VitePress emits: "<page> | mochart" on content pages, "mochart" on the home page.
+  transformPageData(pageData) {
+    const title = pageData.title !== '' && pageData.title !== siteTitle ? `${pageData.title} | ${siteTitle}` : siteTitle;
+    const head = [...(pageData.frontmatter.head ?? []), ['meta', { property: 'og:title', content: title }]];
+    return { frontmatter: { ...pageData.frontmatter, head } };
+  },
   markdown: { config: demoLinkTargets },
   vite: {
     build: {
