@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Sliding Window"
+  },
+  "animation": {
+    "categoryDomainChange": "auto"
+  },
+  "categoryAxis": {
+    "property": "date",
+    "type": "date",
+    "scale": "linear",
+    "dateUTC": true,
+    "tickLabel": {
+      "format": "%b %d"
+    }
+  },
+  "series": [
+    {
+      "renderer": "line",
+      "title": "Value",
+      "marker": {
+        "shape": "circle"
+      },
+      "property": "value"
+    }
+  ],
+  "legend": {
+    "visible": true
+  }
+}

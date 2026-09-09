@@ -1,50 +1,18 @@
 /**
- * End-to-end render of the createHeatmap helper output: a grid with a missing
- * cell must draw one colored bar per cell on the hidden pinned series axis.
+ * End-to-end render of the createHeatmap helper output: a grid with a missing cell must draw one
+ * colored bar per cell on the hidden pinned value axis.
  */
-import { describe, it, beforeAll, afterEach, expect, vi } from 'vitest';
-
-const FRAME_MS = 16;
+import { describe, it, beforeAll, expect } from 'vitest';
+import { installSvgMeasurementShims } from '../components/svgShims';
+import { installFakeFrameClock, runFrames, mountContainer } from '../components/helpers';
 
 let mochart: typeof import('../../src');
 
 beforeAll(async () => {
-  const svgProto = globalThis.SVGElement.prototype as any;
-  if (typeof svgProto.getComputedTextLength !== 'function') {
-    svgProto.getComputedTextLength = () => 0;
-  }
-  if (typeof svgProto.getSubStringLength !== 'function') {
-    svgProto.getSubStringLength = () => 0;
-  }
-  if (typeof svgProto.getBBox !== 'function') {
-    svgProto.getBBox = () => ({ x: 0, y: 0, width: 0, height: 0 });
-  }
-  if (typeof globalThis.requestAnimationFrame !== 'function') {
-    globalThis.requestAnimationFrame = (callback: FrameRequestCallback) =>
-      setTimeout(() => callback(performance.now()), FRAME_MS) as unknown as number;
-    globalThis.cancelAnimationFrame = (id: number) => clearTimeout(id);
-  }
-  vi.useFakeTimers({
-    toFake: [
-      'setTimeout', 'clearTimeout', 'setInterval', 'clearInterval',
-      'requestAnimationFrame', 'cancelAnimationFrame', 'performance', 'Date'
-    ]
-  });
+  installSvgMeasurementShims();
+  installFakeFrameClock();
   mochart = await import('../../src');
 });
-
-afterEach(() => {
-  document.body.innerHTML = '';
-  vi.clearAllTimers();
-});
-
-function runFrames(maxFrames = 500) {
-  let frames = 0;
-  while (vi.getTimerCount() > 0 && frames < maxFrames) {
-    vi.advanceTimersByTime(FRAME_MS);
-    frames++;
-  }
-}
 
 describe('heatmap helper rendering', () => {
   it('renders one colored cell per grid value', () => {
@@ -55,18 +23,17 @@ describe('heatmap helper rendering', () => {
     ]);
     const mochartConfig = enhanceConfig({
       version: '1.0.0',
-      tooltipConfig: { visible: false },
-      groupAxisConfig: heatmap.groupAxisConfig,
-      seriesAxisConfigs: [{ ...heatmap.seriesAxisConfig, id: 'sa' }],
-      seriesConfigs: heatmap.seriesConfigs.map((seriesConfig) => ({ ...seriesConfig, axis: 'sa' }))
+      tooltip: { visible: false },
+      categoryAxis: heatmap.categoryAxis,
+      valueAxes: [{ ...heatmap.valueAxes[0], id: 'va' }],
+      series: heatmap.series.map((seriesConfig) => ({ ...seriesConfig, axis: 'va' }))
     });
     expect(mochartConfig.validation.valid).toBe(true);
 
-    const container = document.createElement('div');
-    document.body.appendChild(container);
+    const container = mountContainer();
     const chart = createChart(container, {
       mochartConfig,
-      dataProvider: new ArrayOfObjectsDataProvider(heatmap.data as Record<string, string | number>[], 'column'),
+      dataProvider: new ArrayOfObjectsDataProvider(heatmap.data as Record<string, string | number>[]),
       width: 300,
       height: 200
     });
@@ -76,7 +43,7 @@ describe('heatmap helper rendering', () => {
     const fills = Array.from(container.querySelectorAll('path[fill^="rgb"]')).map((path) => path.getAttribute('fill'));
     expect(fills).toHaveLength(5);
     expect(new Set(fills).size).toBe(5);
-    // The series axis names the rows via explicit ticks.
+    // The value axis names the rows via explicit ticks.
     const labels = Array.from(container.querySelectorAll('text')).map((text) => text.textContent);
     expect(labels).toContain('A');
     expect(labels).toContain('B');

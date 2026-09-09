@@ -1,20 +1,22 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Revenue by Product (fictional, $k)"
+  "title": {
+    "text": "Revenue by Product (fictional, $k)"
   },
-  "chartConfig": {
+  "chart": {
     "type": "pie"
   },
-  "pieConfig": {
-    "tooltipValues": "valuePercent"
+  "pie": {
+    "tooltip": {
+      "valueType": "valuePercent"
+    }
   },
-  "groupAxisConfig": {
-    "property": "group",
+  "categoryAxis": {
+    "property": "category",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesConfigs": [
+  "series": [
     {
       "id": "slice0",
       "property": "slice0",

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte';
 
+  import { isMenuDismissingClick } from '@mochart/demo-common';
   import type { MenuPlacement } from '@mochart/demo-common';
 
   import Icon from './Icon.svelte';
@@ -57,12 +58,9 @@
   });
 
   function onPanelClick(event: MouseEvent): void {
-    const target = event.target instanceof Element ? event.target : null;
-    const actionable = target?.closest('button, a') ?? null;
-    if (actionable === null || actionable.closest('.demo-menu-keep-open') !== null) {
-      return;
+    if (isMenuDismissingClick(event.target)) {
+      menu.close();
     }
-    menu.close();
   }
 </script>
 

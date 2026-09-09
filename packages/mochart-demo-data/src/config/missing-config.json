@@ -1,41 +1,53 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Missing Values"
+  "title": {
+    "text": "Missing Values"
   },
-  "tooltipConfig": {
+  "tooltip": {
     "showMissingValues": true,
     "missingValueText": "N/A"
   },
-  "groupAxisConfig": {
-    "title": "Group Axis",
-    "gridLines": true,
-    "valueLabel": "Group",
-    "property": "group"
+  "categoryAxis": {
+    "title": {
+      "text": "Category Axis"
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "valueLabel": "Category",
+    "property": "category"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "title": "Series Axis 1",
+      "title": {
+        "text": "Value Axis 1"
+      },
       "base": 0
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
       "title": "Missing",
-      "markerShape": "circle",
+      "marker": {
+        "shape": "circle"
+      },
       "property": "value1"
     },
     {
       "title": "Base Missing",
-      "showMissingAtBase": true,
-      "markerShape": "square",
-      "property": "value2"
+      "marker": {
+        "shape": "square"
+      },
+      "property": "value2",
+      "missingValueMode": "base"
     },
     {
       "title": "Skip Missing",
-      "skipMissing": true,
-      "markerShape": "triangle",
-      "property": "value3"
+      "marker": {
+        "shape": "triangle"
+      },
+      "property": "value3",
+      "missingValueMode": "connect"
     }
   ]
 }

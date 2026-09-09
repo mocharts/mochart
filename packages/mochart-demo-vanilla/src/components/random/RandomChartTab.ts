@@ -1,7 +1,7 @@
 import type { MochartConfig } from '@mochart/core';
 import { exportPNG, exportSVG } from '@mochart/export';
 
-import { getChartExportOptions, demoText, isPhoneViewport, watchPhoneViewport } from '@mochart/demo-common';
+import { controlsMenuPlacement, getChartExportOptions, demoText, isPhoneViewport, menuKeepOpenClassName, watchPhoneViewport } from '@mochart/demo-common';
 import type { ShareState } from '@mochart/demo-common';
 
 import { buttonWithTooltip, el, icon, setActiveClass, setChildren, tabContainer } from '../misc/dom';
@@ -123,7 +123,6 @@ export function randomChartTab(props: RandomChartTabProps): RandomChartTabHandle
   // Share captures the generator config, the reuse toggle and the interval; the
   // step comes from the /random/:demoId/:randomId path already in the URL.
   const menu = exportShareMenu({
-    idPrefix: 'random',
     exportPng: () => { void exportPNG(chartSizer, getChartExportOptions()); },
     exportSvg: () => { exportSVG(chartSizer, getChartExportOptions()); },
     getShareState: (): ShareState => ({ mode: 'random', randomConfig, applyReuse, interval: rate })
@@ -144,12 +143,12 @@ export function randomChartTab(props: RandomChartTabProps): RandomChartTabHandle
   // `.demo-menu-keep-open` so a press inside the field — the number input's own
   // spinners in particular — cannot dismiss the panel it is hosted in. The class
   // paints nothing, so it is set once here rather than toggled by the fold.
-  const rateField = el('div', { className: 'demo-field demo-menu-keep-open' }, [
+  const rateField = el('div', { className: 'demo-field ' + menuKeepOpenClassName }, [
     el('label', { className: 'demo-label', attrs: { for: 'random-rate' }, text: demoText.randomChartTab.intervalLabel }),
     rateInput
   ]);
   const transportToolbarItems = [transportGroup, rateField];
-  const transportToolbar = el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, transportToolbarItems);
+  const transportToolbar = el('div', { className: 'demo-toolbar' }, transportToolbarItems);
 
   const reuseGroup = el('div', { className: 'demo-btn-group' }, [reuseButton.el]);
   // Menu-side home for Play and Stop — a cached `.demo-btn-group`;
@@ -157,9 +156,7 @@ export function randomChartTab(props: RandomChartTabProps): RandomChartTabHandle
   const menuTransportGroup = el('div', { className: 'demo-btn-group' });
   const overflowMenuHandle = overflowMenu({
     text: demoText.overflowMenu.random,
-    // Opens upward over the chart (the strip is at the bottom of the pane) and
-    // right-aligned.
-    placement: { side: 'top', align: 'end', gap: 4 },
+    placement: controlsMenuPlacement,
     // Measured against the whole strip, not the trigger and not the trailing
     // group either.
     //
@@ -177,15 +174,15 @@ export function randomChartTab(props: RandomChartTabProps): RandomChartTabHandle
   });
   const menuGroup = el('div', { className: 'demo-btn-group' }, [overflowMenuHandle.el, menu.el]);
   const trailingToolbarItems = [reuseGroup, menuGroup];
-  const trailingToolbar = el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, trailingToolbarItems);
+  const trailingToolbar = el('div', { className: 'demo-toolbar' }, trailingToolbarItems);
 
   const controls = el('div', { className: 'random-controls' }, [
-    el('form', { className: 'demo-form-row' }, [
+    el('form', {}, [
       el('div', { className: 'demo-field' }, [transportToolbar, trailingToolbar])
     ])
   ]);
 
-  const container = tabContainer('demo-layout-col chart', active, [chartSizer, controls]);
+  const container = tabContainer('demo-layout-col chart', active, [chartSizer, controls], 'chart');
 
   /**
    * Where every control of the strip lives right now. Reparenting, never

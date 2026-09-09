@@ -4,12 +4,9 @@ export type ElProps = Record<string, unknown>;
 
 /**
  * A retained DOM element. `set(props)` diffs against the previously written
- * props and only touches attributes/styles/listeners that changed, using the
- * same attribute contract as the old vdom (setProperty).
- *
- * Pass props in the same key order the old JSX listed attributes — initial
- * attribute order determines serialization order, which the golden snapshot
- * tests compare.
+ * props and only touches what changed (setProperty's attribute contract).
+ * Pass props in the old JSX attribute order — initial attribute order sets
+ * serialization order, which the golden snapshot tests compare.
  */
 export class El {
   readonly node: Element;

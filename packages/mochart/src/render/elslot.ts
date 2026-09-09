@@ -2,9 +2,9 @@ import { El } from './el';
 
 /**
  * A single conditional/polymorphic element position (the `{cond && <rect/>}`
- * JSX pattern). Content is keyed — usually by tag name — so a key change
- * swaps the element while an unchanged key updates it in place. The comment
- * anchor keeps the position stable while the element is absent.
+ * JSX pattern). Content is keyed (usually by tag): a key change swaps the
+ * element, an unchanged key updates it in place; the comment anchor keeps the
+ * position stable while the element is absent.
  */
 export class ElSlot {
   readonly hostNode: Node;

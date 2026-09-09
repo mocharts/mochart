@@ -6,7 +6,7 @@ import { Chart } from '@mochart/angular';
 import type { MochartConfig } from '@mochart/core';
 import { exportPNG, exportSVG } from '@mochart/export';
 
-import { getChartExportOptions, demoText } from '@mochart/demo-common';
+import { controlsMenuPlacement, demoText, getChartExportOptions, getDemoTabPanelAttrs, menuKeepOpenClassName } from '@mochart/demo-common';
 import type { ShareState } from '@mochart/demo-common';
 
 import { ButtonWithTooltip } from '../misc/button-with-tooltip';
@@ -49,7 +49,7 @@ const defaultRate = 2000;
          input's own spinners in particular — cannot dismiss the panel it is
          hosted in. The class paints nothing, so it is unconditional. -->
     <ng-template #rateField>
-      <div class="demo-field demo-menu-keep-open">
+      <div class="demo-field {{ keepOpenClass }}">
         <label class="demo-label" for="random-rate">{{ text.intervalLabel }}</label>
         <input id="random-rate" [disabled]="playing()" type="number" min="5" max="60000" step="100" class="demo-input" [value]="rateText()"
                [attr.aria-label]="text.intervalAria" (input)="rateChanged($event)" />
@@ -60,15 +60,16 @@ const defaultRate = 2000;
          stepping by hand is the mode's primary interaction — and demotes the
          automation transport (Play / Stop) with the Reuse toggle and the
          interval field. -->
-    <div [class]="'mochart-demo-tab-container demo-layout-col chart' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">
+    <div [id]="panelAttrs.id" [attr.role]="panelAttrs.role" [attr.aria-labelledby]="panelAttrs['aria-labelledby']"
+         [class]="'mochart-demo-tab-container demo-layout-col chart' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">
       <div class="random-chart-sizer" #chartSizer>
         <mochart-chart style="flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden;"
                        [mochartConfig]="mochartConfig" [dataProvider]="dataProvider" />
       </div>
       <div class="random-controls" #controls>
-        <form class="demo-form-row">
+        <form>
           <div class="demo-field">
-            <div class="demo-toolbar" role="toolbar">
+            <div class="demo-toolbar">
               <div class="demo-btn-group">
                 <app-button-with-tooltip id="randomize-back" [disabled]="playing()" [label]="text.back.label"
                                          [tooltipText]="text.back.tooltip" tooltipPlacement="top-start"
@@ -89,7 +90,7 @@ const defaultRate = 2000;
                 <ng-container [ngTemplateOutlet]="rateField" />
               }
             </div>
-            <div class="demo-toolbar" role="toolbar">
+            <div class="demo-toolbar">
               @if (phone()) {
                 <!-- Anchored to the whole strip: \`align: 'end'\` pins the
                      panel's right edge to the anchor's, and the export trigger
@@ -105,11 +106,11 @@ const defaultRate = 2000;
                     <div class="demo-menu-divider"></div>
                     <ng-container [ngTemplateOutlet]="rateField" />
                   </app-overflow-menu>
-                  <app-export-share-menu idPrefix="random" [active]="active" [exportPng]="onExportPng" [exportSvg]="onExportSvg" [getShareState]="getShareState" />
+                  <app-export-share-menu [active]="active" [exportPng]="onExportPng" [exportSvg]="onExportSvg" [getShareState]="getShareState" />
                 </div>
               } @else {
                 <div class="demo-btn-group"><ng-container [ngTemplateOutlet]="reuseButton" /></div>
-                <app-export-share-menu idPrefix="random" [active]="active" [exportPng]="onExportPng" [exportSvg]="onExportSvg" [getShareState]="getShareState" />
+                <app-export-share-menu [active]="active" [exportPng]="onExportPng" [exportSvg]="onExportSvg" [getShareState]="getShareState" />
               }
             </div>
           </div>
@@ -119,7 +120,10 @@ const defaultRate = 2000;
   `
 })
 export class RandomChartTab implements OnInit, OnChanges, OnDestroy {
+  readonly panelAttrs = getDemoTabPanelAttrs('chart');
+
   readonly text = demoText.randomChartTab;
+  readonly keepOpenClass = menuKeepOpenClassName;
 
   @Input() active = false;
   @Input({ required: true }) mochartConfig!: MochartConfig;
@@ -137,7 +141,7 @@ export class RandomChartTab implements OnInit, OnChanges, OnDestroy {
   // The phone fold (see the comment above the strip in the template).
   readonly phone = phoneViewport();
   readonly overflowText = demoText.overflowMenu.random;
-  readonly randomPlacement = { side: 'top', align: 'end', gap: 4 } as const;
+  readonly randomPlacement = controlsMenuPlacement;
   readonly getControlsAnchor = (): HTMLElement => this.controlsElement.nativeElement;
 
   private intervalId: ReturnType<typeof setInterval> | null = null;

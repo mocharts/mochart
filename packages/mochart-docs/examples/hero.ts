@@ -4,18 +4,18 @@ import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Monthly Active Users' },
-  groupAxisConfig: { property: 'month', type: 'string', scale: 'ordinal' },
-  seriesAllConfig: { renderer: 'bar' },
-  seriesConfigs: [
+  title: { text: 'Monthly Active Users' },
+  categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+  seriesDefaults: { renderer: 'bar' },
+  series: [
     { property: 'web', title: 'Web' },
     { property: 'ios', title: 'iOS' },
     { property: 'android', title: 'Android' }
   ],
-  seriesStackConfigs: [{ id: 'users' }],
-  legendConfig: {
+  seriesStacks: [{ id: 'users' }],
+  legend: {
     filterOnClick: true,
-    focusOnMouseOver: true
+    focusOnHover: true
   }
 };
 

@@ -1,31 +1,39 @@
 import validators from './validators';
-import { AUTO, NONE, PIE_LABEL_TYPES, PIE_TOOLTIP_LABEL_TYPES } from '../core/constants';
+import { AUTO, NONE, PIE_LABEL_TYPES, PIE_TOOLTIP_VALUE_TYPES } from '../core/constants';
 
 export default function getValidators() {
   return {
-    innerRadiusPercent: validators.numberMinMax(0, 1),
-    outerRadiusPercent: validators.numberMinMax(0, 1),
+    innerRadiusFraction: validators.numberMinMax(0, 1),
+    outerRadiusFraction: validators.numberMinMax(0, 1),
     startAngle: validators.number(),
     endAngle: validators.number(),
     padAngle: validators.numberMin(0),
     cornerRadius: validators.numberMin(0),
-    focusOffsetPercent: validators.numberMinMax(0, 1),
-    showLabels: validators.boolean(),
-    labelType: validators.oneOf(PIE_LABEL_TYPES),
-    labelValueFormat: validators.numberFormat().orEqual(AUTO),
-    labelPercentFormat: validators.numberFormat().orEqual(AUTO),
-    labelRadiusPercent: validators.numberMinMax(0, 1),
-    labelMinAnglePercent: validators.numberMinMax(0, 1),
-    adjustLabelsForSuppression: validators.boolean(),
-    tooltipValues: validators.oneOf(PIE_TOOLTIP_LABEL_TYPES),
-    tooltipPercentFormat: validators.numberFormat().orEqual(AUTO),
-    centerLabel: validators.string().orEqual(NONE),
-    centerLabelTextStyle: validators.style(),
-    showCenterTotal: validators.boolean(),
-    centerTotalTextStyle: validators.style(),
-    centerTotalFormat: validators.numberFormat().orEqual(AUTO),
-    adjustCenterTotalForSuppression: validators.boolean(),
-    centerOffsetXPercent: validators.numberMinMax(-1, 1),
-    centerOffsetYPercent: validators.numberMinMax(-1, 1)
+    focusOffsetFraction: validators.numberMinMax(0, 1),
+    label: validators.partialObjectWithShape({
+      visible: validators.boolean(),
+      type: validators.oneOf(PIE_LABEL_TYPES),
+      valueFormat: validators.numberFormat().orEqual(AUTO),
+      percentFormat: validators.numberFormat().orEqual(AUTO),
+      radiusFraction: validators.numberMinMax(0, 1),
+      minFraction: validators.numberMinMax(0, 1),
+      adjustForFiltering: validators.boolean()
+    }, true),
+    tooltip: validators.partialObjectWithShape({
+      valueType: validators.oneOf(PIE_TOOLTIP_VALUE_TYPES),
+      percentFormat: validators.numberFormat().orEqual(AUTO)
+    }, true),
+    centerLabel: validators.partialObjectWithShape({
+      text: validators.string().orEqual(NONE),
+      textStyle: validators.style()
+    }, true),
+    centerTotal: validators.partialObjectWithShape({
+      visible: validators.boolean(),
+      textStyle: validators.style(),
+      format: validators.numberFormat().orEqual(AUTO),
+      adjustForFiltering: validators.boolean()
+    }, true),
+    centerOffsetXFraction: validators.numberMinMax(-1, 1),
+    centerOffsetYFraction: validators.numberMinMax(-1, 1)
   };
 }

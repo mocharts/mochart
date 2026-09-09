@@ -1,16 +1,10 @@
-/**
- * Volume pane rendering tests: createCandlestick's `volume` option puts
- * direction-split volume bars on a hidden second axis whose domain margins
- * confine them to the bottom band of the plot, while the price axis's
- * enlarged minimum margin lifts the candles above them. Charts are mounted
- * through createDefaultChart in jsdom, and assertions parse the rendered bar
- * paths (`M{x},{y}h{w}v{h}h{-w}Z`) against the plot background rect.
- */
-import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
+// createCandlestick volume pane: direction-split volume bars on a hidden second axis confined to the bottom band,
+// price candles lifted above them; asserts parse bar paths (`M{x},{y}h{w}v{h}h{-w}Z`).
+import { describe, it, expect, beforeAll } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
+import { mockBoundingClientRect, mountContainer, trackHandle, barRects } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
 import { createCandlestick } from '../../src/data/Candlestick';
-import type { ChartHandle } from '../../src/createChart';
 import type { DefaultChartProps } from '../../src/types/chart';
 import type { MochartInputConfig } from '../../src/types/config';
 
@@ -23,54 +17,25 @@ const ITEMS = [
   { label: 'Tue', open: 2, high: 4, low: 1, close: 1.5, volume: 800 }
 ];
 
-let handles: ChartHandle<DefaultChartProps>[] = [];
-
 function mountVolumeCandlestick(): Element {
-  const { data, groupAxisConfig, seriesConfigs, seriesAxisConfigs } = createCandlestick(ITEMS, { volume: true });
+  const { data, categoryAxis: categoryAxisConfig, series: seriesConfigs, valueAxes: valueAxisConfigs } = createCandlestick(ITEMS, { volume: true });
   const config = {
     version: VERSION,
-    animationConfig: { animate: false },
-    groupAxisConfig,
-    seriesAxisConfigs,
-    seriesConfigs
+    animation: { enabled: false },
+    categoryAxis: categoryAxisConfig,
+    valueAxes: valueAxisConfigs,
+    series: seriesConfigs
   } as unknown as MochartInputConfig;
-  const container = document.createElement('div');
-  document.body.appendChild(container);
-  const handle = createDefaultChart(container, {
+  const container = mountContainer();
+  trackHandle(createDefaultChart(container, {
     config, data, width: WIDTH, height: HEIGHT
-  } as DefaultChartProps);
-  handles.push(handle);
+  } as DefaultChartProps));
   return container;
-}
-
-interface BarRect { y: number; height: number }
-
-function barRects(container: Element, seriesId: string): BarRect[] {
-  const paths = container.querySelectorAll(`.mochart-series-${seriesId} path[class*="mochart-series-bar"]`);
-  return Array.from(paths).map((path) => {
-    const d = path.getAttribute('d') ?? '';
-    const match = /^M(-?[\d.]+),(-?[\d.]+)h(-?[\d.]+)v(-?[\d.]+)/.exec(d);
-    expect(match, `unexpected bar path: ${d}`).not.toBeNull();
-    return { y: Number(match![2]), height: Number(match![4]) };
-  });
 }
 
 beforeAll(() => {
   installSvgMeasurementShims();
-  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-    return {
-      x: 0, y: 0, left: 0, top: 0, right: WIDTH, bottom: HEIGHT,
-      width: WIDTH, height: HEIGHT, toJSON: () => ({})
-    } as DOMRect;
-  });
-});
-
-afterEach(() => {
-  for (const handle of handles) {
-    handle.destroy();
-  }
-  handles = [];
-  document.body.innerHTML = '';
+  mockBoundingClientRect(WIDTH, HEIGHT);
 });
 
 describe('candlestick volume pane', () => {
@@ -87,7 +52,7 @@ describe('candlestick volume pane', () => {
     expect(Math.max(...priceBottoms)).toBeLessThan(Math.min(...volumeTops));
   });
 
-  it('confines the tallest volume bar to the bottom heightPercent of the plot', () => {
+  it('confines the tallest volume bar to the bottom heightFraction of the plot', () => {
     const container = mountVolumeCandlestick();
     const volumeBars = ['upVolume', 'downVolume'].flatMap((seriesId) => barRects(container, seriesId));
     // the volume axis min is pinned at 0, so every bar grows from the bottom
@@ -97,7 +62,7 @@ describe('candlestick volume pane', () => {
     for (const bottom of bottoms) {
       expect(bottom).toBeCloseTo(seriesExtent, 6);
     }
-    // default heightPercent 0.2: the largest volume reaches 20% up the plot
+    // default heightFraction 0.2: the largest volume reaches 20% up the plot
     const tallest = Math.max(...volumeBars.map((bar) => bar.height));
     expect(tallest / seriesExtent).toBeCloseTo(0.2, 2);
     // and the price marks keep a visible gap above the volume band

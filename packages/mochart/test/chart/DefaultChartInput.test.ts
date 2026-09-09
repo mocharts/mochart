@@ -14,8 +14,8 @@ const VERSION = '1.0.0';
 function salesConfig(): MochartInputConfig {
   return {
     version: VERSION,
-    groupAxisConfig: { property: 'month', type: 'string', scale: 'ordinal' },
-    seriesConfigs: [{ property: 'sales' }]
+    categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+    series: [{ property: 'sales' }]
   } as unknown as MochartInputConfig;
 }
 
@@ -23,8 +23,8 @@ function salesConfig(): MochartInputConfig {
 function labelConfig(): MochartInputConfig {
   return {
     version: VERSION,
-    groupAxisConfig: { property: 'month', type: 'string', scale: 'ordinal' },
-    seriesConfigs: [{ property: 'label' }]
+    categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+    series: [{ property: 'label' }]
   } as unknown as MochartInputConfig;
 }
 
@@ -34,22 +34,48 @@ const rows = [
   { month: 'Mar', sales: 30, label: 'thirty' }
 ];
 
-function props(config: MochartInputConfig, data: readonly unknown[]): DefaultChartProps {
+function props(config: MochartInputConfig, data: unknown): DefaultChartProps {
   return { config, data, width: 800, height: 600 } as DefaultChartProps;
 }
 
-function startInput(config: MochartInputConfig, data: readonly unknown[]): { input: DefaultChartInput; props: DefaultChartProps } {
+function startInput(config: MochartInputConfig, data: unknown): { input: DefaultChartInput; props: DefaultChartProps } {
   const input = new DefaultChartInput();
   const initial = props(config, data);
   input.start(initial);
   return { input, props: initial };
 }
 
+describe('DefaultChartInput in-place data mutation', () => {
+  it('does not detect an in-place mutation through update (identity contract)', () => {
+    const data = rows.map(row => ({ ...row }));
+    const { input, props: initial } = startInput(salesConfig(), data);
+    const provider = input.dataProvider;
+
+    data.push({ month: 'Apr', sales: 40, label: 'forty' });
+    input.update(initial, initial);
+
+    // the stateless provider reads live; the identity staying put is what keeps the chart from re-reading
+    expect(input.dataProvider).toBe(provider);
+  });
+
+  it('refresh rebuilds the provider over the mutated array', () => {
+    const data = rows.map(row => ({ ...row }));
+    const { input, props: initial } = startInput(salesConfig(), data);
+    const provider = input.dataProvider;
+
+    data.push({ month: 'Apr', sales: 40, label: 'forty' });
+    input.refresh(initial);
+
+    expect(input.dataProvider).not.toBe(provider);
+    expect(input.dataProvider!.getPropertyValues('month')).toEqual(['Jan', 'Feb', 'Mar', 'Apr']);
+  });
+});
+
 describe('DefaultChartInput data validation', () => {
   it('exposes a valid provider for matching config and data', () => {
     const { input } = startInput(salesConfig(), rows);
     expect(isDataProviderValid(input.dataProvider)).toBe(true);
-    expect(input.dataProvider!.getGroupValues()).toEqual(['Jan', 'Feb', 'Mar']);
+    expect(input.dataProvider!.getPropertyValues('month')).toEqual(['Jan', 'Feb', 'Mar']);
   });
 
   it('exposes an error provider when the data does not satisfy the config', () => {
@@ -92,11 +118,59 @@ describe('DefaultChartInput data validation', () => {
     const nextRows = [...rows, { month: 'Apr', sales: 40, label: 'forty' }];
     input.update(prev, props(salesConfig(), nextRows));
     expect(input.dataProvider).not.toBe(firstProvider);
-    expect(input.dataProvider!.getGroupValues()).toEqual(['Jan', 'Feb', 'Mar', 'Apr']);
+    expect(input.dataProvider!.getPropertyValues('month')).toEqual(['Jan', 'Feb', 'Mar', 'Apr']);
   });
 
   it('exposes an error provider for data that is not an array of objects', () => {
     const { input } = startInput(salesConfig(), [1, 2, 3]);
     expect(isDataProviderValid(input.dataProvider)).toBe(false);
+  });
+});
+
+describe('DefaultChartInput object-of-arrays data', () => {
+  const arrays = {
+    month: ['Jan', 'Feb', 'Mar'],
+    sales: [10, 20, 30],
+    label: ['ten', 'twenty', 'thirty']
+  };
+
+  it('wraps an object of arrays in a valid provider', () => {
+    const { input } = startInput(salesConfig(), arrays);
+    expect(isDataProviderValid(input.dataProvider)).toBe(true);
+    expect(input.dataProvider!.getPropertyValues('month')).toEqual(['Jan', 'Feb', 'Mar']);
+    expect(input.dataProvider!.getPropertyValues('sales')).toEqual([10, 20, 30]);
+  });
+
+  it('exposes an error provider when a property holds a non-array value', () => {
+    const { input } = startInput(salesConfig(), { ...arrays, sales: 10 });
+    expect(isDataProviderValid(input.dataProvider)).toBe(false);
+  });
+
+  it('exposes an error provider when the arrays do not satisfy the config', () => {
+    const { input } = startInput(salesConfig(), { month: arrays.month, sales: [10, 20] });
+    expect(isDataProviderValid(input.dataProvider)).toBe(false);
+  });
+
+  it('rebuilds the provider when the data changes shape between updates', () => {
+    const { input, props: prev } = startInput(salesConfig(), rows);
+    const firstProvider = input.dataProvider;
+
+    input.update(prev, props(salesConfig(), arrays));
+    expect(input.dataProvider).not.toBe(firstProvider);
+    expect(isDataProviderValid(input.dataProvider)).toBe(true);
+    expect(input.dataProvider!.getPropertyValues('sales')).toEqual([10, 20, 30]);
+  });
+
+  it('refresh rebuilds the provider over mutated arrays', () => {
+    const mutable = { month: [...arrays.month], sales: [...arrays.sales] };
+    const { input, props: initial } = startInput(salesConfig(), mutable);
+    const provider = input.dataProvider;
+
+    mutable.month.push('Apr');
+    mutable.sales.push(40);
+    input.refresh(initial);
+
+    expect(input.dataProvider).not.toBe(provider);
+    expect(input.dataProvider!.getPropertyValues('month')).toEqual(['Jan', 'Feb', 'Mar', 'Apr']);
   });
 });

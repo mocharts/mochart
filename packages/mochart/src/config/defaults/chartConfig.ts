@@ -8,6 +8,6 @@ export default function getDefaults() {
     type: CHART_TYPE_XY,
     margin: { top: 2, right: 2, bottom: 2, left: 2 },
     padding: { top: 3, right: 3, bottom: 3, left: 3 },
-    backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, fillColor: NONE, fillOpacity: 0 }
+    backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 }
   };
 }

@@ -1,7 +1,7 @@
 import { html, nothing } from 'lit';
 import type { TemplateResult } from 'lit';
 
-import { demoText, getAvailableDemoModes } from '@mochart/demo-common';
+import { demoModeIcons, demoText, getAvailableDemoModes } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import { icon } from './templates';
@@ -13,12 +13,6 @@ import { icon } from './templates';
 // Labels sit in a `.btn-label` span so demo.css can take them out of the
 // layout on a narrow viewport, leaving the icons.
 
-const modeIcons: Record<SwitchableDemoMode, string> = {
-  single: 'pen-to-square',
-  multi: 'window-restore',
-  random: 'shuffle'
-};
-
 export interface ModeSwitcherProps {
   demoMode: SwitchableDemoMode;
   // Which modes are offered depends on the width (a phone gets no Multi), so
@@ -27,25 +21,17 @@ export interface ModeSwitcherProps {
   onModeChanged: (nextDemoMode: SwitchableDemoMode) => void;
 }
 
-/**
- * How the current mode is marked depends on the width. In the strip it is a
- * filled, disabled segment — plainly "you are here". On a phone the switcher
- * lives in the navigation row's overflow menu, where
- * `.demo-menu-overflow .demo-btn:disabled` greys a row out, and a greyed row
- * in a list of destinations reads as unavailable rather than current — so
- * there it gets the panel's `.active` tint plus `aria-current`, and is simply
- * inert when tapped.
- */
+/** A named group (no arrow keys); the current mode is a filled disabled segment in the strip, but gets the `.active` tint and is inert in the phone overflow menu. */
 export function modeSwitcher({ demoMode, isPhone, onModeChanged }: ModeSwitcherProps): TemplateResult {
   return html`<div class="mochart-demo-mode-switcher">
     <span class="demo-label">${demoText.modeSwitcher.label}</span>
-    <div class="demo-toolbar" role="toolbar">
+    <div class="demo-toolbar" role="group" aria-label=${demoText.modeSwitcher.groupAria}>
       ${getAvailableDemoModes(isPhone).map(mode => {
         const current = mode === demoMode;
         const { label, title } = demoText.modeSwitcher.modes[mode];
         return html`<button type="button" class=${'demo-btn demo-btn-' + (current ? 'primary' : 'secondary') + (current && isPhone ? ' active' : '')}
-            title=${title} ?disabled=${current && !isPhone} aria-current=${current && isPhone ? 'true' : nothing}
-            @click=${() => { if (!current) { onModeChanged(mode); } }}>${icon({ name: modeIcons[mode], size: 'lg', fixedWidth: true })}<span class="btn-label">${label}</span></button>`;
+            title=${title} ?disabled=${current && !isPhone} aria-current=${current ? 'page' : nothing}
+            @click=${() => { if (!current) { onModeChanged(mode); } }}>${icon({ name: demoModeIcons[mode], size: 'lg', fixedWidth: true })}<span class="btn-label">${label}</span></button>`;
       })}
     </div>
   </div>`;

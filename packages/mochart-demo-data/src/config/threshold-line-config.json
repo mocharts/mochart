@@ -1,76 +1,98 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Threshold Line"
+  "title": {
+    "text": "Threshold Line"
   },
-  "animationConfig": {
+  "animation": {
     "expansionDuration": 2000,
     "initialDuration": 2000,
     "valueChangeDuration": 2000,
-    "collapseDuration": 2000
+    "contractionDuration": 2000
   },
-  "plotConfig": {
+  "plot": {
     "inverted": false
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "groupNO",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categoryNO",
     "type": "number",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "id": "SA0",
-      "before": true,
-      "adjustForSuppression": true,
-      "threshold": 20,
-      "thresholdTitle": "Title For Threshold 20",
-      "thresholdTitlePadding": { "top": 5, "right": 5, "bottom": 5, "left": 5 },
-      "thresholdTitleBefore": true,
-      "thresholdTitleSnapToValue": true
+      "id": "VA0",
+      "adjustForFiltering": true,
+      "side": "start",
+      "thresholds": [
+        {
+          "value": 20,
+          "title": {
+            "text": "Title For Threshold 20",
+            "side": "low",
+            "snapToValue": true,
+            "padding": {
+              "top": 5,
+              "right": 5,
+              "bottom": 5,
+              "left": 5
+            }
+          }
+        }
+      ]
     },
     {
-      "id": "SA1",
-      "before": false,
-      "adjustForSuppression": false,
-      "threshold": -5,
-      "thresholdTitle": "Title For Threshold -5",
-      "thresholdTitlePadding": { "top": 5, "right": 5, "bottom": 5, "left": 5 },
-      "thresholdTitleBefore": false,
-      "thresholdTitleSnapToValue": true
+      "id": "VA1",
+      "adjustForFiltering": false,
+      "side": "end",
+      "thresholds": [
+        {
+          "value": -5,
+          "title": {
+            "text": "Title For Threshold -5",
+            "side": "high",
+            "snapToValue": true,
+            "padding": {
+              "top": 5,
+              "right": 5,
+              "bottom": 5,
+              "left": 5
+            }
+          }
+        }
+      ]
     }
   ],
-  "seriesStackConfigs": {
-    "axis": "SA0"
+  "seriesStacks": {
+    "axis": "VA0"
   },
-  "seriesConfigs": [
+  "series": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "value1",
       "title": "Stacked Bar 1",
       "renderer": "bar"
     },
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "value2",
       "title": "Stacked Bar 2",
       "renderer": "bar"
     },
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "value3",
       "title": "Stacked Bar 3",
       "renderer": "bar"
     },
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "stack": null,
       "property": "value5",
       "title": "Line 1",
       "renderer": "line"
     },
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "stack": null,
       "property": "value6",
       "title": "Line 2",

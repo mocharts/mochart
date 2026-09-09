@@ -1,7 +1,7 @@
 
 import validators from './validators';
 
-const palette = () => validators.objectWith(['strokeColors', 'fillColors'], validators.arrayOf(validators.color(), false));
+const palette = () => validators.partialObjectWith(['strokeColors', 'fillColors'], validators.arrayOf(validators.color(), false));
 
 const paletteStates = () => validators.partialObjectWithShape({
   normal: palette(),
@@ -11,7 +11,7 @@ const paletteStates = () => validators.partialObjectWithShape({
 
 export default function getValidators() {
   return {
-    series: paletteStates(),
+    shape: paletteStates(),
     marker: paletteStates(),
     label: paletteStates(),
     errorBar: paletteStates()

@@ -6,7 +6,7 @@ import { chart } from '@mochart/lit';
 import type { MochartConfig } from '@mochart/core';
 import { exportPNG, exportSVG } from '@mochart/export';
 
-import { getChartExportOptions, demoText } from '@mochart/demo-common';
+import { controlsMenuPlacement, demoText, getChartExportOptions, getDemoTabPanelAttrs, menuKeepOpenClassName } from '@mochart/demo-common';
 import type { ShareState } from '@mochart/demo-common';
 
 import { LightElement } from '../misc/LightElement';
@@ -19,8 +19,7 @@ import type { DemoDataProvider, RandomConfigWithValid } from '../../types';
 
 const defaultRate = 2000;
 
-/** The strip sits at the bottom of the pane, so its menu opens upward. */
-const randomPlacement = { side: 'top', align: 'end', gap: 4 } as const;
+const panelAttrs = getDemoTabPanelAttrs('chart');
 
 @customElement('random-chart-tab')
 export class RandomChartTab extends LightElement {
@@ -117,14 +116,14 @@ export class RandomChartTab extends LightElement {
   // own spinners in particular — cannot dismiss the panel it is hosted in. The
   // class paints nothing, so it is unconditional.
   private renderRateField(): unknown {
-    return html`<div class="demo-field demo-menu-keep-open">
+    return html`<div class="demo-field ${menuKeepOpenClassName}">
       <label class="demo-label" for="random-rate">${demoText.randomChartTab.intervalLabel}</label>
       <input id="random-rate" ?disabled=${this.playing} type="number" min="5" max="60000" step="100" class="demo-input" .value=${'' + this.rateText} aria-label=${demoText.randomChartTab.intervalAria} @input=${this.rateChanged} />
     </div>`;
   }
 
   private renderExportShareMenu(): unknown {
-    return html`<export-share-menu .idPrefix=${'random'} .active=${this.active}
+    return html`<export-share-menu .active=${this.active}
       .exportPng=${() => { const container = this.querySelector('.random-chart-sizer'); if (container) { void exportPNG(container, getChartExportOptions()); } }}
       .exportSvg=${() => { const container = this.querySelector('.random-chart-sizer'); if (container) { exportSVG(container, getChartExportOptions()); } }}
       .getShareState=${this.getShareState}></export-share-menu>`;
@@ -137,7 +136,8 @@ export class RandomChartTab extends LightElement {
     // by hand is the mode's primary interaction — and demotes the automation
     // transport (Play / Stop) with the Reuse toggle and the interval field.
     const folded = this.viewport.isPhone;
-    return html`<div class=${'mochart-demo-tab-container demo-layout-col chart' + (this.active ? ' active' : '')} ?inert=${!this.active}>
+    return html`<div id=${panelAttrs.id} role=${panelAttrs.role} aria-labelledby=${panelAttrs['aria-labelledby']}
+        class=${'mochart-demo-tab-container demo-layout-col chart' + (this.active ? ' active' : '')} ?inert=${!this.active}>
       <div class="random-chart-sizer">
         ${chart({
           style: 'flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden;',
@@ -146,9 +146,9 @@ export class RandomChartTab extends LightElement {
         })}
       </div>
       <div class="random-controls">
-        <form class="demo-form-row">
+        <form>
           <div class="demo-field">
-            <div class="demo-toolbar" role="toolbar">
+            <div class="demo-toolbar">
               <div class="demo-btn-group">
                 ${buttonWithTooltip(
                   { id: 'randomize-back', disabled: this.playing, label: demoText.randomChartTab.back.label, tooltipText: demoText.randomChartTab.back.tooltip, tooltipPlacement: 'top-start', onClick: this.onRandomizeBack, ariaLabel: demoText.randomChartTab.back.aria },
@@ -162,13 +162,13 @@ export class RandomChartTab extends LightElement {
               </div>
               ${folded ? nothing : this.renderRateField()}
             </div>
-            <div class="demo-toolbar" role="toolbar">
+            <div class="demo-toolbar">
               ${folded
                 ? html`<div class="demo-btn-group">
                     <!-- Anchored to the whole strip: \`align: 'end'\` pins the
                          panel's right edge to the anchor's, and the export
                          trigger sits to the ⋯'s right. -->
-                    <overflow-menu .text=${demoText.overflowMenu.random} .placement=${randomPlacement}
+                    <overflow-menu .text=${demoText.overflowMenu.random} .placement=${controlsMenuPlacement}
                       .getAnchor=${this.getControlsAnchor} .active=${this.active}
                       .items=${() => html`<div class="demo-btn-group">${this.renderPlayButton()}${this.renderStopButton()}</div>
                         <div class="demo-menu-divider"></div>

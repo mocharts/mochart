@@ -4,7 +4,7 @@ import { ref, watch } from 'vue';
 import { Chart } from '@mochart/vue';
 import type { MochartConfig } from '@mochart/core';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, getDemoTabPanelAttrs } from '@mochart/demo-common';
 
 import ButtonWithTooltip from '../misc/ButtonWithTooltip.vue';
 import Icon from '../misc/Icon.vue';
@@ -48,18 +48,20 @@ function onStepForward() {
     }
   }
 }
+
+const panelAttrs = getDemoTabPanelAttrs('chart');
 </script>
 
 <template>
-  <div :class="'mochart-demo-tab-container demo-layout-col chart' + (props.active ? ' active' : '')" :inert="!props.active">
+  <div v-bind="panelAttrs" :class="'mochart-demo-tab-container demo-layout-col chart' + (props.active ? ' active' : '')" :inert="!props.active">
     <div class="transition-chart-sizer">
       <Chart style="flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden;"
              :mochart-config="props.mochartConfig" :data-provider="props.dataProviders[dataProviderIndex]" />
     </div>
     <div class="transition-controls">
-      <form class="demo-form-row">
+      <form>
         <div class="demo-field">
-          <div class="demo-toolbar" role="toolbar">
+          <div class="demo-toolbar">
             <div class="demo-btn-group">
               <ButtonWithTooltip id="transition-back" :label="demoText.transitionChartTab.back.label" :tooltip-text="demoText.transitionChartTab.back.tooltip" tooltip-placement="top-start"
                                  :on-click="onStepBack" :aria-label="demoText.transitionChartTab.back.aria">

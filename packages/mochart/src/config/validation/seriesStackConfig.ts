@@ -6,9 +6,12 @@ import validators from './validators';
 export default function getValidators() {
   return {
     axis: validators.string(),
-    id: validators.string(),
-    outerCapSize: validators.numberMin(0),
-    outerCapType: validators.oneOf(CAP_TYPES).orEqual(NONE),
-    outerCapExpand: validators.boolean(),
+    id: validators.id(),
+    ignore: validators.boolean(),
+    outerCap: validators.partialObjectWithShape({
+      size: validators.numberMin(0),
+      type: validators.oneOf(CAP_TYPES).orEqual(NONE),
+      expand: validators.boolean()
+    }, true),
   };
 }

@@ -1,92 +1,27 @@
 [
-  {
-    "total": 240.00,
-    "month_bought": "2015-05-01"
-  },
-  {
-    "total": 380.00,
-    "month_bought": "2015-06-01"
-  },
-  {
-    "total": 685.00,
-    "month_bought": "2015-07-01"
-  },
-  {
-    "month_bought": "2015-08-01"
-  },
-  {
-    "month_bought": "2015-09-01"
-  },
-  {
-    "total": 40.00,
-    "month_bought": "2015-10-01"
-  },
-  {
-    "total": 40.00,
-    "month_bought": "2015-11-01"
-  },
-  {
-    "total": 70.00,
-    "month_bought": "2015-12-01"
-  },
-  {
-    "month_bought": "2016-01-01"
-  },
-  {
-    "total": 240.00,
-    "month_bought": "2016-02-01"
-  },
-  {
-    "total": 40.00,
-    "month_bought": "2016-03-01"
-  },
-  {
-    "total": 1205.00,
-    "month_bought": "2016-04-01"
-  },
-  {
-    "total": 140.00,
-    "month_bought": "2016-05-01"
-  },
-  {
-    "total": 120.00,
-    "month_bought": "2016-06-01"
-  },
-  {
-    "month_bought": "2016-07-01"
-  },
-  {
-    "month_bought": "2016-08-01"
-  },
-  {
-    "month_bought": "2016-09-01"
-  },
-  {
-    "month_bought": "2016-10-01"
-  },
-  {
-    "month_bought": "2016-11-01"
-  },
-  {
-    "month_bought": "2016-12-01"
-  },
-  {
-    "month_bought": "2017-01-01"
-  },
-  {
-    "total": 140.00,
-    "month_bought": "2017-02-01"
-  },
-  {
-    "total": 210.00,
-    "month_bought": "2017-03-01"
-  },
-  {
-    "total": 90.00,
-    "month_bought": "2017-04-01"
-  },
-  {
-    "total": 2172.00,
-    "month_bought": "2017-05-01"
-  }
+  {"total":240.0,"month_bought":"2015-05-01"},
+  {"total":380.0,"month_bought":"2015-06-01"},
+  {"total":685.0,"month_bought":"2015-07-01"},
+  {"month_bought":"2015-08-01"},
+  {"month_bought":"2015-09-01"},
+  {"total":40.0,"month_bought":"2015-10-01"},
+  {"total":40.0,"month_bought":"2015-11-01"},
+  {"total":70.0,"month_bought":"2015-12-01"},
+  {"month_bought":"2016-01-01"},
+  {"total":240.0,"month_bought":"2016-02-01"},
+  {"total":40.0,"month_bought":"2016-03-01"},
+  {"total":1205.0,"month_bought":"2016-04-01"},
+  {"total":140.0,"month_bought":"2016-05-01"},
+  {"total":120.0,"month_bought":"2016-06-01"},
+  {"month_bought":"2016-07-01"},
+  {"month_bought":"2016-08-01"},
+  {"month_bought":"2016-09-01"},
+  {"month_bought":"2016-10-01"},
+  {"month_bought":"2016-11-01"},
+  {"month_bought":"2016-12-01"},
+  {"month_bought":"2017-01-01"},
+  {"total":140.0,"month_bought":"2017-02-01"},
+  {"total":210.0,"month_bought":"2017-03-01"},
+  {"total":90.0,"month_bought":"2017-04-01"},
+  {"total":2172.0,"month_bought":"2017-05-01"}
 ]

@@ -1,17 +1,16 @@
 import { Component, Input, signal } from '@angular/core';
 import type { OnChanges, OnInit, SimpleChanges } from '@angular/core';
 
-import { NONE, getDataErrors } from '@mochart/core';
-import type { MochartConfig, DataProvider } from '@mochart/core';
+import { getDataErrors } from '@mochart/core';
 
 import { RandomChartTab } from './random-chart-tab';
 import { RandomConfigTab } from './random-config-tab';
 import { RandomDataTab } from './random-data-tab';
 import { ErrorTab } from '../misc/error-tab';
 
-import { consumeShareState, demoText, generateDemoDataProvider, neutralizeRandomReuse } from '@mochart/demo-common';
+import { consumeShareState, createErrorDataProvider, demoText, generateDemoDataProvider, getRandomDataObjects, neutralizeRandomReuse, restoreSharedRandomConfig } from '@mochart/demo-common';
 
-import type { MochartDemoConfig, RandomConfigWithValid, DemoDataProvider, GroupValue } from '../../types';
+import type { MochartDemoConfig, RandomConfigWithValid, DemoDataProvider } from '../../types';
 
 interface EventKeys {
   eventKeyChart: number;
@@ -26,16 +25,22 @@ interface EventKeys {
   template: `
     <div class="mochart-demo-content">
       <app-error-tab [active]="activeKey === eventKeys.eventKeyChart">
-        <app-random-chart-tab [active]="activeKey === eventKeys.eventKeyChart" [mochartConfig]="mochartDemoConfig.mochartConfig" [dataProvider]="dataProvider()"
-                              [randomConfig]="randomConfig()!" [initialRate]="initialRate()"
-                              [onRandomizeBack]="onRandomizeBack" [onRandomizeNext]="onRandomizeNext"
-                              [applyReuse]="applyReuse()" [toggleApplyReuse]="toggleApplyReuse" />
+        <ng-template>
+          <app-random-chart-tab [active]="activeKey === eventKeys.eventKeyChart" [mochartConfig]="mochartDemoConfig.mochartConfig" [dataProvider]="dataProvider()"
+                                [randomConfig]="randomConfig()!" [initialRate]="initialRate()"
+                                [onRandomizeBack]="onRandomizeBack" [onRandomizeNext]="onRandomizeNext"
+                                [applyReuse]="applyReuse()" [toggleApplyReuse]="toggleApplyReuse" />
+        </ng-template>
       </app-error-tab>
       <app-error-tab [active]="activeKey === eventKeys.eventKeyConfig">
-        <app-random-config-tab [active]="activeKey === eventKeys.eventKeyConfig" [randomConfig]="randomConfig()!" [generator]="generator" [onUpdate]="onUpdateConfig" [onReset]="onResetConfig" />
+        <ng-template>
+          <app-random-config-tab [active]="activeKey === eventKeys.eventKeyConfig" [randomConfig]="randomConfig()!" [generator]="generator" [onUpdate]="onUpdateConfig" [onReset]="onResetConfig" />
+        </ng-template>
       </app-error-tab>
       <app-error-tab [active]="activeKey === eventKeys.eventKeyData">
-        <app-random-data-tab [active]="activeKey === eventKeys.eventKeyData" [data]="data()" />
+        <ng-template>
+          <app-random-data-tab [active]="activeKey === eventKeys.eventKeyData" [data]="data()" />
+        </ng-template>
       </app-error-tab>
     </div>
   `
@@ -69,7 +74,7 @@ export class RandomContent implements OnInit, OnChanges {
     if (initialShared) {
       this.applyReuse.set(initialShared.applyReuse);
       this.initialRate.set(initialShared.interval);
-      const restored: RandomConfigWithValid = { ...initialShared.randomConfig, valid: true };
+      const restored: RandomConfigWithValid = restoreSharedRandomConfig(initialShared.randomConfig, this.generator);
       this.randomConfig.set(restored);
       this.updateDataProvider(restored);
     }
@@ -84,27 +89,6 @@ export class RandomContent implements OnInit, OnChanges {
     this.updateDataProvider();
   };
 
-  private getData(mochartConfig: MochartConfig, groupValues: GroupValue[], seriesValues: Record<string, (number | undefined)[]>): Record<string, any>[] {
-    const { groupAxisConfig } = mochartConfig;
-    const groupProperty = groupAxisConfig.property ?? '';
-    const nextData: Record<string, any>[] = groupValues.map(g => ({ [groupProperty]: g }));
-    const groupCount = groupValues.length;
-    if (groupAxisConfig.displayProperty !== NONE) {
-      const displayProperty = groupAxisConfig.displayProperty;
-      for (let i = 0; i < groupCount; i++) {
-        nextData[i][displayProperty] = groupValues[i];
-      }
-    }
-    const seriesProperties = Object.keys(seriesValues);
-    for (const seriesProperty of seriesProperties) {
-      const seriesPropertyValues = seriesValues[seriesProperty];
-      for (let i = 0; i < groupCount; i++) {
-        nextData[i][seriesProperty] = seriesPropertyValues[i];
-      }
-    }
-    return nextData;
-  }
-
   private updateDataProvider(forcedRandomConfig?: RandomConfigWithValid): void {
     const { mochartConfig } = this.mochartDemoConfig;
     const nextRandomConfig = forcedRandomConfig !== undefined ? forcedRandomConfig : this.randomConfig()!;
@@ -114,17 +98,14 @@ export class RandomContent implements OnInit, OnChanges {
       // neutralized, so every dataset is generated independently
       const generatorConfig = this.applyReuse() ? nextRandomConfig : neutralizeRandomReuse(nextRandomConfig);
       const nextDataProvider = generateDemoDataProvider(this.generator, mochartConfig, generatorConfig, this.randomId);
-      const { groupValues = [], seriesValues = {} } = nextDataProvider;
-      const nextData = this.getData(mochartConfig, groupValues, seriesValues);
-      const dataErrors = getDataErrors(mochartConfig, nextDataProvider as unknown as DataProvider);
+      const { categoryValues = [], seriesValues = {} } = nextDataProvider;
+      const nextData = getRandomDataObjects(mochartConfig, categoryValues, seriesValues);
+      const dataErrors = getDataErrors(mochartConfig, nextDataProvider);
       if (dataErrors.length > 0) {
         console.error('data errors: ', dataErrors);
-        console.warn('group values: ', groupValues);
+        console.warn('category values: ', categoryValues);
         console.warn('series values: ', seriesValues);
-        this.dataProvider.set({
-          getGroupValues: () => [],
-          getError: () => demoText.errors.creatingDataProvider
-        });
+        this.dataProvider.set(createErrorDataProvider(demoText.errors.creatingDataProvider));
         this.data.set({ error: demoText.errors.creatingDataProvider });
         this.randomConfig.set(nextRandomConfig);
       }
@@ -135,10 +116,7 @@ export class RandomContent implements OnInit, OnChanges {
       }
     }
     else {
-      this.dataProvider.set({
-        getGroupValues: () => [],
-        getError: () => demoText.errors.invalidRandomConfig
-      });
+      this.dataProvider.set(createErrorDataProvider(demoText.errors.invalidRandomConfig));
       this.data.set({
         error: demoText.errors.invalidRandomConfig
       });

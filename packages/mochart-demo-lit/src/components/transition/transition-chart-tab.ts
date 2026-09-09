@@ -5,12 +5,14 @@ import type { PropertyValues } from 'lit';
 import { chart } from '@mochart/lit';
 import type { MochartConfig } from '@mochart/core';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, getDemoTabPanelAttrs } from '@mochart/demo-common';
 
 import { LightElement } from '../misc/LightElement';
 import { buttonWithTooltip, icon } from '../misc/templates';
 
 import type { ChartDataProviderLike } from '../../types';
+
+const panelAttrs = getDemoTabPanelAttrs('chart');
 
 @customElement('transition-chart-tab')
 export class TransitionChartTab extends LightElement {
@@ -49,7 +51,8 @@ export class TransitionChartTab extends LightElement {
   };
 
   override render(): unknown {
-    return html`<div class=${'mochart-demo-tab-container demo-layout-col chart' + (this.active ? ' active' : '')} ?inert=${!this.active}>
+    return html`<div id=${panelAttrs.id} role=${panelAttrs.role} aria-labelledby=${panelAttrs['aria-labelledby']}
+        class=${'mochart-demo-tab-container demo-layout-col chart' + (this.active ? ' active' : '')} ?inert=${!this.active}>
       <div class="transition-chart-sizer">
         ${chart({
           style: 'flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden;',
@@ -58,9 +61,9 @@ export class TransitionChartTab extends LightElement {
         })}
       </div>
       <div class="transition-controls">
-        <form class="demo-form-row">
+        <form>
           <div class="demo-field">
-            <div class="demo-toolbar" role="toolbar">
+            <div class="demo-toolbar">
               <div class="demo-btn-group">
                 ${buttonWithTooltip(
                   { id: 'transition-back', label: demoText.transitionChartTab.back.label, tooltipText: demoText.transitionChartTab.back.tooltip, tooltipPlacement: 'top-start', onClick: this.onStepBack, ariaLabel: demoText.transitionChartTab.back.aria },

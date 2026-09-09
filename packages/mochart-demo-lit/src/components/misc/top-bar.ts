@@ -1,7 +1,7 @@
 import { html, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, navMenuPlacement } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import { LightElement } from './LightElement';
@@ -80,13 +80,13 @@ export class TopBar extends LightElement {
     return html`<div class=${'mochart-demo-tabs-container' + (folded ? ' demo-has-overflow' : '')}>
       <div class="mochart-demo-nav-group">
         ${folded ? nothing : html`${siteRootButton(this.siteRootUrl)}${backToDemosButton(this.onBackToDemos)}`}
-        ${this.tabs !== null ? html`<ul class="demo-tabs">${this.tabs()}</ul>` : nothing}
+        ${this.tabs !== null ? this.tabs() : nothing}
         ${!folded && this.hasNotes
           ? html`<notes-menu .demoTitle=${this.notes!.title} .notes=${this.notes!.notes}></notes-menu>`
           : nothing}
       </div>
       ${folded
-        ? html`<overflow-menu .text=${demoText.overflowMenu.nav} .placement=${navPlacement} .items=${this.renderMenuItems}></overflow-menu>`
+        ? html`<overflow-menu .text=${demoText.overflowMenu.nav} .placement=${navMenuPlacement} .items=${this.renderMenuItems}></overflow-menu>`
         : this.modes !== undefined
           // The trailing slot is the one place the two historical shapes
           // differ: with a mode switcher it is a second nav group holding the
@@ -101,8 +101,6 @@ export class TopBar extends LightElement {
     </div>`;
   }
 }
-
-const navPlacement = { side: 'bottom', align: 'end', gap: 6 } as const;
 
 declare global {
   interface HTMLElementTagNameMap {

@@ -1,38 +1,44 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Gradients"
+  "title": {
+    "text": "Gradients"
   },
-  "animationConfig": {
-    "animate": true,
+  "animation": {
+    "enabled": true,
     "expansionDuration": 500,
     "initialDuration": 500,
     "valueChangeDuration": 500,
-    "collapseDuration": 500,
+    "contractionDuration": 500,
     "focusDuration": 700
   },
-  "groupAxisConfig": {
-    "before": false,
-    "axisLine": true,
-    "axisLineMargin": 0,
+  "categoryAxis": {
+    "axisLine": {
+      "visible": true,
+      "marginInner": 0
+    },
     "type": "number",
     "scale": "ordinal",
-    "valueLabel": "Group",
-    "property": "groupNO"
+    "valueLabel": "Category",
+    "property": "categoryNO",
+    "side": "end"
   },
-  "seriesAxisConfigs": {
-    "before": true,
-    "axisLineMargin": 0,
-    "gridLines": true,
-    "min": 0
+  "valueAxes": {
+    "axisLine": {
+      "marginInner": 0
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "min": 0,
+    "side": "start"
   },
-  "linearGradientAllConfig": {
+  "linearGradientDefaults": {
     "x1": 0,
     "y1": 0,
     "x2": 0,
     "y2": 1
   },
-  "linearGradientConfigs": [
+  "linearGradients": [
     {
       "id": "LG0",
       "stops": [
@@ -53,24 +59,24 @@
       "rotation": 45,
       "stops": [
         {
-          "offset": 0.0,
+          "offset": 0,
           "color": "#0000ff",
           "opacity": 0.8
         },
         {
-          "offset": 1.0,
+          "offset": 1,
           "color": "#00ff00",
           "opacity": 0.8
         }
       ]
     }
   ],
-  "radialGradientAllConfig": {
+  "radialGradientDefaults": {
     "cx": 0.5,
     "cy": 0.5,
     "r": 0.5
   },
-  "radialGradientConfigs": [
+  "radialGradients": [
     {
       "id": "RG0",
       "fx": 0.5,
@@ -94,22 +100,24 @@
       "fy": 0.75,
       "stops": [
         {
-          "offset": 0.0,
+          "offset": 0,
           "color": "#0000ff",
           "opacity": 0.8
         },
         {
-          "offset": 1.0,
+          "offset": 1,
           "color": "#00ff00",
           "opacity": 0.8
         }
       ]
     }
   ],
-  "seriesAllConfig": {
-    "markerShape": null
+  "seriesDefaults": {
+    "marker": {
+      "shape": null
+    }
   },
-  "seriesConfigs": [
+  "series": [
     {
       "renderer": "area",
       "title": "Linear Gradient",

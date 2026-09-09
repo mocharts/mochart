@@ -1,23 +1,20 @@
-const defaultColors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf", "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94", "#f7b6d2", "#c7c7c7", "#dbdb8d", "#9edae5"];
+const defaultColors = ["#4477aa", "#ee6677", "#228833", "#ccbb44", "#66ccee", "#aa3377", "#bbbbbb"];
+
+// fresh arrays per call: getDefaults is public, so its result must not alias module state or another state's list
+const defaultState = () => ({
+  strokeColors: [...defaultColors],
+  fillColors: [...defaultColors]
+});
 
 const defaultPalette = () => ({
-  normal: {
-    strokeColors: defaultColors,
-    fillColors: defaultColors
-  },
-  focused: {
-    strokeColors: defaultColors,
-    fillColors: defaultColors
-  },
-  defocused: {
-    strokeColors: defaultColors,
-    fillColors: defaultColors
-  }
+  normal: defaultState(),
+  focused: defaultState(),
+  defocused: defaultState()
 });
 
 export default function getDefaults() {
   return {
-    series: defaultPalette(),
+    shape: defaultPalette(),
     marker: defaultPalette(),
     label: defaultPalette(),
     errorBar: defaultPalette()

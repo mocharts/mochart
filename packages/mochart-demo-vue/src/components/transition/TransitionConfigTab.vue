@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
-import { applyTransitionConfigEdit, demoText, formatTransitionConfig } from '@mochart/demo-common';
+import { applyTransitionConfigEdit, demoText, formatTransitionConfig, getDemoTabPanelAttrs, getJsonError } from '@mochart/demo-common';
 
-import TextAreaContent from '../misc/TextAreaContent.vue';
+import JsonEditorContent from '../misc/JsonEditorContent.vue';
 import ButtonWithTooltip from '../misc/ButtonWithTooltip.vue';
 import Icon from '../misc/Icon.vue';
 
@@ -43,25 +43,19 @@ function onUpdateClick() {
   }
 }
 
-const jsonError = computed(() => {
-  try {
-    JSON.parse(configText.value);
-    return null;
-  }
-  catch {
-    return demoText.errors.invalidJson;
-  }
-});
+const jsonError = computed(() => getJsonError(configText.value));
 const footerError = computed(() => jsonError.value ?? errorMessage.value);
+
+const panelAttrs = getDemoTabPanelAttrs('config');
 </script>
 
 <template>
-  <div :class="'mochart-demo-tab-container demo-layout-col config' + (props.active ? ' active' : '')" :inert="!props.active">
+  <div v-bind="panelAttrs" :class="'mochart-demo-tab-container demo-layout-col config' + (props.active ? ' active' : '')" :inert="!props.active">
     <div class="mochart-demo-tab-content">
-      <TextAreaContent :value="configText" :on-change="onTextChange" />
+      <JsonEditorContent :value="configText" :ariaLabel="demoText.transitionConfigTab.editorAria" :on-change="onTextChange" />
     </div>
     <div class="mochart-demo-tab-footer">
-      <div class="demo-toolbar" role="toolbar">
+      <div class="demo-toolbar">
         <ButtonWithTooltip id="config-reset" :label="demoText.transitionConfigTab.reset.label" :tooltip-text="demoText.transitionConfigTab.reset.tooltip" tooltip-placement="top-start"
                            :on-click="props.onReset" :aria-label="demoText.transitionConfigTab.reset.aria">
           <Icon size="lg" :fixed-width="true" name="arrow-rotate-left" />

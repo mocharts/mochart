@@ -1,30 +1,34 @@
-import { NONE, PIE_LABEL_TYPE_PERCENT } from '../config/core/constants';
+import { NONE, PIE_TOOLTIP_VALUE_TYPE_PERCENT, MISSING_VALUE_MODE_CONNECT, CHART_TYPE_PIE } from '../config/core/constants';
 import { getSeriesLabel } from './SeriesTitle';
-import { formatPieLabelType, pieLabelTypeUsesPercent } from '../data/PieLabel';
-import type { PieTooltipLabelType } from '../config/core/constants';
-import type { TooltipConfig, SeriesConfig } from '../types/config';
-import type { ChartData, SeriesDomainObjects, SeriesValueObject } from '../types/data';
+import { getCategoryFormat, getSeriesFormats } from './ValueFormat';
+import { formatPieLabelType, pieLabelTypeUsesPercent, getPieTooltipPercentFormat } from '../data/PieLabel';
+import { getPieSliceFractionMap } from '../data/PieData';
+import type { PieTooltipValueType } from '../config/core/constants';
+import type { TooltipConfig } from '../types/config';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced';
+import type { SeriesDomainObjects } from '../types/data';
+import type { CategorySeriesValueObject as ChartCategorySeriesValueObject } from '../data/ChartData';
 import type { ValueKey } from '../data/constants';
 import type { ValueFormatter } from './ValueFormat';
 
-type GroupSeriesValueObject = Partial<Record<ValueKey, number | null | undefined>>;
-interface GroupSeriesSlice {
-  axisBases: Record<string, number | null>;
-  raw: { values: Record<string, GroupSeriesValueObject>; domains: SeriesDomainObjects };
-  filtered: { values: Record<string, GroupSeriesValueObject>; domains: SeriesDomainObjects };
+type CategorySeriesValueObject = Partial<Record<ValueKey, number | null | undefined>>;
+interface CategorySeriesSlice {
+  seriesBases: Record<string, number | null>;
+  raw: { values: Record<string, CategorySeriesValueObject>; domains: SeriesDomainObjects };
+  filtered: { values: Record<string, CategorySeriesValueObject>; domains: SeriesDomainObjects };
 }
 
-function getSuppressedValueText(tooltipConfig: TooltipConfig, defaultValueText: string): string {
+function getFilteredValueText(tooltipConfig: TooltipConfig, defaultValueText: string): string {
   let seriesValueText: string;
-  if (tooltipConfig.suppressedValueText !== NONE) {
-    seriesValueText = tooltipConfig.suppressedValueText;
+  if (tooltipConfig.filteredValueText !== NONE) {
+    seriesValueText = tooltipConfig.filteredValueText;
   }
-  else if (tooltipConfig.suppressedValueCharacter !== NONE) {
-    const suppressedCharacter = tooltipConfig.suppressedValueCharacter;
+  else if (tooltipConfig.filteredValueCharacter !== NONE) {
+    const filteredCharacter = tooltipConfig.filteredValueCharacter;
     const characterCount = defaultValueText.length;
     seriesValueText = '';
     for (let i = 0; i < characterCount; i++) {
-      seriesValueText+= suppressedCharacter;
+      seriesValueText+= filteredCharacter;
     }
   }
   else {
@@ -33,8 +37,8 @@ function getSuppressedValueText(tooltipConfig: TooltipConfig, defaultValueText: 
   return seriesValueText;
 }
 
-function getValueText(tooltipConfig: TooltipConfig, seriesConfig: SeriesConfig, adjustForSuppression: boolean, valueFormat: ValueFormatter, series: GroupSeriesSlice, key: ValueKey): string | null {
-  const { raw, filtered, axisBases } = series;
+function getValueText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSeriesConfig, adjustForFiltering: boolean, valueFormat: ValueFormatter, series: CategorySeriesSlice, key: ValueKey): string | null {
+  const { raw, filtered, seriesBases } = series;
   const seriesId = seriesConfig.id;
   const seriesValueObject = raw.values[seriesId];
   const filterValueObject = filtered.values[seriesId];
@@ -42,12 +46,14 @@ function getValueText(tooltipConfig: TooltipConfig, seriesConfig: SeriesConfig, 
 
   let seriesValueText = null;
   if (seriesValueObject[key] !== undefined) {
-    if (adjustForSuppression && tooltipConfig.adjustForSuppression) {
+    if (adjustForFiltering && tooltipConfig.adjustForFiltering) {
       if (hasFilterValue) {
         seriesValueText = String(valueFormat(filterValueObject[key]!));
       }
       else {
-        seriesValueText = getSuppressedValueText(tooltipConfig, String(valueFormat(axisBases[seriesConfig.seriesAxisConfig.id]!)));
+        const seriesBase = seriesBases[seriesConfig.id];
+        seriesValueText = getFilteredValueText(tooltipConfig,
+          seriesBase !== null && seriesBase !== undefined ? String(valueFormat(seriesBase)) : tooltipConfig.missingValueText);
       }
     }
     else {
@@ -59,84 +65,75 @@ function getValueText(tooltipConfig: TooltipConfig, seriesConfig: SeriesConfig, 
       seriesValueText = tooltipConfig.missingValueText;
     }
     else {
-      seriesValueText = getSuppressedValueText(tooltipConfig, tooltipConfig.missingValueText);
+      seriesValueText = getFilteredValueText(tooltipConfig, tooltipConfig.missingValueText);
     }
   }
   return seriesValueText;
 }
 
 /**
- * What a pie slice's tooltip value needs beyond its value: the content type,
- * the percent formatter and the slice's fraction. The caller picks the fraction
- * from the filtered or raw values (see TooltipContent), so the value and the
- * percentage in a combined value always come from the same snapshot.
+ * What a pie slice's tooltip value needs beyond its value: content type, percent formatter, slice
+ * fraction. The caller picks the fraction from the filtered or raw values (see TooltipContent),
+ * so a combined value's value and percentage always come from the same snapshot.
  */
 export interface PieTooltipValues {
-  tooltipValues: PieTooltipLabelType;
+  valueType: PieTooltipValueType;
   percentFormat: (fraction: number) => string;
   /** The slice's fraction, already chosen from the filtered or raw values. */
   fraction: number;
-  /** The slice's fraction of the full total, sizing a suppressed placeholder. */
+  /** The slice's fraction of the full total, sizing a filtered placeholder. */
   rawFraction: number;
-  /**
-   * Whether the slice is suppressed. A percentage is derived rather than stored
-   * per value key, so this comes from the row's filtered flag instead of the
-   * null filtered value getValueText tests.
-   */
-  suppressed: boolean;
+  /** Whether the slice is filtered — from the row's filtered flag, since a percentage
+   * is derived rather than stored per value key like the values getValueText tests. */
+  filtered: boolean;
 }
 
-function getPieValueText(tooltipConfig: TooltipConfig, seriesConfig: SeriesConfig, adjustForSuppression: boolean,
-  valueFormat: ValueFormatter, series: GroupSeriesSlice, pieValues: PieTooltipValues): string | null {
-  const { tooltipValues, percentFormat, fraction, rawFraction, suppressed } = pieValues;
+function getPieValueText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSeriesConfig, adjustForFiltering: boolean,
+  valueFormat: ValueFormatter, series: CategorySeriesSlice, pieValues: PieTooltipValues): string | null {
+  const { valueType, percentFormat, fraction, rawFraction, filtered } = pieValues;
 
   // No value means no row, whichever parts the type asks for — a bare "0.0%"
   // for a slice that has no value would read as a real zero share.
-  const valueText = getValueText(tooltipConfig, seriesConfig, adjustForSuppression, valueFormat, series, 'plain');
+  const valueText = getValueText(tooltipConfig, seriesConfig, adjustForFiltering, valueFormat, series, 'plain');
   if (valueText === null) {
     return null;
   }
 
-  // A suppressed slice's filtered fraction is 0, so show the same placeholder
+  // A filtered slice's filtered fraction is 0, so show the same placeholder
   // the values use, sized from the slice's share of the full total.
-  const percentText = adjustForSuppression && tooltipConfig.adjustForSuppression && suppressed ?
-    getSuppressedValueText(tooltipConfig, percentFormat(rawFraction)) : percentFormat(fraction);
+  const percentText = adjustForFiltering && tooltipConfig.adjustForFiltering && filtered ?
+    getFilteredValueText(tooltipConfig, percentFormat(rawFraction)) : percentFormat(fraction);
 
-  if (tooltipValues === PIE_LABEL_TYPE_PERCENT) {
+  if (valueType === PIE_TOOLTIP_VALUE_TYPE_PERCENT) {
     return percentText;
   }
-  return formatPieLabelType(tooltipValues, { title: getSeriesLabel(seriesConfig), value: valueText, percent: percentText });
+  return formatPieLabelType(valueType, { title: getSeriesLabel(seriesConfig), value: valueText, percent: percentText });
 }
 
-export function getSeriesText(tooltipConfig: TooltipConfig, seriesConfig: SeriesConfig, valueFormat: ValueFormatter, series: GroupSeriesSlice,
-  adjustForSuppression: boolean, pieValues?: PieTooltipValues) {
+export function getSeriesText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSeriesConfig, valueFormat: ValueFormatter, series: CategorySeriesSlice,
+  adjustForFiltering: boolean, pieValues?: PieTooltipValues) {
   const labelText = getSeriesLabel(seriesConfig);
 
   if (seriesConfig.tooltipProperty !== NONE) {
     return {
       labelText,
-      valueText: getValueText(tooltipConfig, seriesConfig, adjustForSuppression, valueFormat, series, 'tooltip')
+      valueText: getValueText(tooltipConfig, seriesConfig, adjustForFiltering, valueFormat, series, 'tooltip')
     };
   }
 
   // Pie slices are plain values, so the percentage-bearing types short-circuit
   // the range/marker/error composition below, which cannot apply to them. An
   // explicit per-series tooltipProperty still wins (above).
-  if (pieValues !== undefined && pieLabelTypeUsesPercent(pieValues.tooltipValues)) {
-    return { labelText, valueText: getPieValueText(tooltipConfig, seriesConfig, adjustForSuppression, valueFormat, series, pieValues) };
+  if (pieValues !== undefined && pieLabelTypeUsesPercent(pieValues.valueType)) {
+    return { labelText, valueText: getPieValueText(tooltipConfig, seriesConfig, adjustForFiltering, valueFormat, series, pieValues) };
   }
 
-  // Mirror the shape's skip semantics (see getSeriesPositionData): with
-  // skipPartialRange a ranged group missing either value is wholly missing,
-  // and skipMissing omits missing groups from the shape — and from the
-  // tooltip, instead of a dangling "value – N/A" row. This is the
-  // direction-split idiom (waterfall, candlestick, OHLC), where the missing
-  // side means "not this series' direction", not "no data". A plain follower
-  // series (followSeries — e.g. a direction-split volume bar) is part of the
-  // same idiom, so its missing groups hide the same way.
-  if (seriesConfig.skipMissing && seriesConfig.stack === NONE) {
+  // Mirror the shape's skip semantics (see getSeriesPositionData): under connect+partialRangeIsMissing
+  // the direction-split idiom (waterfall, candlestick, OHLC) means "not this direction", not "no data",
+  // so those rows (and plain followSeries rows, e.g. direction-split volume) hide instead of "value – N/A".
+  if (seriesConfig.missingValueMode === MISSING_VALUE_MODE_CONNECT && seriesConfig.stack === NONE) {
     const rawValueObject = series.raw.values[seriesConfig.id];
-    if (seriesConfig.rangeProperty !== NONE && seriesConfig.skipPartialRange &&
+    if (seriesConfig.rangeProperty !== NONE && seriesConfig.partialRangeIsMissing &&
       (rawValueObject.plain === undefined || rawValueObject.range === undefined)) {
       return { labelText, valueText: null };
     }
@@ -145,22 +142,22 @@ export function getSeriesText(tooltipConfig: TooltipConfig, seriesConfig: Series
     }
   }
 
-  const seriesValueText = getValueText(tooltipConfig, seriesConfig, adjustForSuppression, valueFormat, series, 'plain');
-  const rangeSeriesValueText = seriesConfig.rangeProperty !== NONE ? getValueText(tooltipConfig, seriesConfig, adjustForSuppression, valueFormat, series, 'range') : null;
-  const markerSeriesValueText = seriesConfig.markerProperty !== NONE ? getValueText(tooltipConfig, seriesConfig, adjustForSuppression, valueFormat, series, 'marker') : null;
+  const seriesValueText = getValueText(tooltipConfig, seriesConfig, adjustForFiltering, valueFormat, series, 'plain');
+  const rangeSeriesValueText = seriesConfig.rangeProperty !== NONE ? getValueText(tooltipConfig, seriesConfig, adjustForFiltering, valueFormat, series, 'range') : null;
+  const markerSeriesValueText = seriesConfig.markerProperty !== NONE ? getValueText(tooltipConfig, seriesConfig, adjustForFiltering, valueFormat, series, 'marker') : null;
   // An undefined error bound is a legitimate one-sided error bar, not missing
   // data, so it renders nothing rather than the missingValueText.
   const rawValueObject = series.raw.values[seriesConfig.id];
   const errorLowValueText = seriesConfig.errorLowProperty !== NONE && rawValueObject.errorLow !== undefined ?
-    getValueText(tooltipConfig, seriesConfig, adjustForSuppression, valueFormat, series, 'errorLow') : null;
+    getValueText(tooltipConfig, seriesConfig, adjustForFiltering, valueFormat, series, 'errorLow') : null;
   const errorHighValueText = seriesConfig.errorHighProperty !== NONE && rawValueObject.errorHigh !== undefined ?
-    getValueText(tooltipConfig, seriesConfig, adjustForSuppression, valueFormat, series, 'errorHigh') : null;
+    getValueText(tooltipConfig, seriesConfig, adjustForFiltering, valueFormat, series, 'errorHigh') : null;
 
   let valueText = null;
   if (seriesValueText !== null && rangeSeriesValueText !== null) {
     // A range whose two ends format identically collapses to the single value,
     // e.g. an OHLC open/close tick whose property and rangeProperty match.
-    valueText = rangeSeriesValueText === seriesValueText ? seriesValueText : rangeSeriesValueText + tooltipConfig.rangeValueText + seriesValueText;
+    valueText = rangeSeriesValueText === seriesValueText ? seriesValueText : rangeSeriesValueText + tooltipConfig.rangeValueSeparator + seriesValueText;
   }
   else if (seriesValueText !== null) {
     valueText = seriesValueText;
@@ -169,7 +166,7 @@ export function getSeriesText(tooltipConfig: TooltipConfig, seriesConfig: Series
     valueText = rangeSeriesValueText;
   }
   const errorValueText = errorLowValueText !== null && errorHighValueText !== null ?
-    errorLowValueText + tooltipConfig.rangeValueText + errorHighValueText :
+    errorLowValueText + tooltipConfig.rangeValueSeparator + errorHighValueText :
     (errorLowValueText ?? errorHighValueText);
   if (errorValueText !== null) {
     valueText = valueText === null ? '(' + errorValueText + ')' : valueText + ' (' + errorValueText + ')';
@@ -186,46 +183,59 @@ export function getSeriesText(tooltipConfig: TooltipConfig, seriesConfig: Series
   };
 }
 
-export function getSuppressedValue(chartData: ChartData, seriesConfig: SeriesConfig, valueObject: SeriesValueObject): SeriesValueObject {
-  let newValueObject = valueObject;
-  if (newValueObject.plain === null) {
-    newValueObject = {
-      plain: null,
-      range: null,
-      errorLow: null,
-      errorHigh: null,
-      stack: null,
-      prior: null,
-      marker: null,
-      label: null,
-      color: null,
-      tooltip: null,
-      markerCopyKey: null,
-      labelCopyKey: null,
-      colorCopyKey: null,
-      tooltipCopyKey: null,
-      min: null,
-      max: null
+/**
+ * The tooltip's content as one plain sentence for the keyboard aria-live announcer — "Jan: Sales:
+ * 42, Costs: 17" — mirroring TooltipContent's rows (category line, then every showInTooltip series
+ * whose row has a value), with pie percent values normalized like the slice labels.
+ */
+export function getTooltipAnnouncement(mochartConfig: EnhancedMochartConfig, tooltipValueObject: ChartCategorySeriesValueObject): string {
+  const { chart: chartConfig, pie: pieConfig, tooltip: tooltipConfig, categoryAxis: categoryAxisConfig,
+    valueAxes: valueAxisConfigs, series: seriesConfigs } = mochartConfig;
+  const { category, series } = tooltipValueObject;
+  const { raw, filtered, filteredFlags } = series;
+
+  const pieTooltipValueType = pieConfig.tooltip.valueType;
+  let piePercentFormat: ((fraction: number) => string) | null = null;
+  let rawFractions: Record<string, number> = {};
+  let adjustedFractions: Record<string, number> = {};
+  if (chartConfig.type === CHART_TYPE_PIE && pieLabelTypeUsesPercent(pieTooltipValueType)) {
+    piePercentFormat = getPieTooltipPercentFormat(pieConfig);
+    rawFractions = getPieSliceFractionMap(seriesConfigs, seriesId => raw.values[seriesId]?.plain);
+    adjustedFractions = tooltipConfig.adjustForFiltering ?
+      getPieSliceFractionMap(seriesConfigs, seriesId => filtered.values[seriesId]?.plain) : rawFractions;
+  }
+
+  let categoryPart = '';
+  if (tooltipConfig.showCategory) {
+    const categoryFormat = getCategoryFormat(categoryAxisConfig);
+    const categoryLabel = categoryAxisConfig.valueLabel !== NONE ? categoryAxisConfig.valueLabel + ': ' : '';
+    categoryPart = categoryLabel + String(categoryFormat(category.values.parsed!));
+  }
+
+  const rows: string[] = [];
+  const valueFormats = getSeriesFormats(seriesConfigs, valueAxisConfigs, raw.renderAxisDomains);
+  for (const seriesConfig of seriesConfigs) {
+    if (!seriesConfig.showInTooltip) {
+      continue;
+    }
+    const seriesId = seriesConfig.id;
+    const seriesIsFiltered = filteredFlags[seriesId];
+    if (seriesIsFiltered && !tooltipConfig.showFiltered) {
+      continue;
+    }
+    const pieValues: PieTooltipValues | undefined = piePercentFormat === null ? undefined : {
+      valueType: pieTooltipValueType, percentFormat: piePercentFormat,
+      fraction: adjustedFractions[seriesId] ?? 0, rawFraction: rawFractions[seriesId] ?? 0,
+      filtered: seriesIsFiltered
     };
-    let base = chartData.seriesData.axisBases[seriesConfig.seriesAxisConfig.id];
-    newValueObject.plain = chartData.groupData.values.raw.map(groupValue => groupValue !== undefined ? (base ?? undefined) : undefined);
-    if (seriesConfig.rangeProperty !== NONE && newValueObject.range === null) {
-      newValueObject.range = newValueObject.plain;
-    }
-    if (seriesConfig.errorLowProperty !== NONE && newValueObject.errorLow === null) {
-      newValueObject.errorLow = newValueObject.plain;
-    }
-    if (seriesConfig.errorHighProperty !== NONE && newValueObject.errorHigh === null) {
-      newValueObject.errorHigh = newValueObject.plain;
-    }
-    if (seriesConfig.markerProperty !== NONE&& newValueObject.marker === null) {
-      base = chartData.seriesData.raw.domains[seriesConfig.id]['marker'][0];
-      newValueObject.marker = chartData.groupData.values.raw.map(groupValue => groupValue !== undefined ? (base ?? undefined) : undefined);
-    }
-    if (seriesConfig.tooltipProperty !== NONE && newValueObject.tooltip === null) {
-      base = chartData.seriesData.raw.domains[seriesConfig.id]['tooltip'][0];
-      newValueObject.tooltip = chartData.groupData.values.raw.map(groupValue => groupValue !== undefined ? (base ?? undefined) : undefined);
+    const { labelText, valueText } = getSeriesText(tooltipConfig, seriesConfig, valueFormats[seriesId], series, true, pieValues);
+    if (valueText !== null) {
+      rows.push(labelText + valueText);
     }
   }
-  return newValueObject
+
+  if (categoryPart === '') {
+    return rows.join(', ');
+  }
+  return rows.length === 0 ? categoryPart : categoryPart + ': ' + rows.join(', ');
 }

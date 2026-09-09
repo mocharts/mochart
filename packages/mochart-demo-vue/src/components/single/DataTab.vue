@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { computed, h, ref, watch } from 'vue';
 
-import { applyDataEdit, buildMochartDemoConfig, collectUsedDataProperties, demoText, formatDataView, getJsonError, parseFullData } from '@mochart/demo-common';
+import { applyDataEdit, buildMochartDemoConfig, collectUsedDataProperties, controlsMenuPlacement, demoText, formatDataView, getCategoryProperty, getDemoTabPanelAttrs, getJsonError, parseFullData } from '@mochart/demo-common';
 
-import TextAreaContent from '../misc/TextAreaContent.vue';
+import JsonEditorContent from '../misc/JsonEditorContent.vue';
 import ButtonWithTooltip from '../misc/ButtonWithTooltip.vue';
 import Icon from '../misc/Icon.vue';
 import OverflowMenu from '../misc/OverflowMenu.vue';
 import { usePhoneViewport } from '../misc/usePhoneViewport';
 
-import type { DemoConfig, DataRow } from '../../types';
+import type { DemoConfig, DataObject } from '../../types';
 
 interface Props {
   active?: boolean;
   config: DemoConfig;
-  data: DataRow[];
-  onDataChange: (data: DataRow[]) => void;
+  data: DataObject[];
+  onDataChange: (data: DataObject[]) => void;
   onDataError: (errorMessage: string) => void;
   onDataReset: () => void;
 }
@@ -30,20 +30,20 @@ const props = withDefaults(defineProps<Props>(), {
 // with (null when every property is shown).
 const usedProperties = computed(() => collectUsedDataProperties(buildMochartDemoConfig(props.config).mochartConfig));
 const showUnused = ref(false);
-let fullData: DataRow[] = props.data;
+let fullData: DataObject[] = props.data;
 let viewUsedProperties: Set<string> | null = null;
 
 const dataText = ref('');
 const errorMessage = ref<string | null>(null);
 
-function renderView(fullRows: DataRow[]): void {
+function renderView(fullRows: DataObject[]): void {
   fullData = fullRows;
   viewUsedProperties = showUnused.value ? null : usedProperties.value;
   dataText.value = formatDataView(fullRows, viewUsedProperties);
 }
 
 function parseCurrentFullData(): ReturnType<typeof parseFullData> {
-  return parseFullData(dataText.value, fullData, viewUsedProperties);
+  return parseFullData(dataText.value, fullData, viewUsedProperties, getCategoryProperty(props.config));
 }
 
 renderView(props.data);
@@ -124,19 +124,21 @@ const ApplyButton = () => h(ButtonWithTooltip, {
   tooltipText: demoText.dataTab.apply.tooltip, tooltipPlacement: 'top-start',
   onClick: applyData, 'aria-label': demoText.dataTab.apply.aria
 }, iconChild('check'));
+
+const panelAttrs = getDemoTabPanelAttrs('data');
 </script>
 
 <template>
-  <div :class="'mochart-demo-tab-container demo-layout-col data' + (props.active ? ' active' : '')" :inert="!props.active">
+  <div v-bind="panelAttrs" :class="'mochart-demo-tab-container demo-layout-col data' + (props.active ? ' active' : '')" :inert="!props.active">
     <div class="mochart-demo-tab-content">
-      <TextAreaContent :value="dataText" :on-change="onTextChange" />
+      <JsonEditorContent :value="dataText" :ariaLabel="demoText.dataTab.editorAria" :on-change="onTextChange" />
     </div>
     <div class="mochart-demo-tab-footer" ref="footerElement">
-      <div class="demo-toolbar" role="toolbar">
+      <div class="demo-toolbar">
         <template v-if="isPhone">
           <ApplyButton />
           <OverflowMenu :text="demoText.overflowMenu.editor"
-                        :placement="{ side: 'top', align: 'end', gap: 4 }"
+                        :placement="controlsMenuPlacement"
                         :get-anchor="getFooterAnchor"
                         :active="props.active">
             <div class="demo-btn-group"><ResetButton /><UnusedButton /></div>

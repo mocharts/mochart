@@ -3,7 +3,7 @@ import type { AfterViewInit, OnDestroy } from '@angular/core';
 
 import { DefaultChart } from '@mochart/angular';
 
-import { configs, data, minWidth } from './rotationConfigs';
+import { getRotationGrid, rotationConfigs as configs, rotationData as data } from '@mochart/demo-common';
 
 import { createElementSize } from '../misc/element-size';
 import { TopBar } from '../misc/top-bar';
@@ -53,11 +53,11 @@ export class DemoRotation implements AfterViewInit, OnDestroy {
   }
 
   get cols(): number {
-    return Math.max(1, Math.floor(this.chartsWidth() / minWidth));
+    return getRotationGrid(this.chartsWidth()).cols;
   }
 
   get colWidth(): number {
-    return Math.floor(this.chartsWidth() / this.cols);
+    return getRotationGrid(this.chartsWidth()).colWidth;
   }
 
   left(i: number): number {

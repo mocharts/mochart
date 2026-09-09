@@ -2,7 +2,10 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import { getMenuPosition, watchMenuDismiss, createMenuController } from '../src/menu';
+import {
+  getMenuPosition, watchMenuDismiss, createMenuController, isMenuDismissingClick,
+  navMenuPlacement, controlsMenuPlacement, notesMenuPlacement, menuKeepOpenClassName
+} from '../src/menu';
 import type { MenuAnchorRect } from '../src/menu';
 
 const viewport = { width: 1000, height: 800 };
@@ -145,7 +148,7 @@ describe('watchMenuDismiss', () => {
     expect(onDismiss).not.toHaveBeenCalled();
   });
 
-  it('does not rely on mousedown, which touch handlers can suppress', () => {
+  it('does not rely on mousedown, which touch handlers can filter', () => {
     outside.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     expect(onDismiss).not.toHaveBeenCalled();
   });
@@ -394,5 +397,54 @@ describe('createMenuController', () => {
     // The dismissal listeners went with it: nothing left to fire.
     outside.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
     expect(controller.isOpen()).toBe(false);
+  });
+});
+
+describe('isMenuDismissingClick', () => {
+  let panel: HTMLElement;
+  let outside: HTMLElement;
+
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <div id="panel">
+        <button id="action"><span id="glyph"></span></button>
+        <a id="link">docs</a>
+        <div class="${menuKeepOpenClassName}"><button id="stepper"></button></div>
+        <label id="label">rate</label>
+      </div>
+      <button id="outside"></button>`;
+    panel = document.getElementById('panel')!;
+    outside = document.getElementById('outside')!;
+  });
+
+  it('dismisses on a button or link, even when the press lands on a child', () => {
+    expect(isMenuDismissingClick(document.getElementById('glyph'), panel)).toBe(true);
+    expect(isMenuDismissingClick(document.getElementById('link'), panel)).toBe(true);
+  });
+
+  it('leaves the menu open for a keep-open subtree and for non-actionable targets', () => {
+    expect(isMenuDismissingClick(document.getElementById('stepper'), panel)).toBe(false);
+    expect(isMenuDismissingClick(document.getElementById('label'), panel)).toBe(false);
+    expect(isMenuDismissingClick(null, panel)).toBe(false);
+  });
+
+  it('rejects an actionable found outside the panel when one is given', () => {
+    expect(isMenuDismissingClick(outside, panel)).toBe(false);
+    // Without a panel the rule is target-only, which is what the reactive ports pass.
+    expect(isMenuDismissingClick(outside)).toBe(true);
+  });
+});
+
+describe('the shared placements', () => {
+  it('open away from the edge their trigger sits on', () => {
+    expect(navMenuPlacement.side).toBe('bottom');
+    expect(controlsMenuPlacement.side).toBe('top');
+    expect(notesMenuPlacement.side).toBe('bottom');
+  });
+
+  it('give the notes panel the width demo.css will render it at', () => {
+    // A closed panel measures 0, so the left-edge clamp is told the stylesheet's number.
+    const position = getMenuPosition({ top: 40, bottom: 70, left: 900, right: 960 }, viewport, notesMenuPlacement);
+    expect(position.left).toBe(1000 - 340 - 6);
   });
 });

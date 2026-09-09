@@ -6,7 +6,7 @@ import { defaultChart } from '@mochart/lit';
 import { LightElement } from '../misc/LightElement';
 import '../misc/top-bar';
 
-import { configs, data, minWidth } from './rotationConfigs';
+import { getRotationGrid, rotationConfigs as configs, rotationData as data } from '@mochart/demo-common';
 
 @customElement('demo-rotation')
 export class DemoRotation extends LightElement {
@@ -38,8 +38,7 @@ export class DemoRotation extends LightElement {
   }
 
   override render(): unknown {
-    const cols = Math.max(1, Math.floor(this.chartsWidth / minWidth));
-    const colWidth = Math.floor(this.chartsWidth / cols);
+    const { cols, colWidth } = getRotationGrid(this.chartsWidth);
     return html`<div class="mochart-demo-container">
       <top-bar .siteRootUrl=${this.siteRootUrl} .onBackToDemos=${this.onBackToDemos}></top-bar>
       <div class="rotation-charts">

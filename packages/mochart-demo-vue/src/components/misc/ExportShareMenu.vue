@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue';
 
-import { buildShareUrl, demoText } from '@mochart/demo-common';
+import { controlsMenuPlacement, createShareLinkCopier, demoText } from '@mochart/demo-common';
 import type { ShareState } from '@mochart/demo-common';
 
 import Icon from './Icon.vue';
@@ -17,9 +17,8 @@ import { useMenu } from './useMenu';
 // including the reason any of it is hand-rolled (the controls strips clip an
 // absolutely-positioned dropdown, and the chart's interaction rect eats clicks
 // through anything stacked below it). What stays here is what the composable
-// does not know about: the items, the copied-link feedback, and `disabled`.
+// does not know about: the items, their copied label, and `disabled`.
 interface Props {
-  idPrefix: string;
   exportPng: () => void;
   exportSvg: () => void;
   /** Omit to hide the Share item (e.g. a chart whose state isn't shareable). */
@@ -39,16 +38,11 @@ const props = withDefaults(defineProps<Props>(), {
   active: true
 });
 
-const copiedFeedbackMs = 1500;
-
 const copied = ref(false);
-let revertTimer: ReturnType<typeof setTimeout> | null = null;
+const shareLinkCopier = createShareLinkCopier(nextCopied => { copied.value = nextCopied; });
 
-// Opens upward (the controls row sits at the bottom of the pane) and
-// right-aligned (the trigger is the last control in the row).
 const { open, close, setTrigger, setPanel, triggerProps, panelProps, isPositioned } = useMenu({
-  placement: { side: 'top', align: 'end', gap: 4 },
-  triggerId: props.idPrefix + '-export-share'
+  placement: controlsMenuPlacement
 });
 
 // A disabled trigger fires no click, so the menu cannot be opened — but one
@@ -59,11 +53,7 @@ watch(() => [props.disabled, props.active], () => {
   }
 });
 
-onBeforeUnmount(() => {
-  if (revertTimer !== null) {
-    clearTimeout(revertTimer);
-  }
-});
+onBeforeUnmount(() => shareLinkCopier.dispose());
 
 function runAndClose(action: () => void) {
   action();
@@ -74,24 +64,13 @@ function onShare() {
   if (!props.getShareState) {
     return;
   }
-  const url = buildShareUrl(props.getShareState());
-  navigator.clipboard.writeText(url).then(() => {
-    copied.value = true;
-    if (revertTimer !== null) {
-      clearTimeout(revertTimer);
-    }
-    revertTimer = setTimeout(() => { copied.value = false; revertTimer = null; }, copiedFeedbackMs);
-  }, () => {
-    // Clipboard access can be unavailable (e.g. insecure context); let the
-    // user copy the link manually instead of failing silently.
-    window.prompt(demoText.shareButton.tooltip, url);
-  });
+  shareLinkCopier.copy(props.getShareState());
   close();
 }
 </script>
 
 <template>
-  <div class="demo-btn-group demo-menu-up mochart-export-share-menu">
+  <div class="demo-btn-group mochart-export-share-menu">
     <button :ref="setTrigger" type="button" v-bind="triggerProps"
             :class="'demo-btn demo-btn-secondary demo-menu-trigger' + (open ? ' active' : '')"
             :disabled="props.disabled"
@@ -101,15 +80,15 @@ function onShare() {
     <div :ref="setPanel" v-bind="panelProps"
          :class="'demo-menu' + (isPositioned ? ' open' : '')">
       <button type="button" class="demo-menu-item" :aria-label="demoText.exportButtons.png.aria" @click="runAndClose(props.exportPng)">
-        <Icon :fixed-width="true" name="file-image" /> <span class="mochart-menu-item-label">{{ demoText.exportButtons.png.label }}</span>
+        <Icon :fixed-width="true" name="file-image" /> <span>{{ demoText.exportButtons.png.label }}</span>
       </button>
       <button type="button" class="demo-menu-item" :aria-label="demoText.exportButtons.svg.aria" @click="runAndClose(props.exportSvg)">
-        <Icon :fixed-width="true" name="file-code" /> <span class="mochart-menu-item-label">{{ demoText.exportButtons.svg.label }}</span>
+        <Icon :fixed-width="true" name="file-code" /> <span>{{ demoText.exportButtons.svg.label }}</span>
       </button>
       <template v-if="props.getShareState">
         <div class="demo-menu-divider"></div>
         <button type="button" class="demo-menu-item" :aria-label="demoText.shareButton.aria" @click="onShare">
-          <Icon :fixed-width="true" :name="copied ? 'check' : 'link'" /> <span class="mochart-menu-item-label">{{ copied ? demoText.shareButton.tooltipCopied : demoText.shareButton.label }}</span>
+          <Icon :fixed-width="true" :name="copied ? 'check' : 'link'" /> <span>{{ copied ? demoText.shareButton.tooltipCopied : demoText.shareButton.label }}</span>
         </button>
       </template>
     </div>

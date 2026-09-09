@@ -5,7 +5,8 @@ import type { SpacingLayoutInfo } from '../types/layout';
 interface LegendClipProps {
   legendConfig: LegendConfig;
   chartContentLayoutInfo: SpacingLayoutInfo;
-  legendItemTextLayoutInfo: SpacingLayoutInfo;
+  // undefined when the layout placed no legend (no series)
+  legendItemTextLayoutInfo: SpacingLayoutInfo | undefined;
   legendClipPathUniqueId: string;
 }
 
@@ -20,7 +21,7 @@ export default class LegendClip extends Renderer<LegendClipProps> {
 
   sync() {
     const { legendConfig, chartContentLayoutInfo, legendItemTextLayoutInfo, legendClipPathUniqueId } = this.props;
-    if (legendConfig.visible && legendConfig.truncationEnabled) {
+    if (legendConfig.visible && legendConfig.truncation.enabled && legendItemTextLayoutInfo !== undefined) {
       const { y, height } = chartContentLayoutInfo;
       const { x, width } = legendItemTextLayoutInfo;
 

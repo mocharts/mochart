@@ -1,12 +1,13 @@
 import type { Type } from '@angular/core';
+import type { DataProvider, MochartConfig } from '@mochart/core';
 
 /** Props mochart passes to placeholder components (loading, error, and empty states). */
 export interface PlaceholderProps {
   width?: number;
   height?: number;
-  mochartConfig?: any;
-  dataProvider?: any;
-  error?: any;
+  mochartConfig?: MochartConfig | null;
+  dataProvider?: DataProvider | null;
+  error?: unknown;
   hasData?: boolean;
 }
 

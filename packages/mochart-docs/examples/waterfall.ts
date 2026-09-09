@@ -16,10 +16,11 @@ const waterfall = createWaterfall([
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Income Statement (fictional, $k)' },
-  groupAxisConfig: waterfall.groupAxisConfig,
-  seriesAxisConfigs: [{ title: '$ thousands' }],
-  seriesConfigs: waterfall.seriesConfigs
+  title: { text: 'Income Statement (fictional, $k)' },
+  categoryAxis: waterfall.categoryAxis,
+  // the returned fragment carries the axis base; merge your own settings over it
+  valueAxes: [{ ...waterfall.valueAxes[0], title: { text: '$ thousands' } }],
+  series: waterfall.series
 };
 
 export const data = waterfall.data;

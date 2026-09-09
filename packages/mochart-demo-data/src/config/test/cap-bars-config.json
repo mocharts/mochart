@@ -1,52 +1,72 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Capped Bars"
+  "title": {
+    "text": "Capped Bars"
   },
-  "animationConfig": {
-    "animate": true,
+  "animation": {
+    "enabled": true,
     "expansionDuration": 1500,
     "initialDuration": 8000,
     "valueChangeDuration": 8000,
-    "collapseDuration": 1500,
+    "contractionDuration": 1500,
     "focusDuration": 800
   },
-  "groupAxisConfig": {
-    "before": false,
-    "title": "Date",
-    "axisLine": true,
-    "axisLineMargin": 0,
-    "gridLines": true,
-    "tickLabelRotation": 45,
+  "categoryAxis": {
+    "title": {
+      "text": "Date"
+    },
+    "axisLine": {
+      "visible": true,
+      "marginInner": 0
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "tickLabel": {
+      "rotation": 45
+    },
     "tickCount": 12,
     "type": "date",
     "scale": "ordinal",
     "dateUTC": true,
-    "valueLabel": "Group",
-    "property": "date"
+    "valueLabel": "Category",
+    "property": "date",
+    "side": "end"
   },
-  "seriesAxisConfigs": {
-    "before": true,
+  "valueAxes": {
     "visible": true,
-    "axisLineMargin": 0,
-    "gridLines": true,
-    "tickLabelFormat": "$s",
-    "title": "Monthly Amount",
+    "axisLine": {
+      "marginInner": 0
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "tickLabel": {
+      "format": "$s"
+    },
+    "title": {
+      "text": "Monthly Amount"
+    },
     "min": -5000,
-    "max": 5000
+    "max": 5000,
+    "side": "start"
   },
-  "seriesStackConfigs": {},
-  "seriesAllConfig": {
+  "seriesStacks": {},
+  "seriesDefaults": {
     "renderer": "bar",
-    "markerShape": null
+    "marker": {
+      "shape": null
+    }
   },
-  "seriesConfigs": [
+  "series": [
     {
       "title": "Round",
       "property": "value1",
-      "capSize": 15,
-      "capType": "round",
-      "capExpand": false,
+      "cap": {
+        "size": 15,
+        "type": "round",
+        "expand": false
+      },
       "shapeStyle": {
         "normal": {
           "strokeColor": "#1f77b4",
@@ -57,9 +77,11 @@
     {
       "title": "Round Expand",
       "property": "value1",
-      "capSize": 15,
-      "capType": "round",
-      "capExpand": true,
+      "cap": {
+        "size": 15,
+        "type": "round",
+        "expand": true
+      },
       "shapeStyle": {
         "normal": {
           "strokeColor": "#aec7e8",
@@ -70,9 +92,11 @@
     {
       "title": "Curve",
       "property": "value2",
-      "capSize": 15,
-      "capType": "curve",
-      "capExpand": false,
+      "cap": {
+        "size": 15,
+        "type": "curve",
+        "expand": false
+      },
       "shapeStyle": {
         "normal": {
           "strokeColor": "#ff7f0e",
@@ -83,9 +107,11 @@
     {
       "title": "Curve Expand",
       "property": "value2",
-      "capSize": 15,
-      "capType": "curve",
-      "capExpand": true,
+      "cap": {
+        "size": 15,
+        "type": "curve",
+        "expand": true
+      },
       "shapeStyle": {
         "normal": {
           "strokeColor": "#ffbb78",
@@ -96,9 +122,11 @@
     {
       "title": "Point",
       "property": "value3",
-      "capSize": 15,
-      "capType": "point",
-      "capExpand": false,
+      "cap": {
+        "size": 15,
+        "type": "point",
+        "expand": false
+      },
       "shapeStyle": {
         "normal": {
           "strokeColor": "#2ca02c",
@@ -109,9 +137,11 @@
     {
       "title": "Point Expand",
       "property": "value3",
-      "capSize": 15,
-      "capType": "point",
-      "capExpand": true,
+      "cap": {
+        "size": 15,
+        "type": "point",
+        "expand": true
+      },
       "shapeStyle": {
         "normal": {
           "strokeColor": "#98df8a",
@@ -122,8 +152,10 @@
     {
       "title": "None",
       "property": "value4",
-      "capSize": 15,
-      "capType": null,
+      "cap": {
+        "size": 15,
+        "type": null
+      },
       "shapeStyle": {
         "normal": {
           "strokeColor": "#d62728",

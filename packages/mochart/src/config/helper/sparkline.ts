@@ -32,12 +32,14 @@ export function createSparklineConfig(config: MochartInputConfig, options: Creat
   const padding = options.padding ?? 2;
   return {
     ...config,
-    chartConfig: { margin: uniform(0), padding: uniform(padding), ...config.chartConfig },
-    legendConfig: { visible: false, ...config.legendConfig },
-    tooltipConfig: { visible: interactive, ...config.tooltipConfig },
-    crosshairConfig: { visible: interactive, ...config.crosshairConfig },
-    groupAxisConfig: { visible: false, ...config.groupAxisConfig },
-    seriesAxisAllConfig: { visible: false, ...config.seriesAxisAllConfig },
-    seriesAllConfig: { markerShape: null, ...config.seriesAllConfig }
+    // per side, so a partial margin or padding falls back to the sparkline's sides, not the chart defaults'
+    chart: { ...config.chart, margin: { ...uniform(0), ...config.chart?.margin }, padding: { ...uniform(padding), ...config.chart?.padding } },
+    legend: { visible: false, ...config.legend },
+    tooltip: { visible: interactive, ...config.tooltip },
+    crosshair: { visible: interactive, ...config.crosshair },
+    categoryAxis: { visible: false, ...config.categoryAxis },
+    // the base line draws in the plot, not the axis band, so hiding the axis does not hide it
+    valueAxisDefaults: { visible: false, ...config.valueAxisDefaults, baseLine: { visible: false, ...config.valueAxisDefaults?.baseLine } },
+    seriesDefaults: { ...config.seriesDefaults, marker: { shape: null, ...config.seriesDefaults?.marker } }
   };
 }

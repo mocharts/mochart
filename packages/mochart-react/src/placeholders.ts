@@ -1,7 +1,7 @@
 import { createElement } from 'react';
-import { createRoot } from 'react-dom/client';
-import type { Root } from 'react-dom/client';
-import type { PlaceholderComponent, PlaceholderProps } from './types';
+import { createPortal } from 'react-dom';
+import type { ReactPortal } from 'react';
+import type { PlaceholderComponent, PlaceholderProps } from './types.js';
 
 // Maps the wrapper's component props to the core's DOM-factory prop names.
 const FACTORY_PROP_NAMES: Record<string, string> = {
@@ -15,25 +15,45 @@ const FACTORY_PROP_NAMES: Record<string, string> = {
 
 interface PlaceholderSlot {
   component: PlaceholderComponent;
+  context: PlaceholderProps | null;
   container: HTMLDivElement;
-  root: Root;
+  /** False once the core has dropped the container from the chart; the portal goes with it. */
+  attached: boolean;
   factory: (context: PlaceholderProps) => Node;
 }
 
 export interface PlaceholderAdapter {
   transform(props: Record<string, any>): Record<string, any>;
-  destroy(): void;
+  /** Watches the chart host so a slot the core detaches (chart left that state) unmounts its component; returns the stop function. */
+  attach(host: Element): () => void;
+  // property signatures: these are passed unbound to useSyncExternalStore
+  subscribe: (listener: () => void) => () => void;
+  getPortals: () => ReactPortal[];
 }
 
 /**
  * Adapts placeholder component props into the DOM-node factories the core
- * expects: each slot keeps one persistent React root whose container div is
- * returned from the factory, so repeat factory calls re-render in place. The
- * factory identity is stable per slot; component changes flow through
- * `transform` and take effect on the next factory call.
+ * expects: each slot keeps one persistent container div the factory returns
+ * synchronously, and the component renders into it through a portal from the
+ * host tree — so placeholders inherit the host app's context providers. The
+ * host subscribes and re-renders `getPortals()` whenever a slot changes.
  */
 export function createPlaceholderAdapter(): PlaceholderAdapter {
   const slots = new Map<string, PlaceholderSlot>();
+  const listeners = new Set<() => void>();
+  let portals: ReactPortal[] = [];
+
+  function notify(): void {
+    portals = [];
+    for (const [propName, slot] of slots) {
+      if (slot.context && slot.attached) {
+        portals.push(createPortal(createElement(slot.component, slot.context), slot.container, propName));
+      }
+    }
+    for (const listener of listeners) {
+      listener();
+    }
+  }
 
   function getSlot(propName: string, component: PlaceholderComponent): PlaceholderSlot {
     let slot = slots.get(propName);
@@ -43,17 +63,26 @@ export function createPlaceholderAdapter(): PlaceholderAdapter {
       container.style.display = 'contents';
       slot = {
         component,
+        context: null,
         container,
-        root: createRoot(container),
+        attached: false,
         factory: (context: PlaceholderProps) => {
           const current = slots.get(propName)!;
-          current.root.render(createElement(current.component, context));
+          current.context = context;
+          // the core appends the returned container right after this call
+          current.attached = true;
+          notify();
           return current.container;
         }
       };
       slots.set(propName, slot);
     }
-    slot.component = component;
+    if (slot.component !== component) {
+      slot.component = component;
+      if (slot.context) {
+        notify();
+      }
+    }
     return slot;
   }
 
@@ -65,18 +94,45 @@ export function createPlaceholderAdapter(): PlaceholderAdapter {
         delete out[propName];
         if (component) {
           out[FACTORY_PROP_NAMES[propName]] = getSlot(propName, component).factory;
+        } else {
+          const slot = slots.get(propName);
+          if (slot?.context) {
+            slot.context = null;
+            notify();
+          }
         }
       }
       return out;
     },
-    destroy(): void {
-      for (const slot of slots.values()) {
-        const { root } = slot;
-        // Host destroy runs inside a React effect cleanup, where React forbids
-        // synchronously unmounting another root — defer past the commit.
-        queueMicrotask(() => root.unmount());
+    attach(host: Element): () => void {
+      if (typeof MutationObserver === 'undefined') {
+        return () => {};
       }
-      slots.clear();
+      const observer = new MutationObserver(() => {
+        let changed = false;
+        for (const slot of slots.values()) {
+          // containment, not isConnected: a chart hosted in a detached tree still owns its placeholders
+          const attached = host.contains(slot.container);
+          if (slot.context && attached !== slot.attached) {
+            slot.attached = attached;
+            changed = true;
+          }
+        }
+        if (changed) {
+          notify();
+        }
+      });
+      observer.observe(host, { childList: true, subtree: true });
+      return () => observer.disconnect();
+    },
+    subscribe(listener: () => void): () => void {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    getPortals(): ReactPortal[] {
+      return portals;
     }
   };
 }

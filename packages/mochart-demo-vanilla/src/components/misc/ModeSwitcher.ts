@@ -2,19 +2,13 @@
 // Single/Multi/Random mode switcher. Transition/rotation are standalone
 // gallery pages, not modes, so they don't appear here.
 
-import { demoText, getAvailableDemoModes, initTheme, isPhoneViewport, watchPhoneViewport } from '@mochart/demo-common';
+import { demoModeIcons, demoText, getAvailableDemoModes, initTheme, isPhoneViewport, watchPhoneViewport } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import { el, icon } from './dom';
 
 // One controller for the whole app; every view's toggle button shares it.
 const theme = initTheme();
-
-const modeIcons: Record<SwitchableDemoMode, string> = {
-  single: 'pen-to-square',
-  multi: 'window-restore',
-  random: 'shuffle'
-};
 
 export interface ModeSwitcherProps {
   demoMode: SwitchableDemoMode;
@@ -27,31 +21,25 @@ export interface ModeSwitcherHandle {
 }
 
 export function modeSwitcher(props: ModeSwitcherProps): ModeSwitcherHandle {
-  const toolbar = el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } });
+  // A named group, not a toolbar: the segments are three independently tabbable
+  // buttons with no arrow-key handling, and the name is what makes "Single" read
+  // as a mode rather than a verb.
+  const group = el('div', {
+    className: 'demo-toolbar',
+    attrs: { role: 'group', 'aria-label': demoText.modeSwitcher.groupAria }
+  });
 
-  // Which modes exist depends on the width (Multi is out on a phone), so the
-  // row is rebuilt when the viewport crosses the breakpoint rather than built
-  // once at mount.
-  //
-  // How the current mode is marked depends on the width as well, because on a
-  // phone this whole switcher is folded into the navigation row's overflow menu
-  // and the segmented control's own idiom stops working there. In the strip the
-  // current mode is a filled, disabled segment — plainly "you are here". As a
-  // full-width menu row, `.demo-menu-overflow .demo-btn:disabled` greys it out
-  // (and outranks the panel's selected tint), and a greyed row in a list of
-  // destinations reads as unavailable rather than as current. So on a phone it
-  // is marked with the panel's own `.active` tint plus `aria-current`, and is
-  // simply inert when tapped.
+  // Rebuilt when the viewport crosses the breakpoint; the current mode is a filled disabled segment in the strip, but gets the `.active` tint (inert, not disabled-grey) in the phone overflow menu.
   function render(isPhone: boolean): void {
-    toolbar.replaceChildren(...getAvailableDemoModes(isPhone).map(mode => {
+    group.replaceChildren(...getAvailableDemoModes(isPhone).map(mode => {
       const current = mode === props.demoMode;
       const { label, title } = demoText.modeSwitcher.modes[mode];
       const button = el('button', {
         className: 'demo-btn demo-btn-' + (current ? 'primary' : 'secondary')
           + (current && isPhone ? ' active' : ''),
-        attrs: { type: 'button', title, 'aria-current': current && isPhone ? 'true' : undefined }
+        attrs: { type: 'button', title, 'aria-current': current ? 'page' : undefined }
       }, [
-        icon(modeIcons[mode], { size: 'lg', fixedWidth: true }),
+        icon(demoModeIcons[mode], { size: 'lg', fixedWidth: true }),
         el('span', { className: 'btn-label', text: label })
       ]);
       button.disabled = current && !isPhone;
@@ -70,7 +58,7 @@ export function modeSwitcher(props: ModeSwitcherProps): ModeSwitcherHandle {
   return {
     el: el('div', { className: 'mochart-demo-mode-switcher' }, [
       el('span', { className: 'demo-label', text: demoText.modeSwitcher.label }),
-      toolbar
+      group
     ]),
     destroy() {
       unwatchViewport();
@@ -145,15 +133,6 @@ export function themeToggle(): ThemeToggleHandle {
   button.addEventListener('click', () => theme.toggle());
   const unsubscribe = theme.onChange(render);
   return { el: button, destroy: unsubscribe };
-}
-
-/**
- * Element-only form, for the one caller that cannot use the handle: the gallery
- * header, whose own component returns `{ el }` and has no teardown at all to
- * hang an unsubscribe on. Every other caller should take `themeToggle()`.
- */
-export function themeToggleButton(): HTMLElement {
-  return themeToggle().el;
 }
 
 export function backToDemosButton(onBackToDemos: () => void): HTMLElement {

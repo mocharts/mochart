@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { getSeriesTitle, getSeriesLabel, labelSuffix, noLabel } from '../../src/utils/SeriesTitle';
-import type { SeriesConfig } from '../../src/types/config';
+import type { EnhancedSeriesConfig } from '../../src/types/enhanced';
+
 
 // Only a handful of fields are read; cast a partial to keep fixtures small.
-const series = (over: Partial<SeriesConfig>): SeriesConfig => over as SeriesConfig;
+const series = (over: Partial<EnhancedSeriesConfig>): EnhancedSeriesConfig => over as EnhancedSeriesConfig;
 
 describe('getSeriesTitle', () => {
   it('uses the explicit title when set', () => {

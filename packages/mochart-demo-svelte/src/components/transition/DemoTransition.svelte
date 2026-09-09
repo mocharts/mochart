@@ -4,6 +4,7 @@
 
   import TransitionChartTab from './TransitionChartTab.svelte';
   import TransitionConfigTab from './TransitionConfigTab.svelte';
+  import DemoTabs from '../misc/DemoTabs.svelte';
   import TopBar from '../misc/TopBar.svelte';
 
   import type { TransitionConfig } from '../../types';
@@ -44,18 +45,11 @@
 <div class="mochart-demo-container multi">
   <TopBar {siteRootUrl} {onBackToDemos}>
     {#snippet tabs()}
-      <li class="demo-tab-item">
-        <button type="button" class={"demo-tab" + (activeKey === eventKeyChart ? " active" : "")}
-                onclick={() => handleSelect(eventKeyChart)}>
-          {demoText.tabs.chart}
-        </button>
-      </li>
-      <li class="demo-tab-item">
-        <button type="button" class={"demo-tab" + (activeKey === eventKeyConfig ? " active" : "")}
-                onclick={() => handleSelect(eventKeyConfig)}>
-          {demoText.tabs.transitionConfig}
-        </button>
-      </li>
+      <DemoTabs {activeKey} onSelect={handleSelect}
+                tabs={[
+                  { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart },
+                  { name: 'config', key: eventKeyConfig, label: demoText.tabs.transitionConfig }
+                ]} />
     {/snippet}
   </TopBar>
   <div class="mochart-demo-content-pane">

@@ -5,16 +5,22 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    // no development customConditions: this package enables noUncheckedIndexedAccess, which the
+    // workspace sources don't satisfy — types resolve through the built dist like the doc generators do
+
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    // the config chain uses explicit .ts extensions for Vite's native configLoader
+    "allowImportingTsExtensions": true
   },
   "include": [
     ".vitepress/**/*.ts",
+    "reference/**/*.ts",
     "examples/**/*.ts",
     "scripts/**/*.ts",
     "env.d.ts"

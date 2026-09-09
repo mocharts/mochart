@@ -6,6 +6,7 @@ import { buildMochartDemoConfig, demoText } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import { LightElement } from '../misc/LightElement';
+import { demoTabs } from '../misc/demo-tabs';
 import '../misc/top-bar';
 import './random-content';
 
@@ -58,19 +59,20 @@ export class DemoRandom extends LightElement {
     this.activeKey = nextActiveKey;
   }
 
-  private renderTab(eventKey: number, label: string): unknown {
-    return html`<li class="demo-tab-item">
-      <button type="button" class=${'demo-tab' + (this.activeKey === eventKey ? ' active' : '')}
-              @click=${() => this.handleSelect(eventKey)}>${label}</button>
-    </li>`;
-  }
-
   override render(): unknown {
     return html`<div class="mochart-demo-container multi">
       <top-bar .siteRootUrl=${this.siteRootUrl} .onBackToDemos=${this.onBackToDemos}
                .notes=${this.demoData.demoObjectMap[this.initialDemoId]}
                .modes=${{ demoMode: 'random' as const, onModeChanged: this.onModeChanged }}
-               .tabs=${() => html`${this.renderTab(eventKeyChart, demoText.tabs.chart)}${this.renderTab(eventKeyConfig, demoText.tabs.randomConfig)}${this.renderTab(eventKeyData, demoText.tabs.data)}`}></top-bar>
+               .tabs=${() => demoTabs({
+                 activeKey: this.activeKey,
+                 onSelect: (key: number) => this.handleSelect(key),
+                 tabs: [
+                   { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart },
+                   { name: 'config', key: eventKeyConfig, label: demoText.tabs.randomConfig },
+                   { name: 'data', key: eventKeyData, label: demoText.tabs.data }
+                 ]
+               })}></top-bar>
       <div class="mochart-demo-content-pane">
         <random-content
             .mochartDemoConfig=${this.mochartDemoConfig!} .initialRandomConfig=${this.randomConfig!} .generator=${this.generator}

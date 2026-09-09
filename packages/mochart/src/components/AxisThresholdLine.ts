@@ -1,14 +1,16 @@
 import { Renderer, svgEl, textEl } from '../render';
 
 import { translate, translateRotate } from '../utils/utils';
-import { NONE, SCALE_LINEAR, TYPE_DATE } from '../config/core/constants';
+import { mochartCssClasses } from '../utils/ChartDom';
+import { styleToAttributes } from '../utils/style';
+import { NONE, SCALE_LINEAR, SIDE_START, TITLE_SIDE_LOW, TYPE_DATE } from '../config/core/constants';
 import type { El, TextEl } from '../render';
 import type { AxisConfigBase } from '../types/config';
+import type { ResolvedThreshold } from '../config/defaults/axisConfig';
 import type { DataType, Scale } from '../config/core/constants';
 import type { AxisLayoutInfo, LayoutInfo } from '../types/layout';
-import type { MarginPadding } from '../types/geometry';
 
-type ThresholdTitleEl = El & { textHandle: El; valueHandle: TextEl };
+type ThresholdTitleEl = El & { backgroundHandle: El; textHandle: El; valueHandle: TextEl };
 
 export type ThresholdAxisConfig = AxisConfigBase & {
   scale: Scale;
@@ -16,23 +18,23 @@ export type ThresholdAxisConfig = AxisConfigBase & {
   useSeriesFocus?: boolean;
 };
 
-interface AxisThresholdLineProps {
+export interface AxisThresholdLineProps {
   axisConfig: ThresholdAxisConfig;
-  threshold: number | null;
+  threshold: ResolvedThreshold;
+  thresholdIndex: number;
   axisDomain: [number | Date | null, number | Date | null];
   seriesLayoutInfo: LayoutInfo;
   axisLayoutInfo: AxisLayoutInfo;
   axisThresholdLineClass: string;
   stroke: string | null;
   strokeOpacity: number | null;
-  strokeWidth: number;
+  strokeWidth: number | null;
   strokeDashArray: string | null;
   vertical: boolean;
-  thresholdTitle: string | null;
-  thresholdTitleBefore: boolean;
-  thresholdTitleSnapToValue: boolean;
-  thresholdTitleMargin: MarginPadding;
-  thresholdTitlePadding: MarginPadding;
+  /** Whether the axis's pixel position grows with the value along its direction. */
+  ascending: boolean;
+  /** Where the domain's min and max sit along the plot, as fractions: a category axis insets its range by half a category slot. */
+  positionRange: [number, number];
   titleStroke: string | null;
   titleStrokeOpacity: number | null;
   titleStrokeWidth: number | null;
@@ -55,32 +57,40 @@ export default class AxisThresholdLine extends Renderer<AxisThresholdLineProps> 
   sync() {
     const { axisConfig, threshold, axisDomain } = this.props;
     const { scale, type } = axisConfig;
-    const thresholdValue = type === TYPE_DATE && threshold !== null ? new Date(threshold) : threshold;
+    const rawValue = threshold.value;
+    const thresholdValue = type === TYPE_DATE ? new Date(rawValue) : (typeof rawValue === 'number' ? rawValue : Number(rawValue));
     const domainMin = axisDomain[0]?.valueOf();
     const domainMax = axisDomain[1]?.valueOf();
     const numericThreshold = thresholdValue?.valueOf();
-    if (scale === SCALE_LINEAR && threshold !== NONE && numericThreshold !== undefined && domainMin !== undefined && domainMax !== undefined && domainMin !== domainMax && numericThreshold >= domainMin && numericThreshold <= domainMax) {
-      const { seriesLayoutInfo, axisThresholdLineClass, stroke, strokeOpacity, strokeWidth, strokeDashArray, vertical } = this.props;
-      const thresholdPercentage = (numericThreshold - domainMin) / (domainMax - domainMin);
+    const validThreshold = typeof numericThreshold === 'number' && !Number.isNaN(numericThreshold) ? numericThreshold : undefined;
+    if (scale === SCALE_LINEAR && validThreshold !== undefined && domainMin !== undefined && domainMax !== undefined && domainMin !== domainMax && validThreshold >= domainMin && validThreshold <= domainMax) {
+      const { seriesLayoutInfo, axisThresholdLineClass, stroke, strokeOpacity, strokeWidth, strokeDashArray, vertical, ascending, positionRange } = this.props;
+      const domainFraction = (validThreshold - domainMin) / (domainMax - domainMin);
+      const thresholdPercentage = positionRange[0] + (positionRange[1] - positionRange[0]) * domainFraction;
+      const positionPercentage = ascending ? thresholdPercentage : 1 - thresholdPercentage;
 
       let thresholdX = seriesLayoutInfo.x;
       let thresholdY = seriesLayoutInfo.y;
       if (vertical) {
-        thresholdY += (1 - thresholdPercentage) * seriesLayoutInfo.height;
+        thresholdY += positionPercentage * seriesLayoutInfo.height;
       }
       else {
-        thresholdX += thresholdPercentage * seriesLayoutInfo.width;
+        thresholdX += positionPercentage * seriesLayoutInfo.width;
       }
 
-      const { thresholdTitle } = this.props;
-      if (thresholdTitle !== NONE) {
-        const { before } = axisConfig;
-        const { axisLayoutInfo, thresholdTitleBefore, thresholdTitleSnapToValue, titleStroke, titleStrokeOpacity, titleStrokeWidth, titleFill, titleFillOpacity } = this.props;
-        const { thresholdTitleLayoutInfo } = axisLayoutInfo;
+      if (threshold.title.text !== NONE) {
+        const start = axisConfig.side === SIDE_START;
+        const titleLow = threshold.title.side === TITLE_SIDE_LOW;
+        const { snapToValue: titleSnapToValue } = threshold.title;
+        const { axisLayoutInfo, thresholdIndex, titleStroke, titleStrokeOpacity, titleStrokeWidth, titleFill, titleFillOpacity } = this.props;
+        const thresholdTitleLayoutInfo = axisLayoutInfo.thresholdTitleLayoutInfos[thresholdIndex] ?? { x: 0, y: 0, width: 0, height: 0 };
         let titleX = thresholdX;
         let titleY = thresholdY;
         const paddingRelativeBounds = 'paddingRelativeBounds' in thresholdTitleLayoutInfo
           ? thresholdTitleLayoutInfo.paddingRelativeBounds
+          : thresholdTitleLayoutInfo;
+        const marginRelativeBounds = 'marginRelativeBounds' in thresholdTitleLayoutInfo
+          ? thresholdTitleLayoutInfo.marginRelativeBounds
           : thresholdTitleLayoutInfo;
         let { width, height } = thresholdTitleLayoutInfo;
         let { x: paddingX, y: paddingY, height: paddingHeight } = paddingRelativeBounds;
@@ -97,16 +107,19 @@ export default class AxisThresholdLine extends Renderer<AxisThresholdLineProps> 
           paddingY = temp;
         }
 
+        // titleSide names the value side; ascending says which pixel direction the values grow in
+        const below = ascending ? !titleLow : titleLow;
+        const left = ascending ? titleLow : !titleLow;
         if (vertical) {
           paddingY += paddingHeight / 2.0;
-          if (before) {
+          if (start) {
             // left
           }
           else {
             // right
             titleX += seriesLayoutInfo.width - width;
           }
-          if (thresholdTitleBefore) {
+          if (below) {
             // below
             titleY = Math.min(thresholdY, seriesLayoutInfo.y + seriesLayoutInfo.height - height);
           }
@@ -114,14 +127,14 @@ export default class AxisThresholdLine extends Renderer<AxisThresholdLineProps> 
             // above
             titleY = Math.max(thresholdY - height, seriesLayoutInfo.y);
           }
-          if (thresholdTitleSnapToValue) {
-            if (thresholdTitleBefore && titleY < thresholdY) {
+          if (titleSnapToValue) {
+            if (below && titleY < thresholdY) {
               if (thresholdY - height >= seriesLayoutInfo.y) {
                 titleY = thresholdY - height;
               }
 
             }
-            else if (!thresholdTitleBefore && titleY > (thresholdY - height)) {
+            else if (!below && titleY > (thresholdY - height)) {
               if (thresholdY + height <= seriesLayoutInfo.y + seriesLayoutInfo.height) {
                 titleY = thresholdY;
               }
@@ -131,14 +144,14 @@ export default class AxisThresholdLine extends Renderer<AxisThresholdLineProps> 
         }
         else {
           paddingX += paddingHeight / 2.0;
-          if (before) {
+          if (start) {
             // below
           }
           else {
             // above
             titleY += seriesLayoutInfo.height - height;
           }
-          if (thresholdTitleBefore) {
+          if (left) {
             // left
             titleX = Math.max(thresholdX - width, seriesLayoutInfo.x);
           }
@@ -146,14 +159,14 @@ export default class AxisThresholdLine extends Renderer<AxisThresholdLineProps> 
             // right
             titleX = Math.min(thresholdX, seriesLayoutInfo.x + seriesLayoutInfo.width - width);
           }
-          if (thresholdTitleSnapToValue) {
-            if (thresholdTitleBefore && titleX > (thresholdX - width)) {
+          if (titleSnapToValue) {
+            if (left && titleX > (thresholdX - width)) {
               if (thresholdX + width <= seriesLayoutInfo.x + seriesLayoutInfo.width) {
                 titleX = thresholdX;
               }
 
             }
-            else if (!thresholdTitleBefore && titleX < (thresholdX + width)) {
+            else if (!left && titleX < thresholdX) {
               if (thresholdX - width >= seriesLayoutInfo.x) {
                 titleX = thresholdX - width;
               }
@@ -163,19 +176,27 @@ export default class AxisThresholdLine extends Renderer<AxisThresholdLineProps> 
         }
         const titleGroup = this.title.set('title', () => {
           const group = svgEl('g') as ThresholdTitleEl;
+          const background = svgEl('rect');
           const text = svgEl('text');
           const value = textEl();
           text.append(value);
+          group.append(background);
           group.append(text);
+          group.backgroundHandle = background;
           group.textHandle = text;
           group.valueHandle = value;
           return group;
         }) as ThresholdTitleEl;
-        titleGroup.set({ transform: translate(titleX, titleY) });
+        titleGroup.set({ className: mochartCssClasses['axisThresholdTitle'] + thresholdIndex, transform: translate(titleX, titleY) });
+        // a horizontal title is rotated 90°, so its background takes the swapped bounds like the text does
+        titleGroup.backgroundHandle.set({ className: mochartCssClasses['axisThresholdTitleBackground'],
+          x: vertical ? marginRelativeBounds.x : marginRelativeBounds.y, y: vertical ? marginRelativeBounds.y : marginRelativeBounds.x,
+          width: vertical ? marginRelativeBounds.width : marginRelativeBounds.height, height: vertical ? marginRelativeBounds.height : marginRelativeBounds.width,
+          ...styleToAttributes(threshold.title.backgroundStyle) });
         titleGroup.textHandle.set({ transform: translateRotate(paddingX, paddingY, vertical ? 0 : 90),
           fill: titleFill, fillOpacity: titleFillOpacity,
           stroke: titleStroke, strokeOpacity: titleStrokeOpacity, strokeWidth: titleStrokeWidth, dy: '0.35em' });
-        titleGroup.valueHandle.set(thresholdTitle);
+        titleGroup.valueHandle.set(threshold.title.text);
       }
       else {
         this.title.set(null);

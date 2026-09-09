@@ -57,7 +57,7 @@
         let chart = null;
 
         function render() {
-            const { data, groupAxisConfig, seriesConfig } = createHistogram(samples, {
+            const { data, categoryAxis: categoryAxisConfig, seriesConfig } = createHistogram(samples, {
                 binCount: useAutoBins ? undefined : Number(document.getElementById('binCount').value),
                 normalize: document.getElementById('normalize').value,
                 cumulative: document.getElementById('cumulative').checked
@@ -65,12 +65,12 @@
 
             const mochartConfig = enhanceConfig({
                 version: '1.0.0',
-                titleConfig: { title: 'Distribution of 2,000 samples (μ = 100, σ = 15)' },
-                groupAxisConfig: { ...groupAxisConfig, title: 'Value' },
-                seriesAxisConfigs: [{ id: 'sa', min: 0 }],
-                seriesConfigs: [{ ...seriesConfig, axis: 'sa' }]
+                title: { text: 'Distribution of 2,000 samples (μ = 100, σ = 15)' },
+                categoryAxis: { ...categoryAxisConfig, title: { text: 'Value' } },
+                valueAxes: [{ id: 'va', min: 0 }],
+                series: [{ ...seriesConfig, axis: 'va' }]
             });
-            const dataProvider = new ArrayOfObjectsDataProvider(data, mochartConfig.groupAxisConfig.property);
+            const dataProvider = new ArrayOfObjectsDataProvider(data);
 
             if (chart === null) {
                 chart = createChart(chartEl, { mochartConfig, dataProvider, width: 720, height: 400 });

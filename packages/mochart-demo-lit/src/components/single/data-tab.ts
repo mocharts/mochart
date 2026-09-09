@@ -2,25 +2,25 @@ import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 
-import { applyDataEdit, buildMochartDemoConfig, collectUsedDataProperties, demoText, formatDataView, getJsonError, parseFullData } from '@mochart/demo-common';
+import { applyDataEdit, buildMochartDemoConfig, collectUsedDataProperties, controlsMenuPlacement, demoText, formatDataView, getCategoryProperty, getDemoTabPanelAttrs, getJsonError, parseFullData } from '@mochart/demo-common';
 import type { ParsedFullData } from '@mochart/demo-common';
 
 import { LightElement } from '../misc/LightElement';
 import { PhoneViewportController } from '../misc/PhoneViewportController';
-import { textAreaContent, buttonWithTooltip, icon } from '../misc/templates';
+import { buttonWithTooltip, icon } from '../misc/templates';
+import '../misc/json-editor-content';
 import '../misc/overflow-menu';
 
-import type { DemoConfig, DataRow } from '../../types';
+import type { DemoConfig, DataObject } from '../../types';
 
-/** The footer sits at the bottom of the pane, so its menu opens upward. */
-const editorPlacement = { side: 'top', align: 'end', gap: 4 } as const;
+const panelAttrs = getDemoTabPanelAttrs('data');
 
 @customElement('data-tab')
 export class DataTab extends LightElement {
   @property({ attribute: false }) active = false;
   @property({ attribute: false }) config!: DemoConfig;
-  @property({ attribute: false }) data!: DataRow[];
-  @property({ attribute: false }) onDataChange!: (data: DataRow[]) => void;
+  @property({ attribute: false }) data!: DataObject[];
+  @property({ attribute: false }) onDataChange!: (data: DataObject[]) => void;
   @property({ attribute: false }) onDataError!: (errorMessage: string) => void;
   @property({ attribute: false }) onDataReset!: () => void;
 
@@ -33,7 +33,7 @@ export class DataTab extends LightElement {
   // textarea, viewUsedProperties the used-set its current content was rendered
   // with (null when every property is shown).
   @state() private showUnused = false;
-  private fullData: DataRow[] = [];
+  private fullData: DataObject[] = [];
   private usedProperties: Set<string> | null = null;
   private viewUsedProperties: Set<string> | null = null;
 
@@ -54,14 +54,14 @@ export class DataTab extends LightElement {
     }
   }
 
-  private renderView(fullRows: DataRow[]): void {
+  private renderView(fullRows: DataObject[]): void {
     this.fullData = fullRows;
     this.viewUsedProperties = this.showUnused ? null : this.usedProperties;
     this.dataText = formatDataView(fullRows, this.viewUsedProperties);
   }
 
   private parseCurrentFullData(): ParsedFullData {
-    return parseFullData(this.dataText, this.fullData, this.viewUsedProperties);
+    return parseFullData(this.dataText, this.fullData, this.viewUsedProperties, getCategoryProperty(this.config));
   }
 
   private onTextChange = (nextDataText: string): void => {
@@ -117,15 +117,16 @@ export class DataTab extends LightElement {
       { id: 'data-apply', label: demoText.dataTab.apply.label, disabled: jsonError !== null, tooltipText: demoText.dataTab.apply.tooltip, tooltipPlacement: 'top-start', onClick: this.applyData, ariaLabel: demoText.dataTab.apply.aria },
       icon({ size: 'lg', fixedWidth: true, name: 'check' })
     );
-    return html`<div class=${'mochart-demo-tab-container demo-layout-col data' + (this.active ? ' active' : '')} ?inert=${!this.active}>
+    return html`<div id=${panelAttrs.id} role=${panelAttrs.role} aria-labelledby=${panelAttrs['aria-labelledby']}
+        class=${'mochart-demo-tab-container demo-layout-col data' + (this.active ? ' active' : '')} ?inert=${!this.active}>
       <div class="mochart-demo-tab-content">
-        ${textAreaContent({ value: this.dataText, onChange: this.onTextChange })}
+        <json-editor-content .value=${this.dataText} .ariaLabelText=${demoText.dataTab.editorAria} .onChange=${this.onTextChange}></json-editor-content>
       </div>
       <div class="mochart-demo-tab-footer">
-        <div class="demo-toolbar" role="toolbar">
+        <div class="demo-toolbar">
           ${folded
             ? html`${applyButton}
-              <overflow-menu .text=${demoText.overflowMenu.editor} .placement=${editorPlacement}
+              <overflow-menu .text=${demoText.overflowMenu.editor} .placement=${controlsMenuPlacement}
                 .getAnchor=${this.getFooterAnchor} .active=${this.active}
                 .items=${() => html`<div class="demo-btn-group">${resetButton}${unusedButton}</div>`}></overflow-menu>`
             : html`${resetButton}${unusedButton}${applyButton}`}

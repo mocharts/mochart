@@ -13,9 +13,6 @@ export interface ConditionalRule {
   suffix?: string;
 }
 
-// Note: validators created via `conditional` only carry the message extensions
-// (withMessage/appendMessage/prependMessage) and withCustomName at runtime,
-// not orEqual/orOneOf/or.
 export interface Validator {
   (v?: any): boolean;
   validatorName: string;
@@ -62,7 +59,7 @@ const typeValidatorDefinitions = {
     message: () => "should be an array"
   },
   object: {
-    validator: () => v => v !== null && v !== undefined && typeof v === "object",
+    validator: () => v => v !== null && v !== undefined && typeof v === "object" && !Array.isArray(v),
     message: () => "should be an object"
   },
   any: {
@@ -79,35 +76,90 @@ typeValidatorKeys.forEach(typeValidatorKey => {
 
 export { typeValidators };
 
-const printAny = (value: any, recurse?: boolean): string => {
+// SameValueZero, the equality Array.prototype.includes uses: NaN equals NaN (a strict === never matches it), and 0 still equals -0
+const sameValue = (a: any, b: any): boolean => a === b || (a !== a && b !== b);
+
+// seen: the objects on the current path, so a self-referencing value prints [Circular] instead of overflowing the stack
+const printAny = (value: any, recurse?: boolean, seen: Set<object> = new Set()): string => {
   if (recurse === false) {
     return value;
+  } else if (typeof value === "object" && value !== null && seen.has(value)) {
+    return "[Circular]";
+  } else if (typeof value === "number") {
+    // JSON.stringify prints NaN and the infinities as null
+    return String(value);
   } else if (value === undefined) {
     return "undefined";
   } else if (value === null) {
     return "null";
   } else if (Array.isArray(value)) {
-    return printArray(value);
+    return printArray(value, recurse, seen);
   } else if (typeof value === "object") {
-    return printObject(value);
+    return printNonPlainObject(value) ?? printObject(value, recurse, seen);
+  } else if (typeof value === "function") {
+    // the name only, since string-coercing a function inlines its whole source
+    return value.name ? "function " + value.name : "an anonymous function";
+  } else if (typeof value === "symbol") {
+    // JSON.stringify drops symbols entirely
+    return String(value);
+  } else if (typeof value === "bigint") {
+    // the literal form, since JSON.stringify throws on a bigint and 1n must not read as 1
+    return String(value) + "n";
   } else {
     return JSON.stringify(value);
   }
 };
-const printArray = (array: any[], recurse?: boolean): string =>
-  "[ " + array.map(value => printAny(value, recurse)).join(", ") + " ]";
-const printObject = (object: Record<string, any>, recurse?: boolean): string =>
-  "{ " +
-  Object.keys(object)
-    .map(key => key + ": " + printAny(object[key], recurse))
-    .join(", ") +
-  " }";
+// Objects whose identity is not in their own keys would print as {  }: dates, regexps, boxed primitives and
+// collections print by value, and any other keyless exotic by its constructor name. Null for a plain object.
+const printNonPlainObject = (value: object): string | null => {
+  if (value instanceof Date) {
+    return isNaN(value.getTime()) ? "Invalid Date" : value.toISOString();
+  } else if (value instanceof RegExp) {
+    return String(value);
+  } else if (value instanceof Number || value instanceof String || value instanceof Boolean) {
+    return printAny(value.valueOf());
+  } else if (value instanceof Map) {
+    return "Map " + printArray(Array.from(value.entries()));
+  } else if (value instanceof Set) {
+    return "Set " + printArray(Array.from(value.values()));
+  } else if (Object.keys(value).length === 0) {
+    const proto = Object.getPrototypeOf(value);
+    if (proto !== null && proto !== Object.prototype && typeof proto.constructor === "function" && proto.constructor.name) {
+      return proto.constructor.name + " {  }";
+    }
+  }
+  return null;
+};
+const withSeen = (seen: Set<object>, value: object): Set<object> => new Set(seen).add(value);
+// a getter that throws must not turn a validation message into an exception
+const readMember = (object: Record<string, any>, key: string): { value?: any; unreadable?: boolean } => {
+  try {
+    return { value: object[key] };
+  } catch {
+    return { unreadable: true };
+  }
+};
+const printArray = (array: any[], recurse?: boolean, seen: Set<object> = new Set()): string => {
+  const path = withSeen(seen, array);
+  return "[ " + array.map(value => printAny(value, recurse, path)).join(", ") + " ]";
+};
+const printObject = (object: Record<string, any>, recurse?: boolean, seen: Set<object> = new Set()): string => {
+  const path = withSeen(seen, object);
+  return "{ " +
+    Object.keys(object)
+      .map(key => {
+        const member = readMember(object, key);
+        return key + ": " + (member.unreadable ? "[Unreadable]" : printAny(member.value, recurse, path));
+      })
+      .join(", ") +
+    " }";
+};
 
 const colorHexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
 const colorRGBARegex = /^(rgba\()(.*)(\))$/;
 const colorRGBRegex = /^(rgb\()(.*)(\))$/;
 const colorThreeDigitRegex = /^[0-9]{1,3}$/;
-const colorAlphaRegex = /^(0(\.\d+)?|1(\.0+)?)$/;
+const colorAlphaRegex = /^(0(\.\d+)?|\.\d+|1(\.0+)?)$/; // CSS allows the leading-zero-less ".5" form
 
 // The canonical ISO-8601 pattern, kept byte-identical to its upstream form. Its
 // redundant escapes are harmless, and rewriting a regex this dense for cosmetics
@@ -115,9 +167,16 @@ const colorAlphaRegex = /^(0(\.\d+)?|1(\.0+)?)$/;
 // eslint-disable-next-line no-useless-escape
 const dateISORegex = /^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/;
 
+// standalone so dateInstance and dateAny can share it without a circular reference to customTypeValidators
+const isValidDate: Predicate = v => v instanceof Date && isFinite(v.getTime());
+// the regex admits ISO forms (week and ordinal dates) that Date cannot parse, so require both
+const isDateString: Predicate = v => typeValidators.string(v) && dateISORegex.test(v) && isFinite(new Date(v).getTime());
+
 const customTypeValidatorDefinitions = {
   numeric: {
-    validator: () => v => !isNaN(parseFloat(v)) && isFinite(v),
+    // scalar gate first: the global isFinite coerces, so arrays like [5] used to pass
+    validator: () => v =>
+      (typeValidators.number(v) || (typeValidators.string(v) && v.trim() !== "")) && Number.isFinite(Number(v)),
     message: () => "should be numeric"
   },
   integer: {
@@ -174,13 +233,21 @@ const customTypeValidatorDefinitions = {
     },
     message: () => "should be a valid color"
   },
+  dateInstance: {
+    validator: () => isValidDate,
+    message: () => "should be a valid Date instance"
+  },
   dateISO: {
-    validator: () => v => dateISORegex.test(v),
+    validator: () => isDateString,
     message: () => "should be an iso date string"
   },
-  dateAny: {
-    validator: () => v => typeValidators.number(v) || dateISORegex.test(v),
+  datePrimitive: {
+    validator: () => v => typeValidators.number(v) || isDateString(v),
     message: () => "should be an iso date string or epoch number"
+  },
+  dateAny: {
+    validator: () => v => typeValidators.number(v) || isValidDate(v) || isDateString(v),
+    message: () => "should be a Date instance, iso date string, or epoch number"
   }
 } satisfies Record<string, ValidatorDefinition>;
 
@@ -194,10 +261,20 @@ customTypeValidatorKeys.forEach(customTypeValidatorKey => {
 
 export { customTypeValidators };
 
+// clone, and reset lastIndex per test: /g and /y regexes are stateful and would alternate results
+const regexpTester = (regex: RegExp): ((v: string) => boolean) => {
+  const testRegex = new RegExp(regex.source, regex.flags);
+  return v => {
+    testRegex.lastIndex = 0;
+    return testRegex.test(v);
+  };
+};
+
 const argumentTypeValidatorDefinitions = {
   instanceOf: {
     validator: (type: new (...args: any[]) => any) => v => v instanceof type,
-    message: (type: new (...args: any[]) => any) => "should be an instanceof " + type
+    // the name only, since string-coercing a constructor inlines its whole source
+    message: (type: new (...args: any[]) => any) => "should be an instanceof " + (type.name || "the given class")
   },
   typeOf: {
     validator: (type: string) => v => typeof v === type,
@@ -245,8 +322,18 @@ const argumentTypeValidatorDefinitions = {
     message: (min: number, max: number) => "should be an integer and >= to " + min + " and <= " + max
   },
   regexp: {
-    validator: (regex: RegExp) => v => regex.test(v),
+    validator: (regex: RegExp) => {
+      const test = regexpTester(regex);
+      return v => (typeValidators.string(v) || typeValidators.number(v)) && test(String(v));
+    },
     message: (regex: RegExp) => "should match regex " + regex
+  },
+  stringRegexp: {
+    validator: (regex: RegExp) => {
+      const test = regexpTester(regex);
+      return v => typeValidators.string(v) && test(v);
+    },
+    message: (regex: RegExp) => "should be a string matching regex " + regex
   },
   stringWithLength: {
     validator: (length: number) => v => typeValidators.string(v) && v.length === length,
@@ -264,30 +351,31 @@ const argumentTypeValidatorDefinitions = {
     validator: (minLength: number, maxLength: number) => v =>
       typeValidators.string(v) && v.length >= minLength && v.length <= maxLength,
     message: (minLength: number, maxLength: number) =>
-      "should be a stringy with length >= to " + minLength + " and <= to " + maxLength
+      "should be a string with length >= to " + minLength + " and <= to " + maxLength
   },
   equal: {
-    validator: (value: any) => v => v === value,
+    validator: (value: any) => v => sameValue(v, value),
     message: (value: any) => "should be equal to " + printAny(value)
   },
   oneOf: {
-    validator: (valueArray: any[]) => v => valueArray.indexOf(v) !== -1,
+    validator: (valueArray: any[]) => v => valueArray.includes(v),
     message: (valueArray: any[]) => "should be one of " + printArray(valueArray)
   },
   oneIn: {
-    validator: (valueMap: Record<string, any>) => v => valueMap[v] !== undefined,
+    // own-key check: prototype members (constructor, toString, ...) must not count as map entries
+    validator: (valueMap: Record<string, any>) => v => Object.prototype.hasOwnProperty.call(valueMap, v) && valueMap[v] !== undefined,
     message: (valueMap: Record<string, any>) => "should be in " + printObject(valueMap)
   },
   notEqual: {
-    validator: (value: any) => v => v !== value,
+    validator: (value: any) => v => !sameValue(v, value),
     message: (value: any) => "should not be equal to " + printAny(value)
   },
   notOneOf: {
-    validator: (valueArray: any[]) => v => valueArray.indexOf(v) === -1,
+    validator: (valueArray: any[]) => v => !valueArray.includes(v),
     message: (valueArray: any[]) => "should not be one of " + printArray(valueArray)
   },
   notOneIn: {
-    validator: (valueMap: Record<string, any>) => v => valueMap[v] === undefined,
+    validator: (valueMap: Record<string, any>) => v => !Object.prototype.hasOwnProperty.call(valueMap, v) || valueMap[v] === undefined,
     message: (valueMap: Record<string, any>) => "should not be in " + printObject(valueMap)
   },
   arrayWithLength: {
@@ -316,13 +404,13 @@ const compoundValidatorDefinitions = {
       if (!typeValidators.array(v) || (v.length === 0 && allowEmpty === false)) {
         return false;
       }
-      const someInvalid = v.some((av: any) => {
-        if (!elementValidator(av)) {
-          return true;
+      // by index, not some(): holes in a sparse array are skipped by some() yet read as undefined
+      for (let i = 0; i < v.length; i++) {
+        if (!elementValidator(v[i])) {
+          return false;
         }
-        return false;
-      });
-      return !someInvalid;
+      }
+      return true;
     },
     message: (elementValidator: Validator, allowEmpty: boolean = false) =>
       "should be " + (allowEmpty ? "an" : "a non-empty") + " array with elements that " + elementValidator.errorMessage
@@ -332,8 +420,13 @@ const compoundValidatorDefinitions = {
       if (!typeValidators.object(v) || Object.keys(v).length !== properties.length) {
         return false;
       }
-      const someInvalid = properties.some(property => {
-        if (!propertyValidator(v[property])) {
+      const propertyMap: Record<string, string> = Object.create(null); // null proto: probed with user keys (__proto__, constructor, ...)
+      properties.forEach(property => {
+        propertyMap[property] = property;
+      });
+      // membership check too: same-sized objects with wrong keys must not pass
+      const someInvalid = Object.keys(v).some(valueKey => {
+        if (propertyMap[valueKey] === undefined || !propertyValidator(v[valueKey])) {
           return true;
         }
         return false;
@@ -348,16 +441,20 @@ const compoundValidatorDefinitions = {
   },
   objectWithSome: {
     validator: (properties: string[], propertyValidator: Validator) => v => {
-      const valueKeys = Object.keys(v);
-      if (!typeValidators.object(v) || valueKeys.length === 0 || valueKeys.length > properties.length) {
+      if (!typeValidators.object(v)) {
         return false;
       }
-      const propertyMap: Record<string, string> = {};
+      const valueKeys = Object.keys(v);
+      if (valueKeys.length === 0 || valueKeys.length > properties.length) {
+        return false;
+      }
+      const propertyMap: Record<string, string> = Object.create(null); // null proto: probed with user keys (__proto__, constructor, ...)
       properties.forEach(property => {
         propertyMap[property] = property;
       });
       const someInvalid = valueKeys.some(valueKey => {
-        if (propertyMap[valueKey] === undefined || !propertyValidator(v[valueKey])) {
+        // present but undefined counts as "not specified", like partialObjectWithShape and this validator's own nestedValues
+        if (propertyMap[valueKey] === undefined || (v[valueKey] !== undefined && !propertyValidator(v[valueKey]))) {
           return true;
         }
         return false;
@@ -385,7 +482,8 @@ const compoundValidatorDefinitions = {
       if (!someInvalid && !allowExtraProperties) {
         const valueKeys = Object.keys(v);
         someInvalid = valueKeys.some(valueKey => {
-          if (propertyToValidatorMap[valueKey] === undefined) {
+          // own-key check: prototype member names (constructor, ...) are not part of the shape
+          if (!Object.prototype.hasOwnProperty.call(propertyToValidatorMap, valueKey)) {
             return true;
           }
           return false;
@@ -414,7 +512,8 @@ const compoundValidatorDefinitions = {
       }
       const valueKeys = Object.keys(v);
       const someInvalid = valueKeys.some(valueKey => {
-        const propertyValidator = propertyToValidatorMap[valueKey];
+        // own-key check: prototype member names (constructor, ...) must count as unknown, not resolve to functions
+        const propertyValidator = Object.prototype.hasOwnProperty.call(propertyToValidatorMap, valueKey) ? propertyToValidatorMap[valueKey] : undefined;
         if (propertyValidator === undefined) {
           // an unknown property is invalid unless extras were opted into
           return !allowExtraProperties;
@@ -457,7 +556,8 @@ const compoundValidatorDefinitions = {
 const validatorArgsToAllowedValues: Record<string, (...args: any[]) => any[] | null> = {
   equal: value => [value],
   oneOf: values => values,
-  oneIn: valueMap => Object.keys(valueMap),
+  // only keys with a defined value: the predicate reads an undefined value as absent
+  oneIn: valueMap => Object.keys(valueMap).filter(key => valueMap[key] !== undefined),
   or: validators => {
     let allowedValues: any[] | null = null;
     validators.forEach((validator: Validator) => {
@@ -526,15 +626,17 @@ const validatorArgsToIsEnum: Record<string, (...args: any[]) => boolean> = {
   or: validators => !validators.some((validator: Validator) => !validator.isEnum)
 };
 
-const validatorDefinitions = Object.assign(
+// explicit: Object.assign with 4+ sources falls through to the any-returning overload
+type ValidatorDefinitionMap = typeof typeValidatorDefinitions & typeof customTypeValidatorDefinitions &
+  typeof argumentTypeValidatorDefinitions & typeof compoundValidatorDefinitions;
+
+const validatorDefinitions: ValidatorDefinitionMap = Object.assign(
   {},
   typeValidatorDefinitions,
   customTypeValidatorDefinitions,
   argumentTypeValidatorDefinitions,
   compoundValidatorDefinitions
 );
-
-type ValidatorDefinitionMap = typeof validatorDefinitions;
 
 export type Validators = {
   [K in keyof ValidatorDefinitionMap]: (...args: Parameters<ValidatorDefinitionMap[K]["validator"]>) => Validator;
@@ -546,11 +648,11 @@ const validatorDefinitionKeys = Object.keys(validatorDefinitions);
 
 const validatorExtensionDefinitions: Record<string, ValidatorDefinition> = {
   orEqual: {
-    validator: (value: any) => v => v === value,
+    validator: (value: any) => v => sameValue(v, value),
     message: (value: any) => " or be equal to " + printAny(value)
   },
   orOneOf: {
-    validator: (valueArray: any[]) => v => valueArray.indexOf(v) !== -1,
+    validator: (valueArray: any[]) => v => valueArray.includes(v),
     message: (valueArray: any[]) => " or be one of " + printArray(valueArray)
   },
   or: {
@@ -592,69 +694,65 @@ const validatorMessageExtensions: Record<string, (messageValidatorFunction: Vali
 
 const validatorMessageExtensionKeys = Object.keys(validatorMessageExtensions);
 
-function addExtensions(validatorFunction: Validator, messageExtensions = true, extensions = true): void {
-  if (messageExtensions) {
-    validatorMessageExtensionKeys.forEach(messageExtensionKey => {
-      (validatorFunction as any)[messageExtensionKey] = (message: string): Validator => {
-        const messageValidatorFunction = ((v?: any) => validatorFunction(v)) as Validator;
-        messageValidatorFunction.validatorName = validatorFunction.validatorName;
-        messageValidatorFunction.extensionNames = validatorFunction.extensionNames;
-        messageValidatorFunction.customName = validatorFunction.customName;
-        messageValidatorFunction.allowedValues = validatorFunction.allowedValues;
-        messageValidatorFunction.isEnum = validatorFunction.isEnum;
-        messageValidatorFunction.nestedValues = validatorFunction.nestedValues;
-        messageValidatorFunction.itemValidator = validatorFunction.itemValidator;
-        messageValidatorFunction.alternativeValidators = validatorFunction.alternativeValidators;
-        messageValidatorFunction.rangeValues = validatorFunction.rangeValues;
-        messageValidatorFunction.errorMessage = validatorFunction.errorMessage;
-        messageValidatorFunction.errorMessages = validatorFunction.errorMessages;
-        validatorMessageExtensions[messageExtensionKey](messageValidatorFunction, message);
-        messageValidatorFunction.getErrorMessage = v => appendValue(messageValidatorFunction.errorMessage, v);
-        addExtensions(messageValidatorFunction, messageExtensions, extensions);
-        return messageValidatorFunction;
-      };
-    });
-  }
-  if (extensions) {
-    validatorExtensionKeys.forEach(extensionKey => {
-      (validatorFunction as any)[extensionKey] = (...args: any[]): Validator => {
-        const extensionFunction = ((v?: any) =>
-          validatorFunction(v) || validatorExtensionDefinitions[extensionKey].validator(...args)(v)) as Validator;
-        extensionFunction.validatorName = validatorFunction.validatorName;
-        if (validatorFunction.extensionNames === null) {
-          extensionFunction.extensionNames = [extensionKey];
-        } else {
-          extensionFunction.extensionNames = validatorFunction.extensionNames.concat(extensionKey);
-        }
-        extensionFunction.customName = validatorFunction.customName;
-        extensionFunction.allowedValues = validatorFunction.allowedValues;
-        extensionFunction.isEnum = false;
-        extensionFunction.nestedValues = validatorFunction.nestedValues;
-        extensionFunction.itemValidator = validatorFunction.itemValidator;
-        extensionFunction.alternativeValidators = extensionKey === "or"
-          ? (validatorFunction.alternativeValidators ?? [validatorFunction]).concat(args[0])
-          : validatorFunction.alternativeValidators;
-        extensionFunction.rangeValues = validatorFunction.rangeValues;
-        if (validatorExtensionArgsToAllowedValues[extensionKey] !== undefined) {
-          const extensionAllowedValues = validatorExtensionArgsToAllowedValues[extensionKey](...args);
-          extensionFunction.isEnum = validatorFunction.isEnum && validatorExtensionArgsToIsEnum[extensionKey](...args);
-          if (extensionAllowedValues !== null) {
-            if (typeValidators.array(validatorFunction.allowedValues)) {
-              extensionFunction.allowedValues = validatorFunction.allowedValues!.concat(extensionAllowedValues);
-            } else {
-              extensionFunction.allowedValues = extensionAllowedValues;
-            }
+function addExtensions(validatorFunction: Validator): void {
+  validatorMessageExtensionKeys.forEach(messageExtensionKey => {
+    (validatorFunction as any)[messageExtensionKey] = (message: string): Validator => {
+      const messageValidatorFunction = ((v?: any) => validatorFunction(v)) as Validator;
+      messageValidatorFunction.validatorName = validatorFunction.validatorName;
+      messageValidatorFunction.extensionNames = validatorFunction.extensionNames;
+      messageValidatorFunction.customName = validatorFunction.customName;
+      messageValidatorFunction.allowedValues = validatorFunction.allowedValues;
+      messageValidatorFunction.isEnum = validatorFunction.isEnum;
+      messageValidatorFunction.nestedValues = validatorFunction.nestedValues;
+      messageValidatorFunction.itemValidator = validatorFunction.itemValidator;
+      messageValidatorFunction.alternativeValidators = validatorFunction.alternativeValidators;
+      messageValidatorFunction.rangeValues = validatorFunction.rangeValues;
+      messageValidatorFunction.errorMessage = validatorFunction.errorMessage;
+      messageValidatorFunction.errorMessages = validatorFunction.errorMessages;
+      validatorMessageExtensions[messageExtensionKey](messageValidatorFunction, message);
+      messageValidatorFunction.getErrorMessage = v => appendValue(messageValidatorFunction.errorMessage, v);
+      addExtensions(messageValidatorFunction);
+      return messageValidatorFunction;
+    };
+  });
+  validatorExtensionKeys.forEach(extensionKey => {
+    (validatorFunction as any)[extensionKey] = (...args: any[]): Validator => {
+      const extensionFunction = ((v?: any) =>
+        validatorFunction(v) || validatorExtensionDefinitions[extensionKey].validator(...args)(v)) as Validator;
+      extensionFunction.validatorName = validatorFunction.validatorName;
+      if (validatorFunction.extensionNames === null) {
+        extensionFunction.extensionNames = [extensionKey];
+      } else {
+        extensionFunction.extensionNames = validatorFunction.extensionNames.concat(extensionKey);
+      }
+      extensionFunction.customName = validatorFunction.customName;
+      extensionFunction.allowedValues = validatorFunction.allowedValues;
+      extensionFunction.isEnum = false;
+      extensionFunction.nestedValues = validatorFunction.nestedValues;
+      extensionFunction.itemValidator = validatorFunction.itemValidator;
+      extensionFunction.alternativeValidators = extensionKey === "or"
+        ? (validatorFunction.alternativeValidators ?? [validatorFunction]).concat(args[0])
+        : validatorFunction.alternativeValidators;
+      extensionFunction.rangeValues = validatorFunction.rangeValues;
+      if (validatorExtensionArgsToAllowedValues[extensionKey] !== undefined) {
+        const extensionAllowedValues = validatorExtensionArgsToAllowedValues[extensionKey](...args);
+        extensionFunction.isEnum = validatorFunction.isEnum && validatorExtensionArgsToIsEnum[extensionKey](...args);
+        if (extensionAllowedValues !== null) {
+          if (typeValidators.array(validatorFunction.allowedValues)) {
+            extensionFunction.allowedValues = validatorFunction.allowedValues!.concat(extensionAllowedValues);
+          } else {
+            extensionFunction.allowedValues = extensionAllowedValues;
           }
         }
-        extensionFunction.errorMessage =
-          validatorFunction.errorMessage + validatorExtensionDefinitions[extensionKey].message(...args);
-        extensionFunction.errorMessages = [extensionFunction.errorMessage];
-        extensionFunction.getErrorMessage = v => appendValue(extensionFunction.errorMessage, v);
-        addExtensions(extensionFunction, messageExtensions, extensions);
-        return extensionFunction;
-      };
-    });
-  }
+      }
+      extensionFunction.errorMessage =
+        validatorFunction.errorMessage + validatorExtensionDefinitions[extensionKey].message(...args);
+      extensionFunction.errorMessages = [extensionFunction.errorMessage];
+      extensionFunction.getErrorMessage = v => appendValue(extensionFunction.errorMessage, v);
+      addExtensions(extensionFunction);
+      return extensionFunction;
+    };
+  });
 
   validatorFunction.withCustomName = (customName: string): Validator => {
     const customNameFunction = ((v?: any) => validatorFunction(v)) as Validator;
@@ -670,7 +768,7 @@ function addExtensions(validatorFunction: Validator, messageExtensions = true, e
     customNameFunction.errorMessage = validatorFunction.errorMessage;
     customNameFunction.errorMessages = validatorFunction.errorMessages;
     customNameFunction.getErrorMessage = v => appendValue(customNameFunction.errorMessage, v);
-    addExtensions(customNameFunction, messageExtensions, extensions);
+    addExtensions(customNameFunction);
     return customNameFunction;
   };
 }
@@ -719,8 +817,9 @@ const appendSuffix = (message: string, suffix?: string): string =>
   suffix !== undefined ? message + " " + suffix : message;
 
 validators.conditional = (rules: ConditionalRule[], object: any): Validator => {
-  const matchedRule = rules.find(rule => rule.condition(object))!;
-  const validatorFunction = ((v?: any) => matchedRule.validator(v)) as Validator;
+  const matchedRule = rules.find(rule => rule.condition(object));
+  // No matched rule fails validation with every rule's message rather than crashing at construction.
+  const validatorFunction = ((v?: any) => matchedRule !== undefined && matchedRule.validator(v)) as Validator;
   validatorFunction.validatorName = "conditional";
   validatorFunction.customName = null;
   validatorFunction.extensionNames = null;
@@ -730,10 +829,12 @@ validators.conditional = (rules: ConditionalRule[], object: any): Validator => {
   validatorFunction.alternativeValidators = rules.map(rule => rule.validator);
   validatorFunction.rangeValues = null;
   validatorFunction.isEnum = false;
-  validatorFunction.errorMessage = appendSuffix(matchedRule.validator.errorMessage, matchedRule.suffix);
   validatorFunction.errorMessages = rules.map(rule => appendSuffix(rule.validator.errorMessage, rule.suffix));
+  validatorFunction.errorMessage = matchedRule !== undefined
+    ? appendSuffix(matchedRule.validator.errorMessage, matchedRule.suffix)
+    : (validatorFunction.errorMessages.join(" or ") || "no conditional rule matched");
   validatorFunction.getErrorMessage = v => appendValue(validatorFunction.errorMessage, v);
-  addExtensions(validatorFunction, true, false);
+  addExtensions(validatorFunction);
   return validatorFunction;
 };
 

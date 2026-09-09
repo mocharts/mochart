@@ -4,8 +4,8 @@
 // bar's start must meet its neighbour's end, a heatmap cell must sit on its
 // row band). Instead, these generators randomize the *inputs* to the core
 // chart helpers and re-run the helper, so every generated dataset is a valid
-// chart of its type. Group labels come from fixed pools so successive random
-// steps share most groups and transitions animate as updates plus edge
+// chart of its type. Category labels come from fixed pools so successive random
+// steps share most categories and transitions animate as updates plus edge
 // enter/exit rather than a full teardown.
 //
 // Each generator reads its demo's random config (the per-generator schemas in
@@ -21,13 +21,13 @@
 
 import seedrandom from 'seedrandom';
 
-import { createHistogram, createWaterfall, createHeatmap, createCandlestick, createOhlc, createPie } from '@mochart/core';
+import { NONE, createHistogram, createWaterfall, createHeatmap, createCandlestick, createOhlc, createPie } from '@mochart/core';
 import type { CandlestickItem, MochartConfig, PieItem } from '@mochart/core';
 
 import { generateChartDataProvider } from './randomGenerator';
 
 import type {
-  DataRow, DemoConfig, DemoDataProvider, DemoRandomConfig, GroupValue, RandomConfig,
+  DataObject, DemoConfig, DemoDataProvider, DemoRandomConfig, CategoryValue, RandomConfig,
   ErrorBarsRandomConfig, HeatmapRandomConfig, HistogramRandomConfig, PieRandomConfig,
   WalkRandomConfig, WaterfallRandomConfig
 } from './types';
@@ -58,15 +58,15 @@ function reusedDraw(scope: string, key: string, randomId: number, reuseGlobal: b
 
 /**
  * The draw stream for pool entry `index` at step `randomId` under the pool
- * reuse fractions: the first globalPercentage of entries pin to a global seed
- * (their state never changes), then stepPercentage of the remainder read a
+ * reuse fractions: the first globalFraction of entries pin to a global seed
+ * (their state never changes), then stepFraction of the remainder read a
  * half-step seed shared with one neighbouring step — staggered by entry
  * parity, so every step boundary sees half of them persist exactly — and the
  * rest draw fresh each step.
  */
-function poolEntryRng(scope: string, index: number, randomId: number, poolSize: number, globalPercentage: number, stepPercentage: number): Rng {
-  const globalCount = Math.round(clamp01(globalPercentage) * poolSize);
-  const stepCount = Math.round(clamp01(stepPercentage) * (poolSize - globalCount));
+function poolEntryRng(scope: string, index: number, randomId: number, poolSize: number, globalFraction: number, stepFraction: number): Rng {
+  const globalCount = Math.round(clamp01(globalFraction) * poolSize);
+  const stepCount = Math.round(clamp01(stepFraction) * (poolSize - globalCount));
   if (index < globalCount) {
     return seedrandom(scope + ':global:' + index);
   }
@@ -86,24 +86,23 @@ export type ChartTypeGenerator = (typeof chartTypeGenerators)[number];
 export interface ChartTypeDemoSnapshot {
   id: ChartTypeGenerator;
   config: DemoConfig;
-  data: DataRow[];
+  data: DataObject[];
 }
 
-function toDemoDataProvider(rows: DataRow[], groupProperty: string): DemoDataProvider {
-  const groupValues = rows.map(row => row[groupProperty] as GroupValue);
+function toDemoDataProvider(rows: DataObject[], categoryProperty: string): DemoDataProvider {
+  const categoryValues = rows.map(row => row[categoryProperty] as CategoryValue);
   const seriesValues: Record<string, (number | undefined)[]> = {};
   rows.forEach((row, index) => {
     for (const key of Object.keys(row)) {
-      if (key !== groupProperty) {
+      if (key !== categoryProperty) {
         (seriesValues[key] ??= new Array(rows.length).fill(undefined))[index] = row[key] as number | undefined;
       }
     }
   });
   return {
-    groupValues,
+    categoryValues,
     seriesValues,
-    getGroupValues: () => groupValues,
-    getSeriesValue: (_groupValue, groupIndex, seriesProperty) => seriesValues[seriesProperty]?.[groupIndex]
+    getPropertyValues: property => property === categoryProperty ? categoryValues : seriesValues[property]
   };
 }
 
@@ -127,7 +126,7 @@ function normalSamples(count: number, mean: number, stdDev: number, rng: Rng): n
 // Random config: samples = population size range, value = the band the normal
 // distribution wanders in, reuse = pin the distribution parameters globally /
 // morph them smoothly between adjacent steps.
-function histogramRows({ samples, value, reuse }: HistogramRandomConfig, randomId: number): DataRow[] {
+function histogramRows({ samples, value, reuse }: HistogramRandomConfig, randomId: number): DataObject[] {
   const span = Math.max(1, value.max - value.min);
   const count = Math.max(1, Math.round(samples.min + reusedDraw('histogram', 'count', randomId, reuse.global, reuse.step) * (samples.max - samples.min)));
   const stdDev = (0.15 + 0.12 * reusedDraw('histogram', 'stdDev', randomId, reuse.global, reuse.step)) * span;
@@ -141,7 +140,7 @@ function histogramRows({ samples, value, reuse }: HistogramRandomConfig, randomI
 
 function buildHistogramSnapshot(): ChartTypeDemoSnapshot {
   const samples = normalSamples(280, 160, 40, seedrandom('histogram:baseline'));
-  const { data, groupAxisConfig, seriesConfig } = createHistogram(samples, {
+  const { data, categoryAxis, seriesConfig } = createHistogram(samples, {
     binWidth: HISTOGRAM_BIN_WIDTH,
     seriesTitle: HISTOGRAM_SERIES_TITLE
   });
@@ -149,10 +148,10 @@ function buildHistogramSnapshot(): ChartTypeDemoSnapshot {
     id: 'histogram',
     config: {
       version: '1.0.0',
-      titleConfig: { title: 'Response Time Distribution' },
-      groupAxisConfig: { ...groupAxisConfig, title: 'Response time (ms)' },
-      seriesAxisConfigs: [{ min: 0 }],
-      seriesConfigs: [seriesConfig]
+      title: { text: 'Response Time Distribution' },
+      categoryAxis: { ...categoryAxis, title: { text: 'Response time (ms)' } },
+      valueAxes: [{ min: 0 }],
+      series: [seriesConfig]
     },
     data
   };
@@ -170,7 +169,7 @@ interface WaterfallStepPoolEntry {
   dropWeight?: number;
 }
 
-// Optional steps give random mode group enter/exit: when one appears, every
+// Optional steps give random mode category enter/exit: when one appears, every
 // bar downstream of it shifts as the helper recomputes the running totals.
 // Drop weights make the rarer steps flakier than the config's baseline.
 const WATERFALL_STEP_POOL: WaterfallStepPoolEntry[] = [
@@ -189,7 +188,7 @@ const WATERFALL_STEP_POOL: WaterfallStepPoolEntry[] = [
 // Random config: value = the range the pool deltas are remapped into, missing
 // = the optional steps' dropout baseline, reuse = fractions of steps whose
 // state persists globally / across adjacent steps.
-function waterfallRows({ value, missing, reuse }: WaterfallRandomConfig, randomId: number): DataRow[] {
+function waterfallRows({ value, missing, reuse }: WaterfallRandomConfig, randomId: number): DataObject[] {
   const poolValues = WATERFALL_STEP_POOL.filter(step => step.value !== undefined).map(step => step.value!);
   const poolMin = Math.min(...poolValues);
   const poolMax = Math.max(...poolValues);
@@ -202,7 +201,7 @@ function waterfallRows({ value, missing, reuse }: WaterfallRandomConfig, randomI
     }
     // one fixed-order stream per entry — [drop roll, value roll] — so a
     // persisted entry keeps its whole state across the shared steps
-    const entryRng = poolEntryRng('waterfall', index, randomId, WATERFALL_STEP_POOL.length, reuse.globalPercentage, reuse.stepPercentage);
+    const entryRng = poolEntryRng('waterfall', index, randomId, WATERFALL_STEP_POOL.length, reuse.globalFraction, reuse.stepFraction);
     const dropRoll = entryRng();
     const valueRoll = entryRng();
     if ((step.dropWeight ?? 0) > 0 && dropRoll < clamp01(missing.probability * step.dropWeight!)) {
@@ -220,15 +219,15 @@ function buildWaterfallSnapshot(): ChartTypeDemoSnapshot {
   const items = WATERFALL_STEP_POOL
     .filter(step => (step.dropWeight ?? 0) <= 1)
     .map(step => (step.total === true ? { label: step.label, total: true } : { label: step.label, value: step.value! }));
-  const { data, groupAxisConfig, seriesConfigs } = createWaterfall(items);
+  const { data, categoryAxis, series, valueAxes } = createWaterfall(items);
   return {
     id: 'waterfall',
     config: {
       version: '1.0.0',
-      titleConfig: { title: 'Income Statement (fictional, $k)' },
-      groupAxisConfig,
-      seriesAxisConfigs: [{ title: '$ thousands' }],
-      seriesConfigs
+      title: { text: 'Income Statement (fictional, $k)' },
+      categoryAxis,
+      valueAxes: [{ ...valueAxes[0], title: { text: '$ thousands' } }],
+      series
     },
     data
   };
@@ -260,10 +259,10 @@ const HEATMAP_COLUMNS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
 // chance, reuse = pin cell values globally / morph them smoothly between
 // adjacent steps. Cell values stay on each row's baked color extents, so
 // there is no value range to configure.
-function heatmapRows({ columns, missing, reuse }: HeatmapRandomConfig, randomId: number): DataRow[] {
+function heatmapRows({ columns, missing, reuse }: HeatmapRandomConfig, randomId: number): DataObject[] {
   const maxDropped = Math.min(HEATMAP_COLUMNS.length - 1, Math.max(0, Math.round(columns.maxDropped)));
 
-  // Column dropouts churn per step regardless of reuse — they are the group
+  // Column dropouts churn per step regardless of reuse — they are the category
   // enter/exit the demo shows. Cells key on their column label, so a kept
   // column's values are unaffected by its neighbours dropping.
   const columnRng = seedrandom('heatmap:columns:' + randomId);
@@ -316,21 +315,21 @@ function buildHeatmapSnapshot(): ChartTypeDemoSnapshot {
     label: profile.label,
     values: HEATMAP_COLUMNS.map((column, c) => {
       if (profile.label === 'Sat' && column === 'Apr') {
-        return null; // no data collected — demos the skipMissing gap
+        return null; // no data collected — demos the missingValueMode 'connect' gap
       }
       const t = (1 + Math.cos((c / HEATMAP_COLUMNS.length) * 2 * Math.PI)) / 2;
       return Math.round(profile.min + t * (profile.max - profile.min));
     })
   }));
-  const { data, groupAxisConfig, seriesAxisConfig, seriesConfigs } = createHeatmap(rows, { columnLabels: HEATMAP_COLUMNS });
+  const { data, categoryAxis, valueAxes, series } = createHeatmap(rows, { columnLabels: HEATMAP_COLUMNS });
   return {
     id: 'heatmap',
     config: {
       version: '1.0.0',
-      titleConfig: { title: 'Support Tickets by Weekday (fictional)' },
-      groupAxisConfig,
-      seriesAxisConfigs: [seriesAxisConfig],
-      seriesConfigs: seriesConfigs.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.0f' }))
+      title: { text: 'Support Tickets by Weekday (fictional)' },
+      categoryAxis,
+      valueAxes,
+      series: series.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.0f' }))
     },
     data
   };
@@ -415,7 +414,7 @@ function withVolumes(items: CandlestickItem[], rng: Rng): CandlestickItem[] {
 
 // The helper derives `change` from the raw open/close, so it carries float
 // noise (97.13 - 96.54 = 0.589999…); round it for the baked/generated rows.
-function roundCandlestickChanges(rows: DataRow[]): DataRow[] {
+function roundCandlestickChanges(rows: DataObject[]): DataObject[] {
   for (const row of rows) {
     if (typeof row.change === 'number') {
       row.change = round2(row.change);
@@ -424,25 +423,25 @@ function roundCandlestickChanges(rows: DataRow[]): DataRow[] {
   return rows;
 }
 
-function candlestickRows(random: WalkRandomConfig, randomId: number): DataRow[] {
+function candlestickRows(random: WalkRandomConfig, randomId: number): DataObject[] {
   return roundCandlestickChanges(createCandlestick(walkVolumes('candlestick', randomId, walkItems('candlestick', random, randomId)), { volume: true }).data);
 }
 
 function buildCandlestickSnapshot(): ChartTypeDemoSnapshot {
   const baselineRng = seedrandom('candlestick:baseline');
   const items = withVolumes(candlestickItems(baselineRng, CANDLESTICK_DAYS.length), baselineRng);
-  const { data, groupAxisConfig, seriesConfigs, seriesAxisConfigs } = createCandlestick(items, { volume: true });
+  const { data, categoryAxis, series, valueAxes } = createCandlestick(items, { volume: true });
   roundCandlestickChanges(data);
   return {
     id: 'candlestick',
     config: {
       version: '1.0.0',
-      titleConfig: { title: 'Daily Share Price (fictional, $)' },
-      groupAxisConfig,
+      title: { text: 'Daily Share Price (fictional, $)' },
+      categoryAxis,
       // the helper's price/volume pane axes, with the demo's title on price
-      seriesAxisConfigs: seriesAxisConfigs!.map(axisConfig =>
-        axisConfig.id === 'price' ? { ...axisConfig, title: '$ per share' } : axisConfig),
-      seriesConfigs: seriesConfigs.map(seriesConfig =>
+      valueAxes: valueAxes!.map(axisConfig =>
+        axisConfig.id === 'price' ? { ...axisConfig, title: { text: '$ per share' } } : axisConfig),
+      series: series.map(seriesConfig =>
         ({ ...seriesConfig, valueFormat: seriesConfig.id!.includes('Volume') ? ',.0f' : ',.2f' }))
     },
     data
@@ -455,22 +454,22 @@ function buildCandlestickSnapshot(): ChartTypeDemoSnapshot {
 // only flips the helper's hollow option: outlined up bodies with the wicks
 // split into segments around them.
 
-function candlestickHollowRows(random: WalkRandomConfig, randomId: number): DataRow[] {
+function candlestickHollowRows(random: WalkRandomConfig, randomId: number): DataObject[] {
   return roundCandlestickChanges(createCandlestick(walkItems('candlestick-hollow', random, randomId), { hollow: true }).data);
 }
 
 function buildCandlestickHollowSnapshot(): ChartTypeDemoSnapshot {
   const items = candlestickItems(seedrandom('candlestick-hollow:baseline'), CANDLESTICK_DAYS.length);
-  const { data, groupAxisConfig, seriesConfigs } = createCandlestick(items, { hollow: true });
+  const { data, categoryAxis, series } = createCandlestick(items, { hollow: true });
   roundCandlestickChanges(data);
   return {
     id: 'candlestick-hollow',
     config: {
       version: '1.0.0',
-      titleConfig: { title: 'Daily Share Price (fictional, $)' },
-      groupAxisConfig,
-      seriesAxisConfigs: [{ title: '$ per share' }],
-      seriesConfigs: seriesConfigs.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.2f' }))
+      title: { text: 'Daily Share Price (fictional, $)' },
+      categoryAxis,
+      valueAxes: [{ title: { text: '$ per share' } }],
+      series: series.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.2f' }))
     },
     data
   };
@@ -482,22 +481,22 @@ function buildCandlestickHollowSnapshot(): ChartTypeDemoSnapshot {
 // helper differs: thin low/high lines with open/close ticks instead of
 // wick-and-body candles.
 
-function ohlcRows(random: WalkRandomConfig, randomId: number): DataRow[] {
+function ohlcRows(random: WalkRandomConfig, randomId: number): DataObject[] {
   return roundCandlestickChanges(createOhlc(walkItems('ohlc', random, randomId)).data);
 }
 
 function buildOhlcSnapshot(): ChartTypeDemoSnapshot {
   const items = candlestickItems(seedrandom('ohlc:baseline'), CANDLESTICK_DAYS.length);
-  const { data, groupAxisConfig, seriesConfigs } = createOhlc(items);
+  const { data, categoryAxis, series } = createOhlc(items);
   roundCandlestickChanges(data);
   return {
     id: 'ohlc',
     config: {
       version: '1.0.0',
-      titleConfig: { title: 'Daily Share Price (fictional, $)' },
-      groupAxisConfig,
-      seriesAxisConfigs: [{ title: '$ per share' }],
-      seriesConfigs: seriesConfigs.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.2f' }))
+      title: { text: 'Daily Share Price (fictional, $)' },
+      categoryAxis,
+      valueAxes: [{ title: { text: '$ per share' } }],
+      series: series.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.2f' }))
     },
     data
   };
@@ -509,14 +508,14 @@ function buildOhlcSnapshot(): ChartTypeDemoSnapshot {
 // so there is no core helper to re-run — but the generic randomizer would draw
 // value, low and high independently and break low ≤ value ≤ high. This
 // generator draws each point's value and its two error margins instead, and
-// derives the bounds. The fixed month pool keeps most groups shared between
+// derives the bounds. The fixed month pool keeps most categories shared between
 // random steps, so the bars and whiskers animate in place while tail months
 // enter and exit.
 const ERROR_BARS_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 // The snapshot baseline — sequential draws from one rng so the baked demo
 // JSON stays bit-identical. Keep the formulas in sync with errorBarsRandomRows.
-function errorBarsItems(rng: Rng, monthCount: number): DataRow[] {
+function errorBarsItems(rng: Rng, monthCount: number): DataObject[] {
   return ERROR_BARS_MONTHS.slice(0, monthCount).map((month, m) => {
     // a seasonal curve with per-plant jitter; asymmetric margins per bound
     const seasonal = Math.sin((m / ERROR_BARS_MONTHS.length) * 2 * Math.PI);
@@ -537,7 +536,7 @@ function errorBarsItems(rng: Rng, monthCount: number): DataRow[] {
 // matching the baseline's tighter CI), missing = the chance a plant's point
 // drops out with its bounds, reuse = pin the per-point jitter globally /
 // morph it smoothly between adjacent steps.
-function errorBarsRandomRows({ months, margin, missing, reuse }: ErrorBarsRandomConfig, randomId: number): DataRow[] {
+function errorBarsRandomRows({ months, margin, missing, reuse }: ErrorBarsRandomConfig, randomId: number): DataObject[] {
   const scope = 'error-bars';
   const missingProbability = missing.probability;
 
@@ -551,7 +550,7 @@ function errorBarsRandomRows({ months, margin, missing, reuse }: ErrorBarsRandom
     const missingRng = seedrandom(scope + ':missing:' + randomId + ':' + month);
     const seasonal = Math.sin((m / ERROR_BARS_MONTHS.length) * 2 * Math.PI);
     const target = 52 + 9 * seasonal;
-    const row: DataRow = {
+    const row: DataObject = {
       month,
       target: round2(target),
       targetLow: round2(target - (margin.min + marginSpan * draw('targetLowMargin')) * 0.45),
@@ -579,11 +578,11 @@ function buildErrorBarsSnapshot(): ChartTypeDemoSnapshot {
     id: 'error-bars',
     config: {
       version: '1.0.0',
-      titleConfig: { title: 'Monthly Output with 95% CI (fictional)' },
-      groupAxisConfig: { property: 'month', type: 'string', scale: 'ordinal' },
-      seriesAxisConfigs: [{ title: 'units per day' }],
-      seriesGroupConfigs: [{ id: 'plants' }],
-      seriesConfigs: [
+      title: { text: 'Monthly Output with 95% CI (fictional)' },
+      categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+      valueAxes: [{ title: { text: 'units per day' } }],
+      seriesGroups: [{ id: 'plants' }],
+      series: [
         { id: 'a', title: 'Plant A', property: 'a', renderer: 'bar', group: 'plants',
           errorLowProperty: 'aLow', errorHighProperty: 'aHigh', valueFormat: ',.1f' },
         { id: 'b', title: 'Plant B', property: 'b', renderer: 'bar', group: 'plants',
@@ -639,7 +638,7 @@ function pieItems(pool: PieSlicePoolEntry[], scope: string, { value, missing, re
   return pool.map((slice, index) => {
     // one fixed-order stream per slice — [drop roll, value roll] — so a
     // persisted slice keeps its whole state across the shared steps
-    const sliceRng = poolEntryRng(scope, index, randomId, pool.length, reuse.globalPercentage, reuse.stepPercentage);
+    const sliceRng = poolEntryRng(scope, index, randomId, pool.length, reuse.globalFraction, reuse.stepFraction);
     const dropRoll = sliceRng();
     const valueRoll = sliceRng();
     if ((slice.dropWeight ?? 0) > 0 && dropRoll < clamp01(missing.probability * slice.dropWeight!)) {
@@ -650,42 +649,42 @@ function pieItems(pool: PieSlicePoolEntry[], scope: string, { value, missing, re
   });
 }
 
-function pieRows(random: PieRandomConfig, randomId: number): DataRow[] {
+function pieRows(random: PieRandomConfig, randomId: number): DataObject[] {
   return createPie(pieItems(PIE_SLICE_POOL, 'pie', random, randomId), { valueFormat: ',.0f' }).data;
 }
 
-function donutRows(random: PieRandomConfig, randomId: number): DataRow[] {
+function donutRows(random: PieRandomConfig, randomId: number): DataObject[] {
   return createPie(pieItems(DONUT_SLICE_POOL, 'donut', random, randomId)).data;
 }
 
 function buildPieSnapshot(): ChartTypeDemoSnapshot {
-  const pie = createPie(PIE_SLICE_POOL.map(({ label, value }) => ({ label, value })), { valueFormat: ',.0f', tooltipValues: 'valuePercent' });
+  const pie = createPie(PIE_SLICE_POOL.map(({ label, value }) => ({ label, value })), { valueFormat: ',.0f', tooltipValueType: 'valuePercent' });
   return {
     id: 'pie',
     config: {
       version: '1.0.0',
-      titleConfig: { title: 'Revenue by Product (fictional, $k)' },
-      chartConfig: pie.chartConfig,
-      pieConfig: pie.pieConfig,
-      groupAxisConfig: pie.groupAxisConfig,
-      seriesConfigs: pie.seriesConfigs
+      title: { text: 'Revenue by Product (fictional, $k)' },
+      chart: pie.chart,
+      pie: pie.pie,
+      categoryAxis: pie.categoryAxis,
+      series: pie.series
     },
     data: pie.data
   };
 }
 
 function buildDonutSnapshot(): ChartTypeDemoSnapshot {
-  const pie = createPie(DONUT_SLICE_POOL.map(({ label, value }) => ({ label, value })), { donut: true, tooltipValues: 'percent' });
+  const pie = createPie(DONUT_SLICE_POOL.map(({ label, value }) => ({ label, value })), { donut: true, tooltipValueType: 'percent' });
   return {
     id: 'donut',
     config: {
       version: '1.0.0',
-      titleConfig: { title: 'Browser Market Share (fictional)' },
-      chartConfig: pie.chartConfig,
-      // focusOffsetPercent explodes the hovered slice away from the center
-      pieConfig: { ...pie.pieConfig, showLabels: true, labelType: 'percent', focusOffsetPercent: 0.05 },
-      groupAxisConfig: pie.groupAxisConfig,
-      seriesConfigs: pie.seriesConfigs
+      title: { text: 'Browser Market Share (fictional)' },
+      chart: pie.chart,
+      // focusOffsetFraction explodes the hovered slice away from the center
+      pie: { ...pie.pie, label: { visible: true, type: 'percent' }, focusOffsetFraction: 0.05 },
+      categoryAxis: pie.categoryAxis,
+      series: pie.series
     },
     data: pie.data
   };
@@ -700,35 +699,39 @@ const GAUGE_SLICE_POOL: PieSlicePoolEntry[] = [
   { label: 'Detractors', value: 180, jitter: 0.4, dropWeight: 1 }
 ];
 
-function gaugeRows(random: PieRandomConfig, randomId: number): DataRow[] {
+function gaugeRows(random: PieRandomConfig, randomId: number): DataObject[] {
   return createPie(pieItems(GAUGE_SLICE_POOL, 'gauge', random, randomId)).data;
 }
 
 function buildGaugeSnapshot(): ChartTypeDemoSnapshot {
-  const pie = createPie(GAUGE_SLICE_POOL.map(({ label, value }) => ({ label, value })), { tooltipValues: 'percentValue' });
+  const pie = createPie(GAUGE_SLICE_POOL.map(({ label, value }) => ({ label, value })), { tooltipValueType: 'percentValue' });
   return {
     id: 'gauge',
     config: {
       version: '1.0.0',
-      titleConfig: { title: 'Customer Sentiment (fictional survey)' },
-      chartConfig: pie.chartConfig,
-      pieConfig: {
-        ...pie.pieConfig,
+      title: { text: 'Customer Sentiment (fictional survey)' },
+      chart: pie.chart,
+      pie: {
+        ...pie.pie,
         startAngle: -90,
         endAngle: 90,
-        innerRadiusPercent: 0.55,
+        innerRadiusFraction: 0.55,
         padAngle: 1,
         cornerRadius: 3,
-        showLabels: true,
-        labelType: 'title',
-        centerLabel: 'responses',
-        showCenterTotal: true,
-        centerTotalFormat: ',.0f',
+        label: {
+          visible: true,
+          type: 'title'
+        },
+        centerLabel: { text: 'responses' },
+        centerTotal: {
+          visible: true,
+          format: ',.0f'
+        },
         // lift the center content off the gauge pivot into the hole
-        centerOffsetYPercent: -0.25
+        centerOffsetYFraction: -0.25
       },
-      groupAxisConfig: pie.groupAxisConfig,
-      seriesConfigs: pie.seriesConfigs
+      categoryAxis: pie.categoryAxis,
+      series: pie.series
     },
     data: pie.data
   };
@@ -756,7 +759,7 @@ export function generateChartTypeDataProvider(
 ): DemoDataProvider {
   // DemoRandomConfig has no discriminant, so each branch asserts the schema
   // its demos.json random file ships.
-  let rows: DataRow[];
+  let rows: DataObject[];
   if (generator === 'histogram') {
     rows = histogramRows(random as HistogramRandomConfig, randomId);
   }
@@ -787,7 +790,7 @@ export function generateChartTypeDataProvider(
   else {
     rows = heatmapRows(random as HeatmapRandomConfig, randomId);
   }
-  return toDemoDataProvider(rows, mochartConfig.groupAxisConfig.property ?? '');
+  return toDemoDataProvider(rows, mochartConfig.categoryAxis.property ?? '');
 }
 
 export function isChartTypeGenerator(generator: string | undefined): generator is ChartTypeGenerator {
@@ -810,4 +813,35 @@ export function generateDemoDataProvider(
     return generateChartTypeDataProvider(generator, mochartConfig, random, randomId);
   }
   return generateChartDataProvider(mochartConfig, random as RandomConfig, randomId);
+}
+
+/**
+ * The random mode's data-tab rows for a generated provider: the provider hands
+ * back parallel category/series value arrays, and the JSON view needs them
+ * pivoted into one row per category, keyed by the config's own property names.
+ * `NONE` on the key property means the category value is its own key, so there
+ * is no second property to write.
+ */
+export function getRandomDataObjects(
+  mochartConfig: MochartConfig,
+  categoryValues: CategoryValue[],
+  seriesValues: Record<string, (number | undefined)[]>
+): DataObject[] {
+  const { categoryAxis: categoryAxisConfig } = mochartConfig;
+  const categoryProperty = categoryAxisConfig.property ?? '';
+  const rows: DataObject[] = categoryValues.map(categoryValue => ({ [categoryProperty]: categoryValue }));
+  const categoryCount = categoryValues.length;
+  if (categoryAxisConfig.keyProperty !== NONE) {
+    const { keyProperty } = categoryAxisConfig;
+    for (let i = 0; i < categoryCount; i++) {
+      rows[i][keyProperty] = categoryValues[i];
+    }
+  }
+  for (const seriesProperty of Object.keys(seriesValues)) {
+    const seriesPropertyValues = seriesValues[seriesProperty];
+    for (let i = 0; i < categoryCount; i++) {
+      rows[i][seriesProperty] = seriesPropertyValues[i];
+    }
+  }
+  return rows;
 }

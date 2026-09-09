@@ -4,116 +4,127 @@ import { scaleLinear } from 'd3-scale';
 
 import { arrayToMap, idAccessor } from './utils';
 import { NONE, AUTO, TYPE_DATE, TYPE_NUMBER } from '../config/core/constants';
-import type { GroupAxisConfig, SeriesAxisConfig, SeriesConfig } from '../types/config';
-import type { AxisDomains, AxisScale, GroupValue } from '../types/data';
+import type { CategoryAxisConfig } from '../types/config';
+import type { EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
+import type { AxisDomains, AxisScale, CategoryValue } from '../types/data';
 
-export type ValueFormatter = (value: number | Date) => GroupValue;
+export type ValueFormatter = (value: number | Date) => CategoryValue;
 
 const autoValueFormatNumber = ".2s";
-const autoGroupFormatNumber = '.2s';
-const autoGroupFormatDate = '%c';
+const autoCategoryFormatNumber = '.2s';
+const autoCategoryFormatDate = '%c';
 
-export function getGroupFormat(groupAxisConfig: GroupAxisConfig): (group: GroupValue) => GroupValue {
-  let groupFormat = (group: GroupValue): GroupValue => group;
-  if (groupAxisConfig.type === TYPE_DATE) {
-    if (groupAxisConfig.dateUTC) {
-      groupFormat = (group: GroupValue) => (group as Date).toUTCString();
+export function getCategoryFormat(categoryAxisConfig: CategoryAxisConfig): (category: CategoryValue) => CategoryValue {
+  let categoryFormat = (category: CategoryValue): CategoryValue => category;
+  if (categoryAxisConfig.type === TYPE_DATE) {
+    if (categoryAxisConfig.dateUTC) {
+      categoryFormat = (category: CategoryValue) => (category as Date).toUTCString();
     }
     else {
-      groupFormat = (group: GroupValue) => group.toString();
+      categoryFormat = (category: CategoryValue) => category.toString();
     }
   }
-  if (groupAxisConfig.valueFormat !== NONE) {
-    const timeFormatter = groupAxisConfig.dateUTC ? utcFormat : timeFormat;
-    if (groupAxisConfig.valueFormat === AUTO) {
-      if (groupAxisConfig.tickLabelFormat !== NONE) {
-        if (groupAxisConfig.tickLabelFormat === AUTO) {
-          if (groupAxisConfig.type === TYPE_DATE) {
-            const formatter = timeFormatter(autoGroupFormatDate);
-            groupFormat = group => formatter(group as Date);
+  if (categoryAxisConfig.valueFormat !== NONE) {
+    const timeFormatter = categoryAxisConfig.dateUTC ? utcFormat : timeFormat;
+    if (categoryAxisConfig.valueFormat === AUTO) {
+      if (categoryAxisConfig.tickLabel.format !== NONE) {
+        if (categoryAxisConfig.tickLabel.format === AUTO) {
+          if (categoryAxisConfig.type === TYPE_DATE) {
+            const formatter = timeFormatter(autoCategoryFormatDate);
+            categoryFormat = category => formatter(category as Date);
           }
-          else if (groupAxisConfig.type === TYPE_NUMBER) {
-            const formatter = format(autoGroupFormatNumber);
-            groupFormat = group => formatter(group as number);
+          else if (categoryAxisConfig.type === TYPE_NUMBER) {
+            const formatter = format(autoCategoryFormatNumber);
+            categoryFormat = category => formatter(category as number);
           }
         }
         else {
-          if (groupAxisConfig.type === TYPE_DATE) {
-            const formatter = timeFormatter(groupAxisConfig.tickLabelFormat);
-            groupFormat = group => formatter(group as Date);
+          if (categoryAxisConfig.type === TYPE_DATE) {
+            const formatter = timeFormatter(categoryAxisConfig.tickLabel.format);
+            categoryFormat = category => formatter(category as Date);
           }
-          else if (groupAxisConfig.type === TYPE_NUMBER) {
-            const formatter = format(groupAxisConfig.tickLabelFormat);
-            groupFormat = group => formatter(group as number);
+          else if (categoryAxisConfig.type === TYPE_NUMBER) {
+            const formatter = format(categoryAxisConfig.tickLabel.format);
+            categoryFormat = category => formatter(category as number);
           }
         }
       }
     }
     else {
-      if (groupAxisConfig.type === TYPE_DATE) {
-        const formatter = timeFormatter(groupAxisConfig.valueFormat);
-        groupFormat = group => formatter(group as Date);
+      if (categoryAxisConfig.type === TYPE_DATE) {
+        const formatter = timeFormatter(categoryAxisConfig.valueFormat);
+        categoryFormat = category => formatter(category as Date);
       }
-      else if (groupAxisConfig.type === TYPE_NUMBER) {
-        const formatter = format(groupAxisConfig.valueFormat);
-        groupFormat = group => formatter(group as number);
+      else if (categoryAxisConfig.type === TYPE_NUMBER) {
+        const formatter = format(categoryAxisConfig.valueFormat);
+        categoryFormat = category => formatter(category as number);
       }
     }
   }
-  groupFormat = applyPrefixAndSuffix(groupAxisConfig, groupFormat);
-  return groupFormat;
+  categoryFormat = applyPrefixAndSuffix(categoryAxisConfig, categoryFormat);
+  return categoryFormat;
 }
 
-export function getSeriesFormats(seriesConfigs: SeriesConfig[], seriesAxisConfigs: SeriesAxisConfig[], seriesAxisDomains: AxisDomains): Record<string, ValueFormatter> {
-  const seriesAxisScales = arrayToMap(seriesAxisConfigs, idAccessor, seriesAxisConfig => scaleLinear().domain(seriesAxisDomains[seriesAxisConfig.id]));
+export function getSeriesFormats(seriesConfigs: EnhancedSeriesConfig[], valueAxisConfigs: EnhancedValueAxisConfig[], valueAxisDomains: AxisDomains): Record<string, ValueFormatter> {
+  const valueAxisScales = arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => scaleLinear().domain(valueAxisDomains[valueAxisConfig.id]));
   return arrayToMap(seriesConfigs, idAccessor, seriesConfig =>
-    getSeriesFormat(seriesConfig, seriesConfig.seriesAxisConfig, seriesAxisScales[seriesConfig.seriesAxisConfig.id]));
+    getSeriesFormat(seriesConfig, seriesConfig.valueAxisConfig, valueAxisScales[seriesConfig.valueAxisConfig.id]));
 }
 
-export function getSeriesFormat(seriesConfig: SeriesConfig, seriesAxisConfig: SeriesAxisConfig, seriesAxisScale: AxisScale): ValueFormatter {
-  let valueFormat: ValueFormatter = value => value;
-  if (seriesConfig.valueFormat !== NONE) {
-    if (seriesConfig.valueFormat === AUTO) {
-      const formatSpecifier = seriesAxisConfig.tickLabelFormat === AUTO ? autoValueFormatNumber : seriesAxisConfig.tickLabelFormat;
-      valueFormat = seriesAxisScale.tickFormat(10, formatSpecifier);
-    }
-    else {
-      const formatter = format(seriesConfig.valueFormat);
-      valueFormat = value => formatter(value as number);
-    }
+/** The numeric formatting a series applies to its values, before any prefix/suffix. */
+function getSeriesValueFormatter(seriesConfig: EnhancedSeriesConfig, valueAxisConfig: EnhancedValueAxisConfig, valueAxisScale: AxisScale): ValueFormatter {
+  if (seriesConfig.valueFormat === NONE) {
+    return value => value;
   }
-  valueFormat = applyPrefixAndSuffix(seriesConfig, valueFormat);
-  return valueFormat;
+  if (seriesConfig.valueFormat === AUTO) {
+    if (valueAxisConfig.tickLabel.format === NONE) {
+      return value => value;
+    }
+    const formatSpecifier = valueAxisConfig.tickLabel.format === AUTO ? autoValueFormatNumber : valueAxisConfig.tickLabel.format;
+    return valueAxisScale.tickFormat(10, formatSpecifier);
+  }
+  const formatter = format(seriesConfig.valueFormat);
+  return value => formatter(value as number);
 }
 
-export function getSeriesLabelFormat(seriesConfig: SeriesConfig, seriesAxisConfig: SeriesAxisConfig, seriesAxisScale: AxisScale): ValueFormatter {
-  let valueFormat: ValueFormatter = value => value;
-  if (seriesConfig.labelFormat !== NONE) {
-    if (seriesConfig.labelFormat === AUTO) {
-      return getSeriesFormat(seriesConfig, seriesAxisConfig, seriesAxisScale);
-    }
-    else {
-      const formatter = format(seriesConfig.labelFormat);
-      valueFormat = value => formatter(value as number);
-    }
-  }
-  return valueFormat;
+export function getSeriesFormat(seriesConfig: EnhancedSeriesConfig, valueAxisConfig: EnhancedValueAxisConfig, valueAxisScale: AxisScale): ValueFormatter {
+  // valuePrefix/valueSuffix decorate the series value, which is what the tooltip shows
+  return applyAffixes(seriesConfig.valuePrefix, seriesConfig.valueSuffix,
+    getSeriesValueFormatter(seriesConfig, valueAxisConfig, valueAxisScale));
 }
 
-function applyPrefixAndSuffix<T>(formatConfig: Pick<GroupAxisConfig | SeriesConfig, 'valuePrefix' | 'valueSuffix'>, oldFormat: (value: T) => GroupValue): (value: T) => GroupValue {
-  if (formatConfig.valuePrefix !== NONE || formatConfig.valueSuffix !== NONE) {
-    if (formatConfig.valuePrefix !== NONE && formatConfig.valueSuffix !== NONE) {
-      return value => (formatConfig.valuePrefix! + oldFormat(value) + formatConfig.valueSuffix!);
-    }
-    else if (formatConfig.valuePrefix !== NONE) {
-      return value => (formatConfig.valuePrefix! + oldFormat(value));
-    }
-    else if (formatConfig.valueSuffix !== NONE) {
-      return value => (oldFormat(value) + formatConfig.valueSuffix!);
-    }
+/** The numeric formatting a series applies to its label values, before any prefix/suffix. */
+function getSeriesLabelFormatter(seriesConfig: EnhancedSeriesConfig, valueAxisConfig: EnhancedValueAxisConfig, valueAxisScale: AxisScale): ValueFormatter {
+  if (seriesConfig.label.format === NONE) {
+    return value => value;
   }
-  else {
-    return oldFormat;
+  // numeric formatting alone: labels render labelProperty, not the series value
+  if (seriesConfig.label.format === AUTO) {
+    return getSeriesValueFormatter(seriesConfig, valueAxisConfig, valueAxisScale);
+  }
+  const formatter = format(seriesConfig.label.format);
+  return value => formatter(value as number);
+}
+
+export function getSeriesLabelFormat(seriesConfig: EnhancedSeriesConfig, valueAxisConfig: EnhancedValueAxisConfig, valueAxisScale: AxisScale): ValueFormatter {
+  // labelPrefix/labelSuffix are independent of labelFormat, as the value pair is of valueFormat
+  return applyAffixes(seriesConfig.label.prefix, seriesConfig.label.suffix,
+    getSeriesLabelFormatter(seriesConfig, valueAxisConfig, valueAxisScale));
+}
+
+function applyPrefixAndSuffix<T>(formatConfig: Pick<CategoryAxisConfig, 'valuePrefix' | 'valueSuffix'>, oldFormat: (value: T) => CategoryValue): (value: T) => CategoryValue {
+  return applyAffixes(formatConfig.valuePrefix, formatConfig.valueSuffix, oldFormat);
+}
+
+function applyAffixes<T>(prefix: string | null, suffix: string | null, oldFormat: (value: T) => CategoryValue): (value: T) => CategoryValue {
+  if (prefix !== NONE && suffix !== NONE) {
+    return value => (prefix + String(oldFormat(value)) + suffix);
+  }
+  if (prefix !== NONE) {
+    return value => (prefix + String(oldFormat(value)));
+  }
+  if (suffix !== NONE) {
+    return value => (String(oldFormat(value)) + suffix);
   }
   return oldFormat;
 }

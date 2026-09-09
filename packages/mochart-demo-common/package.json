@@ -4,28 +4,31 @@
   "description": "Shared helpers and types for the mochart demo apps",
   "private": true,
   "type": "module",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "exports": {
     ".": "./src/index.ts",
     "./demo.css": "./css/demo.css",
     "./chart-dark.css": "./css/chart-dark.css"
   },
   "dependencies": {
-    "@mochart/core": "^1.0.0",
-    "@mochart/demo-data": "^1.0.0",
-    "@mochart/movalid": "^1.0.0",
+    "@mochart/core": "*",
+    "@mochart/demo-data": "*",
+    "@mochart/editor": "*",
+    "@mochart/movalid": "*",
     "fflate": "^0.8.3",
     "lodash.merge": "^4.6.2",
     "seedrandom": "^3.0.5"
   },
   "devDependencies": {
     "@types/lodash.merge": "^4.6.9",
-    "@types/seedrandom": "^3.0.8"
+    "@types/node": "^26.2.0",
+    "@types/seedrandom": "^3.0.8",
+    "tsx": "^4.23.12"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "generate-demos": "tsx scripts/generateChartTypeDemos.ts"
+    "generate-demos": "tsx --conditions=development scripts/generateChartTypeDemos.ts"
   }
 }

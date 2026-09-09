@@ -1,0 +1,68 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Axis Adjusted for Filtering"
+  },
+  "animation": {
+    "expansionDuration": 2000,
+    "initialDuration": 2000,
+    "valueChangeDuration": 2000,
+    "contractionDuration": 2000
+  },
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categoryNO",
+    "type": "number",
+    "scale": "ordinal"
+  },
+  "valueAxisDefaults": {
+    "adjustForFiltering": true
+  },
+  "valueAxes": [
+    {
+      "id": "VA0",
+      "side": "start"
+    },
+    {
+      "id": "VA1",
+      "side": "end"
+    }
+  ],
+  "seriesStacks": {
+    "axis": "VA0"
+  },
+  "series": [
+    {
+      "axis": "VA0",
+      "property": "value1",
+      "title": "Stacked Bar 1",
+      "renderer": "bar"
+    },
+    {
+      "axis": "VA0",
+      "property": "value2",
+      "title": "Stacked Bar 2",
+      "renderer": "bar"
+    },
+    {
+      "axis": "VA0",
+      "property": "value3",
+      "title": "Stacked Bar 3",
+      "renderer": "bar"
+    },
+    {
+      "axis": "VA1",
+      "stack": null,
+      "property": "value5",
+      "title": "Line 1",
+      "renderer": "line"
+    },
+    {
+      "axis": "VA1",
+      "stack": null,
+      "property": "value6",
+      "title": "Line 2",
+      "renderer": "line"
+    }
+  ]
+}

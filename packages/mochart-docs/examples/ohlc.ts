@@ -18,10 +18,10 @@ const ohlc = createOhlc([
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Daily Share Price (fictional, $)' },
-  groupAxisConfig: ohlc.groupAxisConfig,
-  seriesAxisConfigs: [{ title: '$ per share' }],
-  seriesConfigs: ohlc.seriesConfigs
+  title: { text: 'Daily Share Price (fictional, $)' },
+  categoryAxis: ohlc.categoryAxis,
+  valueAxes: [{ title: { text: '$ per share' } }],
+  series: ohlc.series
 };
 
 export const data = ohlc.data;

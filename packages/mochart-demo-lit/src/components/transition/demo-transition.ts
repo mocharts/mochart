@@ -4,6 +4,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { defaultTransitionConfig, demoText, getTransitionDataProviders, getTransitionMochartConfig } from '@mochart/demo-common';
 
 import { LightElement } from '../misc/LightElement';
+import { demoTabs } from '../misc/demo-tabs';
 import '../misc/top-bar';
 import './transition-chart-tab';
 import './transition-config-tab';
@@ -42,14 +43,14 @@ export class DemoTransition extends LightElement {
   override render(): unknown {
     return html`<div class="mochart-demo-container multi">
       <top-bar .siteRootUrl=${this.siteRootUrl} .onBackToDemos=${this.onBackToDemos}
-               .tabs=${() => html`<li class="demo-tab-item">
-                 <button type="button" class=${'demo-tab' + (this.activeKey === eventKeyChart ? ' active' : '')}
-                         @click=${() => this.handleSelect(eventKeyChart)}>${demoText.tabs.chart}</button>
-               </li>
-               <li class="demo-tab-item">
-                 <button type="button" class=${'demo-tab' + (this.activeKey === eventKeyConfig ? ' active' : '')}
-                         @click=${() => this.handleSelect(eventKeyConfig)}>${demoText.tabs.transitionConfig}</button>
-               </li>`}></top-bar>
+               .tabs=${() => demoTabs({
+                 activeKey: this.activeKey,
+                 onSelect: (key: number) => this.handleSelect(key),
+                 tabs: [
+                   { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart },
+                   { name: 'config', key: eventKeyConfig, label: demoText.tabs.transitionConfig }
+                 ]
+               })}></top-bar>
       <div class="mochart-demo-content-pane">
         <div class="mochart-demo-content">
           <transition-chart-tab .mochartConfig=${this.mochartConfig} .dataProviders=${this.dataProviders} .active=${this.activeKey === eventKeyChart}></transition-chart-tab>

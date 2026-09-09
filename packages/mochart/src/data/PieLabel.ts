@@ -10,9 +10,8 @@ import {
 import type { PieLabelType } from '../config/core/constants';
 import type { PieConfig } from '../types/config';
 
-// Auto formats: whole percents for slice labels and SI-abbreviated values (pie
-// slices rarely have room for more digits), one decimal for tooltip percents,
-// which have the room and are read for comparison.
+// Auto formats: whole percents and SI-abbreviated values for slice labels (little room there),
+// one decimal for tooltip percents, which have the room and are read for comparison.
 const AUTO_LABEL_VALUE_FORMAT = '~s';
 const AUTO_LABEL_PERCENT_FORMAT = '.0%';
 const AUTO_TOOLTIP_PERCENT_FORMAT = '.1%';
@@ -59,12 +58,27 @@ export function formatPieLabelType(labelType: PieLabelType, parts: PieLabelParts
   return getPieLabelTemplate(labelType).replace(PIE_LABEL_TOKENS, (_token, name: keyof PieLabelParts) => parts[name]);
 }
 
-/** The slice label formatters, resolving auto per token. */
-export function getPieLabelFormats(pieConfig: PieConfig): { valueFormat: NumberFormat; percentFormat: NumberFormat } {
-  return {
-    valueFormat: format(pieConfig.labelValueFormat === AUTO ? AUTO_LABEL_VALUE_FORMAT : pieConfig.labelValueFormat),
-    percentFormat: format(pieConfig.labelPercentFormat === AUTO ? AUTO_LABEL_PERCENT_FORMAT : pieConfig.labelPercentFormat)
-  };
+export interface PieLabelFormats {
+  valueFormat: NumberFormat;
+  percentFormat: NumberFormat;
+  tooltipPercentFormat: NumberFormat;
+}
+
+// compiled once per pie config: every slice reads these on every animation frame, and so does the open tooltip
+const pieLabelFormatsByConfig = new WeakMap<PieConfig, PieLabelFormats>();
+
+/** The slice label formatters plus the tooltip's, resolving auto per token. */
+export function getPieLabelFormats(pieConfig: PieConfig): PieLabelFormats {
+  let formats = pieLabelFormatsByConfig.get(pieConfig);
+  if (formats === undefined) {
+    formats = {
+      valueFormat: format(pieConfig.label.valueFormat === AUTO ? AUTO_LABEL_VALUE_FORMAT : pieConfig.label.valueFormat),
+      percentFormat: format(pieConfig.label.percentFormat === AUTO ? AUTO_LABEL_PERCENT_FORMAT : pieConfig.label.percentFormat),
+      tooltipPercentFormat: format(pieConfig.tooltip.percentFormat === AUTO ? AUTO_TOOLTIP_PERCENT_FORMAT : pieConfig.tooltip.percentFormat)
+    };
+    pieLabelFormatsByConfig.set(pieConfig, formats);
+  }
+  return formats;
 }
 
 /**
@@ -73,5 +87,5 @@ export function getPieLabelFormats(pieConfig: PieConfig): { valueFormat: NumberF
  * there is no tooltipValueFormat to resolve here.
  */
 export function getPieTooltipPercentFormat(pieConfig: PieConfig): NumberFormat {
-  return format(pieConfig.tooltipPercentFormat === AUTO ? AUTO_TOOLTIP_PERCENT_FORMAT : pieConfig.tooltipPercentFormat);
+  return getPieLabelFormats(pieConfig).tooltipPercentFormat;
 }

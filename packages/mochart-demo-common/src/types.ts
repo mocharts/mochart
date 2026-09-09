@@ -1,23 +1,23 @@
-import type { ConfigValidation, MochartConfig } from '@mochart/core';
+import type { ConfigValidation, DataProvider, MochartConfig } from '@mochart/core';
 import type { DemoRandomConfig } from '@mochart/demo-data';
 
 export type {
-  DataRow, Demo, DemoConfig, DemoData, DemoRandomConfig,
+  DataObject, Demo, DemoConfig, DemoData, DemoRandomConfig,
   ErrorBarsRandomConfig, HeatmapRandomConfig, HistogramRandomConfig, PieRandomConfig,
   RandomConfig, WalkRandomConfig, WaterfallRandomConfig
 } from '@mochart/demo-data';
 
-/** A value on the group axis of a generated data set. */
-export type GroupValue = number | string;
+/** A value on the category axis of a generated data set. */
+export type CategoryValue = number | string;
 
 /** Map of series id -> whether that series is currently filtered out. */
 export type FilteredSeriesIds = Record<string, boolean>;
 
 /** Focus event payload emitted by the chart interactions. */
 export interface FocusData {
-  seriesAxisId?: string | null;
+  valueAxisId?: string | null;
   seriesId?: string | null;
-  groupIndex?: number;
+  categoryIndex?: number;
 }
 
 /** The transition demo's config bundle: one config plus a sequence of datasets. */
@@ -26,22 +26,16 @@ export interface TransitionConfig {
   data: Record<string, any>[][];
 }
 
-/** Loose structural view of a data provider as consumed by the demo charts. */
-export interface ChartDataProviderLike {
-  getGroupValues: () => readonly any[];
-  getSeriesValue?: (...args: any[]) => any;
-  getError?: (...args: any[]) => any;
-}
+/** The data provider shape the demo charts hand to the chart bindings. */
+export type ChartDataProviderLike = DataProvider;
 
 /**
- * The duck-typed data provider produced by the random generator and consumed
- * by the chart / getDataErrors. `getError` marks the error/invalid variants.
+ * The data provider produced by the random generator and consumed by the
+ * chart / getDataErrors. `getError` marks the error/invalid variants.
  */
-export interface DemoDataProvider {
-  getGroupValues: () => GroupValue[];
-  getSeriesValue?: (groupValue: GroupValue, groupIndex: number, seriesProperty: string) => unknown;
-  getError?: () => string;
-  groupValues?: GroupValue[];
+export interface DemoDataProvider extends DataProvider {
+  getError?: () => string | boolean;
+  categoryValues?: CategoryValue[];
   seriesValues?: Record<string, (number | undefined)[]>;
 }
 
@@ -65,7 +59,7 @@ export interface MochartDemoConfig {
   configValidation: ConfigValidation;
   mochartConfig: MochartConfig;
   valid: boolean;
-  groupProperty: string | undefined;
+  categoryProperty: string | undefined;
   seriesCount: number;
   /** True for pie-type charts (pie/donut/gauge): slices are series, one data row. */
   pieMode: boolean;

@@ -3,7 +3,7 @@ import {
   formatPieLabelType, getPieLabelTemplate, pieLabelTypeUsesPercent,
   getPieLabelFormats, getPieTooltipPercentFormat
 } from '../../src/data/PieLabel';
-import { PIE_LABEL_TYPES, PIE_TOOLTIP_LABEL_TYPES } from '../../src/config/core/constants';
+import { PIE_LABEL_TYPES, PIE_TOOLTIP_VALUE_TYPES } from '../../src/config/core/constants';
 import type { PieConfig } from '../../src/types/config';
 
 const parts = { title: 'Chrome', value: '62', percent: '62%' };
@@ -26,14 +26,14 @@ describe('formatPieLabelType', () => {
   });
 
   it('keeps the tooltip types a subset of the label types', () => {
-    for (const tooltipType of PIE_TOOLTIP_LABEL_TYPES) {
+    for (const tooltipType of PIE_TOOLTIP_VALUE_TYPES) {
       expect(PIE_LABEL_TYPES).toContain(tooltipType);
     }
     // the title-bearing types stay out of the tooltip: a row already shows the
     // series title as its label
-    expect(PIE_TOOLTIP_LABEL_TYPES).not.toContain('title');
-    expect(PIE_TOOLTIP_LABEL_TYPES).not.toContain('titleValue');
-    expect(PIE_TOOLTIP_LABEL_TYPES).not.toContain('titlePercent');
+    expect(PIE_TOOLTIP_VALUE_TYPES).not.toContain('title');
+    expect(PIE_TOOLTIP_VALUE_TYPES).not.toContain('titleValue');
+    expect(PIE_TOOLTIP_VALUE_TYPES).not.toContain('titlePercent');
   });
 
   it('reports which types need a fraction', () => {
@@ -47,8 +47,9 @@ describe('formatPieLabelType', () => {
 });
 
 describe('pie label formats', () => {
-  const pieConfig = (over: Partial<PieConfig> = {}): PieConfig => ({
-    labelValueFormat: 'auto', labelPercentFormat: 'auto', tooltipPercentFormat: 'auto', ...over
+  const pieConfig = (over: { tooltip?: PieConfig['tooltip']; label?: Partial<PieConfig['label']> } = {}): PieConfig => ({
+    tooltip: { percentFormat: 'auto' }, ...over,
+    label: { valueFormat: 'auto', percentFormat: 'auto', ...over.label }
   } as PieConfig);
 
   it('resolves auto to abbreviated values and whole percents for labels', () => {
@@ -62,9 +63,9 @@ describe('pie label formats', () => {
   });
 
   it('honors explicit specifiers per part', () => {
-    const { valueFormat, percentFormat } = getPieLabelFormats(pieConfig({ labelValueFormat: ',.0f', labelPercentFormat: '.2%' }));
+    const { valueFormat, percentFormat } = getPieLabelFormats(pieConfig({ label: { valueFormat: ',.0f', percentFormat: '.2%' } }));
     expect(valueFormat(12400)).toBe('12,400');
     expect(percentFormat(0.625)).toBe('62.50%');
-    expect(getPieTooltipPercentFormat(pieConfig({ tooltipPercentFormat: '.0%' }))(0.625)).toBe('63%');
+    expect(getPieTooltipPercentFormat(pieConfig({ tooltip: { valueType: 'value', percentFormat: '.0%' } }))(0.625)).toBe('63%');
   });
 });

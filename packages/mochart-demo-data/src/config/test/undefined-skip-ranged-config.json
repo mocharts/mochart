@@ -1,58 +1,76 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Skip Undefined Ranged Shape Values"
+  "title": {
+    "text": "Skip Undefined Ranged Shape Values"
   },
-  "tooltipConfig": {
+  "tooltip": {
     "showMissingValues": true,
     "missingValueText": "N/A"
   },
-  "legendConfig": {
+  "legend": {
     "visible": true
   },
-  "groupAxisConfig": {
-    "before": false,
-    "title": "Group Axis",
-    "gridLines": true,
-    "gridLineWidth": 1,
-    "gridLineDashArray": "5, 5",
+  "categoryAxis": {
+    "title": {
+      "text": "Category Axis"
+    },
+    "gridLine": {
+      "visible": true,
+      "style": {
+        "normal": {
+          "strokeWidth": 1,
+          "strokeDashArray": "5, 5"
+        }
+      }
+    },
     "min": "auto",
     "max": "auto",
     "type": "number",
     "scale": "ordinal",
-    "valueLabel": "Group",
-    "property": "group"
+    "valueLabel": "Category",
+    "property": "category",
+    "side": "end"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "before": true,
-      "title": "Series Axis 1",
-      "axisLine": true,
-      "gridLines": false,
-      "id": "SA0",
-      "base": 0
+      "title": {
+        "text": "Value Axis 1"
+      },
+      "axisLine": {
+        "visible": true
+      },
+      "gridLine": {
+        "visible": false
+      },
+      "id": "VA0",
+      "base": 0,
+      "side": "start"
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
       "renderer": "area",
       "title": "Ranged Area",
-      "markerSize": 6,
-      "markerShape": "circle",
-      "axis": "SA0",
+      "marker": {
+        "size": 6,
+        "shape": "circle"
+      },
+      "axis": "VA0",
       "property": "value0",
       "rangeProperty": "value1",
-      "skipMissing": true
+      "missingValueMode": "connect"
     },
     {
       "renderer": "bar",
       "title": "Ranged Bar",
-      "markerSize": 6,
-      "markerShape": "circle",
-      "axis": "SA0",
+      "marker": {
+        "size": 6,
+        "shape": "circle"
+      },
+      "axis": "VA0",
       "property": "value2",
       "rangeProperty": "value3",
-      "skipMissing": true
+      "missingValueMode": "connect"
     }
   ]
 }

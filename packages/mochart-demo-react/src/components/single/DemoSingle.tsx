@@ -1,14 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
-import { consumeSingleShareState, demoText } from '@mochart/demo-common';
+import { consumeSingleShareState, demoText, getConfigDataError } from '@mochart/demo-common';
 
 import MochartChartTab from './ChartTab';
 import MochartDataTab from './DataTab';
 import MochartConfigTab from './ConfigTab';
+import DemoTabs from '../misc/DemoTabs';
 import ErrorTab from '../misc/ErrorTab';
 import TopBar from '../misc/TopBar';
 
-import type { DemoTabProps, DemoConfig, DataRow } from '../../types';
+import type { DemoTabProps, DemoConfig, DataObject } from '../../types';
 
 const eventKeyChart = 1;
 const eventKeyConfig = 2;
@@ -38,25 +39,12 @@ export default function MochartDemoSingle({ demoData, initialDemoId, siteRootUrl
         notes={demoData.demoObjectMap[initialDemoId]}
         modes={{ demoMode: 'single', onModeChanged }}
         tabs={
-          <>
-            <li className="demo-tab-item">
-              <button type="button" className={"demo-tab" + (activeKey === eventKeyChart ? " active" : "")}
-                title={hasPending && activeKey !== eventKeyChart ? demoText.tabs.chartPendingTitle : undefined}
-                onClick={() => { handleSelect(eventKeyChart); }}>
-                {demoText.tabs.chart}{hasPending && activeKey !== eventKeyChart ? <span className="mochart-pending-badge" aria-hidden="true" /> : null}
-              </button>
-            </li>
-            <li className="demo-tab-item">
-              <button type="button" className={"demo-tab" + (activeKey === eventKeyConfig ? " active" : "")} onClick={() => { handleSelect(eventKeyConfig); }}>
-                {demoText.tabs.config}
-              </button>
-            </li>
-            <li className="demo-tab-item">
-              <button type="button" className={"demo-tab" + (activeKey === eventKeyData ? " active" : "")} onClick={() => { handleSelect(eventKeyData); }}>
-                {demoText.tabs.data}
-              </button>
-            </li>
-          </>
+          <DemoTabs activeKey={activeKey} onSelect={handleSelect}
+            tabs={[
+              { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart, pending: hasPending },
+              { name: 'config', key: eventKeyConfig, label: demoText.tabs.config },
+              { name: 'data', key: eventKeyData, label: demoText.tabs.data }
+            ]} />
         } />
       <MochartDemoContent activeKey={activeKey} demoData={demoData} initialDemoId={initialDemoId}
         onPendingChanged={setHasPending} />
@@ -74,13 +62,13 @@ interface ContentProps {
 interface ContentState {
   demoId: string;
   pendingConfig: DemoConfig | null;
-  pendingData: DataRow[] | null;
+  pendingData: DataObject[] | null;
   pendingDataError: DataError;
   config: DemoConfig;
-  data: DataRow[];
+  data: DataObject[];
   dataError: DataError;
   viewingConfig: DemoConfig;
-  viewingData: DataRow[];
+  viewingData: DataObject[];
   viewingDataError: DataError;
 }
 
@@ -159,7 +147,7 @@ function MochartDemoContent(props: ContentProps) {
     setState(prev => ({ ...prev, pendingConfig: resetConfig, config: resetConfig }));
   };
 
-  const onDataChange = (pendingData: DataRow[]) => setState(prev => ({ ...prev, pendingData, pendingDataError: false }));
+  const onDataChange = (pendingData: DataObject[]) => setState(prev => ({ ...prev, pendingData, pendingDataError: false }));
 
   const onDataError = (errorMessage: string) => setState(prev => ({ ...prev, pendingDataError: errorMessage }));
 
@@ -171,11 +159,14 @@ function MochartDemoContent(props: ContentProps) {
 
   const { viewingConfig, viewingData, viewingDataError, config, data } = state;
 
+  // editor-reported error, or the viewing config/data pair failing validation
+  const derivedDataError = useMemo(() => getConfigDataError(viewingConfig, viewingData), [viewingConfig, viewingData]);
+
   return (
     <div className="mochart-demo-content-pane">
       <div className="mochart-demo-content">
         <ErrorTab active={activeKey === eventKeyChart}>
-          <MochartChartTab config={viewingConfig} data={viewingData} dataError={viewingDataError} />
+          <MochartChartTab config={viewingConfig} data={viewingData} dataError={viewingDataError || derivedDataError} />
         </ErrorTab>
         <ErrorTab active={activeKey === eventKeyConfig}>
           <MochartConfigTab config={config} onConfigChange={onConfigChange} onConfigReset={onConfigReset} />

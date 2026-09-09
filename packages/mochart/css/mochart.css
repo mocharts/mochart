@@ -2,7 +2,7 @@
  * Optional structural stylesheet for @mochart/core.
  *
  * Charts set all intentional layout as inline styles, but the HTML overlays
- * (tooltip, no-data / loading / error messages) also rely on browser default
+ * (tooltip, message states) also rely on browser default
  * styles for everything they don't set. Host-page CSS resets (Tailwind
  * preflight, VitePress base styles, normalize.css) override those defaults
  * and can break overlay layout — e.g. `svg { display: block }` pushes the
@@ -15,9 +15,16 @@
  * - Inline styles set by the chart always take precedence, so it never
  *   overrides intentional chart styling.
  * - Typography and colors are NOT pinned: overlays inherit the host page's
- *   font and text color by design. Likewise button appearance and
- *   `box-sizing` are left to the host, since the chart measures and renders
- *   under the same rules either way.
+ *   font and text color by design. Likewise `box-sizing` is left to the
+ *   host, since the chart measures and renders under the same rules either
+ *   way. The tooltip control buttons set their look inline (currentColor on
+ *   a transparent background); this file only adds their hover/active
+ *   tints, which need pseudo-classes inline styles cannot express.
+ *
+ * It also carries the chart's keyboard focus ring: the ring needs the
+ * :focus-visible pseudo-class, which core's inline styles cannot express.
+ * Without this file the chart's tab stops fall back to the browser's default
+ * focus outline.
  *
  * Import it wherever your bundler handles CSS:
  *
@@ -45,9 +52,74 @@
   display: inline-block;
 }
 
+/* Hover/active feedback for the tooltip control buttons (tooltip.showControls).
+ * Their base look is inline; only the tints live here. currentColor keeps them
+ * legible on any host theme, and aria-disabled ends (which stay focusable so
+ * keyboard focus is not dropped) skip the feedback. */
+.mochart-tooltip-container .mochart-tooltip-controls button:hover:not([aria-disabled]) {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.mochart-tooltip-container .mochart-tooltip-controls button:active:not([aria-disabled]) {
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+
 /* Message overlays (and any custom factory content dropped into them). */
+.mochart-error div,
 .mochart-no-data div,
 .mochart-no-series div,
 .mochart-loading div {
   margin: 0;
+}
+
+/* Keyboard focus ring for the chart's tab stops (plot area, legend items,
+ * tooltip buttons). :focus-visible keeps mouse clicks ring-free, and
+ * currentColor follows the host theme. The inset offset on the plot rect
+ * keeps its ring inside the plot bounds, clear of the axis labels.
+ * Scoped to .mochart-accessible (present while accessibility.enabled), so a
+ * chart with accessibility disabled keeps browser-default outlines on its
+ * native controls instead of this custom treatment. */
+.mochart-chart.mochart-accessible :focus {
+  outline: none;
+}
+
+.mochart-chart.mochart-accessible :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+.mochart-chart.mochart-accessible .mochart-series-background rect:focus-visible {
+  outline-offset: -2px;
+}
+
+/* Ring for focus the library restored after a pointer interaction, where :focus-visible does not match. */
+.mochart-chart.mochart-accessible [data-mochart-focus-restored]:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+/* Forced-colors modes: system palette on the tooltip buttons, series colors left as configured — see the accessibility guide. */
+@media (forced-colors: active) {
+  .mochart-tooltip-container .mochart-tooltip-controls button {
+    forced-color-adjust: none;
+    color: ButtonText;
+    background: ButtonFace;
+    border: 1px solid ButtonBorder;
+  }
+
+  .mochart-tooltip-container .mochart-tooltip-controls button:hover:not([aria-disabled]),
+  .mochart-tooltip-container .mochart-tooltip-controls button:active:not([aria-disabled]) {
+    color: HighlightText;
+    background: Highlight;
+  }
+
+  .mochart-tooltip-container .mochart-tooltip-controls button[aria-disabled] {
+    color: GrayText;
+    border-color: GrayText;
+  }
+
+  .mochart-chart.mochart-accessible :focus-visible,
+  .mochart-chart.mochart-accessible [data-mochart-focus-restored]:focus {
+    outline-color: Highlight;
+  }
 }

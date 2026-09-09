@@ -1,25 +1,19 @@
 import {
-  AUTO, NONE, RENDERER_AREA, RENDERER_BAR, RENDERER_LINE, RENDERER_NONE, MARKER_SHAPE_CIRCLE, CURVE_TYPE_LINEAR,
-  COLOR_SAME, COLOR_SERIES, COLOR_SERIES_INDEX, COLOR_GROUP_INDEX, COLOR_CURRENT, LABEL_POSITION_CENTER,
-  COLOR_INTERPOLATION_HCL
+  AUTO, NONE, RENDERER_AREA, RENDERER_BAR, RENDERER_LINE, RENDERER_NONE, MARKER_SHAPE_CIRCLE, MARKER_SIZE_SCALE_SQRT, CURVE_TYPE_LINEAR,
+  STYLE_SAME, COLOR_SERIES, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, COLOR_CURRENT, LABEL_POSITION_CENTER,
+  COLOR_INTERPOLATION_HCL, MISSING_VALUE_MODE_BREAK, STYLE_STATES
 } from '../core/constants';
 
-import { deepMerge } from '../core/deepMerge';
-import { getActualDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
 import type { DeepPartial, SeriesConfig } from '../../types/config';
 
-// The suffixes are the prose the generated config reference shows for each branch.
 const colorPropertySuffix = 'when colorProperty is not ' + NONE;
 const colorPropertyNoneSuffix = 'when colorProperty is ' + NONE;
 const colorBaseSuffix = 'when colorProperty is not ' + NONE + ' and colorScale.base.value is not ' + NONE;
 const colorBaseNoneSuffix = 'when colorProperty is not ' + NONE + ' and colorScale.base.value is ' + NONE;
 
-export default function getDefaults(config: DeepPartial<SeriesConfig> = {}, index: number, soleSeriesAxisId: string | null, soleSeriesStackId: string | null, soleSeriesGroupId: string | null, soleGradientConfigId: string | null): Partial<SeriesConfig> {
-  const regularDefaults = getRegularDefaults();
-  const configWithRegularDefaults = deepMerge(regularDefaults, config);
-  const conditionalDefaults = getActualDefaults(getConditionalDefaults(configWithRegularDefaults as SeriesConfig, index, soleSeriesAxisId, soleSeriesStackId, soleSeriesGroupId, soleGradientConfigId));
-
-  return deepMerge(regularDefaults, conditionalDefaults) as Partial<SeriesConfig>;
+export default function getDefaults(config: DeepPartial<SeriesConfig> = {}, index: number, soleValueAxisId: string | null, soleSeriesStackId: string | null, soleSeriesGroupId: string | null, soleGradientConfigId: string | null, solePatternConfigId: string | null, pieMode = false): Partial<SeriesConfig> {
+  return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, index, soleValueAxisId, soleSeriesStackId, soleSeriesGroupId, soleGradientConfigId, solePatternConfigId, pieMode);
 }
 
 export function getRegularDefaults() {
@@ -31,27 +25,34 @@ export function getRegularDefaults() {
     labelProperty: NONE,
     tooltipProperty: NONE,
     colorProperty: NONE,
+    allowAbsentDataProperties: false,
     stack: NONE,
     group: NONE,
     gradient: NONE,
+    pattern: NONE,
     ignore: false,
     renderer: RENDERER_LINE,
-    skipMissing: false,
-    skipPartialRange: false,
-    showMissingAtBase: false,
+    missingValueMode: MISSING_VALUE_MODE_BREAK,
+    partialRangeIsMissing: false,
     curve: { type: CURVE_TYPE_LINEAR },
-    barWidthPercent: 1,
-    barAlignPercent: 0.5,
-    barMinExtent: 0,
-    capSize: 5,
-    capType: NONE,
-    capExpand: true,
-    capOnlyStackOuter: false,
-    errorBarCapSize: 6,
-    errorBarStyle: {
-      normal: { strokeColor: COLOR_SERIES, strokeOpacity: 0.9, strokeWidth: 1.5 },
-      focused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: 1.5 },
-      defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.5, strokeWidth: 1.5 }
+    bar: {
+      widthFraction: 1,
+      alignFraction: 0.5,
+      minExtent: 0
+    },
+    cap: {
+      size: 5,
+      type: NONE,
+      expand: true,
+      onlyStackOuter: false
+    },
+    errorBar: {
+      capSize: 6,
+      style: {
+        normal: { strokeColor: COLOR_SERIES, strokeOpacity: 0.9, strokeWidth: 1.5, strokeDashArray: NONE },
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 1.5, strokeDashArray: STYLE_SAME },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.5, strokeWidth: 1.5, strokeDashArray: STYLE_SAME }
+      }
     },
     valueLabel: NONE,
     valueFormat: AUTO,
@@ -59,35 +60,34 @@ export function getRegularDefaults() {
     valueSuffix: NONE,
     useTitleForValueLabel: true,
     title: NONE,
-    labelFormat: AUTO,
-    labelTextStyle: {
-      normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.8, strokeWidth: 1, fillColor: COLOR_CURRENT, fillOpacity: 0.8 },
-      focused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: 1, fillColor: COLOR_SAME, fillOpacity: 1 },
-      defocused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: 1, fillColor: COLOR_SAME, fillOpacity: 1 }
+    label: {
+      format: AUTO,
+      prefix: NONE,
+      suffix: NONE,
+      textStyle: {
+        normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.8, strokeWidth: 1, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: 0.8 },
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 1, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 1, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 }
+      },
+      minPositionFraction: NONE,
+      maxPositionFraction: NONE,
+      minRangeFraction: NONE,
+      offset: 0,
+      position: LABEL_POSITION_CENTER,
+      aboveBase: { minPositionFraction: AUTO, maxPositionFraction: AUTO, offset: AUTO, position: AUTO },
+      belowBase: { minPositionFraction: AUTO, maxPositionFraction: AUTO, offset: AUTO, position: AUTO }
     },
-    labelMinPositionPercent: NONE,
-    labelMaxPositionPercent: NONE,
-    labelMinRangePercent: NONE,
-    labelOffset: 0,
-    labelPosition: LABEL_POSITION_CENTER,
-    labelAboveBaseMinPositionPercent: AUTO,
-    labelAboveBaseMaxPositionPercent: AUTO,
-    labelBelowBaseMinPositionPercent: AUTO,
-    labelBelowBaseMaxPositionPercent: AUTO,
-    labelAboveBaseOffset: AUTO,
-    labelBelowBaseOffset: AUTO,
-    labelAboveBasePosition: AUTO,
-    labelBelowBasePosition: AUTO,
     // Only the shape's colors are regular defaults; its opacities and widths are renderer-conditional.
     shapeStyle: {
-      normal: { strokeColor: COLOR_SERIES_INDEX, fillColor: COLOR_SERIES_INDEX },
-      focused: { strokeColor: COLOR_SAME, fillColor: COLOR_SAME },
-      defocused: { strokeColor: COLOR_SAME, fillColor: COLOR_SAME }
+      normal: { strokeColor: COLOR_SERIES_INDEX, strokeDashArray: NONE, fillColor: COLOR_SERIES_INDEX },
+      focused: { strokeColor: STYLE_SAME, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME },
+      defocused: { strokeColor: STYLE_SAME, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME }
     },
     colorScale: {
       interpolation: NONE,
       min: NONE,
       max: NONE,
+      missing: NONE,
       base: {
         value: NONE,
         aboveMin: NONE,
@@ -96,61 +96,81 @@ export function getRegularDefaults() {
         belowMax: NONE
       }
     },
-    minMarkerSize: 1,
-    markerShowMissing: false,
-    markerSize: 6,
-    markerStyle: {
-      normal: { strokeColor: COLOR_SERIES, strokeOpacity: 0.9, strokeWidth: 1, fillColor: COLOR_SERIES, fillOpacity: 0.9 },
-      focused: { strokeColor: COLOR_SAME, strokeOpacity: 1, strokeWidth: 3, fillColor: COLOR_SAME, fillOpacity: 1 },
-      defocused: { strokeColor: COLOR_SAME, strokeOpacity: 0.8, strokeWidth: 1, fillColor: COLOR_SAME, fillOpacity: 0.8 }
+    marker: {
+      minSize: 1,
+      showForMissingValues: false,
+      size: 6,
+      sizeScale: MARKER_SIZE_SCALE_SQRT,
+      style: {
+        normal: { strokeColor: COLOR_SERIES, strokeOpacity: 0.9, strokeWidth: 1, strokeDashArray: NONE, fillColor: COLOR_SERIES, fillOpacity: 0.9 },
+        focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 3, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
+        defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.8, strokeWidth: 1, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 0.8 }
+      }
     },
-    showInLegend: true,
     showInTooltip: true,
-    suppressible: true,
+    filterable: true,
     followSeries: NONE,
-    focusOnMouseOver: false,
+    focusOnHover: false,
     focusOnClick: false,
-    focusGroupOnMouseOver: false,
-    focusGroupOnClick: false,
+    focusCategoryOnHover: false,
+    focusCategoryOnClick: false,
+    showPointer: false,
     useAxisFocus: true
   };
 }
 
-// A group-index colored shape has no one color to put in a legend or tooltip swatch, so such a series
-// defaults to no color icon. Only the normal state counts; the other two resolve back to it via 'same'.
-function isGroupIndexColored({ shapeStyle }: SeriesConfig): boolean {
-  const { strokeColor, fillColor } = shapeStyle.normal;
-  return strokeColor === COLOR_GROUP_INDEX || fillColor === COLOR_GROUP_INDEX;
+function isCategoryIndexColored({ shapeStyle }: SeriesConfig): boolean {
+  const normal = shapeStyle !== null && typeof shapeStyle === 'object' && !Array.isArray(shapeStyle) ? shapeStyle.normal : undefined;
+  const { strokeColor, fillColor } = normal !== null && typeof normal === 'object' ? normal : {};
+  return strokeColor === COLOR_CATEGORY_INDEX || fillColor === COLOR_CATEGORY_INDEX;
 }
 
-const groupIndexColorSuffix = 'when shapeStyle.normal.strokeColor or shapeStyle.normal.fillColor is ' + COLOR_GROUP_INDEX;
-const notGroupIndexColorSuffix = 'when neither shapeStyle.normal.strokeColor nor shapeStyle.normal.fillColor is ' + COLOR_GROUP_INDEX;
+function usesFillRenderer({ renderer }: SeriesConfig, pieMode: boolean): boolean {
+  return pieMode || renderer === RENDERER_AREA || renderer === RENDERER_BAR;
+}
 
-export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, index: number, soleSeriesAxisId: string | null, soleSeriesStackId: string | null, soleSeriesGroupId: string | null, soleGradientConfigId: string | null) {
+function isCategoryIndexFilled({ shapeStyle }: SeriesConfig): boolean {
+  const states = shapeStyle !== null && typeof shapeStyle === 'object' && !Array.isArray(shapeStyle)
+    ? shapeStyle as unknown as Record<string, { fillColor?: unknown } | undefined>
+    : {};
+  return STYLE_STATES.some(state => states[state]?.fillColor === COLOR_CATEGORY_INDEX);
+}
+
+function supportsAutomaticGradient(config: SeriesConfig, pieMode: boolean): boolean {
+  return usesFillRenderer(config, pieMode) && config.colorProperty === NONE && !isCategoryIndexFilled(config);
+}
+
+const followSeriesSuffix = 'when followSeries is not ' + NONE;
+const followSeriesNoneSuffix = 'when followSeries is ' + NONE;
+const nonColorRendererSuffix = 'when chart type is not xy or renderer is not bar';
+const colorRendererSuffix = 'when chart type is xy and renderer is bar';
+const categoryIndexColorSuffix = 'when shapeStyle.normal.strokeColor or shapeStyle.normal.fillColor is ' + COLOR_CATEGORY_INDEX;
+const notCategoryIndexColorSuffix = 'when neither shapeStyle.normal.strokeColor nor shapeStyle.normal.fillColor is ' + COLOR_CATEGORY_INDEX;
+
+export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, index: number, soleValueAxisId: string | null, soleSeriesStackId: string | null, soleSeriesGroupId: string | null, soleGradientConfigId: string | null, solePatternConfigId: string | null, pieMode = false) {
   return {
     id: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series index', default: 'S' + index, defaultText: 'S${index}' },
-      { ...defaultRule, default: 'S' + index }
+      { ...defaultRule, default: 'S' + index, defaultText: 'S${index}' }
     ], configWithRegularDefaults, index),
     order: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series index', default: index, defaultText: '${index}' },
-      { ...defaultRule, default: index }
+      { ...defaultRule, default: index, defaultText: '${index}' }
     ], configWithRegularDefaults, index),
     axis: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series axis', default: soleSeriesAxisId === null ? undefined : soleSeriesAxisId, defaultText: 'sole axis id' },
-      { ...defaultRule, default: soleSeriesAxisId === null ? undefined : soleSeriesAxisId }
+      { ...defaultRule, default: soleValueAxisId === null ? undefined : soleValueAxisId, defaultText: 'sole axis id' }
     ], configWithRegularDefaults, index),
     stack: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series stack', default: soleSeriesStackId, defaultText: 'sole stack id' },
-      { ...defaultRule, default: soleSeriesStackId }
+      { ...defaultRule, default: soleSeriesStackId, defaultText: 'sole stack id' }
     ], configWithRegularDefaults, index),
     group: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series group', default: soleSeriesGroupId, defaultText: 'sole group id' },
-      { ...defaultRule, default: soleSeriesGroupId }
+      { ...defaultRule, default: soleSeriesGroupId, defaultText: 'sole group id' }
     ], configWithRegularDefaults, index),
     gradient: conditionalDefault([
-      { condition: (_config, _index) => true, suffix: 'series gradient', default: soleGradientConfigId, defaultText: 'sole gradient id' },
-      { ...defaultRule, default: soleGradientConfigId }
+      { condition: config => supportsAutomaticGradient(config, pieMode), suffix: 'when chart type is pie or renderer is area or bar, colorProperty is null, and no shapeStyle fillColor is ' + COLOR_CATEGORY_INDEX, default: soleGradientConfigId, defaultText: 'sole gradient id' },
+      { ...defaultRule, default: NONE }
+    ], configWithRegularDefaults, index),
+    pattern: conditionalDefault([
+      { condition: config => usesFillRenderer(config, pieMode), suffix: 'when chart type is pie or renderer is area or bar', default: solePatternConfigId, defaultText: 'sole pattern id' },
+      { ...defaultRule, default: NONE }
     ], configWithRegularDefaults, index),
     animateBaseFromAdjacent: conditionalDefault([
       { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: false },
@@ -230,66 +250,86 @@ export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, 
         ], configWithRegularDefaults, index)
       }
     },
-    markerShape: conditionalDefault([
-      { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: NONE },
-      { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: MARKER_SHAPE_CIRCLE },
-      { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: MARKER_SHAPE_CIRCLE },
-      { condition: ({ renderer }) => renderer === RENDERER_NONE, suffix: 'when renderer is ' + RENDERER_NONE, default: MARKER_SHAPE_CIRCLE },
-      { ...defaultRule, default: NONE }
-    ], configWithRegularDefaults, index),
-    colorScale: {
-      interpolation: conditionalDefault([
-        { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
-        { condition: ({ colorProperty }) => colorProperty !== NONE, suffix: colorPropertySuffix, default: COLOR_INTERPOLATION_HCL },
+    marker: {
+      shape: conditionalDefault([
+        { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: NONE },
+        { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: MARKER_SHAPE_CIRCLE },
+        { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: MARKER_SHAPE_CIRCLE },
+        { condition: ({ renderer }) => renderer === RENDERER_NONE, suffix: 'when renderer is ' + RENDERER_NONE, default: MARKER_SHAPE_CIRCLE },
         { ...defaultRule, default: NONE }
-      ], configWithRegularDefaults, index),
-      min: conditionalDefault([
-        { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
-        { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value === NONE, suffix: colorBaseNoneSuffix, default: '#8f8fff' },
-        { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value !== NONE, suffix: colorBaseSuffix, default: NONE },
-        { ...defaultRule, default: NONE }
-      ], configWithRegularDefaults, index),
-      max: conditionalDefault([
-        { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
-        { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value === NONE, suffix: colorBaseNoneSuffix, default: '#0000ff' },
-        { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value !== NONE, suffix: colorBaseSuffix, default: NONE },
-        { ...defaultRule, default: NONE }
-      ], configWithRegularDefaults, index),
-      base: {
-        aboveMin: conditionalDefault([
-          { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
-          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value === NONE, suffix: colorBaseNoneSuffix, default: NONE },
-          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value !== NONE, suffix: colorBaseSuffix, default: '#8f8fff' },
-          { ...defaultRule, default: NONE }
-        ], configWithRegularDefaults, index),
-        aboveMax: conditionalDefault([
-          { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
-          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value === NONE, suffix: colorBaseNoneSuffix, default: NONE },
-          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value !== NONE, suffix: colorBaseSuffix, default: '#0000ff' },
-          { ...defaultRule, default: NONE }
-        ], configWithRegularDefaults, index),
-        belowMin: conditionalDefault([
-          { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
-          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value === NONE, suffix: colorBaseNoneSuffix, default: NONE },
-          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value !== NONE, suffix: colorBaseSuffix, default: '#ff8f8f' },
-          { ...defaultRule, default: NONE }
-        ], configWithRegularDefaults, index),
-        belowMax: conditionalDefault([
-          { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
-          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value === NONE, suffix: colorBaseNoneSuffix, default: NONE },
-          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && colorScale?.base?.value !== NONE, suffix: colorBaseSuffix, default: '#ff0000' },
-          { ...defaultRule, default: NONE }
-        ], configWithRegularDefaults, index)
-      }
+      ], configWithRegularDefaults, index)
     },
+    colorScale: conditionalDefault([
+      { condition: ({ renderer }) => pieMode || renderer !== RENDERER_BAR, suffix: nonColorRendererSuffix, default: NONE },
+      {
+        condition: ({ renderer }) => !pieMode && renderer === RENDERER_BAR,
+        suffix: colorRendererSuffix,
+        defaultText: 'the members below',
+        default: {
+          interpolation: conditionalDefault([
+          { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
+          { condition: ({ colorProperty }) => colorProperty !== NONE, suffix: colorPropertySuffix, default: COLOR_INTERPOLATION_HCL },
+          { ...defaultRule, default: NONE }
+        ], configWithRegularDefaults, index),
+        min: conditionalDefault([
+          { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
+          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) === NONE, suffix: colorBaseNoneSuffix, default: '#8f8fff' },
+          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) !== NONE, suffix: colorBaseSuffix, default: NONE },
+          { ...defaultRule, default: NONE }
+        ], configWithRegularDefaults, index),
+        max: conditionalDefault([
+          { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
+          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) === NONE, suffix: colorBaseNoneSuffix, default: '#0000ff' },
+          { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) !== NONE, suffix: colorBaseSuffix, default: NONE },
+          { ...defaultRule, default: NONE }
+        ], configWithRegularDefaults, index),
+        missing: conditionalDefault([
+          { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
+          { condition: ({ colorProperty }) => colorProperty !== NONE, suffix: colorPropertySuffix, default: '#cccccc' },
+          { ...defaultRule, default: NONE }
+        ], configWithRegularDefaults, index),
+        base: {
+          aboveMin: conditionalDefault([
+            { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
+            { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) === NONE, suffix: colorBaseNoneSuffix, default: NONE },
+            { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) !== NONE, suffix: colorBaseSuffix, default: '#8f8fff' },
+            { ...defaultRule, default: NONE }
+          ], configWithRegularDefaults, index),
+          aboveMax: conditionalDefault([
+            { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
+            { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) === NONE, suffix: colorBaseNoneSuffix, default: NONE },
+            { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) !== NONE, suffix: colorBaseSuffix, default: '#0000ff' },
+            { ...defaultRule, default: NONE }
+          ], configWithRegularDefaults, index),
+          belowMin: conditionalDefault([
+            { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
+            { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) === NONE, suffix: colorBaseNoneSuffix, default: NONE },
+            { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) !== NONE, suffix: colorBaseSuffix, default: '#ff0000' },
+            { ...defaultRule, default: NONE }
+          ], configWithRegularDefaults, index),
+          belowMax: conditionalDefault([
+            { condition: ({ colorProperty }) => colorProperty === NONE, suffix: colorPropertyNoneSuffix, default: NONE },
+            { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) === NONE, suffix: colorBaseNoneSuffix, default: NONE },
+            { condition: ({ colorProperty, colorScale }) => colorProperty !== NONE && (colorScale?.base?.value ?? NONE) !== NONE, suffix: colorBaseSuffix, default: '#ff8f8f' },
+            { ...defaultRule, default: NONE }
+          ], configWithRegularDefaults, index)
+        }
+      }
+    }
+    ], configWithRegularDefaults, index),
+    showInLegend: conditionalDefault([
+      { condition: ({ followSeries }) => followSeries !== NONE, suffix: followSeriesSuffix, default: false },
+      { condition: ({ followSeries }) => followSeries === NONE, suffix: followSeriesNoneSuffix, default: true },
+      { ...defaultRule, default: true }
+    ], configWithRegularDefaults, index),
     showColorInLegend: conditionalDefault([
-      { condition: (config) => isGroupIndexColored(config), suffix: groupIndexColorSuffix, default: false },
-      { condition: (config) => !isGroupIndexColored(config), suffix: notGroupIndexColorSuffix, default: true },
+      { condition: (config) => isCategoryIndexColored(config), suffix: categoryIndexColorSuffix, default: false },
+      { condition: (config) => !isCategoryIndexColored(config), suffix: notCategoryIndexColorSuffix, default: true },
       { ...defaultRule, default: true }
     ], configWithRegularDefaults, index),
     showColorInTooltip: conditionalDefault([
-      { condition: (config) => isGroupIndexColored(config), suffix: groupIndexColorSuffix, default: false },
-      { condition: (config) => !isGroupIndexColored(config), suffix: notGroupIndexColorSuffix, default: true },
+      { condition: (config) => isCategoryIndexColored(config), suffix: categoryIndexColorSuffix, default: false },
+      { condition: (config) => !isCategoryIndexColored(config), suffix: notCategoryIndexColorSuffix, default: true },
       { ...defaultRule, default: true }
     ], configWithRegularDefaults, index)
   };

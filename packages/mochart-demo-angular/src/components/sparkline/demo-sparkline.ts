@@ -3,7 +3,7 @@ import { Component, Input, computed, signal } from '@angular/core';
 import { DefaultChart } from '@mochart/angular';
 
 import { demoText, inlineSparklineMetrics, tableSparklineMetrics } from '@mochart/demo-common';
-import type { DataRow, SparklineMetric } from '@mochart/demo-common';
+import type { DataObject, SparklineMetric } from '@mochart/demo-common';
 
 import { ButtonWithTooltip } from '../misc/button-with-tooltip';
 import { Icon } from '../misc/icon';
@@ -11,7 +11,7 @@ import { TopBar } from '../misc/top-bar';
 
 interface TableRow {
   metric: SparklineMetric;
-  data: DataRow[];
+  data: DataObject[];
   latest: string;
 }
 
@@ -72,7 +72,7 @@ export class DemoSparkline {
 
   readonly step = signal(0);
 
-  readonly inlineData = computed<DataRow[][]>(() => {
+  readonly inlineData = computed<DataObject[][]>(() => {
     const step = this.step();
     return this.inlineMetrics.map(metric => metric.generate(step));
   });

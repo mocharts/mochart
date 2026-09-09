@@ -5,7 +5,7 @@
   import type { MochartConfig } from '@mochart/core';
   import { exportPNG, exportSVG } from '@mochart/export';
 
-  import { getChartExportOptions, demoText } from '@mochart/demo-common';
+  import { controlsMenuPlacement, demoText, getChartExportOptions, getDemoTabPanelAttrs, menuKeepOpenClassName } from '@mochart/demo-common';
   import type { ShareState } from '@mochart/demo-common';
 
   import ButtonWithTooltip from '../misc/ButtonWithTooltip.svelte';
@@ -150,7 +150,7 @@
      own spinners in particular — cannot dismiss the panel it is hosted in.
      The class paints nothing, so it is unconditional. -->
 {#snippet rateField()}
-  <div class="demo-field demo-menu-keep-open">
+  <div class="demo-field {menuKeepOpenClassName}">
     <label class="demo-label" for="random-rate">{demoText.randomChartTab.intervalLabel}</label>
     <input id="random-rate" disabled={playing} type="number" min="5" max="60000" step="100" class="demo-input" value={rateText}
            oninput={rateChanged} aria-label={demoText.randomChartTab.intervalAria} />
@@ -158,22 +158,22 @@
 {/snippet}
 
 {#snippet exportMenu()}
-  <ExportShareMenu idPrefix="random" active={active !== false} exportPng={onExportPng} exportSvg={onExportSvg} {getShareState} />
+  <ExportShareMenu active={active !== false} exportPng={onExportPng} exportSvg={onExportSvg} {getShareState} />
 {/snippet}
 
 <!-- The phone fold keeps the dice pair (Back / Randomize) inline — stepping by
      hand is the mode's primary interaction — and demotes the automation
      transport (Play / Stop) with the Reuse toggle and the interval field. Each
      control renders in exactly one of the two places (see OverflowMenu.svelte). -->
-<div class={"mochart-demo-tab-container demo-layout-col chart" + (active ? " active" : "")} inert={!active}>
+<div {...getDemoTabPanelAttrs('chart')} class={"mochart-demo-tab-container demo-layout-col chart" + (active ? " active" : "")} inert={!active}>
   <div class="random-chart-sizer" bind:this={chartSizerElement}>
     <Chart style="flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden;"
            {mochartConfig} {dataProvider} />
   </div>
   <div class="random-controls" bind:this={controlsElement}>
-    <form class="demo-form-row">
+    <form>
       <div class="demo-field">
-        <div class="demo-toolbar" role="toolbar">
+        <div class="demo-toolbar">
           <div class="demo-btn-group">
             <ButtonWithTooltip id="randomize-back" disabled={playing} label={demoText.randomChartTab.back.label}
                                tooltipText={demoText.randomChartTab.back.tooltip} tooltipPlacement="top-start"
@@ -189,14 +189,14 @@
           </div>
           {#if !phone.isPhone}{@render rateField()}{/if}
         </div>
-        <div class="demo-toolbar" role="toolbar">
+        <div class="demo-toolbar">
           {#if phone.isPhone}
             <div class="demo-btn-group">
               <!-- Anchored to the whole strip: `align: 'end'` pins the panel's
                    right edge to the anchor's, and the export trigger sits to
                    the ⋯'s right. -->
               <OverflowMenu text={demoText.overflowMenu.random}
-                            placement={{ side: 'top', align: 'end', gap: 4 }}
+                            placement={controlsMenuPlacement}
                             getAnchor={() => controlsElement}
                             active={active !== false}>
                 <div class="demo-btn-group">{@render playButton()}{@render stopButton()}</div>

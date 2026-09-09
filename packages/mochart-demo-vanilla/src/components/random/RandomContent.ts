@@ -1,5 +1,4 @@
-import { NONE, getDataErrors } from '@mochart/core';
-import type { MochartConfig, DataProvider } from '@mochart/core';
+import { getDataErrors } from '@mochart/core';
 
 import { el, errorTab } from '../misc/dom';
 import type { ErrorTabHandle } from '../misc/dom';
@@ -10,9 +9,9 @@ import type { RandomConfigTabHandle } from './RandomConfigTab';
 import { randomDataTab } from './RandomDataTab';
 import type { RandomDataTabHandle } from './RandomDataTab';
 
-import { consumeShareState, demoText, generateDemoDataProvider, neutralizeRandomReuse } from '@mochart/demo-common';
+import { consumeShareState, createErrorDataProvider, demoText, generateDemoDataProvider, getRandomDataObjects, neutralizeRandomReuse, restoreSharedRandomConfig } from '@mochart/demo-common';
 
-import type { MochartDemoConfig, RandomConfigWithValid, DemoDataProvider, GroupValue } from '../../types';
+import type { MochartDemoConfig, RandomConfigWithValid, DemoDataProvider } from '../../types';
 
 interface EventKeys {
   eventKeyChart: number;
@@ -60,7 +59,7 @@ export function randomContent(props: RandomContentProps): RandomContentHandle {
   const sharedRandom = shared && shared.mode === 'random' ? shared : null;
 
   let randomConfig: RandomConfigWithValid = sharedRandom
-    ? { ...sharedRandom.randomConfig, valid: true }
+    ? restoreSharedRandomConfig(sharedRandom.randomConfig, generator)
     : initialRandomConfig;
   let dataProvider: DemoDataProvider | null = null;
   let data: unknown = null;
@@ -68,27 +67,6 @@ export function randomContent(props: RandomContentProps): RandomContentHandle {
   // config's reuse settings were always applied before the toggle worked).
   let applyReuse = sharedRandom ? sharedRandom.applyReuse : true;
   const initialRate = sharedRandom ? sharedRandom.interval : undefined;
-
-  function getData(mochartConfig: MochartConfig, groupValues: GroupValue[], seriesValues: Record<string, (number | undefined)[]>) {
-    const { groupAxisConfig } = mochartConfig;
-    const groupProperty = groupAxisConfig.property ?? '';
-    const nextData: Record<string, any>[] = groupValues.map(g => ({ [groupProperty]: g }));
-    const groupCount = groupValues.length;
-    if (groupAxisConfig.displayProperty !== NONE) {
-      const displayProperty = groupAxisConfig.displayProperty;
-      for (let i = 0; i < groupCount; i++) {
-        nextData[i][displayProperty] = groupValues[i];
-      }
-    }
-    const seriesProperties = Object.keys(seriesValues);
-    for (const seriesProperty of seriesProperties) {
-      const seriesPropertyValues = seriesValues[seriesProperty];
-      for (let i = 0; i < groupCount; i++) {
-        nextData[i][seriesProperty] = seriesPropertyValues[i];
-      }
-    }
-    return nextData;
-  }
 
   function updateDataProvider(forcedRandomConfig?: RandomConfigWithValid): void {
     const { mochartConfig } = mochartDemoConfig;
@@ -99,17 +77,14 @@ export function randomContent(props: RandomContentProps): RandomContentHandle {
       // neutralized, so every dataset is generated independently
       const generatorConfig = applyReuse ? nextRandomConfig : neutralizeRandomReuse(nextRandomConfig);
       const nextDataProvider = generateDemoDataProvider(generator, mochartConfig, generatorConfig, randomId);
-      const { groupValues = [], seriesValues = {} } = nextDataProvider;
-      const nextData = getData(mochartConfig, groupValues, seriesValues);
-      const dataErrors = getDataErrors(mochartConfig, nextDataProvider as unknown as DataProvider);
+      const { categoryValues = [], seriesValues = {} } = nextDataProvider;
+      const nextData = getRandomDataObjects(mochartConfig, categoryValues, seriesValues);
+      const dataErrors = getDataErrors(mochartConfig, nextDataProvider);
       if (dataErrors.length > 0) {
         console.error('data errors: ', dataErrors);
-        console.warn('group values: ', groupValues);
+        console.warn('category values: ', categoryValues);
         console.warn('series values: ', seriesValues);
-        dataProvider = {
-          getGroupValues: () => [],
-          getError: () => demoText.errors.creatingDataProvider
-        };
+        dataProvider = createErrorDataProvider(demoText.errors.creatingDataProvider);
         data = { error: demoText.errors.creatingDataProvider };
         randomConfig = nextRandomConfig;
       }
@@ -120,10 +95,7 @@ export function randomContent(props: RandomContentProps): RandomContentHandle {
       }
     }
     else {
-      dataProvider = {
-        getGroupValues: () => [],
-        getError: () => demoText.errors.invalidRandomConfig
-      };
+      dataProvider = createErrorDataProvider(demoText.errors.invalidRandomConfig);
       data = {
         error: demoText.errors.invalidRandomConfig
       };
@@ -224,6 +196,8 @@ export function randomContent(props: RandomContentProps): RandomContentHandle {
     },
     destroy() {
       chart.destroy();
+      config.destroy();
+      dataView.destroy();
     }
   };
 }

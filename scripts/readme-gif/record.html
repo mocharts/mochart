@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>mochart README recording</title>
+  <link rel="stylesheet" href="/packages/mochart/css/mochart.css">
+  <style>
+    :root { color-scheme: light; --bg: #ffffff; --fg: #1f2328; }
+    :root[data-theme="dark"] { color-scheme: dark; --bg: #0d1117; --fg: #e6edf3; }
+    html, body { margin: 0; background: var(--bg); color: var(--fg); overflow: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+    #chart { position: absolute; top: 0; left: 0; transform-origin: top left; }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+  <script type="module">
+    import { createChart, enhanceConfig, ArrayOfObjectsDataProvider } from '/packages/mochart/dist/mochart.js';
+    import { scenes } from './scenes.mjs';
+
+    const params = new URLSearchParams(location.search);
+    const sceneName = params.get('scene') ?? 'stacked';
+    const theme = params.get('theme') ?? 'light';
+    const scale = Number(params.get('scale') ?? '1');
+    const scene = scenes[sceneName];
+    if (scene === undefined) {
+      throw new Error(`unknown scene "${sceneName}"; known: ${Object.keys(scenes).join(', ')}`);
+    }
+    document.documentElement.dataset.theme = theme;
+
+    const mark = window.__sceneMark ?? (() => {});
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    window.runScene = async () => {
+      const { width, height } = scene;
+      const element = document.getElementById('chart');
+      element.style.width = `${width}px`;
+      element.style.height = `${height}px`;
+      element.style.transform = `scale(${scale})`;
+      let chart = null;
+      let config = scene.config(theme);
+      let data = scene.data;
+      const helpers = {
+        wait,
+        theme,
+        begin: () => mark('start'),
+        setData(next) {
+          data = next;
+          chart.update({ dataProvider: new ArrayOfObjectsDataProvider(data) });
+        },
+        setConfig(next) {
+          config = next;
+          chart.update({ mochartConfig: enhanceConfig(config) });
+        }
+      };
+      await document.fonts.ready;
+      chart = createChart(element, {
+        mochartConfig: enhanceConfig(config),
+        dataProvider: new ArrayOfObjectsDataProvider(data),
+        width,
+        height
+      });
+      await scene.run(helpers);
+      mark('end');
+    };
+    window.__sceneReady = true;
+  </script>
+</body>
+</html>

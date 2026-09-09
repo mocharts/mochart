@@ -1,7 +1,7 @@
-// The donut option adds an inner radius, and tooltipValues 'percent' makes the
+// The donut option adds an inner radius, and tooltipValueType 'percent' makes the
 // tooltip show each slice's share instead of its raw value. The chart computes
 // those percentages from the current slice shares, so — like the percent slice
-// labels below — they renormalize as slices are suppressed.
+// labels below — they renormalize as slices are filtered.
 import { createPie } from '@mochart/core';
 import type { MochartInputConfig } from '@mochart/core';
 
@@ -14,19 +14,19 @@ const donut = createPie(
     { label: 'Opera', value: 3 },
     { label: 'Other', value: 4 }
   ],
-  { donut: true, tooltipValues: 'percent' }
+  { donut: true, tooltipValueType: 'percent' }
 );
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Browser Market Share (fictional)' },
-  chartConfig: donut.chartConfig,
-  // showLabels puts percent labels at the slice centroids (slices thinner
-  // than labelMinAnglePercent hide theirs), and focusOffsetPercent explodes
+  title: { text: 'Browser Market Share (fictional)' },
+  chart: donut.chart,
+  // label.visible puts percent labels at the slice centroids (slices thinner
+  // than label.minFraction hide theirs), and focusOffsetFraction explodes
   // the hovered slice away from the center.
-  pieConfig: { ...donut.pieConfig, showLabels: true, labelType: 'percent', focusOffsetPercent: 0.05 },
-  groupAxisConfig: donut.groupAxisConfig,
-  seriesConfigs: donut.seriesConfigs
+  pie: { ...donut.pie, label: { visible: true, type: 'percent' }, focusOffsetFraction: 0.05 },
+  categoryAxis: donut.categoryAxis,
+  series: donut.series
 };
 
 export const data = donut.data;

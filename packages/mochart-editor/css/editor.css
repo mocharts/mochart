@@ -5,6 +5,8 @@
   --mochart-editor-focus: var(--demo-accent, #2563eb);
   --mochart-editor-focus-soft: var(--demo-accent-soft, rgb(37 99 235 / 18%));
   --mochart-editor-gutter: var(--demo-surface, #fff);
+  --mochart-editor-selection: rgb(37 99 235 / 30%);
+  --mochart-editor-match: rgb(32 36 43 / 9%);
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -52,6 +54,8 @@
   --mochart-editor-focus: #58a6ff;
   --mochart-editor-focus-soft: rgb(88 166 255 / 24%);
   --mochart-editor-gutter: #0d1117;
+  --mochart-editor-selection: rgb(88 166 255 / 32%);
+  --mochart-editor-match: rgb(230 237 243 / 12%);
   color-scheme: dark;
 }
 

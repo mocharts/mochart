@@ -21,7 +21,7 @@ export default class AxisFocusRange extends Renderer<AxisFocusRangeProps> {
 
   sync() {
     const { axisConfig } = this.props;
-    if (axisConfig.focusRange) {
+    if (axisConfig.focusRange.visible) {
       const { axisLayoutInfo, focusPercentages } = this.props;
       const { length } = focusPercentages;
 
@@ -30,8 +30,7 @@ export default class AxisFocusRange extends Renderer<AxisFocusRangeProps> {
 
       if (length === 1 || length === 2) {
         // destructured rather than spread whole: this attribute order is what the golden snapshots record
-        const { stroke, strokeOpacity, strokeWidth, fill, fillOpacity } = styleToAttributes(axisConfig.focusRangeStyle);
-        const { focusRangeDashArray } = axisConfig;
+        const { stroke, strokeOpacity, strokeWidth, strokeDasharray, fill, fillOpacity } = styleToAttributes(axisConfig.focusRange.style);
         const { vertical, focusRangeLayoutInfo } = axisLayoutInfo;
         let { x, y, width, height } = focusRangeLayoutInfo;
         if (length === 1) {
@@ -60,7 +59,7 @@ export default class AxisFocusRange extends Renderer<AxisFocusRangeProps> {
         this.range.set('rect', () => svgEl('rect'))!.set({ x, y, width, height,
           stroke, strokeOpacity,
           fill, fillOpacity,
-          strokeWidth, strokeDasharray: focusRangeDashArray });
+          strokeWidth, strokeDasharray: strokeDasharray ?? null });
       }
       else {
         this.range.set(null);

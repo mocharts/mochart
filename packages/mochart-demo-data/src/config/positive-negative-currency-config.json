@@ -1,37 +1,39 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Positive & Negative Currencies"
+  "title": {
+    "text": "Positive & Negative Currencies"
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "groupDO",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categoryDO",
     "type": "date",
     "scale": "ordinal"
   },
-  "seriesAxisAllConfig": {
+  "valueAxisDefaults": {
     "base": 0,
-    "tickLabelFormat": "$.2f"
+    "tickLabel": {
+      "format": "$.2f"
+    }
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "id": "SA0",
-      "before": true
+      "id": "VA0",
+      "side": "start"
     },
     {
-      "id": "SA1",
-      "before": false
+      "id": "VA1",
+      "side": "end"
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "value7",
       "title": "Small Pos/Neg Dollars",
       "renderer": "line"
     },
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "property": "value9",
       "title": "Large Pos/Neg Dollars",
       "renderer": "area"

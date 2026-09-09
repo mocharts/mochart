@@ -49,11 +49,16 @@ function mountHost(
   let lastProps = props;
   let measured = measure(container);
   let chart: ChartHandle<any> | null = null;
+  let destroyed = false;
 
   // The chart measures text against the live DOM, so mount on the microtask
   // after the container is appended (the framework bindings mount from their
   // onMount/connected hooks for the same reason).
   queueMicrotask(() => {
+    // a destroy in the same tick as the mount would otherwise leave an orphan chart
+    if (destroyed) {
+      return;
+    }
     measured = measure(container);
     chart = create(container, withSize(lastProps, measured));
   });
@@ -80,6 +85,7 @@ function mountHost(
       }
     },
     destroy() {
+      destroyed = true;
       observer.disconnect();
       if (chart) {
         chart.destroy();
@@ -97,7 +103,7 @@ export function mountChart(
   return mountHost(createChart as CreateChartFn, props, containerOptions);
 }
 
-/** Mount a chart from a raw config plus a plain array-of-objects dataset. */
+/** Mount a chart from a raw config plus a plain dataset — an array of objects or an object of arrays. */
 export function mountDefaultChart(
   props: Record<string, any>,
   containerOptions: { className?: string; style?: string } = {}

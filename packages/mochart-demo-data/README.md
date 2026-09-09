@@ -25,12 +25,12 @@ requires a Vite (or compatible) bundler.
 
 | Path | What it holds |
 | --- | --- |
-| `src/demos.json` | The manifest: each demo's id, title, and which config/data/random files it uses (`demos` plus the intentionally-invalid `testDemos` used by the e2e suite). |
+| `src/demos.json` | The manifest: each demo's id, title, and which config/data/random files it uses. `demos` is the curated gallery; `testDemos` are the feature-coverage demos exercising less common config options, shown in a separate section. |
 | `src/config/*.json` | Chart configs, one per demo. |
-| `src/config/test/*.json` | Invalid/edge-case configs for the test demos. |
-| `src/data/*.json` | Datasets (arrays of row objects), shared across demos. |
+| `src/config/test/*.json` | Chart configs for the test demos: edge cases such as degenerate domains, missing values and crowded axes. All are valid configs. |
+| `src/data/*.json` | Datasets (arrays of data objects), shared across demos. |
 | `src/random/*.json` | Random-generation specs for the random demo mode. |
-| `src/types.ts` | `Demo`, `DemoData`, `DemoConfig`, `DataRow`, `RandomConfig`, `DemoManifestEntry`. |
+| `src/types.ts` | `Demo`, `DemoData`, `DemoConfig`, `DataObject`, `RandomConfig`, `DemoManifestEntry`. |
 
 ## Usage
 
@@ -41,7 +41,8 @@ with its config/data/random JSON:
 import demoData from '@mochart/demo-data';
 
 const { demoIds, demoObjectMap, testDemoIds } = demoData;
-const stacked = demoObjectMap['stacked']; // { id, title, config, data, random }
+// { id, title, description, notes, config, data, random, generator }
+const stacked = demoObjectMap['stacked'];
 ```
 
 The raw manifest is also exported for tooling that only needs the file list

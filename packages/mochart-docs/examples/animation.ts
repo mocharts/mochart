@@ -1,18 +1,18 @@
-// Alternate dataset adds groups and a much larger maximum, so animating to it
+// Alternate dataset adds categories and a much larger maximum, so animating to it
 // plays axis expansion before the value change — and animating back plays the
 // value change before axis contraction.
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Weekly Orders' },
-  groupAxisConfig: { property: 'week', type: 'string', scale: 'ordinal' },
-  seriesAllConfig: { renderer: 'bar' },
-  seriesConfigs: [{ property: 'orders', title: 'Orders' }],
-  animationConfig: {
+  title: { text: 'Weekly Orders' },
+  categoryAxis: { property: 'week', type: 'string', scale: 'ordinal' },
+  seriesDefaults: { renderer: 'bar' },
+  series: [{ property: 'orders', title: 'Orders' }],
+  animation: {
     expansionDuration: 900,
     valueChangeDuration: 900,
-    collapseDuration: 900
+    contractionDuration: 900
   }
 };
 

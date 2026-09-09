@@ -11,8 +11,8 @@ const modules = (import.meta as unknown as {
   glob: (pattern: string, options: { eager: boolean }) => Record<string, { default?: () => Record<string, DescriptionEntry> }>;
 }).glob('../../src/config/docs/*.ts', { eager: true });
 
-// Shared prose and types rather than a section's descriptions: no getDescriptions() thunk.
-const helperModules = new Set(['shared.ts']);
+// Shared prose and types rather than a section's descriptions: no default getDescriptions() thunk.
+const helperModules = new Set(['shared.ts', 'seriesIconConfig.ts']);
 
 function collectDescriptions(entry: DescriptionEntry, path: string, into: [string, unknown][]) {
   if (typeof entry === 'string') {
@@ -56,7 +56,7 @@ describe('config/docs description modules', () => {
     const backgroundStyle = chart.backgroundStyle;
     expect(typeof backgroundStyle).toBe('object');
     expect(Object.keys((backgroundStyle as { properties: object }).properties).sort())
-      .toEqual(['fillColor', 'fillOpacity', 'strokeColor', 'strokeOpacity', 'strokeWidth']);
+      .toEqual(['fillColor', 'fillOpacity', 'strokeColor', 'strokeDashArray', 'strokeOpacity', 'strokeWidth']);
   });
 });
 
@@ -68,10 +68,10 @@ describe('config reference nested properties', () => {
   });
 
   it('documents every member of a nested property', () => {
-    const section = model.sections.find(candidate => candidate.id === 'chartConfig');
+    const section = model.sections.find(candidate => candidate.id === 'chart');
     const property = section?.properties.find(candidate => candidate.key === 'backgroundStyle');
     expect(property?.properties?.map(member => member.key))
-      .toEqual(['fillColor', 'fillOpacity', 'strokeColor', 'strokeOpacity', 'strokeWidth']);
+      .toEqual(['fillColor', 'fillOpacity', 'strokeColor', 'strokeDashArray', 'strokeOpacity', 'strokeWidth']);
     for (const member of property?.properties ?? []) {
       expect(member.description?.length, member.key + ' description').toBeGreaterThan(0);
       expect(member.rules.length, member.key + ' rules').toBeGreaterThan(0);
@@ -80,7 +80,7 @@ describe('config reference nested properties', () => {
   });
 
   it('gives each nested member the default it holds inside its parent', () => {
-    const section = model.sections.find(candidate => candidate.id === 'chartConfig');
+    const section = model.sections.find(candidate => candidate.id === 'chart');
     const property = section?.properties.find(candidate => candidate.key === 'margin');
     const top = property?.properties?.find(member => member.key === 'top');
     expect(top?.default).toEqual({ kind: 'literal', text: '2' });

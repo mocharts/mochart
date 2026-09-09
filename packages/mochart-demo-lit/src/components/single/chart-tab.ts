@@ -5,22 +5,24 @@ import type { PropertyValues } from 'lit';
 
 import { hasConfigStructureChange } from '@mochart/core';
 
-import { buildMochartDemoConfig } from '@mochart/demo-common';
+import { buildMochartDemoConfig, getDemoTabPanelAttrs } from '@mochart/demo-common';
 
 import { LightElement } from '../misc/LightElement';
 import { ElementSizeController } from '../misc/ElementSizeController';
 import './editable-chart';
 
-import type { DemoConfig, DataRow, MochartDemoConfig, FocusData, FilteredSeriesIds } from '../../types';
+import type { DemoConfig, DataObject, MochartDemoConfig, FocusData, FilteredSeriesIds } from '../../types';
 
 const minChartWidthForSecondChart = 480;
 const scrollWidthOffset = 20;
 const defaultChartCount = 1;
 
+const panelAttrs = getDemoTabPanelAttrs('chart');
+
 @customElement('chart-tab')
 export class ChartTab extends LightElement {
   @property({ attribute: false }) config: DemoConfig | null = null;
-  @property({ attribute: false }) data: DataRow[] | null = null;
+  @property({ attribute: false }) data: DataObject[] | null = null;
   @property({ attribute: false }) dataError: string | boolean | null = false;
   @property({ attribute: false }) active = false;
 
@@ -28,22 +30,22 @@ export class ChartTab extends LightElement {
   private size = new ElementSizeController(this);
 
   @state() private chartCount = defaultChartCount;
-  @state() private focusedSeriesAxisId: string | null = null;
+  @state() private focusedValueAxisId: string | null = null;
   @state() private focusedSeriesId: string | null = null;
-  @state() private focusedGroupIndex = -1;
+  @state() private focusedCategoryIndex = -1;
   @state() private filteredSeriesIds: FilteredSeriesIds = {};
   @state() private mochartDemoConfig: MochartDemoConfig | null = null;
 
   private resetFocusAndFiltered(): void {
-    this.focusedSeriesAxisId = null;
+    this.focusedValueAxisId = null;
     this.focusedSeriesId = null;
-    this.focusedGroupIndex = -1;
+    this.focusedCategoryIndex = -1;
     this.filteredSeriesIds = {};
   }
 
   // Mirror the react lifecycle: a config change rebuilds the demo config and
   // resets focus/filter state when the structure changed (or on data errors);
-  // a data change remaps the focused group index onto the new data.
+  // a data change remaps the focused category index onto the new data.
   override willUpdate(changed: PropertyValues<this>): void {
     if (!this.hasUpdated) {
       this.mochartDemoConfig = this.config ? buildMochartDemoConfig(this.config) : null;
@@ -53,37 +55,35 @@ export class ChartTab extends LightElement {
       return;
     }
     const previousConfig = changed.has('config') ? (changed.get('config') as DemoConfig | null) : this.config;
-    const previousData = changed.has('data') ? (changed.get('data') as DataRow[] | null) : this.data;
+    const previousData = changed.has('data') ? (changed.get('data') as DataObject[] | null) : this.data;
     const previousDataError = changed.has('dataError') ? (changed.get('dataError') as string | boolean | null) : this.dataError;
-    if (this.dataError || this.config !== previousConfig) {
-      let configChanged = false;
-      if (this.config !== previousConfig) {
-        const nextDemoConfig = this.config ? buildMochartDemoConfig(this.config) : null;
-        if (nextDemoConfig && this.mochartDemoConfig) {
-          configChanged = hasConfigStructureChange(this.mochartDemoConfig.mochartConfig, nextDemoConfig.mochartConfig);
-        }
-        this.mochartDemoConfig = nextDemoConfig;
+    let configChanged = false;
+    if (this.config !== previousConfig) {
+      const nextDemoConfig = this.config ? buildMochartDemoConfig(this.config) : null;
+      if (nextDemoConfig && this.mochartDemoConfig) {
+        configChanged = hasConfigStructureChange(this.mochartDemoConfig.mochartConfig, nextDemoConfig.mochartConfig);
       }
-      if (this.dataError || configChanged) {
-        this.resetFocusAndFiltered();
-      }
+      this.mochartDemoConfig = nextDemoConfig;
+    }
+    if (this.dataError || configChanged) {
+      this.resetFocusAndFiltered();
     }
     else if (this.data !== previousData) {
       const { configValidation, mochartConfig } = this.mochartDemoConfig ?? {};
       const valid = configValidation?.valid ?? false;
       if (!previousDataError && previousData && this.data && valid && mochartConfig) {
-        if (this.focusedGroupIndex >= 0) {
-          const property = mochartConfig.groupAxisConfig.property ?? '';
-          const groupValue = previousData[this.focusedGroupIndex][property];
-          let newFocusedGroupIndex = -1;
+        if (this.focusedCategoryIndex >= 0) {
+          const property = mochartConfig.categoryAxis.property ?? '';
+          const categoryValue = previousData[this.focusedCategoryIndex][property];
+          let newFocusedCategoryIndex = -1;
           const count = this.data.length;
           for (let i = 0; i < count; i++) {
-            if (this.data[i][property] === groupValue) {
-              newFocusedGroupIndex = i;
+            if (this.data[i][property] === categoryValue) {
+              newFocusedCategoryIndex = i;
               break;
             }
           }
-          this.focusedGroupIndex = newFocusedGroupIndex;
+          this.focusedCategoryIndex = newFocusedCategoryIndex;
         }
       }
       else {
@@ -93,15 +93,15 @@ export class ChartTab extends LightElement {
   }
 
   private onFocus = (focusData: FocusData = {}): void => {
-    const { seriesAxisId, seriesId, groupIndex } = focusData;
-    if (seriesAxisId !== undefined) {
-      this.focusedSeriesAxisId = seriesAxisId;
+    const { valueAxisId, seriesId, categoryIndex } = focusData;
+    if (valueAxisId !== undefined) {
+      this.focusedValueAxisId = valueAxisId;
     }
     if (seriesId !== undefined) {
       this.focusedSeriesId = seriesId;
     }
-    if (groupIndex !== undefined) {
-      this.focusedGroupIndex = groupIndex;
+    if (categoryIndex !== undefined) {
+      this.focusedCategoryIndex = categoryIndex;
     }
   };
 
@@ -120,15 +120,16 @@ export class ChartTab extends LightElement {
     const adjustedChartCount = Math.min(this.chartCount, allowedChartCount);
     const chartWidth = Math.floor((width - scrollWidthOffset) / adjustedChartCount);
     const chartIndices = Array.from({ length: adjustedChartCount }, (_unused, index) => index + 1);
-    return html`<div ${ref(this.size.attach)} class=${'mochart-demo-tab-container demo-layout-row chart' + (this.active ? ' active' : '')} ?inert=${!this.active}>
+    return html`<div ${ref(this.size.attach)} id=${panelAttrs.id} role=${panelAttrs.role} aria-labelledby=${panelAttrs['aria-labelledby']}
+        class=${'mochart-demo-tab-container demo-layout-row chart' + (this.active ? ' active' : '')} ?inert=${!this.active}>
       <div class="editable-charts-sizer">
         <div class="editable-charts">
           ${this.mochartDemoConfig && width > 0
             ? chartIndices.map(i => html`<editable-chart
                 .chartCount=${this.chartCount} .showChartCountControls=${allowedChartCount > 1 && i === 1} .showShareButton=${i === 1}
                 .width=${chartWidth} .mochartDemoConfig=${this.mochartDemoConfig!} .data=${this.data ?? []} .dataError=${this.dataError}
-                .isActive=${this.active} .filteredSeriesIds=${this.filteredSeriesIds} .focusedGroupIndex=${this.focusedGroupIndex}
-                .focusedSeriesAxisId=${this.focusedSeriesAxisId} .focusedSeriesId=${this.focusedSeriesId} .onChartCountToggle=${this.onChartCountToggle}
+                .isActive=${this.active} .filteredSeriesIds=${this.filteredSeriesIds} .focusedCategoryIndex=${this.focusedCategoryIndex}
+                .focusedValueAxisId=${this.focusedValueAxisId} .focusedSeriesId=${this.focusedSeriesId} .onChartCountToggle=${this.onChartCountToggle}
                 .onFocus=${this.onFocus} .onSeriesFilter=${this.onSeriesFilter}></editable-chart>`)
             : null}
         </div>

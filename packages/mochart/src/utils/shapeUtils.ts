@@ -1,8 +1,7 @@
 import { symbol, symbols } from 'd3-shape';
 import type { MarkerShape } from '../config/core/constants';
 
-// The new version of d3 seems to have removed the ability to get a symbol by passing the string,
-// so we'll use a map for now to bypass this issue.
+// d3 no longer resolves a symbol from its string name, so map it ourselves
 // https://github.com/d3/d3-shape/issues/64
 const shapeToSymbolIndexMap: Record<MarkerShape, (typeof symbols)[number]> = {
   circle: symbols[0],
@@ -14,6 +13,12 @@ const shapeToSymbolIndexMap: Record<MarkerShape, (typeof symbols)[number]> = {
   wye: symbols[6]
 };
 
-export function getSymbolGenerator(size: number, shape: MarkerShape) {
+// spelled out locally: d3-shape's types are repo-local ambients, so they cannot be referenced from the emitted .d.ts
+interface SymbolGenerator {
+  (): string | null;
+  size(value: number): SymbolGenerator;
+}
+
+export function getSymbolGenerator(size: number, shape: MarkerShape): SymbolGenerator {
   return symbol().size(size * size).type(shapeToSymbolIndexMap[shape]);
 }

@@ -1,9 +1,9 @@
 <script lang="ts">
   import { untrack } from 'svelte';
 
-  import { applyTransitionConfigEdit, demoText, formatTransitionConfig } from '@mochart/demo-common';
+  import { applyTransitionConfigEdit, demoText, formatTransitionConfig, getDemoTabPanelAttrs, getJsonError } from '@mochart/demo-common';
 
-  import TextAreaContent from '../misc/TextAreaContent.svelte';
+  import JsonEditorContent from '../misc/JsonEditorContent.svelte';
   import ButtonWithTooltip from '../misc/ButtonWithTooltip.svelte';
   import Icon from '../misc/Icon.svelte';
 
@@ -52,24 +52,16 @@
     }
   }
 
-  const jsonError = $derived.by(() => {
-    try {
-      JSON.parse(configText);
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
-  });
+  const jsonError = $derived(getJsonError(configText));
   const footerError = $derived(jsonError ?? errorMessage);
 </script>
 
-<div class={"mochart-demo-tab-container demo-layout-col config" + (active ? " active" : "")} inert={!active}>
+<div {...getDemoTabPanelAttrs('config')} class={"mochart-demo-tab-container demo-layout-col config" + (active ? " active" : "")} inert={!active}>
   <div class="mochart-demo-tab-content">
-    <TextAreaContent value={configText} onChange={onTextChange} />
+    <JsonEditorContent value={configText} ariaLabel={demoText.transitionConfigTab.editorAria} onChange={onTextChange} />
   </div>
   <div class="mochart-demo-tab-footer">
-    <div class="demo-toolbar" role="toolbar">
+    <div class="demo-toolbar">
       <ButtonWithTooltip id="config-reset" label={demoText.transitionConfigTab.reset.label} tooltipText={demoText.transitionConfigTab.reset.tooltip} tooltipPlacement="top-start"
                          onClick={onReset} aria-label={demoText.transitionConfigTab.reset.aria}>
         <Icon size="lg" fixedWidth={true} name="arrow-rotate-left" />

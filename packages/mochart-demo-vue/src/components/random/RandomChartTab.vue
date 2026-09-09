@@ -5,7 +5,7 @@ import { Chart } from '@mochart/vue';
 import type { MochartConfig } from '@mochart/core';
 import { exportPNG, exportSVG } from '@mochart/export';
 
-import { getChartExportOptions, demoText } from '@mochart/demo-common';
+import { controlsMenuPlacement, demoText, getChartExportOptions, getDemoTabPanelAttrs, menuKeepOpenClassName } from '@mochart/demo-common';
 import type { ShareState } from '@mochart/demo-common';
 
 import ButtonWithTooltip from '../misc/ButtonWithTooltip.vue';
@@ -132,7 +132,7 @@ const ReuseButton = () => h(ButtonWithTooltip, {
 // `.demo-menu-keep-open` so a press inside the field — the number input's own
 // spinners in particular — cannot dismiss the panel it is hosted in. The class
 // paints nothing, so it is unconditional.
-const RateField = () => h('div', { class: 'demo-field demo-menu-keep-open' }, [
+const RateField = () => h('div', { class: 'demo-field ' + menuKeepOpenClassName }, [
   h('label', { class: 'demo-label', for: 'random-rate' }, demoText.randomChartTab.intervalLabel),
   h('input', {
     id: 'random-rate', disabled: playing.value, type: 'number', min: '5', max: '60000', step: '100',
@@ -140,18 +140,20 @@ const RateField = () => h('div', { class: 'demo-field demo-menu-keep-open' }, [
     onInput: rateChanged
   })
 ]);
+
+const panelAttrs = getDemoTabPanelAttrs('chart');
 </script>
 
 <template>
-  <div :class="'mochart-demo-tab-container demo-layout-col chart' + (props.active ? ' active' : '')" :inert="!props.active">
+  <div v-bind="panelAttrs" :class="'mochart-demo-tab-container demo-layout-col chart' + (props.active ? ' active' : '')" :inert="!props.active">
     <div class="random-chart-sizer" ref="chartSizerElement">
       <Chart style="flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden;"
              :mochart-config="props.mochartConfig" :data-provider="props.dataProvider" />
     </div>
     <div class="random-controls" ref="controlsElement">
-      <form class="demo-form-row">
+      <form>
         <div class="demo-field">
-          <div class="demo-toolbar" role="toolbar">
+          <div class="demo-toolbar">
             <div class="demo-btn-group">
               <ButtonWithTooltip id="randomize-back" :disabled="playing" :label="demoText.randomChartTab.back.label"
                                  :tooltip-text="demoText.randomChartTab.back.tooltip" tooltip-placement="top-start"
@@ -170,13 +172,13 @@ const RateField = () => h('div', { class: 'demo-field demo-menu-keep-open' }, [
             </div>
             <RateField v-if="!isPhone" />
           </div>
-          <div class="demo-toolbar" role="toolbar">
+          <div class="demo-toolbar">
             <!-- Anchored to the whole strip: `align: 'end'` pins the panel's
                  right edge to the anchor's, and the export trigger sits to
                  the ⋯'s right. -->
             <div v-if="isPhone" class="demo-btn-group">
               <OverflowMenu :text="demoText.overflowMenu.random"
-                            :placement="{ side: 'top', align: 'end', gap: 4 }"
+                            :placement="controlsMenuPlacement"
                             :get-anchor="getControlsAnchor"
                             :active="props.active">
                 <div class="demo-btn-group"><PlayButton /><StopButton /></div>
@@ -185,11 +187,11 @@ const RateField = () => h('div', { class: 'demo-field demo-menu-keep-open' }, [
                 <div class="demo-menu-divider"></div>
                 <RateField />
               </OverflowMenu>
-              <ExportShareMenu id-prefix="random" :active="props.active" :export-png="onExportPng" :export-svg="onExportSvg" :get-share-state="getRandomShareState" />
+              <ExportShareMenu :active="props.active" :export-png="onExportPng" :export-svg="onExportSvg" :get-share-state="getRandomShareState" />
             </div>
             <template v-else>
               <div class="demo-btn-group"><ReuseButton /></div>
-              <ExportShareMenu id-prefix="random" :active="props.active" :export-png="onExportPng" :export-svg="onExportSvg" :get-share-state="getRandomShareState" />
+              <ExportShareMenu :active="props.active" :export-png="onExportPng" :export-svg="onExportSvg" :get-share-state="getRandomShareState" />
             </template>
           </div>
         </div>

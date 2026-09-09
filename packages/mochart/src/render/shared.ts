@@ -24,9 +24,8 @@ export function shallowEqual(a: unknown, b: unknown): boolean {
   return true;
 }
 
-// Deferred callbacks (measure hooks, setState callbacks) run once the
-// outermost mount/update finishes, i.e. after the DOM is fully written —
-// so measurement code always reads committed DOM.
+// Deferred callbacks (measure hooks, setState callbacks) run once the outermost
+// mount/update finishes, so measurement code always reads committed DOM.
 let commitQueue: (() => void)[] = [];
 let workDepth = 0;
 

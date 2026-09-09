@@ -1,11 +1,12 @@
 import { Component, Input } from '@angular/core';
 import { createDefaultChart } from '@mochart/core';
-import { BaseChart } from './base-chart';
-import type { CreateChartFn } from './host';
+import type { ArrayOfObjectsData, MochartInputConfig, ObjectOfArraysData } from '@mochart/core';
+import { BaseChart } from './base-chart.js';
+import type { CreateChartFn } from './host.js';
 
 /**
  * Angular wrapper around mochart's `createDefaultChart`: takes a raw `config`
- * (enhanced internally) and a plain array-of-objects `data`. Omit
+ * (enhanced internally) and a plain `data` — an array of objects or an object of arrays. Omit
  * `width`/`height` to have the chart track the host element's size;
  * `class`/`style` set on `<mochart-default-chart>` style that same element.
  */
@@ -15,8 +16,8 @@ import type { CreateChartFn } from './host';
   styles: [':host { display: block; }']
 })
 export class DefaultChart extends BaseChart {
-  @Input({ required: true }) config: any;
-  @Input({ required: true }) data!: any[];
+  @Input({ required: true }) config!: MochartInputConfig;
+  @Input({ required: true }) data!: ArrayOfObjectsData | ObjectOfArraysData;
 
   protected override readonly create: CreateChartFn = createDefaultChart;
 

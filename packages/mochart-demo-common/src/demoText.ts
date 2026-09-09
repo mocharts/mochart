@@ -14,13 +14,14 @@
 // span instead, which demo.css hides everywhere except inside a menu.
 export const demoText = {
   tabs: {
-    demos: 'Demos',
     chart: 'Chart',
     config: 'Config',
     data: 'Data',
     randomConfig: 'Random Config',
     transitionConfig: 'Transition Config',
-    chartPendingTitle: 'Applied changes are waiting — switch here to see them'
+    chartPendingTitle: 'Applied changes are waiting — switch here to see them',
+    // Accessible name of the strip itself (a tablist), which has no visible label.
+    listAria: 'Demo views'
   },
   errors: {
     errorOccurred: 'An Error Occurred',
@@ -29,7 +30,22 @@ export const demoText = {
     invalidRandomConfigValues: 'Config has invalid values — details in the browser console',
     invalidDataArray: 'Invalid Data — should be an array of objects',
     invalidRandomConfig: 'Invalid Random Config',
-    creatingDataProvider: 'Error creating DataProvider'
+    creatingDataProvider: 'Error creating DataProvider',
+    // short labels shown as the chart's error state (the onDataError payload)
+    invalidData: 'Invalid Data',
+    invalidDataContent: 'Invalid Data Content',
+    invalidConfigAndData: 'Invalid Config & Data',
+    // appended to a short label when the console warning has the specifics
+    detailsInConsoleSuffix: ' — details in the browser console',
+    transitionObject: 'Transition config should be an object',
+    transitionConfigObject: '"config" should be an object',
+    transitionDataArrays: '"data" should be an array of arrays'
+  },
+  // Rendered in place of a view when the URL resolves to nothing showable.
+  routeErrors: {
+    noRoute: (path: string) => `No route found matching ${path}`,
+    noDemo: (demoId: string) => `No demo found for id: ${demoId}`,
+    badRandomId: (randomId: string) => `Bad random id: ${randomId}`
   },
   // The standalone demo gallery page (the landing route).
   gallery: {
@@ -48,13 +64,15 @@ export const demoText = {
   backToDemos: { label: 'Demos', tooltip: 'Back to the demo gallery', aria: 'Back to the demo gallery' },
   modeSwitcher: {
     label: 'Mode:',
+    // Names the switcher's `role="group"`; the visible `Mode:` label cannot, since it is display:none'd below 900px.
+    groupAria: 'Demo mode',
     // Heading over the mode rows in the phone nav overflow menu, where the
     // strip's `Mode:` label is display:none'd and "Single / Random" would
     // otherwise sit unexplained between the notes row and the theme toggle.
     // Rendered via `.demo-menu-section-label`, which uppercases it.
     menuSectionLabel: 'Mode',
     modes: {
-      single: { label: 'Single', title: 'One chart with editable config, data, groups and series' },
+      single: { label: 'Single', title: 'One chart with editable config, data, categories and series' },
       multi: { label: 'Multi', title: 'A grid of charts stepping through datasets together' },
       random: { label: 'Random', title: 'A chart fed by a seeded random data generator' }
     }
@@ -64,16 +82,19 @@ export const demoText = {
     defaults: { label: 'Defaults', tooltip: 'Show or hide the default config values merged into the JSON', aria: 'Toggle Defaults' },
     invert: { label: 'Invert', tooltip: 'Swap the chart between vertical and horizontal orientation', aria: 'Toggle Inverted' },
     slow: { label: 'Slow', tooltip: 'Slow all animations down so transitions are easy to watch', aria: 'Toggle Slow' },
-    apply: { label: 'Apply', tooltip: 'Apply this config — the chart updates when you return to the Chart tab', aria: 'Apply' }
+    format: { label: 'Format', tooltip: 'Reformat the config JSON', aria: 'Format' },
+    apply: { label: 'Apply', tooltip: 'Apply this config — the chart updates when you return to the Chart tab', aria: 'Apply' },
+    editorAria: 'Chart config JSON'
   },
   dataTab: {
     reset: { label: 'Reset', tooltip: "Restore this demo's original data", aria: 'Reset' },
     unused: { label: 'Unused', tooltip: 'Show or hide data properties the chart config does not use', aria: 'Toggle Unused' },
-    apply: { label: 'Apply', tooltip: 'Apply this data — the chart updates when you return to the Chart tab', aria: 'Apply' }
+    apply: { label: 'Apply', tooltip: 'Apply this data — the chart updates when you return to the Chart tab', aria: 'Apply' },
+    editorAria: 'Chart data JSON'
   },
   exportButtons: {
-    png: { label: 'PNG', tooltip: 'Download the chart as a PNG image', aria: 'Export PNG' },
-    svg: { label: 'SVG', tooltip: 'Download the chart as an SVG image', aria: 'Export SVG' }
+    png: { label: 'PNG', aria: 'Export PNG' },
+    svg: { label: 'SVG', aria: 'Export SVG' }
   },
   // The collapsed export/share menu at the end of each mode's controls row.
   exportShareMenu: {
@@ -126,19 +147,21 @@ export const demoText = {
     label: 'Share',
     tooltip: 'Copy a link to this chart with the current config and data',
     tooltipCopied: 'Link copied',
+    // Spoken through the copier's live region — the whole confirmation an assistive-tech user gets, so it says where the link went.
+    announcementCopied: 'Share link copied to clipboard',
     aria: 'Copy Share Link'
   },
   editableChart: {
-    emptyGroupText: 'Select Group(s)',
-    selectAGroupText: 'Select a Group',
-    groupIndexPrefix: 'Group: ',
+    emptyCategoryText: 'Select Category(s)',
+    selectACategoryText: 'Select a Category',
+    categoryIndexPrefix: 'Category: ',
     seriesIndexPrefix: 'Series: ',
     // Phone-tier stand-ins for the two prefixes above. The full prefixes are
     // sr-only clipped there (the strip cannot spare their width), but a bare
     // `-1` between two arrows names nothing visually either — so a one-letter,
     // aria-hidden prefix carries the meaning for sighted users while the
     // clipped full text keeps carrying the accessible name.
-    groupIndexPrefixCompact: 'G',
+    categoryIndexPrefixCompact: 'C',
     seriesIndexPrefixCompact: 'S',
     secondChart: {
       label: '2nd Chart',
@@ -148,21 +171,21 @@ export const demoText = {
     },
     editMode: {
       labelToSeries: 'Edit Series',
-      labelToGroups: 'Edit Groups',
-      tooltipToSeries: 'Switch to editing one group at a time (step groups/series, change values)',
-      tooltipToGroups: 'Switch to editing the set of groups (add, remove, reorder)',
+      labelToCategories: 'Edit Categories',
+      tooltipToSeries: 'Switch to editing one category at a time (step categories/series, change values)',
+      tooltipToCategories: 'Switch to editing the set of categories (add, remove, reorder)',
       aria: 'Toggle Mode'
     },
-    resetGroups: { label: 'Reset', tooltip: 'Restore the original group set and order', aria: 'Reset Groups' },
-    reverseGroups: { label: 'Reverse', tooltip: 'Reverse the order of the groups', aria: 'Reverse Groups' },
-    addGroups: { label: 'Add', tooltip: 'Add the groups selected in the input to the chart', aria: 'Add Selected Groups' },
-    removeGroups: { label: 'Remove', tooltip: 'Remove the groups selected in the input from the chart', aria: 'Remove Selected Groups' },
-    playAddGroups: { menuLabel: 'Play Add', tooltip: 'Animate adding the selected groups one at a time', aria: 'Play Add Selected Groups' },
-    playRemoveGroups: { menuLabel: 'Play Remove', tooltip: 'Animate removing the selected groups one at a time', aria: 'Play Remove Selected Groups' },
-    stopSequence: { menuLabel: 'Stop', tooltip: 'Stop the add/remove animation', aria: 'Stop Selected Group Sequence' },
-    selectAllGroups: { label: 'Select All', tooltip: 'Put every group into the selection input', aria: 'Select All Groups' },
-    decreaseGroupOrder: { tooltip: 'Move the focused group one position earlier', aria: 'Decrease Group Order' },
-    increaseGroupOrder: { tooltip: 'Move the focused group one position later', aria: 'Increase Group Order' },
+    resetCategories: { label: 'Reset', tooltip: 'Restore the original category set and order', aria: 'Reset Categories' },
+    reverseCategories: { label: 'Reverse', tooltip: 'Reverse the order of the categories', aria: 'Reverse Categories' },
+    addCategories: { label: 'Add', tooltip: 'Add the categories selected in the input to the chart', aria: 'Add Selected Categories' },
+    removeCategories: { label: 'Remove', tooltip: 'Remove the categories selected in the input from the chart', aria: 'Remove Selected Categories' },
+    playAddCategories: { menuLabel: 'Play Add', tooltip: 'Animate adding the selected categories one at a time', aria: 'Play Add Selected Categories' },
+    playRemoveCategories: { menuLabel: 'Play Remove', tooltip: 'Animate removing the selected categories one at a time', aria: 'Play Remove Selected Categories' },
+    stopSequence: { menuLabel: 'Stop', tooltip: 'Stop the add/remove animation', aria: 'Stop Selected Category Sequence' },
+    selectAllCategories: { label: 'Select All', tooltip: 'Put every category into the selection input', aria: 'Select All Categories' },
+    decreaseCategoryOrder: { tooltip: 'Move the focused category one position earlier', aria: 'Decrease Category Order' },
+    increaseCategoryOrder: { tooltip: 'Move the focused category one position later', aria: 'Increase Category Order' },
     previousSeries: { tooltip: 'Edit the previous series', aria: 'Previous Series' },
     nextSeries: { tooltip: 'Edit the next series', aria: 'Next Series' },
     resetSeries: { label: 'Reset', tooltip: "Discard the edits to this series' values", aria: 'Reset Series Changes' },
@@ -174,7 +197,7 @@ export const demoText = {
     nextSlice: { tooltip: 'Select the next slice', aria: 'Next Slice' },
     resetSlice: { label: 'Reset', tooltip: "Restore the selected slice's original value", aria: 'Reset Slice Value' },
     applySlice: { label: 'Apply', tooltip: 'Apply the entered value to the selected slice', aria: 'Apply Slice Value' },
-    playSliceSequence: { menuLabel: 'Play Slices', tooltip: 'Animate suppressing the slices one at a time, then restoring them', aria: 'Play Slice Sequence' },
+    playSliceSequence: { menuLabel: 'Play Slices', tooltip: 'Animate filtering the slices one at a time, then restoring them', aria: 'Play Slice Sequence' },
     stopSliceSequence: { menuLabel: 'Stop', tooltip: 'Stop the slice sequence', aria: 'Stop Slice Sequence' }
   },
   multiChartsTab: {
@@ -204,7 +227,11 @@ export const demoText = {
   },
   randomConfigTab: {
     reset: { label: 'Reset', tooltip: 'Restore the original random generator config', aria: 'Reset' },
-    apply: { label: 'Apply', tooltip: 'Apply this generator config to the random chart', aria: 'Apply' }
+    apply: { label: 'Apply', tooltip: 'Apply this generator config to the random chart', aria: 'Apply' },
+    editorAria: 'Random generator config JSON'
+  },
+  randomDataTab: {
+    editorAria: 'Generated data JSON (read-only)'
   },
   transitionChartTab: {
     back: { label: 'Back', tooltip: 'Transition to the previous dataset', aria: 'Step Backward' },
@@ -212,7 +239,8 @@ export const demoText = {
   },
   transitionConfigTab: {
     reset: { label: 'Reset', tooltip: 'Restore the original transition config', aria: 'Reset' },
-    apply: { label: 'Apply', tooltip: 'Apply this config to the transition charts', aria: 'Apply' }
+    apply: { label: 'Apply', tooltip: 'Apply this config to the transition charts', aria: 'Apply' },
+    editorAria: 'Transition config JSON'
   },
   // The sparkline showcase page: prose with inline charts woven between the
   // segments (segment count = inline chart count + 1, see sparklines.ts),

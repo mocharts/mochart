@@ -3,7 +3,8 @@
 // factory functions returning DOM elements plus targeted update methods —
 // there is deliberately no vdom, reactivity, or template layer here.
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, getDemoTabPanelAttrs } from '@mochart/demo-common';
+import type { DemoTabName } from '@mochart/demo-common';
 
 export type Child = Node | string | null | undefined;
 
@@ -92,9 +93,18 @@ export function tabContainer(
   // `undefined` reads as inactive, which is what the `props.active ? …` strings
   // this replaced already did for the panes whose prop is optional.
   active: boolean | undefined,
-  children: Child[] = []
+  children: Child[] = [],
+  // Omitted by the one pane its view does not tab between (multi's charts).
+  tabName?: DemoTabName
 ): HTMLDivElement {
-  const element = el('div', { className: 'mochart-demo-tab-container ' + className }, children);
+  const panelAttrs = tabName === undefined ? undefined : getDemoTabPanelAttrs(tabName);
+  const element = el('div', {
+    className: 'mochart-demo-tab-container ' + className,
+    id: panelAttrs?.id,
+    attrs: panelAttrs === undefined
+      ? undefined
+      : { role: panelAttrs.role, 'aria-labelledby': panelAttrs['aria-labelledby'] }
+  }, children);
   setActiveClass(element, active === true);
   return element;
 }
@@ -188,7 +198,7 @@ export function icon(name: string, options: IconOptions = {}): HTMLSpanElement {
 // ---------------------------------------------------------------------------
 
 export interface ButtonOptions {
-  id: string;
+  id?: string;
   tooltipText?: string;
   disabled?: boolean;
   onClick: () => void;
@@ -243,19 +253,46 @@ export function buttonWithTooltip(options: ButtonOptions): ButtonHandle {
     ? null
     : el('span', { className: 'btn-menu-label', text: options.menuLabel });
 
+  // Equivalent content bails out (compare setChildren): sync passes call this
+  // unconditionally with freshly minted icons, and replacing equal children
+  // detaches the pressed node mid-press — the browser then never fires `click`.
+  function contentMatches(desired: readonly (Node | string)[]): boolean {
+    const current = button.childNodes;
+    if (current.length !== desired.length) {
+      return false;
+    }
+    for (let i = 0; i < desired.length; i++) {
+      const want = desired[i];
+      const have = current[i];
+      if (typeof want === 'string') {
+        if (have.nodeType !== Node.TEXT_NODE || have.textContent !== want) {
+          return false;
+        }
+      }
+      else if (want !== have && !have.isEqualNode(want)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   function setContent(content: Child[]): void {
-    button.replaceChildren();
+    const desired: (Node | string)[] = [];
     for (const child of content) {
       if (child !== null && child !== undefined) {
-        button.append(child);
+        desired.push(child);
       }
     }
     if (menuLabelSpan !== null) {
-      button.append(menuLabelSpan);
+      desired.push(menuLabelSpan);
     }
     if (hasLabel) {
-      button.append(labelSpan);
+      desired.push(labelSpan);
     }
+    if (contentMatches(desired)) {
+      return;
+    }
+    button.replaceChildren(...desired);
   }
 
   function setLabel(label: string): void {
@@ -272,7 +309,8 @@ export function buttonWithTooltip(options: ButtonOptions): ButtonHandle {
   }
 
   return {
-    el: el('span', { className: 'button-with-tooltip' }, [button]),
+    // Unstyled wrapper: it keeps the button one flex item wherever it is folded.
+    el: el('span', {}, [button]),
     setDisabled(disabled: boolean) {
       button.disabled = disabled;
     },
@@ -285,29 +323,6 @@ export function buttonWithTooltip(options: ButtonOptions): ButtonHandle {
       button.title = tooltipText;
     },
     setContent
-  };
-}
-
-// ---------------------------------------------------------------------------
-// TextAreaContent — the resizable JSON editor pane (css does the sizing).
-// ---------------------------------------------------------------------------
-
-export interface TextAreaHandle {
-  el: HTMLElement;
-  getValue(): string;
-  setValue(value: string): void;
-}
-
-export function textAreaContent(value: string, onChange: (value: string) => void): TextAreaHandle {
-  const textarea = el('textarea');
-  textarea.value = value;
-  textarea.addEventListener('input', () => onChange(textarea.value));
-  return {
-    el: el('div', { className: 'text-area-content' }, [textarea]),
-    getValue: () => textarea.value,
-    setValue(nextValue: string) {
-      textarea.value = nextValue;
-    }
   };
 }
 

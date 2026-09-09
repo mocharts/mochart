@@ -65,15 +65,15 @@ export function transitionChartTab(props: TransitionChartTabProps): TransitionCh
   const container = tabContainer('demo-layout-col chart', props.active, [
     chartSizer,
     el('div', { className: 'transition-controls' }, [
-      el('form', { className: 'demo-form-row' }, [
+      el('form', {}, [
         el('div', { className: 'demo-field' }, [
-          el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, [
+          el('div', { className: 'demo-toolbar' }, [
             el('div', { className: 'demo-btn-group' }, [backButton.el, forwardButton.el])
           ])
         ])
       ])
     ])
-  ]);
+  ], 'chart');
 
   return {
     el: container,

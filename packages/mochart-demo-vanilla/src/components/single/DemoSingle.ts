@@ -1,6 +1,7 @@
-import { consumeSingleShareState, demoText } from '@mochart/demo-common';
+import { consumeSingleShareState, demoText, getConfigDataError } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
+import { demoTabs } from '../misc/DemoTabs';
 import { el, errorTab } from '../misc/dom';
 import type { ErrorTabHandle } from '../misc/dom';
 import { topBar } from '../misc/TopBar';
@@ -11,7 +12,7 @@ import type { ConfigTabHandle } from './ConfigTab';
 import { dataTab } from './DataTab';
 import type { DataTabHandle } from './DataTab';
 
-import type { DemoData, DemoConfig, DataRow } from '../../types';
+import type { DemoData, DemoConfig, DataObject } from '../../types';
 
 export interface DemoSingleProps {
   demoData: DemoData;
@@ -47,13 +48,15 @@ export function demoSingle(props: DemoSingleProps): DemoSingleHandle {
   // Chart tab is shown again (so the chart animates one combined change).
   let demoId = initialDemoId;
   let pendingConfig: DemoConfig | null = null;
-  let pendingData: DataRow[] | null = null;
+  let pendingData: DataObject[] | null = null;
   let pendingDataError: DataError = false;
   let config: DemoConfig = sharedState?.config ?? demoData.demoObjectMap[initialDemoId].config;
-  let data: DataRow[] = sharedState?.data ?? demoData.demoObjectMap[initialDemoId].data;
+  let data: DataObject[] = sharedState?.data ?? demoData.demoObjectMap[initialDemoId].data;
   let viewingConfig: DemoConfig = config;
-  let viewingData: DataRow[] = data;
+  let viewingData: DataObject[] = data;
   let viewingDataError: DataError = false;
+  // editor-reported error, or the viewing config/data pair failing validation
+  let chartDataError: DataError = viewingDataError || getConfigDataError(viewingConfig, viewingData);
 
   // ---------------------------------------------------------------------
   // children
@@ -63,7 +66,7 @@ export function demoSingle(props: DemoSingleProps): DemoSingleHandle {
     active: activeKey === eventKeyChart,
     config: viewingConfig,
     data: viewingData,
-    dataError: viewingDataError
+    dataError: chartDataError
   });
   const configEditor: ConfigTabHandle = configTab({
     active: activeKey === eventKeyConfig,
@@ -84,7 +87,7 @@ export function demoSingle(props: DemoSingleProps): DemoSingleHandle {
     active: activeKey === eventKeyData,
     config: viewingConfig,
     data,
-    onDataChange(nextPendingData: DataRow[]) {
+    onDataChange(nextPendingData: DataObject[]) {
       pendingData = nextPendingData;
       pendingDataError = false;
       sync();
@@ -108,26 +111,20 @@ export function demoSingle(props: DemoSingleProps): DemoSingleHandle {
   // tabs header
   // ---------------------------------------------------------------------
 
-  const pendingBadge = el('span', { className: 'mochart-pending-badge', attrs: { 'aria-hidden': 'true' } });
-
-  function navItem(text: string, key: number): { li: HTMLLIElement; button: HTMLButtonElement } {
-    const button = el('button', {
-      className: 'demo-tab' + (activeKey === key ? ' active' : ''),
-      attrs: { type: 'button' },
-      text
-    });
-    button.addEventListener('click', () => handleSelect(key));
-    return { li: el('li', { className: 'demo-tab-item' }, [button]), button };
-  }
-
-  const chartNav = navItem(demoText.tabs.chart, eventKeyChart);
-  const configNav = navItem(demoText.tabs.config, eventKeyConfig);
-  const dataNav = navItem(demoText.tabs.data, eventKeyData);
+  const tabs = demoTabs({
+    tabs: [
+      { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart },
+      { name: 'config', key: eventKeyConfig, label: demoText.tabs.config },
+      { name: 'data', key: eventKeyData, label: demoText.tabs.data }
+    ],
+    activeKey,
+    onSelect: handleSelect
+  });
 
   const bar = topBar({
     siteRootUrl: props.siteRootUrl,
     onBackToDemos,
-    tabs: [chartNav.li, configNav.li, dataNav.li],
+    tabs: tabs.el,
     notes: demoData.demoObjectMap[initialDemoId],
     modes: { demoMode: 'single', onModeChanged }
   });
@@ -153,7 +150,8 @@ export function demoSingle(props: DemoSingleProps): DemoSingleHandle {
         viewingDataError = pendingDataError;
         pendingDataError = null;
       }
-      chartBoundary.guard(() => chart.update({ config: viewingConfig, data: viewingData, dataError: viewingDataError }));
+      chartDataError = viewingDataError || getConfigDataError(viewingConfig, viewingData);
+      chartBoundary.guard(() => chart.update({ config: viewingConfig, data: viewingData, dataError: chartDataError }));
       dataBoundary.guard(() => dataEditor.setConfig(viewingConfig));
     }
   }
@@ -170,19 +168,7 @@ export function demoSingle(props: DemoSingleProps): DemoSingleHandle {
   // Applied config/data edits are held until the Chart tab is shown; badge the
   // Chart tab so it's visible that something is waiting there.
   function sync(): void {
-    const hasPendingChanges = activeKey !== eventKeyChart && (pendingConfig !== null || pendingData !== null);
-    chartNav.button.classList.toggle('active', activeKey === eventKeyChart);
-    configNav.button.classList.toggle('active', activeKey === eventKeyConfig);
-    dataNav.button.classList.toggle('active', activeKey === eventKeyData);
-    chartNav.button.title = hasPendingChanges ? demoText.tabs.chartPendingTitle : '';
-    if (hasPendingChanges) {
-      if (pendingBadge.parentElement === null) {
-        chartNav.button.append(pendingBadge);
-      }
-    }
-    else {
-      pendingBadge.remove();
-    }
+    tabs.sync(activeKey, pendingConfig !== null || pendingData !== null);
 
     chartBoundary.setActive(activeKey === eventKeyChart);
     configBoundary.setActive(activeKey === eventKeyConfig);

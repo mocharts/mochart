@@ -1,5 +1,5 @@
 import type { ChartHandle } from '@mochart/core';
-import { createPlaceholderAdapter } from './placeholders';
+import { createPlaceholderAdapter } from './placeholders.js';
 
 // `create` is used for both createChart (chart) and createDefaultChart
 // (defaultChart); the host passes props through opaquely, so it is
@@ -8,6 +8,7 @@ export type CreateChartFn = (container: Element, props: any) => ChartHandle<any>
 
 export interface HostHandle {
   update(props: Record<string, any>): void;
+  refresh(): void;
   destroy(): void;
 }
 
@@ -17,8 +18,9 @@ interface Size {
 }
 
 function measure(container: HTMLElement): Size {
-  const rect = container.getBoundingClientRect();
-  return { width: Math.floor(rect.width), height: Math.floor(rect.height) };
+  // offset sizes: the client rect is scaled by active CSS transforms, which the
+  // layout-driven ResizeObserver would never fire to correct after mount
+  return { width: container.offsetWidth, height: container.offsetHeight };
 }
 
 function withSize(props: Record<string, any>, measured: Size): Record<string, any> {
@@ -49,7 +51,7 @@ export function mountChartHost(create: CreateChartFn, container: HTMLElement, pr
       }
       measured = next;
       if (lastProps.width === undefined || lastProps.height === undefined) {
-        chart.update(withSize(lastProps, measured));
+        chart.replace(withSize(lastProps, measured));
       }
     });
     observer.observe(container);
@@ -58,7 +60,10 @@ export function mountChartHost(create: CreateChartFn, container: HTMLElement, pr
   return {
     update(nextProps: Record<string, any>) {
       lastProps = placeholders.transform(nextProps);
-      chart.update(withSize(lastProps, measured));
+      chart.replace(withSize(lastProps, measured));
+    },
+    refresh() {
+      chart.refresh();
     },
     destroy() {
       if (observer) {

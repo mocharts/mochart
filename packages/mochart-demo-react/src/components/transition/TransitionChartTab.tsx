@@ -4,7 +4,7 @@ import Icon from '../misc/Icon';
 import { Chart } from '@mochart/react';
 import type { MochartConfig } from '@mochart/core';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, getDemoTabPanelAttrs } from '@mochart/demo-common';
 
 import ButtonWithTooltip from '../misc/ButtonWithTooltip';
 
@@ -39,16 +39,16 @@ export default function TransitionChartTab({ active, mochartConfig, dataProvider
   };
 
   return (
-    <div className={"mochart-demo-tab-container demo-layout-col chart" + (active ? " active" : "")} inert={!active}>
+    <div {...getDemoTabPanelAttrs('chart')} className={"mochart-demo-tab-container demo-layout-col chart" + (active ? " active" : "")} inert={!active}>
       <div className="transition-chart-sizer">
         {/* Chart self-measures when width/height are omitted. */}
         <Chart style={{ flex: '1 1 auto', minWidth: 0, minHeight: 0, overflow: 'hidden' }}
           mochartConfig={mochartConfig} dataProvider={dataProviders[dataProviderIndex]} />
       </div>
       <div className="transition-controls">
-        <form className="demo-form-row">
+        <form>
           <div className="demo-field">
-            <div className="demo-toolbar" role="toolbar">
+            <div className="demo-toolbar">
               <div className="demo-btn-group">
                 <ButtonWithTooltip id="transition-back" label={demoText.transitionChartTab.back.label} tooltipText={demoText.transitionChartTab.back.tooltip} tooltipPlacement="top-start"
                   onClick={onStepBack} aria-label={demoText.transitionChartTab.back.aria}>

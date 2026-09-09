@@ -4,20 +4,15 @@
   "workspaces": {
     ".": {
       "entry": ["scripts/*.mjs"],
-      "project": ["scripts/**/*.mjs"]
+      "project": ["scripts/**/*.mjs"],
+      "ignoreDependencies": ["pnpm"],
+      "ignoreBinaries": ["ffmpeg"]
     },
 
     "packages/mochart": {
       "entry": [
         "scripts/*.ts",
         "src/config/docs/*.ts"
-      ]
-    },
-
-    "packages/mochart-editor": {
-      "entry": [
-        "playground/main.ts",
-        "playground/vite.config.ts"
       ]
     },
 
@@ -35,6 +30,10 @@
       "includeEntryExports": true
     },
     "packages/mochart-demo-basic": {
+      "entry": ["e2e/*.spec.ts"],
+      "includeEntryExports": true
+    },
+    "packages/mochart-demo-e2e": {
       "entry": ["e2e/*.spec.ts"],
       "includeEntryExports": true
     },

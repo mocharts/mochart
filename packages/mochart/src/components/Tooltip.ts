@@ -1,40 +1,55 @@
 import { Renderer, htmlEl } from '../render';
 
 import TooltipContent from './TooltipContent';
+import { MODE_FOCUS, MODE_FILTER } from './TooltipControls';
+import type { TooltipMode } from './TooltipControls';
 
 import { mochartCssClasses } from '../utils/ChartDom';
-import { cssStyleColor } from '../utils/style';
-import type { MochartConfig } from '../types/config';
+import { cssBorderWidth, cssStyleColor } from '../utils/style';
+import type { EnhancedMochartConfig } from '../types/enhanced';
 import type { FocusPercentageMap } from '../types/animation';
 import type { SpacingLayoutInfo } from '../types/layout';
 import type { Bounds } from '../types/geometry';
-import type { GroupSeriesValueObject } from '../data/ChartData';
+import type { CategorySeriesValueObject } from '../data/ChartData';
 
 interface TooltipProps {
-  mochartConfig: MochartConfig;
+  mochartConfig: EnhancedMochartConfig;
   tooltipVisible: boolean;
-  tooltipGroupIndex: number;
+  tooltipCategoryIndex: number;
   svgUniqueId: string;
-  groupCount: number;
-  focusedGroupIndex: number;
+  categoryCount: number;
+  focusedCategoryIndex: number;
   tooltipBounds: Bounds | null;
-  tooltipValueObject: GroupSeriesValueObject;
+  tooltipValueObject: CategorySeriesValueObject;
   focusedSeriesId: string | null;
-  seriesAxisFocusPercentages: FocusPercentageMap;
+  valueAxisFocusPercentages: FocusPercentageMap;
   seriesFocusPercentages: FocusPercentageMap;
   tooltipLayoutInfo: SpacingLayoutInfo;
   onClose: () => void;
-  updateTooltipGroupIndex: (groupIndex: number) => void;
-  onFocus: (focus: { groupIndex?: number | null; seriesId?: string | null }) => void;
+  onEscape: () => void;
+  updateTooltipCategoryIndex: (categoryIndex: number) => void;
+  onFocus: (focus: { categoryIndex?: number | null; seriesId?: string | null }) => void;
   onSeriesFilter: (seriesId: string) => void;
 }
 
-export default class Tooltip extends Renderer<TooltipProps> {
+interface TooltipState { mode: TooltipMode }
+
+export default class Tooltip extends Renderer<TooltipProps, TooltipState> {
   root = htmlEl('div');
   sizer = htmlEl('div');
   sizerContent = this.slot(this.sizer);
   tooltip = htmlEl('div');
   tooltipContent = this.slot(this.tooltip);
+
+  constructor() {
+    super();
+    this.state = { mode: MODE_FILTER };
+  }
+
+  toggleMode = () => {
+    const { mode } = this.state;
+    this.setState({ mode: mode === MODE_FILTER ? MODE_FOCUS : MODE_FILTER });
+  }
 
   create() {
     this.root.append(this.sizer, this.tooltip);
@@ -42,17 +57,17 @@ export default class Tooltip extends Renderer<TooltipProps> {
   }
 
   sync() {
-    const { mochartConfig, tooltipVisible, tooltipGroupIndex } = this.props;
-    if (mochartConfig.tooltipConfig.visible && tooltipVisible && tooltipGroupIndex >= 0) {
-      const { svgUniqueId, groupCount, focusedGroupIndex, tooltipBounds, tooltipValueObject, focusedSeriesId,
-        seriesAxisFocusPercentages, seriesFocusPercentages, tooltipLayoutInfo, onClose, updateTooltipGroupIndex, onFocus, onSeriesFilter } = this.props;
+    const { mochartConfig, tooltipVisible, tooltipCategoryIndex } = this.props;
+    if (mochartConfig.tooltip.visible && tooltipVisible && tooltipCategoryIndex >= 0) {
+      const { svgUniqueId, categoryCount, focusedCategoryIndex, tooltipBounds, tooltipValueObject, focusedSeriesId,
+        valueAxisFocusPercentages, seriesFocusPercentages, tooltipLayoutInfo, onClose, onEscape, updateTooltipCategoryIndex, onFocus, onSeriesFilter } = this.props;
 
-      const { tooltipConfig } = mochartConfig;
+      const { tooltip: tooltipConfig } = mochartConfig;
 
       const { x, y } = tooltipLayoutInfo;
 
-      const boxShadowStyle = tooltipConfig.dropShadowOffsetX + 'px ' + tooltipConfig.dropShadowOffsetY + 'px ' +
-        tooltipConfig.dropShadowBlurRadius + 'px ' + tooltipConfig.dropShadowColor;
+      const { dropShadow } = tooltipConfig;
+      const boxShadowStyle = dropShadow.offsetX + 'px ' + dropShadow.offsetY + 'px ' + dropShadow.blurRadius + 'px ' + dropShadow.color;
 
       const tooltipSizerStyle = {
         position: 'absolute',
@@ -71,27 +86,32 @@ export default class Tooltip extends Renderer<TooltipProps> {
         top: y,
         background: cssStyleColor(backgroundStyle.fillColor, backgroundStyle.fillOpacity),
         borderStyle: 'solid',
-        padding: tooltipConfig.padding,
-        borderWidth: backgroundStyle.strokeWidth,
+        paddingTop: tooltipConfig.padding.top,
+        paddingRight: tooltipConfig.padding.right,
+        paddingBottom: tooltipConfig.padding.bottom,
+        paddingLeft: tooltipConfig.padding.left,
+        // a null width must not leave the solid border at css 'medium'; the layout counts it as 0 too
+        borderWidth: cssBorderWidth(backgroundStyle.strokeColor, backgroundStyle.strokeWidth),
         borderColor: cssStyleColor(backgroundStyle.strokeColor, backgroundStyle.strokeOpacity),
-        borderRadius: tooltipConfig.borderRadius,
+        borderRadius: tooltipConfig.cornerRadius,
         boxShadow: boxShadowStyle,
         visibility: tooltipBounds !== null ? 'visible' : 'hidden'
       };
 
-      const sizeForSuppression = tooltipConfig.adjustSizeForSuppression;
+      const sizeForFiltering = tooltipConfig.adjustSizeForFiltering;
 
       const commonProps = {
-        mochartConfig, tooltipValueObject, tooltipGroupIndex, focusedGroupIndex,
-        focusedSeriesId, seriesAxisFocusPercentages, seriesFocusPercentages,
-        svgUniqueId, updateTooltipGroupIndex,
-        onClose, onFocus, onSeriesFilter, groupCount
+        mochartConfig, tooltipValueObject, tooltipCategoryIndex, focusedCategoryIndex,
+        focusedSeriesId, valueAxisFocusPercentages, seriesFocusPercentages,
+        svgUniqueId, updateTooltipCategoryIndex,
+        onClose, onEscape, onFocus, onSeriesFilter, categoryCount,
+        mode: this.state.mode, toggleMode: this.toggleMode
       };
 
       this.setPresent(true);
       this.root.set({ className: mochartCssClasses['tooltipContainer'] });
       this.sizer.set({ className: mochartCssClasses['tooltipSizer'], style: tooltipSizerStyle });
-      this.sizerContent.set(TooltipContent, { ...commonProps, adjustForSuppression: sizeForSuppression, visible: false });
+      this.sizerContent.set(TooltipContent, { ...commonProps, adjustForFiltering: sizeForFiltering, visible: false });
       this.tooltip.set({ className: mochartCssClasses['tooltip'], style: tooltipStyle });
       this.tooltipContent.set(TooltipContent, { ...commonProps, minWidth: tooltipBounds ? tooltipBounds.width : null, visible: true });
     }

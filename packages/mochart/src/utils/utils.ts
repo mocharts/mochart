@@ -5,7 +5,7 @@ export function arrayToMap<T, V = T>(
   keyAccessor: (element: NoInfer<T>) => string,
   valueFormatter: (element: NoInfer<T>) => V = element => element as unknown as V
 ): Record<string, V> {
-  const map: Record<string, V> = {};
+  const map: Record<string, V> = Object.create(null); // null proto: keys are external ids (__proto__ must work)
   for (const element of theArray) {
     map[keyAccessor(element)] = valueFormatter(element);
   }
@@ -14,7 +14,7 @@ export function arrayToMap<T, V = T>(
 
 export function mapMap<V, R>(map: Record<string, V>, mapFunction: (value: V) => R): Record<string, R> {
   const mapKeys = Object.keys(map);
-  const newMap: Record<string, R> = {};
+  const newMap: Record<string, R> = Object.create(null);
   for (const mapKey of mapKeys) {
     newMap[mapKey] = mapFunction(map[mapKey]);
   }
@@ -23,6 +23,32 @@ export function mapMap<V, R>(map: Record<string, V>, mapFunction: (value: V) => 
 
 export function onClickDisabled(e: Event): void {
   e.preventDefault();
+}
+
+/** Marks focus the library moved itself, which pointer paths reach too - :focus-visible never
+ * matches there, so the stylesheet has nothing to ring without this. Cleared on blur. */
+export const focusRestoredAttribute = 'data-mochart-focus-restored';
+
+export function focusRestored(node: SVGElement | HTMLElement | null | undefined): void {
+  if (node === null || node === undefined) {
+    return;
+  }
+  node.setAttribute(focusRestoredAttribute, '');
+  node.addEventListener('blur', () => node.removeAttribute(focusRestoredAttribute), { once: true });
+  node.focus();
+}
+
+/** A tap emulates hover (pointerenter, then the mouse burst) right before its click, so touch never counts as hovering. */
+export function isHoverPointer(event: Event): boolean {
+  return (event as Partial<PointerEvent>).pointerType !== 'touch';
+}
+
+/** Focus reached by keyboard (or moved by script after keyboard use); a click or tap focuses without it. */
+export function isKeyboardFocus(event: Event): boolean {
+  // environments without selector() support (jsdom) cannot tell, so they keep mirroring every focus
+  const supported = typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('selector(:focus-visible)');
+  const target = event.target as Element | null;
+  return !supported || target === null || typeof target.matches !== 'function' || target.matches(':focus-visible');
 }
 
 export function translate(x: number, y: number): string {
@@ -53,10 +79,22 @@ export function centerTextY(textBounds: { x?: number; y?: number; height: number
   };
 }
 
-export function createArrayFilledWithUndefined(count: number): undefined[] {
-  const theArray: undefined[] = [];
+/** Chart data marks a missing series value with NaN (see NumericValue). */
+export const MISSING_VALUE = NaN;
+
+export function isMissingValue(value: number | null | undefined): boolean {
+  return Number.isNaN(value);
+}
+
+// NaN-aware identity: NaN !== NaN, and value arrays compare element-wise every frame
+export function areValuesEqual(a: unknown, b: unknown): boolean {
+  return a === b || (a !== a && b !== b);
+}
+
+export function createArrayFilledWithMissing(count: number): number[] {
+  const theArray: number[] = [];
   for (let i=0; i<count; i++) {
-    theArray.push(undefined);
+    theArray.push(MISSING_VALUE);
   }
   return theArray;
 }
@@ -69,48 +107,39 @@ export function createArrayFilledWithZero(count: number): number[] {
   return theArray;
 }
 
-export function createArrayWithValueIfNotUndefined<T, V>(source: readonly T[], value: V): (V | undefined)[] {
-  const theArray: (V | undefined)[] = [];
+// missing (NaN) entries mirror the source; a missing fill value leaves them missing too
+export function createArrayWithValueIfNotMissing(source: readonly number[], value: number): number[] {
+  const theArray: number[] = [];
   const count = source.length;
   for (let i=0; i<count; i++) {
-    if (source[i] !== undefined) {
-      theArray.push(value);
-    }
-    else {
-      theArray.push(undefined);
-    }
+    theArray.push(isMissingValue(source[i]) ? MISSING_VALUE : value);
   }
   return theArray;
 }
 
-export function copyArrayWithValueIfNotUndefined<T, U>(source: readonly T[], otherSource: readonly U[]): (T | undefined)[] {
-  const theArray: (T | undefined)[] = [];
+export function copyArrayWithValueIfNotMissing(source: readonly number[], otherSource: readonly number[]): number[] {
+  const theArray: number[] = [];
   const count = source.length;
   for (let i=0; i<count; i++) {
-    if (otherSource[i] === undefined) {
-      theArray.push(undefined);
-    }
-    else {
-      theArray.push(source[i]);
-    }
+    theArray.push(isMissingValue(otherSource[i]) ? MISSING_VALUE : source[i]);
   }
   return theArray;
 }
 
-export function replaceArrayUndefinedWithValue<T>(array: (T | undefined)[], value: T): void {
+export function replaceArrayMissingWithValue(array: number[], value: number): void {
   const count = array.length;
   for (let i=0; i<count; i++) {
-    if (array[i] === undefined) {
+    if (isMissingValue(array[i])) {
       array[i] = value;
     }
   }
 }
 
-export function copyWithValueOnlyIfOtherUndefined<T, U>(source: T[], otherSource: readonly (U | undefined)[], value: T): T[] {
+export function copyWithValueOnlyIfOtherMissing(source: number[], otherSource: readonly number[], value: number): number[] {
   let i, found = -1;
   const count = source.length;
   for (i=0; i<count; i++) {
-    if (otherSource[i] === undefined) {
+    if (isMissingValue(otherSource[i])) {
       found = i;
       break;
     }
@@ -118,7 +147,7 @@ export function copyWithValueOnlyIfOtherUndefined<T, U>(source: T[], otherSource
   if (found >= 0) {
     const copy = source.slice();
     for (i=found; i<count; i++) {
-      if (otherSource[i] === undefined) {
+      if (isMissingValue(otherSource[i])) {
         copy[i] = value;
       }
     }
@@ -147,7 +176,7 @@ export function areArraysAndEqual(oldValue: unknown, newValue: unknown): boolean
     if (oldValue.length === newValue.length) {
       const count = oldValue.length;
       for (let i=0; i<count; i++) {
-        if (oldValue[i] !== newValue[i]) {
+        if (!areValuesEqual(oldValue[i], newValue[i])) {
           return false;
         }
       }
@@ -171,35 +200,36 @@ export function getValuesAtIndices<T>(source: readonly T[], indices: readonly nu
   return values;
 }
 
-export function setArrayValuesIfOneIsUndefined<T>(array: (T | undefined)[], otherArray: (T | undefined)[], value: T): void {
+// where exactly one side is missing, fill it so both animate from the same base
+export function setArrayValuesIfOneIsMissing(array: number[], otherArray: number[], value: number): void {
   const count = array.length;
   for (let i=0; i<count; i++) {
-    if (array[i] !== otherArray[i]) {
-      if (array[i] === undefined) {
-        array[i] = value;
-      }
-      else if (otherArray[i] === undefined) {
-        otherArray[i] = value;
-      }
+    const missing = isMissingValue(array[i]);
+    const otherMissing = isMissingValue(otherArray[i]);
+    if (missing && !otherMissing) {
+      array[i] = value;
+    }
+    else if (otherMissing && !missing) {
+      otherArray[i] = value;
     }
   }
 }
 
-export function setArrayValuesFromSourcesIfOneIsUndefined<T>(
-  array: (T | undefined)[],
-  otherArray: (T | undefined)[],
-  sourceArray: readonly T[],
-  otherSourceArray: readonly T[]
+export function setArrayValuesFromSourcesIfOneIsMissing(
+  array: number[],
+  otherArray: number[],
+  sourceArray: readonly number[],
+  otherSourceArray: readonly number[]
 ): void {
   const count = array.length;
   for (let i=0; i<count; i++) {
-    if (array[i] !== otherArray[i]) {
-      if (array[i] === undefined) {
-        array[i] = sourceArray[i];
-      }
-      else if (otherArray[i] === undefined) {
-        otherArray[i] = otherSourceArray[i];
-      }
+    const missing = isMissingValue(array[i]);
+    const otherMissing = isMissingValue(otherArray[i]);
+    if (missing && !otherMissing) {
+      array[i] = sourceArray[i];
+    }
+    else if (otherMissing && !missing) {
+      otherArray[i] = otherSourceArray[i];
     }
   }
 }
@@ -211,17 +241,18 @@ export function setArrayValuesForRange<T>(array: T[], min: number, max: number, 
   }
 }
 
-export function hasUndefinedForRange(array: readonly unknown[], min: number, max: number): boolean {
+// an index past the end counts as missing: callers check merged-space ranges against shorter arrays
+export function hasMissingForRange(array: readonly number[], min: number, max: number): boolean {
   let i;
   for (i=min; i<max; i++) {
-    if (array[i] === undefined) {
+    if (i >= array.length || isMissingValue(array[i])) {
       return true;
     }
   }
   return false;
 }
 
-export function getMaxAbsoluteValue(values: readonly (number | null | undefined)[] | null): number {
+export function getMaxAbsoluteValue(values: readonly (number | null)[] | null): number {
   let max = 0;
   if (values !== null) {
     const count = values.length;
@@ -236,16 +267,26 @@ export function getMaxAbsoluteValue(values: readonly (number | null | undefined)
   return max;
 }
 
-export function getArrayDeltas(array: readonly number[], otherArray: readonly (number | undefined)[]): number[] {
+export function getArrayDeltas(array: readonly number[], otherArray: readonly number[]): number[] {
   const count = array.length;
   const deltas: number[] = [];
   for (let i=0; i<count; i++) {
-    if (otherArray[i] !== undefined) { // if one is undefined, both should be undefined
-      deltas.push((otherArray[i] as number) - array[i]);
+    if (!isMissingValue(otherArray[i])) { // if one is missing, both should be missing
+      deltas.push(otherArray[i] - array[i]);
     }
     else {
       deltas.push(0);
     }
   }
   return deltas;
+}
+
+// a11y affordances (roles, labels, tab stops) apply only when enabled and not decorative-hidden
+export function accessibilityActive({ enabled, hidden }: { enabled: boolean; hidden: boolean }): boolean {
+  return enabled && !hidden;
+}
+
+/** Snaps float noise off a computed value (0.1 + 0.2, 0.25 * 1.05 / 0.75) by keeping 12 significant digits. */
+export function roundToSignificant(value: number): number {
+  return Number(value.toPrecision(12));
 }

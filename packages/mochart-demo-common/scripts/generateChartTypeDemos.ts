@@ -4,6 +4,8 @@
 // structurally. Run after changing the canonical inputs or the core helpers:
 //
 //   npm run generate-demos -w @mochart/demo-common
+//
+// test/snapshotSync.test.ts pins the committed JSON to this script's output.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -13,16 +15,33 @@ import { buildChartTypeDemoSnapshots } from '../src/chartTypeGenerators';
 
 const demoDataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'mochart-demo-data', 'src');
 
-// Matches the hand-written demo data files: one row object per line.
-function formatDataRows(rows: unknown[]): string {
+// Matches the hand-written demo data files: one data object per line.
+function formatDataObjects(rows: unknown[]): string {
   return '[\n' + rows.map(row => '  ' + JSON.stringify(row)).join(',\n') + '\n]\n';
 }
 
-for (const snapshot of buildChartTypeDemoSnapshots()) {
-  const configPath = path.join(demoDataDir, 'config', snapshot.id + '-config.json');
-  const dataPath = path.join(demoDataDir, 'data', snapshot.id + '-data.json');
-  fs.writeFileSync(configPath, JSON.stringify(snapshot.config, null, 2) + '\n');
-  fs.writeFileSync(dataPath, formatDataRows(snapshot.data));
-  console.log('wrote ' + configPath);
-  console.log('wrote ' + dataPath);
+export interface SnapshotFile {
+  path: string;
+  content: string;
+}
+
+export function buildChartTypeDemoSnapshotFiles(): SnapshotFile[] {
+  return buildChartTypeDemoSnapshots().flatMap(snapshot => [
+    {
+      path: path.join(demoDataDir, 'config', snapshot.id + '-config.json'),
+      content: JSON.stringify(snapshot.config, null, 2) + '\n'
+    },
+    {
+      path: path.join(demoDataDir, 'data', snapshot.id + '-data.json'),
+      content: formatDataObjects(snapshot.data)
+    }
+  ]);
+}
+
+const runDirectly = process.argv[1] === fileURLToPath(import.meta.url);
+if (runDirectly) {
+  for (const file of buildChartTypeDemoSnapshotFiles()) {
+    fs.writeFileSync(file.path, file.content);
+    console.log('wrote ' + file.path);
+  }
 }

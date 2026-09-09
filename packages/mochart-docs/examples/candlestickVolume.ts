@@ -1,6 +1,6 @@
 // The volume option adds a pane of direction-colored volume bars along the
 // bottom of the plot: a hidden second axis confines the bars to the lower
-// band via domain margins, and the returned seriesAxisConfigs fragment
+// band via domain margins, and the returned valueAxes fragment
 // carries both pane axes.
 import { createCandlestick } from '@mochart/core';
 import type { MochartInputConfig } from '@mochart/core';
@@ -20,11 +20,11 @@ const candlestick = createCandlestick([
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Daily Share Price (fictional, $)' },
-  groupAxisConfig: candlestick.groupAxisConfig,
-  seriesAxisConfigs: candlestick.seriesAxisConfigs!.map((axisConfig) =>
-    axisConfig.id === 'price' ? { ...axisConfig, title: '$ per share' } : axisConfig),
-  seriesConfigs: candlestick.seriesConfigs
+  title: { text: 'Daily Share Price (fictional, $)' },
+  categoryAxis: candlestick.categoryAxis,
+  valueAxes: candlestick.valueAxes!.map((axisConfig) =>
+    axisConfig.id === 'price' ? { ...axisConfig, title: { text: '$ per share' } } : axisConfig),
+  series: candlestick.series
 };
 
 export const data = candlestick.data;

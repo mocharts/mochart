@@ -4,21 +4,23 @@
   "description": "Lit demo gallery for the mochart charting library",
   "private": true,
   "type": "module",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
     "lit": "^3.3.0",
-    "@mochart/core": "^1.0.0",
-    "@mochart/demo-common": "^1.0.0",
-    "@mochart/demo-data": "^1.0.0",
-    "@mochart/export": "^1.0.0",
-    "@mochart/lit": "^1.0.0"
+    "@mochart/core": "*",
+    "@mochart/demo-common": "*",
+    "@mochart/demo-data": "*",
+    "@mochart/editor": "*",
+    "@mochart/export": "*",
+    "@mochart/lit": "*"
   },
   "devDependencies": {
     "typescript": "^6.0.3"
   },
   "scripts": {
     "dev": "vite",
+    "prebuild": "node ../../scripts/ensure-libs-fresh.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",

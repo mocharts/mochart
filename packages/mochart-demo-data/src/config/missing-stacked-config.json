@@ -1,73 +1,93 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Missing Pos/Neg Stacked Values"
+  "title": {
+    "text": "Missing Pos/Neg Stacked Values"
   },
-  "animationConfig": {},
-  "tooltipConfig": {
+  "animation": {},
+  "tooltip": {
     "showMissingValues": true,
     "missingValueText": "N/A"
   },
-  "groupAxisConfig": {
-    "before": false,
-    "title": "Group Axis",
-    "gridLines": true,
-    "gridLineWidth": 1,
-    "gridLineDashArray": "5, 5",
+  "categoryAxis": {
+    "title": {
+      "text": "Category Axis"
+    },
+    "gridLine": {
+      "visible": true,
+      "style": {
+        "normal": {
+          "strokeWidth": 1,
+          "strokeDashArray": "5, 5"
+        }
+      }
+    },
     "min": "auto",
     "max": "auto",
     "type": "number",
     "scale": "ordinal",
-    "valueLabel": "Group",
-    "property": "group"
+    "valueLabel": "Category",
+    "property": "category",
+    "side": "end"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "before": true,
-      "title": "Series Axis 1",
-      "axisLine": true,
-      "gridLines": false,
-      "id": "SA1",
+      "title": {
+        "text": "Value Axis 1"
+      },
+      "axisLine": {
+        "visible": true
+      },
+      "gridLine": {
+        "visible": false
+      },
+      "id": "VA1",
       "base": 0,
       "softMin": 0,
-      "softMax": 0
+      "softMax": 0,
+      "side": "start"
     }
   ],
-  "seriesStackConfigs": [
+  "seriesStacks": [
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "id": "SS1"
     }
   ],
-  "seriesAllConfig": {
+  "seriesDefaults": {
     "renderer": "bar",
-    "axis": "SA1",
+    "axis": "VA1",
     "stack": "SS1"
   },
-  "seriesConfigs": [
+  "series": [
     {
       "title": "Value 0",
       "property": "value0",
-      "capType": "round",
-      "capSize": 10,
-      "capExpand": true,
-      "capOnlyStackOuter": true
+      "cap": {
+        "type": "round",
+        "size": 10,
+        "expand": true,
+        "onlyStackOuter": true
+      }
     },
     {
       "title": "Value 1",
       "property": "value1",
-      "capType": "round",
-      "capSize": 10,
-      "capExpand": true,
-      "capOnlyStackOuter": true
+      "cap": {
+        "type": "round",
+        "size": 10,
+        "expand": true,
+        "onlyStackOuter": true
+      }
     },
     {
       "title": "Value 2",
       "property": "value2",
-      "capType": "round",
-      "capSize": 10,
-      "capExpand": true,
-      "capOnlyStackOuter": true
+      "cap": {
+        "type": "round",
+        "size": 10,
+        "expand": true,
+        "onlyStackOuter": true
+      }
     }
   ]
 }

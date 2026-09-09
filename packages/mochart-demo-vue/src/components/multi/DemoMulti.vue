@@ -2,6 +2,7 @@
 import { demoText } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
+import StaticDemoTabs from '../misc/StaticDemoTabs.vue';
 import TopBar from '../misc/TopBar.vue';
 import ChartsTab from './ChartsTab.vue';
 import ErrorTab from '../misc/ErrorTab.vue';
@@ -24,10 +25,9 @@ const props = defineProps<Props>();
     <TopBar :site-root-url="props.siteRootUrl" :on-back-to-demos="props.onBackToDemos"
             :notes="props.demoData.demoObjectMap[props.initialDemoId]"
             :modes="{ demoMode: 'multi', onModeChanged: props.onModeChanged }">
+      <!-- One pane, so the strip is a caption rather than a tablist. -->
       <template #tabs>
-        <li class="demo-tab-item">
-          <button type="button" class="demo-tab active">{{ demoText.tabs.chart }}</button>
-        </li>
+        <StaticDemoTabs :label="demoText.tabs.chart" />
       </template>
     </TopBar>
     <div class="mochart-demo-content-pane">

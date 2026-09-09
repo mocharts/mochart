@@ -10,41 +10,56 @@
     "svg",
     "mochart"
   ],
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "author": {
     "name": "Jon Harris",
     "url": "https://github.com/jharris4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jharris4/mochart.git"
+    "url": "https://github.com/mocharts/mochart.git",
+    "directory": "packages/mochart-angular"
+  },
+  "homepage": "https://mochart.org",
+  "bugs": {
+    "url": "https://github.com/mocharts/mochart/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
   },
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
       "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
   },
   "files": [
     "src",
-    "dist"
+    "dist",
+    "CHANGELOG.md"
   ],
-  "dependencies": {
+  "peerDependencies": {
+    "@angular/core": ">=22.0.0",
     "@mochart/core": "^1.0.0"
   },
-  "peerDependencies": {
-    "@angular/core": "^22.0.0"
-  },
   "devDependencies": {
-    "@angular/compiler": "^22.0.7",
-    "@angular/compiler-cli": "^22.0.7",
-    "@angular/core": "^22.0.7",
-    "@angular/platform-browser": "^22.0.7",
+    "@angular/compiler": "^22.1.1",
+    "@mochart/core": "^1.0.0",
+    "@angular/compiler-cli": "^22.1.1",
+    "@angular/core": "^22.1.1",
+    "@angular/platform-browser": "^22.1.1",
     "rxjs": "^7.8.2"
   },
   "scripts": {

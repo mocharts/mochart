@@ -5,9 +5,9 @@ import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Bandwidth' },
-  groupAxisConfig: { property: 'hour', type: 'string', scale: 'ordinal' },
-  linearGradientConfigs: [
+  title: { text: 'Bandwidth' },
+  categoryAxis: { property: 'hour', type: 'string', scale: 'ordinal' },
+  linearGradients: [
     {
       id: 'fade',
       x1: 0, y1: 0, x2: 0, y2: 1,
@@ -17,7 +17,7 @@ export const config: MochartInputConfig = {
       ]
     }
   ],
-  seriesConfigs: [
+  series: [
     {
       property: 'gbps',
       title: 'Throughput',

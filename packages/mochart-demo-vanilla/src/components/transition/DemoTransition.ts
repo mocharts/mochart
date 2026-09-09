@@ -1,6 +1,7 @@
 
 import { defaultTransitionConfig, demoText, getTransitionDataProviders, getTransitionMochartConfig } from '@mochart/demo-common';
 
+import { demoTabs } from '../misc/DemoTabs';
 import { el } from '../misc/dom';
 import { topBar } from '../misc/TopBar';
 import { transitionChartTab } from './TransitionChartTab';
@@ -52,23 +53,19 @@ export function demoTransition(props: DemoTransitionProps): DemoTransitionHandle
     }
   });
 
-  function navItem(text: string, key: number): { li: HTMLLIElement; button: HTMLButtonElement } {
-    const button = el('button', {
-      className: 'demo-tab' + (activeKey === key ? ' active' : ''),
-      attrs: { type: 'button' },
-      text
-    });
-    button.addEventListener('click', () => handleSelect(key));
-    return { li: el('li', { className: 'demo-tab-item' }, [button]), button };
-  }
-
-  const chartNav = navItem(demoText.tabs.chart, eventKeyChart);
-  const configNav = navItem(demoText.tabs.transitionConfig, eventKeyConfig);
+  const tabs = demoTabs({
+    tabs: [
+      { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart },
+      { name: 'config', key: eventKeyConfig, label: demoText.tabs.transitionConfig }
+    ],
+    activeKey,
+    onSelect: handleSelect
+  });
 
   const bar = topBar({
     siteRootUrl: props.siteRootUrl,
     onBackToDemos: props.onBackToDemos,
-    tabs: [chartNav.li, configNav.li]
+    tabs: tabs.el
   });
 
   const container = el('div', { className: 'mochart-demo-container multi' }, [
@@ -80,8 +77,7 @@ export function demoTransition(props: DemoTransitionProps): DemoTransitionHandle
 
   function handleSelect(nextActiveKey: number): void {
     activeKey = nextActiveKey;
-    chartNav.button.classList.toggle('active', activeKey === eventKeyChart);
-    configNav.button.classList.toggle('active', activeKey === eventKeyConfig);
+    tabs.sync(activeKey);
     chart.setActive(activeKey === eventKeyChart);
     config.setActive(activeKey === eventKeyConfig);
   }
@@ -91,6 +87,7 @@ export function demoTransition(props: DemoTransitionProps): DemoTransitionHandle
     destroy() {
       bar.destroy();
       chart.destroy();
+      config.destroy();
     }
   };
 }

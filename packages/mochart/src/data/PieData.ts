@@ -15,35 +15,38 @@ export function degreesToRadians(degrees: number): number {
   return (degrees * Math.PI) / 180;
 }
 
+/** Clamps each value (missing/non-finite/non-positive count as 0) and returns each one's fraction of the total; an overflowed total stays Infinity while the fractions re-derive in units of the largest value. */
+export function computeSliceFractions(values: readonly (number | null | undefined)[]): { total: number; values: number[]; fractions: number[] } {
+  const clamped = values.map(value => (typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0));
+  const total = clamped.reduce((sum, value) => sum + value, 0);
+  if (total === Infinity) {
+    const max = clamped.reduce((largest, value) => Math.max(largest, value), 0);
+    const scaledTotal = clamped.reduce((sum, value) => sum + value / max, 0);
+    return { total, values: clamped, fractions: clamped.map(value => value / max / scaledTotal) };
+  }
+  return { total, values: clamped, fractions: clamped.map(value => (total > 0 ? value / total : 0)) };
+}
+
 /**
  * Each slice's clamped value and fraction of the total, from whichever value
- * the accessor returns (missing, non-finite and non-positive values count as
- * 0; a non-positive total yields all-zero fractions). The slice geometry and
- * the pie tooltip both normalize through here — the tooltip reads scalars off
- * a single group while the slices read per-group arrays — so a percentage can
- * never mean one thing in a label and another in the tooltip.
+ * the accessor returns. The slice geometry and the pie tooltip both normalize
+ * through here — the tooltip reads scalars off a single category while the
+ * slices read per-category arrays — so a percentage can never mean one thing
+ * in a label and another in the tooltip.
  */
 export function getPieSliceFractions(seriesConfigs: SeriesConfig[], valueOf: (seriesId: string) => number | null | undefined):
   { total: number; values: number[]; fractions: number[] } {
-  let total = 0;
-  const values = seriesConfigs.map(seriesConfig => {
-    const value = valueOf(seriesConfig.id);
-    const clamped = typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 0;
-    total += clamped;
-    return clamped;
-  });
-  const fractions = values.map(value => (total > 0 ? value / total : 0));
-  return { total, values, fractions };
+  return computeSliceFractions(seriesConfigs.map(seriesConfig => valueOf(seriesConfig.id)));
 }
 
 /**
  * The slice fractions keyed by series id, for the pie tooltip's percent
- * values: it holds one group's values as scalars (not the per-group arrays the
+ * values: it holds one category's values as scalars (not the per-category arrays the
  * slices work from), so it passes its own accessor.
  */
 export function getPieSliceFractionMap(seriesConfigs: SeriesConfig[], valueOf: (seriesId: string) => number | null | undefined): Record<string, number> {
   const { fractions } = getPieSliceFractions(seriesConfigs, valueOf);
-  const fractionMap: Record<string, number> = {};
+  const fractionMap: Record<string, number> = Object.create(null);
   seriesConfigs.forEach((seriesConfig, i) => {
     fractionMap[seriesConfig.id] = fractions[i];
   });
@@ -53,20 +56,20 @@ export function getPieSliceFractionMap(seriesConfigs: SeriesConfig[], valueOf: (
 /**
  * Computes each slice's angles from the current (possibly mid-tween) filtered
  * values. Slices follow the series config order — never the focus draw order —
- * so focusing a slice cannot move it. Suppressed series (null plain values)
+ * so focusing a slice cannot move it. Filtered series (null plain values)
  * and non-positive values contribute nothing; a non-positive total yields an
  * empty map (no slices). Recomputing per sync from tweened values is what
  * animates the angles: adjacent slice edges share a normalized total, so they
  * can never separate mid-tween.
  */
-export function getPieSliceAngles(seriesConfigs: SeriesConfig[], filteredValues: Record<string, SeriesValueObject>, pieConfig: PieConfig, groupIndex = 0): Record<string, PieSliceAngles> {
+export function getPieSliceAngles(seriesConfigs: SeriesConfig[], filteredValues: Record<string, SeriesValueObject>, pieConfig: PieConfig, categoryIndex = 0): Record<string, PieSliceAngles> {
   const { total, values, fractions } = getPieSliceFractions(seriesConfigs, seriesId => {
     const valueObject = filteredValues[seriesId];
     const plain = valueObject !== undefined ? valueObject.plain : null;
-    return plain !== null ? plain[groupIndex] : undefined;
+    return plain !== null ? plain[categoryIndex] : undefined;
   });
 
-  const angles: Record<string, PieSliceAngles> = {};
+  const angles: Record<string, PieSliceAngles> = Object.create(null);
   if (total <= 0) {
     return angles;
   }
@@ -102,7 +105,7 @@ export function sweepPieSliceAngles(angles: Record<string, PieSliceAngles>, pieC
   }
   const clamped = Math.max(percentage, 0);
   const startOffset = degreesToRadians(pieConfig.startAngle);
-  const swept: Record<string, PieSliceAngles> = {};
+  const swept: Record<string, PieSliceAngles> = Object.create(null);
   for (const id of Object.keys(angles)) {
     const sliceAngles = angles[id];
     swept[id] = {

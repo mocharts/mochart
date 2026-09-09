@@ -2,7 +2,7 @@ import { createChart, enhanceConfig, ArrayOfObjectsDataProvider } from '@mochart
 import type { ChartHandle } from '@mochart/core';
 import {
   makeConfig, makeData, randomizeData, scenarioLabel, scenarioSize, scenarioPoints,
-  SUITE_ROWS, DASHBOARD_SERIES, DASHBOARD_GROUPS
+  SUITE_ROWS, DASHBOARD_SERIES, DASHBOARD_CATEGORIES
 } from './scenarios';
 import type { ScenarioSpec, ScenarioOptions, ScenarioType } from './scenarios';
 import { afterPaint, sleep, FrameSampler, startFpsMeter, formatMs } from './metrics';
@@ -10,7 +10,7 @@ import type { FrameStats } from './metrics';
 
 const scenarioSelect = document.getElementById('scenario') as HTMLSelectElement;
 const seriesInput = document.getElementById('series') as HTMLInputElement;
-const groupsInput = document.getElementById('groups') as HTMLInputElement;
+const categoriesInput = document.getElementById('categories') as HTMLInputElement;
 const chartsInput = document.getElementById('charts') as HTMLInputElement;
 const animateCheck = document.getElementById('animate') as HTMLInputElement;
 const legendCheck = document.getElementById('legend') as HTMLInputElement;
@@ -82,14 +82,14 @@ async function mountScenario(spec: ScenarioSpec, options: ScenarioOptions): Prom
   if (!mochartConfig.validation.valid) {
     throw new Error('invalid benchmark config: ' + mochartConfig.validation.errors.join('; '));
   }
-  const datasets = cells.map(() => makeData(spec.seriesCount, spec.groupCount));
+  const datasets = cells.map(() => makeData(spec.seriesCount, spec.categoryCount));
   const sizes = cells.map((cell) => cell.getBoundingClientRect());
 
   const start = performance.now();
   for (let i = 0; i < cells.length; i++) {
     const handle = createChart(cells[i], {
       mochartConfig,
-      dataProvider: new ArrayOfObjectsDataProvider(datasets[i], 'group'),
+      dataProvider: new ArrayOfObjectsDataProvider(datasets[i]),
       width: Math.floor(sizes[i].width),
       height: Math.floor(sizes[i].height)
     });
@@ -115,7 +115,7 @@ async function mountScenario(spec: ScenarioSpec, options: ScenarioOptions): Prom
 function randomizeAll(): void {
   for (const chart of mounted) {
     chart.data = randomizeData(chart.data, chart.seriesCount);
-    chart.handle.update({ dataProvider: new ArrayOfObjectsDataProvider(chart.data, 'group') });
+    chart.handle.update({ dataProvider: new ArrayOfObjectsDataProvider(chart.data) });
   }
 }
 
@@ -149,14 +149,14 @@ function specFromControls(): ScenarioSpec {
     return {
       type,
       seriesCount: DASHBOARD_SERIES,
-      groupCount: DASHBOARD_GROUPS,
+      categoryCount: DASHBOARD_CATEGORIES,
       chartCount: Math.max(1, Number(chartsInput.value) || 1)
     };
   }
   return {
     type,
     seriesCount: Math.max(1, Number(seriesInput.value) || 1),
-    groupCount: Math.max(2, Number(groupsInput.value) || 2),
+    categoryCount: Math.max(2, Number(categoriesInput.value) || 2),
     chartCount: 1
   };
 }
@@ -302,7 +302,7 @@ scenarioSelect.addEventListener('change', () => {
   const dashboard = scenarioSelect.value === 'dashboard';
   chartsInput.disabled = !dashboard;
   seriesInput.disabled = dashboard;
-  groupsInput.disabled = dashboard;
+  categoriesInput.disabled = dashboard;
 });
 
 startFpsMeter(fpsMeter);

@@ -1,8 +1,8 @@
 import type { DemoData, SwitchableDemoMode } from '@mochart/demo-common';
 
 export type {
-  DataRow, Demo, DemoConfig, DemoData,
-  GroupValue, FilteredSeriesIds, FocusData, TransitionConfig,
+  DataObject, Demo, DemoConfig, DemoData,
+  FilteredSeriesIds, FocusData, TransitionConfig,
   ChartDataProviderLike, DemoDataProvider, SwitchableDemoMode,
   RandomConfigWithValid, MochartDemoConfig
 } from '@mochart/demo-common';

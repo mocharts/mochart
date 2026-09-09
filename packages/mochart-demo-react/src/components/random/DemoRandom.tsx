@@ -1,19 +1,19 @@
 import { useState, useRef } from 'react';
 
-import { NONE, getDataErrors } from '@mochart/core';
-import type { MochartConfig, DataProvider } from '@mochart/core';
+import { getDataErrors } from '@mochart/core';
 
-import { buildMochartDemoConfig, consumeShareState, demoText, generateDemoDataProvider, neutralizeRandomReuse } from '@mochart/demo-common';
+import { buildMochartDemoConfig, consumeShareState, createErrorDataProvider, demoText, generateDemoDataProvider, getRandomDataObjects, neutralizeRandomReuse, restoreSharedRandomConfig } from '@mochart/demo-common';
 import type { ShareState } from '@mochart/demo-common';
 
 import RandomMochartChartTab from './RandomChartTab';
 import RandomMochartConfigTab from './RandomConfigTab';
 import RandomMochartDataTab from './RandomDataTab';
+import DemoTabs from '../misc/DemoTabs';
 import ErrorTab from '../misc/ErrorTab';
 import TopBar from '../misc/TopBar';
 
 import type {
-  DemoData, DemoTabProps, MochartDemoConfig, RandomConfigWithValid, DemoDataProvider, GroupValue
+  DemoData, DemoTabProps, MochartDemoConfig, RandomConfigWithValid, DemoDataProvider
 } from '../../types';
 
 const eventKeyChart = 1;
@@ -69,23 +69,12 @@ export default function MochartDemoRandom(props: RandomDemoProps) {
         notes={demoData.demoObjectMap[initialDemoId]}
         modes={{ demoMode: 'random', onModeChanged }}
         tabs={
-          <>
-            <li className="demo-tab-item">
-              <button type="button" className={"demo-tab" + (activeKey === eventKeyChart ? " active" : "")} onClick={() => { handleSelect(eventKeyChart); }}>
-                {demoText.tabs.chart}
-              </button>
-            </li>
-            <li className="demo-tab-item">
-              <button type="button" className={"demo-tab" + (activeKey === eventKeyConfig ? " active" : "")} onClick={() => { handleSelect(eventKeyConfig); }}>
-                {demoText.tabs.randomConfig}
-              </button>
-            </li>
-            <li className="demo-tab-item">
-              <button type="button" className={"demo-tab" + (activeKey === eventKeyData ? " active" : "")} onClick={() => { handleSelect(eventKeyData); }}>
-                {demoText.tabs.data}
-              </button>
-            </li>
-          </>
+          <DemoTabs activeKey={activeKey} onSelect={handleSelect}
+            tabs={[
+              { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart },
+              { name: 'config', key: eventKeyConfig, label: demoText.tabs.randomConfig },
+              { name: 'data', key: eventKeyData, label: demoText.tabs.data }
+            ]} />
         } />
       <div className="mochart-demo-content-pane">
         <RandomMochartDemoContent mochartDemoConfig={mochartDemoConfig} initialRandomConfig={randomConfig}
@@ -115,27 +104,6 @@ interface ContentState {
   applyReuse: boolean;
 }
 
-function getData(mochartConfig: MochartConfig, groupValues: GroupValue[], seriesValues: Record<string, (number | undefined)[]>): Record<string, any>[] {
-  const { groupAxisConfig } = mochartConfig;
-  const groupProperty = groupAxisConfig.property ?? '';
-  const data: Record<string, any>[] = groupValues.map(g => ({ [groupProperty]: g }));
-  const groupCount = groupValues.length;
-  if (groupAxisConfig.displayProperty !== NONE) {
-    const displayProperty = groupAxisConfig.displayProperty;
-    for (let i = 0; i < groupCount; i++) {
-      data[i][displayProperty] = groupValues[i];
-    }
-  }
-  const seriesProperties = Object.keys(seriesValues);
-  for (const seriesProperty of seriesProperties) {
-    const seriesPropertyValues = seriesValues[seriesProperty];
-    for (let i = 0; i < groupCount; i++) {
-      data[i][seriesProperty] = seriesPropertyValues[i];
-    }
-  }
-  return data;
-}
-
 function computeProviderState(mochartDemoConfig: MochartDemoConfig, randomId: number, randomConfig: RandomConfigWithValid, applyReuse: boolean, generator: string | undefined): Pick<ContentState, 'dataProvider' | 'data' | 'randomConfig'> {
   const { mochartConfig } = mochartDemoConfig;
   if (randomConfig.valid) {
@@ -143,15 +111,15 @@ function computeProviderState(mochartDemoConfig: MochartDemoConfig, randomId: nu
     // neutralized, so every dataset is generated independently
     const generatorConfig = applyReuse ? randomConfig : neutralizeRandomReuse(randomConfig);
     const dataProvider = generateDemoDataProvider(generator, mochartConfig, generatorConfig, randomId);
-    const { groupValues = [], seriesValues = {} } = dataProvider;
-    const data = getData(mochartConfig, groupValues, seriesValues);
-    const dataErrors = getDataErrors(mochartConfig, dataProvider as unknown as DataProvider);
+    const { categoryValues = [], seriesValues = {} } = dataProvider;
+    const data = getRandomDataObjects(mochartConfig, categoryValues, seriesValues);
+    const dataErrors = getDataErrors(mochartConfig, dataProvider);
     if (dataErrors.length > 0) {
       console.error('data errors: ', dataErrors);
-      console.warn('group values: ', groupValues);
+      console.warn('category values: ', categoryValues);
       console.warn('series values: ', seriesValues);
       return {
-        dataProvider: { getGroupValues: () => [], getError: () => demoText.errors.creatingDataProvider },
+        dataProvider: createErrorDataProvider(demoText.errors.creatingDataProvider),
         data: { error: demoText.errors.creatingDataProvider },
         randomConfig
       };
@@ -162,7 +130,7 @@ function computeProviderState(mochartDemoConfig: MochartDemoConfig, randomId: nu
   }
   else {
     return {
-      dataProvider: { getGroupValues: () => [], getError: () => demoText.errors.invalidRandomConfig },
+      dataProvider: createErrorDataProvider(demoText.errors.invalidRandomConfig),
       data: { error: demoText.errors.invalidRandomConfig },
       randomConfig
     };
@@ -183,7 +151,7 @@ function RandomMochartDemoContent(props: ContentProps) {
   const [state, setState] = useState<ContentState>(() => {
     // Reuse defaults on to match the generator's historical behavior.
     const applyReuse = initialShared ? initialShared.applyReuse : true;
-    const randomConfig: RandomConfigWithValid = initialShared ? { ...initialShared.randomConfig, valid: true } : initialRandomConfig;
+    const randomConfig: RandomConfigWithValid = initialShared ? restoreSharedRandomConfig(initialShared.randomConfig, generator) : initialRandomConfig;
     return { applyReuse, ...computeProviderState(mochartDemoConfig, randomId, randomConfig, applyReuse, generator) };
   });
 

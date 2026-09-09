@@ -1,11 +1,9 @@
-// The in-demo navigation strip pieces: a back link to the gallery and the
-// Single/Multi/Random mode switcher. Transition/rotation are standalone
-// gallery pages, not modes, so they don't appear here.
+// The in-demo navigation strip pieces: gallery back link and Single/Multi/Random mode switcher (transition/rotation are gallery pages, not modes).
 
 import React from 'react';
 import Icon from './Icon';
 
-import { demoText, getAvailableDemoModes, initTheme } from '@mochart/demo-common';
+import { demoModeIcons, demoText, getAvailableDemoModes, initTheme } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import { usePhoneViewport } from './usePhoneViewport';
@@ -14,12 +12,6 @@ import type { OnModeChanged, OnBackToDemos } from '../../types';
 
 // One controller for the whole app; every view's toggle button shares it.
 const theme = initTheme();
-
-const modeIcons: Record<SwitchableDemoMode, string> = {
-  single: 'pen-to-square',
-  multi: 'window-restore',
-  random: 'shuffle'
-};
 
 interface ModeSwitcherProps {
   demoMode: SwitchableDemoMode;
@@ -31,24 +23,19 @@ export function ModeSwitcher({ demoMode, onModeChanged }: ModeSwitcherProps) {
   return (
     <div className="mochart-demo-mode-switcher">
       <span className="demo-label">{demoText.modeSwitcher.label}</span>
-      <div className="demo-toolbar" role="toolbar">
+      {/* A named group, not a toolbar: independently tabbable buttons, no arrow-key handling. */}
+      <div className="demo-toolbar" role="group" aria-label={demoText.modeSwitcher.groupAria}>
         {getAvailableDemoModes(isPhone).map(mode => {
           const current = mode === demoMode;
           const { label, title } = demoText.modeSwitcher.modes[mode];
-          // How the current mode is marked depends on the width. In the strip
-          // it is a filled, disabled segment — plainly "you are here". On a
-          // phone the switcher lives in the nav overflow menu, where
-          // `.demo-menu-overflow .demo-btn:disabled` greys a row out and a
-          // greyed row in a list of destinations reads as unavailable rather
-          // than current — so there it gets the panel's `.active` tint plus
-          // `aria-current`, and is simply inert when tapped.
+          // In the strip the current mode is a filled disabled segment; in the phone overflow menu disabled reads as unavailable, so it gets the `.active` tint and is inert instead.
           return (
             <button key={mode} type="button"
               className={"demo-btn demo-btn-" + (current ? 'primary' : 'secondary') + (current && isPhone ? ' active' : '')}
               disabled={current && !isPhone} title={title}
-              aria-current={current && isPhone ? 'true' : undefined}
+              aria-current={current ? 'page' : undefined}
               onClick={() => { if (!current) { onModeChanged(mode); } }}>
-              <Icon size="lg" fixedWidth={true} name={modeIcons[mode]} /><span className="btn-label">{label}</span>
+              <Icon size="lg" fixedWidth={true} name={demoModeIcons[mode]} /><span className="btn-label">{label}</span>
             </button>
           );
         })}
@@ -57,10 +44,7 @@ export function ModeSwitcher({ demoMode, onModeChanged }: ModeSwitcherProps) {
   );
 }
 
-/**
- * Link back to the docs site root (a real anchor so middle-click works).
- * Renders nothing when no site root is configured (standalone dev/build).
- */
+/** Link back to the docs site root (a real anchor so middle-click works); renders nothing when no site root is configured. */
 export function SiteRootButton({ siteRootUrl }: { siteRootUrl?: string }) {
   if (siteRootUrl === undefined) {
     return null;
@@ -73,14 +57,7 @@ export function SiteRootButton({ siteRootUrl }: { siteRootUrl?: string }) {
   );
 }
 
-/**
- * Icon-only light/dark toggle; shares the docs site's theme choice.
- *
- * The `.btn-menu-label` span is text for the phone fold only: folded into the
- * nav overflow menu this would be the one row with nothing to read, and the
- * class is `display: none` everywhere except inside a `.demo-menu` — as a
- * hidden child it costs the bars neither a box nor one of the button's gaps.
- */
+/** Icon-only light/dark toggle sharing the docs site's theme choice; the `.btn-menu-label` text shows only inside the phone overflow menu. */
 export function ThemeToggleButton() {
   const [dark, setDark] = React.useState(theme.isDark());
   React.useEffect(() => theme.onChange(setDark), []);

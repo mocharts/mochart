@@ -1,16 +1,16 @@
-export type * from './geometry';
+// The public type surface: config.ts is wildcarded (all config-model types); every other name is a deliberate export reachable from a published signature
 export type * from './config';
-export type * from './data';
-export type * from './chart';
+
+export type { Size, Bounds, MarginPadding, InnerOuter } from './geometry';
+
+// The DataProvider contract and the dataset shapes the default chart accepts.
+export type { DataProvider, DataObject, DataValue, ArrayOfObjectsData, ObjectOfArraysData } from './data';
+
+// InternalFocus stays internal: chart/ChartDataSource re-exports it for the sources and components only, never the package.
 export type {
-  FocusPercentage, FocusPercentageMap, FocusData, ArrayFocusDeltaData,
-  MapFocusDeltaData, FocusAnimationData, NumericDomain, DateDomain, AxisDomain,
-  AnimationGroupData, AnimationSeriesDataSet, AnimationSeriesData,
-  AnimationChartData, DomainDelta, DomainDeltaMap, SeriesDomainDelta,
-  SeriesDomainDeltaMap, NumericValuesDelta, SeriesValueDelta,
-  SeriesValueDeltaMap, NumericArrayDelta, CompleteNumericArrayDelta,
-  AxisDeltaData, EmptyAxisDeltaData, AxisTransitionData, ValueChangeData,
-  ChartAnimationData, GroupMergedValuesData, GroupMergedIndicesData,
-  OuterChangeCounts, GroupDeltaData
-} from './animation';
-export type * from './layout';
+  ChartEventPayload, ChartFocus, ChartSeriesFilter, ChartSliceClickPayload,
+  ChartSeriesClickPayload, ChartCallbacks, ChartFactories, ChartFactoryContext,
+  ChartFactoryContent, ChartContentFactory, BaseChartProps, ManagedChartProps,
+  DefaultChartProps
+} from './chart';
+

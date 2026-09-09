@@ -1,4 +1,4 @@
-import { createMenuController, demoText } from '@mochart/demo-common';
+import { createMenuController, demoText, menuKeepOpenClassName, notesMenuPlacement } from '@mochart/demo-common';
 
 import { el, icon } from './dom';
 
@@ -46,14 +46,6 @@ export interface NotesMenuHandle {
   destroy(): void;
 }
 
-/**
- * Duplicates `.demo-menu-notes`'s `width: min(340px, calc(100vw - 32px))` in
- * demo.css — a `display: none` panel measures 0, so the left-edge clamp has to
- * be told the width the stylesheet will give it. Keep the two in step.
- */
-const notesPanelWidth = 340;
-const notesViewportMargin = 32;
-
 /** `aria-controls` has to point at an id, and ids have to be unique. */
 let disclosureIdCounter = 0;
 
@@ -75,18 +67,10 @@ export function notesMenu(props: NotesMenuProps): NotesMenuHandle {
 
   const root = el('div', { className: 'demo-btn-group mochart-demo-notes-menu' }, [trigger, menu]);
 
-  // Opens downward from the navigation row and left-aligned with the trigger,
-  // clamped so a 340px panel opened from a right-hand trigger stays on screen.
   const controller = createMenuController({
     trigger,
     panel: menu,
-    placement: {
-      side: 'bottom',
-      align: 'start',
-      gap: 6,
-      width: notesPanelWidth,
-      viewportMargin: notesViewportMargin
-    }
+    placement: notesMenuPlacement
   });
 
   // ---------------------------------------------------------------------
@@ -122,7 +106,7 @@ export function notesMenu(props: NotesMenuProps): NotesMenuHandle {
     }
   }, [
     icon('circle-info', { fixedWidth: true }), ' ',
-    el('span', { className: 'mochart-menu-item-label', text: demoText.demoNotes.trigger.aria }),
+    el('span', { text: demoText.demoNotes.trigger.aria }),
     disclosureIcon
   ]);
 
@@ -130,7 +114,7 @@ export function notesMenu(props: NotesMenuProps): NotesMenuHandle {
   // handler leaves the panel open when the disclosure is toggled — otherwise the
   // note would be revealed and taken away again in the same tap.
   const menuItemEl = el('div', {
-    className: 'mochart-demo-notes-item demo-menu-keep-open'
+    className: 'mochart-demo-notes-item ' + menuKeepOpenClassName
   }, [disclosureButton, disclosureEl]);
 
   let expanded = false;

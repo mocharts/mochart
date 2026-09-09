@@ -8,32 +8,18 @@ import type { Bounds } from '../types/geometry';
 
 type CssClassKey = keyof typeof mochartCssClasses;
 
-type BackgroundStyleKey = 'backgroundStyle' | 'tickLabelBackgroundStyle' | 'titleBackgroundStyle' | 'itemBackgroundStyle';
-
 interface BackgroundConfig {
   backgroundStyle: Style;
-  tickLabelBackgroundStyle?: Style;
-  titleBackgroundStyle?: Style;
-  itemBackgroundStyle?: Style;
 }
 
 interface BackgroundProps {
   config: BackgroundConfig;
-  configStyleKey?: BackgroundStyleKey;
   classKey: CssClassKey;
   spacingRelative: boolean;
   spacingLayoutInfo: SpacingLayoutInfo | Bounds;
-  onClick?: () => void;
 }
 
 export default class Background extends Renderer<BackgroundProps> {
-  backgroundClick = () => {
-    const { onClick } = this.props;
-    if (onClick) {
-      onClick();
-    }
-  }
-
   root = svgEl('g');
   rect = svgEl('rect');
 
@@ -43,13 +29,13 @@ export default class Background extends Renderer<BackgroundProps> {
   }
 
   sync() {
-    const { config, configStyleKey = 'backgroundStyle', classKey, spacingRelative, spacingLayoutInfo } = this.props;
+    const { config, classKey, spacingRelative, spacingLayoutInfo } = this.props;
     const bounds = 'marginBounds' in spacingLayoutInfo
       ? (spacingRelative ? spacingLayoutInfo.marginRelativeBounds : spacingLayoutInfo.marginBounds)
       : spacingLayoutInfo;
     const { x, y, width, height } = bounds;
-    const backgroundProps = styleToAttributes(config[configStyleKey]);
-    this.root.set({ className: mochartCssClasses[classKey], onClick: this.backgroundClick });
+    const backgroundProps = styleToAttributes(config.backgroundStyle);
+    this.root.set({ className: mochartCssClasses[classKey] });
     this.rect.set({ x, y, width, height, ...backgroundProps });
   }
 }

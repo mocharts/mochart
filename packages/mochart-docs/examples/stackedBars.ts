@@ -1,18 +1,18 @@
-// With exactly one entry in seriesStackConfigs, every series defaults its
+// With exactly one entry in seriesStacks, every series defaults its
 // `stack` to that stack's id — no per-series wiring needed.
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Revenue by Product' },
-  groupAxisConfig: { property: 'quarter', type: 'string', scale: 'ordinal' },
-  seriesAllConfig: { renderer: 'bar' },
-  seriesConfigs: [
+  title: { text: 'Revenue by Product' },
+  categoryAxis: { property: 'quarter', type: 'string', scale: 'ordinal' },
+  seriesDefaults: { renderer: 'bar' },
+  series: [
     { property: 'starter', title: 'Starter' },
     { property: 'pro', title: 'Pro' },
     { property: 'enterprise', title: 'Enterprise' }
   ],
-  seriesStackConfigs: [{ id: 'revenue' }]
+  seriesStacks: [{ id: 'revenue' }]
 };
 
 export const data = [

@@ -8,52 +8,15 @@
 // Usage: node scripts/build-pages.mjs
 // The base path defaults to /mochart/ and can be overridden with PAGES_BASE.
 import { execSync } from 'node:child_process';
-import { cpSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ensureLibsFresh } from './ensure-libs-fresh.mjs';
 
 const rootDir = fileURLToPath(new URL('..', import.meta.url));
 const siteDir = join(rootDir, 'site');
 
-// The docs and demo builds bundle the libraries from their built dist (the
-// `default` export condition), unlike the dev servers, which resolve src via
-// the `development` condition — so a dist left over from before a source edit
-// silently ships stale code. Rebuild the libraries when any lib's src (or
-// package.json) is newer than its dist; fresh checkouts (CI's npm ci runs
-// build:libs via the root prepare script) skip straight through.
-const libDirs = ['movalid', 'mochart', 'mochart-export', 'mochart-react',
-  'mochart-svelte', 'mochart-vue', 'mochart-lit', 'mochart-angular'];
-
-function newestMtime(path) {
-  const stats = statSync(path);
-  if (!stats.isDirectory()) {
-    return stats.mtimeMs;
-  }
-  let newest = 0;
-  for (const entry of readdirSync(path)) {
-    newest = Math.max(newest, newestMtime(join(path, entry)));
-  }
-  return newest;
-}
-
-function distMtime(pkgDir) {
-  try {
-    return newestMtime(join(pkgDir, 'dist'));
-  }
-  catch {
-    return 0; // no dist yet — stale by definition
-  }
-}
-
-const staleLibs = libDirs.filter((dir) => {
-  const pkgDir = join(rootDir, 'packages', dir);
-  const srcMtime = Math.max(newestMtime(join(pkgDir, 'src')), newestMtime(join(pkgDir, 'package.json')));
-  return srcMtime > distMtime(pkgDir);
-});
-if (staleLibs.length > 0) {
-  console.log(`library dist is older than src for: ${staleLibs.join(', ')} — running build:libs first`);
-  execSync('npm run build:libs', { cwd: rootDir, stdio: 'inherit' });
-}
+ensureLibsFresh();
 
 const rawBase = process.env.PAGES_BASE !== undefined ? process.env.PAGES_BASE : '/mochart/';
 const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';

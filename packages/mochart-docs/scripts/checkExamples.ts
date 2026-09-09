@@ -36,10 +36,6 @@ function fail(name: string, messages: string[]) {
   }
 }
 
-function groupProperty(config: MochartInputConfig): string | undefined {
-  return config.groupAxisConfig?.property;
-}
-
 for (const file of exampleFiles) {
   const name = file.replace(/\.ts$/, '');
   const module = (await import(path.join(examplesDir, file))) as ExampleModule;
@@ -64,8 +60,8 @@ for (const file of exampleFiles) {
   }
   const dataMessages: string[] = [];
   for (const [label, dataset] of datasets) {
-    const provider = new ArrayOfObjectsDataProvider(dataset, groupProperty(module.config) ?? '') as unknown as DataErrorsProvider;
-    const dataErrors = getDataErrors(mochartConfig, provider);
+    const provider = new ArrayOfObjectsDataProvider(dataset);
+    const dataErrors = getDataErrors(mochartConfig, provider as unknown as DataErrorsProvider);
     dataMessages.push(...dataErrors.map(error => `${label}: ${error}`));
   }
   if (dataMessages.length > 0) {

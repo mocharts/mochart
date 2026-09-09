@@ -2,9 +2,9 @@ import { noChange } from 'lit-html';
 import { AsyncDirective, directive, PartType } from 'lit-html/async-directive.js';
 import type { ChildPart, PartInfo } from 'lit-html/async-directive.js';
 import { createChart, createDefaultChart } from '@mochart/core';
-import { mountChartHost } from './host';
-import type { CreateChartFn, HostHandle } from './host';
-import type { ChartProps, DefaultChartProps } from './types';
+import { mountChartHost } from './host.js';
+import type { CreateChartFn, HostHandle } from './host.js';
+import type { ChartProps, ChartRef, DefaultChartProps } from './types.js';
 
 /**
  * Child-part directive that renders a container div and mounts a chart into
@@ -19,6 +19,9 @@ abstract class ChartHostDirective extends AsyncDirective {
   private host: HostHandle | null = null;
   private props: Record<string, any> = {};
   private mountQueued = false;
+  private chartRefCallback: ((ref: ChartRef | null) => void) | null = null;
+  // stable across renders, so callback consumers can hold onto it
+  private readonly chartRef: ChartRef = { refresh: () => { this.host?.refresh(); } };
 
   constructor(partInfo: PartInfo) {
     super(partInfo);
@@ -34,13 +37,21 @@ abstract class ChartHostDirective extends AsyncDirective {
   }
 
   override update(_part: ChildPart, [props]: [Record<string, any>]): unknown {
-    // `className`/`style` belong to the container div, not the chart.
-    const { className, style, ...chartProps } = props;
+    // `className`/`style`/`dataTestId` belong to the container div and
+    // `chartRef` to the directive, not the chart.
+    const { className, style, dataTestId, chartRef, ...chartProps } = props;
     this.props = chartProps;
     if (this.container === null) {
       this.container = document.createElement('div');
     }
-    this.applyContainerProps(className, style);
+    const previousCallback = this.chartRefCallback;
+    this.chartRefCallback = typeof chartRef === 'function' ? chartRef : null;
+    // a callback swapped in after mount still gets the handle, and the one swapped out is told it lost it, like Lit's ref()
+    if (this.host !== null && this.chartRefCallback !== previousCallback) {
+      previousCallback?.(null);
+      this.chartRefCallback?.(this.chartRef);
+    }
+    this.applyContainerProps(className, style, dataTestId);
     if (this.host !== null) {
       this.host.update(this.props);
     }
@@ -51,10 +62,16 @@ abstract class ChartHostDirective extends AsyncDirective {
     return this.container;
   }
 
-  private applyContainerProps(className: unknown, style: unknown): void {
+  private applyContainerProps(className: unknown, style: unknown, dataTestId: unknown): void {
     const container = this.container!;
     container.className = typeof className === 'string' ? className : '';
     container.style.cssText = typeof style === 'string' ? style : '';
+    if (typeof dataTestId === 'string') {
+      container.setAttribute('data-testid', dataTestId);
+    }
+    else {
+      container.removeAttribute('data-testid');
+    }
     const { width, height } = this.props;
     if (typeof width === 'number') {
       container.style.width = `${width}px`;
@@ -75,12 +92,16 @@ abstract class ChartHostDirective extends AsyncDirective {
         return;
       }
       this.host = mountChartHost(this.create, this.container, this.props);
+      this.chartRefCallback?.(this.chartRef);
     });
   }
 
   override disconnected(): void {
     const host = this.host;
     this.host = null;
+    if (host !== null) {
+      this.chartRefCallback?.(null);
+    }
     host?.destroy();
   }
 
@@ -112,7 +133,7 @@ export const chart = directive(ChartDirective);
 
 /**
  * lit-html directive around mochart's `createDefaultChart`: takes a raw
- * `config` (enhanced internally) and a plain array-of-objects `data`. Omit
+ * `config` (enhanced internally) and a plain `data` — an array of objects or an object of arrays. Omit
  * `width`/`height` to have the chart track the container div's size.
  */
 export const defaultChart = directive(DefaultChartDirective);

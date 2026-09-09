@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { formatData } from '@mochart/demo-common';
+import { demoText, formatData, getDemoTabPanelAttrs } from '@mochart/demo-common';
 
 import { ref, watch } from 'vue';
 
-import TextAreaContent from '../misc/TextAreaContent.vue';
+import JsonEditorContent from '../misc/JsonEditorContent.vue';
 
 interface Props {
   active?: boolean;
@@ -19,12 +19,14 @@ const dataText = ref(formatData(props.data));
 watch(() => props.data, (nextData) => {
   dataText.value = formatData(nextData);
 });
+
+const panelAttrs = getDemoTabPanelAttrs('data');
 </script>
 
 <template>
-  <div :class="'mochart-demo-tab-container demo-layout-col data' + (props.active ? ' active' : '')" :inert="!props.active">
+  <div v-bind="panelAttrs" :class="'mochart-demo-tab-container demo-layout-col data' + (props.active ? ' active' : '')" :inert="!props.active">
     <div class="mochart-demo-tab-content">
-      <TextAreaContent :value="dataText" :on-change="() => {}" />
+      <JsonEditorContent :value="dataText" :ariaLabel="demoText.randomDataTab.editorAria" :read-only="true" />
     </div>
   </div>
 </template>

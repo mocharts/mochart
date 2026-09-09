@@ -1,4 +1,4 @@
-// Flat ESLint config for the whole monorepo — one config, 19 workspaces.
+// Flat ESLint config for the whole monorepo — one config, 20 workspaces.
 //
 // Scope, deliberately: this catches BUGS, not style. There are no formatting
 // rules (indent/quotes/semi/spacing) because the repo already has a consistent
@@ -43,7 +43,7 @@ export default tseslint.config(
 
   // Type-aware rules for plain TypeScript. `projectService` picks each
   // package's own tsconfig automatically, which is what makes one root config
-  // work across 19 workspaces with different compiler settings.
+  // work across 20 workspaces with different compiler settings.
   //
   // Note this does NOT extend `recommendedTypeChecked`: that set is dominated
   // by the `no-unsafe-*` family, which fires on every value flowing out of an
@@ -53,13 +53,11 @@ export default tseslint.config(
   // find bugs rather than describe the type system.
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.mts'],
-    // These belong to no tsconfig (build configs and standalone scripts), so
-    // the project service cannot type them. They still get the syntactic rules.
-    ignores: [
-      '**/*.config.ts',
-      'packages/mochart-docs/**',
-      'packages/mochart-demo-common/scripts/**'
-    ],
+    // The 18 vite/vitest/playwright configs sit outside their own package's
+    // tsconfig `include`, so the project service cannot type them. They still
+    // get the syntactic rules, and a dropped await in a build config fails the
+    // build loudly rather than silently.
+    ignores: ['**/*.config.ts'],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -141,11 +139,11 @@ export default tseslint.config(
       // The two genuine hits were the documented "latest value" and
       // "derive-from-prop-change" patterns, both sanctioned by the React docs.
       'react-hooks/refs': 'off',
-      // OFF for now, but unlike `refs` these 5 are worth revisiting. They are
-      // real "reset state when a prop/tab changes" effects — the pattern React
-      // would rather see done during render. Rewriting them is a behavioural
-      // refactor of components the screenshot gate pins, so it belongs in its
-      // own pass, not in a lint rollout.
+      // OFF for now, but unlike `refs` these 5 findings are worth revisiting.
+      // They are real "reset state when a prop/tab changes" effects — the
+      // pattern React would rather see done during render. Rewriting them is a
+      // behavioural refactor of components the screenshot gate pins, so it
+      // belongs in its own pass, not in a lint rollout.
       'react-hooks/set-state-in-effect': 'off'
     }
   },
@@ -169,7 +167,7 @@ export default tseslint.config(
       // OFF, and this one was measured rather than assumed: deleting a single
       // flagged `svelte-ignore state_referenced_locally` and re-running
       // svelte-check produced a real compiler warning at that exact position.
-      // The directives are load-bearing; ESLint simply cannot reproduce the
+      // The directives are doing real work; ESLint simply cannot reproduce the
       // compiler's analysis, so every finding here is a false positive.
       'svelte/no-unused-svelte-ignore': 'off',
       // `{' · '}` is a deliberate string literal, not a useless mustache — it

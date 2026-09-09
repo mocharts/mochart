@@ -5,9 +5,17 @@ import type { LayoutInfo } from '../types/layout';
 
 type ShapeRef = (element: Element | null) => void;
 
+/** attributes that make the series-area rect the chart's keyboard tab stop */
+export interface SeriesShapeA11yProps {
+  ariaLabel: string;
+  ariaExpanded: string;
+  onKeyDown: (event: Event) => void;
+}
+
 interface SeriesBackgroundProps {
   seriesLayoutInfo: LayoutInfo;
   shapeRef?: ShapeRef | null;
+  a11yProps?: SeriesShapeA11yProps | null;
 }
 
 export default class SeriesBackground extends Renderer<SeriesBackgroundProps> {
@@ -21,10 +29,15 @@ export default class SeriesBackground extends Renderer<SeriesBackgroundProps> {
   }
 
   sync() {
-    const { seriesLayoutInfo, shapeRef = null } = this.props;
+    const { seriesLayoutInfo, shapeRef = null, a11yProps = null } = this.props;
     this.root.set({ className: mochartCssClasses['seriesBackground'] });
     this.rect.set({ x: seriesLayoutInfo.x, y: seriesLayoutInfo.y, width: seriesLayoutInfo.width, height: seriesLayoutInfo.height,
-      fillOpacity: '0', stroke: 'none' });
+      fillOpacity: '0', stroke: 'none',
+      tabindex: a11yProps ? '0' : null,
+      role: a11yProps ? 'button' : null,
+      ariaLabel: a11yProps ? a11yProps.ariaLabel : null,
+      ariaExpanded: a11yProps ? a11yProps.ariaExpanded : null,
+      onKeyDown: a11yProps ? a11yProps.onKeyDown : null });
     if (shapeRef !== this.lastShapeRef) {
       if (this.lastShapeRef) {
         this.lastShapeRef(null);

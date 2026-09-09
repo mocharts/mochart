@@ -23,3 +23,7 @@ export function getClipPathReference(clipPathId: string): string {
 export function getGradientReference(gradientId: string): string {
   return `url(#${gradientId})`;
 }
+
+export function getPatternReference(patternId: string): string {
+  return `url(#${patternId})`;
+}

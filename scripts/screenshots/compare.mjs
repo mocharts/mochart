@@ -2,7 +2,8 @@
 // Diffs two screenshot capture directories produced by capture.mjs.
 //
 // Usage:
-//   node packages/mochart-demo-vanilla/screenshots/compare.mjs <dirA> <dirB> [options]
+//   node scripts/screenshots/compare.mjs <dirA> <dirB> [options]
+//   npm run screenshots:compare -- <dirA> <dirB> [options]
 //
 // Options:
 //   --threshold <n>   per-channel delta that still counts as equal (default 0)

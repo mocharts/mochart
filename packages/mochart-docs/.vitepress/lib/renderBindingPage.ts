@@ -2,7 +2,7 @@
 // cross-binding name mapping, then each binding's own props. Used by
 // reference/[section].paths.ts at build time.
 
-import type { BindingDoc, BindingGroupDoc, BindingReferenceModel } from './bindingModel';
+import type { BindingDoc, BindingGroupDoc, BindingReferenceModel } from './bindingModel.ts';
 
 /** Table cells are pipe-separated, so a union type has to escape its pipes. */
 function cell(text: string): string {
@@ -26,6 +26,31 @@ function renderMapping(model: BindingReferenceModel): string {
     ' reference unless the framework\'s conventions call for something else —' +
     ' Angular exposes callbacks as outputs (no `on` prefix), and the state' +
     ' factories become placeholder components (templates in Lit).'
+  );
+  lines.push('');
+  const styleLink = model.mapping.find(row => row.coreKey === 'style')?.coreLink ?? '/reference/props';
+  lines.push(
+    'A `—` means no binding prop maps to that core prop. Only [`style`](' + styleLink + ')' +
+    ' sits there, and the reason is worth knowing: it sets inline styles on the' +
+    ' chart\'s own root element (`div.mochart-chart`), which the bindings do not' +
+    ' forward. The `style` and `class`/`className` props listed per binding below' +
+    ' are a **different** prop — they target the container element the binding' +
+    ' creates and mounts the chart into, which is the element that also carries' +
+    ' the size:'
+  );
+  lines.push('');
+  lines.push('```html');
+  lines.push('<div style="…">                        <!-- the binding\'s container: its style/class prop -->');
+  lines.push('  <div class="mochart-chart" style="…">  <!-- the chart root: core\'s style prop -->');
+  lines.push('    <svg>…</svg>');
+  lines.push('  </div>');
+  lines.push('</div>');
+  lines.push('```');
+  lines.push('');
+  lines.push(
+    'Vue and Angular list no container props because their frameworks already' +
+    ' cover it — Vue passes stray attributes (`class`, `style`) through to the' +
+    ' container, and Angular styles the component\'s own host element.'
   );
   lines.push('');
   lines.push('| Core prop | ' + model.bindings.map(binding => binding.title).join(' | ') + ' |');

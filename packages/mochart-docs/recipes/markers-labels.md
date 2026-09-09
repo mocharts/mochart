@@ -8,63 +8,95 @@ import * as markersLabels from '../examples/markersLabels'
 import * as scatterBubble from '../examples/scatterBubble'
 </script>
 
-<LiveChart :config="markersLabels.config" :data="markersLabels.data" />
+<LiveChart :config="markersLabels.config" :data="markersLabels.data" demo="label-property-stacked" />
 
 <<< @/examples/markersLabels.ts
 
 ## How it works
 
-- [`markerShape`](/reference/seriesConfigs#seriesConfigs.markerShape) picks
-  from `circle`, `cross`, `diamond`, `square`, `star`, `triangle`, `wye`;
-  [`markerSize`](/reference/seriesConfigs#seriesConfigs.markerSize) sets its
-  size and
-  [`markerStyle`](/reference/seriesConfigs#seriesConfigs.markerStyle) paints
-  it — a `normal`/`focused`/`defocused` set of stroke and fill colors,
-  opacities and widths. Point
-  [`markerProperty`](/reference/seriesConfigs#seriesConfigs.markerProperty)
-  at a data property to scale marker size per value — bubble charts.
-- Labels come from
-  [`labelProperty`](/reference/seriesConfigs#seriesConfigs.labelProperty) —
-  point it at the series' own `property` (as above) for value labels, or at
-  any other data property.
-  [`labelFormat`](/reference/seriesConfigs#seriesConfigs.labelFormat)
-  formats the value (`"auto"` derives from the data).
-- [`labelPosition`](/reference/seriesConfigs#seriesConfigs.labelPosition)
-  places labels `inside`, `center`, or `outside` the shape, and the
-  `labelMin*Percent` guards hide labels that wouldn't fit (the
-  `labelMinRangePercent` above hides labels on bars shorter than 5% of the
-  axis).
-- [`labelTextStyle`](/reference/seriesConfigs#seriesConfigs.labelTextStyle)
-  paints the label text, again per focus state. Its colors accept the palette
-  modes (`series`, `seriesIndex`, `groupIndex`) as well as literal colors —
-  see [`colorPaletteConfig`](/reference/colorPaletteConfig). The example above
-  sets only
-  [`labelTextStyle.normal`](/reference/seriesConfigs#seriesConfigs.labelTextStyle.normal)`.strokeColor`
-  and `.fillColor`; every other member, including both other states, keeps its
-  default.
+- [`marker.shape`](/reference/series#series.marker.shape) picks from `circle`,
+  `cross`, `diamond`, `square`, `star`, `triangle` and `wye`; `line`, `area`
+  and `none` series default to `circle`, bars to `null` (no marker).
+  [`marker.size`](/reference/series#series.marker.size) sets the size (default
+  6px) and [`marker.style`](/reference/series#series.marker.style) styles it —
+  stroke and fill colors, opacities and widths per `normal`/`focused`/
+  `defocused` state. Point
+  [`markerProperty`](/reference/series#series.markerProperty) at a data
+  property to scale marker size per value — see
+  [bubbles](#scatter-and-bubble-charts) below.
+- Labels come from [`labelProperty`](/reference/series#series.labelProperty)
+  — point it at the series' own `property` (as above) for value labels, or
+  at any other data property.
+  [`label.format`](/reference/series#series.label.format) formats the value
+  (`"auto"` derives a format from the data), and
+  [`label.prefix`](/reference/series#series.label.prefix) /
+  [`label.suffix`](/reference/series#series.label.suffix) wrap it with text a
+  d3 format can't express, such as a unit. They are separate from the
+  tooltip's [`valuePrefix`](/reference/series#series.valuePrefix) /
+  [`valueSuffix`](/reference/series#series.valueSuffix) because a label may
+  show a different property than the series value.
+- [`label.position`](/reference/series#series.label.position) places labels
+  `inside`, `center` (the default) or `outside` the shape, and
+  [`label.offset`](/reference/series#series.label.offset) nudges every label by
+  a fixed pixel amount along the value axis.
+- Three fraction guards hide labels that wouldn't fit:
+  [`label.minRangeFraction`](/reference/series#series.label.minRangeFraction)
+  (used above — it hides labels on bars shorter than 5% of the axis extent),
+  and
+  [`label.minPositionFraction`](/reference/series#series.label.minPositionFraction) /
+  [`label.maxPositionFraction`](/reference/series#series.label.maxPositionFraction),
+  which hide labels whose values sit too close to the value axis
+  [`base`](/reference/valueAxes#valueAxes.base) or too close to the domain end
+  they run toward, each by a fraction of the domain extent. Where the axis has
+  no `base`, the guards use the domain minimum as the base. `base` defaults to
+  `0` on any axis with stacks.
+- `label.position`, `label.offset` and the two position-fraction guards each
+  have a variant under [`label.aboveBase`](/reference/series#series.label.aboveBase) /
+  [`label.belowBase`](/reference/series#series.label.belowBase)
+  ([`label.aboveBase.position`](/reference/series#series.label.aboveBase.position),
+  [`label.belowBase.offset`](/reference/series#series.label.belowBase.offset), …)
+  that apply only to values above or below the value axis
+  [`base`](/reference/valueAxes#valueAxes.base) — handy for labeling positive
+  and negative bars differently. Their default `'auto'` inherits the plain
+  setting, except the below-base offset, which inherits the negated
+  `label.offset` so both sides shift the same distance in opposite
+  directions.
+- [`label.textStyle`](/reference/series#series.label.textStyle) styles the
+  label text, again per focus state. Its colors accept the palette modes
+  (`series`, `seriesIndex`, `categoryIndex`) as well as literal colors — see
+  [`colorPalette`](/reference/colorPalette). The example above sets only
+  [`label.textStyle.normal`](/reference/series#series.label.textStyle.normal)`.strokeColor`
+  and `.fillColor`; every other member, including both other states, keeps
+  its default.
 
 ## Scatter and bubble charts
 
 Markers on their own make a scatter chart: set
-[`renderer`](/reference/seriesConfigs#seriesConfigs.renderer) to `none` so a
-series draws no shape, and only its markers remain.
+[`renderer`](/reference/series#series.renderer) to `none` so a series draws
+no shape, and only its markers remain.
 
 <LiveChart :config="scatterBubble.config" :data="scatterBubble.data" demo="scatter" />
 
 <<< @/examples/scatterBubble.ts
 
-- Use a `linear` group axis
-  [`scale`](/reference/groupAxisConfig#groupAxisConfig.scale) (with `number`
-  or `date` [`type`](/reference/groupAxisConfig#groupAxisConfig.type)) so
-  points are positioned by their measured x values rather than evenly spaced
-  category slots.
+- Use a `linear` category axis
+  [`scale`](/reference/categoryAxis#categoryAxis.scale) (with `number` or
+  `date` [`type`](/reference/categoryAxis#categoryAxis.type)) so points are
+  positioned by their measured x values rather than evenly spaced category
+  slots.
 - For bubbles, point
-  [`markerProperty`](/reference/seriesConfigs#seriesConfigs.markerProperty)
-  at a data property; marker sizes scale between
-  [`minMarkerSize`](/reference/seriesConfigs#seriesConfigs.minMarkerSize) and
-  [`markerSize`](/reference/seriesConfigs#seriesConfigs.markerSize) with the
-  property's value.
-- Every series reads its x from the row's group value, so series share x
+  [`markerProperty`](/reference/series#series.markerProperty) at a data
+  property; marker sizes scale between
+  [`marker.minSize`](/reference/series#series.marker.minSize) (default 1px) and
+  [`marker.size`](/reference/series#series.marker.size) with the property's
+  value.
+- [`marker.sizeScale`](/reference/series#series.marker.sizeScale) picks how
+  they scale: the default `sqrt` scales each marker's **area** with its value
+  — the way readers judge bubble magnitude — while `linear` scales its
+  diameter, which visually exaggerates differences. The `marker.minSize` floor
+  keeps the smallest bubble visible (and hoverable); for exactly
+  value-proportional areas, set it to `0` on data whose minimum is `0`.
+- Every series reads its x from the row's category value, so series share x
   positions. For series with points at different x values, give each x its
   own row and leave the other series' properties out — a row draws a marker
   only for the series that have a value there.

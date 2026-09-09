@@ -1,0 +1,79 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Patterns"
+  },
+  "animation": {
+    "enabled": true,
+    "expansionDuration": 500,
+    "initialDuration": 500,
+    "valueChangeDuration": 500,
+    "contractionDuration": 500,
+    "focusDuration": 700
+  },
+  "categoryAxis": {
+    "property": "date",
+    "type": "date",
+    "scale": "ordinal",
+    "tickLabel": {
+      "format": "%b"
+    },
+    "valueFormat": "%B",
+    "valueLabel": "Month"
+  },
+  "valueAxes": {
+    "min": 0,
+    "tickLabel": {
+      "format": "$s"
+    },
+    "side": "start"
+  },
+  "seriesGroups": {},
+  "patternDefaults": {
+    "spacing": 9,
+    "foregroundColor": "series",
+    "foregroundOpacity": 1,
+    "backgroundColor": "series",
+    "backgroundOpacity": 0.18
+  },
+  "patterns": [
+    {
+      "id": "diagonal",
+      "type": "lines",
+      "rotation": 45,
+      "lineWidth": 2.5
+    },
+    {
+      "id": "crosshatch",
+      "type": "crosshatch",
+      "rotation": 45,
+      "lineWidth": 1.5
+    },
+    {
+      "id": "dots",
+      "type": "dots",
+      "radius": 2
+    }
+  ],
+  "seriesDefaults": {
+    "renderer": "bar",
+    "axis": "VA0"
+  },
+  "series": [
+    {
+      "property": "value1",
+      "title": "Lines",
+      "pattern": "diagonal"
+    },
+    {
+      "property": "value2",
+      "title": "Crosshatch",
+      "pattern": "crosshatch"
+    },
+    {
+      "property": "value3",
+      "title": "Dots",
+      "pattern": "dots"
+    }
+  ]
+}

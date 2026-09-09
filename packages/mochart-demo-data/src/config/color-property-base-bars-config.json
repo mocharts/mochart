@@ -1,21 +1,21 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Color and Base Property"
+  "title": {
+    "text": "Color and Base Property"
   },
-  "legendConfig": {
+  "legend": {
     "visible": true
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "groupSO",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categorySO",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": {
+  "valueAxes": {
     "base": 0
   },
-  "seriesConfigs": {
+  "series": {
     "property": "value7",
     "title": "Color Property Series",
     "renderer": "bar",

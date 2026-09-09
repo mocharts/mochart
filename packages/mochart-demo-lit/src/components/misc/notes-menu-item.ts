@@ -2,7 +2,7 @@ import { html, nothing } from 'lit';
 import type { PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, menuKeepOpenClassName } from '@mochart/demo-common';
 
 import { LightElement } from './LightElement';
 import { icon } from './templates';
@@ -41,11 +41,11 @@ export class NotesMenuItem extends LightElement {
     if (this.notes === undefined) {
       return nothing;
     }
-    return html`<div class="mochart-demo-notes-item demo-menu-keep-open">
+    return html`<div class="mochart-demo-notes-item ${menuKeepOpenClassName}">
       <button type="button" class="demo-menu-item"
               title=${demoText.demoNotes.trigger.tooltip}
               aria-expanded=${String(this.expanded)} aria-controls=${this.disclosureId}
-              @click=${() => { this.expanded = !this.expanded; }}>${icon({ fixedWidth: true, name: 'circle-info' })} <span class="mochart-menu-item-label">${demoText.demoNotes.trigger.aria}</span>${icon({ fixedWidth: true, name: this.expanded ? 'chevron-up' : 'chevron-down', style: 'margin-left: auto;' })}</button>
+              @click=${() => { this.expanded = !this.expanded; }}>${icon({ fixedWidth: true, name: 'circle-info' })} <span>${demoText.demoNotes.trigger.aria}</span>${icon({ fixedWidth: true, name: this.expanded ? 'chevron-up' : 'chevron-down', style: 'margin-left: auto;' })}</button>
       <div class="demo-field" id=${this.disclosureId} ?hidden=${!this.expanded}>
         <span class="demo-menu-notes-title">${this.demoTitle}</span>
         <span class="demo-menu-notes-body">${this.notes}</span>

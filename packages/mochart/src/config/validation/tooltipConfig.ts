@@ -1,52 +1,47 @@
 import validators from './validators';
+import getSeriesIconValidators from './seriesIconConfig';
 
-import { AUTO, NONE } from '../core/constants';
+import { NONE, TOOLTIP_VALUE_ALIGNS } from '../core/constants';
 
 export default function getValidators() {
   return {
     visible: validators.boolean(),
     applyFocus: validators.boolean(),
-    snapToGroup: validators.boolean(),
-    mouseOver: validators.boolean(),
+    snapToCategory: validators.boolean(),
+    followPointer: validators.boolean(),
     closeOnClick: validators.boolean(),
-    filterOnSeriesClick: validators.boolean(),
-    focusOnGroupClick: validators.boolean(),
-    focusOnSeriesClick: validators.boolean(),
-    focusOnGroupMouseOver: validators.boolean(),
-    focusOnSeriesMouseOver: validators.boolean(),
-    showGroup: validators.boolean(),
+    filterSeriesOnClick: validators.boolean(),
+    focusCategoryOnClick: validators.boolean(),
+    focusSeriesOnClick: validators.boolean(),
+    focusCategoryOnHover: validators.boolean(),
+    focusSeriesOnHover: validators.boolean(),
+    showCategory: validators.boolean(),
     showControls: validators.boolean(),
+    filterModeText: validators.string(),
+    focusModeText: validators.string(),
     keepInside: validators.boolean(),
-    minWidth: validators.numberMin(0),
-    padding: validators.numberMin(0),
-    linePadding: validators.numberMin(0),
-    alignValues: validators.boolean(),
+    padding: validators.padding(),
+    lineSpacing: validators.numberMin(0),
+    valueAlign: validators.oneOf(TOOLTIP_VALUE_ALIGNS),
     // cssStyle / cssColor, not style / color: the tooltip is html, so 'none' is not a valid color here.
     backgroundStyle: validators.cssStyle(),
-    borderRadius: validators.numberMin(0),
-    dropShadowColor: validators.cssColor(),
-    dropShadowOffsetX: validators.numberMin(0),
-    dropShadowOffsetY: validators.numberMin(0),
-    dropShadowBlurRadius: validators.numberMin(0),
-    showIconColors: validators.boolean(),
-    showIconShapes: validators.boolean(),
-    showIconPlaceholders: validators.boolean(),
-    iconSize: validators.numberMin(0).orEqual(AUTO),
-    iconSpacerSize: validators.numberMin(0),
-    iconBorderSize: validators.numberMin(0),
-    // svgColor, not the cssColor above: the series icons are svg even inside the html tooltip.
-    iconBorderColor: validators.svgColor(),
-    iconBorderOpacity: validators.opacity(),
-    iconSuppressedColor: validators.svgColor(),
-    iconUnsuppressedColor: validators.svgColor(),
-    showSuppressionOnLabels: validators.boolean(),
-    adjustForSuppression: validators.boolean(),
-    adjustSizeForSuppression: validators.boolean(),
-    hideSuppressed: validators.boolean(),
+    cornerRadius: validators.numberMin(0),
+    dropShadow: validators.partialObjectWithShape({
+      color: validators.cssColor(),
+      // negative offsets cast the css box-shadow up/left; only the blur radius must stay >= 0
+      offsetX: validators.number(),
+      offsetY: validators.number(),
+      blurRadius: validators.numberMin(0)
+    }, true),
+    icon: validators.partialObjectWithShape(getSeriesIconValidators(), true),
+    strikeThroughFiltered: validators.boolean(),
+    adjustForFiltering: validators.boolean(),
+    adjustSizeForFiltering: validators.boolean(),
+    showFiltered: validators.boolean(),
     showMissingValues: validators.boolean(),
     missingValueText: validators.string(),
-    suppressedValueText: validators.string().orEqual(NONE),
-    suppressedValueCharacter: validators.stringWithLength(1).orEqual(NONE),
-    rangeValueText: validators.string()
+    filteredValueText: validators.string().orEqual(NONE),
+    filteredValueCharacter: validators.stringWithLength(1).orEqual(NONE),
+    rangeValueSeparator: validators.string()
   };
 }

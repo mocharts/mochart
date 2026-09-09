@@ -1,26 +1,29 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Income Statement (fictional, $k)"
+  "title": {
+    "text": "Income Statement (fictional, $k)"
   },
-  "groupAxisConfig": {
+  "categoryAxis": {
     "property": "label",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "title": "$ thousands"
+      "base": 0,
+      "title": {
+        "text": "$ thousands"
+      }
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
       "id": "increase",
       "property": "increase",
       "rangeProperty": "start",
       "renderer": "bar",
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
       "title": "Increase",
@@ -36,8 +39,8 @@
       "property": "decrease",
       "rangeProperty": "start",
       "renderer": "bar",
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
       "title": "Decrease",
@@ -53,8 +56,8 @@
       "property": "total",
       "rangeProperty": "start",
       "renderer": "bar",
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
       "title": "Total",

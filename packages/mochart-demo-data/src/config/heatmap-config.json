@@ -1,23 +1,23 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Support Tickets by Weekday (fictional)"
+  "title": {
+    "text": "Support Tickets by Weekday (fictional)"
   },
-  "groupAxisConfig": {
+  "categoryAxis": {
     "property": "column",
     "type": "string",
     "scale": "ordinal",
-    "groupPadding": {
-      "inner": 0.06,
-      "outer": 0.03
+    "categoryPaddingFraction": {
+      "inner": 0,
+      "outer": 0.06
     }
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
       "min": 0,
       "max": 7,
-      "minMarginPercent": 0,
-      "maxMarginPercent": 0,
+      "minMarginFraction": 0,
+      "maxMarginFraction": 0,
       "ticks": [
         {
           "value": 6.5,
@@ -50,20 +50,21 @@
       ]
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
       "id": "row0",
       "property": "row0",
       "rangeProperty": "row0Start",
+      "tooltipProperty": "row0Value",
       "colorProperty": "row0Value",
       "colorScale": {
         "interpolation": "lab",
         "min": "#899ec4",
         "max": "#1b3d72"
       },
-      "tooltipProperty": "row0Value",
       "renderer": "bar",
-      "skipMissing": true,
+      "allowAbsentDataProperties": true,
+      "missingValueMode": "connect",
       "group": null,
       "stack": null,
       "shapeStyle": {
@@ -79,15 +80,16 @@
       "id": "row1",
       "property": "row1",
       "rangeProperty": "row1Start",
+      "tooltipProperty": "row1Value",
       "colorProperty": "row1Value",
       "colorScale": {
         "interpolation": "lab",
         "min": "#899ec4",
         "max": "#1b3d72"
       },
-      "tooltipProperty": "row1Value",
       "renderer": "bar",
-      "skipMissing": true,
+      "allowAbsentDataProperties": true,
+      "missingValueMode": "connect",
       "group": null,
       "stack": null,
       "shapeStyle": {
@@ -103,15 +105,16 @@
       "id": "row2",
       "property": "row2",
       "rangeProperty": "row2Start",
+      "tooltipProperty": "row2Value",
       "colorProperty": "row2Value",
       "colorScale": {
         "interpolation": "lab",
         "min": "#8398bf",
         "max": "#0d366b"
       },
-      "tooltipProperty": "row2Value",
       "renderer": "bar",
-      "skipMissing": true,
+      "allowAbsentDataProperties": true,
+      "missingValueMode": "connect",
       "group": null,
       "stack": null,
       "shapeStyle": {
@@ -127,15 +130,16 @@
       "id": "row3",
       "property": "row3",
       "rangeProperty": "row3Start",
+      "tooltipProperty": "row3Value",
       "colorProperty": "row3Value",
       "colorScale": {
         "interpolation": "lab",
         "min": "#899ec4",
         "max": "#1f4074"
       },
-      "tooltipProperty": "row3Value",
       "renderer": "bar",
-      "skipMissing": true,
+      "allowAbsentDataProperties": true,
+      "missingValueMode": "connect",
       "group": null,
       "stack": null,
       "shapeStyle": {
@@ -151,15 +155,16 @@
       "id": "row4",
       "property": "row4",
       "rangeProperty": "row4Start",
+      "tooltipProperty": "row4Value",
       "colorProperty": "row4Value",
       "colorScale": {
         "interpolation": "lab",
         "min": "#95aace",
         "max": "#3d5789"
       },
-      "tooltipProperty": "row4Value",
       "renderer": "bar",
-      "skipMissing": true,
+      "allowAbsentDataProperties": true,
+      "missingValueMode": "connect",
       "group": null,
       "stack": null,
       "shapeStyle": {
@@ -175,15 +180,16 @@
       "id": "row5",
       "property": "row5",
       "rangeProperty": "row5Start",
+      "tooltipProperty": "row5Value",
       "colorProperty": "row5Value",
       "colorScale": {
         "interpolation": "lab",
         "min": "#c7dcf6",
         "max": "#95aace"
       },
-      "tooltipProperty": "row5Value",
       "renderer": "bar",
-      "skipMissing": true,
+      "allowAbsentDataProperties": true,
+      "missingValueMode": "connect",
       "group": null,
       "stack": null,
       "shapeStyle": {
@@ -199,15 +205,16 @@
       "id": "row6",
       "property": "row6",
       "rangeProperty": "row6Start",
+      "tooltipProperty": "row6Value",
       "colorProperty": "row6Value",
       "colorScale": {
         "interpolation": "lab",
         "min": "#cde2fb",
         "max": "#a1b6d8"
       },
-      "tooltipProperty": "row6Value",
       "renderer": "bar",
-      "skipMissing": true,
+      "allowAbsentDataProperties": true,
+      "missingValueMode": "connect",
       "group": null,
       "stack": null,
       "shapeStyle": {

@@ -1,71 +1,92 @@
 {
   "version": "1.0.0",
-  "plotConfig": {
+  "plot": {
     "inverted": true
   },
-  "titleConfig": {
-    "title": "Cluttered Inverted"
+  "title": {
+    "text": "Cluttered Inverted"
   },
-  "animationConfig": {
-    "animate": true,
+  "animation": {
+    "enabled": true,
     "expansionDuration": 1000,
     "initialDuration": 1000,
     "valueChangeDuration": 1000,
-    "collapseDuration": 1000,
+    "contractionDuration": 1000,
     "focusDuration": 1000
   },
-  "tooltipConfig": {
-    "padding": 1,
+  "tooltip": {
+    "padding": {
+      "top": 1,
+      "right": 1,
+      "bottom": 1,
+      "left": 1
+    },
     "backgroundStyle": {
       "strokeColor": "rgba(0,0,0,0.8)",
       "strokeWidth": 3,
       "fillColor": "rgba(205,205,205,0.7)"
     }
   },
-  "groupAxisConfig": {
-    "title": "Group Axis",
-    "axisLineMargin": 3,
-    "gridLines": true,
+  "categoryAxis": {
+    "title": {
+      "text": "Category Axis"
+    },
+    "axisLine": {
+      "marginInner": 3
+    },
+    "gridLine": {
+      "visible": true
+    },
     "type": "number",
     "scale": "ordinal",
-    "valueLabel": "Group",
-    "property": "groupNO"
+    "valueLabel": "Category",
+    "property": "categoryNO"
   },
-  "seriesAxisAllConfig": {
-    "axisLineMargin": 3
+  "valueAxisDefaults": {
+    "axisLine": {
+      "marginInner": 3
+    }
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "before": true,
-      "title": "Series Axis 1",
-      "id": "SA0"
+      "title": {
+        "text": "Value Axis 1"
+      },
+      "id": "VA0",
+      "side": "start"
     },
     {
-      "before": false,
-      "title": "Series Axis 2",
-      "id": "SA1"
+      "title": {
+        "text": "Value Axis 2"
+      },
+      "id": "VA1",
+      "side": "end"
     }
   ],
-  "seriesStackConfigs": [
+  "seriesStacks": [
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "id": "SS1"
     }
   ],
-  "seriesGroupConfigs": [
+  "seriesGroups": [
     {
       "id": "SG0"
     }
   ],
-  "seriesAllConfig": {
-    "markerSize": 6
+  "seriesDefaults": {
+    "marker": {
+      "size": 6
+    }
   },
-  "seriesConfigs": [
+  "series": [
     {
       "renderer": "line",
       "title": "Value 0",
-      "markerShape": "circle",
-      "axis": "SA0",
+      "marker": {
+        "shape": "circle"
+      },
+      "axis": "VA0",
       "group": null,
       "stack": null,
       "property": "value0"
@@ -79,8 +100,10 @@
           "fillColor": "#000"
         }
       },
-      "markerShape": null,
-      "axis": "SA0",
+      "marker": {
+        "shape": null
+      },
+      "axis": "VA0",
       "group": null,
       "stack": null,
       "property": "value1"
@@ -88,8 +111,10 @@
     {
       "renderer": "area",
       "title": "Value 2",
-      "markerShape": "circle",
-      "axis": "SA0",
+      "marker": {
+        "shape": "circle"
+      },
+      "axis": "VA0",
       "group": null,
       "stack": null,
       "property": "value2"
@@ -97,8 +122,10 @@
     {
       "renderer": "line",
       "title": "Value 3",
-      "markerShape": "circle",
-      "axis": "SA1",
+      "marker": {
+        "shape": "circle"
+      },
+      "axis": "VA1",
       "group": null,
       "stack": null,
       "property": "value3"
@@ -106,8 +133,10 @@
     {
       "renderer": "bar",
       "title": "Value 4",
-      "markerShape": null,
-      "axis": "SA1",
+      "marker": {
+        "shape": null
+      },
+      "axis": "VA1",
       "group": "SG0",
       "stack": null,
       "property": "value4"
@@ -115,8 +144,10 @@
     {
       "renderer": "bar",
       "title": "Value 5",
-      "markerShape": null,
-      "axis": "SA1",
+      "marker": {
+        "shape": null
+      },
+      "axis": "VA1",
       "group": "SG0",
       "stack": null,
       "property": "value5"
@@ -124,8 +155,10 @@
     {
       "renderer": "area",
       "title": "Value 6",
-      "markerShape": "circle",
-      "axis": "SA1",
+      "marker": {
+        "shape": "circle"
+      },
+      "axis": "VA1",
       "group": null,
       "stack": "SS1",
       "property": "value6"
@@ -133,8 +166,10 @@
     {
       "renderer": "area",
       "title": "Value 7",
-      "markerShape": "circle",
-      "axis": "SA1",
+      "marker": {
+        "shape": "circle"
+      },
+      "axis": "VA1",
       "group": null,
       "stack": "SS1",
       "property": "value7"
@@ -142,8 +177,10 @@
     {
       "renderer": "area",
       "title": "Value 8",
-      "markerShape": "circle",
-      "axis": "SA1",
+      "marker": {
+        "shape": "circle"
+      },
+      "axis": "VA1",
       "group": null,
       "stack": "SS1",
       "property": "value8"

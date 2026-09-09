@@ -1,5 +1,5 @@
 {
-  "group": {
+  "category": {
     "count": 15,
     "order": {
       "sort": true
@@ -8,8 +8,8 @@
       "probability": 0.0
     },
     "reuse": {
-      "globalPercentage": 0.5,
-      "stepPercentage": 0.5
+      "globalFraction": 0.5,
+      "stepFraction": 0.5
     },
     "number": {
       "min": -100,

@@ -1,17 +1,24 @@
 import validators from './validators';
+import getTruncationValidators from './truncationConfig';
 
 import { NONE, POSITIONS, ALIGNS, VERTICAL_ALIGNS } from '../core/constants';
 
+// A prefix or suffix box: partial like every nested config; extras pass for the unknown-key walk.
+const affix = () => validators.partialObjectWithShape({
+  text: validators.string().orEqual(NONE),
+  margin: validators.margin(),
+  padding: validators.padding(),
+  backgroundStyle: validators.style(),
+  textStyle: validators.style()
+}, true);
+
 export default function getValidators() {
   return {
-    title: validators.string().orEqual(NONE),
+    text: validators.string().orEqual(NONE),
     position: validators.oneOf(POSITIONS),
-    titlePrefix: validators.string().orEqual(NONE),
-    titleSuffix: validators.string().orEqual(NONE),
     link: validators.string().orEqual(NONE),
     linkDisabled: validators.boolean(),
-    truncationEnabled: validators.boolean(),
-    truncationValue: validators.string(),
+    truncation: validators.partialObjectWithShape(getTruncationValidators(), true),
     alignedToAxes: validators.boolean(),
     align: validators.oneOf(ALIGNS),
     verticalAlign: validators.oneOf(VERTICAL_ALIGNS),
@@ -20,16 +27,10 @@ export default function getValidators() {
     padding: validators.padding(),
     textMargin: validators.margin(),
     textPadding: validators.padding(),
-    prefixMargin: validators.margin(),
-    prefixPadding: validators.padding(),
-    suffixMargin: validators.margin(),
-    suffixPadding: validators.padding(),
     backgroundStyle: validators.style(),
-    titleBackgroundStyle: validators.style(),
-    titleTextStyle: validators.style(),
-    prefixBackgroundStyle: validators.style(),
-    prefixTextStyle: validators.style(),
-    suffixBackgroundStyle: validators.style(),
-    suffixTextStyle: validators.style()
+    textBackgroundStyle: validators.style(),
+    textStyle: validators.style(),
+    prefix: affix(),
+    suffix: affix()
   };
 }

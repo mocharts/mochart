@@ -1,18 +1,18 @@
 import type { MochartInputConfig } from '@mochart/core';
 
 /** A single data row in a demo's data set. */
-export type DataRow = Record<string, unknown>;
+export type DataObject = Record<string, unknown>;
 
 /** A demo's editable chart config (the input config plus arbitrary edits). */
 export type DemoConfig = MochartInputConfig & Record<string, unknown>;
 
 /** The generic per-property random-generation config (see random/*.json). */
 export interface RandomConfig {
-  group: {
+  category: {
     count: number;
     order: { sort: boolean };
     missing: { probability: number };
-    reuse: { globalPercentage: number; stepPercentage: number };
+    reuse: { globalFraction: number; stepFraction: number };
     number: { min: number; max: number; interval: number };
     string: { minLength: number; maxLength: number };
     date: {
@@ -39,7 +39,7 @@ export interface RandomConfig {
 export interface PieRandomConfig {
   value: { min: number; max: number };
   missing: { probability: number };
-  reuse: { globalPercentage: number; stepPercentage: number };
+  reuse: { globalFraction: number; stepFraction: number };
 }
 
 /**
@@ -50,7 +50,7 @@ export interface PieRandomConfig {
 export interface WaterfallRandomConfig {
   value: { min: number; max: number };
   missing: { probability: number };
-  reuse: { globalPercentage: number; stepPercentage: number };
+  reuse: { globalFraction: number; stepFraction: number };
 }
 
 /**
@@ -134,6 +134,12 @@ export interface DemoManifestEntry {
    * per-property generator (see demo-common's chartTypeGenerators).
    */
   generator?: string;
+  /**
+   * Golden-harness only: shift every category by this amount (days on date
+   * axes, value units on numeric ones) and snapshot the resulting window
+   * slide mid-tween and settled. Demo apps ignore it.
+   */
+  goldenCategoryShift?: number;
 }
 
 /** A single demo entry assembled from its config/data/random JSON. */
@@ -145,7 +151,7 @@ export interface Demo {
   /** The longer explanation (see DemoManifestEntry.notes). */
   notes?: string;
   config: DemoConfig;
-  data: DataRow[];
+  data: DataObject[];
   random: DemoRandomConfig;
   /** Chart-type random-mode generator id (see DemoManifestEntry.generator). */
   generator?: string;

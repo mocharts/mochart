@@ -17,8 +17,8 @@ export const getInnerWidth = (width: number, margin?: MarginPadding, padding?: M
 export const getSpacingOuterWidth = ({ width }: { width: number }, margin?: MarginPadding, padding?: MarginPadding): number => getOuterWidth(width, margin, padding);
 export const getSpacingInnerWidth = ({ width }: { width: number }, margin?: MarginPadding, padding?: MarginPadding): number => getInnerWidth(width, margin, padding);
 export const getSpacingHeight = (margin?: MarginPadding, padding?: MarginPadding): number => getAll(getTopBottom, margin, padding);
-export const getOuterHeight = (height: number, margin?: MarginPadding, padding?: MarginPadding): number => height + getSpacingHeight(margin, padding);
-export const getInnerHeight = (height: number, margin?: MarginPadding, padding?: MarginPadding): number => height - getSpacingHeight(margin, padding);
+export const getOuterHeight = (height: number, margin?: MarginPadding, padding?: MarginPadding): number => Math.ceil(height + getSpacingHeight(margin, padding));
+export const getInnerHeight = (height: number, margin?: MarginPadding, padding?: MarginPadding): number => Math.ceil(height - getSpacingHeight(margin, padding));
 export const getSpacingOuterHeight = ({ height }: { height: number }, margin?: MarginPadding, padding?: MarginPadding): number => getOuterHeight(height, margin, padding);
 export const getSpacingInnerHeight = ({ height }: { height: number }, margin?: MarginPadding, padding?: MarginPadding): number => getInnerHeight(height, margin, padding);
 export const getMaxSpacingHeight = (max: number, bounds: { height: number }, margin?: MarginPadding, padding?: MarginPadding): number => Math.max(max, getSpacingOuterHeight(bounds, margin, padding));
@@ -39,18 +39,20 @@ export function getSpacingInnerBounds(bounds: SpacingBoundsInput, margin?: Margi
   return {
     x: x + getSpacingLeft(margin, padding),
     y: y + getSpacingTop(margin, padding),
-    width: getSpacingInnerWidth(bounds, margin, padding),
-    height: getSpacingInnerHeight(bounds, margin, padding)
+    width: Math.max(0, getSpacingInnerWidth(bounds, margin, padding)),
+    height: Math.max(0, getSpacingInnerHeight(bounds, margin, padding))
   }
 }
 
 export function createSpacingLayoutInfo(bounds: SpacingBoundsInput, margin: MarginPadding = emptyMarginPadding, padding: MarginPadding = emptyMarginPadding, inner = true): SpacingLayoutInfo {
-  const { width } = bounds;
-  const marginBounds = inner ? width > 0 ? getSpacingInnerBounds(bounds, margin) : bounds : getSpacingOuterBounds(bounds, padding);
-  const paddingBounds = inner ? width > 0 ? getSpacingInnerBounds(bounds, margin, padding) : bounds : bounds;
+  bounds = { ...bounds, width: Math.max(0, bounds.width), height: Math.max(0, bounds.height) };
+  const { width, height } = bounds;
+  const spacious = width > 0 && height > 0;
+  const marginBounds = inner ? spacious ? getSpacingInnerBounds(bounds, margin) : bounds : getSpacingOuterBounds(bounds, padding);
+  const paddingBounds = inner ? spacious ? getSpacingInnerBounds(bounds, margin, padding) : bounds : bounds;
   bounds = inner ? bounds : getSpacingOuterBounds(bounds, margin, padding);
-  const marginRelativeBounds = width > 0 ? getRelativeBounds(bounds, marginBounds) : bounds;
-  const paddingRelativeBounds = width > 0 ? getRelativeBounds(bounds, paddingBounds) : bounds;
+  const marginRelativeBounds = getRelativeBounds(bounds, marginBounds);
+  const paddingRelativeBounds = getRelativeBounds(bounds, paddingBounds);
   return {
     ...bounds,
     marginBounds,

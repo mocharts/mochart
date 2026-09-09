@@ -1,25 +1,26 @@
 import { Component, Input, signal } from '@angular/core';
 import type { OnChanges, OnInit, SimpleChanges } from '@angular/core';
 
-import { TextAreaContent } from '../misc/text-area-content';
+import { JsonEditorContent } from '../misc/json-editor-content';
 import { ButtonWithTooltip } from '../misc/button-with-tooltip';
 import { Icon } from '../misc/icon';
 
-import { demoText, formatRandomConfig, validateRandomConfig } from '@mochart/demo-common';
+import { demoText, formatRandomConfig, getDemoTabPanelAttrs, getJsonError, getJsonErrorMessage, parseJson, validateRandomConfig } from '@mochart/demo-common';
 
 import type { RandomConfigWithValid } from '../../types';
 
 @Component({
   selector: 'app-random-config-tab',
-  imports: [TextAreaContent, ButtonWithTooltip, Icon],
+  imports: [JsonEditorContent, ButtonWithTooltip, Icon],
   styles: [':host { display: contents; }'],
   template: `
-    <div [class]="'mochart-demo-tab-container demo-layout-col config' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">
+    <div [id]="panelAttrs.id" [attr.role]="panelAttrs.role" [attr.aria-labelledby]="panelAttrs['aria-labelledby']"
+         [class]="'mochart-demo-tab-container demo-layout-col config' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">
       <div class="mochart-demo-tab-content">
-        <app-text-area-content [value]="configText()" [onChange]="onTextChange" />
+        <app-json-editor-content [value]="configText()" [ariaLabel]="text.editorAria" [formatOnSet]="true" [onChange]="onTextChange" />
       </div>
       <div class="mochart-demo-tab-footer">
-        <div class="demo-toolbar" role="toolbar">
+        <div class="demo-toolbar">
           <app-button-with-tooltip id="config-reset" [label]="text.reset.label" [tooltipText]="text.reset.tooltip" tooltipPlacement="top-start"
                                    [onClick]="onReset" [aria-label]="text.reset.aria">
             <app-icon size="lg" [fixedWidth]="true" name="arrow-rotate-left" />
@@ -38,6 +39,8 @@ import type { RandomConfigWithValid } from '../../types';
   `
 })
 export class RandomConfigTab implements OnInit, OnChanges {
+  readonly panelAttrs = getDemoTabPanelAttrs('config');
+
   @Input() active = false;
   @Input({ required: true }) randomConfig!: RandomConfigWithValid;
   /** The current demo's generator id, for schema dispatch. */
@@ -68,25 +71,19 @@ export class RandomConfigTab implements OnInit, OnChanges {
 
   onUpdateClick = (): void => {
     try {
-      const newConfig = JSON.parse(this.configText());
+      const newConfig = parseJson(this.configText()) as RandomConfigWithValid;
       newConfig.valid = validateRandomConfig(newConfig, this.generator);
       this.errorMessage.set(newConfig.valid ? null : demoText.errors.invalidRandomConfigValues);
       this.onUpdate(newConfig);
     }
-    catch {
+    catch (error) {
       console.warn('Invalid Random Config JSON: ' + this.configText());
-      this.errorMessage.set(demoText.errors.invalidJson);
+      this.errorMessage.set(getJsonErrorMessage(error));
     }
   };
 
   get jsonError(): string | null {
-    try {
-      JSON.parse(this.configText());
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
+    return getJsonError(this.configText());
   }
 
   get footerError(): string | null {

@@ -1,11 +1,11 @@
 import { getDomainForValues, mergeDomain } from '../data/DomainData';
-import { getGroupSpacingInfo } from '../data/AxisData';
+import { getCategorySpacingInfo } from '../data/AxisData';
 import { getWithMutations } from '../utils/WithMutations';
-import { arrayToMap, idAccessor } from '../utils/utils';
+import { arrayToMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils';
 import { NONE } from '../config/core/constants';
-import type { FocusData, FocusPercentage, GroupDeltaData } from '../types/animation';
-import type { MochartConfig, SeriesConfig } from '../types/config';
-import type { ChartData, GroupData, NullableDomain, SeriesData } from '../types/data';
+import type { FocusData, FocusPercentage, CategoryDeltaData } from '../types/animation';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced';
+import type { ChartData, CategoryData, NullableDomain, SeriesData } from '../types/data';
 
 function isFocused(value: number | null | undefined): value is number;
 function isFocused(value: string | null | undefined): value is string;
@@ -13,9 +13,10 @@ function isFocused(value: number | string | null | undefined): value is number |
   return value !== undefined && value !== null && value !== -1;
 }
 
-function getPercentageForDomain(domain: [number, number], value: number, inverted: boolean): number {
+// ascending: whether the axis's pixel position grows with the value along its direction
+function getPercentageForDomain(domain: [number, number], value: number, ascending: boolean): number {
   if (domain[0] === domain[1]) {
-    return inverted ? 0 : 1;
+    return ascending ? 0 : 1;
   }
   if (value >= domain[1]) {
     value = domain[1];
@@ -23,7 +24,7 @@ function getPercentageForDomain(domain: [number, number], value: number, inverte
   else if (value <= domain[0]) {
     value = domain[0];
   }
-  if (inverted) {
+  if (ascending) {
     return (value - domain[0]) / (domain[1] - domain[0]);
   }
   else {
@@ -31,32 +32,44 @@ function getPercentageForDomain(domain: [number, number], value: number, inverte
   }
 }
 
-export function getFocusData(mochartConfig: MochartConfig, chartData: ChartData, focusedGroupIndex: number, focusedSeriesAxisId: string | null, focusedSeriesId: string | null, computeDomainPercentages = true): FocusData {
-  const { seriesAxisConfigs, seriesConfigs } = mochartConfig;
-  const groupValues = chartData.groupData.values.raw;
-  let groupFocusPercentages: FocusPercentage[];
-  let seriesAxisFocusPercentages: Record<string, FocusPercentage>;
+export function getFocusData(mochartConfig: EnhancedMochartConfig, chartData: ChartData, focusedCategoryIndex: number, focusedValueAxisId: string | null, focusedSeriesId: string | null, computeDomainPercentages = true): FocusData {
+  const { valueAxes: valueAxisConfigs, series: seriesConfigs } = mochartConfig;
+  const categoryValues = chartData.categoryData.values.key;
+  // any index that is not a real slot is unfocused, never a sparse write onto the array
+  if (!Number.isInteger(focusedCategoryIndex) || focusedCategoryIndex < 0 || focusedCategoryIndex >= categoryValues.length) {
+    focusedCategoryIndex = -1;
+  }
+  // likewise an id naming no series/axis: hosts mirror focus between charts that need not share ids
+  // a following series (followSeries) has no focus state of its own, so its id focuses nothing
+  if (focusedSeriesId !== null && (mochartConfig.seriesById[focusedSeriesId] === undefined
+    || mochartConfig.seriesById[focusedSeriesId].followSeries !== NONE)) {
+    focusedSeriesId = null;
+  }
+  if (focusedValueAxisId !== null && mochartConfig.valueAxesById[focusedValueAxisId] === undefined) {
+    focusedValueAxisId = null;
+  }
+  let categoryFocusPercentages: FocusPercentage[];
+  let valueAxisFocusPercentages: Record<string, FocusPercentage>;
   let seriesFocusPercentages: Record<string, FocusPercentage>;
-  if (isFocused(focusedGroupIndex)) {
-    groupFocusPercentages = groupValues.map(() => -1);
-    groupFocusPercentages[focusedGroupIndex] = 1;
+  if (isFocused(focusedCategoryIndex)) {
+    categoryFocusPercentages = categoryValues.map(() => -1);
+    categoryFocusPercentages[focusedCategoryIndex] = 1;
   }
   else {
-    groupFocusPercentages = groupValues.map(() => null);
+    categoryFocusPercentages = categoryValues.map(() => null);
   }
-  if (isFocused(focusedSeriesAxisId)) {
-    seriesAxisFocusPercentages = arrayToMap(seriesAxisConfigs, idAccessor, () => -1);
-    seriesAxisFocusPercentages[focusedSeriesAxisId] = 1;
+  if (isFocused(focusedValueAxisId)) {
+    valueAxisFocusPercentages = arrayToMap(valueAxisConfigs, idAccessor, () => -1);
+    valueAxisFocusPercentages[focusedValueAxisId] = 1;
   }
   else {
-    seriesAxisFocusPercentages = arrayToMap(seriesAxisConfigs, idAccessor, () => null);
+    valueAxisFocusPercentages = arrayToMap(valueAxisConfigs, idAccessor, () => null);
   }
   if (isFocused(focusedSeriesId)) {
     seriesFocusPercentages = arrayToMap(seriesConfigs, idAccessor, () => -1);
     seriesFocusPercentages[focusedSeriesId] = 1;
-    // follower series (followSeries) share their leader's focus, matching the
-    // legend filtering behavior — e.g. a candlestick wick lighting up with its
-    // body
+    // followSeries followers share their leader's focus, matching legend filtering
+    // (e.g. a candlestick wick lighting up with its body)
     for (const seriesConfig of seriesConfigs) {
       if (seriesConfig.followSeries === focusedSeriesId) {
         seriesFocusPercentages[seriesConfig.id] = 1;
@@ -66,127 +79,127 @@ export function getFocusData(mochartConfig: MochartConfig, chartData: ChartData,
   else {
     seriesFocusPercentages = arrayToMap(seriesConfigs, idAccessor, () => null);
   }
-  let groupFocusDomainPercentages, seriesAxisFocusDomainPercentages, seriesFocusDomainPercentages, seriesAxisComputedFocusDomainPercentages;
+  let categoryFocusDomainPercentages, valueAxisFocusDomainPercentages, seriesFocusDomainPercentages, valueAxisComputedFocusDomainPercentages;
   if (computeDomainPercentages) {
-    groupFocusDomainPercentages = getGroupFocusDomainPercentages(mochartConfig, chartData.groupData, focusedGroupIndex);
-    seriesAxisFocusDomainPercentages = getSeriesAxisFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedSeriesAxisId);
-    seriesFocusDomainPercentages = getSeriesFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedGroupIndex, focusedSeriesId);
-    seriesAxisComputedFocusDomainPercentages = getSeriesAxisComputedFocusDomainPercentages(mochartConfig, focusedSeriesId, seriesFocusDomainPercentages);
+    categoryFocusDomainPercentages = getCategoryFocusDomainPercentages(mochartConfig, chartData.categoryData, focusedCategoryIndex);
+    valueAxisFocusDomainPercentages = getValueAxisFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedValueAxisId);
+    seriesFocusDomainPercentages = getSeriesFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedCategoryIndex, focusedSeriesId);
+    valueAxisComputedFocusDomainPercentages = getValueAxisComputedFocusDomainPercentages(mochartConfig, focusedSeriesId, seriesFocusDomainPercentages);
   }
   return {
-    focusedGroupIndex,
-    focusedSeriesAxisId,
+    focusedCategoryIndex,
+    focusedValueAxisId,
     focusedSeriesId,
-    groupFocusPercentages,
-    seriesAxisFocusPercentages,
+    categoryFocusPercentages,
+    valueAxisFocusPercentages,
     seriesFocusPercentages,
-    groupFocusDomainPercentages,
-    seriesAxisFocusDomainPercentages,
+    categoryFocusDomainPercentages,
+    valueAxisFocusDomainPercentages,
     seriesFocusDomainPercentages,
-    seriesAxisComputedFocusDomainPercentages
+    valueAxisComputedFocusDomainPercentages
   };
 }
 
-export function getFocusDataWithDomainPercentages(focusData: FocusData, mochartConfig: MochartConfig, chartData: ChartData): FocusData {
-  const { focusedGroupIndex, focusedSeriesAxisId, focusedSeriesId, groupFocusPercentages, seriesAxisFocusPercentages, seriesFocusPercentages } = focusData;
-  const groupFocusDomainPercentages = getGroupFocusDomainPercentages(mochartConfig, chartData.groupData, focusedGroupIndex);
-  const seriesAxisFocusDomainPercentages = getSeriesAxisFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedSeriesAxisId);
-  const seriesFocusDomainPercentages = getSeriesFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedGroupIndex, focusedSeriesId);
-  const seriesAxisComputedFocusDomainPercentages = getSeriesAxisComputedFocusDomainPercentages(mochartConfig, focusedSeriesId, seriesFocusDomainPercentages);
+export function getFocusDataWithDomainPercentages(focusData: FocusData, mochartConfig: EnhancedMochartConfig, chartData: ChartData): FocusData {
+  const { focusedCategoryIndex, focusedValueAxisId, focusedSeriesId, categoryFocusPercentages, valueAxisFocusPercentages, seriesFocusPercentages } = focusData;
+  const categoryFocusDomainPercentages = getCategoryFocusDomainPercentages(mochartConfig, chartData.categoryData, focusedCategoryIndex);
+  const valueAxisFocusDomainPercentages = getValueAxisFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedValueAxisId);
+  const seriesFocusDomainPercentages = getSeriesFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedCategoryIndex, focusedSeriesId);
+  const valueAxisComputedFocusDomainPercentages = getValueAxisComputedFocusDomainPercentages(mochartConfig, focusedSeriesId, seriesFocusDomainPercentages);
   return {
-    focusedGroupIndex,
-    focusedSeriesAxisId,
+    focusedCategoryIndex,
+    focusedValueAxisId,
     focusedSeriesId,
-    groupFocusPercentages,
-    seriesAxisFocusPercentages,
+    categoryFocusPercentages,
+    valueAxisFocusPercentages,
     seriesFocusPercentages,
-    groupFocusDomainPercentages,
-    seriesAxisFocusDomainPercentages,
+    categoryFocusDomainPercentages,
+    valueAxisFocusDomainPercentages,
     seriesFocusDomainPercentages,
-    seriesAxisComputedFocusDomainPercentages
+    valueAxisComputedFocusDomainPercentages
   }
 }
 
-export function getFocusDataWithGroupChanges(focusData: FocusData, mochartConfig: MochartConfig, chartData: ChartData, groupDeltaData: GroupDeltaData, isAddition: boolean, copyPercentages: boolean): FocusData {
-  const { focusedSeriesAxisId, focusedSeriesId, groupFocusPercentages: oldGroupFocusPercentages, seriesAxisFocusPercentages, seriesFocusPercentages } = focusData;
-  let { focusedGroupIndex } = focusData;
-  let groupFocusPercentages: FocusPercentage[];
+export function getFocusDataWithCategoryChanges(focusData: FocusData, mochartConfig: EnhancedMochartConfig, chartData: ChartData, categoryDeltaData: CategoryDeltaData, isAddition: boolean, copyPercentages: boolean): FocusData {
+  const { focusedValueAxisId, focusedSeriesId, categoryFocusPercentages: oldCategoryFocusPercentages, valueAxisFocusPercentages, seriesFocusPercentages } = focusData;
+  let { focusedCategoryIndex } = focusData;
+  let categoryFocusPercentages: FocusPercentage[];
   if (isAddition) {
-    const initValue = focusedGroupIndex >= 0 ? -1 : null;
-    groupFocusPercentages = groupDeltaData.values.merged.map(() => initValue);
+    const initValue = focusedCategoryIndex >= 0 ? -1 : null;
+    categoryFocusPercentages = categoryDeltaData.values.merged.map(() => initValue);
     if (copyPercentages) {
-      const oldIndices = groupDeltaData.indices.old;
+      const oldIndices = categoryDeltaData.indices.old;
       const count = oldIndices.length;
       for (let i=0; i<count; i++) {
-        groupFocusPercentages[oldIndices[i]] = oldGroupFocusPercentages[i];
+        categoryFocusPercentages[oldIndices[i]] = oldCategoryFocusPercentages[i];
       }
     }
-    else if (focusedGroupIndex >= 0) {
-      groupFocusPercentages[groupDeltaData.indices.old[focusedGroupIndex]] = oldGroupFocusPercentages[focusedGroupIndex];
+    else if (focusedCategoryIndex >= 0) {
+      categoryFocusPercentages[categoryDeltaData.indices.old[focusedCategoryIndex]] = oldCategoryFocusPercentages[focusedCategoryIndex];
     }
-    if (focusedGroupIndex >= 0) {
-      focusedGroupIndex = groupDeltaData.indices.old[focusedGroupIndex];
+    if (focusedCategoryIndex >= 0) {
+      focusedCategoryIndex = categoryDeltaData.indices.old[focusedCategoryIndex];
     }
   }
   else {
-    const newFocusedGroupIndex = focusedGroupIndex >= 0 ? groupDeltaData.values.new.indexOf(groupDeltaData.values.merged[focusedGroupIndex]) : -1;
+    const newFocusedCategoryIndex = focusedCategoryIndex >= 0 ? categoryDeltaData.values.new.indexOf(categoryDeltaData.values.merged[focusedCategoryIndex]) : -1;
 
-    const initValue = newFocusedGroupIndex >= 0 ? -1 : null;
-    groupFocusPercentages = groupDeltaData.indices.new.map(() => initValue);
+    const initValue = newFocusedCategoryIndex >= 0 ? -1 : null;
+    categoryFocusPercentages = categoryDeltaData.indices.new.map(() => initValue);
 
     if (copyPercentages) {
-      const newIndices = groupDeltaData.indices.new;
+      const newIndices = categoryDeltaData.indices.new;
       const count = newIndices.length;
       for (let i=0; i<count; i++) {
-        groupFocusPercentages[i] = oldGroupFocusPercentages[newIndices[i]];
+        categoryFocusPercentages[i] = oldCategoryFocusPercentages[newIndices[i]];
       }
     }
-    else if (newFocusedGroupIndex >= 0) {
-      groupFocusPercentages[newFocusedGroupIndex] = oldGroupFocusPercentages[focusedGroupIndex];
+    else if (newFocusedCategoryIndex >= 0) {
+      categoryFocusPercentages[newFocusedCategoryIndex] = oldCategoryFocusPercentages[focusedCategoryIndex];
     }
-    focusedGroupIndex = newFocusedGroupIndex;
+    focusedCategoryIndex = newFocusedCategoryIndex;
   }
 
-  const groupFocusDomainPercentages = getGroupFocusDomainPercentages(mochartConfig, chartData.groupData, focusedGroupIndex);
-  const seriesAxisFocusDomainPercentages = getSeriesAxisFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedSeriesAxisId);
-  const seriesFocusDomainPercentages = getSeriesFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedGroupIndex, focusedSeriesId);
-  const seriesAxisComputedFocusDomainPercentages = getSeriesAxisComputedFocusDomainPercentages(mochartConfig, focusedSeriesId, seriesFocusDomainPercentages);
+  const categoryFocusDomainPercentages = getCategoryFocusDomainPercentages(mochartConfig, chartData.categoryData, focusedCategoryIndex);
+  const valueAxisFocusDomainPercentages = getValueAxisFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedValueAxisId);
+  const seriesFocusDomainPercentages = getSeriesFocusDomainPercentages(mochartConfig, chartData.seriesData, focusedCategoryIndex, focusedSeriesId);
+  const valueAxisComputedFocusDomainPercentages = getValueAxisComputedFocusDomainPercentages(mochartConfig, focusedSeriesId, seriesFocusDomainPercentages);
 
   return {
-    focusedGroupIndex,
-    focusedSeriesAxisId,
+    focusedCategoryIndex,
+    focusedValueAxisId,
     focusedSeriesId,
-    groupFocusPercentages,
-    seriesAxisFocusPercentages,
+    categoryFocusPercentages,
+    valueAxisFocusPercentages,
     seriesFocusPercentages,
-    groupFocusDomainPercentages,
-    seriesAxisFocusDomainPercentages,
+    categoryFocusDomainPercentages,
+    valueAxisFocusDomainPercentages,
     seriesFocusDomainPercentages,
-    seriesAxisComputedFocusDomainPercentages
+    valueAxisComputedFocusDomainPercentages
   }
 }
 
-export function getSeriesConfigsOrderedByFocus(mochartConfig: MochartConfig, focusData: FocusData): SeriesConfig[] {
-  const { focusedSeriesAxisId, focusedSeriesId, seriesFocusPercentages } = focusData;
-  const { seriesConfigs } = mochartConfig;
+export function getSeriesConfigsOrderedByFocus(mochartConfig: EnhancedMochartConfig, focusData: FocusData): EnhancedSeriesConfig[] {
+  const { focusedValueAxisId, focusedSeriesId, seriesFocusPercentages } = focusData;
+  const { series: seriesConfigs } = mochartConfig;
 
-  const focusedSeriesIdsMap: Record<string, boolean> = {};
+  const focusedSeriesIdsMap: Record<string, boolean> = Object.create(null);
 
-  if (isFocused(focusedSeriesAxisId)) {
-    const focusedSeriesAxisConfig = mochartConfig.seriesAxisConfigsById[focusedSeriesAxisId];
-    if (focusedSeriesAxisConfig) {
-      const seriesAxisFocusedSeriesConfigs = focusedSeriesAxisConfig.seriesConfigs!;
-      for (const seriesConfig of seriesAxisFocusedSeriesConfigs) {
+  if (isFocused(focusedValueAxisId)) {
+    const focusedValueAxisConfig = mochartConfig.valueAxesById[focusedValueAxisId];
+    if (focusedValueAxisConfig) {
+      const valueAxisFocusedSeriesConfigs = focusedValueAxisConfig.seriesConfigs!;
+      for (const seriesConfig of valueAxisFocusedSeriesConfigs) {
         focusedSeriesIdsMap[seriesConfig.id] = true;
       }
     }
   }
   else if (isFocused(focusedSeriesId)) {
-    const focusedSeriesConfig = mochartConfig.seriesConfigsById[focusedSeriesId];
+    const focusedSeriesConfig = mochartConfig.seriesById[focusedSeriesId];
     if (focusedSeriesConfig !== undefined) {
       if (focusedSeriesConfig.group !== NONE) {
-        const groupFocusedSeriesConfigs = focusedSeriesConfig.seriesGroupConfig!.seriesConfigs!;
-        for (const seriesConfig of groupFocusedSeriesConfigs) {
+        const categoryFocusedSeriesConfigs = focusedSeriesConfig.seriesGroupConfig!.seriesConfigs!;
+        for (const seriesConfig of categoryFocusedSeriesConfigs) {
           focusedSeriesIdsMap[seriesConfig.id] = true;
         }
       }
@@ -204,8 +217,8 @@ export function getSeriesConfigsOrderedByFocus(mochartConfig: MochartConfig, foc
     }
   }
 
-  const defocusedSeriesConfigs: SeriesConfig[] = [];
-  const focusedSeriesConfigs: SeriesConfig[] = [];
+  const defocusedSeriesConfigs: EnhancedSeriesConfig[] = [];
+  const focusedSeriesConfigs: EnhancedSeriesConfig[] = [];
   for (const seriesConfig of seriesConfigs) {
     const { id } = seriesConfig;
     if (id !== focusedSeriesId) {
@@ -217,113 +230,132 @@ export function getSeriesConfigsOrderedByFocus(mochartConfig: MochartConfig, foc
       }
     }
   }
-  if (isFocused(focusedSeriesId)) {
-    focusedSeriesConfigs.push(mochartConfig.seriesConfigsById[focusedSeriesId]);
+  if (isFocused(focusedSeriesId) && mochartConfig.seriesById[focusedSeriesId] !== undefined) {
+    focusedSeriesConfigs.push(mochartConfig.seriesById[focusedSeriesId]);
   }
   return defocusedSeriesConfigs.concat(focusedSeriesConfigs);
 }
 
-function getGroupFocusDomainPercentages(mochartConfig: MochartConfig, groupData: GroupData, focusedGroupIndex: number): number[] {
-  let groupPercentages: number[] = [];
-  if (isFocused(focusedGroupIndex)) {
-    const { axisDomain, values } = groupData;
+function getCategoryFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, categoryData: CategoryData, focusedCategoryIndex: number): number[] {
+  let categoryPercentages: number[] = [];
+  if (isFocused(focusedCategoryIndex)) {
+    const { renderAxisDomain, values } = categoryData;
     const { numeric } = values;
-    const value = numeric[focusedGroupIndex];
-    const min = axisDomain[0];
-    const max = axisDomain[1];
+    const value = numeric[focusedCategoryIndex];
+    const min = renderAxisDomain[0];
+    const max = renderAxisDomain[1];
     if (min !== null && max !== null && value >= +min && value <= +max) {
-      const { groupRange } = getGroupSpacingInfo(mochartConfig.groupAxisConfig, axisDomain, 1);
-      const minPercentage = groupRange[0];
-      const maxPercentage = groupRange[1];
+      const { categoryRange } = getCategorySpacingInfo(mochartConfig.categoryAxis, renderAxisDomain, 1);
+      const minPercentage = categoryRange[0];
+      const maxPercentage = categoryRange[1];
       const extentPercentage = maxPercentage - minPercentage;
       const numericMin = +min;
       const numericMax = +max;
       const domainExtent = (numericMax === numericMin) ? 1 : (numericMax - numericMin);
 
-      groupPercentages = [minPercentage + extentPercentage * (value - numericMin) / domainExtent];
+      // a reversed axis flips the scale range, so the fraction mirrors within the category range
+      const domainFraction = (value - numericMin) / domainExtent;
+      categoryPercentages = [minPercentage + extentPercentage * (mochartConfig.categoryAxis.reversed ? 1 - domainFraction : domainFraction)];
     }
   }
-  return groupPercentages;
+  return categoryPercentages;
 }
 
-function getSeriesAxisFocusDomainPercentages(mochartConfig: MochartConfig, seriesData: SeriesData, focusedSeriesAxisId: string | null): number[] {
+function getValueAxisFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, seriesData: SeriesData, focusedValueAxisId: string | null): number[] {
   let seriesPercentages: number[] = [];
-  if (isFocused(focusedSeriesAxisId)) {
-    const inverted = mochartConfig.plotConfig.inverted;
-    const seriesAxisConfig = mochartConfig.seriesAxisConfigsById[focusedSeriesAxisId];
+  if (isFocused(focusedValueAxisId)) {
+    const valueAxisConfig = mochartConfig.valueAxesById[focusedValueAxisId];
+    // reversed flips the scale range, so it flips whether pixel position grows with the value
+    const ascending = mochartConfig.plot.inverted !== valueAxisConfig.reversed;
     const { raw, filtered } = seriesData;
-    const { id } = seriesAxisConfig;
-    const axisDomains = seriesAxisConfig.adjustForSuppression ? filtered.axisDomains : raw.axisDomains;
+    const { id } = valueAxisConfig;
+    const axisDomains = valueAxisConfig.adjustForFiltering ? filtered.renderAxisDomains : raw.renderAxisDomains;
     const axisDomain = axisDomains[id];
     if (axisDomain[0] !== null && axisDomain[1] !== null) {
       const completeDomain: [number, number] = [axisDomain[0], axisDomain[1]];
       if (axisDomain[0] !== axisDomain[1]) {
         seriesPercentages = [
-          getPercentageForDomain(completeDomain, axisDomain[0], inverted),
-          getPercentageForDomain(completeDomain, axisDomain[1], inverted)
+          getPercentageForDomain(completeDomain, axisDomain[0], ascending),
+          getPercentageForDomain(completeDomain, axisDomain[1], ascending)
         ];
       }
       else {
-        seriesPercentages = [getPercentageForDomain(completeDomain, axisDomain[0], inverted)];
+        seriesPercentages = [getPercentageForDomain(completeDomain, axisDomain[0], ascending)];
       }
     }
   }
   return seriesPercentages;
 }
 
-function getSeriesFocusDomainPercentages(mochartConfig: MochartConfig, seriesData: SeriesData, focusedGroupIndex: number, focusedSeriesId: string | null): number[] {
+// keyed on the copy-on-write value arrays: focus-tween frames reuse them by reference, so the
+// per-frame full-array scans collapse to lookups; data-tween frames rebuild the arrays and recompute
+const valuesDomainCache = new WeakMap<readonly number[], NullableDomain>();
+
+function getCachedDomainForValues(values: readonly number[] | null): NullableDomain {
+  if (values === null) {
+    return getDomainForValues(values);
+  }
+  let domain = valuesDomainCache.get(values);
+  if (domain === undefined) {
+    domain = getDomainForValues(values);
+    valuesDomainCache.set(values, domain);
+  }
+  return domain;
+}
+
+function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, seriesData: SeriesData, focusedCategoryIndex: number, focusedSeriesId: string | null): number[] {
   let seriesPercentages: number[] = [];
-  if (isFocused(focusedGroupIndex) || isFocused(focusedSeriesId)) {
+  if (isFocused(focusedCategoryIndex) || isFocused(focusedSeriesId)) {
     if (isFocused(focusedSeriesId)) {
-      const inverted = mochartConfig.plotConfig.inverted;
-      const seriesConfig = mochartConfig.seriesConfigsById[focusedSeriesId];
-      const { axisBases, raw, filtered } = seriesData;
+      const seriesConfig = mochartConfig.seriesById[focusedSeriesId];
+      const { seriesBases, raw, filtered } = seriesData;
       const { id } = seriesConfig;
       const axis = seriesConfig.axis!;
-      const seriesAxisConfig = seriesConfig.seriesAxisConfig!;
-      const axisDomains = seriesAxisConfig.adjustForSuppression ? filtered.axisDomains : raw.axisDomains;
+      const valueAxisConfig = seriesConfig.valueAxisConfig!;
+      // reversed flips the scale range, so it flips whether pixel position grows with the value
+      const ascending = mochartConfig.plot.inverted !== valueAxisConfig.reversed;
+      const axisDomains = valueAxisConfig.adjustForFiltering ? filtered.renderAxisDomains : raw.renderAxisDomains;
       const axisDomain = axisDomains[axis] as [number, number];
-      const axisBase = axisBases[axis];
+      const axisBase = seriesBases[id];
 
       const { values } = filtered;
-      // the focused series plus its same-axis followers (followSeries), so a
-      // composite mark like a candlestick highlights its full extent (wick
-      // low/high included, not just the body)
+      // the focused series plus its same-axis followSeries followers, so a composite
+      // mark like a candlestick highlights its full extent (wick included)
       const focusedSeriesConfigs = [seriesConfig,
-        ...mochartConfig.seriesConfigs.filter(config => config.followSeries === id && config.axis === axis)];
+        ...mochartConfig.series.filter(config => config.followSeries === id && config.axis === axis)];
 
-      if (isFocused(focusedGroupIndex)) {
-        let seriesGroupValues: number[] = [];
+      if (isFocused(focusedCategoryIndex)) {
+        let seriesCategoryValues: number[] = [];
         for (const config of focusedSeriesConfigs) {
           const { max: maxValues, min: minValues } = values[config.id];
-          const maxValue = maxValues !== null ? maxValues[focusedGroupIndex] : undefined;
-          const minValue = minValues !== null ? minValues[focusedGroupIndex] : undefined;
-          if (maxValue !== undefined) {
-            seriesGroupValues.push(maxValue);
+          const maxValue = maxValues !== null ? maxValues[focusedCategoryIndex]! : MISSING_VALUE;
+          const minValue = minValues !== null ? minValues[focusedCategoryIndex]! : MISSING_VALUE;
+          if (!isMissingValue(maxValue)) {
+            seriesCategoryValues.push(maxValue);
           }
-          if (minValue !== undefined && minValue !== maxValue) {
-            seriesGroupValues.push(minValue);
+          if (!isMissingValue(minValue) && minValue !== maxValue) {
+            seriesCategoryValues.push(minValue);
           }
         }
-        if (seriesGroupValues.length > 1) {
-          const maxValue = Math.max(...seriesGroupValues);
-          const minValue = Math.min(...seriesGroupValues);
-          seriesGroupValues = maxValue !== minValue ? [maxValue, minValue] : [maxValue];
+        if (seriesCategoryValues.length > 1) {
+          const maxValue = Math.max(...seriesCategoryValues);
+          const minValue = Math.min(...seriesCategoryValues);
+          seriesCategoryValues = maxValue !== minValue ? [maxValue, minValue] : [maxValue];
         }
-        if (seriesGroupValues.length === 1 && seriesGroupValues[0] !== axisBase) {
+        if (seriesCategoryValues.length === 1 && seriesCategoryValues[0] !== axisBase) {
           if (axisBase !== null) {
-            seriesGroupValues.push(axisBase);
+            seriesCategoryValues.push(axisBase);
           }
         }
-        seriesPercentages = seriesGroupValues.map(value => getPercentageForDomain(axisDomain, value, inverted));
+        seriesPercentages = seriesCategoryValues.map(value => getPercentageForDomain(axisDomain, value, ascending));
       }
       else {
         let seriesFocusDomain: NullableDomain = [null, null];
         for (const config of focusedSeriesConfigs) {
           const { max: maxValues, min: minValues } = values[config.id];
           let configFocusDomain: NullableDomain = [null, null];
-          const maxValuesDomain = getDomainForValues(maxValues);
-          const minValuesDomain = getDomainForValues(minValues);
+          const maxValuesDomain = getCachedDomainForValues(maxValues);
+          const minValuesDomain = getCachedDomainForValues(minValues);
           if (maxValuesDomain[0] !== null || minValuesDomain[0] !== null) {
             if (maxValuesDomain[0] !== null && minValuesDomain[0] !== null) {
               configFocusDomain = mergeDomain(maxValuesDomain, minValuesDomain);
@@ -331,37 +363,23 @@ function getSeriesFocusDomainPercentages(mochartConfig: MochartConfig, seriesDat
             else if (maxValuesDomain[0] !== null) {
               configFocusDomain = maxValuesDomain;
             }
-            else if (config.stack !== NONE) { // for stacks, if max is undefined then the value was undefined...
+            else if (config.stack !== NONE) { // for stacks, if max is missing then the value was missing...
               configFocusDomain = minValuesDomain;
             }
           }
           seriesFocusDomain = mergeDomain(seriesFocusDomain, configFocusDomain);
         }
         if (seriesFocusDomain[0] !== null) { // if the domain has no values then min ([0]) and max ([1]) will both be null
-          if (seriesFocusDomain[0] !== undefined || seriesFocusDomain[1] !== undefined) {
-            if (seriesFocusDomain[0] !== undefined && seriesFocusDomain[1] !== undefined) {
-              if (seriesFocusDomain[0] !== seriesFocusDomain[1]) {
-                seriesPercentages = [
-                  getPercentageForDomain(axisDomain, seriesFocusDomain[0], inverted),
-                  getPercentageForDomain(axisDomain, seriesFocusDomain[1]!, inverted)
-                ];
-              }
-              else {
-                seriesPercentages = [
-                  getPercentageForDomain(axisDomain, seriesFocusDomain[0], inverted)
-                ];
-              }
-            }
-            else if (seriesFocusDomain[0] !== undefined) {
-              seriesPercentages = [
-                getPercentageForDomain(axisDomain, seriesFocusDomain[0], inverted)
-              ];
-            }
-            else {
-              seriesPercentages = [
-                getPercentageForDomain(axisDomain, seriesFocusDomain[1]!, inverted)
-              ];
-            }
+          if (seriesFocusDomain[0] !== seriesFocusDomain[1]) {
+            seriesPercentages = [
+              getPercentageForDomain(axisDomain, seriesFocusDomain[0], ascending),
+              getPercentageForDomain(axisDomain, seriesFocusDomain[1]!, ascending)
+            ];
+          }
+          else {
+            seriesPercentages = [
+              getPercentageForDomain(axisDomain, seriesFocusDomain[0], ascending)
+            ];
           }
         }
       }
@@ -370,14 +388,14 @@ function getSeriesFocusDomainPercentages(mochartConfig: MochartConfig, seriesDat
   return seriesPercentages;
 }
 
-function getSeriesAxisComputedFocusDomainPercentages(mochartConfig: MochartConfig, focusedSeriesId: string | null, seriesPercentages: number[]): Record<string, number[]> {
-  const { seriesAxisConfigs } = mochartConfig;
-  const seriesAxisPercentages = arrayToMap(seriesAxisConfigs, idAccessor, (): number[] => []);
+function getValueAxisComputedFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, focusedSeriesId: string | null, seriesPercentages: number[]): Record<string, number[]> {
+  const { valueAxes: valueAxisConfigs } = mochartConfig;
+  const valueAxisPercentages = arrayToMap(valueAxisConfigs, idAccessor, (): number[] => []);
   if (isFocused(focusedSeriesId)) {
-    const seriesConfig = mochartConfig.seriesConfigsById[focusedSeriesId];
-    seriesAxisPercentages[seriesConfig.axis!] = seriesPercentages;
+    const seriesConfig = mochartConfig.seriesById[focusedSeriesId];
+    valueAxisPercentages[seriesConfig.axis!] = seriesPercentages;
   }
-  return seriesAxisPercentages;
+  return valueAxisPercentages;
 }
 
 export function getFocusDataWithMutations(oldFocusData: FocusData, newFocusData: FocusData): FocusData {

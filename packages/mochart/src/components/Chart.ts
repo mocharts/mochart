@@ -3,19 +3,21 @@ import type { ElSlot, RendererItem, RendererList, Slot } from '../render';
 
 import { getVersionString } from '../version';
 import { hasConfigStructureChange } from '../config/core/mochartConfig';
-import { isDataProviderValid, getGroupSeriesValueObject, getChartDataGroupCount } from '../data/ChartData';
-import type { GroupSeriesValueObject } from '../data/ChartData';
+import { isDataProviderValid, getCategorySeriesValueObject, getChartDataCategoryCount } from '../data/ChartData';
+import { indexOfCategoryValue } from '../animation/CategoryAnimationData';
+import type { CategorySeriesValueObject } from '../data/ChartData';
 import { getChartLayoutInfo, getChartLayoutInfoWithMutations } from '../layout/ChartLayout';
 import { getTooltipLayoutInfo, getTooltipLayoutInfoWithMutations } from '../layout/TooltipLayout';
-import { getAxisData, getAxisDataWithMutations, getAxisDataForGroupChange, getAxisDataForSeriesChange } from '../data/AxisData';
+import { getAxisData, getAxisDataWithMutations, getAxisDataForCategoryChange, getAxisDataForSeriesChange } from '../data/AxisData';
 import { getStackData, getStackDataWithMutations } from '../data/StackData';
 import { getChartTextBoundsData, getChartTextBoundsDataWithMutations, getTooltipBounds, getBoundsWithMutations } from '../utils/TextMeasurement';
-import { mochartCssClasses, getDomAccessors } from '../utils/ChartDom';
+import { mochartCssClasses, mochartVersionAttribute, getDomAccessors } from '../utils/ChartDom';
 import { CHART_TYPE_PIE } from '../config/core/constants';
 
 import Background from './Background';
 import Title from './Title';
 import Plot from './Plot';
+import type { SeriesShapeA11yProps } from './SeriesBackground';
 import RadialPlot from './RadialPlot';
 import PlotEmpty from './PlotEmpty';
 import Legend from './Legend';
@@ -24,22 +26,31 @@ import Tooltip from './Tooltip';
 import TooltipClip from './TooltipClip';
 import TitleClip from './TitleClip';
 import AxisTitleClip from './AxisTitleClip';
-import GroupAxisTickLabelClip from './GroupAxisTickLabelClip';
+import CategoryAxisTickLabelClip from './CategoryAxisTickLabelClip';
+import SeriesClip from './SeriesClip';
+import { getClippedEdgesWithMutations, noClippedEdges } from '../data/ClipData';
 import SeriesColorGradient from './SeriesColorGradient';
 import LinearGradient from './LinearGradient';
 import RadialGradient from './RadialGradient';
-import { translateObject } from '../utils/utils';
-import { getSeriesGradientColors } from '../utils/SeriesColors';
-import type { ChartFactoryContent, ChartFactoryContext, ChartContentFactory, ChartEventPayload, ChartSliceClickPayload, InternalFocus } from '../types/chart';
-import type { LinearGradientConfig, MochartConfig, RadialGradientConfig, SeriesAxisConfig, SeriesConfig } from '../types/config';
-import type { AxisData, ChartData, DataProvider, StackData } from '../types/data';
+import Pattern from './Pattern';
+import { accessibilityActive, focusRestored, translateObject } from '../utils/utils';
+import { getSeriesFillColor, getSeriesGradientColors } from '../utils/SeriesColors';
+import { getTooltipAnnouncement } from '../utils/TooltipFormat';
+import type { ChartFactoryContent, ChartFactoryContext, ChartContentFactory, ChartEventPayload, ChartSeriesClickPayload, ChartSliceClickPayload, InternalFocus } from '../types/chart';
+import type { LinearGradientConfig, PatternConfig, RadialGradientConfig } from '../types/config';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
+import type { AxisData, ChartData, ClippedEdges, DataProvider, StackData } from '../types/data';
 import type { FocusData } from '../types/animation';
 import type { ChartLayoutInfo, ChartTextBoundsData, LayoutInfo } from '../types/layout';
 import type { Bounds, Size } from '../types/geometry';
 
 export interface ChartProps {
-  mochartConfig: MochartConfig;
-  dataProvider: DataProvider;
+  // both null while the host is still loading them; the chart renders its loading/error states then
+  mochartConfig: EnhancedMochartConfig | null;
+  /** The host's own provider: what the state factories receive. */
+  dataProvider: DataProvider | null;
+  /** What the chart's own loading/error reads use; a fresh identity per refresh() so they re-run. Defaults to dataProvider. */
+  readDataProvider?: DataProvider | null;
   chartData: ChartData | null;
   focusData: FocusData | null;
   /** 0..1 while the initial value tween runs (pie sweep-in), else null. */
@@ -50,11 +61,12 @@ export interface ChartProps {
   style?: string | Record<string, string | number | null | undefined>;
   loading?: boolean;
   error?: unknown;
-  onSeriesLayoutInfoChange?: (bounds: Bounds) => void;
+  onSeriesLayoutBoundsChange?: (bounds: Bounds) => void;
   onFocus?: (focus: InternalFocus) => void;
   onSeriesFilter?: (seriesId: string) => void;
   onChartClick?: (payload: ChartEventPayload) => void;
   onSliceClick?: (payload: ChartSliceClickPayload) => void;
+  onSeriesClick?: (payload: ChartSeriesClickPayload) => void;
   onChartMouseEnter?: (payload: ChartEventPayload) => void;
   onChartMouseMove?: (payload: ChartEventPayload) => void;
   onChartMouseLeave?: (payload: ChartEventPayload) => void;
@@ -72,13 +84,16 @@ interface ChartUniqueIds {
   tooltipClipPathUniqueId: string;
   titleClipPathUniqueId: string;
   legendClipPathUniqueId: string;
-  groupAxisTitleClipPathUniqueId: string;
-  groupAxisTickLabelClipPathUniqueId: string;
-  seriesAxisTitleClipPathUniqueIds: Record<string, string>;
+  categoryAxisTitleClipPathUniqueId: string;
+  categoryAxisTickLabelClipPathUniqueId: string;
+  valueAxisTitleClipPathUniqueIds: Record<string, string>;
+  seriesClipPathUniqueId: string;
+  clipIndicatorPatternUniqueId: string;
   seriesColorGradientUniqueIds: Record<string, string>;
   gradientIdMap: Record<string, string>;
   linearGradientIdMap: Record<string, string>;
   radialGradientIdMap: Record<string, string>;
+  patternIdMap: Record<string, string>;
 }
 
 interface ChartState {
@@ -89,107 +104,153 @@ interface ChartState {
   tooltipBounds: Size | null;
   axisData: AxisData | null;
   stackData: StackData | null;
+  clippedEdges: ClippedEdges;
   tooltipVisible: boolean;
-  tooltipGroupIndex: number;
-  tooltipGroupPercentage: number | null;
+  tooltipCategoryIndex: number;
+  tooltipCategoryPercentage: number | null;
   tooltipSeriesPercentage: number | null;
-  tooltipValueObject: GroupSeriesValueObject | null;
+  tooltipValueObject: CategorySeriesValueObject | null;
 }
 
 type ChartStateUpdate = Partial<ChartState>;
 type ChartPointCallback = (chartX: number, chartY: number) => void;
-type ChartPointerEvent = MouseEvent | TouchEvent;
+// taps arrive as the browser's synthesized mouse events, so this is the only pointer event type the chart root sees
+type ChartPointerEvent = MouseEvent;
 type FactoryContent = ChartFactoryContent | El;
-type FactoryEl = El & { _factoryContent?: FactoryContent };
+type FactoryEl = El & { _factory?: ChartContentFactory | null; _factoryContext?: ChartFactoryContext | null };
 
 const emptyFilteredFlags = {};
+const emptyAxisSeriesCounts: Record<string, number> = {};
 
 const mochartChartIdPrefix = '__mochart__chart__';
 const tooltipClipPathIdPrefix = 'tooltip__clippath__';
 const titleClipPathIdPrefix = 'title__clippath__';
 const legendClipPathIdPrefix = 'legend__clippath__';
-const groupAxisTitleClipPathIdPrefix = 'groupaxistitle__clippath__';
-const gridAxisTickLabelClipPathIdPrefix = 'groupaxisticklabel__clippath__';
-const seriesAxisTitleClipPathIdPrefix = 'seriesaxistitle__clippath__';
+const categoryAxisTitleClipPathIdPrefix = 'categoryaxistitle__clippath__';
+const categoryAxisTickLabelClipPathIdPrefix = 'categoryaxisticklabel__clippath__';
+const valueAxisTitleClipPathIdPrefix = 'valueaxistitle__clippath__';
+const seriesClipPathIdPrefix = 'series__clippath__';
+const clipIndicatorPatternIdPrefix = 'clipindicator__pattern__';
 const linearGradientIdPrefix = 'linear__gradient__';
 const radialGradientIdPrefix = 'radial__gradient__';
+const seriesPatternIdPrefix = 'series__pattern__';
 const seriesColorGradientIdPrefix = 'seriescolor__gradient__';
-let chartInstanceCounter = 1;
+// on the global registry, not module state: two bundled copies of the library share one document's ids
+const chartInstanceCounterKey = Symbol.for('mochart.chartInstanceCounter');
+/** the unsnapped tooltip's position along the category axis, as a fraction of the category extent */
+function getCategoryFraction(axisData: AxisData, layoutInfo: ChartLayoutInfo, categoryIndex: number): number {
+  const positions = axisData.category!.valueData.positions;
+  const { categoryExtent } = layoutInfo.seriesLayoutInfo;
+  return categoryExtent > 0 ? (positions[categoryIndex] ?? 0) / categoryExtent : 0;
+}
 
-// The getXxxComponent factory props return a DOM Node (or string). The
-// defaults below build plain DOM; custom factories from the host app must do
-// the same.
-function buildMessageDiv(style: Record<string, string | number | null | undefined>, message: string): Node {
+function nextChartInstanceId(): string {
+  const scope = globalThis as unknown as Record<symbol, number | undefined>;
+  const instance = (scope[chartInstanceCounterKey] ?? 0) + 1;
+  scope[chartInstanceCounterKey] = instance;
+  return '' + instance;
+}
+
+// Shared body for the getXxxComponent factory defaults (they return a DOM Node or string): fills the box,
+// flex-centers the message (table-cell centering silently failed at 0-size), and quiets content drawing
+// behind it with a color-agnostic blur + faint currentColor tint.
+function buildMessageDiv(width: number, height: number, message: string): Node {
   const el = htmlEl('div');
-  el.set({ style });
+  el.set({ style: {
+    width: width > 0 ? width : '100%',
+    height: height > 0 ? height : '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    padding: '0 16px',
+    boxSizing: 'border-box',
+    overflowWrap: 'anywhere',
+    backdropFilter: 'blur(3px)',
+    background: 'color-mix(in srgb, currentColor 4%, transparent)'
+  } });
   el.node.textContent = message;
   return el.node;
 }
 
-function getLoadingComponent({ width = 0, height = 0 }: ChartFactoryContext): Node {
-  return buildMessageDiv({ width: width, height: height, textAlign: 'center', verticalAlign: 'middle', display: 'table-cell' }, 'Loading...');
+function getLoadingComponent({ width, height }: ChartFactoryContext): Node {
+  return buildMessageDiv(width, height, 'Loading...');
 }
 
-function getErrorComponent({ width = 0, height = 0, error }: ChartFactoryContext): Node {
-  const errorMessage = error ? typeof error === 'object' ? JSON.stringify(error) : String(error) : 'Invalid Chart Config';
-  return buildMessageDiv({ width: width, height: height, textAlign: 'center', verticalAlign: 'middle', display: 'table-cell' }, errorMessage);
+// A provided error (including '' or 0) is the error state; null/undefined are not.
+function isErrorActive(error: unknown): boolean {
+  return error != null;
 }
 
-function getNoDataComponent({ width = 0, height = 0 }: ChartFactoryContext): Node {
-  return buildMessageDiv({ width: width, height: height, textAlign: 'center', verticalAlign: 'middle', display: 'table-cell' }, 'No Data');
+// Error instances show their message; JSON.stringify can throw (circular refs), so fall back to String.
+function formatErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message || String(error);
+  if (typeof error === 'object') {
+    try { return JSON.stringify(error); } catch { return String(error); }
+  }
+  return String(error);
 }
 
-function getNoSizeComponent({ width = 0, height = 0 }: ChartFactoryContext): Node {
-  const style: Record<string, string | number> = {
-    textAlign: 'center', verticalAlign: 'middle', display: 'table-cell'
-  };
-  if (width > 0) {
-    style.width = width;
-  }
-  if (height > 0) {
-    style.height = height;
-  }
-  return buildMessageDiv(style, 'No Size');
+function getErrorComponent({ width, height, error }: ChartFactoryContext): Node {
+  const errorMessage = isErrorActive(error) ? formatErrorMessage(error) : 'Invalid Chart Config';
+  return buildMessageDiv(width, height, errorMessage);
 }
 
-function getNoSeriesComponent({ width = 0, height = 0 }: ChartFactoryContext): Node {
-  return buildMessageDiv({ width: width, height: height, textAlign: 'center', verticalAlign: 'middle', display: 'table-cell' }, 'No Series');
+function getNoDataComponent({ width, height }: ChartFactoryContext): Node {
+  return buildMessageDiv(width, height, 'No Data');
 }
 
-function getConfigErrorComponent({ width = 0, height = 0 }: ChartFactoryContext): Node {
-  const style: Record<string, string | number> = {
-    textAlign: 'center', verticalAlign: 'middle', display: 'table-cell'
-  };
-  if (width > 0) {
-    style.width = width;
-  }
-  if (height > 0) {
-    style.height = height;
-  }
-  return buildMessageDiv(style, 'Mochart Config Error');
+function getNoSizeComponent({ width, height }: ChartFactoryContext): Node {
+  return buildMessageDiv(width, height, 'No Size');
 }
 
-/** Replace a container's children with factory-produced content (Node | El | string | falsy). */
-function setFactoryContent(containerEl: FactoryEl, content: FactoryContent): void {
-  if (containerEl._factoryContent === content) {
-    return;
-  }
-  containerEl._factoryContent = content;
-  const node = containerEl.node;
-  while (node.firstChild) {
-    node.removeChild(node.firstChild);
-  }
+function getNoSeriesComponent({ width, height }: ChartFactoryContext): Node {
+  return buildMessageDiv(width, height, 'No Series');
+}
+
+function getConfigErrorComponent({ width, height }: ChartFactoryContext): Node {
+  return buildMessageDiv(width, height, 'Mochart Config Error');
+}
+
+/** Normalize factory-produced content (Node | El | string | falsy) to a DOM node; null for falsy content. */
+function factoryContentToNode(content: FactoryContent): Node | null {
   if (content === null || content === undefined || content === false) {
-    return;
+    return null;
   }
   if (content instanceof El) {
-    node.appendChild(content.node);
+    return content.node;
   }
-  else if (typeof content === 'string' || typeof content === 'number') {
-    node.appendChild(document.createTextNode(String(content)));
+  if (typeof content === 'string' || typeof content === 'number') {
+    return document.createTextNode(String(content));
   }
-  else {
-    node.appendChild(content);
+  return content;
+}
+
+/** True when a state factory would see the same inputs: same factory, same six context members. */
+function sameFactoryInputs(
+  lastFactory: ChartContentFactory | null | undefined, lastContext: ChartFactoryContext | null | undefined,
+  factory: ChartContentFactory | null, context: ChartFactoryContext
+): boolean {
+  return lastFactory === factory && lastContext != null
+    && lastContext.width === context.width && lastContext.height === context.height
+    && lastContext.mochartConfig === context.mochartConfig && lastContext.dataProvider === context.dataProvider
+    && lastContext.error === context.error && lastContext.hasData === context.hasData;
+}
+
+/** Replace a container's children with a factory's content; runs the factory only when its inputs changed. */
+function syncFactoryContent(containerEl: FactoryEl, factory: ChartContentFactory, context: ChartFactoryContext): void {
+  if (sameFactoryInputs(containerEl._factory, containerEl._factoryContext, factory, context)) {
+    return;
+  }
+  containerEl._factory = factory;
+  containerEl._factoryContext = context;
+  const containerNode = containerEl.node;
+  while (containerNode.firstChild) {
+    containerNode.removeChild(containerNode.firstChild);
+  }
+  const node = factoryContentToNode(factory(context));
+  if (node) {
+    containerNode.appendChild(node);
   }
 }
 
@@ -205,26 +266,27 @@ function getBoundsAreDifferent(oldBounds: Bounds, newBounds: Bounds): boolean {
 }
 
 const getInitialState = (): ChartState => ({
-  uniqueIds: null, layoutInfo: null, tooltipLayoutInfo: null, chartTextBoundsData: {} as ChartTextBoundsData, tooltipBounds: null, axisData: null, stackData: null,
+  uniqueIds: null, layoutInfo: null, tooltipLayoutInfo: null, chartTextBoundsData: {} as ChartTextBoundsData, axisData: null, stackData: null, clippedEdges: noClippedEdges,
   ...getInitialTooltipState()
 });
 
-const getInitialTooltipState = (): Pick<ChartState, 'tooltipVisible' | 'tooltipGroupIndex' | 'tooltipGroupPercentage' | 'tooltipSeriesPercentage' | 'tooltipValueObject'> => ({
+const getInitialTooltipState = (): Pick<ChartState, 'tooltipVisible' | 'tooltipCategoryIndex' | 'tooltipCategoryPercentage' | 'tooltipSeriesPercentage' | 'tooltipValueObject' | 'tooltipBounds'> => ({
   tooltipVisible: false,
-  tooltipGroupIndex: -1,
-  tooltipGroupPercentage: null,
+  tooltipCategoryIndex: -1,
+  tooltipCategoryPercentage: null,
   tooltipSeriesPercentage: null,
-  tooltipValueObject: null
+  tooltipValueObject: null,
+  tooltipBounds: null
 });
 
 /**
- * The body of a valid chart: the svg (defs, background, title, plot, legend)
- * plus the html overlay containers and the tooltip. A pass-through renderer
- * so the pieces sit directly under the chart's root div, exactly like the
- * old JSX did.
+ * The body of a valid chart: the svg (defs, background, title, plot, legend) plus the html overlay
+ * containers and the tooltip. A pass-through renderer so the pieces sit directly under the chart's root div.
  */
 interface ChartBodyProps {
   chart: Chart;
+  /** The rendered config: sync() only mounts the body once it is non-null and valid. */
+  mochartConfig: EnhancedMochartConfig;
   /** Change tokens that force the pass-through body to resync with its owner. */
   chartProps: ChartProps;
   chartState: ChartState;
@@ -239,6 +301,7 @@ class ChartBody extends Renderer<ChartBodyProps> {
   seriesColorGradients!: RendererList;
   linearGradients!: RendererList;
   radialGradients!: RendererList;
+  patterns!: RendererList;
   background!: Slot;
   title!: Slot;
   contentGroup!: El;
@@ -250,6 +313,10 @@ class ChartBody extends Renderer<ChartBodyProps> {
   noSeriesSlot!: ElSlot;
   loadingSlot!: ElSlot;
   tooltip!: Slot;
+  liveRegionSlot!: ElSlot;
+  // inputs of the last gradient/pattern defs sync; they only change with the config
+  defsConfig: EnhancedMochartConfig | null = null;
+  defsUniqueIds: ChartUniqueIds | null = null;
   create() {
     this.svg = svgEl('svg');
     this.defs = svgEl('defs');
@@ -258,6 +325,7 @@ class ChartBody extends Renderer<ChartBodyProps> {
     this.seriesColorGradients = this.rendererList(this.defs);
     this.linearGradients = this.rendererList(this.defs);
     this.radialGradients = this.rendererList(this.defs);
+    this.patterns = this.rendererList(this.defs);
     this.background = this.slot(this.svg);
     this.title = this.slot(this.svg);
     this.contentGroup = svgEl('g');
@@ -271,6 +339,7 @@ class ChartBody extends Renderer<ChartBodyProps> {
     this.noSeriesSlot = this.elSlot();
     this.loadingSlot = this.elSlot();
     this.tooltip = this.slot();
+    this.liveRegionSlot = this.elSlot();
     return null;
   }
 
@@ -282,6 +351,24 @@ class ChartBody extends Renderer<ChartBodyProps> {
 
 const defaultChartStyle = { position: 'relative' };
 
+// the tooltip and live region are positioned against the root, so a caller's style layers over the default; their own position still wins
+function withDefaultChartStyle(style: ChartProps['style']): ChartProps['style'] {
+  if (style === undefined) {
+    return defaultChartStyle;
+  }
+  // later declarations win in cssText, as later keys do in the merged object
+  return typeof style === 'string' ? 'position: relative;' + style : { ...defaultChartStyle, ...style };
+}
+
+// visually hidden but still read by assistive tech (the clipped-1px-box idiom)
+const liveRegionStyle = {
+  position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, border: 0,
+  overflow: 'hidden', clipPath: 'inset(50%)', whiteSpace: 'nowrap'
+};
+
+// long enough to swallow a key repeat, short enough that a deliberate step still speaks promptly
+const announceSettleDelay = 150;
+
 export default class Chart extends Renderer<ChartProps, ChartState> {
   root = htmlEl('div');
   simpleContent = this.elSlot(this.root);
@@ -289,14 +376,18 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   uniqueId: string;
   chartRef: Element | null = null;
   chartRectRef: Element | null = null;
+  /** the no-data/error/loading message region while it is focusable: the fallback stop when a teardown removes the plot */
+  messageRef: HTMLElement | null = null;
   isMouseWithinChart = false;
   chartEventHandler: Record<string, (event: ChartPointerEvent) => void>;
-  _simpleNodeContent: FactoryContent = null;
-  _simpleNode: Node | null = null;
+  _simpleFactory: ChartContentFactory | null = null;
+  _simpleFactoryContext: ChartFactoryContext | null = null;
+  /** what the last factory call put in the root: a fragment's children, recorded before insertion empties it */
+  _simpleNodes: Node[] = [];
 
   constructor() {
     super();
-    this.uniqueId = "" + chartInstanceCounter++;
+    this.uniqueId = nextChartInstanceId();
     this.state = getInitialState();
 
     // set while the full chart body is rendered (mirrors the old render ref)
@@ -337,100 +428,108 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   }
 
   processChartEvent(event: ChartPointerEvent, mouseInCallback: ChartPointCallback, mouseOutCallback?: ChartPointCallback): void {
-    let position: MouseEvent | Touch;
-    if ('targetTouches' in event) {
-      const touch = event.targetTouches[0] ?? event.changedTouches[0];
-      if (!touch) {
-        return;
-      }
-      position = touch;
+    // no plot rect to map onto: a child handler (a legend click) destroyed the chart before the event bubbled here
+    if (this.chartRectRef === null) {
+      return;
     }
-    else {
-      position = event;
-    }
-    const chartRect = this.chartRectRef!.getBoundingClientRect();
-    const chartX = position.clientX - chartRect.left;
-    const chartY = position.clientY - chartRect.top;
-    if (chartX > 0 && chartY > 0 && chartX < chartRect.width && chartY < chartRect.height) {
-      mouseInCallback(chartX, chartY);
+    const { x, y, withinPlot } = this.toPlotLocalPoint(event.clientX, event.clientY);
+    if (withinPlot) {
+      mouseInCallback(x, y);
     }
     else if (mouseOutCallback) {
-      mouseOutCallback(chartX, chartY);
+      mouseOutCallback(x, y);
     }
   }
 
-  /**
-   * Finalize a state delta that carries a new layoutInfo: reuse unchanged
-   * layout identities, notify onSeriesLayoutInfoChange when the series area
-   * moved, and refresh the tooltip layout. Returns the delta for the caller
-   * to merge (derive) or setState (post-commit).
-   */
-  applyLayoutInfo(props: ChartProps, state: ChartStateUpdate & { layoutInfo: ChartLayoutInfo | null }): ChartStateUpdate {
+  /** Client coordinates to plot-local SVG units: the rect is CSS pixels, the extents are logical. */
+  toPlotLocalPoint(clientX: number, clientY: number): { x: number; y: number; withinPlot: boolean } {
+    const plotRect = this.chartRectRef!.getBoundingClientRect();
+    const seriesLayoutInfo = this.state.layoutInfo?.seriesLayoutInfo ?? null;
+    const width = seriesLayoutInfo !== null ? seriesLayoutInfo.width : plotRect.width;
+    const height = seriesLayoutInfo !== null ? seriesLayoutInfo.height : plotRect.height;
+    const scaleX = plotRect.width > 0 ? width / plotRect.width : 1;
+    const scaleY = plotRect.height > 0 ? height / plotRect.height : 1;
+    const x = (clientX - plotRect.left) * scaleX;
+    const y = (clientY - plotRect.top) * scaleY;
+    return { x, y, withinPlot: x > 0 && y > 0 && x < width && y < height };
+  }
+
+  /** Non-null whenever chartRef, the chart body or a computed layout exist — sync() and init() gate all three on a valid config. */
+  private renderedConfig(): EnhancedMochartConfig {
+    return this.props.mochartConfig!;
+  }
+
+  /** Finalize a state delta carrying a new layoutInfo: reuse unchanged layout identities, queue
+   * onSeriesLayoutBoundsChange when the series area moved, and refresh the tooltip layout. */
+  applyLayoutInfo(mochartConfig: EnhancedMochartConfig, state: ChartStateUpdate & { layoutInfo: ChartLayoutInfo | null }): ChartStateUpdate {
     if (state.layoutInfo !== null) {
       state.layoutInfo = getChartLayoutInfoWithMutations(this.state.layoutInfo, state.layoutInfo);
       if (this.state.layoutInfo !== state.layoutInfo) {
         const newBounds = getBoundsForSeriesLayoutInfo(state.layoutInfo.seriesLayoutInfo);
         if (this.state.layoutInfo === null) {
-          this.onSeriesLayoutInfoChange(newBounds);
+          this.pendingSeriesLayoutBounds = newBounds;
         }
         else if (state.layoutInfo.seriesLayoutInfo !== this.state.layoutInfo.seriesLayoutInfo) {
           const oldBounds = getBoundsForSeriesLayoutInfo(this.state.layoutInfo.seriesLayoutInfo);
           if (getBoundsAreDifferent(oldBounds, newBounds)) {
-            this.onSeriesLayoutInfoChange(newBounds);
+            this.pendingSeriesLayoutBounds = newBounds;
           }
         }
       }
       state.tooltipLayoutInfo = getTooltipLayoutInfoWithMutations(this.state.tooltipLayoutInfo,
-        this.getTooltipLayoutInfo(props, state));
+        this.getTooltipLayoutInfo(mochartConfig, state));
     }
     return state;
   }
 
-  getTooltipLayoutInfo(props: ChartProps, state: ChartStateUpdate): Bounds {
-    const { mochartConfig } = props;
-    const { layoutInfo, axisData, tooltipGroupIndex, tooltipSeriesPercentage, tooltipGroupPercentage, tooltipBounds } =
+  getTooltipLayoutInfo(mochartConfig: EnhancedMochartConfig, state: ChartStateUpdate): Bounds {
+    const { layoutInfo, axisData, tooltipCategoryIndex, tooltipSeriesPercentage, tooltipCategoryPercentage, tooltipBounds } =
       { ...this.state, ...state };
 
-    const groupValueData = axisData?.group?.valueData;
+    const categoryValueData = axisData?.category?.valueData;
     if (tooltipBounds === null) {
       return getTooltipLayoutInfo(mochartConfig, null);
     }
-    return getTooltipLayoutInfo(mochartConfig, tooltipBounds, layoutInfo!, groupValueData!, tooltipGroupIndex,
-      tooltipGroupPercentage!, tooltipSeriesPercentage!);
+    return getTooltipLayoutInfo(mochartConfig, tooltipBounds, layoutInfo!, categoryValueData!, tooltipCategoryIndex,
+      tooltipCategoryPercentage!, tooltipSeriesPercentage!);
   }
 
-  constructUniqueIds(props: ChartProps): Pick<ChartState, 'uniqueIds'> {
+  constructUniqueIds(mochartConfig: EnhancedMochartConfig): Pick<ChartState, 'uniqueIds'> {
     const uniqueId = this.uniqueId;
-    const { mochartConfig } = props;
-    const { seriesAxisConfigs, seriesConfigs, linearGradientConfigs, radialGradientConfigs } = mochartConfig;
+    const { valueAxes: valueAxisConfigs, series: seriesConfigs, linearGradients: linearGradientConfigs, radialGradients: radialGradientConfigs } = mochartConfig;
 
     const svgUniqueId = mochartChartIdPrefix + uniqueId;
     const tooltipClipPathUniqueId = tooltipClipPathIdPrefix + uniqueId;
     const titleClipPathUniqueId = titleClipPathIdPrefix + uniqueId;
     const legendClipPathUniqueId = legendClipPathIdPrefix + uniqueId;
-    const groupAxisTitleClipPathUniqueId = groupAxisTitleClipPathIdPrefix + uniqueId;
-    const groupAxisTickLabelClipPathUniqueId = gridAxisTickLabelClipPathIdPrefix + uniqueId;
-    const seriesAxisTitleClipPathUniqueIds: Record<string, string> = {};
-    for (const { id } of seriesAxisConfigs) {
-      seriesAxisTitleClipPathUniqueIds[id] = seriesAxisTitleClipPathIdPrefix + uniqueId + '__' + id;
+    const categoryAxisTitleClipPathUniqueId = categoryAxisTitleClipPathIdPrefix + uniqueId;
+    const categoryAxisTickLabelClipPathUniqueId = categoryAxisTickLabelClipPathIdPrefix + uniqueId;
+    const seriesClipPathUniqueId = seriesClipPathIdPrefix + uniqueId;
+    const clipIndicatorPatternUniqueId = clipIndicatorPatternIdPrefix + uniqueId;
+    const valueAxisTitleClipPathUniqueIds: Record<string, string> = Object.create(null);
+    for (const { id } of valueAxisConfigs) {
+      valueAxisTitleClipPathUniqueIds[id] = valueAxisTitleClipPathIdPrefix + uniqueId + '__' + id;
     }
-    const linearGradientIdMap: Record<string, string> = {};
+    const linearGradientIdMap: Record<string, string> = Object.create(null);
     for (const { id } of linearGradientConfigs) {
       linearGradientIdMap[id] = linearGradientIdPrefix + uniqueId + '__' + id;
     }
-    const radialGradientIdMap: Record<string, string> = {};
+    const radialGradientIdMap: Record<string, string> = Object.create(null);
     for (const { id } of radialGradientConfigs) {
       radialGradientIdMap[id] = radialGradientIdPrefix + uniqueId + '__' + id;
     }
-    const seriesColorGradientUniqueIds: Record<string, string> = {};
+    const seriesColorGradientUniqueIds: Record<string, string> = Object.create(null);
+    const patternIdMap: Record<string, string> = Object.create(null);
     for (const { id } of seriesConfigs) {
       seriesColorGradientUniqueIds[id] = seriesColorGradientIdPrefix + uniqueId + '__' + id;
+      patternIdMap[id] = seriesPatternIdPrefix + uniqueId + '__' + id;
     }
     const gradientIdMap = { ...linearGradientIdMap, ...radialGradientIdMap };
     const uniqueIds = {
       svgUniqueId, tooltipClipPathUniqueId, titleClipPathUniqueId, legendClipPathUniqueId,
-      groupAxisTitleClipPathUniqueId, groupAxisTickLabelClipPathUniqueId, seriesAxisTitleClipPathUniqueIds,
-      seriesColorGradientUniqueIds, gradientIdMap, linearGradientIdMap, radialGradientIdMap
+      categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds,
+      seriesClipPathUniqueId, clipIndicatorPatternUniqueId,
+      seriesColorGradientUniqueIds, gradientIdMap, linearGradientIdMap, radialGradientIdMap, patternIdMap
     };
     return { uniqueIds };
   }
@@ -443,18 +542,20 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       const { valid, errors, warnings } = validation;
 
       if (valid) {
-        const uniqueIdState = this.constructUniqueIds(props);
+        const uniqueIdState = this.constructUniqueIds(mochartConfig);
         const domAccessors = this.chartRef ? getDomAccessors(this.chartRef) : null;
-        const chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors);
+        const chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts);
 
         const layoutInfo = getChartLayoutInfo(mochartConfig, chartData, chartTextBoundsData, width, height);
         let axisData = null;
         let stackData = null;
-        if (chartData !== null && getChartDataGroupCount(chartData) > 0) {
+        let clippedEdges = noClippedEdges;
+        if (chartData !== null && getChartDataCategoryCount(chartData) > 0) {
           axisData = getAxisData(mochartConfig, layoutInfo, chartData);
           stackData = getStackData(mochartConfig, chartData);
+          clippedEdges = getClippedEdgesWithMutations(this.state.clippedEdges, mochartConfig, chartData);
         }
-        return this.applyLayoutInfo(props, { ...newState, layoutInfo, axisData, stackData, chartTextBoundsData, ...uniqueIdState });
+        return this.applyLayoutInfo(mochartConfig, { ...newState, layoutInfo, axisData, stackData, clippedEdges, chartTextBoundsData, ...uniqueIdState });
       }
       if (warn && standalone) {
         if (errors.length > 0) {
@@ -470,17 +571,22 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   }
 
   calculateTooltipTextSize = () => {
-    const { mochartConfig } = this.props;
+    // a zero-size chart renders the no-size message with no chartRef while the tooltip state stays open
+    if (!this.chartRef) {
+      return;
+    }
+    const mochartConfig = this.renderedConfig();
     let { tooltipBounds } = this.state;
-    tooltipBounds = getBoundsWithMutations(tooltipBounds, getTooltipBounds(mochartConfig, getDomAccessors(this.chartRef!)));
+    tooltipBounds = getBoundsWithMutations(tooltipBounds, getTooltipBounds(mochartConfig, getDomAccessors(this.chartRef)));
     const tooltipLayoutInfo = getTooltipLayoutInfoWithMutations(this.state.tooltipLayoutInfo,
-      this.getTooltipLayoutInfo(this.props, { tooltipBounds }));
+      this.getTooltipLayoutInfo(mochartConfig, { tooltipBounds }));
     this.setState({ tooltipBounds, tooltipLayoutInfo });
   }
 
   calculateInitialTextSizes() {
     if (this.chartRef) {
-      const { mochartConfig, chartData } = this.props;
+      const { chartData } = this.props;
+      const mochartConfig = this.renderedConfig();
       const newState = this.calculateTextSizes(false);
       if (newState.layoutInfo == null) {
         // measurements were unchanged; push any tooltip remeasure through on its own
@@ -492,20 +598,21 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       if (chartData) {
         newState.axisData = getAxisDataWithMutations(this.state.axisData, mochartConfig, newState.layoutInfo, chartData);
       }
-      this.setState(this.applyLayoutInfo(this.props, { ...newState, layoutInfo: newState.layoutInfo }));
+      this.setState(this.applyLayoutInfo(mochartConfig, { ...newState, layoutInfo: newState.layoutInfo }));
     }
   }
 
   calculateTextSizes(setState = true): ChartStateUpdate {
     let newState: ChartStateUpdate = {};
     if (this.chartRef) {
-      const { mochartConfig, chartData, width, height } = this.props;
+      const { chartData, width, height } = this.props;
+      const mochartConfig = this.renderedConfig();
       const domAccessors = getDomAccessors(this.chartRef);
-      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors);
+      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts);
       chartTextBoundsData = getChartTextBoundsDataWithMutations(this.state.chartTextBoundsData, chartTextBoundsData);
       let layoutInfo = this.state.layoutInfo;
       if (chartTextBoundsData !== this.state.chartTextBoundsData || layoutInfo === null) {
-        layoutInfo = getChartLayoutInfo(mochartConfig, chartData, chartTextBoundsData, width, height);
+        layoutInfo = getChartLayoutInfoWithMutations(layoutInfo, getChartLayoutInfo(mochartConfig, chartData, chartTextBoundsData, width, height));
         newState = { chartTextBoundsData, layoutInfo };
       }
       const { tooltipVisible } = this.state;
@@ -513,29 +620,32 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         let { tooltipBounds } = this.state;
         tooltipBounds = getBoundsWithMutations(tooltipBounds, getTooltipBounds(mochartConfig, domAccessors));
         const tooltipLayoutInfo = getTooltipLayoutInfoWithMutations(this.state.tooltipLayoutInfo,
-          this.getTooltipLayoutInfo(this.props, { tooltipBounds }));
+          this.getTooltipLayoutInfo(mochartConfig, { tooltipBounds }));
         newState.tooltipBounds = tooltipBounds;
         newState.tooltipLayoutInfo = tooltipLayoutInfo;
       }
       if (setState === true && (newState.layoutInfo !== undefined || newState.tooltipBounds !== undefined)) {
         const { layoutInfo: oldLayoutInfo, axisData: oldAxisData } = this.state;
-        const groupExtentChanged = oldLayoutInfo === null || oldLayoutInfo.seriesLayoutInfo.groupExtent !== layoutInfo.seriesLayoutInfo.groupExtent;
-        const seriesExtentChanged = oldLayoutInfo === null || oldLayoutInfo.seriesLayoutInfo.seriesExtent !== layoutInfo.seriesLayoutInfo.seriesExtent;
+        // axis data depends on the axis layout (tick label space), not only on the extents, so rebuild by layout identity like derive()
+        const categoryLayoutChanged = oldLayoutInfo === null || oldLayoutInfo.categoryAxisLayoutInfo !== layoutInfo.categoryAxisLayoutInfo ||
+          oldLayoutInfo.seriesLayoutInfo.categoryExtent !== layoutInfo.seriesLayoutInfo.categoryExtent;
+        const valueLayoutChanged = oldLayoutInfo === null || oldLayoutInfo.valueAxisLayoutInfos !== layoutInfo.valueAxisLayoutInfos ||
+          oldLayoutInfo.seriesLayoutInfo.valueExtent !== layoutInfo.seriesLayoutInfo.valueExtent;
         if (chartData) {
-          if (oldAxisData === null || groupExtentChanged && seriesExtentChanged) {
+          if (oldAxisData === null || categoryLayoutChanged && valueLayoutChanged) {
             newState.axisData = getAxisDataWithMutations(this.state.axisData, mochartConfig, layoutInfo, chartData);
           }
-          else if (groupExtentChanged || seriesExtentChanged) {
+          else if (categoryLayoutChanged || valueLayoutChanged) {
             const { axisData } = this.state;
-            if (groupExtentChanged) {
-              newState.axisData = getAxisDataForGroupChange(axisData!, mochartConfig, layoutInfo, chartData);
+            if (categoryLayoutChanged) {
+              newState.axisData = getAxisDataForCategoryChange(axisData!, mochartConfig, layoutInfo, chartData);
             }
             else {
               newState.axisData = getAxisDataForSeriesChange(axisData!, mochartConfig, layoutInfo, chartData);
             }
           }
         }
-        this.setState(this.applyLayoutInfo(this.props, { ...newState, layoutInfo }));
+        this.setState(this.applyLayoutInfo(mochartConfig, { ...newState, layoutInfo }));
       }
     }
     return newState;
@@ -543,14 +653,16 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
   updateTextSizes() {
     if (this.chartRef) {
-      const { mochartConfig, chartData, width, height } = this.props;
+      const { chartData, width, height } = this.props;
+      const mochartConfig = this.renderedConfig();
       const domAccessors = getDomAccessors(this.chartRef);
-      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors);
+      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts);
       chartTextBoundsData = getChartTextBoundsDataWithMutations(this.state.chartTextBoundsData, chartTextBoundsData);
       if (chartTextBoundsData !== this.state.chartTextBoundsData) {
         let layoutInfo = getChartLayoutInfo(mochartConfig, chartData, chartTextBoundsData, width, height);
         layoutInfo = getChartLayoutInfoWithMutations(this.state.layoutInfo, layoutInfo);
-        this.setState({ chartTextBoundsData, layoutInfo });
+        // through applyLayoutInfo like every other layout commit, or the host's bounds notification is silently lost
+        this.setState(this.applyLayoutInfo(mochartConfig, { chartTextBoundsData, layoutInfo }));
       }
     }
   }
@@ -564,7 +676,8 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     const dataChanged = chartData !== prevProps.chartData;
     const sizeChanged = width !== prevProps.width || height !== prevProps.height;
     const mochartConfigChanged = mochartConfig !== prevProps.mochartConfig;
-    const mochartConfigStructureChanged = mochartConfigChanged && (!mochartConfig || hasConfigStructureChange(prevProps.mochartConfig, mochartConfig));
+    // hasConfigStructureChange counts a config appearing or going away as structural
+    const mochartConfigStructureChanged = mochartConfigChanged && hasConfigStructureChange(prevProps.mochartConfig, mochartConfig);
 
     if (mochartConfigChanged || dataChanged || sizeChanged) {
       if (!mochartConfig || mochartConfigStructureChanged || (dataChanged && chartData === null)) {
@@ -572,14 +685,9 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       }
       else if (mochartConfig.validation.valid) {
         const { chartTextBoundsData, axisData: oldAxisData, stackData: oldStackData } = this.state;
-        let { uniqueIds, layoutInfo, axisData, stackData } = this.state;
+        let { uniqueIds, layoutInfo, axisData, stackData, clippedEdges } = this.state;
 
-        const groupAxisChanged = chartData === null || prevProps.chartData === null || prevProps.chartData.groupData !== chartData.groupData;
-        const seriesAxisChanged = chartData === null || prevProps.chartData === null || prevProps.chartData.seriesData.raw.axisDomains !== chartData.seriesData.raw.axisDomains ||
-          prevProps.chartData.seriesData.filtered.axisDomains !== chartData.seriesData.filtered.axisDomains;
-        // TODO - what about if seriesData.axisSeriesCounts changes? how should that be handled?
-        // layout reads chartData only through seriesData.axisSeriesCounts (ChartDataForLayout),
-        // so value-tween frames that keep that identity can keep the current layout
+        // layout reads chartData only through seriesData.axisSeriesCounts, so value-tween frames keeping that identity keep the layout
         const layoutInputsChanged = mochartConfigChanged || sizeChanged || this.state.layoutInfo === null ||
           chartData === null || prevProps.chartData === null ||
           chartData.seriesData.axisSeriesCounts !== prevProps.chartData.seriesData.axisSeriesCounts;
@@ -587,34 +695,72 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
           layoutInfo = getChartLayoutInfo(mochartConfig, chartData, chartTextBoundsData, width, height);
           layoutInfo = getChartLayoutInfoWithMutations(this.state.layoutInfo, layoutInfo);
         }
+        // axis data also depends on the layout, so a moved axis layout info forces that axis's rebuild
+        const oldLayoutInfo = this.state.layoutInfo;
+        const categoryLayoutChanged = oldLayoutInfo === null || layoutInfo!.categoryAxisLayoutInfo !== oldLayoutInfo.categoryAxisLayoutInfo;
+        const valueLayoutChanged = oldLayoutInfo === null || layoutInfo!.valueAxisLayoutInfos !== oldLayoutInfo.valueAxisLayoutInfos;
+        const categoryAxisChanged = chartData === null || prevProps.chartData === null || prevProps.chartData.categoryData !== chartData.categoryData || categoryLayoutChanged;
+        const valueAxisChanged = chartData === null || prevProps.chartData === null || prevProps.chartData.seriesData.raw.axisDomains !== chartData.seriesData.raw.axisDomains ||
+          prevProps.chartData.seriesData.filtered.axisDomains !== chartData.seriesData.filtered.axisDomains ||
+          // animation frames substitute only the render domains, so they must trip this too
+          prevProps.chartData.seriesData.raw.renderAxisDomains !== chartData.seriesData.raw.renderAxisDomains ||
+          prevProps.chartData.seriesData.filtered.renderAxisDomains !== chartData.seriesData.filtered.renderAxisDomains ||
+          valueLayoutChanged;
 
         let tooltipStateSource: ChartState | ReturnType<typeof getInitialTooltipState> = this.state;
         if (chartData !== null) {
-          if (oldAxisData === null || mochartConfigChanged || sizeChanged || (groupAxisChanged && seriesAxisChanged)) {
-            axisData = getAxisDataWithMutations(oldAxisData, mochartConfig, layoutInfo!, chartData);
+          // data with no categories carries none of this, the way init() leaves it for a chart mounted with it;
+          // the old values have to go rather than just be left standing, or they outlive the categories they place
+          if (getChartDataCategoryCount(chartData) === 0) {
+            axisData = null;
+            stackData = null;
+            clippedEdges = noClippedEdges;
           }
           else {
-            if (groupAxisChanged) {
-              axisData = getAxisDataForGroupChange(axisData!, mochartConfig, layoutInfo!, chartData);
+            if (oldAxisData === null || mochartConfigChanged || sizeChanged || (categoryAxisChanged && valueAxisChanged)) {
+              axisData = getAxisDataWithMutations(oldAxisData, mochartConfig, layoutInfo!, chartData);
             }
-            else if (seriesAxisChanged) {
-              axisData = getAxisDataForSeriesChange(axisData!, mochartConfig, layoutInfo!, chartData);
+            else {
+              if (categoryAxisChanged) {
+                axisData = getAxisDataForCategoryChange(axisData!, mochartConfig, layoutInfo!, chartData);
+              }
+              else if (valueAxisChanged) {
+                axisData = getAxisDataForSeriesChange(axisData!, mochartConfig, layoutInfo!, chartData);
+              }
             }
-          }
-          if (mochartConfigChanged || dataChanged) {
-            stackData = getStackDataWithMutations(oldStackData, mochartConfig, chartData);
+            if (mochartConfigChanged || dataChanged) {
+              stackData = getStackDataWithMutations(oldStackData, mochartConfig, chartData);
+              clippedEdges = getClippedEdgesWithMutations(clippedEdges, mochartConfig, chartData);
+            }
           }
 
           if (dataChanged && prevProps.chartData !== null) {
-            let { tooltipGroupIndex, tooltipValueObject } = this.state;
-            if (tooltipGroupIndex >= 0) {
-              const oldGroupValues = prevProps.chartData.groupData.values.raw;
-              const newGroupValues = chartData.groupData.values.raw;
-              if (oldGroupValues && newGroupValues) {
-                const groupValue = oldGroupValues[tooltipGroupIndex];
-                tooltipGroupIndex = newGroupValues.indexOf(groupValue);
-                tooltipValueObject = getGroupSeriesValueObject(chartData, tooltipGroupIndex);
-                tooltipStateSource = { ...this.state, tooltipGroupIndex, tooltipValueObject };
+            const oldCategoryValues = prevProps.chartData.categoryData.values.key;
+            const newCategoryValues = chartData.categoryData.values.key;
+            if (oldCategoryValues && newCategoryValues) {
+              // the resume index follows its category too, or Enter after a shift reopens on a different one
+              const rememberedValue = oldCategoryValues[this.lastTooltipCategoryIndex];
+              const rememberedIndex = rememberedValue === undefined ? -1 : indexOfCategoryValue(mochartConfig.categoryAxis, newCategoryValues, rememberedValue);
+              if (rememberedIndex >= 0) {
+                this.lastTooltipCategoryIndex = rememberedIndex;
+              }
+            }
+            let { tooltipCategoryIndex, tooltipValueObject } = this.state;
+            if (tooltipCategoryIndex >= 0) {
+              if (oldCategoryValues && newCategoryValues) {
+                const categoryValue = oldCategoryValues[tooltipCategoryIndex];
+                tooltipCategoryIndex = indexOfCategoryValue(mochartConfig.categoryAxis, newCategoryValues, categoryValue);
+                if (tooltipCategoryIndex >= 0) {
+                  tooltipValueObject = getCategorySeriesValueObject(chartData, tooltipCategoryIndex);
+                  // the unsnapped box follows the fraction, so a moved category must move it too
+                  const tooltipCategoryPercentage = getCategoryFraction(axisData!, layoutInfo!, tooltipCategoryIndex);
+                  tooltipStateSource = { ...this.state, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipValueObject };
+                }
+                else {
+                  // the tooltip's category disappeared: close fully so the next
+                  // click opens instead of toggling an invisible tooltip
+                  tooltipStateSource = getInitialTooltipState();
+                }
               }
               else {
                 tooltipStateSource = getInitialTooltipState();
@@ -624,11 +770,11 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         }
 
         if (mochartConfigChanged) {
-          ({ uniqueIds } = this.constructUniqueIds(nextProps));
+          ({ uniqueIds } = this.constructUniqueIds(mochartConfig));
         }
-        const { tooltipVisible, tooltipGroupIndex, tooltipGroupPercentage, tooltipSeriesPercentage, tooltipValueObject } = tooltipStateSource;
-        const newState = { uniqueIds, layoutInfo, axisData, stackData, tooltipVisible, tooltipGroupIndex, tooltipGroupPercentage, tooltipSeriesPercentage, tooltipValueObject };
-        return this.applyLayoutInfo(nextProps, newState);
+        const { tooltipVisible, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipSeriesPercentage, tooltipValueObject, tooltipBounds } = tooltipStateSource;
+        const newState = { uniqueIds, layoutInfo, axisData, stackData, clippedEdges, tooltipVisible, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipSeriesPercentage, tooltipValueObject, tooltipBounds };
+        return this.applyLayoutInfo(mochartConfig, newState);
       }
       else {
         return getInitialState();
@@ -637,8 +783,14 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     return null;
   }
 
+  /** the mount pass measures the tick labels before they truncate; one follow-up pass re-reads them once they have */
+  private remeasureAfterMount = false;
+
   measure(prevProps: ChartProps | null, prevState: ChartState | null): void {
+    this.flushSeriesLayoutBoundsChange();
     if (prevProps === null || prevState === null) {
+      // set before the measure: its setState flushes the follow-up measure synchronously
+      this.remeasureAfterMount = true;
       this.calculateTextSizes();
       return;
     }
@@ -651,6 +803,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         const { chartData, mochartConfig } = prevProps;
         if (chartData === null || newChartData === null) {
           if (newChartData !== chartData || newMochartConfig !== mochartConfig) {
+            this.remeasureAfterMount = true;
             this.calculateInitialTextSizes();
           }
           else {
@@ -662,28 +815,34 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         }
         else {
           const { width, height } = prevProps;
-          const { axisData: oldAxisData, tooltipGroupIndex: oldTooltipGroupIndex, tooltipVisible: oldTooltipVisible } = prevState;
-          const { axisData, tooltipGroupIndex, tooltipVisible } = this.state;
+          const { axisData: oldAxisData, tooltipCategoryIndex: oldTooltipCategoryIndex, tooltipVisible: oldTooltipVisible } = prevState;
+          const { axisData, tooltipCategoryIndex, tooltipVisible } = this.state;
 
           const dataChanged = chartData !== this.props.chartData;
 
           const sizeChanged = width !== this.props.width || height !== this.props.height;
           const mochartConfigChanged = mochartConfig !== newMochartConfig;
           const axisDataChanged = oldAxisData !== axisData;
-          // rendered chart text comes from the config (titles, legend) and from
-          // axisData (tick labels); a data change that keeps both identities cannot
-          // change any measured text, so value-tween frames skip the DOM remeasure.
-          // hasDefault keeps retrying bounds that could not be measured yet.
+          // rendered text comes from the config (titles, legend) and axisData (tick labels): a data change keeping
+          // both identities cannot change measured text, so tween frames skip the DOM remeasure; hasDefault retries unmeasured bounds
           const textMayHaveChanged = axisDataChanged || this.state.chartTextBoundsData.hasDefault === true;
 
           if (mochartConfigChanged || sizeChanged || (dataChanged && textMayHaveChanged)) {
+            this.remeasureAfterMount = false;
+            this.calculateInitialTextSizes();
+          }
+          else if (this.remeasureAfterMount) {
+            // bounded to one pass: the truncation resets whenever the plot extent moves, so chasing it could ping-pong
+            this.remeasureAfterMount = false;
             this.calculateInitialTextSizes();
           }
 
           if (tooltipVisible) {
             // dataChanged: an open tooltip renders the new values, so its bounds
             // need remeasuring even when the chart text is untouched
-            if (dataChanged || !oldTooltipVisible || oldTooltipGroupIndex !== tooltipGroupIndex) {
+            // nulled bounds: reopening over the already-shown category clears them, and unmeasured bounds render hidden
+            const boundsCleared = prevState.tooltipBounds !== null && this.state.tooltipBounds === null;
+            if (dataChanged || !oldTooltipVisible || oldTooltipCategoryIndex !== tooltipCategoryIndex || boundsCleared) {
               this.calculateTooltipTextSize();
             }
           }
@@ -692,87 +851,130 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     }
   }
 
-  onSeriesLayoutInfoChange(layoutBounds: Bounds): void {
-    this.props.onSeriesLayoutInfoChange?.(layoutBounds);
+  /** applyLayoutInfo can run inside derive(), before props commit; measure() flushes this after. */
+  pendingSeriesLayoutBounds: Bounds | null = null;
+
+  flushSeriesLayoutBoundsChange(): void {
+    const layoutBounds = this.pendingSeriesLayoutBounds;
+    if (layoutBounds !== null) {
+      this.pendingSeriesLayoutBounds = null;
+      this.props.onSeriesLayoutBoundsChange?.(layoutBounds);
+    }
   }
 
+  /** Closing unmounts the tooltip's own tab stops; the render's teardown restore hands focus back to the plot stop. */
   closeTooltip = () => {
-    this.setState({ ...getInitialTooltipState(), tooltipBounds: null });
+    // the same close as Escape on the plot: applyFocus releases the pinned category with it
+    this.setTooltipOpenAtCategory(false, this.state.tooltipCategoryIndex);
   }
 
-  updateTooltipGroupIndex = (tooltipGroupIndex: number): void => {
+  updateTooltipCategoryIndex = (tooltipCategoryIndex: number): void => {
     const { chartData } = this.props;
-    const tooltipValueObject = getGroupSeriesValueObject(chartData!, tooltipGroupIndex);
-    const tooltipLayoutInfo = this.getTooltipLayoutInfo(this.props, { ...this.state, tooltipGroupIndex });
-    this.setState({ tooltipGroupIndex, tooltipValueObject, tooltipLayoutInfo });
+    this.lastTooltipCategoryIndex = tooltipCategoryIndex;
+    const tooltipValueObject = getCategorySeriesValueObject(chartData!, tooltipCategoryIndex);
+    // the unsnapped position follows the fraction, so a step must move it like the open did
+    const tooltipCategoryPercentage = this.getCategoryFraction(tooltipCategoryIndex);
+    const tooltipLayoutInfo = this.getTooltipLayoutInfo(this.renderedConfig(), { ...this.state, tooltipCategoryIndex, tooltipCategoryPercentage });
+    this.setState({ tooltipCategoryIndex, tooltipCategoryPercentage, tooltipValueObject, tooltipLayoutInfo });
+    // announce here so the tooltip's own prev/next buttons read out, not just the keyboard
+    this.announceTooltipCategory(tooltipCategoryIndex);
   }
 
-  toggleTooltip({ groupIndex, groupPercentage, seriesPercentage }: ChartEventPayload): void {
-    const { mochartConfig, onFocus, chartData } = this.props;
-    const { tooltipConfig, crosshairConfig } = mochartConfig;
+  /** Open or close explicitly: enter must always open and leave always close, or the pairing inverts. */
+  setTooltipOpen(open: boolean, { categoryIndex, categoryFraction, valueFraction: seriesPercentage }: Pick<ChartEventPayload, 'categoryIndex' | 'categoryFraction' | 'valueFraction'>): void {
+    const { onFocus, chartData } = this.props;
+    const mochartConfig = this.renderedConfig();
+    const { tooltip: tooltipConfig, crosshair: crosshairConfig } = mochartConfig;
     if (tooltipConfig.visible || crosshairConfig.visible) {
-      let { tooltipVisible, tooltipGroupIndex, tooltipSeriesPercentage, tooltipGroupPercentage, tooltipLayoutInfo, tooltipBounds, tooltipValueObject } = this.state;
-      tooltipSeriesPercentage = tooltipVisible ? null : seriesPercentage;
-      tooltipGroupPercentage = tooltipVisible ? null : groupPercentage;
+      let { tooltipVisible, tooltipCategoryIndex, tooltipSeriesPercentage, tooltipCategoryPercentage, tooltipLayoutInfo, tooltipBounds, tooltipValueObject } = this.state;
+      tooltipSeriesPercentage = open ? seriesPercentage : null;
+      tooltipCategoryPercentage = open ? categoryFraction : null;
       tooltipLayoutInfo = getTooltipLayoutInfo(mochartConfig, null);
       tooltipBounds = null;
-      tooltipVisible = !tooltipVisible;
-      tooltipGroupIndex = tooltipVisible ? groupIndex : -1;
-      tooltipValueObject = tooltipVisible ? getGroupSeriesValueObject(chartData!, tooltipGroupIndex) : null;
-      if ((tooltipConfig.visible && tooltipConfig.applyFocus) || (crosshairConfig.visible && crosshairConfig.applyFocus)) {
-        onFocus?.({ groupIndex: tooltipGroupIndex });
+      tooltipVisible = open;
+      tooltipCategoryIndex = open ? categoryIndex : -1;
+      if (tooltipVisible) {
+        this.lastTooltipCategoryIndex = tooltipCategoryIndex;
       }
-      this.setState({ tooltipVisible, tooltipGroupIndex, tooltipSeriesPercentage, tooltipGroupPercentage, tooltipLayoutInfo, tooltipBounds, tooltipValueObject });
+      else {
+        this.announceTooltipCategory(null);
+      }
+      tooltipValueObject = tooltipVisible ? getCategorySeriesValueObject(chartData!, tooltipCategoryIndex) : null;
+      if ((tooltipConfig.visible && tooltipConfig.applyFocus) || (crosshairConfig.visible && crosshairConfig.applyFocus)) {
+        onFocus?.({ categoryIndex: tooltipCategoryIndex });
+      }
+      this.setState({ tooltipVisible, tooltipCategoryIndex, tooltipSeriesPercentage, tooltipCategoryPercentage, tooltipLayoutInfo, tooltipBounds, tooltipValueObject });
     }
   }
 
   getChartEventPayload = (chartX: number, chartY: number): ChartEventPayload => {
-    const { mochartConfig } = this.props;
+    const mochartConfig = this.renderedConfig();
     const { axisData, layoutInfo } = this.state;
-    const dataGroupPositions = axisData!.group!.valueData.positions;
+    const dataCategoryPositions = axisData!.category!.valueData.positions;
     const { seriesLayoutInfo } = layoutInfo!;
-    const { plotConfig } = mochartConfig;
+    const { plot: plotConfig } = mochartConfig;
 
-    const groupPosition = plotConfig.inverted ? chartY : chartX;
-    const groupPercentage = groupPosition / seriesLayoutInfo.groupExtent;
-    let groupIndex = -1;
-    let groupDifference = Number.MAX_VALUE;
-    const groupCount = dataGroupPositions.length;
-    let dataGroupPosition;
-    for (let dataGroupIndex = 0; dataGroupIndex < groupCount; dataGroupIndex++) {
-      dataGroupPosition = dataGroupPositions[dataGroupIndex];
-      const currentDifference = Math.abs(dataGroupPosition - groupPosition);
-      if (currentDifference <= groupDifference) { // <= means we'll pick the greater group value on a tie
-        groupDifference = currentDifference;
-        groupIndex = dataGroupIndex;
+    const categoryPosition = plotConfig.inverted ? chartY : chartX;
+    const categoryFraction = categoryPosition / seriesLayoutInfo.categoryExtent;
+    let categoryIndex = -1;
+    let categoryDifference = Number.MAX_VALUE;
+    const categoryCount = dataCategoryPositions.length;
+    let dataCategoryPosition;
+    for (let dataCategoryIndex = 0; dataCategoryIndex < categoryCount; dataCategoryIndex++) {
+      dataCategoryPosition = dataCategoryPositions[dataCategoryIndex];
+      const currentDifference = Math.abs(dataCategoryPosition - categoryPosition);
+      if (currentDifference <= categoryDifference) { // <= means we'll pick the greater category value on a tie
+        categoryDifference = currentDifference;
+        categoryIndex = dataCategoryIndex;
       }
     }
     const seriesPosition = plotConfig.inverted ? chartX : chartY;
-    const seriesPercentage = seriesPosition / seriesLayoutInfo.seriesExtent;
+    const seriesPercentage = seriesPosition / seriesLayoutInfo.valueExtent;
 
     return {
-      chartX, chartY, groupPosition, seriesPosition, groupPercentage, seriesPercentage, groupIndex
+      chartX, chartY, categoryPosition, valuePosition: seriesPosition, categoryFraction, valueFraction: seriesPercentage, categoryIndex
     };
   }
 
   onChartMouseEnter = (chartX: number, chartY: number): void => {
-    const { mochartConfig, onChartMouseEnter } = this.props;
+    const { onChartMouseEnter } = this.props;
     const eventPayload = this.getChartEventPayload(chartX, chartY);
     onChartMouseEnter?.(eventPayload);
-    if (mochartConfig.tooltipConfig.mouseOver) {
-      this.toggleTooltip(eventPayload);
+    if (this.renderedConfig().tooltip.followPointer && !this.isLoading()) {
+      this.setTooltipOpen(true, eventPayload);
     }
   }
 
   onChartMouseMove = (chartX: number, chartY: number): void => {
-    const { mochartConfig, onFocus, onChartMouseMove } = this.props;
+    const { onFocus, onChartMouseMove, chartData } = this.props;
+    const mochartConfig = this.renderedConfig();
     const eventPayload = this.getChartEventPayload(chartX, chartY);
     onChartMouseMove?.(eventPayload);
-    if (mochartConfig.tooltipConfig.mouseOver) {
-      const { seriesPercentage, groupIndex } = eventPayload;
-      if (mochartConfig.tooltipConfig.visible) {
-        onFocus?.({ groupIndex });
-        this.setState({ tooltipSeriesPercentage: seriesPercentage });
+    // the enter path is gated too: while loading, nothing may commit a category position that the new data may not have
+    if (mochartConfig.tooltip.followPointer && !this.isLoading()) {
+      const { tooltip: tooltipConfig, crosshair: crosshairConfig } = mochartConfig;
+      const { valueFraction: seriesPercentage, categoryFraction, categoryIndex } = eventPayload;
+      // same applyFocus gate as setTooltipOpen: enter, move and leave must agree on whether pointer interactions may change the focused category
+      if ((tooltipConfig.visible && tooltipConfig.applyFocus) || (crosshairConfig.visible && crosshairConfig.applyFocus)) {
+        onFocus?.({ categoryIndex });
+      }
+      if (tooltipConfig.visible) {
+        if (this.state.tooltipVisible) {
+          // track the pointer: content follows the nearest category, position
+          // follows the pointer percentages (measure() remeasures on index change)
+          const tooltipCategoryIndex = categoryIndex;
+          const tooltipValueObject = tooltipCategoryIndex !== this.state.tooltipCategoryIndex
+            ? getCategorySeriesValueObject(chartData!, tooltipCategoryIndex)
+            : this.state.tooltipValueObject;
+          const tooltipCategoryPercentage = categoryFraction;
+          const tooltipSeriesPercentage = seriesPercentage;
+          const tooltipLayoutInfo = this.getTooltipLayoutInfo(mochartConfig,
+            { ...this.state, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipSeriesPercentage });
+          this.setState({ tooltipCategoryIndex, tooltipValueObject, tooltipCategoryPercentage, tooltipSeriesPercentage, tooltipLayoutInfo });
+        }
+        else {
+          this.setState({ tooltipSeriesPercentage: seriesPercentage });
+        }
       }
       else {
         this.setState({ tooltipBounds: null });
@@ -781,20 +983,212 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   }
 
   onChartMouseLeave = (chartX: number, chartY: number): void => {
-    const { mochartConfig, onChartMouseLeave } = this.props;
+    const { onChartMouseLeave } = this.props;
     const eventPayload = this.getChartEventPayload(chartX, chartY);
     onChartMouseLeave?.(eventPayload);
-    if (mochartConfig.tooltipConfig.mouseOver) {
-      this.toggleTooltip(eventPayload);
+    if (this.renderedConfig().tooltip.followPointer) {
+      this.setTooltipOpen(false, eventPayload);
     }
   }
 
   onChartClick = (chartX: number, chartY: number): void => {
-    const { mochartConfig, onChartClick } = this.props;
+    const { onChartClick } = this.props;
     const eventPayload = this.getChartEventPayload(chartX, chartY);
     onChartClick?.(eventPayload);
-    if (!mochartConfig.tooltipConfig.mouseOver) {
-      this.toggleTooltip(eventPayload);
+    if (!this.renderedConfig().tooltip.followPointer) {
+      this.setTooltipOpen(!this.state.tooltipVisible, eventPayload);
+    }
+  }
+
+  // no in-bounds gate: markers/labels can overflow the plot rect
+  onSeriesShapeClick = (seriesId: string, categoryIndex: number, event: Event): void => {
+    const { onSeriesClick } = this.props;
+    // covers pointer and keyboard activation alike, both of which route through here
+    if (onSeriesClick && !this.isLoading()) {
+      const { clientX, clientY } = event as MouseEvent;
+      // keyboard activation has no pointer position to resolve a nearest category from
+      let nearestCategoryIndex = -1;
+      if (clientX !== undefined && clientY !== undefined) {
+        const { x, y } = this.toPlotLocalPoint(clientX, clientY);
+        ({ categoryIndex: nearestCategoryIndex } = this.getChartEventPayload(x, y));
+      }
+      onSeriesClick({ seriesId, categoryIndex, nearestCategoryIndex });
+    }
+  }
+
+  /** where keyboard toggling reopens: the last category the tooltip showed */
+  lastTooltipCategoryIndex = 0;
+
+  /** kept across syncs so the plot's shallow-equal skip holds while the label and expanded state are unchanged */
+  private plotA11yProps: SeriesShapeA11yProps | null = null;
+
+  private getPlotA11yProps(ariaLabel: string, ariaExpanded: string): SeriesShapeA11yProps {
+    const cached = this.plotA11yProps;
+    if (cached === null || cached.ariaLabel !== ariaLabel || cached.ariaExpanded !== ariaExpanded) {
+      this.plotA11yProps = { ariaLabel, ariaExpanded, onKeyDown: this.onPlotKeyDown };
+    }
+    return this.plotA11yProps!;
+  }
+
+  /** the visually-hidden aria-live node; keyboard navigation speaks the tooltip through it */
+  liveRegionNode: Node | null = null;
+  private announceTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingAnnouncement: { text: string; categoryIndex: number | null } | null = null;
+  private lastAnnouncement = '';
+  private lastAnnouncedCategoryIndex: number | null = null;
+
+  /** the live region and message live inside ChartBody, so the references have to go when the body does */
+  private clearBody(): void {
+    this.body.set(null);
+    this.setLiveRegionNode(null);
+    this.messageRef = null;
+    this.cancelAnnouncement();
+  }
+
+  /** a new or dropped region starts with nothing spoken, so the latch must not swallow its first announcement */
+  private setLiveRegionNode(liveRegionNode: Node | null): void {
+    if (liveRegionNode !== this.liveRegionNode) {
+      this.liveRegionNode = liveRegionNode;
+      this.lastAnnouncement = '';
+      this.lastAnnouncedCategoryIndex = null;
+    }
+  }
+
+  private cancelAnnouncement(): void {
+    if (this.announceTimer !== null) {
+      clearTimeout(this.announceTimer);
+      this.announceTimer = null;
+    }
+    this.pendingAnnouncement = null;
+  }
+
+  dispose(): void {
+    this.cancelAnnouncement();
+  }
+
+  /** announce a category's tooltip values to screen readers; null silences the region */
+  announceTooltipCategory(categoryIndex: number | null): void {
+    if (this.liveRegionNode !== null) {
+      const { chartData } = this.props;
+      const announcement = categoryIndex === null ? '' :
+        getTooltipAnnouncement(this.renderedConfig(), getCategorySeriesValueObject(chartData!, categoryIndex));
+      if (announcement === '') {
+        this.cancelAnnouncement();
+        this.writeAnnouncement(announcement, null);
+        return;
+      }
+      // a single step speaks at once; a held arrow key adds only the category it settles on,
+      // so the region never queues one announcement per category passed through
+      if (this.announceTimer === null) {
+        this.writeAnnouncement(announcement, categoryIndex);
+      }
+      else {
+        clearTimeout(this.announceTimer);
+        this.pendingAnnouncement = { text: announcement, categoryIndex };
+      }
+      this.announceTimer = setTimeout(this.flushAnnouncement, announceSettleDelay);
+    }
+  }
+
+  private flushAnnouncement = (): void => {
+    this.announceTimer = null;
+    if (this.pendingAnnouncement !== null) {
+      const { text, categoryIndex } = this.pendingAnnouncement;
+      this.pendingAnnouncement = null;
+      this.writeAnnouncement(text, categoryIndex);
+    }
+  }
+
+  // re-announcing the same category with the same text is a no-op (a clamped arrow): rewriting it
+  // churns the live region for nothing; a different category with the same text still speaks
+  private writeAnnouncement(announcement: string, categoryIndex: number | null): void {
+    if (this.liveRegionNode !== null && (announcement !== this.lastAnnouncement || categoryIndex !== this.lastAnnouncedCategoryIndex)) {
+      this.lastAnnouncement = announcement;
+      this.lastAnnouncedCategoryIndex = categoryIndex;
+      this.liveRegionNode.textContent = announcement;
+    }
+  }
+
+  /** the category's position as a fraction of the category extent, as the pointer would report it */
+  private getCategoryFraction(categoryIndex: number): number {
+    return getCategoryFraction(this.state.axisData!, this.state.layoutInfo!, categoryIndex);
+  }
+
+  /** open/close via the pointer-click path, with the position synthesized from the category */
+  setTooltipOpenAtCategory(open: boolean, categoryIndex: number): void {
+    this.setTooltipOpen(open, { categoryIndex, categoryFraction: this.getCategoryFraction(categoryIndex), valueFraction: 0.5 });
+  }
+
+  /** step the open tooltip to a category, moving the focus like the pointer would */
+  stepTooltipCategoryIndex(categoryIndex: number): void {
+    const { onFocus } = this.props;
+    const { tooltip: tooltipConfig, crosshair: crosshairConfig } = this.renderedConfig();
+    if ((tooltipConfig.visible && tooltipConfig.applyFocus) || (crosshairConfig.visible && crosshairConfig.applyFocus)) {
+      onFocus?.({ categoryIndex });
+    }
+    this.updateTooltipCategoryIndex(categoryIndex);
+  }
+
+  /** The provider behind the chart's own dynamic reads (never the one handed to the state factories). */
+  private readProvider(): DataProvider | null {
+    const { readDataProvider, dataProvider } = this.props;
+    return readDataProvider === undefined ? dataProvider : readDataProvider;
+  }
+
+  isLoading(): boolean {
+    const { loading } = this.props;
+    const dataProvider = this.readProvider();
+    return Boolean(loading ? loading : dataProvider && dataProvider.getLoading?.());
+  }
+
+  onPlotKeyDown = (event: Event) => {
+    const { key } = event as KeyboardEvent;
+    // loading pauses stepping like it pauses pointer events, but Escape still
+    // closes the tooltip — its close button stays clickable during loading too
+    if (this.isLoading() && key !== 'Escape') {
+      return;
+    }
+    const { chartData } = this.props;
+    const categoryCount = chartData !== null ? getChartDataCategoryCount(chartData) : 0;
+    if (categoryCount === 0) {
+      return;
+    }
+    const { tooltipVisible, tooltipCategoryIndex } = this.state;
+    const rememberedIndex = Math.min(this.lastTooltipCategoryIndex, categoryCount - 1);
+    if (key === 'Enter' || key === ' ') {
+      event.preventDefault();
+      this.setTooltipOpenAtCategory(!tooltipVisible, tooltipVisible ? tooltipCategoryIndex : rememberedIndex);
+      if (!tooltipVisible) {
+        this.announceTooltipCategory(rememberedIndex);
+      }
+    }
+    else if (key === 'Escape') {
+      if (tooltipVisible) {
+        event.preventDefault();
+        this.setTooltipOpenAtCategory(false, tooltipCategoryIndex);
+      }
+    }
+    else if (key === 'ArrowRight' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowUp' || key === 'Home' || key === 'End') {
+      // arrows exist to step categories; with a single category (a pie) they
+      // stay inert instead of popping the tooltip — Enter/Space still toggles
+      if (categoryCount <= 1) {
+        return;
+      }
+      event.preventDefault();
+      if (!tooltipVisible) {
+        const index = key === 'Home' ? 0 : key === 'End' ? categoryCount - 1 : rememberedIndex;
+        this.setTooltipOpenAtCategory(true, index);
+        this.announceTooltipCategory(index);
+      }
+      else {
+        const nextIndex =
+          key === 'ArrowRight' || key === 'ArrowDown' ? Math.min(tooltipCategoryIndex + 1, categoryCount - 1) :
+          key === 'ArrowLeft' || key === 'ArrowUp' ? Math.max(tooltipCategoryIndex - 1, 0) :
+          key === 'Home' ? 0 : categoryCount - 1;
+        if (nextIndex !== tooltipCategoryIndex) {
+          this.stepTooltipCategoryIndex(nextIndex);
+        }
+      }
     }
   }
 
@@ -807,169 +1201,154 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     this.chartRectRef = chartRectRef;
   }
 
+  /** the chart element holding keyboard focus, if any */
+  private getFocusedChartNode(): Element | null {
+    const activeElement = document.activeElement;
+    return activeElement !== null && activeElement !== document.body && this.root.node.contains(activeElement) ? activeElement : null;
+  }
+
+  /** A render that tears down the focused tab stop must not drop focus to <body>: hand it to the plot stop, else the message that replaced the plot. */
+  private restoreTornDownFocus(focusedNode: Element | null): void {
+    // an inner component may have moved focus itself (series reorder, tooltip row filtering)
+    if (focusedNode === null || focusedNode.isConnected || this.getFocusedChartNode() !== null) {
+      return;
+    }
+    focusRestored((this.chartRectRef as SVGElement | null) ?? this.messageRef);
+  }
+
   create() {
     return this.root.node;
   }
 
   sync() {
     const {
-      mochartConfig, dataProvider, style = defaultChartStyle, width, height, error: propsError, loading: propsLoading,
+      mochartConfig, style: styleProp, width, height, error: propsError,
       getErrorComponent: errorFactory = getErrorComponent,
       getLoadingComponent: loadingFactory = getLoadingComponent,
       getNoSizeComponent: noSizeFactory = getNoSizeComponent,
       getConfigErrorComponent: configErrorFactory = getConfigErrorComponent
     } = this.props;
+    const dataProvider = this.readProvider();
+    const style = withDefaultChartStyle(styleProp);
+    const error = propsError != null ? propsError : dataProvider && !isDataProviderValid(dataProvider) ? dataProvider.getError?.() : undefined;
+    // read before the branches below can unmount whatever holds focus
+    const focusedNode = this.getFocusedChartNode();
 
-    if ((width === 0 || height === 0) || (mochartConfig && !mochartConfig.validation.valid)) {
-      let errorComponent: FactoryContent = false;
-      if (width === 0 || height === 0) {
-        errorComponent = noSizeFactory({ mochartConfig, width, height });
-      }
-      else if (mochartConfig) {
-        errorComponent = configErrorFactory({ mochartConfig, width, height });
-      }
-      else {
-        errorComponent = false;
-      }
-      this.setPresent(true);
-      this.chartRef = null;
-      this.root.set({ className: mochartCssClasses['chartError'], style, 'data-mochart-version': getVersionString() });
-      this.body.set(null);
-      this.setSimpleContent(errorComponent);
+    // negative and non-finite sizes would reach the svg as invalid width/height
+    const hasSize = width > 0 && height > 0;
+    if (!hasSize || (mochartConfig && !mochartConfig.validation.valid)) {
+      const messageFactory = !hasSize ? noSizeFactory : configErrorFactory;
+      this.syncMessage(mochartCssClasses['chartError'], style, messageFactory, this.factoryContext(width, height, error), focusedNode);
       return;
     }
 
-    const error = propsError ? propsError : dataProvider && !isDataProviderValid(dataProvider) ? dataProvider.getError?.() : false;
-    const loading = Boolean(propsLoading ? propsLoading : dataProvider && dataProvider.getLoading?.());
+    const loading = this.isLoading();
 
     if (!mochartConfig) {
-      if (error) {
-        this.setPresent(true);
-        this.chartRef = null;
-        this.root.set({ className: mochartCssClasses['chartError'], style, 'data-mochart-version': getVersionString() });
-        this.body.set(null);
-        this.setSimpleContent(errorFactory({ dataProvider, width, height, error }));
+      if (isErrorActive(error)) {
+        this.syncMessage(mochartCssClasses['chartError'], style, errorFactory, this.factoryContext(width, height, error), focusedNode);
       }
       else if (loading) {
-        this.setPresent(true);
-        this.chartRef = null;
-        this.root.set({ className: mochartCssClasses['loading'], style, 'data-mochart-version': getVersionString() });
-        this.body.set(null);
-        this.setSimpleContent(loadingFactory({ width, height }));
+        this.syncMessage(mochartCssClasses['loading'], style, loadingFactory, this.factoryContext(width, height, error), focusedNode);
       }
       else {
         this.chartRef = null;
+        this.isMouseWithinChart = false;
+        this.clearBody();
+        this.setSimpleContent(null, null);
         this.setPresent(false);
+        this.restoreTornDownFocus(focusedNode);
       }
       return;
     }
 
     const hasChartDataContent = this.hasChartDataContent(error);
-    const chartEventHandler = (hasChartDataContent && !loading) ? this.chartEventHandler : {};
+    // loading reports but does not commit: pointer tracking and hover feedback continue, clicks do
+    // not, because a click names a category that may not exist once the new data lands
+    const { onClick: chartClickHandler, ...chartMotionHandlers } = this.chartEventHandler;
+    if (!hasChartDataContent) {
+      this.isMouseWithinChart = false;
+    }
+    const chartEventHandler = !hasChartDataContent ? {}
+      : loading ? chartMotionHandlers
+      : { ...chartMotionHandlers, onClick: chartClickHandler };
 
     this.setPresent(true);
-    this.root.set({ className: mochartCssClasses['chart'], ...chartEventHandler, style, 'data-mochart-version': getVersionString() });
+    const rootClassName = accessibilityActive(mochartConfig.accessibility)
+      ? mochartCssClasses['chart'] + ' ' + mochartCssClasses['accessible']
+      : mochartCssClasses['chart'];
+    this.root.set({ className: rootClassName, ...chartEventHandler, style, [mochartVersionAttribute]: getVersionString(),
+      'aria-hidden': mochartConfig.accessibility.hidden ? 'true' : null });
     this.chartRef = this.root.node;
-    this.setSimpleContent(false);
-    this.body.set(ChartBody, { chart: this, chartProps: this.props, chartState: this.state, error, loading });
+    this.setSimpleContent(null, null);
+    this.body.set(ChartBody, { chart: this, mochartConfig, chartProps: this.props, chartState: this.state, error, loading });
   }
 
-  /** Insert factory-produced content (Node | El | string | falsy) into the simple-content region of the root div. */
-  setSimpleContent(content: FactoryContent): void {
-    if (this._simpleNodeContent === content) {
+  /** Replace the chart body with a message state (no size, invalid config, no-config error/loading); the root becomes the message container. */
+  private syncMessage(className: string, style: ChartProps['style'], factory: ChartContentFactory, context: ChartFactoryContext, focusedNode: Element | null): void {
+    const { mochartConfig } = this.props;
+    // no config means nothing can switch accessibility off
+    const accessibility = mochartConfig ? accessibilityActive(mochartConfig.accessibility) : true;
+    this.setPresent(true);
+    this.chartRef = null;
+    this.isMouseWithinChart = false;
+    // -1: never a tab stop, but focusable for the teardown restore below, which reads out the message
+    this.root.set({ className, style, [mochartVersionAttribute]: getVersionString(),
+      'aria-hidden': mochartConfig?.accessibility.hidden ? 'true' : null, tabindex: accessibility ? '-1' : null });
+    this.clearBody();
+    this.setSimpleContent(factory, context);
+    this.messageRef = accessibility ? this.root.node as HTMLElement : null;
+    this.restoreTornDownFocus(focusedNode);
+  }
+
+  /** Fill the simple-content region of the root div from a factory (null clears it); runs the factory only when its inputs changed. */
+  setSimpleContent(factory: ChartContentFactory | null, context: ChartFactoryContext | null): void {
+    if (factory === null ? this._simpleFactory === null : sameFactoryInputs(this._simpleFactory, this._simpleFactoryContext, factory, context!)) {
       return;
     }
-    this._simpleNodeContent = content;
-    if (this._simpleNode && this._simpleNode.parentNode) {
-      this._simpleNode.parentNode.removeChild(this._simpleNode);
+    this._simpleFactory = factory;
+    this._simpleFactoryContext = context;
+    for (const simpleNode of this._simpleNodes) {
+      simpleNode.parentNode?.removeChild(simpleNode);
     }
-    this._simpleNode = null;
-    if (content === null || content === undefined || content === false) {
-      return;
+    this._simpleNodes = [];
+    const node = factory ? factoryContentToNode(factory(context!)) : null;
+    if (node) {
+      this._simpleNodes = node instanceof DocumentFragment ? Array.from(node.childNodes) : [node];
+      this.root.node.insertBefore(node, this.simpleContent.anchor);
     }
-    const node = content instanceof El ? content.node :
-      (typeof content === 'string' || typeof content === 'number') ? document.createTextNode(String(content)) : content;
-    this.root.node.insertBefore(node, this.simpleContent.anchor);
-    this._simpleNode = node;
+  }
+
+  /** True when the committed dataset holds at least one category. */
+  private hasCategories(): boolean {
+    const { chartData } = this.props;
+    return chartData !== null && getChartDataCategoryCount(chartData) > 0;
   }
 
   hasChartDataContent(error: unknown): boolean {
-    const { chartData } = this.props;
-    const hasChartData = chartData !== null;
-    const groupCount = hasChartData ? getChartDataGroupCount(chartData) : 0;
-    return !error && hasChartData && groupCount > 0;
+    return !isErrorActive(error) && this.hasCategories();
   }
 
-  /** Fill in the ChartBody's slots — called from ChartBody.sync with the body renderer. */
-  syncBody(body: ChartBody): void {
-    const {
-      mochartConfig, dataProvider, chartData, focusData, onFocus, onSeriesFilter, width, height,
-      getErrorComponent: errorFactory = getErrorComponent,
-      getLoadingComponent: loadingFactory = getLoadingComponent,
-      getNoDataComponent: noDataFactory = getNoDataComponent,
-      getNoSeriesComponent: noSeriesFactory = getNoSeriesComponent
-    } = this.props;
-    const { layoutInfo, tooltipLayoutInfo, axisData, stackData, tooltipVisible, tooltipGroupIndex, tooltipBounds, uniqueIds, tooltipValueObject } = this.state;
-    const { error, loading } = body.props;
+  /** The context every state factory receives; width/height are the box the returned content fills. */
+  private factoryContext(width: number, height: number, error: unknown): ChartFactoryContext {
+    const { mochartConfig, dataProvider } = this.props;
+    return {
+      width,
+      height,
+      mochartConfig: mochartConfig ?? null,
+      dataProvider: dataProvider ?? null,
+      error,
+      hasData: this.hasCategories()
+    };
+  }
 
-    const {
-      svgUniqueId, tooltipClipPathUniqueId, titleClipPathUniqueId, legendClipPathUniqueId, groupAxisTitleClipPathUniqueId,
-      groupAxisTickLabelClipPathUniqueId, seriesAxisTitleClipPathUniqueIds, seriesColorGradientUniqueIds, gradientIdMap,
-      linearGradientIdMap, radialGradientIdMap
-    } = uniqueIds!;
-    const {
-      chartContentLayoutInfo, titleLayoutInfo, titlePrefixLayoutInfo, titleTextLayoutInfo, titleTextRawLayoutInfo, titleSuffixLayoutInfo,
-      legendLayoutInfo, legendItemTextLayoutInfo, legendItemLayoutInfos, legendItemRawLayoutInfos, plotLayoutInfo,
-      seriesLayoutInfo, groupAxisLayoutInfo, seriesAxisLayoutInfos
-    } = layoutInfo!;
-    const chartTransform = translateObject(chartContentLayoutInfo);
+  /** Sync the config-only <defs> lists: series color gradients, linear/radial gradients and patterns. */
+  syncConfigDefs(body: ChartBody, mochartConfig: EnhancedMochartConfig, uniqueIds: ChartUniqueIds): void {
+    const { seriesColorGradientUniqueIds, linearGradientIdMap, radialGradientIdMap, patternIdMap } = uniqueIds;
 
-    const focusedGroupIndex = focusData ? focusData.focusedGroupIndex : -1;
-    const focusedSeriesId = focusData ? focusData.focusedSeriesId : null;
-    const seriesAxisFocusPercentages = focusData ? focusData.seriesAxisFocusPercentages : {};
-    const seriesFocusPercentages = focusData ? focusData.seriesFocusPercentages : {};
-    const hasChartData = chartData !== null;
-    const groupCount = hasChartData ? getChartDataGroupCount(chartData) : 0;
-    const hasChartDataContent = !error && hasChartData && groupCount > 0;
-    const tooltipShown = hasChartData && tooltipBounds !== null && tooltipGroupIndex >= 0;
-    const filteredFlags = hasChartData ? chartData.seriesData.filteredFlags : emptyFilteredFlags;
-    let maxTickLabelLength = seriesLayoutInfo.width;
-
-    let clips: RendererItem[] = [
-      { key: 'title-clip', ctor: TitleClip, props: { titleConfig: mochartConfig.titleConfig, chartContentLayoutInfo,
-        titleTextLayoutInfo, titleClipPathUniqueId } },
-      { key: 'legend-clip', ctor: LegendClip, props: { legendConfig: mochartConfig.legendConfig, chartContentLayoutInfo,
-        legendItemTextLayoutInfo, legendClipPathUniqueId } }
-    ];
-
-    if (hasChartDataContent) {
-      maxTickLabelLength = axisData!.group!.maxTickLabelLength;
-
-      clips.push({ key: 'tooltip-clip', ctor: TooltipClip, props: { mochartConfig, tooltipVisible, tooltipShown,
-        tooltipLayoutInfo, chartContentLayoutInfo, width, height,
-        tooltipClipPathUniqueId } });
-    }
-
-    clips.push(
-      { key: 'group-axis-title-clip', ctor: AxisTitleClip, props: { axisConfig: mochartConfig.groupAxisConfig, chartContentLayoutInfo,
-        axisLayoutInfo: groupAxisLayoutInfo, axisTitleClipPathUniqueId: groupAxisTitleClipPathUniqueId } },
-      { key: 'group-axis-tick-label-clip', ctor: GroupAxisTickLabelClip, props: { mochartConfig, maxTickLabelLength,
-        chartContentLayoutInfo, groupAxisLayoutInfo,
-        groupAxisTickLabelClipPathUniqueId } }
-    );
-
-    clips = clips.concat(mochartConfig.seriesAxisConfigs.map((seriesAxisConfig: SeriesAxisConfig) => ({
-      key: 'series-axis-clip-' + seriesAxisConfig.id,
-      ctor: AxisTitleClip,
-      props: { axisConfig: seriesAxisConfig,
-        chartContentLayoutInfo, axisLayoutInfo: seriesAxisLayoutInfos[seriesAxisConfig.id],
-        axisTitleClipPathUniqueId: seriesAxisTitleClipPathUniqueIds[seriesAxisConfig.id] }
-    })));
-
-    const seriesGradientColors = mochartConfig.seriesConfigs.map((seriesConfig: SeriesConfig) => getSeriesGradientColors(seriesConfig));
     const seriesColorGradients: RendererItem[] = [];
-    mochartConfig.seriesConfigs.forEach((seriesConfig: SeriesConfig, i: number) => {
-      if (seriesGradientColors[i]) {
+    mochartConfig.series.forEach((seriesConfig: EnhancedSeriesConfig) => {
+      if (getSeriesGradientColors(seriesConfig)) {
         seriesColorGradients.push({
           key: seriesConfig.id, ctor: SeriesColorGradient,
           props: { uniqueId: seriesColorGradientUniqueIds[seriesConfig.id], seriesConfig }
@@ -977,59 +1356,187 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       }
     });
 
-    const linearGradients: RendererItem[] = mochartConfig.linearGradientConfigs.map((linearGradientConfig: LinearGradientConfig) => ({
+    const linearGradients: RendererItem[] = mochartConfig.linearGradients.map((linearGradientConfig: LinearGradientConfig) => ({
       key: linearGradientConfig.id, ctor: LinearGradient,
       props: { uniqueId: linearGradientIdMap[linearGradientConfig.id], linearGradientConfig }
     }));
 
-    const radialGradients: RendererItem[] = mochartConfig.radialGradientConfigs.map((radialGradientConfig: RadialGradientConfig) => ({
+    const radialGradients: RendererItem[] = mochartConfig.radialGradients.map((radialGradientConfig: RadialGradientConfig) => ({
       key: radialGradientConfig.id, ctor: RadialGradient,
       props: { uniqueId: radialGradientIdMap[radialGradientConfig.id], radialGradientConfig }
     }));
 
-    body.svgSlot.set('svg', () => body.svg);
-    body.svg.set({ xmlns: 'http://www.w3.org/2000/svg', id: svgUniqueId, width, height });
-    body.clips.sync(clips);
+    const patterns: RendererItem[] = [];
+    const fillPalette = mochartConfig.colorPalette.shape.normal.fillColors;
+    mochartConfig.series.forEach((seriesConfig: EnhancedSeriesConfig, seriesIndex: number) => {
+      if (seriesConfig.patternConfig !== undefined) {
+        const fallbackColor = fillPalette[seriesIndex % fillPalette.length] ?? null;
+        patterns.push({
+          key: seriesConfig.id,
+          ctor: Pattern,
+          props: {
+            uniqueId: patternIdMap[seriesConfig.id],
+            patternConfig: seriesConfig.patternConfig as PatternConfig,
+            seriesColor: getSeriesFillColor(mochartConfig.colorPalette, seriesConfig, seriesIndex, null, fallbackColor)
+          }
+        });
+      }
+    });
+
     body.seriesColorGradients.sync(seriesColorGradients);
     body.linearGradients.sync(linearGradients);
     body.radialGradients.sync(radialGradients);
-    body.background.set(Background, { config: mochartConfig.chartConfig, classKey: 'background', spacingRelative: false, spacingLayoutInfo: chartContentLayoutInfo });
+    body.patterns.sync(patterns);
+  }
+
+  /** Fill in the ChartBody's slots — called from ChartBody.sync with the body renderer. */
+  syncBody(body: ChartBody): void {
+    const {
+      chartData, focusData, onFocus, onSeriesFilter, width, height,
+      getErrorComponent: errorFactory = getErrorComponent,
+      getLoadingComponent: loadingFactory = getLoadingComponent,
+      getNoDataComponent: noDataFactory = getNoDataComponent,
+      getNoSeriesComponent: noSeriesFactory = getNoSeriesComponent
+    } = this.props;
+    const { layoutInfo, tooltipLayoutInfo, axisData, stackData, clippedEdges, tooltipVisible, tooltipCategoryIndex, tooltipBounds, uniqueIds, tooltipValueObject } = this.state;
+    const { mochartConfig, error, loading } = body.props;
+    // read before the slots below can unmount whatever holds focus
+    const focusedNode = this.getFocusedChartNode();
+
+    const {
+      svgUniqueId, tooltipClipPathUniqueId, titleClipPathUniqueId, legendClipPathUniqueId, categoryAxisTitleClipPathUniqueId,
+      categoryAxisTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, seriesClipPathUniqueId,
+      clipIndicatorPatternUniqueId, gradientIdMap, patternIdMap
+    } = uniqueIds!;
+    const {
+      chartContentLayoutInfo, titleLayoutInfo, titlePrefixLayoutInfo, titleTextLayoutInfo, titleTextRawLayoutInfo, titleSuffixLayoutInfo,
+      legendLayoutInfo, legendItemTextLayoutInfo, legendItemLayoutInfos, legendItemRawLayoutInfos, plotLayoutInfo,
+      seriesLayoutInfo, categoryAxisLayoutInfo, valueAxisLayoutInfos
+    } = layoutInfo!;
+    const chartTransform = translateObject(chartContentLayoutInfo);
+
+    const focusedCategoryIndex = focusData ? focusData.focusedCategoryIndex : -1;
+    const focusedSeriesId = focusData ? focusData.focusedSeriesId : null;
+    const valueAxisFocusPercentages = focusData ? focusData.valueAxisFocusPercentages : {};
+    const seriesFocusPercentages = focusData ? focusData.seriesFocusPercentages : {};
+    const hasChartData = chartData !== null;
+    const categoryCount = hasChartData ? getChartDataCategoryCount(chartData) : 0;
+    const hasChartDataContent = !isErrorActive(error) && hasChartData && categoryCount > 0;
+    const tooltipShown = hasChartData && tooltipBounds !== null && tooltipCategoryIndex >= 0;
+    const filteredFlags = hasChartData ? chartData.seriesData.filteredFlags : emptyFilteredFlags;
+    let maxTickLabelLength = seriesLayoutInfo.width;
+
+    let clips: RendererItem[] = [
+      { key: 'title-clip', ctor: TitleClip, props: { titleConfig: mochartConfig.title, chartContentLayoutInfo,
+        titleTextLayoutInfo, titleClipPathUniqueId } },
+      { key: 'legend-clip', ctor: LegendClip, props: { legendConfig: mochartConfig.legend, chartContentLayoutInfo,
+        legendItemTextLayoutInfo, legendClipPathUniqueId } }
+    ];
+
+    if (hasChartDataContent) {
+      maxTickLabelLength = axisData!.category!.maxTickLabelLength;
+
+      // TooltipClip unmounts its node when the tooltip is not visible, so anything referencing the clip has to know
+      clips.push({ key: 'tooltip-clip', ctor: TooltipClip, props: { mochartConfig, tooltipVisible, tooltipShown,
+        tooltipLayoutInfo, chartContentLayoutInfo, width, height,
+        tooltipClipPathUniqueId } });
+      // cartesian only: a pie has no axis bounds to exceed, and PieSeriesContainer never
+      // references the clip, so emitting it there would leave dead markup in every pie chart
+      if (mochartConfig.chart.type !== CHART_TYPE_PIE) {
+        clips.push({ key: 'series-clip', ctor: SeriesClip, props: { mochartConfig,
+          seriesLayoutInfo: layoutInfo!.seriesLayoutInfo, seriesClipPathUniqueId } });
+      }
+    }
+
+    clips.push(
+      { key: 'category-axis-title-clip', ctor: AxisTitleClip, props: { axisConfig: mochartConfig.categoryAxis, chartContentLayoutInfo,
+        axisLayoutInfo: categoryAxisLayoutInfo, axisTitleClipPathUniqueId: categoryAxisTitleClipPathUniqueId } },
+      { key: 'category-axis-tick-label-clip', ctor: CategoryAxisTickLabelClip, props: { mochartConfig, maxTickLabelLength,
+        plotLayoutInfo, categoryAxisLayoutInfo,
+        categoryAxisTickLabelClipPathUniqueId } }
+    );
+
+    clips = clips.concat(mochartConfig.valueAxes.map((valueAxisConfig: EnhancedValueAxisConfig) => ({
+      key: 'value-axis-clip-' + valueAxisConfig.id,
+      ctor: AxisTitleClip,
+      props: { axisConfig: valueAxisConfig,
+        chartContentLayoutInfo, axisLayoutInfo: valueAxisLayoutInfos[valueAxisConfig.id],
+        axisTitleClipPathUniqueId: valueAxisTitleClipPathUniqueIds[valueAxisConfig.id] }
+    })));
+
+    // gradients and patterns read only the config and its ids, so skip them on tooltip/animation syncs
+    if (body.defsConfig !== mochartConfig || body.defsUniqueIds !== uniqueIds) {
+      body.defsConfig = mochartConfig;
+      body.defsUniqueIds = uniqueIds;
+      this.syncConfigDefs(body, mochartConfig, uniqueIds!);
+    }
+
+    body.svgSlot.set('svg', () => body.svg);
+    const { accessibility: accessibilityConfig } = mochartConfig;
+    const accessibility = accessibilityActive(accessibilityConfig);
+    body.svg.set({ xmlns: 'http://www.w3.org/2000/svg', id: svgUniqueId, width, height,
+      role: accessibility ? 'group' : null,
+      ariaRoledescription: accessibility ? accessibilityConfig.chartRoleDescription : null,
+      ariaLabel: accessibility ? mochartConfig.title.text || accessibilityConfig.chartLabel : null }); // ||: an empty title must not blank the accessible name
+
+    // the keyboard announcer: visually hidden, spoken via role="status"
+    const liveRegion = accessibility ? body.liveRegionSlot.set('div', () => htmlEl('div')) : body.liveRegionSlot.set(null);
+    liveRegion?.set({ role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true', style: liveRegionStyle });
+    this.setLiveRegionNode(liveRegion !== null ? liveRegion.node : null);
+    body.clips.sync(clips);
+    body.background.set(Background, { config: mochartConfig.chart, classKey: 'background', spacingRelative: false, spacingLayoutInfo: chartContentLayoutInfo });
     body.title.set(Title, { mochartConfig, titleLayoutInfo, titlePrefixLayoutInfo,
       titleTextLayoutInfo, titleTextRawLayoutInfo, titleSuffixLayoutInfo,
-      titleClipPathUniqueId, onClick: this.onTitleClick });
+      titleClipPathUniqueId, accessibility, onClick: this.props.onTitleClick ? this.onTitleClick : undefined });
     body.contentGroup.set({ transform: chartTransform });
 
     if (hasChartDataContent) {
-      const { group: groupAxisData } = axisData!;
-      const { valueData: groupValueData } = groupAxisData!;
+      const { category: categoryAxisData } = axisData!;
+      const { valueData: categoryValueData } = categoryAxisData!;
 
-      if (mochartConfig.chartConfig.type === CHART_TYPE_PIE) {
-        body.plot.set(RadialPlot, { mochartConfig, gradientIdMap, seriesLayoutInfo,
+      // keyboard tab stop on the series-area rect: Enter/Space toggles the tooltip, arrows step, Escape closes;
+      // kept during loading — dropping tabindex would dump keyboard focus to <body>
+      const plotInteractive = mochartConfig.tooltip.visible ||
+        (mochartConfig.chart.type !== CHART_TYPE_PIE && mochartConfig.crosshair.visible);
+      const plotA11yProps = accessibility && plotInteractive
+        ? this.getPlotA11yProps(accessibilityConfig.plotLabel, String(tooltipVisible))
+        : null;
+
+      if (mochartConfig.chart.type === CHART_TYPE_PIE) {
+        body.plot.set(RadialPlot, { mochartConfig, gradientIdMap, patternIdMap, seriesLayoutInfo,
           plotLayoutInfo, chartData: chartData!, focusData: focusData!,
           initialAnimationPercentage: this.props.initialAnimationPercentage ?? null,
           onFocus: onFocus ?? (() => {}), onSliceClick: this.props.onSliceClick,
-          shapeRef: this.setChartRectRef });
+          shapeRef: this.setChartRectRef, a11yProps: plotA11yProps });
       }
       else {
-        body.plot.set(Plot, { mochartConfig, gradientIdMap, groupAxisLayoutInfo,
-          seriesAxisLayoutInfos, seriesLayoutInfo,
+        body.plot.set(Plot, { mochartConfig, gradientIdMap, patternIdMap, categoryAxisLayoutInfo,
+          valueAxisLayoutInfos, seriesLayoutInfo,
           plotLayoutInfo, chartData: chartData!, focusData, axisData: axisData!,
-          stackData: stackData!, groupValueData, onFocus: onFocus ?? (() => {}), shapeRef: this.setChartRectRef,
-          groupAxisTitleClipPathUniqueId,
-          groupAxisTickLabelClipPathUniqueId,
-          seriesAxisTitleClipPathUniqueIds,
-          tooltipClipPathUniqueId });
+          stackData: stackData!, categoryValueData, onFocus: onFocus ?? (() => {}),
+          onSeriesShapeClick: this.props.onSeriesClick ? this.onSeriesShapeClick : null,
+          shapeRef: this.setChartRectRef,
+          a11yProps: plotA11yProps,
+          categoryAxisTitleClipPathUniqueId,
+          categoryAxisTickLabelClipPathUniqueId,
+          seriesClipPathUniqueId,
+          clippedEdges,
+          clipIndicatorPatternUniqueId,
+          valueAxisTitleClipPathUniqueIds,
+          tooltipClipPathUniqueId,
+          tooltipClipPresent: mochartConfig.tooltip.visible && tooltipVisible });
       }
       body.plotEmpty.set(null);
 
-      body.tooltip.set(Tooltip, { mochartConfig, tooltipValueObject: tooltipValueObject!, tooltipGroupIndex, focusedGroupIndex,
-        focusedSeriesId, seriesAxisFocusPercentages, seriesFocusPercentages,
-        tooltipVisible, groupCount: chartData.groupData.values.raw.length,
+      body.tooltip.set(Tooltip, { mochartConfig, tooltipValueObject: tooltipValueObject!, tooltipCategoryIndex, focusedCategoryIndex,
+        focusedSeriesId, valueAxisFocusPercentages, seriesFocusPercentages,
+        tooltipVisible, categoryCount: chartData.categoryData.values.key.length,
         tooltipLayoutInfo: tooltipLayoutInfo!, tooltipBounds, svgUniqueId,
-        onClose: this.closeTooltip, updateTooltipGroupIndex: this.updateTooltipGroupIndex,
+        // Escape and a click inside close the same way, focus included
+        onClose: this.closeTooltip, onEscape: this.closeTooltip, updateTooltipCategoryIndex: this.updateTooltipCategoryIndex,
         onFocus: onFocus ?? (() => {}), onSeriesFilter: onSeriesFilter ?? (() => {}) });
 
-      if (mochartConfig.seriesConfigs.length === 0) {
+      if (mochartConfig.series.length === 0) {
         const { x, y, width, height } = seriesLayoutInfo;
 
         const noSeriesStyle = {
@@ -1042,24 +1549,26 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
         const noSeriesEl = body.noSeriesSlot.set('div', () => htmlEl('div'));
         noSeriesEl!.set({ className: mochartCssClasses['noSeries'], style: noSeriesStyle });
-        setFactoryContent(noSeriesEl!, noSeriesFactory({ width, height }));
+        syncFactoryContent(noSeriesEl!, noSeriesFactory, this.factoryContext(width, height, error));
       }
       else {
         body.noSeriesSlot.set(null);
       }
 
       body.noDataSlot.set(null);
+      this.messageRef = null;
     }
     else {
       body.plot.set(null);
       body.tooltip.set(null);
       body.noSeriesSlot.set(null);
 
-      body.plotEmpty.set(PlotEmpty, { mochartConfig, groupAxisLayoutInfo,
-        seriesAxisLayoutInfos, plotLayoutInfo,
-        groupAxisTitleClipPathUniqueId,
-        groupAxisTickLabelClipPathUniqueId,
-        seriesAxisTitleClipPathUniqueIds });
+      body.plotEmpty.set(PlotEmpty, { mochartConfig, categoryAxisLayoutInfo,
+        valueAxisLayoutInfos, plotLayoutInfo,
+        valueAxisSeriesCounts: hasChartData ? chartData.seriesData.axisSeriesCounts : emptyAxisSeriesCounts,
+        categoryAxisTitleClipPathUniqueId,
+        categoryAxisTickLabelClipPathUniqueId,
+        valueAxisTitleClipPathUniqueIds });
 
       const { x, y, width, height } = seriesLayoutInfo;
 
@@ -1071,28 +1580,31 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         maxWidth: width
       };
 
-      let noDataContent: FactoryContent = false;
-      if (error) {
-        noDataContent = errorFactory({ mochartConfig, dataProvider, width, height, error });
-      }
-      else if (!loading && hasChartData && groupCount === 0) {
-        noDataContent = noDataFactory({ mochartConfig, dataProvider, width, height });
+      // the loading overlay below owns the loading state; rendering it here too would stack two copies
+      if (loading && !isErrorActive(error)) {
+        body.noDataSlot.set(null);
+        this.messageRef = null;
       }
       else {
-        noDataContent = loadingFactory({ mochartConfig, dataProvider, width, height, hasData: hasChartDataContent });
-      }
+        const [noDataContentFactory, noDataClassKey] = isErrorActive(error) ? [errorFactory, 'error'] as const
+          : hasChartData && categoryCount === 0 ? [noDataFactory, 'noData'] as const
+          : [loadingFactory, 'loading'] as const;
 
-      const noDataEl = body.noDataSlot.set('div', () => htmlEl('div'));
-      noDataEl!.set({ className: mochartCssClasses['noData'], style: noDataStyle });
-      setFactoryContent(noDataEl!, noDataContent);
+        const noDataEl = body.noDataSlot.set('div', () => htmlEl('div'));
+        // -1: never a tab stop, but focusable for the teardown restore below, which reads out the message
+        noDataEl!.set({ className: mochartCssClasses[noDataClassKey], style: noDataStyle, tabindex: accessibility ? '-1' : null });
+        syncFactoryContent(noDataEl!, noDataContentFactory, this.factoryContext(width, height, error));
+        this.messageRef = accessibility ? noDataEl!.node as HTMLElement : null;
+      }
     }
 
     body.legend.set(Legend, { mochartConfig, filteredFlags, focusedSeriesId,
-      seriesAxisFocusPercentages, seriesFocusPercentages, onFocus: onFocus ?? (() => {}),
-      uniqueIds: uniqueIds!, onSeriesFilter: onSeriesFilter ?? (() => {}), legendLayoutInfo: legendLayoutInfo!, legendItemTextLayoutInfo: legendItemTextLayoutInfo!,
-      legendItemLayoutInfos: legendItemLayoutInfos!, legendItemRawLayoutInfos: legendItemRawLayoutInfos! });
+      valueAxisFocusPercentages, seriesFocusPercentages, onFocus: onFocus ?? (() => {}),
+      uniqueIds: uniqueIds!, onSeriesFilter: onSeriesFilter ?? (() => {}), legendLayoutInfo, legendItemTextLayoutInfo,
+      legendItemLayoutInfos, legendItemRawLayoutInfos });
 
-    if (loading) {
+    // The error state wins: never stack the loading overlay on top of error content.
+    if (loading && !isErrorActive(error)) {
       const { x, y, width, height } = seriesLayoutInfo;
 
       const loadingStyle = {
@@ -1104,11 +1616,15 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       };
 
       const loadingEl = body.loadingSlot.set('div', () => htmlEl('div'));
-      loadingEl!.set({ className: mochartCssClasses['loading'], style: loadingStyle });
-      setFactoryContent(loadingEl!, loadingFactory({ mochartConfig, dataProvider, width, height, hasData: hasChartDataContent }));
+      // the overlay is the only message while loading, so it carries the teardown restore's focus target
+      loadingEl!.set({ className: mochartCssClasses['loading'], style: loadingStyle, tabindex: accessibility ? '-1' : null });
+      syncFactoryContent(loadingEl!, loadingFactory, this.factoryContext(width, height, error));
+      this.messageRef = accessibility ? loadingEl!.node as HTMLElement : null;
     }
     else {
       body.loadingSlot.set(null);
     }
+
+    this.restoreTornDownFocus(focusedNode);
   }
 }

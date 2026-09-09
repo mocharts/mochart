@@ -1,6 +1,6 @@
 import type {
-  AxisDomains as DataAxisDomains, ChartData, GroupData, GroupValue,
-  NumericValues as DataNumericValues, SeriesData, SeriesDataSet,
+  AxisDomains as DataAxisDomains, ChartData, CategoryValue,
+  NumericValues as DataNumericValues,
   SeriesDomainObject as DataSeriesDomainObject, SeriesDomainObjects as DataSeriesDomainObjects,
   SeriesValueObject as DataSeriesValueObject, SeriesValueObjects as DataSeriesValueObjects
 } from './data';
@@ -9,41 +9,35 @@ export type FocusPercentage = number | null;
 export type FocusPercentageMap = Record<string, FocusPercentage>;
 
 export interface FocusData {
-  focusedGroupIndex: number;
-  focusedSeriesAxisId: string | null;
+  focusedCategoryIndex: number;
+  focusedValueAxisId: string | null;
   focusedSeriesId: string | null;
-  groupFocusPercentages: FocusPercentage[];
-  seriesAxisFocusPercentages: FocusPercentageMap;
+  categoryFocusPercentages: FocusPercentage[];
+  valueAxisFocusPercentages: FocusPercentageMap;
   seriesFocusPercentages: FocusPercentageMap;
-  groupFocusDomainPercentages?: number[];
-  seriesAxisFocusDomainPercentages?: number[];
+  categoryFocusDomainPercentages?: number[];
+  valueAxisFocusDomainPercentages?: number[];
   seriesFocusDomainPercentages?: number[];
-  seriesAxisComputedFocusDomainPercentages?: Record<string, number[]>;
+  valueAxisComputedFocusDomainPercentages?: Record<string, number[]>;
 }
 
-export interface ArrayFocusDeltaData {
-  start: FocusPercentage[];
-  deltas: number[];
+export interface FocusDeltaData<P, D> {
+  start: P;
+  deltas: D;
   deltaPercentage: number;
-  deltaPercentages: number[] | null;
-  deltaFactors: number[] | null;
-  end: FocusPercentage[];
+  deltaPercentages: D | null;
+  deltaFactors: D | null;
+  end: P;
 }
 
-export interface MapFocusDeltaData {
-  start: FocusPercentageMap;
-  deltas: Record<string, number>;
-  deltaPercentage: number;
-  deltaPercentages: Record<string, number> | null;
-  deltaFactors: Record<string, number> | null;
-  end: FocusPercentageMap;
-}
+export type ArrayFocusDeltaData = FocusDeltaData<FocusPercentage[], number[]>;
+export type MapFocusDeltaData = FocusDeltaData<FocusPercentageMap, Record<string, number>>;
 
 export interface FocusAnimationData {
   start: FocusData;
   deltaPercentage: number;
-  group: ArrayFocusDeltaData;
-  seriesAxis: MapFocusDeltaData;
+  category: ArrayFocusDeltaData;
+  valueAxis: MapFocusDeltaData;
   series: MapFocusDeltaData;
   end: FocusData;
   final: FocusData;
@@ -59,9 +53,6 @@ export type SeriesDomainObject = DataSeriesDomainObject;
 export type SeriesDomainObjects = DataSeriesDomainObjects;
 export type AxisDomains = DataAxisDomains;
 
-export type AnimationGroupData = GroupData;
-export type AnimationSeriesDataSet = SeriesDataSet;
-export type AnimationSeriesData = SeriesData;
 export type AnimationChartData = ChartData;
 
 export interface DomainDelta {
@@ -121,12 +112,12 @@ export interface AxisDeltaData {
   deltas: {
     domain: {
       axis: {
-        group: DomainDelta;
-        series: { raw: DomainDeltaMap; filtered: DomainDeltaMap };
+        category: DomainDelta;
+        value: { raw: DomainDeltaMap; filtered: DomainDeltaMap };
       };
       series: { raw: SeriesDomainDeltaMap; filtered: SeriesDomainDeltaMap };
     };
-    values: { group: CompleteNumericArrayDelta | null };
+    values: { category: CompleteNumericArrayDelta | null };
   };
   end: AnimationChartData;
   final: AnimationChartData;
@@ -146,9 +137,11 @@ export interface ValueChangeData {
   start: AnimationChartData;
   deltaPercentage: number;
   deltas: {
-    groupOrder: NumericArrayDelta;
+    categoryOrder: NumericArrayDelta;
     raw: SeriesValueDeltaMap;
     filtered: SeriesValueDeltaMap;
+    /** Translating axes interpolate their render domain during this phase (see isDomainTranslation). */
+    domain: { category: DomainDelta; raw: DomainDeltaMap; filtered: DomainDeltaMap };
   };
   end: AnimationChartData;
   final: AnimationChartData;
@@ -156,22 +149,22 @@ export interface ValueChangeData {
 
 export interface ChartAnimationData {
   initialAnimation: boolean;
-  groupDeltaData: GroupDeltaData;
+  categoryDeltaData: CategoryDeltaData;
   axisExpansionData: AxisTransitionData;
   valueChangeData: ValueChangeData;
-  axisCollapseData: AxisTransitionData;
+  axisContractionData: AxisTransitionData;
 }
 
-export interface GroupMergedValuesData {
-  old: readonly GroupValue[];
-  merged: readonly GroupValue[];
-  added: readonly GroupValue[];
-  removed: readonly GroupValue[];
-  new: readonly GroupValue[];
-  displayMerged: readonly GroupValue[];
+export interface CategoryMergedValuesData {
+  old: readonly CategoryValue[];
+  merged: readonly CategoryValue[];
+  added: readonly CategoryValue[];
+  removed: readonly CategoryValue[];
+  new: readonly CategoryValue[];
+  displayMerged: readonly CategoryValue[];
 }
 
-export interface GroupMergedIndicesData {
+export interface CategoryMergedIndicesData {
   old: number[];
   new: number[];
   added: number[];
@@ -184,9 +177,9 @@ export interface OuterChangeCounts {
   after: number;
 }
 
-export interface GroupDeltaData {
-  values: GroupMergedValuesData;
-  indices: GroupMergedIndicesData;
+export interface CategoryDeltaData {
+  values: CategoryMergedValuesData;
+  indices: CategoryMergedIndicesData;
   outerCounts: {
     added: OuterChangeCounts;
     removed: OuterChangeCounts;

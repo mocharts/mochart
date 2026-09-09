@@ -1,3 +1,5 @@
+import { deepMerge } from '../core/deepMerge';
+
 export interface ConditionalDefaultRule<C, E, T> {
   condition: { bivarianceHack(config: C, extraArg: E): boolean }['bivarianceHack'];
   suffix: string | null;
@@ -23,15 +25,36 @@ export function conditionalDefault<C, E, T>(rules: ConditionalDefaultRule<NoInfe
   return conditionalFunction;
 }
 
+function evaluateDefault(value: unknown): unknown {
+  if (typeof value === 'function') {
+    return evaluateDefault((value as ConditionalDefaultFunction)());
+  }
+  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+    return getActualDefaults(value as ConditionalDefaults);
+  }
+  return value;
+}
+
 /** Evaluate a conditional-defaults tree into plain values; the result is deep-merged over the regular defaults. */
 export function getActualDefaults<T extends ConditionalDefaults>(conditionalDefaults: T): ActualDefaults<T> {
   const keys = Object.keys(conditionalDefaults);
   const actualDefaults = {} as Record<string, unknown>;
   for (const key of keys) {
-    const value = (conditionalDefaults as ConditionalDefaults)[key]!;
-    actualDefaults[key] = typeof value === 'function' ? value() : getActualDefaults(value);
+    actualDefaults[key] = evaluateDefault((conditionalDefaults as ConditionalDefaults)[key]);
   }
   return actualDefaults as ActualDefaults<T>;
+}
+
+/** Merge the config over the regular defaults, evaluate the conditional defaults against it, and layer those over the regular defaults. */
+export function resolveDefaults<T extends object, A extends unknown[]>(
+  regularDefaults: object,
+  getConditionalDefaults: (configWithRegularDefaults: T, ...args: A) => ConditionalDefaults,
+  config: object,
+  ...args: A
+): Partial<T> {
+  const configWithRegularDefaults = deepMerge(regularDefaults, config) as T;
+  const conditionalDefaults = getActualDefaults(getConditionalDefaults(configWithRegularDefaults, ...args));
+  return deepMerge(regularDefaults, conditionalDefaults) as Partial<T>;
 }
 
 export const defaultRule = { condition: () => true, suffix: null };

@@ -1,64 +1,88 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Picket Fence Bars"
+  "title": {
+    "text": "Picket Fence Bars"
   },
-  "animationConfig": {
-    "animate": true,
+  "animation": {
+    "enabled": true,
     "expansionDuration": 1500,
     "initialDuration": 3000,
     "valueChangeDuration": 3000,
-    "collapseDuration": 1500,
+    "contractionDuration": 1500,
     "focusDuration": 800
   },
-  "groupAxisConfig": {
-    "before": false,
-    "title": "Month",
-    "axisLine": true,
-    "axisLineMargin": 0,
-    "gridLines": true,
-    "tickLabelFormat": "%b",
-    "tickLabelRotation": 45,
+  "categoryAxis": {
+    "title": {
+      "text": "Month"
+    },
+    "axisLine": {
+      "visible": true,
+      "marginInner": 0
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "tickLabel": {
+      "format": "%b",
+      "rotation": 45
+    },
     "tickCount": 12,
     "type": "date",
     "scale": "ordinal",
     "dateUTC": true,
-    "valueLabel": "Group",
+    "valueLabel": "Category",
     "valueFormat": "%B",
-    "property": "date"
+    "property": "date",
+    "side": "end"
   },
-  "seriesAxisConfigs": {
-    "before": true,
+  "valueAxes": {
     "visible": true,
-    "axisLineMargin": 0,
-    "gridLines": true,
-    "tickLabelFormat": "$s",
-    "title": "Monthly Amount",
-    "min": 0
+    "axisLine": {
+      "marginInner": 0
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "tickLabel": {
+      "format": "$s"
+    },
+    "title": {
+      "text": "Monthly Amount"
+    },
+    "min": 0,
+    "side": "start"
   },
-  "seriesStackConfigs": {},
-  "seriesAllConfig": {
+  "seriesStacks": {},
+  "seriesDefaults": {
     "renderer": "bar",
-    "markerShape": null
+    "marker": {
+      "shape": null
+    }
   },
-  "seriesConfigs": [
+  "series": [
     {
       "title": "Round",
       "property": "value1",
-      "capSize": 15,
-      "capType": "round"
+      "cap": {
+        "size": 15,
+        "type": "round"
+      }
     },
     {
       "title": "Curve",
       "property": "value2",
-      "capSize": 15,
-      "capType": "curve"
+      "cap": {
+        "size": 15,
+        "type": "curve"
+      }
     },
     {
       "title": "Point",
       "property": "value3",
-      "capSize": 15,
-      "capType": "point"
+      "cap": {
+        "size": 15,
+        "type": "point"
+      }
     }
   ]
 }

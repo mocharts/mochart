@@ -1,15 +1,16 @@
 <script lang="ts">
   import { untrack } from 'svelte';
 
-  import { buildMochartDemoConfig, copyDemoConfig, demoText, formatMochartDemoConfig, getReferenceSectionIds, parseConfig, slowAnimationConfig, toggleConfigProperty, toggleConfigSection } from '@mochart/demo-common';
+  import { buildMochartDemoConfig, controlsMenuPlacement, copyDemoConfig, demoConfigFromText, demoText, formatMochartDemoConfig, getDemoTabPanelAttrs, getJsonError, getJsonErrorMessage, getReferenceSectionIds, isConfigSectionActive, parseConfigFromText, parseJson, slowAnimationConfig, toggleConfigFromText, toggleConfigProperty, toggleConfigSection } from '@mochart/demo-common';
 
-  import TextAreaContent from '../misc/TextAreaContent.svelte';
+  import JsonEditorContent from '../misc/JsonEditorContent.svelte';
   import ButtonWithTooltip from '../misc/ButtonWithTooltip.svelte';
   import DocsLinks from '../misc/DocsLinks.svelte';
   import Icon from '../misc/Icon.svelte';
   import OverflowMenu from '../misc/OverflowMenu.svelte';
   import { createPhoneViewport } from '../misc/phoneViewport.svelte';
 
+  import type { DemoConfigView } from '@mochart/demo-common';
   import type { DemoConfig } from '../../types';
 
   interface Props {
@@ -48,8 +49,10 @@
     });
   });
 
+  // demoConfig tracks the text, so the Invert/Slow states and reference links follow unapplied edits.
   function onTextChange(nextConfigText: string) {
     configText = nextConfigText;
+    demoConfig = demoConfigFromText(nextConfigText, demoConfig);
     errorMessage = null;
   }
 
@@ -59,7 +62,7 @@
 
   function updateShowDefaults(nextShowDefaults: boolean) {
     try {
-      const newConfig = JSON.parse(configText);
+      const newConfig = parseJson(configText) as DemoConfig;
       const newMochartDemoConfig = buildMochartDemoConfig(newConfig);
       const { configValidation } = newMochartDemoConfig;
       const { valid } = configValidation;
@@ -79,9 +82,9 @@
         errorMessage = demoText.errors.invalidChartConfig;
       }
     }
-    catch {
+    catch (error) {
       console.warn('Invalid Chart Config JSON: ' + configText);
-      errorMessage = demoText.errors.invalidJson;
+      errorMessage = getJsonErrorMessage(error);
     }
   }
 
@@ -89,39 +92,44 @@
     updateShowDefaults(!showDefaults);
   }
 
+  // Toggle against the current text (the Defaults toggle's pattern), so
+  // unapplied textarea edits survive the toggle instead of being overwritten.
+  function applyConfigToggle(transform: (current: DemoConfigView) => DemoConfigView) {
+    const result = toggleConfigFromText(configText, showDefaults, transform);
+    if (result.error !== null) {
+      errorMessage = result.error;
+    }
+    else {
+      demoConfig = result.demoConfig;
+      configText = result.text;
+      errorMessage = null;
+    }
+  }
+
   function toggleConfigInverted() {
-    demoConfig = toggleConfigProperty(demoConfig, 'plotConfig', 'inverted', true) ?? demoConfig;
-    configText = formatMochartDemoConfig(demoConfig, showDefaults);
+    applyConfigToggle(current => toggleConfigProperty(current, 'plot', 'inverted', true));
   }
 
   function toggleConfigAnimationSlow() {
-    demoConfig = toggleConfigSection(mochartDemoConfig, demoConfig, 'animationConfig', slowAnimationConfig) ?? demoConfig;
-    configText = formatMochartDemoConfig(demoConfig, showDefaults);
+    applyConfigToggle(current => toggleConfigSection(mochartDemoConfig, current, 'animation', slowAnimationConfig));
   }
 
   function applyConfig() {
-    const newConfig = parseConfig(configText);
-    if (newConfig !== null) {
-      onConfigChange(newConfig);
+    const { config, error } = parseConfigFromText(configText);
+    errorMessage = error;
+    if (config !== null) {
+      onConfigChange(config);
     }
   }
 
   // Live JSON validity — disables Apply and shows an inline hint while the
   // editor holds unparseable text.
-  const jsonError = $derived.by(() => {
-    try {
-      JSON.parse(configText);
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
-  });
+  const jsonError = $derived(getJsonError(configText));
   const footerError = $derived(jsonError ?? errorMessage);
 
-  const inverted = $derived(demoConfig.configWithDefaults.plotConfig.inverted);
+  const inverted = $derived(demoConfig.configWithDefaults.plot.inverted);
   const invertedIcon = $derived(inverted ? 'chart-bar' : 'chart-column');
-  const slow = $derived(demoConfig.configWithDefaults.animationConfig === slowAnimationConfig);
+  const slow = $derived(isConfigSectionActive(demoConfig, 'animation', slowAnimationConfig));
   const slowIcon = $derived(slow ? 'hourglass' : 'hourglass-end');
 
   // The phone fold. Apply stays beside the editor it applies, and the
@@ -132,6 +140,7 @@
   const phone = createPhoneViewport();
   const hasDocsLinks = $derived(getReferenceSectionIds(demoConfig.configWithoutDefaults).length > 0);
   let footerElement = $state<HTMLElement | null>(null);
+  let editor = $state<JsonEditorContent | null>(null);
 </script>
 
 {#snippet resetButton()}
@@ -165,6 +174,14 @@
   </ButtonWithTooltip>
 {/snippet}
 
+{#snippet formatButton()}
+  <ButtonWithTooltip id="config-format" label={demoText.configTab.format.label} disabled={jsonError !== null}
+                     tooltipText={demoText.configTab.format.tooltip} tooltipPlacement="top-start"
+                     onClick={() => editor?.format()} aria-label={demoText.configTab.format.aria}>
+    <Icon size="lg" fixedWidth={true} name="indent" />
+  </ButtonWithTooltip>
+{/snippet}
+
 {#snippet applyButton()}
   <ButtonWithTooltip id="config-apply" label={demoText.configTab.apply.label} disabled={jsonError !== null}
                      tooltipText={demoText.configTab.apply.tooltip} tooltipPlacement="top-start"
@@ -177,12 +194,13 @@
   <DocsLinks config={demoConfig.configWithoutDefaults} />
 {/snippet}
 
-<div class={"mochart-demo-tab-container demo-layout-col config" + (active ? " active" : "")} inert={!active}>
+<div {...getDemoTabPanelAttrs('config')} class={"mochart-demo-tab-container demo-layout-col config" + (active ? " active" : "")} inert={!active}>
   <div class="mochart-demo-tab-content">
-    <TextAreaContent value={configText} onChange={onTextChange} />
+    <JsonEditorContent value={configText} ariaLabel={demoText.configTab.editorAria} formatOnSet={true} mochartSupport={true}
+                       bind:this={editor} onChange={onTextChange} />
   </div>
   <div class="mochart-demo-tab-footer" bind:this={footerElement}>
-    <div class="demo-toolbar" role="toolbar">
+    <div class="demo-toolbar">
       {#if phone.isPhone}
         {@render applyButton()}
         <!-- `.editor`, not `.chart`: what folds here edits the JSON, and
@@ -190,10 +208,10 @@
              thing. Anchored to the full-width footer — the trigger sits
              mid-row, left of an error span that comes and goes. -->
         <OverflowMenu text={demoText.overflowMenu.editor}
-                      placement={{ side: 'top', align: 'end', gap: 4 }}
+                      placement={controlsMenuPlacement}
                       getAnchor={() => footerElement}
                       active={active !== false}>
-          <div class="demo-btn-group">{@render resetButton()}{@render defaultsButton()}{@render invertedButton()}{@render slowButton()}</div>
+          <div class="demo-btn-group">{@render resetButton()}{@render defaultsButton()}{@render invertedButton()}{@render slowButton()}{@render formatButton()}</div>
           {#if hasDocsLinks}
             <div class="demo-menu-divider"></div>
             {@render docsLinks()}
@@ -207,6 +225,7 @@
         {@render defaultsButton()}
         {@render invertedButton()}
         {@render slowButton()}
+        {@render formatButton()}
         {@render applyButton()}
         {#if footerError}
           <span class="mochart-demo-footer-error" role="alert">{footerError}</span>

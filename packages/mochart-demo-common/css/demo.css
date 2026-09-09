@@ -1,3 +1,7 @@
+/* The chart's own optional stylesheet: overlay structural defaults and the
+   keyboard focus ring (:focus-visible, which inline styles cannot express). */
+@import '@mochart/core/mochart.css';
+
 /* Restyles the charts' structural colors (axis text, grid, tooltip, …) for
    the dark theme; the docs site imports the same file for its live examples. */
 @import './chart-dark.css';
@@ -549,6 +553,7 @@ html, body {
 .mochart-demo-tab-footer {
     display: flex;
     flex: none;
+    flex-wrap: wrap;
     width: 100%;
     min-height: 0;
     align-items: center;
@@ -560,6 +565,8 @@ html, body {
 .mochart-demo-text-area-container {
     display: flex;
     flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
 }
 .text-area-content {
     display: flex;
@@ -1293,6 +1300,8 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     font-size: 0.85em;
     color: var(--demo-text-muted);
     padding: 4px 2px 0;
+    /* Yield before the button row: wrap beside it while ≥340px remains, then drop below it as a full-width row. */
+    flex: 1 1 340px;
 }
 
 /* ============================================================
@@ -1318,8 +1327,8 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
    2. The fold. Icon-only buttons still do not all fit across ~360px of usable
       width, so the ports move the ones that did not fit into an overflow menu
       (see the "Overflow menus" section above) and the rows that hold them stop
-      wrapping. `flex-wrap: nowrap` on the navigation row is the load-bearing
-      half of that: it is what converts "wrapped onto a second row" into "the
+      wrapping. `flex-wrap: nowrap` on the navigation row is the half of
+      that which does the work: it is what converts "wrapped onto a second row" into "the
       fold has to have taken these", and it is only safe because the fold ran.
       The tabs are the elastic element in that row — they shrink and ellipsis —
       because they are the only thing in it whose text is expendable.
@@ -1439,7 +1448,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
        everything else at this tier already uses, and the readout minimum drops
        to the two characters an index actually needs (`-1`, `24` — three-char
        indexes do not occur, and tabular-nums keeps the digits steady). The
-       group panel's form has a single field and the slice panel's readout is
+       category panel's form has a single field and the slice panel's readout is
        two characters, so neither is moved by these. */
     .mochart-demo-content .chart-controls-buttons form {
         column-gap: 6px;
@@ -1559,7 +1568,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     /* ---- Index readout prefixes ------------------------------------
        The series strip's stepper row holds four 44px buttons plus the two
        readouts, and at 320x568 that already fills the ~274px available.
-       `Group: ` and `Series: ` cost ~51px each — either prefix would wrap the
+       `Category: ` and `Series: ` cost ~51px each — either prefix would wrap the
        row, so both are clipped and the one-letter stand-ins below carry the
        meaning instead.
 

@@ -1,6 +1,6 @@
 import { Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild } from '@angular/core';
 
-import { createMenuController } from '@mochart/demo-common';
+import { createMenuController, isMenuDismissingClick } from '@mochart/demo-common';
 import type { MenuController, MenuPlacement } from '@mochart/demo-common';
 
 import { Icon } from './icon';
@@ -100,11 +100,8 @@ export class OverflowMenu implements OnInit, OnChanges, OnDestroy {
   }
 
   onPanelClick(event: MouseEvent): void {
-    const target = event.target instanceof Element ? event.target : null;
-    const actionable = target?.closest('button, a') ?? null;
-    if (actionable === null || actionable.closest('.demo-menu-keep-open') !== null) {
-      return;
+    if (isMenuDismissingClick(event.target)) {
+      this.controller?.close();
     }
-    this.controller?.close();
   }
 }

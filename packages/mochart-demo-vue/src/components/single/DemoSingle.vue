@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from 'vue';
 
-import { consumeSingleShareState, demoText } from '@mochart/demo-common';
+import { consumeSingleShareState, demoText, getConfigDataError } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import TopBar from '../misc/TopBar.vue';
 import ChartTab from './ChartTab.vue';
 import ConfigTab from './ConfigTab.vue';
 import DataTab from './DataTab.vue';
+import DemoTabs from '../misc/DemoTabs.vue';
 import ErrorTab from '../misc/ErrorTab.vue';
 
-import type { DemoData, DemoConfig, DataRow } from '../../types';
+import type { DemoData, DemoConfig, DataObject } from '../../types';
 
 interface Props {
   demoData: DemoData;
@@ -38,12 +39,12 @@ const sharedState = consumeSingleShareState();
 // Chart tab is shown again (so the chart animates one combined change).
 const demoId = ref(props.initialDemoId);
 const pendingConfig = shallowRef<DemoConfig | null>(null);
-const pendingData = shallowRef<DataRow[] | null>(null);
+const pendingData = shallowRef<DataObject[] | null>(null);
 const pendingDataError = shallowRef<DataError>(false);
 const config = shallowRef<DemoConfig>(sharedState?.config ?? props.demoData.demoObjectMap[props.initialDemoId].config);
-const data = shallowRef<DataRow[]>(sharedState?.data ?? props.demoData.demoObjectMap[props.initialDemoId].data);
+const data = shallowRef<DataObject[]>(sharedState?.data ?? props.demoData.demoObjectMap[props.initialDemoId].data);
 const viewingConfig = shallowRef<DemoConfig>(config.value);
-const viewingData = shallowRef<DataRow[]>(data.value);
+const viewingData = shallowRef<DataObject[]>(data.value);
 const viewingDataError = shallowRef<DataError>(false);
 
 function chartShown() {
@@ -93,7 +94,7 @@ function onConfigReset() {
   config.value = resetConfig;
 }
 
-function onDataChange(nextPendingData: DataRow[]) {
+function onDataChange(nextPendingData: DataObject[]) {
   pendingData.value = nextPendingData;
   pendingDataError.value = false;
 }
@@ -112,6 +113,9 @@ function onDataReset() {
 // Chart tab so it's visible that something is waiting there.
 const hasPendingChanges = computed(() =>
   activeKey.value !== eventKeyChart && (pendingConfig.value !== null || pendingData.value !== null));
+
+// editor-reported error, or the viewing config/data pair failing validation
+const chartDataError = computed(() => viewingDataError.value || getConfigDataError(viewingConfig.value, viewingData.value));
 </script>
 
 <template>
@@ -120,31 +124,18 @@ const hasPendingChanges = computed(() =>
             :notes="props.demoData.demoObjectMap[props.initialDemoId]"
             :modes="{ demoMode: 'single', onModeChanged: props.onModeChanged }">
       <template #tabs>
-        <li class="demo-tab-item">
-          <button type="button" :class="'demo-tab' + (activeKey === eventKeyChart ? ' active' : '')"
-                  :title="hasPendingChanges ? demoText.tabs.chartPendingTitle : undefined"
-                  @click="handleSelect(eventKeyChart)">
-            {{ demoText.tabs.chart }}<span v-if="hasPendingChanges" class="mochart-pending-badge" aria-hidden="true"></span>
-          </button>
-        </li>
-        <li class="demo-tab-item">
-          <button type="button" :class="'demo-tab' + (activeKey === eventKeyConfig ? ' active' : '')"
-                  @click="handleSelect(eventKeyConfig)">
-            {{ demoText.tabs.config }}
-          </button>
-        </li>
-        <li class="demo-tab-item">
-          <button type="button" :class="'demo-tab' + (activeKey === eventKeyData ? ' active' : '')"
-                  @click="handleSelect(eventKeyData)">
-            {{ demoText.tabs.data }}
-          </button>
-        </li>
+        <DemoTabs :active-key="activeKey" :on-select="handleSelect"
+                  :tabs="[
+                    { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart, pending: hasPendingChanges },
+                    { name: 'config', key: eventKeyConfig, label: demoText.tabs.config },
+                    { name: 'data', key: eventKeyData, label: demoText.tabs.data }
+                  ]" />
       </template>
     </TopBar>
     <div class="mochart-demo-content-pane">
       <div class="mochart-demo-content">
         <ErrorTab :active="activeKey === eventKeyChart">
-          <ChartTab :active="activeKey === eventKeyChart" :config="viewingConfig" :data="viewingData" :data-error="viewingDataError" />
+          <ChartTab :active="activeKey === eventKeyChart" :config="viewingConfig" :data="viewingData" :data-error="chartDataError" />
         </ErrorTab>
         <ErrorTab :active="activeKey === eventKeyConfig">
           <ConfigTab :active="activeKey === eventKeyConfig" :config="config" :on-config-change="onConfigChange" :on-config-reset="onConfigReset" />

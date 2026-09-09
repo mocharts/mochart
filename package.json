@@ -3,21 +3,24 @@
   "version": "1.0.0",
   "description": "Monorepo for the mochart charting library, the movalid validation library, and the mochart demo app",
   "private": true,
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "author": {
     "name": "Jon Harris",
     "url": "https://github.com/jharris4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jharris4/mochart.git"
+    "url": "https://github.com/mocharts/mochart.git"
+  },
+  "overrides": {
+    "react": "^19",
+    "react-dom": "^19"
   },
   "workspaces": [
     "packages/*"
   ],
-  "overrides": {
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+  "engines": {
+    "node": ">=22.22.3"
   },
   "scripts": {
     "dev": "npm run dev -w @mochart/demo-vanilla",
@@ -25,34 +28,46 @@
     "dev:showcase": "npm run dev -w @mochart/showcase",
     "dev:docs": "npm run dev -w @mochart/docs",
     "dev:editor": "npm run dev -w @mochart/editor",
+    "prebuild": "node scripts/ensure-libs-fresh.mjs",
     "build": "npm run build -w @mochart/demo-vanilla",
     "build:pages": "node scripts/build-pages.mjs",
     "preview:pages": "PAGES_BASE=/ node scripts/build-pages.mjs && PAGES_BASE=/ node scripts/preview-pages.mjs",
     "preview:pages:serve": "PAGES_BASE=/ node scripts/preview-pages.mjs",
     "build:libs": "npm run build -w @mochart/movalid && npm run build -w @mochart/core && npm run build -w @mochart/editor && npm run build -w @mochart/export && npm run build -w @mochart/react && npm run build -w @mochart/svelte && npm run build -w @mochart/vue && npm run build -w @mochart/lit && npm run build -w @mochart/angular",
     "prepare": "npm run build:libs",
-    "test": "npm test --workspaces --if-present",
-    "test:e2e": "npm run test:e2e -w @mochart/demo-basic",
+    "check:publish": "node scripts/check-publish-manifests.mjs",
+    "publish:libs": "npm run check:publish && node scripts/publish-libs.mjs",
+    "pack:libs": "node scripts/pack-libs.mjs",
+    "release:version": "changeset version && npm run stamp-version -w @mochart/core && npm install --package-lock-only --ignore-scripts",
+    "release:publish": "npm run publish:libs && changeset git-tag",
+    "test": "npm test --workspaces --if-present --",
+    "test:e2e": "npm run test:e2e -w @mochart/demo-basic && npm run test:e2e -w @mochart/demo-vanilla && npm run test:e2e -w @mochart/demo-e2e",
+    "gif:readme": "node scripts/readme-gif/record.mjs",
+    "og:image": "node scripts/og-image/capture.mjs",
     "screenshots": "node scripts/screenshots/capture.mjs",
     "screenshots:compare": "node scripts/screenshots/compare.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "deadcode": "knip --include exports,types,files",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "deadcode": "knip",
+    "typecheck": "node scripts/typecheck.mjs"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^1.0.0",
+    "@changesets/cli": "^3.0.0",
     "@eslint/js": "10.0.1",
-    "@playwright/test": "^1.61.1",
-    "eslint": "10.8.0",
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.1.1",
+    "eslint": "10.9.1",
     "eslint-plugin-react-hooks": "7.1.1",
-    "eslint-plugin-svelte": "3.22.0",
+    "eslint-plugin-svelte": "3.23.0",
     "eslint-plugin-vue": "10.10.0",
-    "globals": "17.8.0",
+    "globals": "17.12.0",
     "jsdom": "^29.1.1",
-    "knip": "6.29.0",
+    "knip": "6.34.0",
+    "pnpm": "^10.0.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "8.65.0",
-    "vite": "^8.1.3",
+    "typescript-eslint": "8.69.0",
+    "vite": "^8.2.1",
     "vitest": "^4.1.9",
     "vue-eslint-parser": "10.4.1"
   }

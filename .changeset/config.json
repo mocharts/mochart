@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@4.0.0/schema.json",
+  "changelog": ["@changesets/changelog-github", { "repo": "mocharts/mochart" }],
+  "commit": false,
+  "fixed": [
+    [
+      "@mochart/movalid",
+      "@mochart/core",
+      "@mochart/editor",
+      "@mochart/export",
+      "@mochart/react",
+      "@mochart/svelte",
+      "@mochart/vue",
+      "@mochart/lit",
+      "@mochart/angular"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [],
+  "privatePackages": { "version": false, "tag": false }
+}

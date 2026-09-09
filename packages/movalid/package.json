@@ -7,29 +7,45 @@
     "chainable",
     "type checking"
   ],
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "author": {
     "name": "Jon Harris",
     "url": "https://github.com/jharris4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jharris4/mochart.git"
+    "url": "https://github.com/mocharts/mochart.git",
+    "directory": "packages/movalid"
+  },
+  "homepage": "https://mochart.org",
+  "bugs": {
+    "url": "https://github.com/mocharts/mochart/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/validators.d.ts",
+        "default": "./dist/validators.js"
+      }
+    }
   },
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/validators.js",
   "module": "./dist/validators.js",
   "types": "./dist/validators.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/validators.d.ts",
       "development": "./src/validators.ts",
+      "types": "./dist/validators.d.ts",
       "default": "./dist/validators.js"
     }
   },
   "files": [
     "src",
-    "dist"
+    "dist",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

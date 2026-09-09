@@ -1,68 +1,78 @@
 import { Renderer, svgEl, ElList } from '../render';
 
 import { getSeriesPositionData } from '../utils/SeriesPositions';
-import { getLineGenerator, getAreaGenerator, getColumnGenerator } from '../utils/SeriesShapes';
-import { getSeriesColorGenerator } from '../utils/SeriesColors';
+import { getLineGenerator, getRangeLineGenerator, getAreaGenerator, getColumnGenerator } from '../utils/SeriesShapes';
+import { getSeriesColorGenerator, usesCategoryIndexColor } from '../utils/SeriesColors';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
+import { getSeriesTitle } from '../utils/SeriesTitle';
+import { seriesIsInteractive } from '../utils/RovingFocus';
 import { mochartCssClasses } from '../utils/ChartDom';
-import { areArraysAndEqual, translateObject } from '../utils/utils';
+import { areArraysAndEqual, translateObject, isHoverPointer } from '../utils/utils';
 import { NONE, RENDERER_AREA, RENDERER_LINE, RENDERER_BAR } from '../config/core/constants';
-import { COLOR_GROUP_INDEX } from '../config/core/constants';
 import { getSeriesFillColor, getSeriesStrokeColor } from '../utils/SeriesColors';
-import { getGradientReference } from '../utils/svgUtils';
-import { getFocusValue, getGroupFocusPercentage } from '../utils/FocusValue';
+import { getGradientReference, getPatternReference } from '../utils/svgUtils';
+import { getFocusStyle, getCategoryFocusPercentage } from '../utils/FocusValue';
 
 import SeriesErrorBars from './SeriesErrorBars';
 import SeriesMarkers from './SeriesMarkers';
 import SeriesLabels from './SeriesLabels';
 import type { El, ElListAdapter } from '../render';
-import type { ColorPaletteConfig, GroupAxisConfig, SeriesConfig } from '../types/config';
+import type { ColorPaletteConfig, CategoryAxisConfig } from '../types/config';
+import type { EnhancedSeriesConfig } from '../types/enhanced';
 import type { FocusData } from '../types/animation';
-import type { AxisScale, GroupAxisData, NullableDomain, SeriesDomainObject, SeriesPositionData, SeriesValueObject, StackData } from '../types/data';
+import type { AxisScale, CategoryAxisData, NullableDomain, SeriesDomainObject, SeriesPositionData, SeriesValueObject, StackData } from '../types/data';
 import type { LayoutInfo } from '../types/layout';
+import { CategoryShapeCache } from '../utils/CategoryShapes';
+import type { CategoryShape } from '../utils/CategoryShapes';
 
 const noOp = () => {};
-const noOpGroup = (_groupIndex: number) => {};
+const noOpCategory = (_categoryIndex: number) => {};
 
 interface SeriesFocusUpdate {
   seriesId?: string | null;
-  groupIndex?: number | null;
+  categoryIndex?: number | null;
 }
 
 interface SeriesProps {
-  groupAxisConfig: GroupAxisConfig;
+  categoryAxisConfig: CategoryAxisConfig;
   colorPaletteConfig: ColorPaletteConfig;
-  seriesConfig: SeriesConfig;
+  seriesConfig: EnhancedSeriesConfig;
   seriesIndex: number;
   stackData: StackData;
   seriesLayoutInfo: LayoutInfo;
   focusData: FocusData | null;
-  groupValueData: GroupAxisData['valueData'];
-  seriesAxisScale: AxisScale;
-  rawSeriesAxisDomain: NullableDomain;
+  categoryValueData: CategoryAxisData['valueData'];
+  valueAxisScale: AxisScale;
+  rawValueAxisDomain: NullableDomain;
   rawDomains: SeriesDomainObject;
   filteredValues: SeriesValueObject;
   gradientIdMap: Record<string, string>;
+  patternIdMap: Record<string, string>;
   onFocus: (focus: SeriesFocusUpdate) => void;
+  /** Reports shape clicks up to the chart's `onSeriesClick`; null when that callback is unset. */
+  onSeriesShapeClick: ((seriesId: string, categoryIndex: number, event: Event) => void) | null;
+  /** When true, the decorative series geometry is hidden from assistive tech. */
+  accessibility: boolean;
+  /** Whether this series holds the container's roving tab stop. */
+  tabStop: boolean;
 }
 
 interface SeriesState {
   seriesPositionData: SeriesPositionData | null;
-  onSeriesEnter: () => void;
+  onSeriesEnter: (event: Event) => void;
   onSeriesLeave: () => void;
-  onSeriesClick: () => void;
-  onGroupEnter: (groupIndex: number) => void;
-  onGroupLeave: (groupIndex: number) => void;
-  onGroupClick: (groupIndex: number) => void;
+  onSeriesClick: (event: Event) => void;
+  onCategoryEnter: (categoryIndex: number) => void;
+  onCategoryLeave: (categoryIndex: number) => void;
+  onCategoryClick: (categoryIndex: number, event: Event) => void;
 }
 
-interface BarData { key: string; attrs: Record<string, unknown> }
 interface BarHandle { root: El }
 
-const barAdapter: ElListAdapter<BarData, BarHandle> = {
-  key: (bar: BarData) => bar.key,
+const barAdapter: ElListAdapter<CategoryShape, BarHandle> = {
+  key: (bar: CategoryShape) => bar.key,
   create: () => ({ root: svgEl('path') }),
-  update: (handle: BarHandle, bar: BarData) => {
+  update: (handle: BarHandle, bar: CategoryShape) => {
     handle.root.set(bar.attrs);
   }
 };
@@ -70,117 +80,139 @@ const barAdapter: ElListAdapter<BarData, BarHandle> = {
 export default class Series extends Renderer<SeriesProps, SeriesState> {
   root = svgEl('g');
   shape = this.elSlot(this.root);
+  rangeShape = this.elSlot(this.root); // second line of a ranged line series
   errorBars = this.slot(this.root); // declaration order fixes DOM order: shape, then error bars, then markers/labels above them
   markers = this.slot(this.root);
   labels = this.slot(this.root);
   barsGroup = svgEl('g');
-  bars = new ElList<BarData, BarHandle>(this.barsGroup.node, null);
+  bars = new ElList<CategoryShape, BarHandle>(this.barsGroup.node, null);
+  barShapes = new CategoryShapeCache('seriesBar', () => this.state);
+  // leave mirrors the enter that actually fired: an ignored touch enter must not clear focus set elsewhere
+  hoverActive = false;
 
   constructor() {
     super();
     this.state = { seriesPositionData: null, onSeriesEnter: noOp, onSeriesLeave: noOp, onSeriesClick: noOp,
-      onGroupEnter: noOpGroup, onGroupLeave: noOpGroup, onGroupClick: noOpGroup };
+      onCategoryEnter: noOpCategory, onCategoryLeave: noOpCategory, onCategoryClick: noOpCategory };
   }
 
-  derive(props: SeriesProps, state: SeriesState, prevProps: SeriesProps | null): Partial<SeriesState> | null {
+  derive(props: SeriesProps, _state: SeriesState, prevProps: SeriesProps | null): Partial<SeriesState> | null {
     if (prevProps === null) {
       const initial = this.computeSeriesPositionData(props);
-      const { seriesPositionData } = initial;
-      return { ...initial, ...this.buildEventListeners(props, seriesPositionData) };
+      return { ...initial, ...this.buildEventListeners(props) };
     }
-    const { groupAxisConfig, seriesConfig, focusData, onFocus, groupValueData, seriesAxisScale, filteredValues } = props;
-    let groupFocusChanged = false;
+    const { categoryAxisConfig, seriesConfig, focusData, onFocus, onSeriesShapeClick, categoryValueData, valueAxisScale, filteredValues } = props;
+    let categoryFocusChanged = false;
     let seriesFocusChanged = false;
-    let { seriesPositionData } = state;
     if (focusData !== prevProps.focusData) {
       if (focusData === null || prevProps.focusData === null) {
-        groupFocusChanged = true;
+        categoryFocusChanged = true;
         seriesFocusChanged = true;
       }
       else {
-        groupFocusChanged = focusData.focusedGroupIndex !== prevProps.focusData.focusedGroupIndex;
+        categoryFocusChanged = focusData.focusedCategoryIndex !== prevProps.focusData.focusedCategoryIndex;
         seriesFocusChanged = focusData.focusedSeriesId !== prevProps.focusData.focusedSeriesId;
       }
     }
-    const oldSeriesAxisScale = prevProps.seriesAxisScale;
-    let seriesAxisScaleChanged = false;
-    if (seriesAxisScale !== oldSeriesAxisScale) {
-      if (seriesAxisScale === null || oldSeriesAxisScale === null) {
-        seriesAxisScaleChanged = true;
+    const oldValueAxisScale = prevProps.valueAxisScale;
+    let valueAxisScaleChanged = false;
+    if (valueAxisScale !== oldValueAxisScale) {
+      if (valueAxisScale === null || oldValueAxisScale === null) {
+        valueAxisScaleChanged = true;
       }
       else {
-        seriesAxisScaleChanged = !areArraysAndEqual(seriesAxisScale.domain(), oldSeriesAxisScale.domain()) ||
-                                 !areArraysAndEqual(seriesAxisScale.range(), oldSeriesAxisScale.range());
+        valueAxisScaleChanged = !areArraysAndEqual(valueAxisScale.domain(), oldValueAxisScale.domain()) ||
+                                 !areArraysAndEqual(valueAxisScale.range(), oldValueAxisScale.range());
       }
     }
 
     let delta: Partial<SeriesState> = {};
     let updateState = false;
-    if (groupAxisConfig !== prevProps.groupAxisConfig || seriesConfig !== prevProps.seriesConfig ||
-      groupValueData !== prevProps.groupValueData || seriesAxisScaleChanged || filteredValues !== prevProps.filteredValues) {
+    let positionsChanged = false;
+    if (categoryAxisConfig !== prevProps.categoryAxisConfig || seriesConfig !== prevProps.seriesConfig ||
+      categoryValueData !== prevProps.categoryValueData || valueAxisScaleChanged || filteredValues !== prevProps.filteredValues) {
       delta = this.computeSeriesPositionData(props);
-      seriesPositionData = delta.seriesPositionData ?? null;
+      positionsChanged = true;
       updateState = true;
     }
-    if (seriesConfig !== prevProps.seriesConfig || groupFocusChanged || seriesFocusChanged || onFocus !== prevProps.onFocus) {
-      delta = { ...delta, ...this.buildEventListeners(props, seriesPositionData) };
+    if (positionsChanged || categoryFocusChanged || seriesFocusChanged || onFocus !== prevProps.onFocus || onSeriesShapeClick !== prevProps.onSeriesShapeClick) {
+      delta = { ...delta, ...this.buildEventListeners(props) };
       updateState = true;
     }
     return updateState ? delta : null;
   }
 
-  buildEventListeners(props: SeriesProps, seriesPositionData: SeriesPositionData | null): Pick<SeriesState, 'onSeriesEnter' | 'onSeriesLeave' | 'onSeriesClick' | 'onGroupEnter' | 'onGroupLeave' | 'onGroupClick'> {
-    const { seriesConfig, focusData, onFocus } = props;
+  buildEventListeners(props: SeriesProps): Pick<SeriesState, 'onSeriesEnter' | 'onSeriesLeave' | 'onSeriesClick' | 'onCategoryEnter' | 'onCategoryLeave' | 'onCategoryClick'> {
+    const { seriesConfig, focusData, onFocus, onSeriesShapeClick } = props;
     // a follower series (followSeries) focuses as its leader, so clicking a
     // candlestick wick focuses (and toggles) the whole candle
     const seriesId = seriesConfig.followSeries ?? seriesConfig.id;
-    const focusedGroupIndex = focusData ? focusData.focusedGroupIndex : -1;
+    const focusedCategoryIndex = focusData ? focusData.focusedCategoryIndex : -1;
     const focusedSeriesId = focusData ? focusData.focusedSeriesId : null;
-    const skipGroupIndexMap = seriesPositionData ? seriesPositionData.skipGroupIndexMap : {};
-    const getGroupIndex = seriesConfig.skipMissing ? (groupIndex: number) => skipGroupIndexMap[groupIndex] : (groupIndex: number) => groupIndex;
 
-    let onSeriesEnter = noOp;
+    let onSeriesEnter: SeriesState['onSeriesEnter'] = noOp;
     let onSeriesLeave = noOp;
-    let onSeriesClick = noOp;
-    let onGroupEnter = noOpGroup;
-    let onGroupLeave = noOpGroup;
-    let onGroupClick = noOpGroup;
+    let onSeriesClick: SeriesState['onSeriesClick'] = noOp;
+    let onCategoryEnter = noOpCategory;
+    let onCategoryLeave = noOpCategory;
+    let onCategoryClick: SeriesState['onCategoryClick'] = noOpCategory;
 
-    if (seriesConfig.focusOnMouseOver) {
-      onSeriesEnter = () => { onFocus({ seriesId }); };
-      onSeriesLeave = () => { onFocus({ seriesId: null }); };
-      if (seriesConfig.focusGroupOnMouseOver) {
-        onGroupEnter = (groupIndex: number) => { onFocus({ seriesId, groupIndex: getGroupIndex(groupIndex) }); };
-        onGroupLeave = (_groupIndex: number) => { onFocus({ seriesId: null, groupIndex: null }); };
+    if (seriesConfig.focusOnHover) {
+      onSeriesEnter = (event: Event) => { if (isHoverPointer(event)) { this.hoverActive = true; onFocus({ seriesId }); } };
+      onSeriesLeave = () => { if (this.hoverActive) { this.hoverActive = false; onFocus({ seriesId: null }); } };
+      if (seriesConfig.focusCategoryOnHover) {
+        onCategoryEnter = (categoryIndex: number) => { onFocus({ seriesId, categoryIndex }); };
+        onCategoryLeave = (_categoryIndex: number) => { onFocus({ seriesId: null, categoryIndex: null }); };
       }
       else {
-        onGroupEnter = (_groupIndex: number) => { onFocus({ seriesId }); };
-        onGroupLeave = (_groupIndex: number) => { onFocus({ seriesId: null }); };
+        onCategoryEnter = (_categoryIndex: number) => { onFocus({ seriesId }); };
+        onCategoryLeave = (_categoryIndex: number) => { onFocus({ seriesId: null }); };
       }
     }
-    else if (seriesConfig.focusGroupOnMouseOver) {
-      onGroupEnter = (groupIndex: number) => { onFocus({ groupIndex: getGroupIndex(groupIndex) }); };
-      onGroupLeave = (_groupIndex: number) => { onFocus({ groupIndex: null }); };
+    else if (seriesConfig.focusCategoryOnHover) {
+      onCategoryEnter = (categoryIndex: number) => { onFocus({ categoryIndex }); };
+      onCategoryLeave = (_categoryIndex: number) => { onFocus({ categoryIndex: null }); };
     }
-    if (seriesConfig.focusOnClick) {
-      onSeriesClick = () => { onFocus({ seriesId: seriesId === focusedSeriesId ? null : seriesId }); };
-      if (seriesConfig.focusGroupOnClick) {
-        onGroupClick = (groupIndex: number) => { onFocus({ seriesId: seriesId === focusedSeriesId ? null : seriesId, groupIndex: getGroupIndex(groupIndex) === focusedGroupIndex ? -1 : getGroupIndex(groupIndex) }); };
-      }
-      else {
-        onGroupClick = (_groupIndex: number) => { onFocus({ seriesId: seriesId === focusedSeriesId ? null : seriesId }); };
-      }
+    // clicks toggle focus per the focus*OnClick configs, and (independently)
+    // report up to onSeriesClick when it is set — same pattern as PieSeries
+    if (seriesConfig.focusOnClick || onSeriesShapeClick !== null) {
+      onSeriesClick = (event: Event) => {
+        if (seriesConfig.focusOnClick) {
+          onFocus({ seriesId: seriesId === focusedSeriesId ? null : seriesId });
+        }
+        onSeriesShapeClick?.(seriesId, -1, event);
+      };
+      onCategoryClick = (categoryIndex: number, event: Event) => {
+        if (seriesConfig.focusOnClick) {
+          onFocus(seriesConfig.focusCategoryOnClick
+            ? { seriesId: seriesId === focusedSeriesId ? null : seriesId, categoryIndex: categoryIndex === focusedCategoryIndex ? -1 : categoryIndex }
+            : { seriesId: seriesId === focusedSeriesId ? null : seriesId });
+        }
+        else if (seriesConfig.focusCategoryOnClick) {
+          onFocus({ categoryIndex: categoryIndex === focusedCategoryIndex ? -1 : categoryIndex });
+        }
+        onSeriesShapeClick?.(seriesId, categoryIndex, event);
+      };
     }
-    else if (seriesConfig.focusGroupOnClick) {
-      onGroupClick = (groupIndex: number) => { onFocus({ groupIndex: getGroupIndex(groupIndex) === focusedGroupIndex ? -1 : getGroupIndex(groupIndex) }); };
+    else if (seriesConfig.focusCategoryOnClick) {
+      onCategoryClick = (categoryIndex: number) => { onFocus({ categoryIndex: categoryIndex === focusedCategoryIndex ? -1 : categoryIndex }); };
     }
 
-    return { onSeriesEnter, onSeriesLeave, onSeriesClick, onGroupEnter, onGroupLeave, onGroupClick };
+    return { onSeriesEnter, onSeriesLeave, onSeriesClick, onCategoryEnter, onCategoryLeave, onCategoryClick };
+  }
+
+  onKeyDown = (event: Event) => {
+    const { key } = event as KeyboardEvent;
+    if (key === 'Enter' || key === ' ') {
+      event.preventDefault();
+      // activation is the focus toggle / onSeriesClick only: the tooltip belongs to the plot rect
+      this.state.onSeriesClick(event);
+    }
   }
 
   computeSeriesPositionData(props: SeriesProps): Pick<SeriesState, 'seriesPositionData'> {
-    const { groupAxisConfig, seriesConfig, groupValueData, seriesAxisScale, filteredValues, seriesLayoutInfo } = props;
-    const seriesPositionData = filteredValues.plain !== null ? getSeriesPositionData(groupAxisConfig, seriesConfig, groupValueData, seriesAxisScale, filteredValues, seriesLayoutInfo) : null;
+    const { categoryAxisConfig, seriesConfig, categoryValueData, valueAxisScale, filteredValues, seriesLayoutInfo } = props;
+    const seriesPositionData = filteredValues.plain !== null ? getSeriesPositionData(categoryAxisConfig, seriesConfig, categoryValueData, valueAxisScale, filteredValues, seriesLayoutInfo) : null;
     return {
       seriesPositionData
     };
@@ -191,125 +223,159 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
   }
 
   sync() {
-    const { colorPaletteConfig, seriesConfig, seriesIndex, stackData, seriesLayoutInfo, focusData, seriesAxisScale, rawSeriesAxisDomain, filteredValues, rawDomains, gradientIdMap } = this.props;
-    const { seriesPositionData, onSeriesEnter, onSeriesLeave, onSeriesClick, onGroupEnter, onGroupLeave, onGroupClick } = this.state;
+    const { colorPaletteConfig, seriesConfig, seriesIndex, stackData, seriesLayoutInfo, focusData, valueAxisScale, rawValueAxisDomain, filteredValues, rawDomains, gradientIdMap, patternIdMap } = this.props;
+    const { seriesPositionData, onSeriesEnter, onSeriesLeave, onSeriesClick, onCategoryEnter, onCategoryLeave, onCategoryClick } = this.state;
 
     const seriesId = seriesConfig.id;
 
     if (filteredValues.plain !== null && seriesPositionData !== null && focusData !== null) {
       const { inverted } = seriesLayoutInfo;
-      const { groupFocusPercentages, seriesAxisFocusPercentages, seriesFocusPercentages } = focusData;
-      const seriesFocusPercentage = getSeriesFocusPercentage(seriesConfig, seriesAxisFocusPercentages, seriesFocusPercentages);
+      const { categoryFocusPercentages, valueAxisFocusPercentages, seriesFocusPercentages } = focusData;
+      const seriesFocusPercentage = getSeriesFocusPercentage(seriesConfig, valueAxisFocusPercentages, seriesFocusPercentages);
 
-      const { normal: shapeNormal, focused: shapeFocused, defocused: shapeDefocused } = seriesConfig.shapeStyle;
       const seriesStrokeColor = getSeriesStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, seriesFocusPercentage);
       let seriesFillColor = seriesConfig.renderer === RENDERER_LINE ? 'none' : getSeriesFillColor(colorPaletteConfig, seriesConfig, seriesIndex, seriesFocusPercentage);
       let seriesColorGenerator = null;
       if (seriesConfig.colorProperty !== NONE) {
-        seriesColorGenerator = getSeriesColorGenerator(seriesConfig, seriesFocusPercentage, rawDomains, filteredValues);
+        seriesColorGenerator = getSeriesColorGenerator(seriesConfig, rawDomains, filteredValues);
       }
-      const seriesStrokeWidth = getFocusValue(seriesFocusPercentage, shapeNormal.strokeWidth!, shapeFocused.strokeWidth!, shapeDefocused.strokeWidth!);
-      const seriesStrokeOpacity = getFocusValue(seriesFocusPercentage, shapeNormal.strokeOpacity!, shapeFocused.strokeOpacity!, shapeDefocused.strokeOpacity!);
-      const seriesFillOpacity = getFocusValue(seriesFocusPercentage, shapeNormal.fillOpacity!, shapeFocused.fillOpacity!, shapeDefocused.fillOpacity!);
+      const { strokeWidth: seriesStrokeWidth, strokeDashArray: seriesStrokeDashArray, strokeOpacity: seriesStrokeOpacity, fillOpacity: seriesFillOpacity } = getFocusStyle(seriesFocusPercentage, seriesConfig.shapeStyle);
 
-      if (seriesConfig.renderer === RENDERER_LINE) { // TODO - consider drawing a second line for range series...
+      if (seriesConfig.renderer === RENDERER_LINE) {
         const lineGenerator = getLineGenerator(seriesConfig, seriesPositionData, inverted);
         this.shape.set('line', () => svgEl('path'))!.set({
           d: lineGenerator(), className: mochartCssClasses['seriesLine'], strokeWidth: seriesStrokeWidth,
-          stroke: seriesStrokeColor, strokeOpacity: seriesStrokeOpacity, fill: seriesFillColor,
-          onMouseEnter: onSeriesEnter, onMouseLeave: onSeriesLeave, onClick: onSeriesClick });
+          strokeDasharray: seriesStrokeDashArray, stroke: seriesStrokeColor, strokeOpacity: seriesStrokeOpacity, fill: seriesFillColor,
+          onPointerEnter: onSeriesEnter, onPointerLeave: onSeriesLeave, onClick: onSeriesClick });
+        if (seriesConfig.rangeProperty !== NONE) { // a ranged line series draws its rangeProperty bound as a second line
+          const rangeLineGenerator = getRangeLineGenerator(seriesConfig, seriesPositionData, inverted);
+          this.rangeShape.set('line', () => svgEl('path'))!.set({
+            d: rangeLineGenerator(), className: mochartCssClasses['seriesLine'], strokeWidth: seriesStrokeWidth,
+            strokeDasharray: seriesStrokeDashArray, stroke: seriesStrokeColor, strokeOpacity: seriesStrokeOpacity, fill: seriesFillColor,
+            onPointerEnter: onSeriesEnter, onPointerLeave: onSeriesLeave, onClick: onSeriesClick });
+        }
+        else {
+          this.rangeShape.set(null);
+        }
       }
       else if (seriesConfig.renderer === RENDERER_AREA) {
-        if (seriesConfig.gradient !== NONE) {
+        if (seriesConfig.pattern !== NONE) {
+          seriesFillColor = getPatternReference(patternIdMap[seriesConfig.id]);
+        }
+        else if (seriesConfig.gradient !== NONE) {
           seriesFillColor = getGradientReference(gradientIdMap[seriesConfig.gradient]);
         }
         const areaGenerator = getAreaGenerator(seriesConfig, seriesPositionData, inverted);
         this.shape.set('area', () => svgEl('path'))!.set({
           d: areaGenerator(), className: mochartCssClasses['seriesArea'], strokeWidth: seriesStrokeWidth,
+          strokeDasharray: seriesStrokeDashArray,
           stroke: seriesStrokeColor, strokeOpacity: seriesStrokeOpacity, fill: seriesFillColor, fillOpacity: seriesFillOpacity,
-          onMouseEnter: onSeriesEnter, onMouseLeave: onSeriesLeave, onClick: onSeriesClick });
+          onPointerEnter: onSeriesEnter, onPointerLeave: onSeriesLeave, onClick: onSeriesClick });
+        this.rangeShape.set(null);
       }
       else if (seriesConfig.renderer === RENDERER_BAR) {
-        const bars: BarData[] = [];
+        const bars: CategoryShape[] = [];
         const columnGenerator = getColumnGenerator(seriesConfig, seriesPositionData, inverted, stackData);
         let barStrokeColor = seriesStrokeColor;
         let barFillColor = seriesFillColor;
-        if (seriesConfig.gradient !== NONE) {
+        const patterned = seriesConfig.pattern !== NONE;
+        if (patterned) {
+          barFillColor = getPatternReference(patternIdMap[seriesConfig.id]);
+        }
+        else if (seriesConfig.gradient !== NONE) {
           barFillColor = getGradientReference(gradientIdMap[seriesConfig.gradient]);
         }
-        let barStrokeOpacity = seriesStrokeOpacity;
-        let barFillOpacity = seriesFillOpacity;
-        let barStrokeWidth = seriesStrokeWidth;
-        const hasDifferentStrokeColors = shapeNormal.strokeColor === COLOR_GROUP_INDEX;
-        const hasDifferentFillColors = shapeNormal.fillColor === COLOR_GROUP_INDEX;
+        // any state may name categoryIndex, and the state in force changes with the focus, so all three decide
+        const hasDifferentStrokeColors = usesCategoryIndexColor(seriesConfig.shapeStyle, 'strokeColor');
+        const hasDifferentFillColors = usesCategoryIndexColor(seriesConfig.shapeStyle, 'fillColor');
         const hasDifferentColors = hasDifferentStrokeColors || hasDifferentFillColors;
         let focusPercentage;
-        const { skipMissing } = seriesConfig;
-        const { skipGroupIndexMap } = seriesPositionData;
+        const { skipped, skipCategoryIndexMap } = seriesPositionData;
 
         for (let i = 0; i < seriesPositionData.length; i++) {
           if (seriesPositionData.getDefined(null, i)) {
-            // Positions are compacted when skipMissing is set, but focus and
-            // color values stay indexed by the raw group index.
-            const skipI = skipMissing ? skipGroupIndexMap[i] : i;
-            focusPercentage = getGroupFocusPercentage(groupFocusPercentages[skipI], seriesFocusPercentage);
+            // Positions may be compacted, but focus and color values stay
+            // indexed by the raw category index.
+            const skipI = skipped ? skipCategoryIndexMap[i] : i;
+            focusPercentage = getCategoryFocusPercentage(categoryFocusPercentages[skipI], seriesFocusPercentage);
             if (seriesColorGenerator !== null) {
-              barStrokeColor = seriesColorGenerator(skipI);
-              barFillColor = barStrokeColor;
+              // null = colorScale.missing is null: keep the series' own colors
+              const generatedColor = seriesColorGenerator(skipI);
+              barStrokeColor = generatedColor !== null ? generatedColor : seriesStrokeColor;
+              if (!patterned) {
+                barFillColor = generatedColor !== null ? generatedColor : seriesFillColor;
+              }
             }
             else if (hasDifferentColors) {
+              // the non-categoryIndex member still follows the per-bar focus, like the branch below
+              const categoryFocused = focusPercentage !== seriesFocusPercentage;
               if (hasDifferentStrokeColors) {
-                barStrokeColor = getSeriesStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, i);
+                barStrokeColor = getSeriesStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, skipI);
               }
-              if (hasDifferentFillColors) {
-                barFillColor = getSeriesFillColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, i);
+              else {
+                barStrokeColor = categoryFocused ? getSeriesStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage) : seriesStrokeColor;
+              }
+              if (!patterned) {
+                if (hasDifferentFillColors) {
+                  barFillColor = getSeriesFillColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, skipI);
+                }
+                else if (seriesConfig.gradient === NONE) {
+                  barFillColor = categoryFocused ? getSeriesFillColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage) : seriesFillColor;
+                }
               }
             }
             else if (focusPercentage !== seriesFocusPercentage) {
               barStrokeColor = getSeriesStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage);
-              if (seriesConfig.gradient === NONE) {
+              if (seriesConfig.gradient === NONE && !patterned) {
                 barFillColor = getSeriesFillColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage);
               }
             }
             else {
               barStrokeColor = seriesStrokeColor;
-              if (seriesConfig.gradient === NONE) {
+              if (seriesConfig.gradient === NONE && !patterned) {
                 barFillColor = seriesFillColor;
               }
             }
-            barStrokeWidth = getFocusValue(focusPercentage, shapeNormal.strokeWidth!, shapeFocused.strokeWidth!, shapeDefocused.strokeWidth!);
-            barStrokeOpacity = getFocusValue(focusPercentage, shapeNormal.strokeOpacity!, shapeFocused.strokeOpacity!, shapeDefocused.strokeOpacity!);
-            barFillOpacity = getFocusValue(focusPercentage, shapeNormal.fillOpacity!, shapeFocused.fillOpacity!, shapeDefocused.fillOpacity!);
-            bars.push({
-              key: 'bar-' + i,
-              attrs: { d: columnGenerator(i), className: mochartCssClasses['seriesBar'] + i,
-                onMouseEnter: () => onGroupEnter(i),
-                onMouseLeave: () => onGroupLeave(i),
-                onClick: () => onGroupClick(i),
-                stroke: barStrokeColor, strokeWidth: barStrokeWidth, strokeOpacity: barStrokeOpacity,
-                fill: barFillColor, fillOpacity: barFillOpacity }
-            });
+            const { strokeWidth: barStrokeWidth, strokeDashArray: barStrokeDashArray, strokeOpacity: barStrokeOpacity, fillOpacity: barFillOpacity } = getFocusStyle(focusPercentage, seriesConfig.shapeStyle);
+            const bar = this.barShapes.get(skipI);
+            bar.attrs = { d: columnGenerator(i), className: bar.className,
+              onPointerEnter: bar.onPointerEnter, onPointerLeave: bar.onPointerLeave, onClick: bar.onClick,
+              stroke: barStrokeColor, strokeWidth: barStrokeWidth, strokeOpacity: barStrokeOpacity,
+              strokeDasharray: barStrokeDashArray, fill: barFillColor, fillOpacity: barFillOpacity };
+            bars.push(bar);
           }
         }
         this.shape.set('bars', () => this.barsGroup);
         this.bars.sync(bars, barAdapter);
+        this.rangeShape.set(null);
       }
       else {
         // RENDERER_NONE (or anything unrecognized) renders no shape
         this.shape.set(null);
+        this.rangeShape.set(null);
       }
 
       this.setPresent(true);
+      // followers stay pointer-only — their clicks route to the leader
+      const interactive = seriesIsInteractive(this.props.accessibility, seriesConfig, this.props.onSeriesShapeClick);
       this.root.set({ className: mochartCssClasses['series'] + seriesId,
+        ariaHidden: this.props.accessibility && !interactive ? 'true' : null,
+        dataSeriesId: interactive ? seriesId : null,
+        tabindex: interactive ? (this.props.tabStop ? '0' : '-1') : null,
+        role: interactive ? 'button' : null,
+        ariaLabel: interactive ? getSeriesTitle(seriesConfig) : null,
+        onKeyDown: interactive ? this.onKeyDown : null,
+        cursor: seriesConfig.showPointer ? 'pointer' : null, // inherited: covers bars, markers, labels and paths
         transform: translateObject(seriesLayoutInfo) });
       this.errorBars.set(SeriesErrorBars, { colorPaletteConfig, seriesConfig, seriesIndex,
-        seriesPositionData, seriesAxisScale, filteredValues, inverted, focusData });
+        seriesPositionData, valueAxisScale, filteredValues, inverted, focusData });
       this.markers.set(SeriesMarkers, { colorPaletteConfig, seriesConfig, seriesPositionData,
         filteredValues, rawDomains, inverted, seriesIndex,
-        focusData, onGroupEnter, onGroupLeave, onGroupClick });
-      this.labels.set(SeriesLabels, { colorPaletteConfig, seriesConfig, seriesAxisScale,
-        rawSeriesAxisDomain, seriesPositionData, filteredValues, inverted,
-        focusData, onGroupEnter, onGroupLeave, onGroupClick, seriesIndex });
+        focusData, onCategoryEnter, onCategoryLeave, onCategoryClick });
+      this.labels.set(SeriesLabels, { colorPaletteConfig, seriesConfig, valueAxisScale,
+        rawValueAxisDomain, seriesPositionData, filteredValues, inverted,
+        focusData, onCategoryEnter, onCategoryLeave, onCategoryClick, seriesIndex,
+        accessibility: this.props.accessibility });
     }
     else {
       this.setPresent(false);

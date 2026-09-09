@@ -1,40 +1,56 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Curved Lines"
+  "title": {
+    "text": "Curved Lines"
   },
-  "animationConfig": {
-    "animate": true,
+  "animation": {
+    "enabled": true,
     "expansionDuration": 500,
     "initialDuration": 500,
     "valueChangeDuration": 500,
-    "collapseDuration": 500,
+    "contractionDuration": 500,
     "focusDuration": 700
   },
-  "groupAxisConfig": {
-    "before": false,
-    "title": "Time (in Minutes)",
-    "axisLine": true,
-    "axisLineMargin": 0,
-    "tickLabelFormat": "%_H:%M",
+  "categoryAxis": {
+    "title": {
+      "text": "Time (in Minutes)"
+    },
+    "axisLine": {
+      "visible": true,
+      "marginInner": 0
+    },
+    "tickLabel": {
+      "format": "%_H:%M"
+    },
     "type": "date",
     "scale": "linear",
     "dateUTC": true,
     "valueLabel": "Time",
-    "property": "time"
+    "property": "time",
+    "side": "end"
   },
-  "seriesAxisConfigs": {
-    "before": true,
-    "axisLineMargin": 0,
-    "gridLines": true,
-    "tickLabelFormat": "$s",
-    "title": "Sales Value",
-    "min": 0
+  "valueAxes": {
+    "axisLine": {
+      "marginInner": 0
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "tickLabel": {
+      "format": "$s"
+    },
+    "title": {
+      "text": "Sales Value"
+    },
+    "min": 0,
+    "side": "start"
   },
-  "seriesAllConfig": {
-    "markerShape": null
+  "seriesDefaults": {
+    "marker": {
+      "shape": null
+    }
   },
-  "seriesConfigs": [
+  "series": [
     {
       "renderer": "area",
       "title": "Sales A Natural",

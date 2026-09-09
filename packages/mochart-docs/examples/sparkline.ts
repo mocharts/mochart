@@ -6,8 +6,8 @@ import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = createSparklineConfig({
   version: '1.0.0',
-  groupAxisConfig: { property: 'day', type: 'number', scale: 'linear' },
-  seriesConfigs: [{ property: 'revenue', title: 'Revenue', renderer: 'area' }]
+  categoryAxis: { property: 'day', type: 'number', scale: 'linear' },
+  series: [{ property: 'revenue', title: 'Revenue', renderer: 'area' }]
 });
 
 const values = [

@@ -3,11 +3,14 @@ import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 
 import { LightElement } from '../misc/LightElement';
-import { textAreaContent, buttonWithTooltip, icon } from '../misc/templates';
+import { buttonWithTooltip, icon } from '../misc/templates';
+import '../misc/json-editor-content';
 
-import { demoText, formatRandomConfig, validateRandomConfig } from '@mochart/demo-common';
+import { demoText, formatRandomConfig, getDemoTabPanelAttrs, getJsonError, getJsonErrorMessage, parseJson, validateRandomConfig } from '@mochart/demo-common';
 
 import type { RandomConfigWithValid } from '../../types';
+
+const panelAttrs = getDemoTabPanelAttrs('config');
 
 @customElement('random-config-tab')
 export class RandomConfigTab extends LightElement {
@@ -34,36 +37,32 @@ export class RandomConfigTab extends LightElement {
 
   private onUpdateClick = (): void => {
     try {
-      const newConfig = JSON.parse(this.configText);
+      const newConfig = parseJson(this.configText) as RandomConfigWithValid;
       newConfig.valid = validateRandomConfig(newConfig, this.generator);
       this.errorMessage = newConfig.valid ? null : demoText.errors.invalidRandomConfigValues;
       this.onUpdate(newConfig);
     }
-    catch {
+    catch (error) {
       console.warn('Invalid Random Config JSON: ' + this.configText);
-      this.errorMessage = demoText.errors.invalidJson;
+      this.errorMessage = getJsonErrorMessage(error);
     }
   };
 
   private get jsonError(): string | null {
-    try {
-      JSON.parse(this.configText);
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
+    return getJsonError(this.configText);
   }
 
   override render(): unknown {
     const jsonError = this.jsonError;
     const footerError = jsonError ?? this.errorMessage;
-    return html`<div class=${'mochart-demo-tab-container demo-layout-col config' + (this.active ? ' active' : '')} ?inert=${!this.active}>
+    return html`<div id=${panelAttrs.id} role=${panelAttrs.role} aria-labelledby=${panelAttrs['aria-labelledby']}
+        class=${'mochart-demo-tab-container demo-layout-col config' + (this.active ? ' active' : '')} ?inert=${!this.active}>
       <div class="mochart-demo-tab-content">
-        ${textAreaContent({ value: this.configText, onChange: this.onTextChange })}
+        <json-editor-content .value=${this.configText} .ariaLabelText=${demoText.randomConfigTab.editorAria}
+          .formatOnSet=${true} .onChange=${this.onTextChange}></json-editor-content>
       </div>
       <div class="mochart-demo-tab-footer">
-        <div class="demo-toolbar" role="toolbar">
+        <div class="demo-toolbar">
           ${buttonWithTooltip(
             { id: 'config-reset', label: demoText.randomConfigTab.reset.label, tooltipText: demoText.randomConfigTab.reset.tooltip, tooltipPlacement: 'top-start', onClick: () => this.onReset(), ariaLabel: demoText.randomConfigTab.reset.aria },
             icon({ size: 'lg', fixedWidth: true, name: 'arrow-rotate-left' })

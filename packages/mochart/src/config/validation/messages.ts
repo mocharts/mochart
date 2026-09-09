@@ -2,11 +2,16 @@ import validators from './validators';
 import { isPlainObject } from '../core/deepMerge';
 import type { Validator } from '@mochart/movalid';
 
-type ConfigObject = Record<string, unknown>;
+export type ConfigObject = Record<string, unknown>;
 type ValidatorMap = Record<string, Validator>;
 
-function isConfigObject(value: unknown): value is ConfigObject {
+export function isConfigObject(value: unknown): value is ConfigObject {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+// own-key check: user config keys (__proto__, constructor, ...) must not resolve to prototype members
+function hasOwn(object: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(object, key);
 }
 
 const objectValidator = validators.object();
@@ -18,6 +23,8 @@ export const DEFAULT = 'Default ';
 export interface LocatedValidationMessage {
   path: (string | number)[];
   message: string;
+  /** The offending key names (capped) when the message reports invalid properties. */
+  invalidProperties?: string[];
 }
 
 function messagePath(prefix: string, i: number | undefined, ...properties: string[]): (string | number)[] {
@@ -61,21 +68,8 @@ export function getMessage(prefix: string, message: string): string {
   return prefixMessage(prefix) + message;
 }
 
-export function addErrorMessage(prefix: string, config: unknown, validator: Validator, errorMessages: string[], errorDetails: LocatedValidationMessage[] = []): void {
-  const isValid = validator(config);
-  if (!isValid) {
-    const message = validator.getErrorMessage(config);
-    errorMessages.push(
-      prefixErrorMessage(prefix, message));
-    errorDetails.push({ path: messagePath(prefix, undefined), message });
-  }
-}
-
-/**
- * Report the failure of one (possibly nested) config value, drilling into the members that actually
- * failed so a path reaches `['axisConfig', 'backgroundStyle', 'fillColor']` rather than stopping at the
- * object. The aggregate message is only used when no single member accounts for the failure.
- */
+// Report one (possibly nested) failed config value, drilling into the failing members so a path reaches
+// e.g. ['axisConfig', 'backgroundStyle', 'fillColor']; the aggregate message is the no-single-member fallback.
 function addErrorMessageForKey(prefix: string, properties: string[], value: unknown, validator: Validator, errorMessages: string[], errorDetails: LocatedValidationMessage[], i: number | undefined): void {
   if (validator(value)) {
     return;
@@ -83,7 +77,7 @@ function addErrorMessageForKey(prefix: string, properties: string[], value: unkn
   const nested = nestedValidators(validator);
   if (nested !== null && isPlainObject(value)) {
     const failedKeys = Object.keys(value).filter(nestedKey => {
-      const nestedValidator = nested[nestedKey];
+      const nestedValidator = hasOwn(nested, nestedKey) ? nested[nestedKey] : undefined;
       return nestedValidator !== undefined && value[nestedKey] !== undefined && !nestedValidator(value[nestedKey]);
     });
     if (failedKeys.length > 0) {
@@ -103,7 +97,7 @@ function addErrorMessagesInternal(prefix: string, config: unknown, validatorMap:
   if (objectValidator(config) && isConfigObject(config)) {
     const validatorKeys = Object.keys(validatorMap);
     const configKeys = Object.keys(config);
-    const keys = all ? validatorKeys : configKeys.filter(configKey => validatorMap[configKey] !== undefined)
+    const keys = all ? validatorKeys : configKeys.filter(configKey => hasOwn(validatorMap, configKey) && validatorMap[configKey] !== undefined)
 
     for (const key of keys) {
       addErrorMessageForKey(prefix, [key], config[key], validatorMap[key]!, errorMessages, errorDetails, i);
@@ -126,7 +120,7 @@ function addWarningMessagesForObject(prefix: string, properties: string[], confi
     let invalidPropertyCount = 0;
     const configProperties = Object.keys(config);
     for (const property of configProperties) {
-      if (!propertyMap[property]) {
+      if (!(hasOwn(propertyMap, property) && propertyMap[property])) {
         if (invalidProperties.length < maxInvalidProperties) {
           invalidProperties.push(property);
         }
@@ -135,19 +129,20 @@ function addWarningMessagesForObject(prefix: string, properties: string[], confi
     }
     if (invalidPropertyCount > 0) {
       let message: string;
+      const propertyNoun = invalidPropertyCount === 1 ? ' invalid property' : ' invalid properties';
       if (invalidPropertyCount > maxInvalidProperties) {
-        message = 'had ' + invalidPropertyCount + ' invalid properties, first ' + maxInvalidProperties + ' are: ' + invalidProperties;
+        message = 'had ' + invalidPropertyCount + propertyNoun + ', first ' + maxInvalidProperties + ' are: ' + invalidProperties.join(', ');
       }
       else {
-        message = 'had ' + invalidPropertyCount + ' invalid properties: ' + invalidProperties;
+        message = 'had ' + invalidPropertyCount + propertyNoun + ': ' + invalidProperties.join(', ');
       }
       warningMessages.push(properties.length === 0
         ? prefixErrorMessage(prefix, message, i)
         : prefixPropertyErrorMessage(prefix, joinProperties(properties), message, i));
-      warningDetails.push({ path: messagePath(prefix, i, ...properties), message });
+      warningDetails.push({ path: messagePath(prefix, i, ...properties), message, invalidProperties });
     }
     for (const property of configProperties) {
-      const nested = nestedValidators(propertyMap[property]);
+      const nested = nestedValidators(hasOwn(propertyMap, property) ? propertyMap[property] : undefined);
       if (nested !== null && isPlainObject(config[property])) {
         addWarningMessagesForObject(prefix, [...properties, property], config[property], nested,
           warningMessages, warningDetails, i);
@@ -157,9 +152,9 @@ function addWarningMessagesForObject(prefix: string, properties: string[], confi
 }
 
 function objectWithKeys<T>(object: Record<string, T>, keys: string[]): Record<string, T> {
-  const clone: Record<string, T> = {};
+  const clone: Record<string, T> = Object.create(null); // null proto: keys may come from user configs
   for (const key of keys) {
-    if (object[key] !== undefined) {
+    if (hasOwn(object, key) && object[key] !== undefined) {
       clone[key] = object[key];
     }
   }
@@ -167,7 +162,16 @@ function objectWithKeys<T>(object: Record<string, T>, keys: string[]): Record<st
 }
 
 
-export function getMessages(sectionKey: string, allKey: string | undefined, uniqueKeys: string[] | undefined, section: unknown, sectionDefaults: unknown, all: unknown, validatorMap: ValidatorMap, onlyAll: boolean, i: number | undefined = undefined) {
+/** The object's own keys whose value is set: an explicit undefined reads as "not specified", like the config merge treats it. */
+function definedKeys(config: ConfigObject): string[] {
+  return Object.keys(config).filter(key => config[key] !== undefined);
+}
+
+function withDefinedKeys(config: ConfigObject): ConfigObject {
+  return objectWithKeys(config, definedKeys(config)) as ConfigObject;
+}
+
+export function getMessages(sectionKey: string, allKey: string | undefined, uniqueKeys: string[] | undefined, section: unknown, sectionDefaults: unknown, all: unknown, validatorMap: ValidatorMap, onlyAll: boolean, i: number | undefined = undefined, first: boolean = i === undefined || i === 0, allExcludedKeys: string[] | undefined = undefined) {
   const errorMessages: string[] = [];
   const warningMessages: string[] = [];
   const errorDetails: LocatedValidationMessage[] = [];
@@ -176,10 +180,10 @@ export function getMessages(sectionKey: string, allKey: string | undefined, uniq
   let providedKeyMap: ConfigObject = {};
 
   if (!onlyAll && objectValidator(sectionDefaults) && isConfigObject(sectionDefaults)) {
-    providedKeyMap = {...providedKeyMap, ...sectionDefaults};
+    providedKeyMap = {...providedKeyMap, ...withDefinedKeys(sectionDefaults)};
 
-    if (i === undefined || i === 0) {
-      const sectionDefaultKeys = Object.keys(sectionDefaults).filter(key => sectionDefaults[key] !== undefined);
+    if (first) {
+      const sectionDefaultKeys = definedKeys(sectionDefaults);
       const defaultValidators = objectWithKeys(validatorMap, sectionDefaultKeys);
 
       addErrorMessagesInternal(DEFAULT + sectionKey, sectionDefaults, defaultValidators, errorMessages, errorDetails);
@@ -187,27 +191,44 @@ export function getMessages(sectionKey: string, allKey: string | undefined, uniq
     }
   }
   if (objectValidator(all) && isConfigObject(all)) {
-    providedKeyMap = { ...providedKeyMap, ...all };
-    if ((i === undefined || i === 0)) {
+    providedKeyMap = { ...providedKeyMap, ...withDefinedKeys(all) };
+    if (first) {
       const uniqueAllKeys = (Array.isArray(uniqueKeys) ? uniqueKeys : []).filter(uniqueKey => all[uniqueKey] !== undefined)
 
       for (const uniqueAllKey of uniqueAllKeys) {
         const message = 'unique properties cannot be set on an all config';
         errorMessages.push(
-          prefixPropertyErrorMessage(allKey ?? sectionKey, uniqueAllKey, message, i));
+          prefixPropertyErrorMessage(allKey ?? sectionKey, uniqueAllKey, message));
         errorDetails.push({ path: messagePath(allKey ?? sectionKey, undefined, uniqueAllKey), message });
       }
 
-      const allKeys = Object.keys(all).filter(allKey => uniqueAllKeys.indexOf(allKey) === -1);
+      const excludedAllKeys = (Array.isArray(allExcludedKeys) ? allExcludedKeys : [])
+        .filter(excludedKey => all[excludedKey] !== undefined);
+      for (const excludedAllKey of excludedAllKeys) {
+        const message = 'entry-only properties cannot be set on an all config';
+        errorMessages.push(prefixPropertyErrorMessage(allKey ?? sectionKey, excludedAllKey, message));
+        errorDetails.push({ path: messagePath(allKey ?? sectionKey, undefined, excludedAllKey), message });
+      }
+
+      const allKeys = definedKeys(all).filter(allKey => uniqueAllKeys.indexOf(allKey) === -1 && excludedAllKeys.indexOf(allKey) === -1);
       const allValidators = objectWithKeys(validatorMap, allKeys);
 
       addErrorMessagesInternal(allKey ?? sectionKey, all, allValidators, errorMessages, errorDetails);
       addWarningMessagesInternal(allKey ?? sectionKey, all, validatorMap, warningMessages, warningDetails);
     }
+    else if (!onlyAll) {
+      // later entries carry their own conditional rules (renderer, stack, colorProperty…), so the all-config
+      // values they inherit are checked under them too; the caller drops repeats of a message already reported
+      const overriddenKeys = objectValidator(section) && isConfigObject(section) ? definedKeys(section) : [];
+      const inheritedKeys = definedKeys(all).filter(key => overriddenKeys.indexOf(key) === -1 &&
+        (!Array.isArray(uniqueKeys) || uniqueKeys.indexOf(key) === -1) &&
+        (!Array.isArray(allExcludedKeys) || allExcludedKeys.indexOf(key) === -1));
+      addErrorMessagesInternal(allKey ?? sectionKey, all, objectWithKeys(validatorMap, inheritedKeys), errorMessages, errorDetails);
+    }
   }
   if (!onlyAll && objectValidator(section) && isConfigObject(section)) {
-    providedKeyMap = { ...providedKeyMap, ...section };
-    const sectionKeys = Object.keys(section);
+    providedKeyMap = { ...providedKeyMap, ...withDefinedKeys(section) };
+    const sectionKeys = definedKeys(section);
     const sectionValidators = objectWithKeys(validatorMap, sectionKeys);
 
     addErrorMessagesInternal(sectionKey, section, sectionValidators, errorMessages, errorDetails, i);

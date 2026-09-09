@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import type { EnhancedSeriesConfig } from '../../src/types/enhanced';
 import {
   getFocusValue,
-  getGroupFocusPercentage,
+  getCategoryFocusPercentage,
   getAggregateSeriesFocusPercentage,
   getFocusedDefocused,
   getFocusPercentageColor,
@@ -9,7 +10,7 @@ import {
   getAxisFocusOpacity,
   getAxisFocusStyle
 } from '../../src/utils/FocusValue';
-import type { SeriesConfig } from '../../src/types/config';
+
 
 const NORMAL = 10;
 const FOCUSED = 20;
@@ -32,32 +33,54 @@ describe('getFocusValue', () => {
     expect(getFocusValue(-1, NORMAL, FOCUSED, DEFOCUSED)).toBe(5);
     expect(getFocusValue(-0.5, NORMAL, FOCUSED, DEFOCUSED)).toBe(7.5);
   });
+
+  // The linear interpolation is exact for any value ordering — an inverted style config
+  // (focused below normal, defocused above) still lands on every endpoint.
+  it('interpolates exactly with an inverted value ordering', () => {
+    expect(getFocusValue(1, 0.6, 0.2, 1)).toBeCloseTo(0.2);
+    expect(getFocusValue(0.5, 0.6, 0.2, 1)).toBeCloseTo(0.4);
+    expect(getFocusValue(0, 0.6, 0.2, 1)).toBeCloseTo(0.6);
+    expect(getFocusValue(-0.5, 0.6, 0.2, 1)).toBeCloseTo(0.8);
+    expect(getFocusValue(-1, 0.6, 0.2, 1)).toBeCloseTo(1);
+  });
 });
 
-describe('getGroupFocusPercentage / combined focus', () => {
+describe('getCategoryFocusPercentage / combined focus', () => {
   it('returns null when both are null', () => {
-    expect(getGroupFocusPercentage(null, null)).toBe(null);
+    expect(getCategoryFocusPercentage(null, null)).toBe(null);
   });
 
   it('returns the other side when one is null or 0', () => {
-    expect(getGroupFocusPercentage(null, 0.5)).toBe(0.5);
-    expect(getGroupFocusPercentage(0, 0.5)).toBe(0.5);
-    expect(getGroupFocusPercentage(0.5, null)).toBe(0.5);
-    expect(getGroupFocusPercentage(0.5, 0)).toBe(0.5);
+    expect(getCategoryFocusPercentage(null, 0.5)).toBe(0.5);
+    expect(getCategoryFocusPercentage(0, 0.5)).toBe(0.5);
+    expect(getCategoryFocusPercentage(0.5, null)).toBe(0.5);
+    expect(getCategoryFocusPercentage(0.5, 0)).toBe(0.5);
   });
 
   it('takes the strongest defocus (min) when both are negative', () => {
-    expect(getGroupFocusPercentage(-0.2, -0.8)).toBe(-0.8);
+    expect(getCategoryFocusPercentage(-0.2, -0.8)).toBe(-0.8);
   });
 
-  it('takes the strongest focus (max) otherwise', () => {
-    expect(getGroupFocusPercentage(0.2, 0.8)).toBe(0.8);
-    expect(getGroupFocusPercentage(-0.2, 0.8)).toBe(0.8);
+  it('takes the strongest focus (max) when both are positive', () => {
+    expect(getCategoryFocusPercentage(0.2, 0.8)).toBe(0.8);
+  });
+
+  it('blends opposite signs continuously (a + b - a*b)', () => {
+    // a series focus tweening 0 -> 1 under a steady category defocus must
+    // travel -1 -> 1 without snapping the moment it crosses zero
+    expect(getCategoryFocusPercentage(-1, 0.01)).toBeCloseTo(-0.98);
+    expect(getCategoryFocusPercentage(-1, 0.5)).toBeCloseTo(0);
+    expect(getCategoryFocusPercentage(-0.2, 0.8)).toBeCloseTo(0.76);
+  });
+
+  it('resolves full-strength opposite pairs to the positive side, like the max it replaced', () => {
+    expect(getCategoryFocusPercentage(-1, 1)).toBe(1);
+    expect(getCategoryFocusPercentage(1, -1)).toBe(1);
   });
 });
 
 describe('getAggregateSeriesFocusPercentage', () => {
-  const cfg = (id: string): SeriesConfig => ({ id } as SeriesConfig);
+  const cfg = (id: string): EnhancedSeriesConfig => ({ id } as EnhancedSeriesConfig);
 
   it('is null when no series has a focus percentage', () => {
     expect(getAggregateSeriesFocusPercentage([cfg('a'), cfg('b')], { a: null, b: null })).toBe(null);

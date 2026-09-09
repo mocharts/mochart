@@ -19,10 +19,9 @@ interface UnitBounds {
 }
 
 /**
- * The bounding box (in units of the outer radius) of the pie's configured
- * span: the center point, the span's two edge points on the outer circle, and
- * every cardinal extreme (top/right/bottom/left) the span crosses. A full
- * circle yields [-1, 1] on both axes.
+ * The bounding box (in outer-radius units) of the pie's configured span: the
+ * center, the span's two edge points, and every cardinal extreme it crosses.
+ * A full circle yields [-1, 1] on both axes.
  */
 function getSpanUnitBounds(startAngle: number, endAngle: number): UnitBounds {
   const from = Math.min(startAngle, endAngle);
@@ -54,21 +53,20 @@ function getSpanUnitBounds(startAngle: number, endAngle: number): UnitBounds {
 }
 
 /**
- * Fits the pie's configured span into the series rect: the span's bounding
- * box (a full square for a full circle, the top half for a -90..90 gauge) is
- * scaled to fill the rect and centered, so partial pies use the space their
+ * Fits the pie's configured span into the series rect: the span's bounding box
+ * is scaled to fill the rect and centered, so partial pies use the space their
  * missing slices would waste. The span comes from the config — never the
- * current slice angles — so the layout holds still while values (or the
- * initial sweep) animate.
+ * current slice angles — so the layout holds still while values animate.
+ * The radius also leaves room for focusOffsetFraction, so an exploded slice stays inside the rect.
  */
 export function getRadialLayoutInfo(seriesLayoutInfo: LayoutInfo, pieConfig: PieConfig): RadialLayoutInfo {
   const { width, height } = seriesLayoutInfo;
   const bounds = getSpanUnitBounds(pieConfig.startAngle, pieConfig.endAngle);
   const unitWidth = Math.max(bounds.maxX - bounds.minX, 1e-6);
   const unitHeight = Math.max(bounds.maxY - bounds.minY, 1e-6);
-  const maxRadius = Math.max(Math.min(width / unitWidth, height / unitHeight), 0);
-  const outerRadius = maxRadius * pieConfig.outerRadiusPercent;
-  const innerRadius = outerRadius * pieConfig.innerRadiusPercent;
+  const maxRadius = Math.max(Math.min(width / unitWidth, height / unitHeight), 0) / (1 + pieConfig.focusOffsetFraction);
+  const outerRadius = maxRadius * pieConfig.outerRadiusFraction;
+  const innerRadius = outerRadius * pieConfig.innerRadiusFraction;
   return {
     cx: width / 2 - outerRadius * (bounds.minX + bounds.maxX) / 2,
     cy: height / 2 - outerRadius * (bounds.minY + bounds.maxY) / 2,

@@ -1,28 +1,30 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Bubble Chart Example"
+  "title": {
+    "text": "Bubble Chart Example"
   },
-  "animationConfig": {
+  "animation": {
     "expansionDuration": 1000,
     "initialDuration": 1000,
     "valueChangeDuration": 1000,
-    "collapseDuration": 1000
+    "contractionDuration": 1000
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "group",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "category",
     "type": "number",
     "scale": "ordinal",
-    "groupCountPadding": 1
+    "categoryCountPadding": 1
   },
-  "seriesAxisConfigs": {},
-  "seriesAllConfig": {
+  "valueAxes": {},
+  "seriesDefaults": {
     "renderer": "none",
-    "minMarkerSize": 3,
-    "markerSize": 24
+    "marker": {
+      "minSize": 3,
+      "size": 24
+    }
   },
-  "seriesConfigs": [
+  "series": [
     {
       "property": "value1",
       "title": "Bubble 1",
@@ -33,7 +35,9 @@
         }
       },
       "markerProperty": "marker1",
-      "markerShape": "circle"
+      "marker": {
+        "shape": "circle"
+      }
     },
     {
       "property": "value2",
@@ -45,7 +49,9 @@
         }
       },
       "markerProperty": "marker2",
-      "markerShape": "cross"
+      "marker": {
+        "shape": "cross"
+      }
     }
   ]
 }

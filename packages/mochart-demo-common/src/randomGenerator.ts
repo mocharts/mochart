@@ -3,14 +3,14 @@ import seedrandom from 'seedrandom';
 import { NONE, AUTO, TYPE_DATE, TYPE_NUMBER, TYPE_STRING, SCALE_ORDINAL } from '@mochart/core';
 import type { MochartConfig } from '@mochart/core';
 
-import type { RandomConfig, GroupValue, DemoDataProvider } from './types';
+import type { RandomConfig, CategoryValue, DemoDataProvider } from './types';
 
 const globalId = 'global';
 
 /** A pseudo-random number source (seedrandom's PRNG is callable). */
 type Rng = () => number;
-/** Produces group-axis values (dates are emitted as millisecond numbers). */
-type ValueGenerator = () => GroupValue;
+/** Produces category-axis values (dates are emitted as millisecond numbers). */
+type ValueGenerator = () => CategoryValue;
 
 // seedrandom's types only accept a string seed; the original demo passed
 // numbers too, relying on seedrandom's internal string coercion. Centralize
@@ -19,17 +19,17 @@ function rng(seed: string | number): Rng {
   return seedrandom(String(seed));
 }
 
-type RandomGroupConfig = RandomConfig['group'];
+type RandomCategoryConfig = RandomConfig['category'];
 
-interface GroupData {
-  stepPrevValues: GroupValue[];
-  globalValues: GroupValue[];
-  ownValues: GroupValue[];
-  stepNextValues: GroupValue[];
-  groupValues: GroupValue[];
+interface CategoryData {
+  stepPrevValues: CategoryValue[];
+  globalValues: CategoryValue[];
+  ownValues: CategoryValue[];
+  stepNextValues: CategoryValue[];
+  categoryValues: CategoryValue[];
 }
 
-function groupSortFunction(a: GroupValue, b: GroupValue): number {
+function categorySortFunction(a: CategoryValue, b: CategoryValue): number {
   if (a < b) {
     return -1;
   }
@@ -54,10 +54,10 @@ const intervalUnitToDateUnit: Record<string, number> = {
   day: 86400000
 };
 
-const groupTypeToGenerator: Record<string, (group: RandomGroupConfig, randomGenerator: Rng) => ValueGenerator> = {
-  [TYPE_DATE]: groupDateGenerator,
-  [TYPE_NUMBER]: groupNumberGenerator,
-  [TYPE_STRING]: groupStringGenerator
+const categoryTypeToGenerator: Record<string, (categoryConfig: RandomCategoryConfig, randomGenerator: Rng) => ValueGenerator> = {
+  [TYPE_DATE]: categoryDateGenerator,
+  [TYPE_NUMBER]: categoryNumberGenerator,
+  [TYPE_STRING]: categoryStringGenerator
 };
 
 const CAPITAL_STRING_START = 65;
@@ -84,7 +84,7 @@ function numberToString(number: number): string {
   return result.join('');
 }
 
-function groupDateGenerator({ date }: RandomGroupConfig, randomGenerator: Rng): ValueGenerator {
+function categoryDateGenerator({ date }: RandomCategoryConfig, randomGenerator: Rng): ValueGenerator {
   let { interval } = date;
   const { intervalUnit } = date;
   const min = toMillis(date.min);
@@ -99,117 +99,117 @@ function groupDateGenerator({ date }: RandomGroupConfig, randomGenerator: Rng): 
   return () => min + createValue(randomGenerator, range) * interval;
 }
 
-function groupNumberGenerator({ number }: RandomGroupConfig, randomGenerator: Rng): ValueGenerator {
+function categoryNumberGenerator({ number }: RandomCategoryConfig, randomGenerator: Rng): ValueGenerator {
   const { min, max, interval } = number;
   let range = max - min;
   range = Math.floor(range / interval);
   return () => min + createValue(randomGenerator, range) * interval;
 }
 
-function groupStringGenerator({ string }: RandomGroupConfig, randomGenerator: Rng): ValueGenerator {
+function categoryStringGenerator({ string }: RandomCategoryConfig, randomGenerator: Rng): ValueGenerator {
   const min = Math.pow(10, string.minLength - 1);
   const max = Math.pow(10, string.maxLength - 1);
   const range = max - min;
   return () => numberToString(min + createValue(randomGenerator, range));
 }
 
-function groupGenerator(type: string, group: RandomGroupConfig, randomGenerator: Rng): ValueGenerator {
-  return groupTypeToGenerator[type](group, randomGenerator);
+function categoryGenerator(type: string, categoryConfig: RandomCategoryConfig, randomGenerator: Rng): ValueGenerator {
+  return categoryTypeToGenerator[type](categoryConfig, randomGenerator);
 }
 
-function generateGroupValues(
+function generateCategoryValues(
   generator: ValueGenerator,
   missingGenerator: Rng,
-  groupCount: number,
+  categoryCount: number,
   missingProbability: number,
-  groupValueMap: Record<string, GroupValue> = {}
-): GroupValue[] {
-  const groupValues: GroupValue[] = [];
-  let i, v: GroupValue;
-  for (i = 0; i < groupCount; i++) {
+  categoryValueMap: Record<string, CategoryValue> = {}
+): CategoryValue[] {
+  const categoryValues: CategoryValue[] = [];
+  let i, v: CategoryValue;
+  for (i = 0; i < categoryCount; i++) {
     if (missingProbability === 0 || missingGenerator() >= missingProbability) {
       v = generator();
-      while (groupValueMap['' + v] !== undefined) {
+      while (categoryValueMap['' + v] !== undefined) {
         v = generator();
       }
-      groupValueMap['' + v] = v;
-      groupValues.push(v);
+      categoryValueMap['' + v] = v;
+      categoryValues.push(v);
     }
   }
-  return groupValues;
+  return categoryValues;
 }
 
-function generateChartGroupValues(
-  { groupAxisConfig }: MochartConfig,
-  { group }: RandomConfig,
+function generateChartCategoryValues(
+  { categoryAxis: categoryAxisConfig }: MochartConfig,
+  { category: categoryConfig }: RandomConfig,
   randomId: number
-): GroupData {
-  const { type } = groupAxisConfig;
-  const { count, missing, reuse } = group;
+): CategoryData {
+  const { type } = categoryAxisConfig;
+  const { count, missing, reuse } = categoryConfig;
   const { probability } = missing;
-  const { globalPercentage, stepPercentage } = reuse;
+  const { globalFraction, stepFraction } = reuse;
 
-  const globalCount = Math.floor(globalPercentage * count);
-  const stepCount = globalPercentage < 1 && stepPercentage > 0 ? 2 * Math.floor((count - globalCount) * stepPercentage / 2.0) : 0;
+  const globalCount = Math.floor(globalFraction * count);
+  const stepCount = globalFraction < 1 && stepFraction > 0 ? 2 * Math.floor((count - globalCount) * stepFraction / 2.0) : 0;
   const halfStepCount = Math.floor(stepCount / 2);
   const ownCount = count - globalCount - stepCount;
 
-  const globalGenerator = groupGenerator(type, group, rng(globalId));
+  const globalGenerator = categoryGenerator(type, categoryConfig, rng(globalId));
   const globalMissingGenerator = rng(globalId);
-  const stepPrevGenerator = groupGenerator(type, group, rng((randomId - 1) + 0.5));
+  const stepPrevGenerator = categoryGenerator(type, categoryConfig, rng((randomId - 1) + 0.5));
   const stepPrevMissingGenerator = rng((randomId - 1) + 0.5);
-  const stepNextGenerator = groupGenerator(type, group, rng(randomId + 0.5));
+  const stepNextGenerator = categoryGenerator(type, categoryConfig, rng(randomId + 0.5));
   const stepNextMissingGenerator = rng(randomId + 0.5);
-  const ownGenerator = groupGenerator(type, group, rng(randomId));
+  const ownGenerator = categoryGenerator(type, categoryConfig, rng(randomId));
   const missingGenerator = rng(randomId);
 
-  const groupValueMap: Record<string, GroupValue> = {};
-  const globalValues = generateGroupValues(globalGenerator, globalMissingGenerator, globalCount, probability, groupValueMap);
+  const categoryValueMap: Record<string, CategoryValue> = {};
+  const globalValues = generateCategoryValues(globalGenerator, globalMissingGenerator, globalCount, probability, categoryValueMap);
 
-  const globalGroupValueMap = { ...groupValueMap };
-  let stepPrevValues: GroupValue[];
-  let stepNextValues: GroupValue[];
+  const globalCategoryValueMap = { ...categoryValueMap };
+  let stepPrevValues: CategoryValue[];
+  let stepNextValues: CategoryValue[];
   if (randomId % 2 === 0) {
-    const stepPrevGroupValueMap = { ...globalGroupValueMap };
-    stepPrevValues = generateGroupValues(stepPrevGenerator, stepPrevMissingGenerator, halfStepCount, probability, stepPrevGroupValueMap);
-    const stepNextNextGroupValueMap = { ...globalGroupValueMap };
-    const stepNextNextGenerator = groupGenerator(type, group, rng((randomId + 1) + 0.5));
+    const stepPrevCategoryValueMap = { ...globalCategoryValueMap };
+    stepPrevValues = generateCategoryValues(stepPrevGenerator, stepPrevMissingGenerator, halfStepCount, probability, stepPrevCategoryValueMap);
+    const stepNextNextCategoryValueMap = { ...globalCategoryValueMap };
+    const stepNextNextGenerator = categoryGenerator(type, categoryConfig, rng((randomId + 1) + 0.5));
     const stepNextNextMissingGenerator = rng((randomId + 1) + 0.5);
-    generateGroupValues(stepNextNextGenerator, stepNextNextMissingGenerator, halfStepCount, probability, stepNextNextGroupValueMap);
-    const stepNextGroupValueMap = { ...stepPrevGroupValueMap, ...stepNextNextGroupValueMap };
-    stepNextValues = generateGroupValues(stepNextGenerator, stepNextMissingGenerator, halfStepCount, probability, stepNextGroupValueMap);
+    generateCategoryValues(stepNextNextGenerator, stepNextNextMissingGenerator, halfStepCount, probability, stepNextNextCategoryValueMap);
+    const stepNextCategoryValueMap = { ...stepPrevCategoryValueMap, ...stepNextNextCategoryValueMap };
+    stepNextValues = generateCategoryValues(stepNextGenerator, stepNextMissingGenerator, halfStepCount, probability, stepNextCategoryValueMap);
   }
   else {
-    const stepNextGroupValueMap = { ...globalGroupValueMap };
-    stepNextValues = generateGroupValues(stepNextGenerator, stepNextMissingGenerator, halfStepCount, probability, stepNextGroupValueMap);
-    const stepPrevPrevGroupValueMap = { ...globalGroupValueMap };
-    const stepPrevPrevGenerator = groupGenerator(type, group, rng((randomId - 2) + 0.5));
+    const stepNextCategoryValueMap = { ...globalCategoryValueMap };
+    stepNextValues = generateCategoryValues(stepNextGenerator, stepNextMissingGenerator, halfStepCount, probability, stepNextCategoryValueMap);
+    const stepPrevPrevCategoryValueMap = { ...globalCategoryValueMap };
+    const stepPrevPrevGenerator = categoryGenerator(type, categoryConfig, rng((randomId - 2) + 0.5));
     const stepPrevPrevMissingGenerator = rng((randomId - 2) + 0.5);
-    generateGroupValues(stepPrevPrevGenerator, stepPrevPrevMissingGenerator, halfStepCount, probability, stepPrevPrevGroupValueMap);
-    const stepPrevGroupValueMap = { ...stepNextGroupValueMap, ...stepPrevPrevGroupValueMap };
-    stepPrevValues = generateGroupValues(stepPrevGenerator, stepPrevMissingGenerator, halfStepCount, probability, stepPrevGroupValueMap);
+    generateCategoryValues(stepPrevPrevGenerator, stepPrevPrevMissingGenerator, halfStepCount, probability, stepPrevPrevCategoryValueMap);
+    const stepPrevCategoryValueMap = { ...stepNextCategoryValueMap, ...stepPrevPrevCategoryValueMap };
+    stepPrevValues = generateCategoryValues(stepPrevGenerator, stepPrevMissingGenerator, halfStepCount, probability, stepPrevCategoryValueMap);
   }
   for (const value of stepPrevValues) {
-    groupValueMap['' + value] = value;
+    categoryValueMap['' + value] = value;
   }
   for (const value of stepNextValues) {
-    groupValueMap['' + value] = value;
+    categoryValueMap['' + value] = value;
   }
 
-  const ownValues = generateGroupValues(ownGenerator, missingGenerator, ownCount, probability, groupValueMap);
-  const groupValues = ([] as GroupValue[]).concat(stepPrevValues, globalValues, ownValues, stepNextValues);
+  const ownValues = generateCategoryValues(ownGenerator, missingGenerator, ownCount, probability, categoryValueMap);
+  const categoryValues = ([] as CategoryValue[]).concat(stepPrevValues, globalValues, ownValues, stepNextValues);
 
   return {
     stepPrevValues,
     globalValues,
     ownValues,
     stepNextValues,
-    groupValues
+    categoryValues
   };
 }
 
-function generateSeriesValuesForGroupValues(
-  groupValues: GroupValue[],
+function generateSeriesValuesForCategoryValues(
+  categoryValues: CategoryValue[],
   min: number,
   range: number,
   probability: number,
@@ -217,7 +217,7 @@ function generateSeriesValuesForGroupValues(
   randomGenerator: Rng,
   missingGenerator: Rng
 ): (number | undefined)[] {
-  return groupValues.map(() => {
+  return categoryValues.map(() => {
     if (probability > 0 && missingGenerator() < probability) {
       return undefined;
     }
@@ -232,7 +232,7 @@ function generateSeriesValuesForGroupValues(
 
 function generateSeriesValues(
   _id: string,
-  groupData: GroupData,
+  categoryData: CategoryData,
   reuse: RandomConfig['series']['reuse'],
   min: number,
   range: number,
@@ -247,13 +247,13 @@ function generateSeriesValues(
   stepNextGenerator: Rng,
   stepNextMissingGenerator: Rng
 ): (number | undefined)[] {
-  const { stepPrevValues, globalValues, ownValues, stepNextValues, groupValues } = groupData;
+  const { stepPrevValues, globalValues, ownValues, stepNextValues, categoryValues } = categoryData;
   const { global, step } = reuse;
   if (global || step) {
-    const prevSeriesValues = generateSeriesValuesForGroupValues(stepPrevValues, min, range, probability, round, step ? stepPrevGenerator : randomGenerator, step ? stepPrevMissingGenerator : missingGenerator);
-    const globalSeriesValues = generateSeriesValuesForGroupValues(globalValues, min, range, probability, round, global ? globalGenerator : randomGenerator, global ? globalMissingGenerator : missingGenerator);
-    const ownSeriesValues = generateSeriesValuesForGroupValues(ownValues, min, range, probability, round, randomGenerator, missingGenerator);
-    const nextSeriesValues = generateSeriesValuesForGroupValues(stepNextValues, min, range, probability, round, step ? stepNextGenerator : randomGenerator, step ? stepNextMissingGenerator : missingGenerator);
+    const prevSeriesValues = generateSeriesValuesForCategoryValues(stepPrevValues, min, range, probability, round, step ? stepPrevGenerator : randomGenerator, step ? stepPrevMissingGenerator : missingGenerator);
+    const globalSeriesValues = generateSeriesValuesForCategoryValues(globalValues, min, range, probability, round, global ? globalGenerator : randomGenerator, global ? globalMissingGenerator : missingGenerator);
+    const ownSeriesValues = generateSeriesValuesForCategoryValues(ownValues, min, range, probability, round, randomGenerator, missingGenerator);
+    const nextSeriesValues = generateSeriesValuesForCategoryValues(stepNextValues, min, range, probability, round, step ? stepNextGenerator : randomGenerator, step ? stepNextMissingGenerator : missingGenerator);
 
     return ([] as (number | undefined)[]).concat(
       prevSeriesValues,
@@ -263,21 +263,23 @@ function generateSeriesValues(
     );
   }
   else {
-    return generateSeriesValuesForGroupValues(groupValues, min, range, probability, round, randomGenerator, missingGenerator);
+    return generateSeriesValuesForCategoryValues(categoryValues, min, range, probability, round, randomGenerator, missingGenerator);
   }
 }
 
-const allPropertyKeys = ['property', 'rangeProperty', 'markerProperty', 'colorProperty', 'labelProperty'];
+const allPropertyKeys = ['property', 'rangeProperty', 'markerProperty', 'colorProperty', 'labelProperty', 'tooltipProperty', 'errorLowProperty', 'errorHighProperty'];
 const axisPropertyMap: Record<string, boolean> = {
   property: true,
-  rangeProperty: true
+  rangeProperty: true,
+  errorLowProperty: true,
+  errorHighProperty: true
 };
 
 function generateChartSeriesValues(
-  { seriesConfigs }: MochartConfig,
+  { series: seriesConfigs, valueAxes }: MochartConfig,
   { series }: RandomConfig,
   randomId: number,
-  groupData: GroupData
+  categoryData: CategoryData
 ): Record<string, (number | undefined)[]> {
   const { number, missing, reuse } = series;
   const { min, max, limitToAxisConfig, round } = number;
@@ -292,7 +294,8 @@ function generateChartSeriesValues(
   const stepNextGenerator = rng(randomId + 0.5);
   const stepNextMissingGenerator = rng(randomId + 0.5);
   seriesConfigs.forEach(seriesConfig => {
-    const { id, seriesAxisConfig: axisConfig } = seriesConfig;
+    const { id } = seriesConfig;
+    const axisConfig = valueAxes.find((candidate) => candidate.id === seriesConfig.axis)!;
     const seriesConfigRecord = seriesConfig as unknown as Record<string, unknown>;
     let keyMin, keyMax, keyRange;
     for (const key of allPropertyKeys) {
@@ -301,7 +304,7 @@ function generateChartSeriesValues(
         keyMin = axisPropertyMap[key] && axisConfig.min !== AUTO && limitToAxisConfig ? (axisConfig.min as number) : min;
         keyMax = axisPropertyMap[key] && axisConfig.max !== AUTO && limitToAxisConfig ? (axisConfig.max as number) : max;
         keyRange = keyMax - keyMin;
-        seriesValues[propertyValue as string] = generateSeriesValues(id, groupData, reuse, keyMin, keyRange, probability,
+        seriesValues[propertyValue as string] = generateSeriesValues(id, categoryData, reuse, keyMin, keyRange, probability,
           round, randomGenerator, missingGenerator, globalGenerator, globalMissingGenerator,
           stepPrevGenerator, stepPrevMissingGenerator, stepNextGenerator, stepNextMissingGenerator);
       }
@@ -315,22 +318,22 @@ export function generateChartDataProvider(
   random: RandomConfig,
   randomId: number
 ): DemoDataProvider {
-  const { groupAxisConfig } = mochartConfig;
-  const { displayProperty, scale } = groupAxisConfig;
-  const { group } = random;
+  const { categoryAxis: categoryAxisConfig } = mochartConfig;
+  const { keyProperty, scale } = categoryAxisConfig;
+  const { category: categoryConfig } = random;
 
-  const groupData = generateChartGroupValues(mochartConfig, random, randomId);
-  let { groupValues } = groupData;
-  const seriesValues = generateChartSeriesValues(mochartConfig, random, randomId, groupData);
+  const categoryData = generateChartCategoryValues(mochartConfig, random, randomId);
+  let { categoryValues } = categoryData;
+  const seriesValues = generateChartSeriesValues(mochartConfig, random, randomId, categoryData);
 
-  const { order } = group;
+  const { order } = categoryConfig;
   const { sort } = order;
 
   if (scale !== SCALE_ORDINAL || sort) {
-    const sortedGroupValues = groupValues.slice().sort(groupSortFunction);
-    const oldValueToIndex = groupValues.reduce<Record<string, number>>((m, g, i) => { m['' + g] = i; return m; }, {});
-    const sortedIndexToIndex = sortedGroupValues.map(g => oldValueToIndex['' + g]);
-    groupValues = sortedGroupValues;
+    const sortedCategoryValues = categoryValues.slice().sort(categorySortFunction);
+    const oldValueToIndex = categoryValues.reduce<Record<string, number>>((m, g, i) => { m['' + g] = i; return m; }, {});
+    const sortedIndexToIndex = sortedCategoryValues.map(g => oldValueToIndex['' + g]);
+    categoryValues = sortedCategoryValues;
     const oldToNew = (values: (number | undefined)[]) => values.map((_v, i) => values[sortedIndexToIndex[i]]);
 
     const seriesKeys = Object.keys(seriesValues);
@@ -339,14 +342,14 @@ export function generateChartDataProvider(
     }
   }
 
-  if (displayProperty) {
-    seriesValues[displayProperty] = groupValues as (number | undefined)[];
+  if (keyProperty) {
+    seriesValues[keyProperty] = categoryValues as (number | undefined)[];
   }
 
+  const categoryProperty = categoryAxisConfig.property;
   return {
-    groupValues,
+    categoryValues,
     seriesValues,
-    getGroupValues: () => groupValues,
-    getSeriesValue: (_g, i, s) => seriesValues[s][i]
+    getPropertyValues: property => property === categoryProperty ? categoryValues : seriesValues[property]
   };
 }

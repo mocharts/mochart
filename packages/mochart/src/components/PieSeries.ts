@@ -1,24 +1,39 @@
 import { arc } from 'd3-shape';
+import type { ArcDatum } from 'd3-shape';
 
 import { Renderer, svgEl, textEl } from '../render';
 
 import { degreesToRadians } from '../data/PieData';
 import { getSeriesFillColor, getSeriesStrokeColor, getSeriesLabelFillColor, getSeriesLabelStrokeColor } from '../utils/SeriesColors';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
-import { getFocusValue } from '../utils/FocusValue';
-import { getGradientReference } from '../utils/svgUtils';
+import { getSeriesTitle } from '../utils/SeriesTitle';
+import { sliceIsInteractive } from '../utils/RovingFocus';
+import { getFocusStyle } from '../utils/FocusValue';
+import { getGradientReference, getPatternReference } from '../utils/svgUtils';
 import { mochartCssClasses } from '../utils/ChartDom';
-import { translate, textDY } from '../utils/utils';
+import { translate, textDY, isHoverPointer } from '../utils/utils';
 import { NONE } from '../config/core/constants';
 import { formatPieLabelType, getPieLabelFormats } from '../data/PieLabel';
+import type { PieLabelFormats } from '../data/PieLabel';
 
-import type { ColorPaletteConfig, PieConfig, SeriesConfig } from '../types/config';
+import type { ColorPaletteConfig, PieConfig } from '../types/config';
+import type { EnhancedSeriesConfig } from '../types/enhanced';
 import type { FocusData } from '../types/animation';
 import type { LayoutInfo } from '../types/layout';
 import type { PieSliceAngles } from '../data/PieData';
 import type { RadialLayoutInfo } from '../layout/RadialLayout';
 
 const noOp = () => {};
+
+interface SliceArcDatum extends ArcDatum {
+  innerRadius: number;
+  outerRadius: number;
+  padAngle: number;
+  cornerRadius: number;
+}
+
+// one generator for every slice and frame; the datum carries the per-sync geometry
+const sliceArc = arc<SliceArcDatum>().cornerRadius(d => d.cornerRadius);
 
 interface PieSeriesFocusUpdate {
   seriesId?: string | null;
@@ -27,36 +42,38 @@ interface PieSeriesFocusUpdate {
 interface PieSeriesProps {
   colorPaletteConfig: ColorPaletteConfig;
   pieConfig: PieConfig;
-  seriesConfig: SeriesConfig;
+  seriesConfig: EnhancedSeriesConfig;
   seriesIndex: number;
   seriesLayoutInfo: LayoutInfo;
   radialLayoutInfo: RadialLayoutInfo;
   sliceAngles: PieSliceAngles | undefined;
-  /**
-   * The fraction driving the label content and min-angle threshold: the
-   * slice's share of the unsuppressed total, or of the full raw total when
-   * adjustLabelsForSuppression is off.
-   */
+  /** The label/min-angle fraction: the slice's share of the unfiltered total
+   * (or of the full raw total when label.adjustForFiltering is off). */
   labelFraction: number;
   focusData: FocusData | null;
   gradientIdMap: Record<string, string>;
-  /** Suppress labels while the initial sweep-in is running. */
+  patternIdMap: Record<string, string>;
+  /** Filter labels while the initial sweep-in is running. */
   hideLabels: boolean;
   onFocus: (focus: PieSeriesFocusUpdate) => void;
   /** Click-only slice event for selection; independent of the focus flags. */
   onSliceClick?: (payload: { seriesId: string }) => void;
+  /** Master switch for the slice's keyboard and screen-reader semantics. */
+  accessibility: boolean;
+  /** The roving tab stop: one slice is Tab-reachable, arrows move between slices. */
+  tabStop: boolean;
 }
 
 interface PieSeriesState {
-  onSeriesEnter: () => void;
+  onSeriesEnter: (event: Event) => void;
   onSeriesLeave: () => void;
   onSeriesClick: () => void;
 }
 
-function getPieLabelText(pieConfig: PieConfig, seriesConfig: SeriesConfig, sliceAngles: PieSliceAngles, labelFraction: number): string {
-  const { valueFormat, percentFormat } = getPieLabelFormats(pieConfig);
-  return formatPieLabelType(pieConfig.labelType, {
-    title: seriesConfig.title ?? seriesConfig.id,
+function getPieLabelText(pieConfig: PieConfig, { valueFormat, percentFormat }: PieLabelFormats, seriesConfig: EnhancedSeriesConfig,
+    sliceAngles: PieSliceAngles, labelFraction: number): string {
+  return formatPieLabelType(pieConfig.label.type, {
+    title: getSeriesTitle(seriesConfig),
     value: valueFormat(sliceAngles.value),
     percent: percentFormat(labelFraction)
   });
@@ -68,6 +85,8 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
   shape = this.elSlot(this.root);
   label = this.elSlot(this.root);
   labelText = textEl();
+  // leave mirrors the enter that actually fired: an ignored touch enter must not clear focus set elsewhere
+  hoverActive = false;
 
   constructor() {
     super();
@@ -89,12 +108,12 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
     const seriesId = seriesConfig.followSeries ?? seriesConfig.id;
     const focusedSeriesId = focusData ? focusData.focusedSeriesId : null;
 
-    let onSeriesEnter = noOp;
+    let onSeriesEnter: PieSeriesState['onSeriesEnter'] = noOp;
     let onSeriesLeave = noOp;
     let onSeriesClick = noOp;
-    if (seriesConfig.focusOnMouseOver) {
-      onSeriesEnter = () => { onFocus({ seriesId }); };
-      onSeriesLeave = () => { onFocus({ seriesId: null }); };
+    if (seriesConfig.focusOnHover) {
+      onSeriesEnter = (event: Event) => { if (isHoverPointer(event)) { this.hoverActive = true; onFocus({ seriesId }); } };
+      onSeriesLeave = () => { if (this.hoverActive) { this.hoverActive = false; onFocus({ seriesId: null }); } };
     }
     if (seriesConfig.focusOnClick || onSliceClick) {
       onSeriesClick = () => {
@@ -107,13 +126,23 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
     return { onSeriesEnter, onSeriesLeave, onSeriesClick };
   }
 
+  onKeyDown = (event: Event) => {
+    const { key } = event as KeyboardEvent;
+    if (key === 'Enter' || key === ' ') {
+      event.preventDefault();
+      // the slice half only (focus toggle / selection); the container forwards the keydown to the
+      // plot handler for the tooltip half — a synthesized click can miss the chart rect on exploded edge slices
+      this.state.onSeriesClick();
+    }
+  }
+
   create() {
     return this.root.node;
   }
 
   sync() {
     const { colorPaletteConfig, pieConfig, seriesConfig, seriesIndex, seriesLayoutInfo, radialLayoutInfo,
-      sliceAngles, labelFraction, focusData, gradientIdMap, hideLabels } = this.props;
+      sliceAngles, labelFraction, focusData, gradientIdMap, patternIdMap, hideLabels, onSliceClick, accessibility, tabStop } = this.props;
     const { onSeriesEnter, onSeriesLeave, onSeriesClick } = this.state;
 
     if (sliceAngles === undefined || sliceAngles.fraction <= 0 || focusData === null) {
@@ -121,56 +150,61 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
       return;
     }
 
-    const { seriesAxisFocusPercentages, seriesFocusPercentages } = focusData;
-    const seriesFocusPercentage = getSeriesFocusPercentage(seriesConfig, seriesAxisFocusPercentages, seriesFocusPercentages);
+    const { valueAxisFocusPercentages, seriesFocusPercentages } = focusData;
+    const seriesFocusPercentage = getSeriesFocusPercentage(seriesConfig, valueAxisFocusPercentages, seriesFocusPercentages);
 
     const strokeColor = getSeriesStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, seriesFocusPercentage);
     let fillColor = getSeriesFillColor(colorPaletteConfig, seriesConfig, seriesIndex, seriesFocusPercentage);
-    if (seriesConfig.gradient !== NONE) {
+    if (seriesConfig.pattern !== NONE) {
+      fillColor = getPatternReference(patternIdMap[seriesConfig.id]);
+    }
+    else if (seriesConfig.gradient !== NONE) {
       fillColor = getGradientReference(gradientIdMap[seriesConfig.gradient]);
     }
-    const { normal: shapeNormal, focused: shapeFocused, defocused: shapeDefocused } = seriesConfig.shapeStyle;
-    const strokeWidth = getFocusValue(seriesFocusPercentage, shapeNormal.strokeWidth!, shapeFocused.strokeWidth!, shapeDefocused.strokeWidth!);
-    const strokeOpacity = getFocusValue(seriesFocusPercentage, shapeNormal.strokeOpacity!, shapeFocused.strokeOpacity!, shapeDefocused.strokeOpacity!);
-    const fillOpacity = getFocusValue(seriesFocusPercentage, shapeNormal.fillOpacity!, shapeFocused.fillOpacity!, shapeDefocused.fillOpacity!);
+    const { strokeWidth, strokeDashArray, strokeOpacity, fillOpacity } = getFocusStyle(seriesFocusPercentage, seriesConfig.shapeStyle);
 
-    const arcGenerator = arc()
-      .innerRadius(radialLayoutInfo.innerRadius)
-      .outerRadius(radialLayoutInfo.outerRadius)
-      .cornerRadius(pieConfig.cornerRadius)
-      .padAngle(degreesToRadians(pieConfig.padAngle));
     const { startAngle, endAngle } = sliceAngles;
+    const arcPath = sliceArc({ startAngle, endAngle,
+      innerRadius: radialLayoutInfo.innerRadius, outerRadius: radialLayoutInfo.outerRadius,
+      cornerRadius: pieConfig.cornerRadius, padAngle: degreesToRadians(pieConfig.padAngle) });
 
     // The focused slice "explodes" along its mid-angle; the tweened focus
     // percentage animates the offset in and out.
     let offsetX = 0;
     let offsetY = 0;
-    if (pieConfig.focusOffsetPercent > 0 && seriesFocusPercentage !== null && seriesFocusPercentage > 0) {
+    if (pieConfig.focusOffsetFraction > 0 && seriesFocusPercentage !== null && seriesFocusPercentage > 0) {
       const offsetMidAngle = (startAngle + endAngle) / 2;
-      const offset = seriesFocusPercentage * pieConfig.focusOffsetPercent * radialLayoutInfo.outerRadius;
+      const offset = seriesFocusPercentage * pieConfig.focusOffsetFraction * radialLayoutInfo.outerRadius;
       offsetX = offset * Math.sin(offsetMidAngle);
       offsetY = -offset * Math.cos(offsetMidAngle);
     }
 
     this.setPresent(true);
+    // keyboard focus shows only the ring — mirroring hover would reorder the DOM under the focused node
+    const interactive = sliceIsInteractive(accessibility, seriesConfig, onSliceClick);
+    const labelFormats = getPieLabelFormats(pieConfig);
     this.root.set({ className: mochartCssClasses['series'] + seriesConfig.id,
+      cursor: seriesConfig.showPointer ? 'pointer' : null,
+      ariaHidden: accessibility && !interactive ? 'true' : null,
+      dataSeriesId: interactive ? seriesConfig.id : null,
+      tabindex: interactive ? (tabStop ? '0' : '-1') : null,
+      role: interactive ? 'button' : null,
+      ariaLabel: interactive ? getSeriesTitle(seriesConfig) + ', ' + labelFormats.percentFormat(labelFraction) : null,
+      onKeyDown: interactive ? this.onKeyDown : null,
       transform: translate(seriesLayoutInfo.x + radialLayoutInfo.cx + offsetX, seriesLayoutInfo.y + radialLayoutInfo.cy + offsetY) });
 
     this.shape.set('slice', () => svgEl('path'))!.set({
-      d: arcGenerator({ startAngle, endAngle }), className: mochartCssClasses['seriesSlice'],
-      onMouseEnter: onSeriesEnter, onMouseLeave: onSeriesLeave, onClick: onSeriesClick,
-      stroke: strokeColor, strokeWidth, strokeOpacity,
+      d: arcPath, className: mochartCssClasses['seriesSlice'],
+      onPointerEnter: onSeriesEnter, onPointerLeave: onSeriesLeave, onClick: onSeriesClick,
+      stroke: strokeColor, strokeWidth, strokeDasharray: strokeDashArray, strokeOpacity,
       fill: fillColor, fillOpacity });
 
-    if (pieConfig.showLabels && !hideLabels && labelFraction >= pieConfig.labelMinAnglePercent) {
+    if (pieConfig.label.visible && !hideLabels && labelFraction >= pieConfig.label.minFraction) {
       const midAngle = (startAngle + endAngle) / 2;
-      const labelRadius = radialLayoutInfo.innerRadius + (radialLayoutInfo.outerRadius - radialLayoutInfo.innerRadius) * pieConfig.labelRadiusPercent;
+      const labelRadius = radialLayoutInfo.innerRadius + (radialLayoutInfo.outerRadius - radialLayoutInfo.innerRadius) * pieConfig.label.radiusFraction;
       const labelFillColor = getSeriesLabelFillColor(colorPaletteConfig, seriesConfig, seriesIndex, seriesFocusPercentage);
       const labelStrokeColor = getSeriesLabelStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, seriesFocusPercentage);
-      const { normal: labelNormal, focused: labelFocused, defocused: labelDefocused } = seriesConfig.labelTextStyle;
-      const labelStrokeWidth = getFocusValue(seriesFocusPercentage, labelNormal.strokeWidth!, labelFocused.strokeWidth!, labelDefocused.strokeWidth!);
-      const labelStrokeOpacity = getFocusValue(seriesFocusPercentage, labelNormal.strokeOpacity!, labelFocused.strokeOpacity!, labelDefocused.strokeOpacity!);
-      const labelFillOpacity = getFocusValue(seriesFocusPercentage, labelNormal.fillOpacity!, labelFocused.fillOpacity!, labelDefocused.fillOpacity!);
+      const { strokeWidth: labelStrokeWidth, strokeOpacity: labelStrokeOpacity, fillOpacity: labelFillOpacity } = getFocusStyle(seriesFocusPercentage, seriesConfig.label.textStyle);
 
       const labelEl = this.label.set('text', () => {
         const el = svgEl('text');
@@ -182,7 +216,7 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
         textAnchor: 'middle', dy: textDY,
         stroke: labelStrokeColor, strokeWidth: labelStrokeWidth, strokeOpacity: labelStrokeOpacity,
         fill: labelFillColor, fillOpacity: labelFillOpacity });
-      this.labelText.set(getPieLabelText(pieConfig, seriesConfig, sliceAngles, labelFraction));
+      this.labelText.set(getPieLabelText(pieConfig, labelFormats, seriesConfig, sliceAngles, labelFraction));
     }
     else {
       this.label.set(null);

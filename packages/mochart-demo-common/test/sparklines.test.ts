@@ -14,18 +14,16 @@ describe('sparkline metrics', () => {
       const mochartConfig = enhanceConfig(metric.config);
       expect(mochartConfig.validation.valid).toBe(true);
       expect(mochartConfig.validation.warnings).toEqual([]);
-      // The preset must reach every axis: seriesAxisAllConfig only merges
+      // The preset must reach every axis: valueAxisDefaults only merges
       // into declared axes, so an undeclared axis would render its stub.
-      for (const seriesAxisConfig of mochartConfig.seriesAxisConfigs) {
-        expect(seriesAxisConfig.visible).toBe(false);
+      for (const valueAxisConfig of mochartConfig.valueAxes) {
+        expect(valueAxisConfig.visible).toBe(false);
       }
       for (const step of [0, 1, 5]) {
         const rows = metric.generate(step);
         expect(rows.length).toBeGreaterThan(0);
-        const groupProperty = mochartConfig.groupAxisConfig.property!;
         const provider = {
-          getGroupValues: () => rows.map(row => row[groupProperty]),
-          getSeriesValue: (_g: unknown, index: number, property: string) => rows[index][property]
+          getPropertyValues: (property: string) => rows.map(row => row[property])
         };
         expect(getDataErrors(mochartConfig, provider as unknown as DataProvider)).toEqual([]);
         expect(metric.latestText(rows)).toBeTruthy();

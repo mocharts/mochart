@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Tooltip Controls"
+  },
+  "tooltip": {
+    "showMissingValues": true,
+    "missingValueText": "N/A",
+    "showControls": true
+  },
+  "categoryAxis": {
+    "title": {
+      "text": "Category Axis"
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "valueLabel": "Category",
+    "property": "categorySO"
+  },
+  "valueAxes": [
+    {
+      "title": {
+        "text": "Value Axis 1"
+      },
+      "base": 0
+    }
+  ],
+  "series": [
+    {
+      "property": "value1",
+      "title": "Value 1",
+      "renderer": "bar"
+    },
+    {
+      "property": "value2",
+      "title": "Value 2",
+      "renderer": "bar"
+    }
+  ]
+}

@@ -1,6 +1,8 @@
-import { buildMochartDemoConfig, copyDemoConfig, demoText, formatMochartDemoConfig, getReferenceSectionIds, getReferenceSectionUrl, isPhoneViewport, parseConfig, slowAnimationConfig, toggleConfigProperty, toggleConfigSection, watchPhoneViewport } from '@mochart/demo-common';
+import { buildMochartDemoConfig, controlsMenuPlacement, copyDemoConfig, createJsonEditorContent, demoConfigFromText, demoText, formatMochartDemoConfig, getJsonError, getJsonErrorMessage, getReferenceSectionIds, getReferenceSectionUrl, isPhoneViewport, isConfigSectionActive, parseConfigFromText, parseJson, slowAnimationConfig, toggleConfigFromText, toggleConfigProperty, toggleConfigSection, watchPhoneViewport } from '@mochart/demo-common';
 
-import { buttonWithTooltip, el, icon, setActiveClass, setChildren, tabContainer, textAreaContent } from '../misc/dom';
+import type { DemoConfigView } from '@mochart/demo-common';
+
+import { buttonWithTooltip, el, icon, setActiveClass, setChildren, tabContainer } from '../misc/dom';
 import { menuDivider, overflowMenu } from '../misc/OverflowMenu';
 
 import type { MenuItem } from '../misc/OverflowMenu';
@@ -38,36 +40,33 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
     sync();
   });
 
-  const textArea = textAreaContent(formatMochartDemoConfig(demoConfig, false), onTextChange);
+  const configEditor = createJsonEditorContent({
+    value: formatMochartDemoConfig(demoConfig, false),
+    ariaLabel: demoText.configTab.editorAria,
+    formatOnSet: true,
+    support: editor => editor.createMochartConfigSupport(),
+    onChange: onTextChange
+  });
 
   function getConfigText(): string {
-    return textArea.getValue();
-  }
-
-  function jsonError(): string | null {
-    try {
-      JSON.parse(getConfigText());
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
+    return configEditor.getValue();
   }
 
   function onTextChange(): void {
     errorMessage = null;
+    demoConfig = demoConfigFromText(getConfigText(), demoConfig);
     sync();
   }
 
   function updateShowDefaults(nextShowDefaults: boolean): void {
     try {
-      const newConfig = JSON.parse(getConfigText());
+      const newConfig = parseJson(getConfigText()) as DemoConfig;
       const newMochartDemoConfig = buildMochartDemoConfig(newConfig);
       const { configValidation } = newMochartDemoConfig;
       const { valid } = configValidation;
       if (valid) {
         showDefaults = nextShowDefaults;
-        textArea.setValue(formatMochartDemoConfig(newMochartDemoConfig, nextShowDefaults));
+        configEditor.setValue(formatMochartDemoConfig(newMochartDemoConfig, nextShowDefaults));
         errorMessage = null;
       }
       else {
@@ -81,30 +80,43 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
         errorMessage = demoText.errors.invalidChartConfig;
       }
     }
-    catch {
+    catch (error) {
       console.warn('Invalid Chart Config JSON: ' + getConfigText());
-      errorMessage = demoText.errors.invalidJson;
+      errorMessage = getJsonErrorMessage(error);
+    }
+    sync();
+  }
+
+  // Toggle against the current text (the Defaults toggle's pattern), so
+  // unapplied textarea edits survive the toggle instead of being overwritten.
+  function applyConfigToggle(transform: (current: DemoConfigView) => DemoConfigView): void {
+    const result = toggleConfigFromText(getConfigText(), showDefaults, transform);
+    if (result.error !== null) {
+      errorMessage = result.error;
+    }
+    else {
+      demoConfig = result.demoConfig;
+      configEditor.setValue(result.text);
+      errorMessage = null;
     }
     sync();
   }
 
   function toggleConfigInverted(): void {
-    demoConfig = toggleConfigProperty(demoConfig, 'plotConfig', 'inverted', true);
-    textArea.setValue(formatMochartDemoConfig(demoConfig, showDefaults));
-    sync();
+    applyConfigToggle(current => toggleConfigProperty(current, 'plot', 'inverted', true));
   }
 
   function toggleConfigAnimationSlow(): void {
-    demoConfig = toggleConfigSection(mochartDemoConfig, demoConfig, 'animationConfig', slowAnimationConfig);
-    textArea.setValue(formatMochartDemoConfig(demoConfig, showDefaults));
-    sync();
+    applyConfigToggle(current => toggleConfigSection(mochartDemoConfig, current, 'animation', slowAnimationConfig));
   }
 
   function applyConfig(): void {
-    const newConfig = parseConfig(getConfigText());
-    if (newConfig !== null) {
-      onConfigChange(newConfig);
+    const { config, error } = parseConfigFromText(getConfigText());
+    errorMessage = error;
+    if (config !== null) {
+      onConfigChange(config);
     }
+    sync();
   }
 
   const resetButton = buttonWithTooltip({
@@ -130,6 +142,12 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
     tooltipText: demoText.configTab.slow.tooltip,
     onClick: toggleConfigAnimationSlow,
     content: [icon('hourglass-end', { size: 'lg', fixedWidth: true })]
+  });
+  const formatButton = buttonWithTooltip({
+    id: 'config-format', label: demoText.configTab.format.label, ariaLabel: demoText.configTab.format.aria,
+    tooltipText: demoText.configTab.format.tooltip,
+    onClick: () => configEditor.format(),
+    content: [icon('indent', { size: 'lg', fixedWidth: true })]
   });
   const applyButton = buttonWithTooltip({
     id: 'config-apply', label: demoText.configTab.apply.label, ariaLabel: demoText.configTab.apply.aria,
@@ -186,36 +204,36 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
   // a screen reader would be a promise this panel does not keep.
   const overflowMenuHandle = overflowMenu({
     text: demoText.overflowMenu.editor,
-    // Opens upward — the footer is at the bottom of the pane — and right-aligned
-    // against the footer rather than the trigger. The trigger sits mid-row, left
-    // of an error span that comes and goes; anchoring to it would both move the
-    // panel as the error appears and, on a phone, push a 320px panel off the
-    // left edge. The footer is full width, so its right edge is the row's end.
-    placement: { side: 'top', align: 'end', gap: 4 },
+    // Right-aligned against the footer rather than the trigger. The trigger sits
+    // mid-row, left of an error span that comes and goes; anchoring to it would
+    // both move the panel as the error appears and, on a phone, push a 320px
+    // panel off the left edge. The footer is full width, so its right edge is
+    // the row's end.
+    placement: controlsMenuPlacement,
     getAnchor: () => footer
   });
 
   // Menu-side home for the folded footer buttons — a cached `.demo-btn-group`;
   // OverflowMenu.ts's header says why that shape.
   const menuActionGroup = el('div', { className: 'demo-btn-group' });
-  const menuActionButtons = [resetButton.el, defaultsButton.el, invertedButton.el, slowButton.el];
+  const menuActionButtons = [resetButton.el, defaultsButton.el, invertedButton.el, slowButton.el, formatButton.el];
 
   // The footer's order at desktop widths; also the list the unfold restores, so
   // the desktop layout has exactly one definition.
   const toolbarItems = [
-    resetButton.el, defaultsButton.el, invertedButton.el, slowButton.el, applyButton.el, footerError
+    resetButton.el, defaultsButton.el, invertedButton.el, slowButton.el, formatButton.el, applyButton.el, footerError
   ];
   // Apply stays beside the editor it applies, and the error span carries
   // `role="alert"` — a message that has to be read cannot live behind a tap.
   const foldedToolbarItems = [applyButton.el, overflowMenuHandle.el, footerError];
-  const toolbar = el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, toolbarItems);
+  const toolbar = el('div', { className: 'demo-toolbar' }, toolbarItems);
   const footerItems = [toolbar, docsLinks];
   const footer = el('div', { className: 'mochart-demo-tab-footer' }, footerItems);
 
   const container = tabContainer('demo-layout-col config', props.active, [
-    el('div', { className: 'mochart-demo-tab-content' }, [textArea.el]),
+    el('div', { className: 'mochart-demo-tab-content' }, [configEditor.el]),
     footer
-  ]);
+  ], 'config');
 
   /**
    * Where every footer control lives right now. Reparenting, never
@@ -242,20 +260,21 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
   // Patch every derived bit of the footer from the current state (the vanilla
   // stand-in for the framework demos' derived values).
   function sync(): void {
-    const currentJsonError = jsonError();
+    const currentJsonError = getJsonError(getConfigText());
     const currentFooterError = currentJsonError ?? errorMessage;
     applyButton.setDisabled(currentJsonError !== null);
+    formatButton.setDisabled(currentJsonError !== null);
     footerError.hidden = currentFooterError === null;
     footerError.textContent = currentFooterError ?? '';
 
     defaultsButton.setPressed(showDefaults);
     defaultsButton.setContent([icon(showDefaults ? 'eye' : 'eye-slash', { size: 'lg', fixedWidth: true })]);
 
-    const inverted = !!demoConfig.configWithDefaults.plotConfig?.inverted;
+    const inverted = !!demoConfig.configWithDefaults.plot?.inverted;
     invertedButton.setPressed(inverted);
     invertedButton.setContent([icon(inverted ? 'chart-bar' : 'chart-column', { size: 'lg', fixedWidth: true })]);
 
-    const slow = demoConfig.configWithDefaults.animationConfig === slowAnimationConfig;
+    const slow = isConfigSectionActive(demoConfig, 'animation', slowAnimationConfig);
     slowButton.setPressed(slow);
     slowButton.setContent([icon(slow ? 'hourglass' : 'hourglass-end', { size: 'lg', fixedWidth: true })]);
 
@@ -281,7 +300,7 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
         config = nextConfig;
         mochartDemoConfig = buildMochartDemoConfig(nextConfig);
         demoConfig = copyDemoConfig(mochartDemoConfig);
-        textArea.setValue(formatMochartDemoConfig(demoConfig, showDefaults));
+        configEditor.setValue(formatMochartDemoConfig(demoConfig, showDefaults));
         errorMessage = null;
         sync();
       }
@@ -289,6 +308,7 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
     destroy() {
       unwatchViewport();
       overflowMenuHandle.destroy();
+      configEditor.destroy();
     }
   };
 }

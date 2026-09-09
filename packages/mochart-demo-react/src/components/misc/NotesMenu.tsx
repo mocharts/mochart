@@ -1,7 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import Icon from './Icon';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, menuKeepOpenClassName, notesMenuPlacement } from '@mochart/demo-common';
 
 import { useMenu } from './useMenu';
 
@@ -23,13 +23,7 @@ interface Props {
 }
 
 export default function NotesMenu({ title, notes }: Props) {
-  // Downward from the navigation row, left-aligned, clamped so a 340px panel
-  // opened from a right-hand trigger stays on screen. The width must match
-  // `.demo-menu-notes` in demo.css — a closed panel measures 0, so the clamp
-  // has to be told the width the stylesheet will give it.
-  const menu = useMenu({
-    placement: { side: 'bottom', align: 'start', gap: 6, width: 340, viewportMargin: 32 }
-  });
+  const menu = useMenu({ placement: notesMenuPlacement });
   const { close } = menu;
 
   // Close whenever the demo changes under us (history navigation).
@@ -74,12 +68,12 @@ export function NotesMenuItem({ title, notes }: Props) {
   }
 
   return (
-    <div className="mochart-demo-notes-item demo-menu-keep-open">
+    <div className={'mochart-demo-notes-item ' + menuKeepOpenClassName}>
       <button type="button" className="demo-menu-item"
         title={demoText.demoNotes.trigger.tooltip}
         aria-expanded={expanded} aria-controls={disclosureId}
         onClick={() => setExpanded(previous => !previous)}>
-        <Icon fixedWidth={true} name="circle-info" /> <span className="mochart-menu-item-label">{demoText.demoNotes.trigger.aria}</span>
+        <Icon fixedWidth={true} name="circle-info" /> <span>{demoText.demoNotes.trigger.aria}</span>
         {/* `margin-left: auto` on the icon itself, matching the vanilla port's
             markup pixel for pixel. */}
         <Icon fixedWidth={true} name={expanded ? 'chevron-up' : 'chevron-down'} style={{ marginLeft: 'auto' }} />

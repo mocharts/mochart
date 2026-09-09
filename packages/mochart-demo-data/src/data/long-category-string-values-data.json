@@ -1,0 +1,12 @@
+[
+  {"category":1,"categoryDisplay":"A fairly long value","value1":2,"value2":5},
+  {"category":2,"categoryDisplay":"Another long value","value1":4,"value2":12},
+  {"category":3,"categoryDisplay":"Hello world","value1":3,"value2":7},
+  {"category":4,"categoryDisplay":"Truncation is useful","value1":2,"value2":8},
+  {"category":5,"categoryDisplay":"Word","value1":8,"value2":13},
+  {"category":6,"categoryDisplay":"Lorem ipsum","value1":11,"value2":16},
+  {"category":7,"categoryDisplay":"Supercalifragilisticexpialidocious","value1":5,"value2":9},
+  {"category":8,"categoryDisplay":"Really long value that should be truncated","value1":4,"value2":8},
+  {"category":9,"categoryDisplay":"Supercalifragilisticexpialidocious is long","value1":1,"value2":5},
+  {"category":10,"categoryDisplay":"This is the last value","value1":5,"value2":12}
+]

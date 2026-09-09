@@ -1,24 +1,26 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Monthly Output with 95% CI (fictional)"
+  "title": {
+    "text": "Monthly Output with 95% CI (fictional)"
   },
-  "groupAxisConfig": {
+  "categoryAxis": {
     "property": "month",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "title": "units per day"
+      "title": {
+        "text": "units per day"
+      }
     }
   ],
-  "seriesGroupConfigs": [
+  "seriesGroups": [
     {
       "id": "plants"
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
       "id": "a",
       "title": "Plant A",

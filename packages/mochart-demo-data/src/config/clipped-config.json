@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Clipped Values"
+  },
+  "categoryAxis": {
+    "title": {
+      "text": "Category Axis"
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "valueLabel": "Category",
+    "property": "categoryNL",
+    "type": "number",
+    "scale": "linear",
+    "min": 5,
+    "max": 20
+  },
+  "valueAxes": [
+    {
+      "title": {
+        "text": "Value Axis"
+      },
+      "min": -5,
+      "max": 5
+    }
+  ],
+  "seriesDefaults": {
+    "renderer": "line",
+    "marker": {
+      "shape": "circle"
+    }
+  },
+  "series": [
+    {
+      "title": "Value",
+      "property": "value7"
+    }
+  ]
+}

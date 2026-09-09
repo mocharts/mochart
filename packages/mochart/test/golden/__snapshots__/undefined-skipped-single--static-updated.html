@@ -1,24 +1,28 @@
-<div class="mochart-chart" style="position: relative;">
-<svg xmlns="http://www.w3.org/2000/svg" id="__mochart__chart__N" width="800" height="600">
+<div class="mochart-chart mochart-accessible" style="position: relative;">
+<svg xmlns="http://www.w3.org/2000/svg" id="__mochart__chart__N" width="800" height="600" role="group" aria-roledescription="chart" aria-label="Skip Undefined Single Values">
 <defs>
 <clipPath id="title__clippath__N">
-<rect x="0" y="0" width="20" height="600">
+<rect x="0" y="0" width="219" height="600">
 </rect>
 </clipPath>
 <clipPath id="legend__clippath__N">
-<rect x="20" y="0" width="356" height="600">
+<rect x="22" y="0" width="616" height="600">
 </rect>
 </clipPath>
-<clipPath id="groupaxistitle__clippath__N">
-<rect x="0" y="0" width="679" height="800">
+<clipPath id="series__clippath__N">
+<rect x="73" y="35" width="657" height="438">
 </rect>
 </clipPath>
-<clipPath id="seriesaxistitle__clippath__N__SA0">
-<rect x="0" y="0" width="800" height="485">
+<clipPath id="categoryaxistitle__clippath__N">
+<rect x="0" y="0" width="657" height="600">
 </rect>
 </clipPath>
-<clipPath id="seriesaxistitle__clippath__N__SA1">
-<rect x="0" y="0" width="800" height="485">
+<clipPath id="valueaxistitle__clippath__N__VA0">
+<rect x="0" y="0" width="800" height="438">
+</rect>
+</clipPath>
+<clipPath id="valueaxistitle__clippath__N__VA1">
+<rect x="0" y="0" width="800" height="438">
 </rect>
 </clipPath>
 </defs>
@@ -26,19 +30,19 @@
 <rect x="2" y="2" width="796" height="596" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
-<g class="mochart-title" transform="translate(380,5)">
+<g class="mochart-title" transform="translate(292,5)">
 <g class="mochart-title-background">
-<rect x="0" y="0" width="20" height="25" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="0" y="0" width="219" height="25" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g transform="translate(0,0)">
 <g>
 <g class="mochart-title-text-background">
-<rect x="0" y="0" width="20" height="20" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="0" y="0" width="219" height="20" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g clip-path="url(#title__clippath__N)">
-<text stroke="none" stroke-width="0" fill="currentColor" class="mochart-title-text" dy="0.35em" transform="translate(0,10)">Skip Undefined Single Values</text>
+<text stroke="none" stroke-width="0" fill="currentColor" class="mochart-title-text" dy="0.35em" transform="translate(0,10)" aria-hidden="true">Skip Undefined Single Values</text>
 </g>
 </g>
 <g style="visibility: hidden;">
@@ -51,124 +55,194 @@
 <g transform="translate(0,0)">
 <g class="mochart-plot">
 <g class="mochart-plot-background">
-<rect x="5" y="35" width="790" height="531" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="5" y="35" width="790" height="503" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g class="mochart-plot-back">
 <g class="mochart-axis-grid-container">
-<g class="mochart-group-axis-grid">
-<g class="mochart-axis-grid-line mochart-axis-grid-line-0" transform="translate(339.5,0)">
-<line x1="51" y1="35" x2="51" y2="520" stroke="currentColor" stroke-opacity="0.13" stroke-width="1" stroke-dasharray="5, 5">
+<g class="mochart-category-axis-grid">
+<g class="mochart-axis-grid-line mochart-axis-grid-line-0" transform="translate(328.5,0)">
+<line x1="73" y1="35" x2="73" y2="473" stroke="currentColor" stroke-opacity="0.13" stroke-width="1" stroke-dasharray="5, 5">
 </line>
 </g>
-<g class="mochart-axis-grid-line mochart-axis-grid-line-1" transform="translate(339.5,0)">
-<line x1="51" y1="35" style="visibility: hidden;" x2="51" y2="520" stroke="currentColor" stroke-opacity="0.13" stroke-width="1" stroke-dasharray="5, 5">
+<g class="mochart-axis-grid-line mochart-axis-grid-line-1" transform="translate(328.5,0)">
+<line x1="73" y1="35" x2="73" y2="473" style="visibility: hidden;" stroke="currentColor" stroke-opacity="0.13" stroke-width="1" stroke-dasharray="5, 5">
 </line>
 </g>
 </g>
-<g class="mochart-series-axis-grid mochart-series-axis-grid-SA1">
+<g class="mochart-value-axis-grid mochart-value-axis-grid-id-VA1">
 </g>
 </g>
 <g class="mochart-axis-base-container">
 </g>
 <g class="mochart-axis-container">
-<g class="mochart-group-axis">
-<g transform="translate(51,520)">
+<g class="mochart-category-axis" role="group" aria-label="Category Axis">
+<g transform="translate(73,473)">
 <g>
 <g class="mochart-axis-background">
-<rect x="0" y="0" width="679" height="45" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="0" y="0" width="657" height="64" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 </g>
 <g class="mochart-axis-line">
-<line x1="0" y1="0" x2="679" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
+<line x1="0" y1="0" x2="657" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
 </line>
 </g>
 <g class="mochart-axis-tick-marks">
-<g class="mochart-axis-tick-mark mochart-axis-tick-mark-0" transform="translate(339.5,0)">
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-0" transform="translate(328.5,0)">
 <line x1="0" y1="0" x2="0" y2="3" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
 </line>
 </g>
-<g class="mochart-axis-tick-mark mochart-axis-tick-mark-1" transform="translate(339.5,0)">
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-1" transform="translate(328.5,0)">
 <line x1="0" y1="0" x2="0" y2="3" style="visibility: hidden;" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
 </line>
 </g>
 </g>
 <g class="mochart-axis-tick-labels">
 <g class="mochart-axis-tick-label-background">
-<rect x="0" y="2" width="679" height="11" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="0" y="2" width="657" height="30" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g>
-<g class="mochart-axis-tick-label mochart-axis-tick-label-0" transform="translate(339.5,7.5)">
+<g class="mochart-axis-tick-label mochart-axis-tick-label-0" transform="translate(328.5,17)">
 <text style="text-anchor: middle;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">NaN</text>
 </g>
-<g class="mochart-axis-tick-label mochart-axis-tick-label-1" transform="translate(339.5,7.5)">
-<text style="text-anchor: middle; visibility: hidden;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">NaN</text>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-1" transform="translate(328.5,17)">
+<text style="text-anchor: middle; visibility: hidden;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0" aria-hidden="true">NaN</text>
 </g>
 </g>
 </g>
-<g class="mochart-axis-title" clip-path="url(#groupaxistitle__clippath__N)">
+<g class="mochart-axis-title" clip-path="url(#categoryaxistitle__clippath__N)" aria-hidden="true">
 <g class="mochart-axis-title-background">
-<rect x="0" y="16" width="679" height="26" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="0" y="35" width="657" height="26" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
-<text transform="translate(339,29) rotate(0)" text-anchor="middle" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">Group Axis</text>
+<text transform="translate(328,48) rotate(0)" text-anchor="middle" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">Category Axis</text>
 </g>
 <g class="mochart-axis-focus-tick-marks">
 </g>
 </g>
 </g>
-<g class="mochart-series-axis mochart-series-axis-SA0">
+<g class="mochart-value-axis mochart-value-axis-id-VA0" role="group" aria-label="Value Axis 1">
 <g transform="translate(5,35)">
 <g>
 <g class="mochart-axis-background">
-<rect x="1" y="0" width="45" height="485" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="1" y="0" width="67" height="438" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 </g>
 <g class="mochart-axis-line">
-<line x1="46" y1="0" x2="46" y2="485" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
+<line x1="68" y1="0" x2="68" y2="438" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
 </line>
 </g>
 <g class="mochart-axis-focus-range">
 </g>
 <g class="mochart-axis-tick-marks">
-<g class="mochart-axis-tick-mark mochart-axis-tick-mark-0" transform="translate(0,242.5)">
-<line x1="46" y1="0" x2="43" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-0" transform="translate(0,438)">
+<line x1="68" y1="0" x2="65" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
+</line>
+</g>
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-1" transform="translate(0,394.20000000000016)">
+<line x1="68" y1="0" x2="65" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" style="visibility: hidden;">
+</line>
+</g>
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-2" transform="translate(0,350.4000000000003)">
+<line x1="68" y1="0" x2="65" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
+</line>
+</g>
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-3" transform="translate(0,306.5999999999997)">
+<line x1="68" y1="0" x2="65" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" style="visibility: hidden;">
+</line>
+</g>
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-4" transform="translate(0,262.79999999999984)">
+<line x1="68" y1="0" x2="65" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
+</line>
+</g>
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-5" transform="translate(0,219)">
+<line x1="68" y1="0" x2="65" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" style="visibility: hidden;">
+</line>
+</g>
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-6" transform="translate(0,175.20000000000016)">
+<line x1="68" y1="0" x2="65" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
+</line>
+</g>
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-7" transform="translate(0,131.40000000000032)">
+<line x1="68" y1="0" x2="65" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" style="visibility: hidden;">
+</line>
+</g>
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-8" transform="translate(0,87.59999999999968)">
+<line x1="68" y1="0" x2="65" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
+</line>
+</g>
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-9" transform="translate(0,43.79999999999984)">
+<line x1="68" y1="0" x2="65" y2="0" style="visibility: hidden;" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
+</line>
+</g>
+<g class="mochart-axis-tick-mark mochart-axis-tick-mark-10" transform="translate(0,0)">
+<line x1="68" y1="0" x2="65" y2="0" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
 </line>
 </g>
 </g>
 <g class="mochart-axis-tick-labels">
 <g class="mochart-axis-tick-label-background">
-<rect x="31" y="0" width="11" height="485" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="31" y="0" width="33" height="438" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g>
-<g class="mochart-axis-tick-label mochart-axis-tick-label-0" transform="translate(37,242.5)">
-<text style="text-anchor: end;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">9.000000</text>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-0" transform="translate(59,438)">
+<text style="text-anchor: end;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">8.5</text>
+</g>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-1" transform="translate(59,394.20000000000016)">
+<text style="text-anchor: end; visibility: hidden;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0" aria-hidden="true">8.6</text>
+</g>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-2" transform="translate(59,350.4000000000003)">
+<text style="text-anchor: end;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">8.7</text>
+</g>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-3" transform="translate(59,306.5999999999997)">
+<text style="text-anchor: end; visibility: hidden;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0" aria-hidden="true">8.8</text>
+</g>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-4" transform="translate(59,262.79999999999984)">
+<text style="text-anchor: end;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">8.9</text>
+</g>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-5" transform="translate(59,219)">
+<text style="text-anchor: end; visibility: hidden;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0" aria-hidden="true">9.0</text>
+</g>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-6" transform="translate(59,175.20000000000016)">
+<text style="text-anchor: end;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">9.1</text>
+</g>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-7" transform="translate(59,131.40000000000032)">
+<text style="text-anchor: end; visibility: hidden;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0" aria-hidden="true">9.2</text>
+</g>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-8" transform="translate(59,87.59999999999968)">
+<text style="text-anchor: end;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">9.3</text>
+</g>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-9" transform="translate(59,43.79999999999984)">
+<text style="text-anchor: end; visibility: hidden;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0" aria-hidden="true">9.4</text>
+</g>
+<g class="mochart-axis-tick-label mochart-axis-tick-label-10" transform="translate(59,0)">
+<text style="text-anchor: end;" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">9.5</text>
 </g>
 </g>
 </g>
-<g class="mochart-axis-title" clip-path="url(#seriesaxistitle__clippath__N__SA0)">
+<g class="mochart-axis-title" clip-path="url(#valueaxistitle__clippath__N__VA0)" aria-hidden="true">
 <g class="mochart-axis-title-background">
-<rect x="2" y="0" width="26" height="485" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="2" y="0" width="26" height="438" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
-<text transform="translate(15,242) rotate(90)" text-anchor="middle" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">Series Axis 1</text>
+<text transform="translate(15,219) rotate(90)" text-anchor="middle" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">Value Axis 1</text>
 </g>
 </g>
 </g>
-<g class="mochart-series-axis mochart-series-axis-SA1">
+<g class="mochart-value-axis mochart-value-axis-id-VA1">
 <g transform="translate(730,35)">
 <g>
 <g class="mochart-axis-background">
-<rect x="0" y="0" width="64" height="485" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="0" y="0" width="64" height="438" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 </g>
 <g class="mochart-axis-line">
-<line x1="0" y1="0" x2="0" y2="485" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
+<line x1="0" y1="0" x2="0" y2="438" stroke="currentColor" stroke-opacity="0.65" stroke-width="1">
 </line>
 </g>
 <g class="mochart-axis-focus-range">
@@ -177,82 +251,82 @@
 </g>
 <g class="mochart-axis-tick-labels">
 <g class="mochart-axis-tick-label-background">
-<rect x="2" y="0" width="30" height="485" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="2" y="0" width="30" height="438" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g>
 </g>
 </g>
-<g class="mochart-axis-title" clip-path="url(#seriesaxistitle__clippath__N__SA1)">
+<g class="mochart-axis-title" clip-path="url(#valueaxistitle__clippath__N__VA1)">
 <g class="mochart-axis-title-background">
-<rect x="35" y="0" width="26" height="485" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="35" y="0" width="26" height="438" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
-<text transform="translate(48,242) rotate(270)" text-anchor="middle" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">Series Axis 2</text>
+<text transform="translate(48,219) rotate(270)" text-anchor="middle" dy="0.35em" stroke="none" stroke-opacity="1" fill="currentColor" fill-opacity="1" stroke-width="0">Value Axis 2</text>
 </g>
 </g>
 </g>
 </g>
-<g class="mochart-axis-threshold-container">
-<g class="mochart-group-axis-threshold">
+<g class="mochart-axis-threshold-container" aria-hidden="true">
+<g class="mochart-category-axis-threshold">
 </g>
-<g class="mochart-series-axis-threshold mochart-series-axis-threshold-SA0">
+<g class="mochart-value-axis-threshold mochart-value-axis-threshold-id-VA0">
 </g>
-<g class="mochart-series-axis-threshold mochart-series-axis-threshold-SA1">
+<g class="mochart-value-axis-threshold mochart-value-axis-threshold-id-VA1">
 </g>
 </g>
 </g>
-<g class="mochart-series-container">
+<g class="mochart-series-container" clip-path="url(#series__clippath__N)">
 <g class="mochart-series-background">
-<rect x="51" y="35" width="679" height="485" fill-opacity="0" stroke="none">
+<rect x="73" y="35" width="657" height="438" fill-opacity="0" stroke="none" tabindex="0" role="button" aria-label="Chart values" aria-expanded="false">
 </rect>
 </g>
-<g class="mochart-series mochart-series-S0" transform="translate(51,35)">
-<path d="M339.5,242Z" class="mochart-series-line" stroke-width="3" stroke="#1f77b4" stroke-opacity="0.9" fill="none">
+<g class="mochart-series mochart-series-id-S0" aria-hidden="true" transform="translate(73,35)">
+<path d="M328.5,219Z" class="mochart-series-line" stroke-width="3" stroke="#4477aa" stroke-opacity="0.9" fill="none">
 </path>
 <g class="mochart-series-markers">
-<path class="mochart-series-marker mochart-series-marker-0" d="M3.385,0A3.385,3.385,0,1,1,-3.385,0A3.385,3.385,0,1,1,3.385,0" transform="translate(339.5,242)" stroke="#1f77b4" fill="#1f77b4" stroke-width="1" stroke-opacity="0.9" fill-opacity="0.9">
+<path class="mochart-series-marker mochart-series-marker-0" d="M3.385,0A3.385,3.385,0,1,1,-3.385,0A3.385,3.385,0,1,1,3.385,0" transform="translate(328.5,219)" stroke="#4477aa" fill="#4477aa" stroke-width="1" stroke-opacity="0.9" fill-opacity="0.9">
 </path>
 </g>
 </g>
-<g class="mochart-series mochart-series-S1" transform="translate(51,35)">
+<g class="mochart-series mochart-series-id-S1" aria-hidden="true" transform="translate(73,35)">
 <g>
 </g>
 </g>
-<g class="mochart-series mochart-series-S2" transform="translate(51,35)">
-<path class="mochart-series-area" stroke-width="0" stroke="#2ca02c" stroke-opacity="0.8" fill="#2ca02c" fill-opacity="0.8">
+<g class="mochart-series mochart-series-id-S2" aria-hidden="true" transform="translate(73,35)">
+<path class="mochart-series-area" stroke-width="0" stroke="#228833" stroke-opacity="0.8" fill="#228833" fill-opacity="0.8">
 </path>
 <g class="mochart-series-markers">
 </g>
 </g>
-<g class="mochart-series mochart-series-S3" transform="translate(51,35)">
-<path class="mochart-series-line" stroke-width="3" stroke="#d62728" stroke-opacity="0.9" fill="none">
+<g class="mochart-series mochart-series-id-S3" aria-hidden="true" transform="translate(73,35)">
+<path class="mochart-series-line" stroke-width="3" stroke="#ccbb44" stroke-opacity="0.9" fill="none">
 </path>
 <g class="mochart-series-markers">
 </g>
 </g>
-<g class="mochart-series mochart-series-S4" transform="translate(51,35)">
+<g class="mochart-series mochart-series-id-S4" aria-hidden="true" transform="translate(73,35)">
 <g>
 </g>
 </g>
-<g class="mochart-series mochart-series-S5" transform="translate(51,35)">
+<g class="mochart-series mochart-series-id-S5" aria-hidden="true" transform="translate(73,35)">
 <g>
 </g>
 </g>
-<g class="mochart-series mochart-series-S6" transform="translate(51,35)">
-<path class="mochart-series-area" stroke-width="0" stroke="#e377c2" stroke-opacity="0.8" fill="#e377c2" fill-opacity="0.8">
+<g class="mochart-series mochart-series-id-S6" aria-hidden="true" transform="translate(73,35)">
+<path class="mochart-series-area" stroke-width="0" stroke="#bbbbbb" stroke-opacity="0.8" fill="#bbbbbb" fill-opacity="0.8">
 </path>
 <g class="mochart-series-markers">
 </g>
 </g>
-<g class="mochart-series mochart-series-S7" transform="translate(51,35)">
-<path class="mochart-series-area" stroke-width="0" stroke="#7f7f7f" stroke-opacity="0.8" fill="#7f7f7f" fill-opacity="0.8">
+<g class="mochart-series mochart-series-id-S7" aria-hidden="true" transform="translate(73,35)">
+<path class="mochart-series-area" stroke-width="0" stroke="#4477aa" stroke-opacity="0.8" fill="#4477aa" fill-opacity="0.8">
 </path>
 <g class="mochart-series-markers">
 </g>
 </g>
-<g class="mochart-series mochart-series-S8" transform="translate(51,35)">
-<path class="mochart-series-area" stroke-width="0" stroke="#bcbd22" stroke-opacity="0.8" fill="#bcbd22" fill-opacity="0.8">
+<g class="mochart-series mochart-series-id-S8" aria-hidden="true" transform="translate(73,35)">
+<path class="mochart-series-area" stroke-width="0" stroke="#ee6677" stroke-opacity="0.8" fill="#ee6677" fill-opacity="0.8">
 </path>
 <g class="mochart-series-markers">
 </g>
@@ -264,185 +338,187 @@
 <g class="mochart-axis-base-container">
 </g>
 <g class="mochart-axis-container">
-<g class="mochart-group-axis">
-<g transform="translate(51,520)">
+<g class="mochart-category-axis">
+<g transform="translate(73,473)">
 </g>
 </g>
-<g class="mochart-series-axis mochart-series-axis-SA0">
+<g class="mochart-value-axis mochart-value-axis-id-VA0">
 <g transform="translate(5,35)">
 </g>
 </g>
-<g class="mochart-series-axis mochart-series-axis-SA1">
+<g class="mochart-value-axis mochart-value-axis-id-VA1">
 <g transform="translate(730,35)">
 </g>
 </g>
 </g>
-<g class="mochart-axis-threshold-container">
-<g class="mochart-group-axis-threshold">
+<g class="mochart-axis-threshold-container" aria-hidden="true">
+<g class="mochart-category-axis-threshold">
 </g>
-<g class="mochart-series-axis-threshold mochart-series-axis-threshold-SA0">
+<g class="mochart-value-axis-threshold mochart-value-axis-threshold-id-VA0">
 </g>
-<g class="mochart-series-axis-threshold mochart-series-axis-threshold-SA1">
-</g>
-</g>
-</g>
-<g class="mochart-crosshair" clip-path="url(#tooltip__clippath__N)">
-<g class="crosshair-group-lines">
-</g>
-<g class="crosshair-series-lines">
+<g class="mochart-value-axis-threshold mochart-value-axis-threshold-id-VA1">
 </g>
 </g>
 </g>
-<g class="mochart-legend" transform="translate(201.5,566)">
+<g class="mochart-crosshair" aria-hidden="true">
+<g class="mochart-crosshair-category-lines">
+</g>
+<g class="mochart-crosshair-series-lines">
+</g>
+</g>
+</g>
+<g class="mochart-legend" transform="translate(81.5,538)" role="group" aria-label="Legend">
 <g class="mochart-legend-background">
-<rect x="0" y="5" width="378" height="24" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="0" y="5" width="640" height="52" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
-<g class="mochart-legend-item mochart-legend-item-S0" transform="translate(0,5)">
+<g class="mochart-legend-item mochart-legend-item-id-S0" transform="translate(0,5)" cursor="pointer" data-series-id="S0" tabindex="0" role="button" aria-label="Value 0" aria-pressed="true">
 <g class="mochart-legend-item-background">
-<rect x="1" y="1" width="40" height="22" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="1" y="1" width="78" height="24" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g class="mochart-legend-item-icon" transform="translate(2,5)">
-<path d="M5.642,0A5.642,5.642,0,1,1,-5.642,0A5.642,5.642,0,1,1,5.642,0" transform="translate(7,7)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#1f77b4" fill-opacity="0.9">
+<path d="M6.77,0A6.77,6.77,0,1,1,-6.77,0A6.77,6.77,0,1,1,6.77,0" transform="translate(8,8)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#4477aa" fill-opacity="0.9">
 </path>
 </g>
 <g class="mochart-legend-item-text" clip-path="url(#legend__clippath__N)">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 0</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 0</text>
 </g>
 <g class="mochart-legend-item-text-raw" style="visibility: hidden;">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 0</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 0</text>
 </g>
 </g>
-<g class="mochart-legend-item mochart-legend-item-S1" transform="translate(42,5)">
+<g class="mochart-legend-item mochart-legend-item-id-S1" transform="translate(80,5)" cursor="pointer" data-series-id="S1" tabindex="-1" role="button" aria-label="Value 1" aria-pressed="true">
 <g class="mochart-legend-item-background">
-<rect x="1" y="1" width="40" height="22" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="1" y="1" width="78" height="24" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g class="mochart-legend-item-icon" transform="translate(2,5)">
-<rect x="0.5" y="0.5" width="13" height="13" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#ff7f0e" fill-opacity="0.8">
+<rect x="0.5" y="0.5" width="15" height="15" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#ee6677" fill-opacity="0.8">
 </rect>
 </g>
 <g class="mochart-legend-item-text" clip-path="url(#legend__clippath__N)">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 1</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 1</text>
 </g>
 <g class="mochart-legend-item-text-raw" style="visibility: hidden;">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 1</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 1</text>
 </g>
 </g>
-<g class="mochart-legend-item mochart-legend-item-S2" transform="translate(84,5)">
+<g class="mochart-legend-item mochart-legend-item-id-S2" transform="translate(160,5)" cursor="pointer" data-series-id="S2" tabindex="-1" role="button" aria-label="Value 2" aria-pressed="true">
 <g class="mochart-legend-item-background">
-<rect x="1" y="1" width="40" height="22" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="1" y="1" width="78" height="24" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g class="mochart-legend-item-icon" transform="translate(2,5)">
-<path d="M5.642,0A5.642,5.642,0,1,1,-5.642,0A5.642,5.642,0,1,1,5.642,0" transform="translate(7,7)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#2ca02c" fill-opacity="0.8">
+<path d="M6.77,0A6.77,6.77,0,1,1,-6.77,0A6.77,6.77,0,1,1,6.77,0" transform="translate(8,8)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#228833" fill-opacity="0.8">
 </path>
 </g>
 <g class="mochart-legend-item-text" clip-path="url(#legend__clippath__N)">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 2</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 2</text>
 </g>
 <g class="mochart-legend-item-text-raw" style="visibility: hidden;">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 2</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 2</text>
 </g>
 </g>
-<g class="mochart-legend-item mochart-legend-item-S3" transform="translate(126,5)">
+<g class="mochart-legend-item mochart-legend-item-id-S3" transform="translate(240,5)" cursor="pointer" data-series-id="S3" tabindex="-1" role="button" aria-label="Value 3" aria-pressed="true">
 <g class="mochart-legend-item-background">
-<rect x="1" y="1" width="40" height="22" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="1" y="1" width="78" height="24" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g class="mochart-legend-item-icon" transform="translate(2,5)">
-<path d="M5.642,0A5.642,5.642,0,1,1,-5.642,0A5.642,5.642,0,1,1,5.642,0" transform="translate(7,7)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#d62728" fill-opacity="0.9">
+<path d="M6.77,0A6.77,6.77,0,1,1,-6.77,0A6.77,6.77,0,1,1,6.77,0" transform="translate(8,8)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#ccbb44" fill-opacity="0.9">
 </path>
 </g>
 <g class="mochart-legend-item-text" clip-path="url(#legend__clippath__N)">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 3</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 3</text>
 </g>
 <g class="mochart-legend-item-text-raw" style="visibility: hidden;">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 3</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 3</text>
 </g>
 </g>
-<g class="mochart-legend-item mochart-legend-item-S4" transform="translate(168,5)">
+<g class="mochart-legend-item mochart-legend-item-id-S4" transform="translate(320,5)" cursor="pointer" data-series-id="S4" tabindex="-1" role="button" aria-label="Value 4" aria-pressed="true">
 <g class="mochart-legend-item-background">
-<rect x="1" y="1" width="40" height="22" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="1" y="1" width="78" height="24" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g class="mochart-legend-item-icon" transform="translate(2,5)">
-<rect x="0.5" y="0.5" width="13" height="13" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#9467bd" fill-opacity="0.8">
+<rect x="0.5" y="0.5" width="15" height="15" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#66ccee" fill-opacity="0.8">
 </rect>
 </g>
 <g class="mochart-legend-item-text" clip-path="url(#legend__clippath__N)">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 4</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 4</text>
 </g>
 <g class="mochart-legend-item-text-raw" style="visibility: hidden;">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 4</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 4</text>
 </g>
 </g>
-<g class="mochart-legend-item mochart-legend-item-S5" transform="translate(210,5)">
+<g class="mochart-legend-item mochart-legend-item-id-S5" transform="translate(400,5)" cursor="pointer" data-series-id="S5" tabindex="-1" role="button" aria-label="Value 5" aria-pressed="true">
 <g class="mochart-legend-item-background">
-<rect x="1" y="1" width="40" height="22" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="1" y="1" width="78" height="24" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g class="mochart-legend-item-icon" transform="translate(2,5)">
-<rect x="0.5" y="0.5" width="13" height="13" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#8c564b" fill-opacity="0.8">
+<rect x="0.5" y="0.5" width="15" height="15" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#aa3377" fill-opacity="0.8">
 </rect>
 </g>
 <g class="mochart-legend-item-text" clip-path="url(#legend__clippath__N)">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 5</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 5</text>
 </g>
 <g class="mochart-legend-item-text-raw" style="visibility: hidden;">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 5</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 5</text>
 </g>
 </g>
-<g class="mochart-legend-item mochart-legend-item-S6" transform="translate(252,5)">
+<g class="mochart-legend-item mochart-legend-item-id-S6" transform="translate(480,5)" cursor="pointer" data-series-id="S6" tabindex="-1" role="button" aria-label="Value 6" aria-pressed="true">
 <g class="mochart-legend-item-background">
-<rect x="1" y="1" width="40" height="22" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="1" y="1" width="78" height="24" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g class="mochart-legend-item-icon" transform="translate(2,5)">
-<path d="M5.642,0A5.642,5.642,0,1,1,-5.642,0A5.642,5.642,0,1,1,5.642,0" transform="translate(7,7)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#e377c2" fill-opacity="0.8">
+<path d="M6.77,0A6.77,6.77,0,1,1,-6.77,0A6.77,6.77,0,1,1,6.77,0" transform="translate(8,8)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#bbbbbb" fill-opacity="0.8">
 </path>
 </g>
 <g class="mochart-legend-item-text" clip-path="url(#legend__clippath__N)">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 6</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 6</text>
 </g>
 <g class="mochart-legend-item-text-raw" style="visibility: hidden;">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 6</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 6</text>
 </g>
 </g>
-<g class="mochart-legend-item mochart-legend-item-S7" transform="translate(294,5)">
+<g class="mochart-legend-item mochart-legend-item-id-S7" transform="translate(560,5)" cursor="pointer" data-series-id="S7" tabindex="-1" role="button" aria-label="Value 7" aria-pressed="true">
 <g class="mochart-legend-item-background">
-<rect x="1" y="1" width="40" height="22" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="1" y="1" width="78" height="24" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g class="mochart-legend-item-icon" transform="translate(2,5)">
-<path d="M5.642,0A5.642,5.642,0,1,1,-5.642,0A5.642,5.642,0,1,1,5.642,0" transform="translate(7,7)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#7f7f7f" fill-opacity="0.8">
+<path d="M6.77,0A6.77,6.77,0,1,1,-6.77,0A6.77,6.77,0,1,1,6.77,0" transform="translate(8,8)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#4477aa" fill-opacity="0.8">
 </path>
 </g>
 <g class="mochart-legend-item-text" clip-path="url(#legend__clippath__N)">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 7</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 7</text>
 </g>
 <g class="mochart-legend-item-text-raw" style="visibility: hidden;">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 7</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 7</text>
 </g>
 </g>
-<g class="mochart-legend-item mochart-legend-item-S8" transform="translate(336,5)">
+<g class="mochart-legend-item mochart-legend-item-id-S8" transform="translate(0,31)" cursor="pointer" data-series-id="S8" tabindex="-1" role="button" aria-label="Value 8" aria-pressed="true">
 <g class="mochart-legend-item-background">
-<rect x="1" y="1" width="40" height="22" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
+<rect x="1" y="1" width="78" height="24" stroke="currentColor" stroke-opacity="0" fill-opacity="0">
 </rect>
 </g>
 <g class="mochart-legend-item-icon" transform="translate(2,5)">
-<path d="M5.642,0A5.642,5.642,0,1,1,-5.642,0A5.642,5.642,0,1,1,5.642,0" transform="translate(7,7)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#bcbd22" fill-opacity="0.8">
+<path d="M6.77,0A6.77,6.77,0,1,1,-6.77,0A6.77,6.77,0,1,1,6.77,0" transform="translate(8,8)" stroke="currentColor" stroke-opacity="0.65" stroke-width="1" fill="#ee6677" fill-opacity="0.8">
 </path>
 </g>
 <g class="mochart-legend-item-text" clip-path="url(#legend__clippath__N)">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 8</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 8</text>
 </g>
 <g class="mochart-legend-item-text-raw" style="visibility: hidden;">
-<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(20,12)" dy="0.35em">Value 8</text>
+<text stroke="none" stroke-width="0" fill="currentColor" transform="translate(22,13)" dy="0.35em">Value 8</text>
 </g>
 </g>
 </g>
 </g>
 </svg>
+<div role="status" aria-live="polite" aria-atomic="true" style="position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0px; border: 0px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;">
+</div>
 </div>

@@ -7,17 +7,19 @@
 //   random — the (possibly edited) generator config, the reuse toggle and interval
 // The payload is JSON, deflate-compressed (the data/config is very repetitive,
 // so this shrinks links a lot) and base64url-encoded. Every gallery uses the
-// same helpers: buildShareUrl from its share menu, consumeShareState once while
-// mounting the matching view.
+// same helpers: createShareLinkCopier from its share menu, consumeShareState
+// once while mounting the matching view.
 
 import { deflateSync, inflateSync } from 'fflate';
 
-import type { DataRow, DemoConfig, DemoRandomConfig } from './types';
+import { demoText } from './demoText';
+
+import type { DataObject, DemoConfig, DemoRandomConfig } from './types';
 
 export interface SingleShareState {
   mode: 'single';
   config: DemoConfig;
-  data: DataRow[];
+  data: DataObject[];
 }
 
 export interface MultiShareState {
@@ -68,6 +70,21 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && isFinite(value);
 }
 
+// Hand-edited links bypass the demos' interval inputs; restore within the same 5–60000ms limits.
+function clampInterval(value: number): number {
+  return Math.min(60000, Math.max(5, value));
+}
+
+// Playback steps are counted up from 0; hand-edited fractions/negatives seek nonsense positions.
+function normalizeStep(value: number): number {
+  return Math.max(0, Math.round(value));
+}
+
+// Hand-edited links bypass the multi grid's 1–4 steppers too.
+function clampGrid(value: number): number {
+  return Math.min(4, Math.max(1, Math.round(value)));
+}
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
@@ -89,21 +106,21 @@ export function decodeShareState(encoded: string): ShareState | null {
         if (data.some(row => !isPlainObject(row))) {
           return null;
         }
-        return { mode: 'single', config: config as DemoConfig, data: data as DataRow[] };
+        return { mode: 'single', config: config as DemoConfig, data: data as DataObject[] };
       }
       case 'multi': {
         const { rows, cols, step, interval } = parsed;
         if (!isFiniteNumber(rows) || !isFiniteNumber(cols) || !isFiniteNumber(step) || !isFiniteNumber(interval)) {
           return null;
         }
-        return { mode: 'multi', rows, cols, step, interval };
+        return { mode: 'multi', rows: clampGrid(rows), cols: clampGrid(cols), step: normalizeStep(step), interval: clampInterval(interval) };
       }
       case 'random': {
         const { randomConfig, applyReuse, interval } = parsed;
         if (!isPlainObject(randomConfig) || typeof applyReuse !== 'boolean' || !isFiniteNumber(interval)) {
           return null;
         }
-        return { mode: 'random', randomConfig: randomConfig as unknown as DemoRandomConfig, applyReuse, interval };
+        return { mode: 'random', randomConfig: randomConfig as unknown as DemoRandomConfig, applyReuse, interval: clampInterval(interval) };
       }
       default:
         return null;
@@ -178,4 +195,99 @@ export function consumeShareState(expectedMode?: ShareState['mode']): ShareState
 export function consumeSingleShareState(): SingleShareState | null {
   const state = consumeShareState('single');
   return state !== null && state.mode === 'single' ? state : null;
+}
+
+/** How long the Share item shows its "Link copied" confirmation. */
+const copiedFeedbackMs = 1500;
+
+// Visually hidden but still read by assistive tech (the clipped-1px-box idiom,
+// same as core's chart announcer). Inline, because demo.css is optional.
+const liveRegionStyle = 'position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap';
+
+// One copy announcer per document, parked on <body>: pressing Share closes the menu, and nothing inside a hidden panel is spoken.
+let liveRegion: HTMLElement | null = null;
+let announceTimer: ReturnType<typeof setTimeout> | null = null;
+
+function getLiveRegion(): HTMLElement {
+  // parentNode: a test or a demo that wiped the body gets a fresh region.
+  if (liveRegion === null || liveRegion.parentNode === null) {
+    liveRegion = document.createElement('div');
+    // role="status" implies the other two; both are set anyway, as core's announcer does.
+    liveRegion.setAttribute('role', 'status');
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.setAttribute('aria-atomic', 'true');
+    liveRegion.setAttribute('style', liveRegionStyle);
+    document.body.appendChild(liveRegion);
+  }
+  return liveRegion;
+}
+
+// Long enough for the empty region to be registered as a live region before the
+// text arrives, short enough that the confirmation still feels immediate.
+const announceDelayMs = 100;
+
+/** Empty the region first and write on a later task, so a repeat of the same message is still spoken. */
+function announce(message: string): void {
+  const region = getLiveRegion();
+  region.textContent = '';
+  if (announceTimer !== null) {
+    clearTimeout(announceTimer);
+  }
+  announceTimer = setTimeout(() => {
+    announceTimer = null;
+    region.textContent = message;
+  }, announceDelayMs);
+}
+
+export interface ShareLinkCopier {
+  /** Build and copy the link, then report copied true and, shortly after, false. */
+  copy(state: ShareState): void;
+  /** Cancel a pending revert, on teardown. */
+  dispose(): void;
+}
+
+/** Everything the Share item does apart from rendering: build, copy, announce, and drive the copied flag through `onCopiedChange`; without a usable clipboard the link is offered in a prompt. */
+export function createShareLinkCopier(onCopiedChange: (copied: boolean) => void): ShareLinkCopier {
+  let revertTimer: ReturnType<typeof setTimeout> | null = null;
+  let disposed = false;
+
+  function clearRevert(): void {
+    if (revertTimer !== null) {
+      clearTimeout(revertTimer);
+      revertTimer = null;
+    }
+  }
+
+  return {
+    copy(state: ShareState) {
+      const url = buildShareUrl(state);
+      // In an insecure context there is no `navigator.clipboard` at all.
+      if (navigator.clipboard?.writeText === undefined) {
+        window.prompt(demoText.shareButton.tooltip, url);
+        return;
+      }
+      // a write still pending at teardown would call back, announce, and arm a timer for a menu that is gone
+      navigator.clipboard.writeText(url).then(() => {
+        if (disposed) {
+          return;
+        }
+        onCopiedChange(true);
+        announce(demoText.shareButton.announcementCopied);
+        clearRevert();
+        revertTimer = setTimeout(() => {
+          revertTimer = null;
+          onCopiedChange(false);
+        }, copiedFeedbackMs);
+      }, () => {
+        if (disposed) {
+          return;
+        }
+        window.prompt(demoText.shareButton.tooltip, url);
+      });
+    },
+    dispose() {
+      disposed = true;
+      clearRevert();
+    }
+  };
 }

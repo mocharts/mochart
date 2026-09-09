@@ -5,16 +5,18 @@ import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Response Time' },
-  groupAxisConfig: { property: 'day', type: 'string', scale: 'ordinal' },
-  seriesAxisConfigs: [
+  title: { text: 'Response Time' },
+  categoryAxis: { property: 'day', type: 'string', scale: 'ordinal' },
+  valueAxes: [
     {
-      threshold: 200,
-      thresholdTitle: 'SLA limit',
-      thresholdDashArray: '6 3'
+      thresholds: [{
+        value: 200,
+        title: { text: 'SLA limit' },
+        style: { normal: { strokeDashArray: '6 3' } }
+      }]
     }
   ],
-  seriesConfigs: [
+  series: [
     {
       property: 'p95',
       rangeProperty: 'p5',

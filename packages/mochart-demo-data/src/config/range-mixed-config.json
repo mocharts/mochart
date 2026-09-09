@@ -1,21 +1,23 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Positive & Negative Range Example"
+  "title": {
+    "text": "Positive & Negative Range Example"
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "groupSO",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categorySO",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": {
+  "valueAxes": {
     "base": 0
   },
-  "seriesAllConfig": {
-    "markerShape": null
+  "seriesDefaults": {
+    "marker": {
+      "shape": null
+    }
   },
-  "seriesConfigs": [
+  "series": [
     {
       "property": "value1",
       "rangeProperty": "value2",

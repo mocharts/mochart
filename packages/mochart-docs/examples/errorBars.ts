@@ -1,15 +1,15 @@
 // Error bars are first-class series config: point errorLowProperty and
-// errorHighProperty at the columns holding each point's absolute bounds and
+// errorHighProperty at the properties holding each point's absolute bounds and
 // the chart draws a capped whisker per bar (or line point).
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Monthly Output with 95% CI (fictional)' },
-  groupAxisConfig: { property: 'month', type: 'string', scale: 'ordinal' },
-  seriesAxisConfigs: [{ title: 'units per day' }],
-  seriesGroupConfigs: [{ id: 'plants' }],
-  seriesConfigs: [
+  title: { text: 'Monthly Output with 95% CI (fictional)' },
+  categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+  valueAxes: [{ title: { text: 'units per day' } }],
+  seriesGroups: [{ id: 'plants' }],
+  series: [
     { id: 'a', title: 'Plant A', property: 'a', renderer: 'bar', group: 'plants',
       errorLowProperty: 'aLow', errorHighProperty: 'aHigh', valueFormat: ',.1f' },
     { id: 'b', title: 'Plant B', property: 'b', renderer: 'bar', group: 'plants',

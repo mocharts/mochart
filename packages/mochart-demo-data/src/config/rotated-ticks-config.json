@@ -1,25 +1,33 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Rotated Ticks Example"
+  "title": {
+    "text": "Rotated Ticks Example"
   },
-  "legendConfig": {
+  "legend": {
     "visible": true
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "groupDO",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categoryDO",
     "type": "date",
     "scale": "ordinal",
-    "tickLabelFormat": "%Y-%m-%d",
-    "tickLabelRotation": 90,
-    "title": "Date Ticks Rotated 90 Degrees"
+    "tickLabel": {
+      "format": "%Y-%m-%d",
+      "rotation": 90
+    },
+    "title": {
+      "text": "Date Ticks Rotated 90 Degrees"
+    }
   },
-  "seriesAxisConfigs": {
-    "tickLabelRotation": 45,
-    "title": "Ticks Rotated 45 Degrees"
+  "valueAxes": {
+    "tickLabel": {
+      "rotation": 45
+    },
+    "title": {
+      "text": "Ticks Rotated 45 Degrees"
+    }
   },
-  "seriesConfigs": {
+  "series": {
     "property": "value9",
     "title": "Large Number",
     "renderer": "line"

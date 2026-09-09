@@ -11,18 +11,20 @@ import {
 } from '../../src/utils/SeriesColors';
 import { makeConfig } from '../data/fixtures';
 import { deepMerge } from '../../src/config/core/deepMerge';
-import type { ColorPaletteConfig, DeepPartial, SeriesConfig } from '../../src/types/config';
+import { MISSING_VALUE } from '../../src/utils/utils';
+import type { ColorPaletteConfig, DeepPartial } from '../../src/types/config';
+import type { EnhancedSeriesConfig } from '../../src/types/enhanced';
 
 // Build a fully-defaulted series + palette, then deep-merge overrides onto the
 // series so colour fields under test are realistic rather than hand-rolled.
 function setup() {
   const config = makeConfig({
-    groupAxisConfig: { property: 'g', type: 'number', scale: 'ordinal' },
-    seriesConfigs: [{ property: 'a' }]
+    categoryAxis: { property: 'g', type: 'number', scale: 'ordinal' },
+    series: [{ property: 'a' }]
   });
-  const base = config.seriesConfigs[0];
-  const colorPaletteConfig = (config as unknown as { colorPaletteConfig: ColorPaletteConfig }).colorPaletteConfig;
-  const series = (over: DeepPartial<SeriesConfig>): SeriesConfig => deepMerge(base, over) as SeriesConfig;
+  const base = config.series[0];
+  const colorPaletteConfig = (config as unknown as { colorPalette: ColorPaletteConfig }).colorPalette;
+  const series = (over: DeepPartial<EnhancedSeriesConfig>): EnhancedSeriesConfig => deepMerge(base, over) as EnhancedSeriesConfig;
   return { colorPaletteConfig, series };
 }
 
@@ -40,12 +42,12 @@ describe('getSeriesOpacities', () => {
   });
 
   it('returns marker opacities when there is no shape renderer but a marker', () => {
-    const o = getSeriesOpacities(series({ renderer: 'none', markerShape: 'circle', markerStyle: { normal: { fillOpacity: 0.7 }, focused: { fillOpacity: 1 }, defocused: { fillOpacity: 0.3 } } }));
+    const o = getSeriesOpacities(series({ renderer: 'none', marker: { shape: 'circle', style: { normal: { fillOpacity: 0.7 }, focused: { fillOpacity: 1 }, defocused: { fillOpacity: 0.3 } } } }));
     expect(o).toEqual({ opacity: 0.7, focusedOpacity: 1, defocusedOpacity: 0.3 });
   });
 
   it('falls back to label opacities when there is no renderer and no marker', () => {
-    const o = getSeriesOpacities(series({ renderer: 'none', markerShape: null, labelTextStyle: { normal: { fillOpacity: 0.8 }, focused: { fillOpacity: 1 }, defocused: { fillOpacity: 0.4 } } }));
+    const o = getSeriesOpacities(series({ renderer: 'none', marker: { shape: null }, label: { textStyle: { normal: { fillOpacity: 0.8 }, focused: { fillOpacity: 1 }, defocused: { fillOpacity: 0.4 } } } }));
     expect(o).toEqual({ opacity: 0.8, focusedOpacity: 1, defocusedOpacity: 0.4 });
   });
 });
@@ -54,19 +56,26 @@ describe('getSeriesColor dispatch', () => {
   const { colorPaletteConfig, series } = setup();
 
   it('uses the fill color for bar/area', () => {
-    expect(getSeriesColor(colorPaletteConfig, series({ renderer: 'bar', shapeStyle: { normal: { fillColor: '#abc' } } }))).toBe('#abc');
+    expect(getSeriesColor(colorPaletteConfig, series({ renderer: 'bar', shapeStyle: { normal: { fillColor: '#abc' } } }), false)).toBe('#abc');
   });
 
   it('uses the stroke color for line', () => {
-    expect(getSeriesColor(colorPaletteConfig, series({ renderer: 'line', shapeStyle: { normal: { strokeColor: '#def' } } }))).toBe('#def');
+    expect(getSeriesColor(colorPaletteConfig, series({ renderer: 'line', shapeStyle: { normal: { strokeColor: '#def' } } }), false)).toBe('#def');
   });
 
   it('uses the marker fill color when there is a marker and no shape', () => {
-    expect(getSeriesColor(colorPaletteConfig, series({ renderer: 'none', markerShape: 'circle', markerStyle: { normal: { fillColor: '#123' } } }))).toBe('#123');
+    expect(getSeriesColor(colorPaletteConfig, series({ renderer: 'none', marker: { shape: 'circle', style: { normal: { fillColor: '#123' } } } }), false)).toBe('#123');
   });
 
   it('uses the label fill color when there is no shape and no marker', () => {
-    expect(getSeriesColor(colorPaletteConfig, series({ renderer: 'none', markerShape: null, labelTextStyle: { normal: { fillColor: '#456' } } }))).toBe('#456');
+    expect(getSeriesColor(colorPaletteConfig, series({ renderer: 'none', marker: { shape: null }, label: { textStyle: { normal: { fillColor: '#456' } } } }), false)).toBe('#456');
+  });
+
+  // a pie slice is drawn filled whatever its renderer says, and it keeps the default 'line'
+  it('uses the fill color in pie mode, whatever the renderer says', () => {
+    const pieSeries = series({ renderer: 'line', shapeStyle: { normal: { fillColor: '#abc', strokeColor: '#def' } } });
+    expect(getSeriesColor(colorPaletteConfig, pieSeries, true)).toBe('#abc');
+    expect(getSeriesColor(colorPaletteConfig, pieSeries, false)).toBe('#def');
   });
 });
 
@@ -78,19 +87,19 @@ describe('getColor palette + keyword resolution', () => {
   });
 
   it('resolves "seriesIndex" to the palette color at that index (wrapping)', () => {
-    const palette = colorPaletteConfig.series.normal.fillColors;
+    const palette = colorPaletteConfig.shape.normal.fillColors;
     expect(getSeriesFillColor(colorPaletteConfig, series({ shapeStyle: { normal: { fillColor: 'seriesIndex' } } }), 1)).toBe(palette[1]);
     // wraps past the end
     expect(getSeriesFillColor(colorPaletteConfig, series({ shapeStyle: { normal: { fillColor: 'seriesIndex' } } }), palette.length + 2)).toBe(palette[2]);
   });
 
-  it('resolves "groupIndex" to the palette color for the group index', () => {
-    const palette = colorPaletteConfig.series.normal.fillColors;
-    expect(getSeriesFillColor(colorPaletteConfig, series({ shapeStyle: { normal: { fillColor: 'groupIndex' } } }), 0, null, '#fallback', 3)).toBe(palette[3]);
+  it('resolves "categoryIndex" to the palette color for the category index', () => {
+    const palette = colorPaletteConfig.shape.normal.fillColors;
+    expect(getSeriesFillColor(colorPaletteConfig, series({ shapeStyle: { normal: { fillColor: 'categoryIndex' } } }), 0, null, '#fallback', 3)).toBe(palette[3]);
   });
 
-  it('returns the default color for "groupIndex" when no group index is supplied', () => {
-    expect(getSeriesFillColor(colorPaletteConfig, series({ shapeStyle: { normal: { fillColor: 'groupIndex' } } }), 0, null, '#fallback')).toBe('#fallback');
+  it('returns the default color for "categoryIndex" when no category index is supplied', () => {
+    expect(getSeriesFillColor(colorPaletteConfig, series({ shapeStyle: { normal: { fillColor: 'categoryIndex' } } }), 0, null, '#fallback')).toBe('#fallback');
   });
 
   it('resolves "same" on a focused color back to the normal color', () => {
@@ -100,7 +109,7 @@ describe('getColor palette + keyword resolution', () => {
   });
 
   it('resolves "series" on a marker color across to the series shape color', () => {
-    // markerStyle.normal.strokeColor defaults to "series"
+    // marker.style.normal.strokeColor defaults to "series"
     const color = getSeriesMarkerStrokeColor(colorPaletteConfig, series({ shapeStyle: { normal: { strokeColor: '#shape' } } }));
     expect(color).toBe('#shape');
   });
@@ -120,7 +129,7 @@ describe('getColor palette + keyword resolution', () => {
 
   it('takes an error bar palette color from the errorBar palette', () => {
     const palette = colorPaletteConfig.errorBar.normal.strokeColors;
-    const color = getSeriesErrorBarStrokeColor(colorPaletteConfig, series({ errorBarStyle: { normal: { strokeColor: 'seriesIndex' } } }), 2);
+    const color = getSeriesErrorBarStrokeColor(colorPaletteConfig, series({ errorBar: { style: { normal: { strokeColor: 'seriesIndex' } } } }), 2);
     expect(color).toBe(palette[2]);
   });
 });
@@ -129,12 +138,12 @@ describe('series style overrides', () => {
   const { series } = setup();
 
   it('keeps the sibling members and states of a partially overridden style', () => {
-    const seriesConfig = series({ markerStyle: { focused: { strokeWidth: 6 } } });
-    expect(seriesConfig.markerStyle.focused).toEqual({
-      strokeColor: 'same', strokeOpacity: 1, strokeWidth: 6, fillColor: 'same', fillOpacity: 1
+    const seriesConfig = series({ marker: { style: { focused: { strokeWidth: 6 } } } });
+    expect(seriesConfig.marker.style.focused).toEqual({
+      strokeColor: 'same', strokeOpacity: 1, strokeWidth: 6, strokeDashArray: 'same', fillColor: 'same', fillOpacity: 1
     });
-    expect(seriesConfig.markerStyle.normal.strokeWidth).toBe(1);
-    expect(seriesConfig.markerStyle.defocused.strokeWidth).toBe(1);
+    expect(seriesConfig.marker.style.normal.strokeWidth).toBe(1);
+    expect(seriesConfig.marker.style.defocused.strokeWidth).toBe(1);
   });
 });
 
@@ -147,7 +156,7 @@ describe('getSeriesColorGenerator', () => {
     it(`produces colors for a ${interpolation ?? 'default'} interpolation`, () => {
       const gen = getSeriesColorGenerator(
         series({ colorScale: { min: '#000000', max: '#ffffff', interpolation, base: { value: null } } }),
-        null, rawDomains, filteredValues
+        rawDomains, filteredValues
       );
       expect(typeof gen(1)).toBe('string');
     });
@@ -156,13 +165,70 @@ describe('getSeriesColorGenerator', () => {
   it('splits above/below the color base into two scales', () => {
     const gen = getSeriesColorGenerator(
       series({ colorScale: { interpolation: null, base: { value: 5, belowMin: '#000000', belowMax: '#0000ff', aboveMin: '#ff0000', aboveMax: '#ffffff' } } }),
-      null,
       { color: [0, 10] } as never,
       { color: [0, 5, 10] } as never
     );
     // below-base index (value 0) and above-base index (value 10) both yield colors
     expect(typeof gen(0)).toBe('string');
     expect(typeof gen(2)).toBe('string');
+  });
+
+  // Regression: a collapsed domain took d3's range midpoint, so all-equal values rendered the
+  // blend halfway between the ramp ends instead of a ramp colour
+  it('gives all-equal color values the min ramp colour instead of the midpoint', () => {
+    const gen = getSeriesColorGenerator(
+      series({ colorScale: { min: '#000000', max: '#ffffff', interpolation: 'rgb', base: { value: null } } }),
+      { color: [5, 5] } as never, { color: [5, 5, 5] } as never
+    );
+    expect(gen(0)).toBe('#000000');
+    expect(gen(2)).toBe('#000000');
+  });
+
+  it('gives a value exactly at the base aboveMin when no value lies above it', () => {
+    const gen = getSeriesColorGenerator(
+      series({ colorScale: { interpolation: null, base: { value: 5, belowMin: '#000000', belowMax: '#0000ff', aboveMin: '#ff0000', aboveMax: '#ffffff' } } }),
+      { color: [0, 5] } as never, { color: [0, 3, 5] } as never
+    );
+    expect(gen(2)).toBe('#ff0000');
+  });
+
+  it('returns the missing color for a row without a color value', () => {
+    const gen = getSeriesColorGenerator(
+      series({ colorScale: { min: '#000000', max: '#ffffff', missing: '#123456', interpolation: 'rgb', base: { value: null } } }),
+      rawDomains, { color: [0, MISSING_VALUE, 10] } as never
+    );
+    expect(gen(1)).toBe('#123456');
+    expect(typeof gen(0)).toBe('string');
+    expect(typeof gen(2)).toBe('string');
+  });
+
+  it('returns the missing color for a row without a color value on a base-split scale', () => {
+    const gen = getSeriesColorGenerator(
+      series({ colorScale: { missing: '#123456', interpolation: null, base: { value: 5, belowMin: '#000000', belowMax: '#0000ff', aboveMin: '#ff0000', aboveMax: '#ffffff' } } }),
+      { color: [0, 10] } as never,
+      { color: [0, MISSING_VALUE, 10] } as never
+    );
+    expect(gen(1)).toBe('#123456');
+  });
+
+  it('returns the missing color for every row when no row has a color value', () => {
+    const gen = getSeriesColorGenerator(
+      series({ colorScale: { min: '#000000', max: '#ffffff', missing: '#123456', interpolation: 'rgb', base: { value: null } } }),
+      { color: [null, null] } as never,
+      { color: [MISSING_VALUE, MISSING_VALUE, MISSING_VALUE] } as never
+    );
+    expect(gen(0)).toBe('#123456');
+    expect(gen(1)).toBe('#123456');
+    expect(gen(2)).toBe('#123456');
+  });
+
+  it('returns null for missing rows when missing is null, deferring to the series colors', () => {
+    const gen = getSeriesColorGenerator(
+      series({ colorScale: { min: '#000000', max: '#ffffff', missing: null, interpolation: 'rgb', base: { value: null } } }),
+      rawDomains, { color: [0, MISSING_VALUE, 10] } as never
+    );
+    expect(gen(1)).toBe(null);
+    expect(typeof gen(0)).toBe('string');
   });
 });
 

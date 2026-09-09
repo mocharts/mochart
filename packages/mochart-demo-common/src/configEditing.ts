@@ -1,3 +1,7 @@
+import buildMochartDemoConfig from './mochartDemoConfig';
+import { demoText } from './demoText';
+import { getJsonErrorMessage, parseJson } from './json';
+
 import type { DemoConfig, MochartDemoConfig } from './types';
 
 // The with/without-defaults config views the editor toggles between. Config
@@ -7,12 +11,12 @@ export interface DemoConfigView {
   configWithoutDefaults: Record<string, any>;
 }
 
+// No default-equal values (enabled: true) — Apply strips them, breaking isConfigSectionActive.
 export const slowAnimationConfig = {
-  "animate": true,
   "initialDuration": 5000,
   "expansionDuration": 3000,
   "valueChangeDuration": 5000,
-  "collapseDuration": 3000,
+  "contractionDuration": 3000,
   "focusDuration": 2500
 };
 
@@ -30,14 +34,67 @@ export function copyDemoConfig(demoConfig: DemoConfigView | MochartDemoConfig): 
   return JSON.parse(JSON.stringify({ configWithDefaults, configWithoutDefaults }));
 }
 
-export function parseConfig(configText: string): DemoConfig | null {
+export type ConfigTextToggle =
+  { demoConfig: DemoConfigView; text: string; error: null } |
+  { demoConfig: null; text: null; error: string };
+
+export type ConfigTextParse =
+  { config: DemoConfig; build: MochartDemoConfig; error: null } |
+  { config: null; build: null; error: string };
+
+/** Parse editor text and check it builds: JSON syntax alone leaves a config the chart cannot render. */
+export function parseConfigFromText(configText: string): ConfigTextParse {
+  let parsed: DemoConfig;
   try {
-    return JSON.parse(configText);
+    parsed = parseJson(configText) as DemoConfig;
+  }
+  catch (error) {
+    console.warn('Invalid Chart Config JSON: ' + configText);
+    return { config: null, build: null, error: getJsonErrorMessage(error) };
+  }
+  const build = buildMochartDemoConfig(parsed);
+  if (!build.configValidation.valid) {
+    const { errors, warnings } = build.configValidation;
+    if (errors.length > 0) {
+      console.warn('errors: ', errors);
+    }
+    if (warnings.length > 0) {
+      console.warn('warnings: ', warnings);
+    }
+    return { config: null, build: null, error: demoText.errors.invalidChartConfig };
+  }
+  return { config: parsed, build, error: null };
+}
+
+/**
+ * Run an editor toggle against the CURRENT config text (the Defaults toggle's
+ * pattern): parse and rebuild first, so unapplied textarea edits survive the
+ * toggle instead of being overwritten from the last built snapshot.
+ */
+export function toggleConfigFromText(configText: string, showDefaults: boolean, transform: (current: DemoConfigView) => DemoConfigView): ConfigTextToggle {
+  const { build, error } = parseConfigFromText(configText);
+  if (build === null) {
+    return { demoConfig: null, text: null, error };
+  }
+  const demoConfig = transform(copyDemoConfig(build));
+  return { demoConfig, text: formatMochartDemoConfig(demoConfig, showDefaults), error: null };
+}
+
+/**
+ * The config view the derived controls read (Invert/Slow pressed states, the reference links),
+ * rebuilt from the CURRENT text so an unapplied edit still moves them. Text that does not parse or
+ * does not build keeps the previous view: this runs on every keystroke, so it stays silent.
+ */
+export function demoConfigFromText(configText: string, previousDemoConfig: DemoConfigView): DemoConfigView {
+  let parsed: DemoConfig;
+  try {
+    parsed = parseJson(configText) as DemoConfig;
   }
   catch {
-    console.warn('Invalid Chart Config JSON: ' + configText);
-    return null;
+    return previousDemoConfig;
   }
+  const build = buildMochartDemoConfig(parsed);
+  return build.configValidation.valid ? copyDemoConfig(build) : previousDemoConfig;
 }
 
 export function toggleConfigProperty(currentDemoConfig: DemoConfigView, section: string, key: string, defaultValue: unknown): DemoConfigView {
@@ -45,15 +102,24 @@ export function toggleConfigProperty(currentDemoConfig: DemoConfigView, section:
   configWithDefaults = { ...configWithDefaults };
   configWithoutDefaults = { ...configWithoutDefaults };
   const sectionConfig = configWithoutDefaults[section];
-  if (!sectionConfig) {
-    configWithoutDefaults[section] = { [key]: defaultValue };
-    configWithDefaults[section] = { ...configWithDefaults[section], [key]: defaultValue };
-  }
-  else {
-    configWithoutDefaults[section] = { ...sectionConfig, [key]: !sectionConfig[key] };
-    configWithDefaults[section] = { ...configWithDefaults[section], [key]: !sectionConfig[key] };
-  }
+  const sectionWithDefaults = configWithDefaults[section];
+  // toggle from the effective (defaulted) value, so a property whose core default
+  // is true switches off on the first press instead of writing true again
+  const rawValue = sectionConfig !== undefined ? sectionConfig[key] : undefined;
+  const effectiveValue = rawValue !== undefined ? rawValue : sectionWithDefaults !== undefined ? sectionWithDefaults[key] : undefined;
+  const newValue = effectiveValue === undefined ? defaultValue : !effectiveValue;
+  configWithoutDefaults[section] = { ...sectionConfig, [key]: newValue };
+  configWithDefaults[section] = { ...sectionWithDefaults, [key]: newValue };
   return { configWithDefaults, configWithoutDefaults };
+}
+
+/**
+ * Whether the section currently holds the given preset. Structural comparison:
+ * Apply round-trips configs through JSON, so object identity never survives.
+ */
+export function isConfigSectionActive(currentDemoConfig: DemoConfigView, section: string, defaultSection: unknown): boolean {
+  const sectionConfig = currentDemoConfig.configWithoutDefaults[section];
+  return sectionConfig === defaultSection || JSON.stringify(sectionConfig) === JSON.stringify(defaultSection);
 }
 
 export function toggleConfigSection(currentMochartDemoConfig: MochartDemoConfig, currentDemoConfig: DemoConfigView, section: string, defaultSection: unknown): DemoConfigView {
@@ -66,8 +132,11 @@ export function toggleConfigSection(currentMochartDemoConfig: MochartDemoConfig,
     configWithDefaults[section] = defaultSection;
   }
   else {
-    configWithoutDefaults[section] = configWithoutDefaults[section] === defaultSection ? currentMochartDemoConfig.configWithoutDefaults[section] : defaultSection;
-    configWithDefaults[section] = configWithDefaults[section] === defaultSection ? currentMochartDemoConfig.configWithDefaults[section] : defaultSection;
+    // one decision applied to both views: the with-defaults view carries extra
+    // defaulted keys after Apply, so only the without-defaults view can tell
+    const active = isConfigSectionActive(currentDemoConfig, section, defaultSection);
+    configWithoutDefaults[section] = active ? currentMochartDemoConfig.configWithoutDefaults[section] : defaultSection;
+    configWithDefaults[section] = active ? currentMochartDemoConfig.configWithDefaults[section] : defaultSection;
   }
   return { configWithDefaults, configWithoutDefaults };
 }

@@ -1,29 +1,36 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Daily Share Price (fictional, $)"
+  "title": {
+    "text": "Daily Share Price (fictional, $)"
   },
-  "groupAxisConfig": {
+  "categoryAxis": {
     "property": "label",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "title": "$ per share"
+      "title": {
+        "text": "$ per share"
+      }
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
       "id": "upWick",
       "property": "upHigh",
       "rangeProperty": "low",
       "renderer": "none",
-      "barWidthPercent": 0.15,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 0.15
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "showInLegend": false,
+      "followSeries": "up",
+      "valueLabel": "Range",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#1baf7a",
@@ -31,14 +38,15 @@
           "fillOpacity": 1
         }
       },
-      "showInLegend": false,
-      "followSeries": "up",
-      "valueLabel": "Range",
-      "markerShape": null,
-      "labelTextStyle": {
-        "normal": {
-          "fillColor": "#1baf7a",
-          "fillOpacity": 1
+      "marker": {
+        "shape": null
+      },
+      "label": {
+        "textStyle": {
+          "normal": {
+            "fillColor": "#1baf7a",
+            "fillOpacity": 1
+          }
         }
       },
       "valueFormat": ",.2f"
@@ -48,11 +56,16 @@
       "property": "downHigh",
       "rangeProperty": "low",
       "renderer": "none",
-      "barWidthPercent": 0.15,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 0.15
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "showInLegend": false,
+      "followSeries": "down",
+      "valueLabel": "Range",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#e34948",
@@ -60,14 +73,15 @@
           "fillOpacity": 1
         }
       },
-      "showInLegend": false,
-      "followSeries": "down",
-      "valueLabel": "Range",
-      "markerShape": null,
-      "labelTextStyle": {
-        "normal": {
-          "fillColor": "#e34948",
-          "fillOpacity": 1
+      "marker": {
+        "shape": null
+      },
+      "label": {
+        "textStyle": {
+          "normal": {
+            "fillColor": "#e34948",
+            "fillOpacity": 1
+          }
         }
       },
       "valueFormat": ",.2f"
@@ -77,11 +91,16 @@
       "property": "upHigh",
       "rangeProperty": "up",
       "renderer": "bar",
-      "barWidthPercent": 0.15,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 0.15
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "showInLegend": false,
+      "showInTooltip": false,
+      "followSeries": "up",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#1baf7a",
@@ -89,9 +108,6 @@
           "fillOpacity": 1
         }
       },
-      "showInLegend": false,
-      "showInTooltip": false,
-      "followSeries": "up",
       "valueFormat": ",.2f"
     },
     {
@@ -99,11 +115,16 @@
       "property": "upOpen",
       "rangeProperty": "low",
       "renderer": "bar",
-      "barWidthPercent": 0.15,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 0.15
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "showInLegend": false,
+      "showInTooltip": false,
+      "followSeries": "up",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#1baf7a",
@@ -111,9 +132,6 @@
           "fillOpacity": 1
         }
       },
-      "showInLegend": false,
-      "showInTooltip": false,
-      "followSeries": "up",
       "valueFormat": ",.2f"
     },
     {
@@ -121,11 +139,16 @@
       "property": "downHigh",
       "rangeProperty": "open",
       "renderer": "bar",
-      "barWidthPercent": 0.15,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 0.15
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "showInLegend": false,
+      "showInTooltip": false,
+      "followSeries": "down",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#e34948",
@@ -133,9 +156,6 @@
           "fillOpacity": 1
         }
       },
-      "showInLegend": false,
-      "showInTooltip": false,
-      "followSeries": "down",
       "valueFormat": ",.2f"
     },
     {
@@ -143,11 +163,16 @@
       "property": "down",
       "rangeProperty": "low",
       "renderer": "bar",
-      "barWidthPercent": 0.15,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 0.15
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "showInLegend": false,
+      "showInTooltip": false,
+      "followSeries": "down",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#e34948",
@@ -155,9 +180,6 @@
           "fillOpacity": 1
         }
       },
-      "showInLegend": false,
-      "showInTooltip": false,
-      "followSeries": "down",
       "valueFormat": ",.2f"
     },
     {
@@ -165,11 +187,14 @@
       "property": "up",
       "rangeProperty": "open",
       "renderer": "bar",
-      "barWidthPercent": 1,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 1
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "title": "Up",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#1baf7a",
@@ -187,7 +212,6 @@
           "fillOpacity": 0
         }
       },
-      "title": "Up",
       "valueFormat": ",.2f"
     },
     {
@@ -195,11 +219,15 @@
       "property": "down",
       "rangeProperty": "open",
       "renderer": "bar",
-      "barWidthPercent": 1,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 1,
+        "minExtent": 2
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "title": "Down",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#e34948",
@@ -207,7 +235,6 @@
           "fillOpacity": 1
         }
       },
-      "title": "Down",
       "valueFormat": ",.2f"
     }
   ]

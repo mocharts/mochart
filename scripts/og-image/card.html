@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>mochart social preview card</title>
+  <link rel="stylesheet" href="/packages/mochart/css/mochart.css">
+  <style>
+    html, body { margin: 0; background: #ffffff; color: #1f2328; overflow: hidden; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      width: 1200px; height: 630px;
+      display: flex; align-items: center; gap: 48px;
+      padding: 0 56px; box-sizing: border-box;
+    }
+    .intro { flex: 0 0 440px; display: flex; flex-direction: column; }
+    .mark { width: 72px; height: 72px; display: block; }
+    .name { margin: 28px 0 0; font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+    .text { margin: 20px 0 0; font-size: 30px; font-weight: 600; line-height: 1.25; color: #3e63dd; }
+    .tagline { margin: 20px 0 0; font-size: 21px; line-height: 1.45; color: #57606a; }
+    .site { margin: 36px 0 0; font-size: 20px; font-weight: 500; color: #1f2328; }
+    .panel {
+      flex: 1; height: 470px;
+      background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 16px;
+      box-sizing: border-box; padding: 20px;
+    }
+    #chart { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div class="intro">
+    <svg class="mark" viewBox="0 0 16 16" aria-hidden="true">
+      <rect width="16" height="16" rx="3" fill="#3e63dd"/>
+      <rect x="3" y="9" width="2.5" height="4" fill="#fff"/>
+      <rect x="6.75" y="6" width="2.5" height="7" fill="#fff"/>
+      <rect x="10.5" y="3" width="2.5" height="10" fill="#fff"/>
+    </svg>
+    <h1 class="name">mochart</h1>
+    <p class="text">Animated interactive SVG charts</p>
+    <p class="tagline">Zero framework dependencies, staged animations, and bindings for Angular, Lit, React, Svelte, and Vue.</p>
+    <p class="site">mochart.org</p>
+  </div>
+  <div class="panel"><div id="chart"></div></div>
+  <script type="module">
+    import { createChart, enhanceConfig, ArrayOfObjectsDataProvider } from '/packages/mochart/dist/mochart.js';
+    import { scenes } from '../readme-gif/scenes.mjs';
+
+    // The stacked README scene's colours and axes, settled on its seven-category data.
+    const { title: _title, ...config } = scenes.stacked.config('light');
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
+    const values = [[22, 14, 9], [26, 15, 12], [20, 21, 14], [30, 17, 15], [24, 19, 22], [28, 23, 18], [32, 24, 20]];
+    const data = values.map(([north, south, west], index) => ({ month: months[index], north, south, west }));
+
+    const element = document.getElementById('chart');
+    await document.fonts.ready;
+    createChart(element, {
+      mochartConfig: enhanceConfig(config),
+      dataProvider: new ArrayOfObjectsDataProvider(data),
+      width: element.clientWidth,
+      height: element.clientHeight
+    });
+    // Let the mount animation finish before the capture screenshots the page.
+    await new Promise((resolve) => setTimeout(resolve, config.animation.initialDuration + 300));
+    window.__cardReady = true;
+  </script>
+</body>
+</html>

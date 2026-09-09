@@ -1,0 +1,2 @@
+# Never text-merge the lockfile; take either side, then run npm install.
+package-lock.json -merge

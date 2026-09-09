@@ -1,9 +1,11 @@
-import { NONE } from '../config/core/constants';
-import type { GroupAxisConfig, SeriesConfig } from '../types/config';
-import type { AxisScale, GroupAxisData, SeriesPosition, SeriesPositionAccessor, SeriesPositionData, SeriesValueObject } from '../types/data';
+import { NONE, MISSING_VALUE_MODE_BASE, MISSING_VALUE_MODE_CONNECT, RENDERER_BAR } from '../config/core/constants';
+import { isMissingValue } from './utils';
+import type { CategoryAxisConfig } from '../types/config';
+import type { EnhancedSeriesConfig } from '../types/enhanced';
+import type { AxisScale, CategoryAxisData, SeriesPosition, SeriesPositionAccessor, SeriesPositionData, SeriesValueObject } from '../types/data';
 import type { LayoutInfo } from '../types/layout';
 
-function normalizePriorPositions(seriesPositions: SeriesPosition[], seriesPriorPositions: SeriesPosition[] | null, seriesBasePosition: number, inverted: boolean): void {
+function normalizePriorPositions(seriesPositions: SeriesPosition[], seriesPriorPositions: SeriesPosition[] | null, seriesBasePosition: number, inverted: boolean, sort: boolean): void {
   const length = seriesPositions.length;
   if (seriesPriorPositions !== null) {
     for (let i = 0; i < length; i++) {
@@ -18,7 +20,7 @@ function normalizePriorPositions(seriesPositions: SeriesPosition[], seriesPriorP
       else if (seriesPriorPositions[i] === undefined) {
         seriesPriorPositions[i] = seriesPositions[i];
       }
-      else {
+      else if (sort) {
         const swapPosition = inverted ? seriesPositions[i]! < seriesPriorPositions[i]! : seriesPositions[i]! > seriesPriorPositions[i]!
         if(swapPosition) {
           const temp = seriesPositions[i];
@@ -30,62 +32,62 @@ function normalizePriorPositions(seriesPositions: SeriesPosition[], seriesPriorP
   }
 }
 
-export function getSeriesPositionData(groupAxisConfig: GroupAxisConfig, seriesConfig: SeriesConfig, groupValueData: GroupAxisData['valueData'], seriesAxisScale: AxisScale, valueObject: SeriesValueObject, seriesLayoutInfo: LayoutInfo): SeriesPositionData {
-  const { seriesAxisConfig, seriesGroupConfig, showMissingAtBase, skipMissing, skipPartialRange, group, stack, rangeProperty, barWidthPercent, barAlignPercent } = seriesConfig;
-  const { spacingInfo, positions: groupPositions } = groupValueData;
-  const { base } = seriesAxisConfig;
+export function getSeriesPositionData(categoryAxisConfig: CategoryAxisConfig, seriesConfig: EnhancedSeriesConfig, categoryValueData: CategoryAxisData['valueData'], valueAxisScale: AxisScale, valueObject: SeriesValueObject, seriesLayoutInfo: LayoutInfo): SeriesPositionData {
+  const { valueAxisConfig, seriesGroupConfig, missingValueMode, partialRangeIsMissing, group, stack, rangeProperty, renderer } = seriesConfig;
+  const { widthFraction: barWidthFraction, alignFraction: barAlignFraction } = seriesConfig.bar;
+  const { spacingInfo, positions: categoryPositions } = categoryValueData;
+  const { base } = valueAxisConfig;
   const { min } = valueObject;
   const max = valueObject.max!; // max is the array of seriesValues and min is optionally the array of priorSeriesValues
   const { inverted } = seriesLayoutInfo;
 
-  let seriesBasePosition = seriesAxisScale.range()[0]!;
-  const seriesAxisDomain = seriesAxisScale.domain() as number[];
+  let seriesBasePosition = valueAxisScale.range()[0]!;
+  const valueAxisDomain = valueAxisScale.domain() as number[];
   if (base !== NONE) {
-    if (base < seriesAxisDomain[0]!) {
-      seriesBasePosition = seriesAxisScale.range()[0]!;
+    if (base < valueAxisDomain[0]!) {
+      seriesBasePosition = valueAxisScale.range()[0]!;
     }
-    else if (base > seriesAxisDomain[1]!) {
-      seriesBasePosition = seriesAxisScale.range()[1]!;
+    else if (base > valueAxisDomain[1]!) {
+      seriesBasePosition = valueAxisScale.range()[1]!;
     }
     else {
-      seriesBasePosition = seriesAxisScale(base);
+      seriesBasePosition = valueAxisScale(base);
     }
   }
 
-  const missingPosition = showMissingAtBase ? seriesBasePosition : undefined;
-  const skip = !showMissingAtBase && skipMissing; // skipMissing has no effect when showMissingAtBase is true
+  const missingPosition = missingValueMode === MISSING_VALUE_MODE_BASE ? seriesBasePosition : undefined;
+  const skip = missingValueMode === MISSING_VALUE_MODE_CONNECT;
 
   const seriesPositions: SeriesPosition[] = [];
   let seriesPriorPositions: SeriesPosition[] | null = null;
 
-  let groupDefinedPositions: number[] | null = null;
+  let categoryDefinedPositions: number[] | null = null;
   let seriesDefinedPositions: number[] | null = null;
   let seriesPriorDefinedPositions: number[] | null = null;
 
-  let { groupValueExtent, groupValueOffset } = spacingInfo;
-  groupValueOffset*= -1;
+  let { categoryValueExtent, categoryValueOffset } = spacingInfo;
+  categoryValueOffset*= -1;
   if (group !== NONE) {
-    const groupExtentAndMargins = groupValueExtent / seriesGroupConfig!.seriesConfigs!.length;
-    groupValueExtent = groupExtentAndMargins * (1.0 - groupAxisConfig.groupPadding.inner);
-    groupValueOffset = groupValueOffset + (seriesGroupConfig!.seriesConfigIndicesById![seriesConfig.id]! * groupExtentAndMargins) + ((groupExtentAndMargins - groupValueExtent) / 2.0);
+    const categoryExtentAndMargins = categoryValueExtent / seriesGroupConfig!.subSlotCount!;
+    categoryValueExtent = categoryExtentAndMargins * (1.0 - categoryAxisConfig.categoryPaddingFraction.inner);
+    categoryValueOffset = categoryValueOffset + (seriesGroupConfig!.subSlotIndicesById![seriesConfig.id]! * categoryExtentAndMargins) + ((categoryExtentAndMargins - categoryValueExtent) / 2.0);
   }
-  if (barWidthPercent !== 1) {
-    const fullValueExtent = groupValueExtent;
-    groupValueExtent = fullValueExtent * barWidthPercent;
-    groupValueOffset += (fullValueExtent - groupValueExtent) * barAlignPercent;
+  if (barWidthFraction !== 1) {
+    const fullValueExtent = categoryValueExtent;
+    categoryValueExtent = fullValueExtent * barWidthFraction;
+    categoryValueOffset += (fullValueExtent - categoryValueExtent) * barAlignFraction;
   }
 
-  // With skipPartialRange, a ranged group missing either of its two values is
-  // treated as wholly missing here, before normalizePriorPositions can back-fill
-  // the absent side and collapse the group to a zero-extent span. Stacked series
-  // are exempt: their min holds stack priors, not range values.
-  const requireBothValues = skipPartialRange && rangeProperty !== NONE && stack === NONE && min !== null;
+  // partialRangeIsMissing: a ranged category missing either value is wholly missing here, before
+  // normalizePriorPositions back-fills the absent side. Stacked exempt: their min holds stack priors.
+  const requireBothValues = partialRangeIsMissing && rangeProperty !== NONE && stack === NONE && min !== null;
 
-  let i, length = groupPositions.length;
+  let i, length = categoryPositions.length;
   let position;
+  // positions keep undefined for a missing point (values mark it NaN)
   for (i=0; i<length; i++) {
-    if (max[i] !== undefined && (!requireBothValues || min![i] !== undefined)) {
-      position = Math.floor(seriesAxisScale(max[i]!));
+    if (!isMissingValue(max[i]) && (!requireBothValues || !isMissingValue(min![i]))) {
+      position = Math.floor(valueAxisScale(max[i]!));
       seriesPositions.push(position);
     }
     else {
@@ -95,8 +97,8 @@ export function getSeriesPositionData(groupAxisConfig: GroupAxisConfig, seriesCo
   if (min !== null) {
     seriesPriorPositions = [];
     for (i=0; i<length; i++) {
-      if (min[i] !== undefined && (!requireBothValues || max[i] !== undefined)) {
-        position = Math.floor(seriesAxisScale(min[i]!));
+      if (!isMissingValue(min[i]) && (!requireBothValues || !isMissingValue(max[i]))) {
+        position = Math.floor(valueAxisScale(min[i]!));
         seriesPriorPositions.push(position);
       }
       else {
@@ -106,12 +108,14 @@ export function getSeriesPositionData(groupAxisConfig: GroupAxisConfig, seriesCo
   }
 
   if (stack === NONE || skip) {
-    normalizePriorPositions(seriesPositions, seriesPriorPositions, seriesBasePosition, inverted); // if there are prior positions, normalize and sort them per group value
+    // back-fill either side per category value; only unstacked bar pairs get sorted (a stack top below its prior is a
+    // negative segment), and a ranged line/area keeps property on the series side so its lines, labels and markers don't swap
+    normalizePriorPositions(seriesPositions, seriesPriorPositions, seriesBasePosition, inverted, stack === NONE && renderer === RENDERER_BAR);
   }
 
-  const skipGroupIndexMap: Record<number, number> = {};
+  const skipCategoryIndexMap: Record<number, number> = {};
   if (skip) {
-    groupDefinedPositions = [];
+    categoryDefinedPositions = [];
     seriesDefinedPositions = [];
     if (seriesPriorPositions !== null) {
       seriesPriorDefinedPositions = [];
@@ -120,10 +124,10 @@ export function getSeriesPositionData(groupAxisConfig: GroupAxisConfig, seriesCo
       for (i = 0; i < length; i++) {
         seriesPosition = seriesPositions[i];
         if (seriesPosition !== undefined) {
-          groupDefinedPositions.push(groupPositions[i]!);
+          categoryDefinedPositions.push(categoryPositions[i]!);
           seriesDefinedPositions.push(seriesPosition);
-          seriesPriorDefinedPositions.push(seriesPriorPositions[i] || seriesPosition); // rely on the fact that prior has been normalized
-          skipGroupIndexMap[iSkip++] = i;
+          seriesPriorDefinedPositions.push(seriesPriorPositions[i] ?? seriesPosition); // pixel 0 is a valid prior; only undefined falls back
+          skipCategoryIndexMap[iSkip++] = i;
         }
       }
     }
@@ -131,23 +135,23 @@ export function getSeriesPositionData(groupAxisConfig: GroupAxisConfig, seriesCo
       let iSkip = 0;
       for (i = 0; i < length; i++) {
         if (seriesPositions[i] !== undefined) {
-          groupDefinedPositions.push(groupPositions[i]!);
+          categoryDefinedPositions.push(categoryPositions[i]!);
           seriesDefinedPositions.push(seriesPositions[i]!);
-          skipGroupIndexMap[iSkip++] = i;
+          skipCategoryIndexMap[iSkip++] = i;
         }
       }
     }
   }
 
-  const gp = (skip ? groupDefinedPositions : groupPositions)!;
+  const gp = (skip ? categoryDefinedPositions : categoryPositions)!;
   const sp = (skip ? seriesDefinedPositions : seriesPositions)!;
   const spp = skip ? seriesPriorDefinedPositions : seriesPriorPositions;
 
   length = gp.length;
   // The d parameters in the following functions are unused, just present because that's what d3's generators expect
   const getDefined = skip ? () => true : (_d: unknown, i: number) => seriesPositions[i] !== undefined;
-  const getGroupPosition: SeriesPositionAccessor = (_d, i) => gp[i];
-  const getOffsetGroupPosition: SeriesPositionAccessor = (_d, i) => gp[i] + groupValueOffset;
+  const getCategoryPosition: SeriesPositionAccessor = (_d, i) => gp[i];
+  const getOffsetCategoryPosition: SeriesPositionAccessor = (_d, i) => gp[i] + categoryValueOffset;
   const getSeriesPosition: SeriesPositionAccessor = (_d, i) => sp[i];
 
   let getCurrentSeriesPosition: SeriesPositionAccessor = skip ? getSeriesPosition : (_d, i) => sp[i] !== undefined ? sp[i] : seriesBasePosition;
@@ -196,14 +200,15 @@ export function getSeriesPositionData(groupAxisConfig: GroupAxisConfig, seriesCo
 
   return {
     length, // the generators expect an array, but we don't need one, so fake it...
-    skipGroupIndexMap,
+    skipped: skip,
+    skipCategoryIndexMap,
     getDefined,
-    groupPositions,
-    groupDefinedPositions,
-    getGroupPosition,
-    getOffsetGroupPosition,
-    groupValueExtent,
-    groupValueOffset,
+    categoryPositions,
+    categoryDefinedPositions,
+    getCategoryPosition,
+    getOffsetCategoryPosition,
+    categoryValueExtent,
+    categoryValueOffset,
     seriesPositions,
     seriesDefinedPositions,
     seriesPriorPositions,

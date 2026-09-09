@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    // node for the specs, vite/client for the demo packages they import: those
+    // read import.meta.env / import.meta.glob, which the parent config types.
+    "types": ["node", "vite/client"]
+  },
+  "include": ["./**/*", "../playwright.config.ts"]
+}

@@ -88,18 +88,18 @@ in the gallery at 1044 chars — the case that makes a panel's `max-height` bind
 # The feature this was built for: the phone overflow fold
 
 Below the phone tier the top bar and every control strip fold their secondary controls into `⋯`
-menus. Desktop is unchanged — that is the load-bearing constraint. Shipped 2026-07-30 across all six
+menus. Desktop is unchanged — that is the constraint everything else works around. Shipped 2026-07-30 across all six
 ports; this section is the durable rationale and the traps, not a work plan.
 
 ## Why
 
 The demos don't scroll — the shell is locked to `100dvh` with `overflow: hidden`. Every row the top
 bar or a control strip wraps to is a row of chart height lost. At 390px the top bar carried ~9 tap
-targets and wrapped; the single-mode group strip carried 10 buttons plus an input and wrapped two or
+targets and wrapped; the single-mode category strip carried 10 buttons plus an input and wrapped two or
 three deep. Earlier mobile passes took the cheap wins (Multi hidden on phones, 2nd chart dropped,
 `.btn-label` clipped below 900px); what remained was genuinely too many controls for the width.
 
-Result at 390×844: top bar 2 rows → 1, group panel 4 → 1, series 3 → 2, slice 3 → 2, random strip
+Result at 390×844: top bar 2 rows → 1, category panel 4 → 1, series 3 → 2, slice 3 → 2, random strip
 2 → 1, config footer 5 → 1, data footer 2 → 1. The series panel holds 2 rows even at 320×568.
 
 ## The one idea everything rests on: reparent, never duplicate
@@ -109,7 +109,7 @@ move back. They are never rendered twice.
 
 This is why `sync()`'s ~16 `setDisabled`/`setPressed`/`setContent` calls needed no changes across
 three panels, why there are no duplicate ids or duplicate accessible names, and why the fold is
-nearly free. The proof is observable: with an empty group input, Add reports `disabled` **in the
+nearly free. The proof is observable: with an empty category input, Add reports `disabled` **in the
 strip** while Reset reports enabled **in the menu** — same elements, no mirroring.
 
 **Any port that renders a control twice and hides one with CSS has missed the design.** The reactive
@@ -120,10 +120,10 @@ panel) from the same definition, conditional placement rather than DOM reparenti
 
 - **Top bar** — stays: `Chart | Config | Data`. Folds: mode switcher, notes, theme toggle,
   back-to-gallery, site-root link, plus a "Mode" section header above the Single/Random rows.
-- **Group panel** — stays: Add, Remove, the value input. Folds: Reset, Reverse, Select All, play-add,
-  play-remove, Stop, Edit Series/Groups.
+- **Category panel** — stays: Add, Remove, the value input. Folds: Reset, Reverse, Select All, play-add,
+  play-remove, Stop, Edit Series/Categories.
 - **Series panel** — stays: the steppers with their readouts, the JSON input, and **Apply, moved down
-  onto the input row** beside the JSON it applies. Folds: Reset, Edit Groups. Readout prefixes shrink
+  onto the input row** beside the JSON it applies. Folds: Reset, Edit Categories. Readout prefixes shrink
   to `G 3` / `S 0` (`.demo-label-prefix-compact`, `aria-hidden`, full text preserved as the
   accessible name).
 - **Slice panel** (pie/donut) — stays: prev/next, readout, Apply, value input. Folds: Reset, play
@@ -292,7 +292,7 @@ Three of five runs turned up something a green functional check had passed over.
 
 ## Known-and-left (pre-existing, not caused by this work)
 
-- The config/data `<textarea>`s and the group/series value `<input>`s have **no accessible name**.
+- The config/data `<textarea>`s and the category/series value `<input>`s have **no accessible name**.
   Identical in all six ports; fixing only vanilla would create divergence. Deserves its own pass.
 - Desktop config footer tab order: Apply precedes the reference links in the DOM but renders below
   them once the toolbar wraps. Reordering would cost the byte-identical desktop claim.

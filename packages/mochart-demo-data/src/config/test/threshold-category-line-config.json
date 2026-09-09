@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Threshold Category Axis Line"
+  },
+  "animation": {
+    "expansionDuration": 1000,
+    "initialDuration": 1000,
+    "valueChangeDuration": 1000,
+    "contractionDuration": 1000
+  },
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "display",
+    "keyProperty": "date",
+    "type": "date",
+    "scale": "linear",
+    "thresholds": [
+      {
+        "value": "2017-03-12T00:00:00.000000-03:00",
+        "title": {
+          "text": "Test Title For Threshold March 12 3AM",
+          "side": "high",
+          "padding": {
+            "top": 5,
+            "right": 5,
+            "bottom": 5,
+            "left": 5
+          }
+        }
+      }
+    ]
+  },
+  "valueAxes": [
+    {
+      "id": "VA0"
+    }
+  ],
+  "series": [
+    {
+      "axis": "VA0",
+      "property": "value",
+      "title": "Value",
+      "renderer": "line"
+    }
+  ]
+}

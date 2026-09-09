@@ -11,7 +11,7 @@
 // in the strips above 900px, where these buttons are icon-only by design.
 // `.btn-menu-label` is `display: none` everywhere except inside a menu.
 interface Props {
-  id: string;
+  id?: string;
   tooltipText?: string;
   tooltipPlacement?: string;
   disabled?: boolean;
@@ -25,6 +25,7 @@ interface Props {
 defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<Props>(), {
+  id: undefined,
   tooltipText: undefined,
   tooltipPlacement: undefined,
   disabled: false,
@@ -36,7 +37,8 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <span class="button-with-tooltip">
+  <!-- Unstyled wrapper: it keeps the button one flex item wherever it is folded. -->
+  <span>
     <button :id="props.id" type="button" :class="`demo-btn demo-btn-${props.color}` + (props.pressed ? ' active' : '')"
             :disabled="props.disabled" :title="props.tooltipText"
             :aria-pressed="props.pressed === undefined ? undefined : props.pressed"

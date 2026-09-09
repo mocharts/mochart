@@ -18,10 +18,10 @@ const histogram = createHistogram(samples, { seriesTitle: 'Requests' });
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Response Time Distribution' },
-  groupAxisConfig: { ...histogram.groupAxisConfig, title: 'Response time (ms)' },
-  seriesAxisConfigs: [{ min: 0 }],
-  seriesConfigs: [histogram.seriesConfig]
+  title: { text: 'Response Time Distribution' },
+  categoryAxis: { ...histogram.categoryAxis, title: { text: 'Response time (ms)' } },
+  valueAxes: [{ min: 0 }],
+  series: [histogram.seriesConfig]
 };
 
 export const data = histogram.data;

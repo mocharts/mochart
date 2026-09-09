@@ -1,0 +1,31 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Ordinal Category Scale"
+  },
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categorySO",
+    "type": "string",
+    "scale": "ordinal"
+  },
+  "valueAxes": [
+    {
+      "id": "VA0"
+    }
+  ],
+  "series": [
+    {
+      "axis": "VA0",
+      "property": "value1",
+      "title": "Value 1",
+      "renderer": "line"
+    },
+    {
+      "axis": "VA0",
+      "property": "value2",
+      "title": "Value 2",
+      "renderer": "area"
+    }
+  ]
+}

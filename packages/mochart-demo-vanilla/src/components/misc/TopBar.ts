@@ -29,7 +29,7 @@
 // be hidden along with the menu it was nested in; it hands over an inline
 // disclosure row instead (see NotesMenu.ts).
 
-import { demoText, isPhoneViewport, watchPhoneViewport } from '@mochart/demo-common';
+import { demoText, isPhoneViewport, navMenuPlacement, watchPhoneViewport } from '@mochart/demo-common';
 
 import { el } from './dom';
 import { backToDemosButton, modeSwitcher, siteRootButton, themeToggle } from './ModeSwitcher';
@@ -43,8 +43,8 @@ export interface TopBarProps {
   /** Undefined in a standalone build, where there is no docs site to go back to. */
   siteRootUrl?: string;
   onBackToDemos: () => void;
-  /** The `<li class="demo-tab-item">`s of the view's tab strip, if it has one. */
-  tabs?: readonly HTMLLIElement[];
+  /** The view's tab strip (`demoTabs`/`staticDemoTabs`), if it has one. */
+  tabs?: HTMLElement;
   /** The demo the ⓘ popover describes. The standalone pages describe none. */
   notes?: NotesMenuProps;
   /** Omitted by the pages that are not one of the three switchable modes. */
@@ -76,7 +76,7 @@ export function topBar(props: TopBarProps): TopBarHandle {
 
   const siteRoot = siteRootButton(props.siteRootUrl);
   const backButton = backToDemosButton(props.onBackToDemos);
-  const tabsEl = props.tabs === undefined ? null : el('ul', { className: 'demo-tabs' }, [...props.tabs]);
+  const tabsEl = props.tabs ?? null;
   const notesEl = notes === null ? null : notes.el;
 
   const navItems = present([siteRoot, backButton, tabsEl, notesEl]);
@@ -108,11 +108,9 @@ export function topBar(props: TopBarProps): TopBarHandle {
 
   const overflowMenuHandle = overflowMenu({
     text: demoText.overflowMenu.nav,
-    // Downward, unlike every other fold in the demo: this row is at the top of
-    // the shell, so there is nothing above it to open into. Right-aligned
-    // against the trigger, which needs no `getAnchor` because it IS the last
-    // thing in the row — unlike the control strips, whose triggers sit mid-row.
-    placement: { side: 'bottom', align: 'end', gap: 6 }
+    // Needs no `getAnchor`: the trigger IS the last thing in the row, unlike
+    // the control strips, whose triggers sit mid-row.
+    placement: navMenuPlacement
   });
 
   const container = el('div', { className: 'mochart-demo-tabs-container' }, [

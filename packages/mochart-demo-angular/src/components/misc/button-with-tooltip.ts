@@ -17,17 +17,12 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-button-with-tooltip',
   styles: [':host { display: contents; }'],
-  // Call sites pass the id as a STATIC attribute (`id="edit-mode"`), which
-  // Angular both binds to the input below *and* renders onto the host element
-  // — so every button used to appear in the DOM twice under one id, once on
-  // this `display: contents` wrapper and once on the real `<button>`. That is
-  // invalid HTML, it makes `getElementById` return the wrapper rather than the
-  // control, and it contradicts the no-duplicate-ids contract this whole fold
-  // rests on. Dropping the host copy leaves the id where it belongs.
+  // A static `id` attribute binds to the input below AND lands on the host, so null the host copy and leave the id on the real button.
   host: { '[attr.id]': 'null' },
   template: `
-    <span class="button-with-tooltip">
-      <button [id]="id" type="button" [class]="'demo-btn demo-btn-' + color + (pressed ? ' active' : '')"
+    <!-- Unstyled wrapper: it keeps the button one flex item wherever it is folded. -->
+    <span>
+      <button [attr.id]="id ?? null" type="button" [class]="'demo-btn demo-btn-' + color + (pressed ? ' active' : '')"
               [disabled]="disabled" [attr.title]="tooltipText ?? null"
               [attr.aria-pressed]="pressed === undefined ? null : pressed"
               [attr.aria-label]="ariaLabel ?? null" (click)="onClick()">
@@ -37,7 +32,8 @@ import { Component, Input } from '@angular/core';
   `
 })
 export class ButtonWithTooltip {
-  @Input({ required: true }) id!: string;
+  // Optional: the single-chart controls are rendered twice, so their buttons carry no id.
+  @Input() id?: string;
   @Input() tooltipText?: string;
   @Input() tooltipPlacement?: string;
   @Input() disabled = false;

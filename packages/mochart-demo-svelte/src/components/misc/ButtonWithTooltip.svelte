@@ -12,7 +12,7 @@
   // text in the strips above 900px, where these buttons are icon-only by
   // design. `.btn-menu-label` is `display: none` everywhere except in a menu.
   interface Props {
-    id: string;
+    id?: string;
     tooltipText?: string;
     tooltipPlacement?: string;
     disabled?: boolean;
@@ -26,7 +26,7 @@
   }
 
   let {
-    id,
+    id = undefined,
     tooltipText,
     // Destructured only to keep it OUT of `...rest`: no port implements
     // tooltip placement (it predates the bootstrap removal and is accepted for
@@ -44,7 +44,8 @@
   }: Props = $props();
 </script>
 
-<span class="button-with-tooltip">
+<!-- Unstyled wrapper: it keeps the button one flex item wherever it is folded. -->
+<span>
   <button {id} type="button" class={`demo-btn demo-btn-${color}` + (pressed ? ' active' : '')} {disabled} title={tooltipText}
           aria-pressed={pressed === undefined ? undefined : pressed} onclick={onClick} {...rest}>
     {@render children()}{#if menuLabel}<span class="btn-menu-label">{menuLabel}</span>{/if}{#if label}<span class="btn-label">{label}</span>{/if}

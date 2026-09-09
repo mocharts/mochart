@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "chartConfig": {
+  "chart": {
     "margin": {
       "top": 1,
       "right": 1,
@@ -21,13 +21,19 @@
       "strokeWidth": 1
     }
   },
-  "plotConfig": {
+  "plot": {
     "inverted": false,
     "margin": {
-      "top": 2, "right": 2, "bottom": 2, "left": 2
+      "top": 2,
+      "right": 2,
+      "bottom": 2,
+      "left": 2
     },
     "padding": {
-      "top": 8, "right": 8, "bottom": 8, "left": 8
+      "top": 8,
+      "right": 8,
+      "bottom": 8,
+      "left": 8
     },
     "backgroundStyle": {
       "strokeColor": "#808080",
@@ -37,34 +43,76 @@
       "strokeWidth": 1
     }
   },
-  "titleConfig": {
-    "title": "A Title With Truncated Text That Is Really Long And Will Not Overflow The Boundaries",
-    "titlePrefix": "Prefix #",
-    "titleSuffix": "# Suffix",
+  "title": {
+    "text": "A Title With Truncated Text That Is Really Long And Will Not Overflow The Boundaries",
+    "prefix": {
+      "text": "Prefix #",
+      "margin": {
+        "top": 0,
+        "right": 5,
+        "bottom": 0,
+        "left": 0
+      },
+      "padding": {
+        "top": 1,
+        "right": 1,
+        "bottom": 1,
+        "left": 1
+      },
+      "backgroundStyle": {
+        "strokeColor": "#808080",
+        "strokeOpacity": 1,
+        "fillColor": "#808080",
+        "fillOpacity": 0.15,
+        "strokeWidth": 1
+      }
+    },
+    "suffix": {
+      "text": "# Suffix",
+      "margin": {
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 5
+      },
+      "padding": {
+        "top": 1,
+        "right": 1,
+        "bottom": 1,
+        "left": 1
+      },
+      "backgroundStyle": {
+        "strokeColor": "#808080",
+        "strokeOpacity": 1,
+        "fillColor": "#808080",
+        "fillOpacity": 0.15,
+        "strokeWidth": 1
+      }
+    },
     "verticalAlign": "middle",
     "margin": {
-      "top": 2, "right": 0, "bottom": 7, "left": 0
+      "top": 2,
+      "right": 0,
+      "bottom": 7,
+      "left": 0
     },
     "padding": {
-      "top": 2, "right": 5, "bottom": 2, "left": 5
+      "top": 2,
+      "right": 5,
+      "bottom": 2,
+      "left": 5
     },
     "textMargin": {
-      "top": 0, "right": 0, "bottom": 0, "left": 0
+      "top": 0,
+      "right": 0,
+      "bottom": 0,
+      "left": 0
     },
     "textPadding": {
-      "top": 3, "right": 1, "bottom": 3, "left": 1
-    },
-    "prefixMargin": {
-      "top": 0, "right": 5, "bottom": 0, "left": 0
-    },
-    "prefixPadding": {
-      "top": 1, "right": 1, "bottom": 1, "left": 1
-    },
-    "suffixMargin": {
-      "top": 0, "right": 0, "bottom": 0, "left": 5
-    },
-    "suffixPadding": {
-      "top": 1, "right": 1, "bottom": 1, "left": 1
+      "top": 3,
+      "right": 1,
+      "bottom": 3,
+      "left": 1
     },
     "backgroundStyle": {
       "strokeColor": "#808080",
@@ -73,31 +121,19 @@
       "fillOpacity": 0.25,
       "strokeWidth": 1
     },
-    "titleBackgroundStyle": {
+    "textBackgroundStyle": {
       "strokeColor": "#808080",
       "strokeOpacity": 1,
       "fillColor": "#808080",
       "fillOpacity": 0.1,
       "strokeWidth": 1
     },
-    "prefixBackgroundStyle": {
-      "strokeColor": "#808080",
-      "strokeOpacity": 1,
-      "fillColor": "#808080",
-      "fillOpacity": 0.15,
-      "strokeWidth": 1
-    },
-    "suffixBackgroundStyle": {
-      "strokeColor": "#808080",
-      "strokeOpacity": 1,
-      "fillColor": "#808080",
-      "fillOpacity": 0.15,
-      "strokeWidth": 1
-    },
-    "truncationEnabled": true,
-    "truncationValue": "..."
+    "truncation": {
+      "enabled": true,
+      "text": "..."
+    }
   },
-  "legendConfig": {
+  "legend": {
     "margin": {
       "top": 7,
       "right": 0,
@@ -110,17 +146,26 @@
       "bottom": 2,
       "left": 5
     },
-    "itemMargin": {
-      "top": 2,
-      "right": 2,
-      "bottom": 2,
-      "left": 2
-    },
-    "itemPadding": {
-      "top": 2,
-      "right": 2,
-      "bottom": 2,
-      "left": 2
+    "item": {
+      "margin": {
+        "top": 2,
+        "right": 2,
+        "bottom": 2,
+        "left": 2
+      },
+      "padding": {
+        "top": 2,
+        "right": 2,
+        "bottom": 2,
+        "left": 2
+      },
+      "backgroundStyle": {
+        "strokeColor": "#808080",
+        "strokeOpacity": 1,
+        "fillColor": "#808080",
+        "fillOpacity": 0.15,
+        "strokeWidth": 1
+      }
     },
     "backgroundStyle": {
       "strokeColor": "#808080",
@@ -128,40 +173,45 @@
       "fillColor": "#808080",
       "fillOpacity": 0.25,
       "strokeWidth": 1
-    },
-    "itemBackgroundStyle": {
-      "strokeColor": "#808080",
-      "strokeOpacity": 1,
-      "fillColor": "#808080",
-      "fillOpacity": 0.15,
-      "strokeWidth": 1
     }
   },
-  "animationConfig": {
+  "animation": {
     "expansionDuration": 1000,
     "initialDuration": 1000,
     "valueChangeDuration": 1000,
-    "collapseDuration": 1000
+    "contractionDuration": 1000
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "group",
-    "displayProperty": "groupDisplay",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categoryDisplay",
+    "keyProperty": "category",
     "type": "string",
     "scale": "ordinal",
-    "tickLabelTruncationEnabled": true,
-    "tickLabelTruncationValue": "...",
-    "tickLabelTruncationMaxPercent": 0.20,
-    "title": "A Group Axis Title That Has Really Long Text That Should Not Overflow The Boundaries",
-    "titleTruncationEnabled": true,
-    "titleTruncationValue": "..."
+    "tickLabel": {
+      "truncation": {
+        "enabled": true,
+        "text": "...",
+        "maxFraction": 0.2
+      }
+    },
+    "title": {
+      "text": "A Category Axis Title That Has Really Long Text That Should Not Overflow The Boundaries",
+      "truncation": {
+        "enabled": true,
+        "text": "..."
+      }
+    }
   },
-  "seriesAxisConfigs": {
-    "title": "A Series Axis Title That Has Really Long Text That Should Not Overflow The Boundaries",
-    "titleTruncationEnabled": true,
-    "titleTruncationValue": "..."
+  "valueAxes": {
+    "title": {
+      "text": "A Value Axis Title That Has Really Long Text That Should Not Overflow The Boundaries",
+      "truncation": {
+        "enabled": true,
+        "text": "..."
+      }
+    }
   },
-  "seriesConfigs": [
+  "series": [
     {
       "property": "value1",
       "title": "The first series with a descriptive title",
@@ -175,12 +225,14 @@
     {
       "property": "value3",
       "title": "This one is Third",
-      "renderer": "line"
+      "renderer": "line",
+      "allowAbsentDataProperties": true
     },
     {
       "property": "value4",
       "title": "Fourth may be the last for now",
-      "renderer": "line"
+      "renderer": "line",
+      "allowAbsentDataProperties": true
     }
   ]
 }

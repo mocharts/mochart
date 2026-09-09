@@ -1,11 +1,19 @@
-/**
- * The single deep-merge used by every config layering step (defaults under `*All` configs under the
- * user's config). `undefined` means "not specified" and is dropped from the result; `null` is a real
- * value that overrides a default, because it is how a config says "omit this svg attribute", which is
- * what keeps a shape hit-testable. Plain objects merge recursively; everything else replaces.
- */
+// The single deep-merge behind every config layering step: plain objects merge recursively, everything else replaces.
+// `undefined` means "not specified" and is dropped; `null` is a real value that overrides (a config's way to omit an svg attribute, keeping shapes hit-testable).
 
 type MergeRecord = Record<string, unknown>;
+
+// merged configs carry Object.prototype for their hosts, so a __proto__ key has to be written as data
+const hasOwn = (record: MergeRecord, key: string): boolean => Object.prototype.hasOwnProperty.call(record, key);
+
+function setKey(record: MergeRecord, key: string, value: unknown): void {
+  if (key === '__proto__') {
+    Object.defineProperty(record, key, { value, enumerable: true, writable: true, configurable: true });
+  }
+  else {
+    record[key] = value;
+  }
+}
 
 /** A plain data object; arrays, class instances, functions and `null` are values rather than structures. */
 export function isPlainObject(value: unknown): value is MergeRecord {
@@ -24,7 +32,7 @@ export function withoutUndefined<T extends object>(object: T): T {
   if (keysFiltered.length < keys.length) {
     const clone: MergeRecord = {};
     for (const key of keysFiltered) {
-      clone[key] = source[key];
+      setKey(clone, key, source[key]);
     }
     return clone as T;
   }
@@ -38,7 +46,7 @@ export function deepMerge<T extends object>(target: T | null | undefined, source
     const targetRecord = target as MergeRecord;
     for (const key of Object.keys(targetRecord)) {
       if (targetRecord[key] !== undefined) {
-        merged[key] = targetRecord[key];
+        setKey(merged, key, targetRecord[key]);
       }
     }
   }
@@ -49,10 +57,10 @@ export function deepMerge<T extends object>(target: T | null | undefined, source
       if (sourceValue === undefined) {
         continue;
       }
-      const targetValue = merged[key];
-      merged[key] = (isPlainObject(targetValue) && isPlainObject(sourceValue))
+      const targetValue = hasOwn(merged, key) ? merged[key] : undefined;
+      setKey(merged, key, (isPlainObject(targetValue) && isPlainObject(sourceValue))
         ? deepMerge(targetValue, sourceValue)
-        : sourceValue;
+        : sourceValue);
     }
   }
   return merged as T;
@@ -66,3 +74,36 @@ export function deepMergeAll<T extends object>(...layers: (object | null | undef
   }
   return merged as T;
 }
+
+/** A fully independent copy: plain objects and arrays are copied recursively, dates are copied, anything else passes through by reference. Throws on a circular reference. */
+export function deepClone<T>(value: T): T {
+  return cloneValue(value, new Set());
+}
+
+// `ancestors` is the path back to the root, not everything seen: the same object twice in different branches is a legal shared value, only a loop is not
+function cloneValue<T>(value: T, ancestors: Set<unknown>): T {
+  if (Array.isArray(value) || isPlainObject(value)) {
+    if (ancestors.has(value)) {
+      throw new Error('deepClone cannot copy a circular reference: a built mochartConfig links series and axes to each other, so clone the config it was built from rather than the built config');
+    }
+    ancestors.add(value);
+    const clone = Array.isArray(value) ? cloneEntries(value, ancestors) : cloneKeys(value, ancestors);
+    ancestors.delete(value);
+    return clone as T;
+  }
+  if (value instanceof Date) {
+    return new Date(value.getTime()) as T;
+  }
+  return value;
+}
+
+const cloneEntries = (value: unknown[], ancestors: Set<unknown>): unknown[] =>
+  value.map(entry => cloneValue(entry, ancestors));
+
+const cloneKeys = (value: MergeRecord, ancestors: Set<unknown>): MergeRecord => {
+  const clone: MergeRecord = {};
+  for (const key of Object.keys(value)) {
+    setKey(clone, key, cloneValue(value[key], ancestors));
+  }
+  return clone;
+};

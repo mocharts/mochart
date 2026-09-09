@@ -1,30 +1,32 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Long Tick Label Pruning"
+  "title": {
+    "text": "Long Tick Label Pruning"
   },
-  "animationConfig": {
+  "animation": {
     "expansionDuration": 1000,
     "initialDuration": 1000,
     "valueChangeDuration": 1000,
-    "collapseDuration": 1000
+    "contractionDuration": 1000
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "groupDL",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categoryDL",
     "type": "date",
     "scale": "ordinal",
-    "tickLabelFormat": "%B %e, %Y",
-    "tickLabelAnchor": "auto"
+    "tickLabel": {
+      "format": "%B %e, %Y",
+      "anchor": "auto"
+    }
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "id": "SA0"
+      "id": "VA0"
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "value0",
       "title": "Value",
       "renderer": "area"

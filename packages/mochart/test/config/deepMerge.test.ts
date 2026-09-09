@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { deepMerge, deepMergeAll, isPlainObject, withoutUndefined } from '../../src/config/core/deepMerge';
+import { deepClone, deepMerge, deepMergeAll, isPlainObject, withoutUndefined } from '../../src/config/core/deepMerge';
 import { enhanceConfig } from '../../src/config/helper';
+import { getConfigWithDefaults, getConfigWithoutDefaults } from '../../src/config/core/mochartConfig';
 import { getDefaults } from '../../src/config/defaults/mochartConfig';
 import { validateConfigDetailed } from '../../src/config/validation/mochartConfig';
-import type { DeepPartial, MochartInputConfig, Style, SeriesConfig } from '../../src/types/config';
+import type { MochartInputConfig } from '../../src/types/config';
 
 const V = '1.0.0';
 
@@ -115,6 +116,50 @@ describe('deepMergeAll', () => {
   });
 });
 
+describe('deepClone', () => {
+  it('copies plain objects and arrays recursively', () => {
+    const value = { a: { b: [1, { c: 2 }] } };
+    const clone = deepClone(value);
+    expect(clone).toEqual(value);
+    expect(clone.a).not.toBe(value.a);
+    expect(clone.a.b).not.toBe(value.a.b);
+    expect(clone.a.b[1]).not.toBe(value.a.b[1]);
+  });
+
+  it('copies dates', () => {
+    const date = new Date('2026-01-01T00:00:00Z');
+    const clone = deepClone({ min: date });
+    expect(clone.min).not.toBe(date);
+    expect(clone.min.getTime()).toBe(date.getTime());
+  });
+
+  it('passes primitives and non-plain values through by reference', () => {
+    const callback = () => 'x';
+    const clone = deepClone({ a: 1, b: null, c: callback });
+    expect(clone.a).toBe(1);
+    expect(clone.b).toBe(null);
+    expect(clone.c).toBe(callback);
+  });
+
+  it('throws on a circular reference instead of recursing forever', () => {
+    const loop: Record<string, unknown> = { a: 1 };
+    loop.self = loop;
+    expect(() => deepClone(loop)).toThrow(/circular reference/);
+
+    const list: unknown[] = [1];
+    list.push(list);
+    expect(() => deepClone(list)).toThrow(/circular reference/);
+  });
+
+  // the same object on two branches is a shared value, not a loop, and must still clone
+  it('copies an object reached twice down separate branches', () => {
+    const shared = { x: 1 };
+    const clone = deepClone({ a: shared, b: shared });
+    expect(clone).toEqual({ a: { x: 1 }, b: { x: 1 } });
+    expect(clone.a).not.toBe(shared);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // deep merge through the config pipeline
 // ---------------------------------------------------------------------------
@@ -123,84 +168,84 @@ describe('partial nested config sections', () => {
   it('keeps the sibling defaults of a partially overridden style', () => {
     const config = enhanceConfig({
       version: V,
-      groupAxisConfig: { property: 'p' },
-      chartConfig: { backgroundStyle: { fillColor: '#ff0000' } },
-      seriesConfigs: [{ property: 'a' }]
+      categoryAxis: { property: 'p' },
+      chart: { backgroundStyle: { fillColor: '#ff0000' } },
+      series: [{ property: 'a' }]
     });
     expect(config.validation.valid).toBe(true);
-    expect(config.chartConfig.backgroundStyle)
-      .toEqual({ strokeColor: 'currentColor', strokeOpacity: 0, strokeWidth: null, fillColor: '#ff0000', fillOpacity: 0 });
+    expect(config.chart.backgroundStyle)
+      .toEqual({ strokeColor: 'currentColor', strokeOpacity: 0, strokeWidth: null, strokeDashArray: null, fillColor: '#ff0000', fillOpacity: 0 });
   });
 
   it('validates a partial style rather than demanding every member', () => {
     expect(detailedFor({
       version: V,
-      groupAxisConfig: { property: 'p' },
-      legendConfig: { backgroundStyle: { fillOpacity: 0.5 } },
-      seriesConfigs: [{ property: 'a' }]
+      categoryAxis: { property: 'p' },
+      legend: { backgroundStyle: { fillOpacity: 0.5 } },
+      series: [{ property: 'a' }]
     }).valid).toBe(true);
   });
 
   it('still rejects a partial style member whose value is invalid', () => {
     const detailed = detailedFor({
       version: V,
-      groupAxisConfig: { property: 'p' },
-      legendConfig: { backgroundStyle: { fillOpacity: 5 } },
-      seriesConfigs: [{ property: 'a' }]
+      categoryAxis: { property: 'p' },
+      legend: { backgroundStyle: { fillOpacity: 5 } },
+      series: [{ property: 'a' }]
     });
     expect(detailed.valid).toBe(false);
     expect(detailed.diagnostics.some(diagnostic =>
       diagnostic.severity === 'error' &&
-      diagnostic.path.join('.') === 'legendConfig.backgroundStyle.fillOpacity')).toBe(true);
+      diagnostic.path.join('.') === 'legend.backgroundStyle.fillOpacity')).toBe(true);
   });
 
   it('lets an explicit null override a non-null default', () => {
     const config = enhanceConfig({
       version: V,
-      groupAxisConfig: { property: 'p' },
-      titleConfig: { titleTextStyle: { fillColor: null } },
-      seriesConfigs: [{ property: 'a' }]
+      categoryAxis: { property: 'p' },
+      title: { textStyle: { fillColor: null } },
+      series: [{ property: 'a' }]
     });
     expect(config.validation.valid).toBe(true);
     // the default fillColor is 'currentColor'; null means "omit the attribute"
-    expect(config.titleConfig.titleTextStyle.fillColor).toBeNull();
-    expect('fillColor' in config.titleConfig.titleTextStyle).toBe(true);
+    expect(config.title.textStyle.fillColor).toBeNull();
+    expect('fillColor' in config.title.textStyle).toBe(true);
   });
 
   it('replaces an array-valued config member wholesale', () => {
     const config = enhanceConfig({
       version: V,
-      groupAxisConfig: { property: 'p' },
-      linearGradientConfigs: [{ id: 'G', stops: [{ offset: 0, color: '#ff0000', opacity: 1 }] }],
-      seriesConfigs: [{ property: 'a' }]
+      categoryAxis: { property: 'p' },
+      linearGradients: [{ id: 'G', stops: [{ offset: 0, color: '#ff0000', opacity: 1 }] }],
+      series: [{ property: 'a' }]
     });
-    expect(config.linearGradientConfigs[0]!.stops).toEqual([{ offset: 0, color: '#ff0000', opacity: 1 }]);
+    expect(config.linearGradients[0]!.stops).toEqual([{ offset: 0, color: '#ff0000', opacity: 1 }]);
   });
 
-  it('deep-merges an *All config into each array entry', () => {
+  it('deep-merges a *Defaults section into each array entry', () => {
     const config = enhanceConfig({
       version: V,
-      groupAxisConfig: { property: 'p' },
-      seriesAllConfig: { curve: { type: 'basis' } },
-      seriesConfigs: [
+      categoryAxis: { property: 'p' },
+      seriesDefaults: { curve: { type: 'basis' } },
+      series: [
         { property: 'a' },
         { property: 'b', curve: { type: 'natural' } }
       ]
     } as MochartInputConfig);
-    expect(config.seriesConfigs[0]!.curve).toEqual({ type: 'basis' });
-    expect(config.seriesConfigs[1]!.curve).toEqual({ type: 'natural' });
+    expect(config.series[0]!.curve).toEqual({ type: 'basis' });
+    expect(config.series[1]!.curve).toEqual({ type: 'natural' });
   });
 
-  it('deep-merges an *All config member into an entry that overrides a sibling member', () => {
+  it('deep-merges a *Defaults section member into an entry that overrides a sibling member', () => {
     const config = enhanceConfig({
       version: V,
-      groupAxisConfig: { property: 'p' },
-      seriesAxisAllConfig: { backgroundStyle: { fillOpacity: 0.5 } },
-      seriesAxisConfigs: [{ id: 'A', backgroundStyle: { strokeOpacity: 0.25 } }],
-      seriesConfigs: [{ property: 'a', axis: 'A' }]
+      categoryAxis: { property: 'p' },
+      valueAxisDefaults: { backgroundStyle: { fillOpacity: 0.5 } },
+      valueAxes: [{ id: 'A', backgroundStyle: { strokeOpacity: 0.25 } }],
+      series: [{ property: 'a', axis: 'A' }]
     } as MochartInputConfig);
     expect(config.validation.valid).toBe(true);
-    const { backgroundStyle } = config.seriesAxisConfigs[0]!;
+    const { backgroundStyle } = config.valueAxes[0]!;
     expect(backgroundStyle.fillOpacity).toBe(0.5);
     expect(backgroundStyle.strokeOpacity).toBe(0.25);
     // the members neither layer named keep the built-in defaults
@@ -214,101 +259,41 @@ describe('nested validation diagnostics', () => {
   it('warns about an unknown key inside a nested object, with the nested path', () => {
     const detailed = detailedFor({
       version: V,
-      groupAxisConfig: { property: 'p' },
-      legendConfig: { backgroundStyle: { fillColour: 'red' } },
-      seriesConfigs: [{ property: 'a' }]
+      categoryAxis: { property: 'p' },
+      legend: { backgroundStyle: { fillColour: 'red' } },
+      series: [{ property: 'a' }]
     });
     expect(detailed.valid).toBe(false);
     const warning = detailed.diagnostics.find(diagnostic =>
       diagnostic.severity === 'warning' &&
-      diagnostic.path.join('.') === 'legendConfig.backgroundStyle');
+      diagnostic.path.join('.') === 'legend.backgroundStyle');
     expect(warning).toBeDefined();
     expect(warning!.message).toContain('fillColour');
     expect(detailed.warnings.some(message =>
-      message.includes('legendConfig') && message.includes('backgroundStyle') && message.includes('fillColour')))
+      message.includes('legend') && message.includes('backgroundStyle') && message.includes('fillColour')))
       .toBe(true);
   });
 
   it('warns about an unknown key inside a nested object of an array section entry', () => {
     const detailed = detailedFor({
       version: V,
-      groupAxisConfig: { property: 'p' },
-      seriesConfigs: [{ property: 'a', curve: { typo: 1 } }]
+      categoryAxis: { property: 'p' },
+      series: [{ property: 'a', curve: { typo: 1 } }]
     });
     expect(detailed.diagnostics.some(diagnostic =>
       diagnostic.severity === 'warning' &&
-      diagnostic.path.join('.') === 'seriesConfigs.0.curve')).toBe(true);
+      diagnostic.path.join('.') === 'series.0.curve')).toBe(true);
   });
 
   it('keeps reporting an unknown key at the top level of a section', () => {
     const detailed = detailedFor({
       version: V,
-      groupAxisConfig: { property: 'p' },
-      legendConfig: { nonsense: 1 },
-      seriesConfigs: [{ property: 'a' }]
+      categoryAxis: { property: 'p' },
+      legend: { nonsense: 1 },
+      series: [{ property: 'a' }]
     });
     expect(detailed.diagnostics.some(diagnostic =>
-      diagnostic.severity === 'warning' && diagnostic.path.join('.') === 'legendConfig')).toBe(true);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// DeepPartial, checked at compile time
-// ---------------------------------------------------------------------------
-
-type Extends<A, B> = A extends B ? true : false;
-function expectType<T extends true>(_value?: T): void { /* compile-time only */ }
-
-type OneOrManyOld<T> = T | T[];
-
-/** MochartInputConfig as it was before DeepPartial: one level of Partial. */
-interface ShallowInputConfig {
-  id?: string;
-  version?: string;
-  animationConfig?: Partial<import('../../src/types/config').AnimationConfig>;
-  chartConfig?: Partial<import('../../src/types/config').ChartConfig>;
-  colorPaletteConfig?: Partial<import('../../src/types/config').ColorPaletteConfig>;
-  crosshairConfig?: Partial<import('../../src/types/config').CrosshairConfig>;
-  groupAxisConfig?: Partial<import('../../src/types/config').GroupAxisConfig>;
-  legendConfig?: Partial<import('../../src/types/config').LegendConfig>;
-  pieConfig?: Partial<import('../../src/types/config').PieConfig>;
-  plotConfig?: Partial<import('../../src/types/config').PlotConfig>;
-  titleConfig?: Partial<import('../../src/types/config').TitleConfig>;
-  tooltipConfig?: Partial<import('../../src/types/config').TooltipConfig>;
-  linearGradientConfigs?: OneOrManyOld<Partial<import('../../src/types/config').LinearGradientConfig>>;
-  linearGradientAllConfig?: Partial<import('../../src/types/config').LinearGradientConfig>;
-  radialGradientConfigs?: OneOrManyOld<Partial<import('../../src/types/config').RadialGradientConfig>>;
-  radialGradientAllConfig?: Partial<import('../../src/types/config').RadialGradientConfig>;
-  seriesAxisConfigs?: OneOrManyOld<Partial<import('../../src/types/config').SeriesAxisConfig>>;
-  seriesAxisAllConfig?: Partial<import('../../src/types/config').SeriesAxisConfig>;
-  seriesConfigs?: OneOrManyOld<Partial<SeriesConfig>>;
-  seriesAllConfig?: Partial<SeriesConfig>;
-  seriesGroupConfigs?: OneOrManyOld<Partial<import('../../src/types/config').SeriesGroupConfig>>;
-  seriesGroupAllConfig?: Partial<import('../../src/types/config').SeriesGroupConfig>;
-  seriesStackConfigs?: OneOrManyOld<Partial<import('../../src/types/config').SeriesStackConfig>>;
-  seriesStackAllConfig?: Partial<import('../../src/types/config').SeriesStackConfig>;
-}
-
-describe('DeepPartial', () => {
-  it('accepts a nested partial, keeps arrays whole, and leaves SeriesColor alone', () => {
-    // nothing the one-level-Partial input config accepted is rejected now, so
-    // every config that typechecked before still typechecks
-    expectType<Extends<ShallowInputConfig, MochartInputConfig>>();
-    expectType<Extends<Partial<Style>, DeepPartial<Style>>>();
-    // nested members become optional
-    expectType<Extends<{ backgroundStyle: { fillColor: 'red' } }, DeepPartial<{ backgroundStyle: Style }>>>();
-    // arrays stay arrays of whole entries
-    expectType<Extends<DeepPartial<{ stops: { a: number }[] }>['stops'], { a: number }[] | undefined>>();
-    // the string & {} pattern survives, so arbitrary colors are still accepted
-    expectType<Extends<'#ff0000', NonNullable<NonNullable<NonNullable<DeepPartial<SeriesConfig>['shapeStyle']>['normal']>['strokeColor']>>>();
-    expectType<Extends<'seriesIndex', NonNullable<NonNullable<NonNullable<DeepPartial<SeriesConfig>['shapeStyle']>['normal']>['strokeColor']>>>();
-
-    const partial: MochartInputConfig = {
-      version: V,
-      chartConfig: { backgroundStyle: { fillColor: 'red' } },
-      seriesAllConfig: { curve: { type: 'basis' } }
-    };
-    expect(partial.chartConfig!.backgroundStyle!.fillColor).toBe('red');
+      diagnostic.severity === 'warning' && diagnostic.path.join('.') === 'legend')).toBe(true);
   });
 });
 
@@ -320,30 +305,83 @@ describe('axis focus-state styles', () => {
   it('keeps the sibling members and states of a partially overridden style', () => {
     const config = enhanceConfig({
       version: V,
-      groupAxisConfig: { property: 'p', tickLabelTextStyle: { focused: { fillColor: '#ff0000' } } },
-      seriesConfigs: [{ property: 'a' }]
+      categoryAxis: { property: 'p', tickLabel: { textStyle: { focused: { fillColor: '#ff0000' } } } },
+      series: [{ property: 'a' }]
     });
     expect(config.validation.valid).toBe(true);
-    expect(config.groupAxisConfig.tickLabelTextStyle.focused)
-      .toEqual({ strokeColor: 'same', strokeOpacity: 1, strokeWidth: 0, fillColor: '#ff0000', fillOpacity: 1 });
-    expect(config.groupAxisConfig.tickLabelTextStyle.normal.fillColor).toBe('currentColor');
+    expect(config.categoryAxis.tickLabel.textStyle.focused)
+      .toEqual({ strokeColor: 'same', strokeOpacity: 1, strokeWidth: 0, strokeDashArray: 'same', fillColor: '#ff0000', fillOpacity: 1 });
+    expect(config.categoryAxis.tickLabel.textStyle.normal.fillColor).toBe('currentColor');
   });
 
   it('accepts "same" on a focused or defocused color but not on the normal one', () => {
     expect(detailedFor({
       version: V,
-      groupAxisConfig: { property: 'p', axisLineStyle: { defocused: { strokeColor: 'same' } } },
-      seriesConfigs: [{ property: 'a' }]
+      categoryAxis: { property: 'p', axisLine: { style: { defocused: { strokeColor: 'same' } } } },
+      series: [{ property: 'a' }]
     }).valid).toBe(true);
 
     const detailed = detailedFor({
       version: V,
-      groupAxisConfig: { property: 'p', axisLineStyle: { normal: { strokeColor: 'same' } } },
-      seriesConfigs: [{ property: 'a' }]
+      categoryAxis: { property: 'p', axisLine: { style: { normal: { strokeColor: 'same' } } } },
+      series: [{ property: 'a' }]
     });
     expect(detailed.valid).toBe(false);
     expect(detailed.diagnostics.some(diagnostic =>
       diagnostic.severity === 'error' &&
-      diagnostic.path.join('.') === 'groupAxisConfig.axisLineStyle.normal.strokeColor')).toBe(true);
+      diagnostic.path.join('.') === 'categoryAxis.axisLine.style.normal.strokeColor')).toBe(true);
+  });
+});
+
+describe('prototypes on merged and cloned configs', () => {
+  const protoOf = (value: object) => Object.getPrototypeOf(value);
+
+  it('gives merges and clones Object.prototype', () => {
+    expect(protoOf(deepMerge({ a: 1 }, { b: 2 }))).toBe(Object.prototype);
+    expect(protoOf(deepMergeAll({ a: 1 }, { b: 2 }))).toBe(Object.prototype);
+    expect(protoOf(deepClone({ a: { b: 1 } }).a)).toBe(Object.prototype);
+    expect(protoOf(withoutUndefined({ a: 1, b: undefined }))).toBe(Object.prototype);
+  });
+
+  it('keeps a JSON-owned __proto__ key as data instead of a prototype', () => {
+    // __proto__ is the only accessor on Object.prototype, so it is the only name whose write matters
+    const source = JSON.parse('{"__proto__":{"polluted":true},"a":1,"nested":{"__proto__":{"polluted":true}},"list":[{"__proto__":{"polluted":true}}]}');
+    for (const merged of [deepMerge({}, source), deepClone(source), withoutUndefined({ ...source, b: undefined })]) {
+      const record = merged as Record<string, Record<string, unknown>[] & Record<string, unknown>>;
+      for (const object of [record, record['nested']!, record['list']![0]!]) {
+        expect(protoOf(object)).toBe(Object.prototype);
+        expect(Object.prototype.hasOwnProperty.call(object, '__proto__')).toBe(true);
+      }
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    }
+  });
+
+  it('merges a key named after a prototype member from the source, not from Object.prototype', () => {
+    // the target has no own `constructor`, so the inherited one must not be read as a merge target
+    expect(deepMerge({ a: 1 }, { constructor: { x: 1 } })).toEqual({ a: 1, constructor: { x: 1 } });
+    expect(deepMerge({ constructor: { x: 1 } }, { constructor: { y: 2 } })).toEqual({ constructor: { x: 1, y: 2 } });
+    for (const name of ['toString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'toLocaleString']) {
+      expect(deepMerge({ a: 1 }, { [name]: { x: 1 } })).toEqual({ a: 1, [name]: { x: 1 } });
+      expect(deepClone({ [name]: { x: 1 } })).toEqual({ [name]: { x: 1 } });
+    }
+  });
+
+  it('gives every public config result Object.prototype, at every level', () => {
+    const raw = { version: V, categoryAxis: { property: 'p' }, series: [{ property: 'a' }] } as unknown as MochartInputConfig;
+    const enhanced = enhanceConfig(raw);
+    expect(protoOf(enhanced.chart)).toBe(Object.prototype);
+    expect(protoOf(enhanced.series[0]!)).toBe(Object.prototype);
+
+    const withDefaults = getConfigWithDefaults(raw) as Record<string, Record<string, unknown>>;
+    expect(protoOf(withDefaults)).toBe(Object.prototype);
+    expect(protoOf(withDefaults['chart']!)).toBe(Object.prototype);
+    // the idioms a host reaches for, all broken by a null prototype
+    expect(Object.prototype.hasOwnProperty.call(withDefaults, 'chart')).toBe(true);
+    // calling it on the instance is the idiom under test, which is what the rule forbids
+    // eslint-disable-next-line no-prototype-builtins
+    expect((withDefaults as { hasOwnProperty(key: string): boolean }).hasOwnProperty('chart')).toBe(true);
+    expect(withDefaults instanceof Object).toBe(true);
+
+    expect(protoOf(getConfigWithoutDefaults(withDefaults))).toBe(Object.prototype);
   });
 });

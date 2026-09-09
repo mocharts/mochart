@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { computeWaterfallSteps, createWaterfall } from '../../src/data/Waterfall';
+import { enhanceConfig } from '../../src/config/helper';
+import { getDataErrors } from '../../src/data/DataValidator';
+import { ArrayOfObjectsDataProvider } from '../../src/data/DataProvider';
 
 describe('computeWaterfallSteps', () => {
   it('returns no steps for empty input', () => {
@@ -53,6 +56,25 @@ describe('computeWaterfallSteps', () => {
     expect(steps[2].end).toBe(100);
   });
 
+  // Regression: one non-finite value carried NaN through every later step
+  it('counts a non-finite delta as 0, leaving later steps intact', () => {
+    const steps = computeWaterfallSteps([
+      { label: 'a', value: 1 },
+      { label: 'b', value: NaN },
+      { label: 'c', value: 5 }
+    ]);
+    expect(steps.map(step => step.end)).toEqual([1, 1, 6]);
+    expect(steps[1]).toEqual({ label: 'b', delta: 0, start: 1, end: 1, cumulative: 1, direction: 'increase' });
+  });
+
+  it('leaves a total at its running value for a non-finite value', () => {
+    const steps = computeWaterfallSteps([
+      { label: 'a', value: 10 },
+      { label: 'total', total: true, value: Infinity }
+    ]);
+    expect(steps[1].end).toBe(10);
+  });
+
   it('offsets everything from a non-zero base', () => {
     const steps = computeWaterfallSteps([
       { label: 'A', value: 10 },
@@ -78,23 +100,30 @@ describe('createWaterfall', () => {
   });
 
   it('emits config fragments for ordinal floating bars', () => {
-    const { groupAxisConfig, seriesConfigs } = createWaterfall([{ label: 'A', value: 1 }]);
-    expect(groupAxisConfig).toEqual({ property: 'label', type: 'string', scale: 'ordinal' });
+    const { categoryAxis: categoryAxisConfig, series: seriesConfigs } = createWaterfall([{ label: 'A', value: 1 }]);
+    expect(categoryAxisConfig).toEqual({ property: 'label', type: 'string', scale: 'ordinal' });
     expect(seriesConfigs.map((seriesConfig) => seriesConfig.id)).toEqual(['increase', 'decrease', 'total']);
     for (const seriesConfig of seriesConfigs) {
       expect(seriesConfig.property).toBe(seriesConfig.id);
       expect(seriesConfig.rangeProperty).toBe('start');
       expect(seriesConfig.renderer).toBe('bar');
-      expect(seriesConfig.skipMissing).toBe(true);
-      expect(seriesConfig.skipPartialRange).toBe(true);
+      expect(seriesConfig.missingValueMode).toBe('connect');
+      expect(seriesConfig.partialRangeIsMissing).toBe(true);
       expect(seriesConfig.group).toBeNull();
       expect(seriesConfig.stack).toBeNull();
       expect(seriesConfig.shapeStyle!.normal!.fillColor).toMatch(/^#/);
     }
   });
 
+  // the axis base is what pins the zero line to the axis floor: without it the axis pads below
+  // zero, so a waterfall's bars float above the bottom of the plot
+  it('returns the value axis base so callers do not have to write it', () => {
+    expect(createWaterfall([{ label: 'A', value: 1 }]).valueAxes).toEqual([{ base: 0 }]);
+    expect(createWaterfall([{ label: 'A', value: 1 }], { base: 50 }).valueAxes).toEqual([{ base: 50 }]);
+  });
+
   it('honours custom titles, colors and base', () => {
-    const { steps, seriesConfigs } = createWaterfall([{ label: 'A', value: 1 }], {
+    const { steps, series: seriesConfigs } = createWaterfall([{ label: 'A', value: 1 }], {
       base: 50,
       seriesTitles: { increase: 'Gains' },
       colors: { decrease: '#123456' }
@@ -106,9 +135,57 @@ describe('createWaterfall', () => {
   });
 
   it('returns empty data for empty input', () => {
-    const { steps, data, seriesConfigs } = createWaterfall([]);
+    const { steps, data, series: seriesConfigs } = createWaterfall([]);
     expect(steps).toEqual([]);
     expect(data).toEqual([]);
     expect(seriesConfigs).toHaveLength(3);
+  });
+
+  // duplicates used to reach getDataErrors, which blanks the whole chart
+  it('throws when two steps share a label', () => {
+    expect(() => createWaterfall([
+      { label: 'Start', total: true, value: 100 },
+      { label: 'Other', value: 20 },
+      { label: 'Other', value: -30 }
+    ])).toThrow(/createWaterfall: labels must be unique, duplicates: Other/);
+    expect(() => computeWaterfallSteps([{ label: 'Other', value: 20 }, { label: 'Other', value: -30 }]))
+      .toThrow(/computeWaterfallSteps: labels must be unique, duplicates: Other/);
+  });
+
+  describe('config round-trip', () => {
+    const items = [
+      { label: 'Revenue', value: 100 },
+      { label: 'Costs', value: -40 },
+      { label: 'Flat', value: 0 },
+      { label: 'Profit', total: true }
+    ];
+
+    it.each([
+      ['default', {}],
+      ['custom base', { base: 50, seriesTitles: { increase: 'Gains' }, colors: { decrease: '#123456' } }]
+    ])('assembles a valid config and data provider (%s)', (_label, options) => {
+      const waterfall = createWaterfall(items, options);
+      const mochartConfig = enhanceConfig({
+        version: '1.0.0',
+        categoryAxis: waterfall.categoryAxis,
+        valueAxes: waterfall.valueAxes,
+        series: waterfall.series
+      });
+      expect(mochartConfig.validation.errors).toEqual([]);
+      expect(mochartConfig.validation.valid).toBe(true);
+      expect(getDataErrors(mochartConfig, new ArrayOfObjectsDataProvider(waterfall.data))).toEqual([]);
+    });
+
+    it('stays valid when a direction is absent from the data', () => {
+      const waterfall = createWaterfall(items.slice(0, 1)); // increase only
+      const mochartConfig = enhanceConfig({
+        version: '1.0.0',
+        categoryAxis: waterfall.categoryAxis,
+        valueAxes: waterfall.valueAxes,
+        series: waterfall.series
+      });
+      expect(mochartConfig.validation.valid).toBe(true);
+      expect(getDataErrors(mochartConfig, new ArrayOfObjectsDataProvider(waterfall.data))).toEqual([]);
+    });
   });
 });

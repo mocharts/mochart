@@ -5,7 +5,7 @@ import { navigate, getPath } from './router';
 
 import demoData from '@mochart/demo-data';
 
-import { phoneFallbackDemoMode } from '@mochart/demo-common';
+import { demoText, phoneFallbackDemoMode } from '@mochart/demo-common';
 import type { ShowcaseMode, SwitchableDemoMode } from '@mochart/demo-common';
 
 import { usePhoneViewport } from '../src/components/misc/usePhoneViewport';
@@ -139,7 +139,7 @@ function decrementRandomId() {
   <template v-if="route.redirect !== undefined">
     <!-- redirecting -->
   </template>
-  <div v-else-if="route.notFound !== undefined" class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">No route found matching {{ route.notFound }}</div></div>
+  <div v-else-if="route.notFound !== undefined" class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">{{ demoText.routeErrors.noRoute(route.notFound!) }}</div></div>
   <GalleryPage v-else-if="route.gallery === true"
                :demo-data="demoData" :site-root-url="siteRootUrl"
                :on-open-demo="onOpenDemo" :on-open-page="onOpenPage" />
@@ -149,7 +149,7 @@ function decrementRandomId() {
                 :site-root-url="siteRootUrl" :on-back-to-demos="onBackToDemos" />
   <DemoSparkline v-else-if="route.mode === 'sparkline'"
                  :site-root-url="siteRootUrl" :on-back-to-demos="onBackToDemos" />
-  <div v-else-if="!isKnownDemo" class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">No demo found for id: {{ demoId }}</div></div>
+  <div v-else-if="!isKnownDemo" class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">{{ demoText.routeErrors.noDemo(demoId) }}</div></div>
   <DemoSingle v-else-if="route.mode === 'single'"
               :demo-data="demoData" :initial-demo-id="demoId" :site-root-url="siteRootUrl"
               :on-mode-changed="onModeChanged" :on-back-to-demos="onBackToDemos" />
@@ -157,7 +157,7 @@ function decrementRandomId() {
              :demo-data="demoData" :initial-demo-id="demoId" :site-root-url="siteRootUrl"
              :on-mode-changed="onModeChanged" :on-back-to-demos="onBackToDemos" />
   <template v-else-if="route.mode === 'random'">
-    <div v-if="!isValidRandomId" class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">Bad random id: {{ route.randomId }}</div></div>
+    <div v-if="!isValidRandomId" class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">{{ demoText.routeErrors.badRandomId(route.randomId!) }}</div></div>
     <DemoRandom v-else
                 :demo-data="demoData" :initial-demo-id="demoId" :site-root-url="siteRootUrl"
                 :on-mode-changed="onModeChanged" :on-back-to-demos="onBackToDemos"

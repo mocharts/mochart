@@ -6,14 +6,15 @@ import { NONE, CAP_TYPE_POINT, CAP_TYPE_CURVE, CAP_TYPE_ROUND } from '../config/
 import type { CurveFactory, ShapeGenerator } from 'd3-shape';
 import type { Path } from 'd3-path';
 import type { CapType, CurveType } from '../config/core/constants';
-import type { SeriesConfig, SeriesCurve } from '../types/config';
+import type { SeriesCurve } from '../types/config';
+import type { EnhancedSeriesConfig } from '../types/enhanced';
 import type { SeriesPositionData, StackData } from '../types/data';
 
 type Connector = (pathGenerator: Path, first: number, second: number, third: number, extent: number, offsetSign: number, offset: number, expand: boolean, size: number) => void;
 type OffsetInvertedCalculator = (first: number, second: number, third: number, extent: number, offsetSign: number, offset: number, expand: boolean, size: number) => { x: number; y: number; yOffset: number };
 type OffsetCalculator = (first: number, second: number, third: number, extent: number, offsetSign: number, offset: number, expand: boolean, size: number) => { x: number; y: number; xOffset: number };
 
-// 'linear', 'monotoneX', 'monotoneY', 'basis', 'bundle', 'cardinal', 'catmullRom', 'natural', 'step', 'stepBefore', 'stepAfter'
+// 'linear', 'monotoneX', 'monotoneY', 'basis', 'cardinal', 'catmullRom', 'natural', 'step', 'stepBefore', 'stepAfter'
 const curveTypeToCurveMap: Record<CurveType, CurveFactory | null> = {
   linear: null, // this is the default, so no need to assign it!
   monotoneX: curveMonotoneX,
@@ -52,24 +53,36 @@ function applyCurve(generator: ShapeGenerator, curveOption: SeriesCurve): ShapeG
   return generator;
 }
 
-export function getLineGenerator(seriesConfig: SeriesConfig, seriesPositionData: SeriesPositionData, inverted: boolean): () => string | null {
+export function getLineGenerator(seriesConfig: EnhancedSeriesConfig, seriesPositionData: SeriesPositionData, inverted: boolean): () => string | null {
   const lineGenerator = applyCurve(line().defined(seriesPositionData.getDefined), seriesConfig.curve);
   if (inverted) {
-    lineGenerator.x(seriesPositionData.getSeriesPosition).y(seriesPositionData.getGroupPosition);
+    lineGenerator.x(seriesPositionData.getSeriesPosition).y(seriesPositionData.getCategoryPosition);
   }
   else {
-    lineGenerator.x(seriesPositionData.getGroupPosition).y(seriesPositionData.getSeriesPosition);
+    lineGenerator.x(seriesPositionData.getCategoryPosition).y(seriesPositionData.getSeriesPosition);
   }
   return () => lineGenerator(seriesPositionData);
 }
 
-export function getAreaGenerator(seriesConfig: SeriesConfig, seriesPositionData: SeriesPositionData, inverted: boolean): () => string | null {
-  const areaGenerator = applyCurve(area().defined(seriesPositionData.getDefined), seriesConfig.curve);
+/** The rangeProperty bound of a ranged line series, drawn as a second line. */
+export function getRangeLineGenerator(seriesConfig: EnhancedSeriesConfig, seriesPositionData: SeriesPositionData, inverted: boolean): () => string | null {
+  const lineGenerator = applyCurve(line().defined(seriesPositionData.getDefined), seriesConfig.curve);
   if (inverted) {
-    areaGenerator.y(seriesPositionData.getGroupPosition).x1(seriesPositionData.getCurrentSeriesPosition).x0(seriesPositionData.getPriorSeriesPosition);
+    lineGenerator.x(seriesPositionData.getPriorSeriesPosition).y(seriesPositionData.getCategoryPosition);
   }
   else {
-    areaGenerator.x(seriesPositionData.getGroupPosition).y1(seriesPositionData.getCurrentSeriesPosition).y0(seriesPositionData.getPriorSeriesPosition);
+    lineGenerator.x(seriesPositionData.getCategoryPosition).y(seriesPositionData.getPriorSeriesPosition);
+  }
+  return () => lineGenerator(seriesPositionData);
+}
+
+export function getAreaGenerator(seriesConfig: EnhancedSeriesConfig, seriesPositionData: SeriesPositionData, inverted: boolean): () => string | null {
+  const areaGenerator = applyCurve(area().defined(seriesPositionData.getDefined), seriesConfig.curve);
+  if (inverted) {
+    areaGenerator.y(seriesPositionData.getCategoryPosition).x1(seriesPositionData.getCurrentSeriesPosition).x0(seriesPositionData.getPriorSeriesPosition);
+  }
+  else {
+    areaGenerator.x(seriesPositionData.getCategoryPosition).y1(seriesPositionData.getCurrentSeriesPosition).y0(seriesPositionData.getPriorSeriesPosition);
   }
   return () => areaGenerator(seriesPositionData);
 }
@@ -77,17 +90,9 @@ export function getAreaGenerator(seriesConfig: SeriesConfig, seriesPositionData:
 const minColumnSize = 1;
 const minFlatForRounded = 4;
 
-/*
- * x1 - the outer x (cap when capped)
- * y1 - the top y
- * x2 - the inner x (base when capped)
- * yExtent - the height
- *
- * x - the base x for the cap
- * y - the top y for the cap
- * yOffset - the height of the base of the cap
- */
-const getXYOffsetInverted: OffsetInvertedCalculator = (x1, y1, x2, yExtent, offsetSign, offset, expand, size) => {
+// in: x1 outer x (cap end), y1 top y, x2 inner x (base), yExtent height
+// out: x/y the cap's base x and top y, yOffset the cap-base height
+const getXYOffsetInverted: OffsetInvertedCalculator =(x1, y1, x2, yExtent, offsetSign, offset, expand, size) => {
   let x = x2;
   let y = y1;
   let yOffset = yExtent;
@@ -101,17 +106,9 @@ const getXYOffsetInverted: OffsetInvertedCalculator = (x1, y1, x2, yExtent, offs
   return { x, y, yOffset };
 };
 
-/*
- * y1 - the outer y (cap when capped)
- * y2 - the inner y (base when capped)
- * x1 - the left x
- * xExtent - the width
- *
- * x - the left x for the cap
- * y - the base y for the cap
- * xOffset - the width of the base of the cap
- */
-const getXYOffset: OffsetCalculator = (x1, y1, y2, xExtent, offsetSign, offset, expand, size) => {
+// in: y1 outer y (cap end), y2 inner y (base), x1 left x, xExtent width
+// out: x/y the cap's left x and base y, xOffset the cap-base width
+const getXYOffset: OffsetCalculator =(x1, y1, y2, xExtent, offsetSign, offset, expand, size) => {
   let x = x1;
   let y = y2;
   let xOffset = xExtent;
@@ -188,19 +185,20 @@ const connectRoundInverted: Connector = (pathGenerator, y1, x1, x2, yExtent, off
   let y = y1;
   let yOffset = yExtent;
 
-  const radius = Math.min(offset, (yExtent - minFlatForRounded) / 2, Math.abs(x1 - x2));
   if (size < offset && !expand) {
     const diff = Math.min(offset - size, (yExtent - minFlatForRounded) / 2);
     y = y1 + diff / 2;
     yOffset = yExtent - diff;
   }
+  // bounded by the narrowed height, or the two arcs would overlap on a short bar
+  const radius = Math.min(offset, (yExtent - minFlatForRounded) / 2, yOffset / 2, Math.abs(x1 - x2));
   const y2 = y + yOffset;
   pathGenerator.moveTo(x, y);
-  pathGenerator.arcTo(x1, y1, x1, y + radius, radius);
+  pathGenerator.arcTo(x1, y, x1, y + radius, radius);
   pathGenerator.lineTo(x1, y2 - radius);
   pathGenerator.arcTo(x1, y2, x, y2, radius);
 
-  if (size >= radius) {
+  if (size >= offset) {
     pathGenerator.lineTo(x2, y1 + yExtent);
     pathGenerator.lineTo(x2, y1);
   }
@@ -216,19 +214,20 @@ const connectRound: Connector = (pathGenerator, x1, y1, y2, xExtent, offsetSign,
   const y = y2;
   let xOffset = xExtent;
 
-  const radius = Math.min(offset, (xExtent - minFlatForRounded) / 2, Math.abs(y1 - y2));
   if (size < offset && !expand) {
     const diff = Math.min(offset - size, (xExtent - minFlatForRounded) / 2);
     x = x1 + diff / 2;
     xOffset = xExtent - diff;
   }
+  // bounded by the narrowed width, or the two arcs would overlap on a short bar
+  const radius = Math.min(offset, (xExtent - minFlatForRounded) / 2, xOffset / 2, Math.abs(y1 - y2));
   const x2 = x + xOffset;
   pathGenerator.moveTo(x, y);
   pathGenerator.arcTo(x, y1, x + radius, y1, radius);
   pathGenerator.lineTo(x2 - radius, y1);
   pathGenerator.arcTo(x2, y1, x2, y, radius);
 
-  if (size >= radius) {
+  if (size >= offset) {
     pathGenerator.lineTo(x1 + xExtent, y2);
     pathGenerator.lineTo(x1, y2);
   }
@@ -256,12 +255,14 @@ function getConnector(capType: CapType | null | undefined, inverted: boolean): C
   }
 }
 
-export function getColumnGenerator(seriesConfig: SeriesConfig, seriesPositionData: SeriesPositionData, inverted: boolean, stackData: StackData): (index: number) => string {
+export function getColumnGenerator(seriesConfig: EnhancedSeriesConfig, seriesPositionData: SeriesPositionData, inverted: boolean, stackData: StackData): (index: number) => string {
   let pathGenerator: Path;
-  const groupValueExtent = Math.max(minColumnSize, seriesPositionData.groupValueExtent);
+  const categoryValueExtent = Math.max(minColumnSize, seriesPositionData.categoryValueExtent);
 
-  const { id, stack, capType, capSize, capExpand, capOnlyStackOuter, seriesStackConfig, barMinExtent } = seriesConfig;
-  const { outerCapType, outerCapSize, outerCapExpand } = seriesStackConfig ? seriesStackConfig : {};
+  const { id, stack, seriesStackConfig } = seriesConfig;
+  const { type: capType, size: capSize, expand: capExpand, onlyStackOuter: capOnlyStackOuter } = seriesConfig.cap;
+  const { minExtent: barMinExtent } = seriesConfig.bar;
+  const { type: outerCapType, size: outerCapSize, expand: outerCapExpand } = seriesStackConfig ? seriesStackConfig.outerCap : { type: undefined, size: undefined, expand: undefined };
   const stackPositiveIds = stack ? stackData.filteredOuterPositiveSeriesIds[stack] : null;
   const stackNegativeIds = stack ? stackData.filteredOuterNegativeSeriesIds[stack] : null;
 
@@ -271,17 +272,18 @@ export function getColumnGenerator(seriesConfig: SeriesConfig, seriesPositionDat
   const applyStackOuter = stack && (capType !== NONE && capOnlyStackOuter) || (capType === NONE && outerCapType && outerCapType !== NONE);
 
   const connector = getConnector(columnCapType, inverted);
+  const { skipped, skipCategoryIndexMap } = seriesPositionData;
 
-  let groupPosition;
+  let categoryPosition;
   let seriesValueExtent;
   let seriesPosition;
   let seriesPriorPosition;
   let seriesCurrentPosition;
-  let tempPosition, barCapSizeSign, barCapConnector;
+  let tempPosition, barCapSizeSign, barCapConnector, skipI;
   const columnGenerator: (index: number) => string = (i: number) => {
     pathGenerator = path();
-    groupPosition = seriesPositionData.getOffsetGroupPosition(null, i)!;
-    seriesValueExtent = Math.max(minColumnSize, seriesPositionData.getSeriesExtent(null, i));
+    categoryPosition = seriesPositionData.getOffsetCategoryPosition(null, i)!;
+    seriesValueExtent = seriesPositionData.getSeriesExtent(null, i);
     seriesPosition = seriesPositionData.getSeriesPosition(null, i)!;
     seriesPriorPosition = seriesPositionData.getPriorSeriesPosition(null, i)!;
     seriesCurrentPosition = seriesPositionData.getCurrentSeriesPosition(null, i)!;
@@ -289,9 +291,12 @@ export function getColumnGenerator(seriesConfig: SeriesConfig, seriesPositionDat
     barCapSizeSign = 1;
     barCapConnector = connector;
     if (applyStackOuter) {
-      barCapConnector = (stackPositiveIds![i] === id || stackNegativeIds![i] === id) ? connector : inverted ? connectNoneInverted : connectNone;
+      // positions may be compacted, but the stack outer ids stay indexed by the raw category index
+      skipI = skipped ? skipCategoryIndexMap[i] : i;
+      barCapConnector = (stackPositiveIds![skipI] === id || stackNegativeIds![skipI] === id) ? connector : inverted ? connectNoneInverted : connectNone;
     }
-    if (seriesPriorPosition === seriesPosition) {
+    // a below-base bar has its raw pixel at the prior end: swap so current is the cap end
+    if (seriesPriorPosition === seriesPosition && seriesPriorPosition !== seriesCurrentPosition) {
       tempPosition = seriesPriorPosition;
       seriesPriorPosition = seriesCurrentPosition;
       seriesCurrentPosition = tempPosition;
@@ -304,16 +309,16 @@ export function getColumnGenerator(seriesConfig: SeriesConfig, seriesPositionDat
       barCapSizeSign = -1;
     }
     if (barMinExtent > 0 && Math.abs(seriesCurrentPosition - seriesPriorPosition) < barMinExtent) {
-      // Expand the bar to the minimum extent, centered between its two ends,
-      // so zero-extent range bars (equal property/rangeProperty values) stay
-      // visible as tick marks.
+      // expand to the minimum extent, centered between the ends, so zero-extent
+      // range bars (equal property/rangeProperty values) stay visible as tick marks
       tempPosition = (seriesCurrentPosition + seriesPriorPosition) / 2;
-      const halfExtentSign = seriesCurrentPosition <= seriesPriorPosition ? -1 : 1;
+      // widen in the cap's direction so a zero-extent bar keeps its cap pointing outward
+      const halfExtentSign = inverted ? barCapSizeSign : -barCapSizeSign;
       seriesCurrentPosition = tempPosition + halfExtentSign * barMinExtent / 2;
       seriesPriorPosition = tempPosition - halfExtentSign * barMinExtent / 2;
       seriesValueExtent = Math.max(seriesValueExtent, barMinExtent);
     }
-    barCapConnector(pathGenerator, groupPosition, seriesCurrentPosition, seriesPriorPosition, groupValueExtent, barCapSizeSign, columnCapSize, columnCapExpand, seriesValueExtent);
+    barCapConnector(pathGenerator, categoryPosition, seriesCurrentPosition, seriesPriorPosition, categoryValueExtent, barCapSizeSign, columnCapSize, columnCapExpand, seriesValueExtent);
     return "" + pathGenerator;
   }
   return columnGenerator;

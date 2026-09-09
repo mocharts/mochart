@@ -10,6 +10,7 @@
     "../mochart-angular/src",
     "../mochart-demo-common/src",
     "../mochart-demo-data/src",
+    "../mochart-editor/src",
     "../mochart-export/src",
     "../movalid/src"
   ]

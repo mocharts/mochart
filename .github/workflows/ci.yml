@@ -2,45 +2,121 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
 
 permissions:
   contents: read
 
+# Superseded PR/branch runs are cancelled; main runs queue instead so an
+# in-flight deploy is never killed (rapid pushes skip straight to the newest).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   build-test:
     runs-on: ubuntu-latest
+    strategy:
+      # Both legs report so a failure is attributable to a Node version.
+      fail-fast: false
+      matrix:
+        node-version: ['22', '24']
+        # Work that is not Node-version-specific runs on one leg only, split
+        # so the two legs finish at about the same time: coverage (whose
+        # thresholds need checking once; instrumenting roughly doubles the
+        # unit-test step) and the site build (artifact names are
+        # workflow-global, so a second upload of the same name fails) on 24,
+        # the browser e2e suites (the browser runs the code; Node only serves
+        # it) on 22.
+        include:
+          - node-version: '24'
+            coverage: true
+            site: true
+          - node-version: '22'
+            e2e: true
+    # Mirrors the two deploy jobs' conditions so a site is only built for a
+    # deploy that will actually happen; otherwise one build verifies the site.
+    env:
+      DEPLOY_PAGES: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_PAGES_DEPLOY == 'true' }}
+      DEPLOY_CLOUDFLARE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_CLOUDFLARE_DEPLOY == 'true' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: ${{ matrix.node-version }}
           cache: npm
       # npm ci runs the root prepare script, which builds all the library
       # packages (movalid, mochart, and the framework bindings).
       - run: npm ci
+      - run: npm run lint
+      - run: npm run deadcode
       - run: npm run typecheck
-      - run: npm test
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      # Published manifests must be dist-only: pnpm swaps in publishConfig.exports
+      # at pack time, stripping the monorepo-only development condition.
+      - run: npm run check:publish
+      - if: matrix.coverage
+        run: npm test
+      # The same tests uninstrumented: the flag is forwarded to every
+      # workspace's test script and overrides the three that pass --coverage.
+      - if: ${{ !matrix.coverage }}
+        run: npm test -- --coverage.enabled=false
+      # Browser binaries are tied to the resolved @playwright/test version, so
+      # keying on it invalidates the cache exactly when a bump needs new ones.
+      - if: matrix.e2e
+        id: playwright
+        run: |
+          version="$(node -p "require('@playwright/test/package.json').version")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - if: matrix.e2e
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          # The engine list is in the key: a cache saved for a narrower set would
+          # keep hitting and re-downloading the rest on every run.
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-chromium-firefox-webkit
+      # All three engines the core README claims support for; firefox and webkit
+      # run only the @smoke-tagged subset. --with-deps covers WebKit's extra
+      # system libraries, which the runner image does not ship.
+      - if: matrix.e2e
+        run: npx playwright install --with-deps chromium firefox webkit
+      - if: matrix.e2e
+        id: e2e
+        run: npm run test:e2e
+      # trace: 'on-first-retry' writes traces under test-results; without this
+      # they die with the runner, which is the only place the failure happened.
+      # Both suites write their own: demo-basic's minimal harness and the
+      # vanilla gallery's (share links, editor tabs, phone fold).
+      - if: failure() && steps.e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-traces-node${{ matrix.node-version }}
+          path: |
+            packages/mochart-demo-basic/test-results
+            packages/mochart-demo-vanilla/test-results
+          retention-days: 7
+      - name: Build site
+        if: matrix.site && env.DEPLOY_PAGES != 'true' && env.DEPLOY_CLOUDFLARE != 'true'
+        run: npm run build:pages
+        env:
+          PAGES_BASE: /
       - name: Build GitHub Pages site
+        if: matrix.site && env.DEPLOY_PAGES == 'true'
         run: npm run build:pages
         env:
           PAGES_BASE: /${{ github.event.repository.name }}/
-      - uses: actions/upload-pages-artifact@v3
+      - if: matrix.site && env.DEPLOY_PAGES == 'true'
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
       # Cloudflare Pages serves from the domain root, so rebuild with base /.
       - name: Build Cloudflare Pages site
+        if: matrix.site && env.DEPLOY_CLOUDFLARE == 'true'
         run: npm run build:pages
         env:
           PAGES_BASE: /
-      - uses: actions/upload-artifact@v4
+      - if: matrix.site && env.DEPLOY_CLOUDFLARE == 'true'
+        uses: actions/upload-artifact@v7
         with:
           name: cloudflare-site
           path: site
@@ -63,7 +139,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   deploy-cloudflare:
     # Requires two repo secrets (CLOUDFLARE_API_TOKEN with the "Cloudflare
@@ -76,21 +152,93 @@ jobs:
     env:
       CLOUDFLARE_PROJECT: mochart
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: cloudflare-site
           path: site
       # Idempotent bootstrap: fails harmlessly once the project exists.
       - name: Create Pages project if missing
         continue-on-error: true
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages project create ${{ env.CLOUDFLARE_PROJECT }} --production-branch=main
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy site --project-name=${{ env.CLOUDFLARE_PROJECT }} --branch=main
+
+  # npm releases (see RELEASE.md). Gated behind the repo variable
+  # ENABLE_NPM_RELEASE=true, set only after the first manual 1.0.0 publish and
+  # the trusted-publisher registration it makes possible. Three jobs so each
+  # holds only the permissions it needs: mode selection is read-only, the
+  # version PR needs contents+PR write, publishing needs contents (tags,
+  # releases) + id-token (npm trusted publishing).
+  release-mode:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_NPM_RELEASE == 'true'
+    needs: build-test
+    runs-on: ubuntu-latest
+    outputs:
+      # 'version' when changesets are pending, 'publish' when a package version
+      # is not on the registry yet, 'none' otherwise
+      mode: ${{ steps.mode.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      # only the changesets CLI is needed here, not the library builds
+      - run: npm ci --ignore-scripts
+      - id: mode
+        uses: changesets/action/select-mode@v2
+
+  release-version:
+    if: needs.release-mode.outputs.mode == 'version'
+    needs: release-mode
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # the changelog links each entry to the commit that added its changeset
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # Opens or refreshes the "Version Packages" PR; merging it publishes.
+      - uses: changesets/action/version@v2
+        with:
+          script: npm run release:version
+
+  release-publish:
+    if: needs.release-mode.outputs.mode == 'publish'
+    needs: release-mode
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          # npm >= 11.5 is required for trusted publishing; Node 24 bundles it
+          node-version: '24'
+          cache: npm
+      - run: npm --version
+      # full install: prepare builds every library before publishing
+      - run: npm ci
+      # release:publish publishes through pnpm (npm publish would ship the
+      # development export condition) and then runs `changeset git-tag`, whose
+      # CHANGESETS_OUTPUT events tell the action which tags and GitHub releases
+      # to create.
+      - uses: changesets/action/publish@v2
+        with:
+          script: npm run release:publish

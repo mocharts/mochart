@@ -1,7 +1,7 @@
 import { Component, Input, signal } from '@angular/core';
 import type { OnChanges } from '@angular/core';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, menuKeepOpenClassName } from '@mochart/demo-common';
 
 import { Icon } from './icon';
 
@@ -21,12 +21,12 @@ let disclosureIdCounter = 0;
   imports: [Icon],
   styles: [':host { display: contents; }'],
   template: `
-    <div class="mochart-demo-notes-item demo-menu-keep-open">
+    <div class="mochart-demo-notes-item {{ keepOpenClass }}">
       <button type="button" class="demo-menu-item"
               [attr.title]="text.trigger.tooltip"
               [attr.aria-expanded]="expanded()" [attr.aria-controls]="disclosureId"
               (click)="expanded.set(!expanded())">
-        <app-icon [fixedWidth]="true" name="circle-info" /> <span class="mochart-menu-item-label">{{ text.trigger.aria }}</span>
+        <app-icon [fixedWidth]="true" name="circle-info" /> <span>{{ text.trigger.aria }}</span>
         <app-icon [fixedWidth]="true" [name]="expanded() ? 'chevron-up' : 'chevron-down'" iconStyle="margin-left: auto;" />
       </button>
       <div class="demo-field" [id]="disclosureId" [hidden]="!expanded()">
@@ -38,6 +38,7 @@ let disclosureIdCounter = 0;
 })
 export class NotesMenuItem implements OnChanges {
   readonly text = demoText.demoNotes;
+  readonly keepOpenClass = menuKeepOpenClassName;
 
   @Input({ required: true }) demoTitle!: string;
   @Input() notes?: string;

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { demoText } from '@mochart/demo-common';
+  import { demoText, notesMenuPlacement } from '@mochart/demo-common';
 
   import Icon from './Icon.svelte';
   import { Menu } from './menu.svelte';
@@ -23,13 +23,7 @@
 
   let { title, notes = undefined }: Props = $props();
 
-  // Downward from the navigation row, left-aligned, clamped so a 340px panel
-  // opened from a right-hand trigger stays on screen. The width must match
-  // `.demo-menu-notes` in demo.css — a closed panel measures 0, so the clamp
-  // has to be told the width the stylesheet will give it.
-  const menu = new Menu({
-    placement: { side: 'bottom', align: 'start', gap: 6, width: 340, viewportMargin: 32 }
-  });
+  const menu = new Menu({ placement: notesMenuPlacement });
 
   // Close whenever the demo changes under us (history navigation between demos).
   $effect(() => {

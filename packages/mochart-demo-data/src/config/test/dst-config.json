@@ -1,29 +1,29 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Daylight Savings Example"
+  "title": {
+    "text": "Daylight Savings Example"
   },
-  "animationConfig": {
+  "animation": {
     "expansionDuration": 1000,
     "initialDuration": 1000,
     "valueChangeDuration": 1000,
-    "collapseDuration": 1000
+    "contractionDuration": 1000
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "date",
-    "displayProperty": "display",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "display",
+    "keyProperty": "date",
     "type": "date",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "id": "SA0"
+      "id": "VA0"
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "value",
       "title": "Value",
       "renderer": "line"

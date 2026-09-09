@@ -84,6 +84,11 @@ export function setProperty(dom: Element, name: string, oldValue: unknown, newVa
   }
   if (name === 'style') {
     setStyle((dom as HTMLElement).style, oldValue, newValue);
+    // clearing a style empties the declaration but leaves the attribute, so style=""
+    // would linger forever on anything ever styled (a hidden axis tick mid-tween)
+    if (!newValue && (dom as HTMLElement).style.length === 0 && dom.hasAttribute('style')) {
+      dom.removeAttribute('style');
+    }
     return;
   }
   if (name[0] === 'o' && name[1] === 'n' && name.length > 2 && name[2] === name[2].toUpperCase()) {

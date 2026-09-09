@@ -1,8 +1,10 @@
 import { Component, Input, signal } from '@angular/core';
 
 import { defaultTransitionConfig, demoText, getTransitionDataProviders, getTransitionMochartConfig } from '@mochart/demo-common';
+import type { DemoTab } from '@mochart/demo-common';
 
 import { TransitionChartTab } from './transition-chart-tab';
+import { DemoTabs } from '../misc/demo-tabs';
 import { TransitionConfigTab } from './transition-config-tab';
 import { TopBar } from '../misc/top-bar';
 
@@ -13,19 +15,12 @@ const eventKeyConfig = 2;
 
 @Component({
   selector: 'app-demo-transition',
-  imports: [TransitionChartTab, TransitionConfigTab, TopBar],
+  imports: [DemoTabs, TransitionChartTab, TransitionConfigTab, TopBar],
   styles: [':host { display: contents; }'],
   template: `
     <div class="mochart-demo-container multi">
       <app-top-bar [siteRootUrl]="siteRootUrl" [onBackToDemos]="onBackToDemos" [hasTabs]="true">
-        <li class="demo-tab-item">
-          <button type="button" [class]="'demo-tab' + (activeKey() === eventKeyChart ? ' active' : '')"
-                  (click)="handleSelect(eventKeyChart)">{{ text.chart }}</button>
-        </li>
-        <li class="demo-tab-item">
-          <button type="button" [class]="'demo-tab' + (activeKey() === eventKeyConfig ? ' active' : '')"
-                  (click)="handleSelect(eventKeyConfig)">{{ text.transitionConfig }}</button>
-        </li>
+        <app-demo-tabs [tabs]="tabItems" [activeKey]="activeKey()" [onSelect]="handleSelect" />
       </app-top-bar>
       <div class="mochart-demo-content-pane">
         <div class="mochart-demo-content">
@@ -52,9 +47,16 @@ export class DemoTransition {
   mochartConfig = signal(getTransitionMochartConfig(defaultTransitionConfig));
   dataProviders = signal(getTransitionDataProviders(defaultTransitionConfig));
 
-  handleSelect(nextActiveKey: number): void {
-    this.activeKey.set(nextActiveKey);
+  get tabItems(): DemoTab[] {
+    return [
+      { name: 'chart', key: eventKeyChart, label: this.text.chart },
+      { name: 'config', key: eventKeyConfig, label: this.text.transitionConfig }
+    ];
   }
+
+  handleSelect = (nextActiveKey: number): void => {
+    this.activeKey.set(nextActiveKey);
+  };
 
   onUpdateConfig = (nextTransitionConfig: TransitionConfig): void => {
     this.transitionConfig.set(nextTransitionConfig);

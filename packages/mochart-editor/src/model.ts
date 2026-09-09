@@ -35,10 +35,15 @@ export interface EditorSectionModel {
   description: string;
   shape: 'object' | 'array';
   allKey?: string;
+  /** Per-entry unique properties — not settable on the all config. */
+  uniqueKeys?: string[];
+  allExcludedKeys?: string[];
   properties: EditorPropertyModel[];
 }
 
 export interface MochartConfigModel {
+  /** The @mochart/core version this model was generated from. */
+  coreVersion: string;
   topLevel: {
     key: string;
     description: string;

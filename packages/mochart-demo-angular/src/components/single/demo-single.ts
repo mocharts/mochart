@@ -1,15 +1,18 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, Input, computed, signal } from '@angular/core';
 import type { OnChanges, OnInit, SimpleChanges } from '@angular/core';
 
-import { consumeSingleShareState, demoText } from '@mochart/demo-common';
+import { consumeSingleShareState, demoText, getConfigDataError } from '@mochart/demo-common';
 
 import { ChartTab } from './chart-tab';
 import { ConfigTab } from './config-tab';
 import { DataTab } from './data-tab';
+import { DemoTabs } from '../misc/demo-tabs';
 import { ErrorTab } from '../misc/error-tab';
 import { TopBar } from '../misc/top-bar';
 
-import type { DemoData, DemoConfig, DataRow, SwitchableDemoMode } from '../../types';
+import type { DemoTab } from '@mochart/demo-common';
+
+import type { DemoData, DemoConfig, DataObject, SwitchableDemoMode } from '../../types';
 
 type DataError = string | boolean | null;
 
@@ -19,38 +22,32 @@ const eventKeyData = 3;
 
 @Component({
   selector: 'app-demo-single',
-  imports: [ChartTab, ConfigTab, DataTab, ErrorTab, TopBar],
+  imports: [ChartTab, ConfigTab, DataTab, DemoTabs, ErrorTab, TopBar],
   styles: [':host { display: contents; }'],
   template: `
     <div class="mochart-demo-container">
       <app-top-bar [siteRootUrl]="siteRootUrl" [onBackToDemos]="onBackToDemos" [hasTabs]="true"
                    [notes]="demoData.demoObjectMap[initialDemoId]"
                    [modes]="{ demoMode: 'single', onModeChanged }">
-        <li class="demo-tab-item">
-          <button type="button" [class]="'demo-tab' + (activeKey() === eventKeyChart ? ' active' : '')"
-                  [attr.title]="hasPendingChanges ? text.chartPendingTitle : null"
-                  (click)="handleSelect(eventKeyChart)">{{ text.chart }}@if (hasPendingChanges) {<span class="mochart-pending-badge" aria-hidden="true"></span>}</button>
-        </li>
-        <li class="demo-tab-item">
-          <button type="button" [class]="'demo-tab' + (activeKey() === eventKeyConfig ? ' active' : '')"
-                  (click)="handleSelect(eventKeyConfig)">{{ text.config }}</button>
-        </li>
-        <li class="demo-tab-item">
-          <button type="button" [class]="'demo-tab' + (activeKey() === eventKeyData ? ' active' : '')"
-                  (click)="handleSelect(eventKeyData)">{{ text.data }}</button>
-        </li>
+        <app-demo-tabs [tabs]="tabItems" [activeKey]="activeKey()" [onSelect]="handleSelect" />
       </app-top-bar>
       <div class="mochart-demo-content-pane">
         <div class="mochart-demo-content">
           <app-error-tab [active]="activeKey() === eventKeyChart">
-            <app-chart-tab [active]="activeKey() === eventKeyChart" [config]="viewingConfig()" [data]="viewingData()" [dataError]="viewingDataError()" />
+            <ng-template>
+              <app-chart-tab [active]="activeKey() === eventKeyChart" [config]="viewingConfig()" [data]="viewingData()" [dataError]="chartDataError()" />
+            </ng-template>
           </app-error-tab>
           <app-error-tab [active]="activeKey() === eventKeyConfig">
-            <app-config-tab [active]="activeKey() === eventKeyConfig" [config]="config()!" [onConfigChange]="onConfigChange" [onConfigReset]="onConfigReset" />
+            <ng-template>
+              <app-config-tab [active]="activeKey() === eventKeyConfig" [config]="config()!" [onConfigChange]="onConfigChange" [onConfigReset]="onConfigReset" />
+            </ng-template>
           </app-error-tab>
           <app-error-tab [active]="activeKey() === eventKeyData">
-            <app-data-tab [active]="activeKey() === eventKeyData" [config]="viewingConfig()!" [data]="data()!"
-                          [onDataChange]="onDataChange" [onDataError]="onDataError" [onDataReset]="onDataReset" />
+            <ng-template>
+              <app-data-tab [active]="activeKey() === eventKeyData" [config]="viewingConfig()!" [data]="data()!"
+                            [onDataChange]="onDataChange" [onDataError]="onDataError" [onDataReset]="onDataReset" />
+            </ng-template>
           </app-error-tab>
         </div>
       </div>
@@ -76,14 +73,21 @@ export class DemoSingle implements OnInit, OnChanges {
   // Chart tab is shown again (so the chart animates one combined change).
   demoId = signal('');
   pendingConfig = signal<DemoConfig | null>(null);
-  pendingData = signal<DataRow[] | null>(null);
+  pendingData = signal<DataObject[] | null>(null);
   pendingDataError = signal<DataError>(false);
   config = signal<DemoConfig | null>(null);
-  data = signal<DataRow[] | null>(null);
+  data = signal<DataObject[] | null>(null);
   dataError = signal<DataError>(false);
   viewingConfig = signal<DemoConfig | null>(null);
-  viewingData = signal<DataRow[] | null>(null);
+  viewingData = signal<DataObject[] | null>(null);
   viewingDataError = signal<DataError>(false);
+  // editor-reported error, or the viewing config/data pair failing validation
+  chartDataError = computed<DataError>(() => {
+    const viewingConfig = this.viewingConfig();
+    const viewingData = this.viewingData();
+    return this.viewingDataError() ||
+      (viewingConfig !== null && viewingData !== null ? getConfigDataError(viewingConfig, viewingData) : false);
+  });
 
   ngOnInit(): void {
     const { initialDemoId } = this;
@@ -116,13 +120,21 @@ export class DemoSingle implements OnInit, OnChanges {
     }
   }
 
-  handleSelect(nextActiveKey: number): void {
+  get tabItems(): DemoTab[] {
+    return [
+      { name: 'chart', key: eventKeyChart, label: this.text.chart, pending: this.hasPendingChanges },
+      { name: 'config', key: eventKeyConfig, label: this.text.config },
+      { name: 'data', key: eventKeyData, label: this.text.data }
+    ];
+  }
+
+  handleSelect = (nextActiveKey: number): void => {
     const previousActiveKey = this.activeKey();
     this.activeKey.set(nextActiveKey);
     if (nextActiveKey === eventKeyChart && previousActiveKey !== eventKeyChart) {
       this.chartShown();
     }
-  }
+  };
 
   // When the routed demo changes (history navigation between two demos),
   // reload its config/data and promote them straight to the visible chart.
@@ -152,7 +164,7 @@ export class DemoSingle implements OnInit, OnChanges {
     this.config.set(resetConfig);
   };
 
-  onDataChange = (nextPendingData: DataRow[]): void => {
+  onDataChange = (nextPendingData: DataObject[]): void => {
     this.pendingData.set(nextPendingData);
     this.pendingDataError.set(false);
   };

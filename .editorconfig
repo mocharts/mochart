@@ -1,0 +1,16 @@
+# Editor settings for the whole repo; ESLint deliberately carries no formatting
+# rules, so this file is where the 2-space, LF, UTF-8 style is written down.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Golden snapshots are written by the test runner and compared byte for byte, so
+# an editor adding a final newline to one would fail the suite.
+[packages/mochart/test/golden/__snapshots__/*.html]
+insert_final_newline = false

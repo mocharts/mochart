@@ -1,99 +1,121 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Multiple Axes"
+  "title": {
+    "text": "Multiple Axes"
   },
-  "animationConfig": {
-    "animate": true,
+  "animation": {
+    "enabled": true,
     "expansionDuration": 500,
     "initialDuration": 500,
     "valueChangeDuration": 500,
-    "collapseDuration": 500,
+    "contractionDuration": 500,
     "focusDuration": 700
   },
-  "groupAxisConfig": {
-    "before": false,
-    "title": "Time (in Minutes)",
-    "axisLine": true,
-    "axisLineMargin": 0,
-    "tickLabelFormat": "%_H:%M",
+  "categoryAxis": {
+    "title": {
+      "text": "Time (in Minutes)"
+    },
+    "axisLine": {
+      "visible": true,
+      "marginInner": 0
+    },
+    "tickLabel": {
+      "format": "%_H:%M"
+    },
     "type": "date",
     "scale": "linear",
     "dateUTC": true,
     "valueLabel": "Time",
-    "property": "time"
+    "property": "time",
+    "side": "end"
   },
-  "seriesAxisAllConfig": {
-    "axisLineMargin": 0,
-    "gridLines": false,
+  "valueAxisDefaults": {
+    "axisLine": {
+      "marginInner": 0
+    },
+    "gridLine": {
+      "visible": false
+    },
     "min": 0
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "before": true,
-      "tickLabelFormat": "$s",
-      "title": "Sales Value",
-      "id": "SA1"
+      "tickLabel": {
+        "format": "$s"
+      },
+      "title": {
+        "text": "Sales Value"
+      },
+      "id": "VA1",
+      "side": "start"
     },
     {
-      "before": true,
-      "tickLabelFormat": "$s",
-      "id": "SA0"
+      "tickLabel": {
+        "format": "$s"
+      },
+      "id": "VA0",
+      "side": "start"
     },
     {
-      "before": false,
-      "gridLines": true,
-      "id": "SA2"
+      "gridLine": {
+        "visible": true
+      },
+      "id": "VA2",
+      "side": "end"
     },
     {
-      "before": false,
-      "title": "Sold Count",
-      "id": "SA3"
+      "title": {
+        "text": "Sold Count"
+      },
+      "id": "VA3",
+      "side": "end"
     }
   ],
-  "seriesAllConfig": {
+  "seriesDefaults": {
     "renderer": "line",
-    "markerShape": null
+    "marker": {
+      "shape": null
+    }
   },
-  "seriesConfigs": [
+  "series": [
     {
       "title": "Sales A",
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "sales_a"
     },
     {
       "title": "Running Sales A",
-      "axis": "SA1",
+      "axis": "VA1",
       "property": "running_sales_a"
     },
     {
       "title": "Sales B",
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "sales_b"
     },
     {
       "title": "Running Sales B",
-      "axis": "SA1",
+      "axis": "VA1",
       "property": "running_sales_b"
     },
     {
       "title": "Count A",
-      "axis": "SA2",
+      "axis": "VA2",
       "property": "count_a"
     },
     {
       "title": "Running Count A",
-      "axis": "SA3",
+      "axis": "VA3",
       "property": "running_count_a"
     },
     {
       "title": "Count B",
-      "axis": "SA2",
+      "axis": "VA2",
       "property": "count_b"
     },
     {
       "title": "Running Count B",
-      "axis": "SA3",
+      "axis": "VA3",
       "property": "running_count_b"
     }
   ]

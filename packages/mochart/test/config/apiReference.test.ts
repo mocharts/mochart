@@ -24,4 +24,17 @@ describe('api reference model', () => {
       }
     }
   });
+
+  it('documents every enumeration with values and uses', () => {
+    const { entries } = model.enumerations;
+    expect(entries.length).toBeGreaterThan(0);
+    for (const entry of entries) {
+      expect(entry.description, `${entry.name} has no description`).not.toBe('');
+      expect(entry.values.length, `${entry.name} has no values`).toBeGreaterThan(0);
+      expect(entry.usedBy.length, `${entry.name} has no uses`).toBeGreaterThan(0);
+    }
+    const renderer = entries.find(entry => entry.name === 'RendererType');
+    expect(renderer?.values).toEqual(['bar', 'line', 'area', 'none']);
+    expect(renderer?.usedBy).toEqual([{ label: 'series.renderer', link: '/reference/series#series.renderer' }]);
+  });
 });

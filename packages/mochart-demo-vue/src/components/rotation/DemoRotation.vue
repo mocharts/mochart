@@ -5,7 +5,7 @@ import { DefaultChart } from '@mochart/vue';
 
 import TopBar from '../misc/TopBar.vue';
 
-import { configs, data, minWidth } from './rotationConfigs';
+import { getRotationGrid, rotationConfigs as configs, rotationData as data } from '@mochart/demo-common';
 
 interface Props {
   siteRootUrl?: string;
@@ -38,8 +38,9 @@ onBeforeUnmount(() => {
   }
 });
 
-const cols = computed(() => Math.max(1, Math.floor(chartsWidth.value / minWidth)));
-const colWidth = computed(() => Math.floor(chartsWidth.value / cols.value));
+const grid = computed(() => getRotationGrid(chartsWidth.value));
+const cols = computed(() => grid.value.cols);
+const colWidth = computed(() => grid.value.colWidth);
 </script>
 
 <template>

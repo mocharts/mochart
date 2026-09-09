@@ -1,38 +1,38 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Grouped Across Axes"
+  "title": {
+    "text": "Grouped Across Axes"
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "groupSO",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categorySO",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "id": "SA0",
-      "before": true,
-      "min": 0
+      "id": "VA0",
+      "min": 0,
+      "side": "start"
     },
     {
-      "id": "SA1",
-      "before": false,
-      "min": 0
+      "id": "VA1",
+      "min": 0,
+      "side": "end"
     }
   ],
-  "seriesGroupConfigs": {},
-  "seriesAllConfig": {
+  "seriesGroups": {},
+  "seriesDefaults": {
     "renderer": "bar"
   },
-  "seriesConfigs": [
+  "series": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "value1",
       "title": "Small Value"
     },
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "property": "value8",
       "title": "Large Value"
     }

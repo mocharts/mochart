@@ -8,7 +8,7 @@ import seedrandom from 'seedrandom';
 
 import { createSparklineConfig } from '@mochart/core';
 
-import type { DataRow, DemoConfig } from './types';
+import type { DataObject, DemoConfig } from './types';
 
 type Rng = () => number;
 
@@ -21,9 +21,9 @@ export interface SparklineMetric {
   height: number;
   config: DemoConfig;
   /** The dataset for a randomize step (step 0 is the initial page load). */
-  generate(step: number): DataRow[];
+  generate(step: number): DataObject[];
   /** The "Latest" cell text for a generated dataset (table metrics only). */
-  latestText(rows: DataRow[]): string;
+  latestText(rows: DataObject[]): string;
 }
 
 const POINT_COUNT = 30;
@@ -48,11 +48,11 @@ function walk(random: Rng, start: number, stepSize: number, drift: number): numb
 function lineConfig(renderer: 'line' | 'area', color: string): DemoConfig {
   return createSparklineConfig({
     version: '1.0.0',
-    groupAxisConfig: { property: 'i', type: 'number', scale: 'linear' },
-    // The preset hides series axes through seriesAxisAllConfig, which only
+    categoryAxis: { property: 'i', type: 'number', scale: 'linear' },
+    // The preset hides value axes through valueAxisDefaults, which only
     // merges into *declared* axes — so declare the (otherwise defaulted) one.
-    seriesAxisConfigs: [{}],
-    seriesConfigs: [
+    valueAxes: [{}],
+    series: [
       { property: 'value', renderer, shapeStyle: { normal: { strokeColor: color, fillColor: color } } }
     ]
   }) as DemoConfig;
@@ -90,11 +90,11 @@ const winLossMetric: SparklineMetric = {
   ...TABLE_SIZE,
   config: createSparklineConfig({
     version: '1.0.0',
-    groupAxisConfig: { property: 'i', type: 'string', scale: 'ordinal' },
-    seriesAxisConfigs: [{ base: 0, min: -1, max: 1 }],
-    seriesConfigs: [
-      { property: 'up', renderer: 'bar', skipMissing: true, shapeStyle: { normal: { fillColor: AQUA } } },
-      { property: 'down', renderer: 'bar', skipMissing: true, shapeStyle: { normal: { fillColor: RED } } }
+    categoryAxis: { property: 'i', type: 'string', scale: 'ordinal' },
+    valueAxes: [{ base: 0, min: -1, max: 1 }],
+    series: [
+      { property: 'up', renderer: 'bar', missingValueMode: 'connect', shapeStyle: { normal: { fillColor: AQUA } } },
+      { property: 'down', renderer: 'bar', missingValueMode: 'connect', shapeStyle: { normal: { fillColor: RED } } }
     ]
   }) as DemoConfig,
   generate(step) {

@@ -1,17 +1,17 @@
 import type { Anchor } from '../config/core/constants';
 import type { Bounds, Size } from '../types/geometry';
 
-// calculates the rotated bounds for the given bounds, angle and anchor, used for rotating ticks on the axis
-// it is assumed that the centerY of the bounds is bounds.height/2.0 and that the centerX for the various anchors is:
-// 'start': 0, 'middle': bounds.width/2.0, 'end': bounds.width
+// Rotated bounds for axis tick labels; assumes centerY = height/2 and
+// centerX per anchor: 'start' 0, 'middle' width/2, 'end' width.
 export function getRotatedBounds(bounds: Size, angle: number, anchor: Anchor): Bounds {
   const angleRadians = angle * (Math.PI / 180);
 
   const boundsWidth = bounds.width;
   const boundsHeight = bounds.height;
 
-  const cosAngle = Math.cos(angleRadians);
-  const sinAngle = Math.sin(angleRadians);
+  // cos(90°) is 6e-17, not 0: left as is, a corner lands at -6e-16 and the layout's floor makes that a whole pixel
+  const cosAngle = snapZero(Math.cos(angleRadians));
+  const sinAngle = snapZero(Math.sin(angleRadians));
 
   const boundsWidthCosAngle = boundsWidth * cosAngle;
   const boundsWidthSinAngle = boundsWidth * sinAngle;
@@ -61,6 +61,10 @@ export function getRotatedBounds(bounds: Size, angle: number, anchor: Anchor): B
     width: rotatedBoundsWidth,
     height: rotatedBoundsHeight
   };
+}
+
+function snapZero(value: number): number {
+  return Math.abs(value) < 1e-12 ? 0 : value;
 }
 
 export function getRotatedZeroBounds(bounds: Size, anchor: Anchor): Bounds {

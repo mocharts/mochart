@@ -1,33 +1,40 @@
-// A scatter chart is marker-only series (renderer 'none') on a linear group
+// A scatter chart is marker-only series (renderer 'none') on a linear category
 // axis, so points sit at their measured x values. Point markerProperty at a
 // data property to scale marker size per point — a bubble chart.
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Latency under Load' },
-  groupAxisConfig: {
-    title: 'Requests per second',
+  title: { text: 'Latency under Load' },
+  categoryAxis: {
+    title: { text: 'Requests per second' },
     property: 'load',
     type: 'number',
     scale: 'linear'
   },
-  seriesAxisConfigs: [{ id: 'SA0', title: 'Latency (ms)' }],
-  seriesAllConfig: { renderer: 'none' },
-  seriesConfigs: [
+  chart: {
+    margin: { right: 5 }
+  },
+  valueAxes: [{ id: 'VA0', title: { text: 'Latency (ms)' } }],
+  seriesDefaults: { renderer: 'none' },
+  series: [
     {
       property: 'v1',
       title: 'v1',
-      markerShape: 'circle',
-      markerSize: 6
+      marker: {
+        shape: 'circle',
+        size: 6
+      }
     },
     {
       property: 'v2',
       title: 'v2',
-      markerShape: 'diamond',
-      markerProperty: 'v2Errors',
-      minMarkerSize: 4,
-      markerSize: 16
+      marker: {
+        shape: 'diamond',
+        minSize: 4,
+        size: 16
+      },
+      markerProperty: 'v2Errors'
     }
   ]
 };

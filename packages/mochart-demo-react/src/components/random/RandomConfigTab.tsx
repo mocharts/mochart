@@ -1,10 +1,10 @@
 import { useState, useRef, useMemo } from 'react';
 import Icon from '../misc/Icon';
 
-import TextAreaContent from '../misc/TextAreaContent';
+import JsonEditorContent from '../misc/JsonEditorContent';
 import ButtonWithTooltip from '../misc/ButtonWithTooltip';
 
-import { demoText, formatRandomConfig, validateRandomConfig } from '@mochart/demo-common';
+import { demoText, formatRandomConfig, getDemoTabPanelAttrs, getJsonError, getJsonErrorMessage, parseJson, validateRandomConfig } from '@mochart/demo-common';
 
 import type { RandomConfigWithValid } from '../../types';
 
@@ -29,35 +29,28 @@ export default function RandomMochartConfigTab({ active, randomConfig, generator
 
   const onUpdateClick = () => {
     try {
-      const newConfig = JSON.parse(configText);
+      const newConfig = parseJson(configText) as RandomConfigWithValid;
       newConfig.valid = validateRandomConfig(newConfig, generator);
       setErrorMessage(newConfig.valid ? null : demoText.errors.invalidRandomConfigValues);
       onUpdate(newConfig);
     }
-    catch {
+    catch (error) {
       console.warn('Invalid Random Config JSON: ' + configText);
-      setErrorMessage(demoText.errors.invalidJson);
+      setErrorMessage(getJsonErrorMessage(error));
     }
   };
 
-  const jsonError = useMemo(() => {
-    try {
-      JSON.parse(configText);
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
-  }, [configText]);
+  const jsonError = useMemo(() => getJsonError(configText), [configText]);
   const footerError = jsonError ?? errorMessage;
 
   return (
-    <div className={"mochart-demo-tab-container demo-layout-col config" + (active ? " active" : "")} inert={!active}>
+    <div {...getDemoTabPanelAttrs('config')} className={"mochart-demo-tab-container demo-layout-col config" + (active ? " active" : "")} inert={!active}>
       <div className="mochart-demo-tab-content">
-        <TextAreaContent value={configText} onChange={(text: string) => { setConfigText(text); setErrorMessage(null); }} />
+        <JsonEditorContent value={configText} ariaLabel={demoText.randomConfigTab.editorAria} formatOnSet
+          onChange={(text: string) => { setConfigText(text); setErrorMessage(null); }} />
       </div>
       <div className="mochart-demo-tab-footer">
-        <div className="demo-toolbar" role="toolbar">
+        <div className="demo-toolbar">
           <ButtonWithTooltip id="config-reset" label={demoText.randomConfigTab.reset.label} tooltipText={demoText.randomConfigTab.reset.tooltip} tooltipPlacement="top-start"
             onClick={onReset} aria-label={demoText.randomConfigTab.reset.aria}>
             <Icon size="lg" fixedWidth={true} name="arrow-rotate-left" />

@@ -4,8 +4,8 @@ import { CHART_TYPES } from '../core/constants';
 export default function getValidators() {
   return {
     type: validators.oneOf(CHART_TYPES),
-    margin: validators.objectWith(['top', 'right', 'bottom', 'left'], validators.numberMin(0)),
-    padding: validators.objectWith(['top', 'right', 'bottom', 'left'], validators.numberMin(0)),
+    margin: validators.margin(),
+    padding: validators.padding(),
     backgroundStyle: validators.style()
   };
 }

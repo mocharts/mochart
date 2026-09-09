@@ -5,7 +5,7 @@ import { Chart } from '@mochart/react';
 import type { MochartConfig } from '@mochart/core';
 import { exportPNG, exportSVG } from '@mochart/export';
 
-import { getChartExportOptions, demoText } from '@mochart/demo-common';
+import { controlsMenuPlacement, demoText, getChartExportOptions, getDemoTabPanelAttrs, menuKeepOpenClassName } from '@mochart/demo-common';
 import type { ShareState } from '@mochart/demo-common';
 
 import ButtonWithTooltip from '../misc/ButtonWithTooltip';
@@ -149,27 +149,27 @@ export default function RandomMochartChartsTab({ active, mochartConfig, dataProv
   // own spinners in particular — cannot dismiss the panel it is hosted in.
   // The class paints nothing, so it is unconditional.
   const rateField = (
-    <div className="demo-field demo-menu-keep-open">
+    <div className={'demo-field ' + menuKeepOpenClassName}>
       <label className="demo-label" htmlFor="random-rate">{demoText.randomChartTab.intervalLabel}</label>
       <input id="random-rate" className="demo-input" disabled={playing} type="number" min={5} max={60000} step={100} value={rateText}
         onChange={rateChanged} aria-label={demoText.randomChartTab.intervalAria} />
     </div>
   );
   const exportShareMenu = (
-    <ExportShareMenu idPrefix="random" active={active !== false} exportPng={onExportPng} exportSvg={onExportSvg} getShareState={getShareState} />
+    <ExportShareMenu active={active !== false} exportPng={onExportPng} exportSvg={onExportSvg} getShareState={getShareState} />
   );
 
   return (
-    <div className={"mochart-demo-tab-container demo-layout-col chart" + (active ? " active" : "")} inert={!active}>
+    <div {...getDemoTabPanelAttrs('chart')} className={"mochart-demo-tab-container demo-layout-col chart" + (active ? " active" : "")} inert={!active}>
       <div className="random-chart-sizer" ref={chartSizerRef}>
         {/* Chart self-measures when width/height are omitted. */}
         <Chart style={{ flex: '1 1 auto', minWidth: 0, minHeight: 0, overflow: 'hidden' }}
           mochartConfig={mochartConfig} dataProvider={dataProvider} />
       </div>
       <div className="random-controls" ref={controlsRef}>
-        <form className="demo-form-row">
+        <form>
           <div className="demo-field">
-            <div className="demo-toolbar" role="toolbar">
+            <div className="demo-toolbar">
               <div className="demo-btn-group">
                 {backButton}
                 {nextButton}
@@ -177,14 +177,13 @@ export default function RandomMochartChartsTab({ active, mochartConfig, dataProv
               </div>
               {isPhone ? null : rateField}
             </div>
-            <div className="demo-toolbar" role="toolbar">
+            <div className="demo-toolbar">
               {isPhone ? (
                 <div className="demo-btn-group">
                   {/* Anchored to the whole strip: `align: 'end'` pins the
                       panel's right edge to the anchor's, and the export
                       trigger sits to the ⋯'s right. */}
-                  <OverflowMenu text={demoText.overflowMenu.random}
-                    placement={{ side: 'top', align: 'end', gap: 4 }}
+                  <OverflowMenu text={demoText.overflowMenu.random} placement={controlsMenuPlacement}
                     anchorRef={controlsRef} active={active !== false}>
                     <div className="demo-btn-group">{playButton}{stopButton}</div>
                     <MenuDivider />

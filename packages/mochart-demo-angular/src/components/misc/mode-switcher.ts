@@ -4,7 +4,7 @@
 import { Component, Input, computed, signal } from '@angular/core';
 import type { OnDestroy } from '@angular/core';
 
-import { demoText, getAvailableDemoModes, initTheme } from '@mochart/demo-common';
+import { demoModeIcons, demoText, getAvailableDemoModes, initTheme } from '@mochart/demo-common';
 
 import { Icon } from './icon';
 import { phoneViewport } from './phone-viewport';
@@ -14,31 +14,21 @@ import type { SwitchableDemoMode } from '../../types';
 // One controller for the whole app; every view's toggle button shares it.
 const theme = initTheme();
 
-const modeIcons: Record<SwitchableDemoMode, string> = {
-  single: 'pen-to-square',
-  multi: 'window-restore',
-  random: 'shuffle'
-};
-
 @Component({
   selector: 'app-mode-switcher',
   imports: [Icon],
   styles: [':host { display: contents; }'],
-  // How the current mode is marked depends on the width. In the strip it is a
-  // filled, disabled segment — plainly "you are here". On a phone the switcher
-  // lives in the nav overflow menu, where `.demo-menu-overflow .demo-btn:disabled`
-  // greys a row out and a greyed row in a list of destinations reads as
-  // unavailable rather than current — so there it gets the panel's `.active`
-  // tint plus `aria-current`, and is simply inert when tapped.
+  // A named group, not a toolbar: independently tabbable buttons, no arrow-key handling.
+  // In the strip the current mode is a filled disabled segment; in the phone overflow menu disabled reads as unavailable, so it gets the `.active` tint and is inert instead.
   template: `
     <div class="mochart-demo-mode-switcher">
       <span class="demo-label">{{ text.label }}</span>
-      <div class="demo-toolbar" role="toolbar">
+      <div class="demo-toolbar" role="group" [attr.aria-label]="text.groupAria">
         @for (mode of modes(); track mode) {
           <button type="button"
                   [class]="'demo-btn demo-btn-' + (mode === demoMode ? 'primary' : 'secondary') + (mode === demoMode && phone() ? ' active' : '')"
                   [disabled]="mode === demoMode && !phone()" [title]="text.modes[mode].title"
-                  [attr.aria-current]="mode === demoMode && phone() ? 'true' : null"
+                  [attr.aria-current]="mode === demoMode ? 'page' : null"
                   (click)="onSelect(mode)">
             <app-icon size="lg" [fixedWidth]="true" [name]="modeIcons[mode]" /><span class="btn-label">{{ text.modes[mode].label }}</span>
           </button>
@@ -52,7 +42,7 @@ export class ModeSwitcher {
   @Input({ required: true }) onModeChanged!: (nextDemoMode: SwitchableDemoMode) => void;
 
   readonly text = demoText.modeSwitcher;
-  readonly modeIcons = modeIcons;
+  readonly modeIcons = demoModeIcons;
 
   readonly phone = phoneViewport();
 

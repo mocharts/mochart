@@ -1,18 +1,18 @@
-// With exactly one entry in seriesGroupConfigs, every series defaults its
+// With exactly one entry in seriesGroups, every series defaults its
 // `group` to that group's id and the bars lay out side by side.
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Signups by Channel' },
-  groupAxisConfig: { property: 'quarter', type: 'string', scale: 'ordinal' },
-  seriesAllConfig: { renderer: 'bar' },
-  seriesConfigs: [
+  title: { text: 'Signups by Channel' },
+  categoryAxis: { property: 'quarter', type: 'string', scale: 'ordinal' },
+  seriesDefaults: { renderer: 'bar' },
+  series: [
     { property: 'organic', title: 'Organic' },
     { property: 'paid', title: 'Paid' },
     { property: 'referral', title: 'Referral' }
   ],
-  seriesGroupConfigs: [{ id: 'channels' }]
+  seriesGroups: [{ id: 'channels' }]
 };
 
 export const data = [

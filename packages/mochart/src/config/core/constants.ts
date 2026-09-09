@@ -8,10 +8,8 @@ export const RIGHT = 'right';
 export const BOTTOM = 'bottom';
 export const LEFT = 'left';
 
+// the four keys of both a margin and a padding
 export const TOP_RIGHT_BOTTOM_LEFT = [TOP, RIGHT, BOTTOM, LEFT];
-
-export const MARGIN_KEYS = TOP_RIGHT_BOTTOM_LEFT;
-export const PADDING_KEYS = TOP_RIGHT_BOTTOM_LEFT;
 
 export const ELLIPSIS = '\u2026'; // or '...' ?
 
@@ -21,6 +19,11 @@ export const ALIGN_RIGHT = 'right';
 
 export const ALIGNS = [
   ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT
+];
+
+// the tooltip values are aligned to one edge of the tooltip; there is no centered layout
+export const TOOLTIP_VALUE_ALIGNS = [
+  ALIGN_LEFT, ALIGN_RIGHT
 ];
 
 export const VERTICAL_ALIGN_TOP = 'top';
@@ -46,6 +49,61 @@ export const POSITIONS = [
   POSITION_TOP, POSITION_BOTTOM
 ];
 
+export const MISSING_VALUE_MODE_BREAK = 'break';
+export const MISSING_VALUE_MODE_CONNECT = 'connect';
+export const MISSING_VALUE_MODE_BASE = 'base';
+
+export const MISSING_VALUE_MODES = [
+  MISSING_VALUE_MODE_BREAK, MISSING_VALUE_MODE_CONNECT, MISSING_VALUE_MODE_BASE
+];
+
+export const DOMAIN_CHANGE_COMBINED = 'combined';
+export const DOMAIN_CHANGE_STAGED = 'staged';
+
+export const DOMAIN_CHANGES = [
+  AUTO, DOMAIN_CHANGE_COMBINED, DOMAIN_CHANGE_STAGED
+];
+
+export const EASING_LINEAR = 'linear';
+export const EASING_SINE_IN = 'sineIn';
+export const EASING_SINE_OUT = 'sineOut';
+export const EASING_SINE_IN_OUT = 'sineInOut';
+export const EASING_QUAD_IN = 'quadIn';
+export const EASING_QUAD_OUT = 'quadOut';
+export const EASING_QUAD_IN_OUT = 'quadInOut';
+export const EASING_CUBIC_IN = 'cubicIn';
+export const EASING_CUBIC_OUT = 'cubicOut';
+export const EASING_CUBIC_IN_OUT = 'cubicInOut';
+export const EASING_QUINT_IN = 'quintIn';
+export const EASING_QUINT_OUT = 'quintOut';
+export const EASING_QUINT_IN_OUT = 'quintInOut';
+export const EASING_BOUNCE_IN = 'bounceIn';
+export const EASING_BOUNCE_OUT = 'bounceOut';
+export const EASING_BOUNCE_IN_OUT = 'bounceInOut';
+
+export const EASINGS = [
+  EASING_LINEAR,
+  EASING_SINE_IN, EASING_SINE_OUT, EASING_SINE_IN_OUT,
+  EASING_QUAD_IN, EASING_QUAD_OUT, EASING_QUAD_IN_OUT,
+  EASING_CUBIC_IN, EASING_CUBIC_OUT, EASING_CUBIC_IN_OUT,
+  EASING_QUINT_IN, EASING_QUINT_OUT, EASING_QUINT_IN_OUT,
+  EASING_BOUNCE_IN, EASING_BOUNCE_OUT, EASING_BOUNCE_IN_OUT
+];
+
+export const SIDE_START = 'start';
+export const SIDE_END = 'end';
+
+export const SIDES = [
+  SIDE_START, SIDE_END
+];
+
+export const TITLE_SIDE_LOW = 'low';
+export const TITLE_SIDE_HIGH = 'high';
+
+export const THRESHOLD_TITLE_SIDES = [
+  TITLE_SIDE_LOW, TITLE_SIDE_HIGH
+];
+
 export const CHART_TYPE_XY = 'xy';
 export const CHART_TYPE_PIE = 'pie';
 
@@ -61,15 +119,19 @@ export const PIE_LABEL_TYPE_PERCENT_VALUE = 'percentValue';
 export const PIE_LABEL_TYPE_TITLE_VALUE = 'titleValue';
 export const PIE_LABEL_TYPE_TITLE_PERCENT = 'titlePercent';
 
-// The tooltip types are the label types minus the title-bearing ones: a
-// tooltip row already renders the series title as its label, so a title in
-// the value would just repeat it.
-export const PIE_TOOLTIP_LABEL_TYPES: PieTooltipLabelType[] = [
-  PIE_LABEL_TYPE_VALUE, PIE_LABEL_TYPE_PERCENT, PIE_LABEL_TYPE_VALUE_PERCENT, PIE_LABEL_TYPE_PERCENT_VALUE
+export const PIE_LABEL_TYPES: PieLabelType[] = [
+  PIE_LABEL_TYPE_VALUE, PIE_LABEL_TYPE_PERCENT, PIE_LABEL_TYPE_TITLE, PIE_LABEL_TYPE_VALUE_PERCENT,
+  PIE_LABEL_TYPE_PERCENT_VALUE, PIE_LABEL_TYPE_TITLE_VALUE, PIE_LABEL_TYPE_TITLE_PERCENT
 ];
 
-export const PIE_LABEL_TYPES: PieLabelType[] = [
-  ...PIE_TOOLTIP_LABEL_TYPES, PIE_LABEL_TYPE_TITLE, PIE_LABEL_TYPE_TITLE_VALUE, PIE_LABEL_TYPE_TITLE_PERCENT
+// No title variants: a tooltip row already renders the series title as its label.
+export const PIE_TOOLTIP_VALUE_TYPE_VALUE = 'value';
+export const PIE_TOOLTIP_VALUE_TYPE_PERCENT = 'percent';
+export const PIE_TOOLTIP_VALUE_TYPE_VALUE_PERCENT = 'valuePercent';
+export const PIE_TOOLTIP_VALUE_TYPE_PERCENT_VALUE = 'percentValue';
+
+export const PIE_TOOLTIP_VALUE_TYPES: PieTooltipValueType[] = [
+  PIE_TOOLTIP_VALUE_TYPE_VALUE, PIE_TOOLTIP_VALUE_TYPE_PERCENT, PIE_TOOLTIP_VALUE_TYPE_VALUE_PERCENT, PIE_TOOLTIP_VALUE_TYPE_PERCENT_VALUE
 ];
 
 export const SCALE_ORDINAL = 'ordinal';
@@ -88,6 +150,14 @@ export const RENDERER_NONE = 'none';
 
 export const RENDERERS = [
   RENDERER_BAR, RENDERER_LINE, RENDERER_AREA, RENDERER_NONE
+];
+
+export const PATTERN_TYPE_LINES = 'lines';
+export const PATTERN_TYPE_CROSSHATCH = 'crosshatch';
+export const PATTERN_TYPE_DOTS = 'dots';
+
+export const PATTERN_TYPES = [
+  PATTERN_TYPE_LINES, PATTERN_TYPE_CROSSHATCH, PATTERN_TYPE_DOTS
 ];
 
 export const CURVE_TYPE_LINEAR = 'linear';
@@ -122,15 +192,21 @@ export const LABEL_POSITIONS = [
   LABEL_POSITION_INSIDE, LABEL_POSITION_CENTER, LABEL_POSITION_OUTSIDE
 ];
 
-export const COLOR_SERIES = 'series'
-export const COLOR_SAME = 'same';
-export const COLOR_SERIES_INDEX = 'seriesIndex';
-export const COLOR_GROUP_INDEX ='groupIndex';
+export const STYLE_STATE_NORMAL = 'normal';
+export const STYLE_STATE_FOCUSED = 'focused';
+export const STYLE_STATE_DEFOCUSED = 'defocused';
+export const STYLE_STATES = [
+  STYLE_STATE_NORMAL, STYLE_STATE_FOCUSED, STYLE_STATE_DEFOCUSED
+] as const;
 
-// Not a palette resolution mode like the ones above: the others are resolved to
-// a concrete color by utils/SeriesColors, this one is the svg/css keyword and is
-// written to the dom attribute as is, so the browser resolves it against the
-// host page's css color. It is deliberately not part of the ColorMode union.
+export const STYLE_SAME = 'same';
+
+export const COLOR_SERIES = 'series'
+export const COLOR_SERIES_INDEX = 'seriesIndex';
+export const COLOR_CATEGORY_INDEX ='categoryIndex';
+
+// Deliberately not in the ColorMode union: unlike the modes above (resolved by utils/SeriesColors), this is
+// the svg/css keyword, written to the dom as is so the browser resolves it against the host page's css color.
 export const COLOR_CURRENT = 'currentColor';
 
 
@@ -155,31 +231,52 @@ export const MARKER_SHAPES = [
   MARKER_SHAPE_CIRCLE, MARKER_SHAPE_CROSS, MARKER_SHAPE_DIAMOND, MARKER_SHAPE_SQUARE,
   MARKER_SHAPE_STAR, MARKER_SHAPE_TRIANGLE, MARKER_SHAPE_WYE
 ];
+
+export const MARKER_SIZE_SCALE_SQRT = 'sqrt';
+export const MARKER_SIZE_SCALE_LINEAR = 'linear';
+
+export const MARKER_SIZE_SCALES = [MARKER_SIZE_SCALE_SQRT, MARKER_SIZE_SCALE_LINEAR];
 // Literal union types derived from the constant values above.
 export type Auto = typeof AUTO;
 
 export type Align = typeof ALIGN_LEFT | typeof ALIGN_CENTER | typeof ALIGN_RIGHT;
+export type TooltipValueAlign = typeof ALIGN_LEFT | typeof ALIGN_RIGHT;
 export type VerticalAlign = typeof VERTICAL_ALIGN_TOP | typeof VERTICAL_ALIGN_MIDDLE | typeof VERTICAL_ALIGN_BOTTOM;
 export type Anchor = typeof ANCHOR_START | typeof ANCHOR_END | typeof ANCHOR_MIDDLE;
 export type Position = typeof POSITION_TOP | typeof POSITION_BOTTOM;
+export type MissingValueMode = typeof MISSING_VALUE_MODE_BREAK | typeof MISSING_VALUE_MODE_CONNECT | typeof MISSING_VALUE_MODE_BASE;
+export type DomainChange = typeof AUTO | typeof DOMAIN_CHANGE_COMBINED | typeof DOMAIN_CHANGE_STAGED;
+export type AnimationEasing =
+  typeof EASING_LINEAR |
+  typeof EASING_SINE_IN | typeof EASING_SINE_OUT | typeof EASING_SINE_IN_OUT |
+  typeof EASING_QUAD_IN | typeof EASING_QUAD_OUT | typeof EASING_QUAD_IN_OUT |
+  typeof EASING_CUBIC_IN | typeof EASING_CUBIC_OUT | typeof EASING_CUBIC_IN_OUT |
+  typeof EASING_QUINT_IN | typeof EASING_QUINT_OUT | typeof EASING_QUINT_IN_OUT |
+  typeof EASING_BOUNCE_IN | typeof EASING_BOUNCE_OUT | typeof EASING_BOUNCE_IN_OUT;
+export type AxisSide = typeof SIDE_START | typeof SIDE_END;
+export type ThresholdTitleSide = typeof TITLE_SIDE_LOW | typeof TITLE_SIDE_HIGH;
 export type ChartType = typeof CHART_TYPE_XY | typeof CHART_TYPE_PIE;
-export type PieTooltipLabelType =
-  typeof PIE_LABEL_TYPE_VALUE | typeof PIE_LABEL_TYPE_PERCENT |
-  typeof PIE_LABEL_TYPE_VALUE_PERCENT | typeof PIE_LABEL_TYPE_PERCENT_VALUE;
-export type PieLabelType = PieTooltipLabelType |
-  typeof PIE_LABEL_TYPE_TITLE | typeof PIE_LABEL_TYPE_TITLE_VALUE | typeof PIE_LABEL_TYPE_TITLE_PERCENT;
+export type PieLabelType =
+  typeof PIE_LABEL_TYPE_VALUE | typeof PIE_LABEL_TYPE_PERCENT | typeof PIE_LABEL_TYPE_TITLE |
+  typeof PIE_LABEL_TYPE_VALUE_PERCENT | typeof PIE_LABEL_TYPE_PERCENT_VALUE |
+  typeof PIE_LABEL_TYPE_TITLE_VALUE | typeof PIE_LABEL_TYPE_TITLE_PERCENT;
+export type PieTooltipValueType =
+  typeof PIE_TOOLTIP_VALUE_TYPE_VALUE | typeof PIE_TOOLTIP_VALUE_TYPE_PERCENT |
+  typeof PIE_TOOLTIP_VALUE_TYPE_VALUE_PERCENT | typeof PIE_TOOLTIP_VALUE_TYPE_PERCENT_VALUE;
 export type Scale = typeof SCALE_ORDINAL | typeof SCALE_LINEAR;
 export type DataType = typeof TYPE_STRING | typeof TYPE_NUMBER | typeof TYPE_DATE;
 export type RendererType = typeof RENDERER_BAR | typeof RENDERER_LINE | typeof RENDERER_AREA | typeof RENDERER_NONE;
+export type PatternType = typeof PATTERN_TYPE_LINES | typeof PATTERN_TYPE_CROSSHATCH | typeof PATTERN_TYPE_DOTS;
 export type CurveType =
   typeof CURVE_TYPE_LINEAR | typeof CURVE_TYPE_MONOTONE_X | typeof CURVE_TYPE_MONOTONE_Y | typeof CURVE_TYPE_BASIS |
   typeof CURVE_TYPE_CARDINAL | typeof CURVE_TYPE_CATMULL_ROM | typeof CURVE_TYPE_NATURAL | typeof CURVE_TYPE_STEP |
   typeof CURVE_TYPE_STEP_BEFORE | typeof CURVE_TYPE_STEP_AFTER;
 export type CapType = typeof CAP_TYPE_POINT | typeof CAP_TYPE_CURVE | typeof CAP_TYPE_ROUND;
 export type LabelPosition = typeof LABEL_POSITION_INSIDE | typeof LABEL_POSITION_CENTER | typeof LABEL_POSITION_OUTSIDE;
-export type ColorMode = typeof COLOR_SERIES | typeof COLOR_SAME | typeof COLOR_SERIES_INDEX | typeof COLOR_GROUP_INDEX;
+export type ColorMode = typeof COLOR_SERIES | typeof STYLE_SAME | typeof COLOR_SERIES_INDEX | typeof COLOR_CATEGORY_INDEX;
 export type ColorInterpolation =
   typeof COLOR_INTERPOLATION_RGB | typeof COLOR_INTERPOLATION_HSL | typeof COLOR_INTERPOLATION_LAB | typeof COLOR_INTERPOLATION_HCL;
 export type MarkerShape =
   typeof MARKER_SHAPE_CIRCLE | typeof MARKER_SHAPE_CROSS | typeof MARKER_SHAPE_DIAMOND | typeof MARKER_SHAPE_SQUARE |
   typeof MARKER_SHAPE_STAR | typeof MARKER_SHAPE_TRIANGLE | typeof MARKER_SHAPE_WYE;
+export type MarkerSizeScale = typeof MARKER_SIZE_SCALE_SQRT | typeof MARKER_SIZE_SCALE_LINEAR;

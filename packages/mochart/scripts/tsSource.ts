@@ -1,8 +1,6 @@
-// Small TypeScript-source readers shared by the docs generators: they pull
-// member names, type text, and JSDoc straight out of declaration files
-// (src/types/chart.ts here, the framework bindings' prop types from the docs
-// package). Text is read from the declarations rather than the type checker so
-// the reference shows the same spelling the source and the shipped .d.ts do.
+// TypeScript-source readers shared by the docs generators: member names, type text, and JSDoc
+// pulled straight from declaration files (not the type checker), so the reference shows the
+// same spelling the source and the shipped .d.ts do.
 
 import ts from 'typescript';
 import fs from 'fs';
@@ -18,8 +16,12 @@ export interface ParsedMember {
 export interface ParsedInterface {
   name: string;
   exported: boolean;
+  /** Declared type parameter names, e.g. ['C', 'S'] for StyleState<C, S>. */
+  typeParameters: string[];
   extendsNames: string[];
   members: ParsedMember[];
+  /** Members the model cannot render — method signatures and computed names. */
+  skippedMembers: string[];
 }
 
 export function readSourceFile(filePath: string): { text: string; sourceFile: ts.SourceFile } {
@@ -77,8 +79,11 @@ export function parseInterfaces(filePath: string): Map<string, ParsedInterface> 
       }
     }
     const members: ParsedMember[] = [];
+    const skippedMembers: string[] = [];
     for (const member of statement.members) {
       if (!ts.isPropertySignature(member) || member.name === undefined || !ts.isIdentifier(member.name)) {
+        const name = member.name !== undefined && ts.isIdentifier(member.name) ? member.name.text : member.getText(sourceFile).split('(')[0]!.trim();
+        skippedMembers.push(name);
         continue;
       }
       members.push({
@@ -91,8 +96,10 @@ export function parseInterfaces(filePath: string): Map<string, ParsedInterface> 
     interfaces.set(statement.name.text, {
       name: statement.name.text,
       exported: hasModifier(statement, ts.SyntaxKind.ExportKeyword),
+      typeParameters: (statement.typeParameters ?? []).map(parameter => parameter.name.text),
       extendsNames,
-      members
+      members,
+      skippedMembers
     });
   }
   return interfaces;

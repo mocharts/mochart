@@ -2,6 +2,7 @@ declare module 'd3-scale' {
   import type { AxisScale } from './data';
 
   export function scaleLinear(): AxisScale;
+  export function scaleSqrt(): AxisScale;
   export function scaleTime(): AxisScale;
   export function scaleUtc(): AxisScale;
 }
@@ -39,16 +40,20 @@ declare module 'd3-shape' {
   export interface ArcDatum {
     startAngle: number;
     endAngle: number;
+    // read by the default innerRadius/outerRadius/padAngle accessors
+    innerRadius?: number;
+    outerRadius?: number;
+    padAngle?: number;
   }
-  export interface ArcGenerator {
-    (datum: ArcDatum): string | null;
-    innerRadius(value: number): ArcGenerator;
-    outerRadius(value: number): ArcGenerator;
-    cornerRadius(value: number): ArcGenerator;
-    padAngle(value: number): ArcGenerator;
-    centroid(datum: ArcDatum): [number, number];
+  export interface ArcGenerator<Datum extends ArcDatum = ArcDatum> {
+    (datum: Datum): string | null;
+    innerRadius(value: number | ((datum: Datum) => number)): ArcGenerator<Datum>;
+    outerRadius(value: number | ((datum: Datum) => number)): ArcGenerator<Datum>;
+    cornerRadius(value: number | ((datum: Datum) => number)): ArcGenerator<Datum>;
+    padAngle(value: number | ((datum: Datum) => number)): ArcGenerator<Datum>;
+    centroid(datum: Datum): [number, number];
   }
-  export function arc(): ArcGenerator;
+  export function arc<Datum extends ArcDatum = ArcDatum>(): ArcGenerator<Datum>;
   export interface SymbolGenerator {
     (): string | null;
     size(value: number): SymbolGenerator;

@@ -34,7 +34,7 @@ describe('JSON editor', () => {
     const editor = createJsonEditor(host, { value: '{}', ariaLabel: 'Configuration' });
     const content = editor.element.querySelector<HTMLElement>('.cm-content')!;
 
-    expect(() => editor.focusRange(-20, 200)).not.toThrow();
+    expect(() => editor.showFocusRange(-20, 200)).not.toThrow();
     expect(document.activeElement).toBe(content);
 
     editor.destroy();
@@ -96,11 +96,57 @@ describe('JSON editor', () => {
     host.remove();
   });
 
+  // Regression: setValue dispatched a history-recorded change, so undo brought the host's previous document back
+  it('does not undo a controlled setValue back to the previous document', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const onChange = vi.fn();
+    const editor = createJsonEditor(host, { value: '{"a":1}', ariaLabel: 'Configuration', onChange });
+    // a user edit first, so there is history to unwind
+    expect(editor.format()).toBe(true);
+    onChange.mockClear();
+
+    editor.setValue('{"b":2}');
+    editor.setReadOnly(true);
+    editor.setReadOnly(false);
+    const content = host.querySelector<HTMLElement>('.cm-content')!;
+    content.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true, cancelable: true }));
+    content.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', metaKey: true, bubbles: true, cancelable: true }));
+
+    expect(editor.getValue()).toBe('{"b":2}');
+    expect(onChange).not.toHaveBeenCalled();
+    expect(content.getAttribute('aria-readonly')).toBe('false');
+    editor.destroy();
+    host.remove();
+  });
+
   it('leaves invalid JSON unchanged when formatting', () => {
     const host = document.createElement('div');
     const editor = createJsonEditor(host, { value: '{', ariaLabel: 'Configuration' });
     expect(editor.format()).toBe(false);
     expect(editor.getValue()).toBe('{');
     editor.destroy();
+  });
+
+  it('reports repeated keys as errors on the later key and refuses to format them away', async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const onDiagnostics = vi.fn();
+    const value = '{"chart": {"type": "line"}, "series": [{"property": "a", "property": "b"}], "chart": {}}';
+    const editor = createJsonEditor(host, { value, ariaLabel: 'Configuration', onDiagnostics });
+    const content = editor.element.querySelector<HTMLElement>('.cm-content')!;
+
+    await vi.waitFor(() => expect(content.getAttribute('aria-invalid')).toBe('true'));
+    const diagnostics = onDiagnostics.mock.lastCall![0] as { from: number; to: number; message: string; severity: string; source: string; path?: unknown }[];
+    expect(diagnostics.map(diagnostic => [value.slice(diagnostic.from, diagnostic.to), diagnostic.message, diagnostic.severity, diagnostic.source, diagnostic.path])).toEqual([
+      ['"property"', 'Duplicate key "property" in series[0]', 'error', 'json', ['series', 0, 'property']],
+      ['"chart"', 'Duplicate key "chart"', 'error', 'json', ['chart']]
+    ]);
+    expect(diagnostics[1].from).toBe(value.lastIndexOf('"chart"'));
+
+    expect(editor.format()).toBe(false);
+    expect(editor.getValue()).toBe(value);
+    editor.destroy();
+    host.remove();
   });
 });

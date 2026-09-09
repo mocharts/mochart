@@ -1,0 +1,45 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Range Line Series Example"
+  },
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "category",
+    "type": "number",
+    "scale": "ordinal"
+  },
+  "valueAxes": {},
+  "series": [
+    {
+      "property": "range-max",
+      "rangeProperty": "range-min",
+      "title": "Range",
+      "renderer": "line",
+      "shapeStyle": {
+        "normal": {
+          "strokeColor": "#9467bd",
+          "fillColor": "#9467bd"
+        }
+      },
+      "marker": {
+        "shape": null
+      }
+    },
+    {
+      "property": "middle",
+      "title": "Middle",
+      "renderer": "line",
+      "shapeStyle": {
+        "normal": {
+          "strokeColor": "#1f77b4",
+          "fillColor": "#1f77b4"
+        }
+      },
+      "marker": {
+        "size": 8,
+        "shape": "star"
+      }
+    }
+  ]
+}

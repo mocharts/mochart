@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
+import { depSourcemaps } from '../../../scripts/dep-sourcemaps.mts';
 
 export default defineConfig({
   root: fileURLToPath(new URL('.', import.meta.url)),
+  plugins: [depSourcemaps()],
   resolve: {
     alias: [
       {
@@ -20,6 +22,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    emptyOutDir: true
+    emptyOutDir: true,
+    sourcemap: true
   }
 });

@@ -3,9 +3,14 @@
 React demo gallery for [@mochart/core](../mochart/README.md), built on
 [@mochart/react](../mochart-react/README.md) (private, not published).
 
-The full-featured demo app: browse every demo chart in single, multi,
-transition, and rotation modes, or generate whole random datasets in random
-mode. The JSON demo configs and datasets are shared from
+See it running live at [mochart.org/react/demos](https://mochart.org/react/demos).
+
+The full-featured demo app: browse every demo chart in three modes —
+single edits one chart's config and data as JSON, multi steps a
+configurable grid of charts through dataset sizes together, and random
+generates whole seeded random datasets — plus the transition, rotation,
+and sparkline showcases. The JSON demo
+configs and datasets are shared from
 [@mochart/demo-data](../mochart-demo-data/README.md); [@mochart/demo-basic](../mochart-demo-basic/README.md)
 is a smaller no-framework harness of the same demos that hosts the e2e suite.
 

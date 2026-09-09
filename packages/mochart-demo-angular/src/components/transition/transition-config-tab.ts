@@ -1,9 +1,9 @@
 import { Component, Input, signal } from '@angular/core';
 import type { OnChanges, OnInit, SimpleChanges } from '@angular/core';
 
-import { applyTransitionConfigEdit, demoText, formatTransitionConfig } from '@mochart/demo-common';
+import { applyTransitionConfigEdit, demoText, formatTransitionConfig, getDemoTabPanelAttrs, getJsonError } from '@mochart/demo-common';
 
-import { TextAreaContent } from '../misc/text-area-content';
+import { JsonEditorContent } from '../misc/json-editor-content';
 import { ButtonWithTooltip } from '../misc/button-with-tooltip';
 import { Icon } from '../misc/icon';
 
@@ -11,15 +11,16 @@ import type { TransitionConfig } from '../../types';
 
 @Component({
   selector: 'app-transition-config-tab',
-  imports: [TextAreaContent, ButtonWithTooltip, Icon],
+  imports: [JsonEditorContent, ButtonWithTooltip, Icon],
   styles: [':host { display: contents; }'],
   template: `
-    <div [class]="'mochart-demo-tab-container demo-layout-col config' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">
+    <div [id]="panelAttrs.id" [attr.role]="panelAttrs.role" [attr.aria-labelledby]="panelAttrs['aria-labelledby']"
+         [class]="'mochart-demo-tab-container demo-layout-col config' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">
       <div class="mochart-demo-tab-content">
-        <app-text-area-content [value]="configText()" [onChange]="onTextChange" />
+        <app-json-editor-content [value]="configText()" [ariaLabel]="text.editorAria" [onChange]="onTextChange" />
       </div>
       <div class="mochart-demo-tab-footer">
-        <div class="demo-toolbar" role="toolbar">
+        <div class="demo-toolbar">
           <app-button-with-tooltip id="config-reset" [label]="text.reset.label" [tooltipText]="text.reset.tooltip" tooltipPlacement="top-start"
                                    [onClick]="onReset" [aria-label]="text.reset.aria">
             <app-icon size="lg" [fixedWidth]="true" name="arrow-rotate-left" />
@@ -38,6 +39,8 @@ import type { TransitionConfig } from '../../types';
   `
 })
 export class TransitionConfigTab implements OnInit, OnChanges {
+  readonly panelAttrs = getDemoTabPanelAttrs('config');
+
   @Input() active = false;
   @Input({ required: true }) transitionConfig!: TransitionConfig;
   @Input({ required: true }) onUpdate!: (config: TransitionConfig) => void;
@@ -76,13 +79,7 @@ export class TransitionConfigTab implements OnInit, OnChanges {
   };
 
   get jsonError(): string | null {
-    try {
-      JSON.parse(this.configText());
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
+    return getJsonError(this.configText());
   }
 
   get footerError(): string | null {

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { formatData } from '@mochart/demo-common';
+  import { demoText, formatData, getDemoTabPanelAttrs } from '@mochart/demo-common';
 
   import { untrack } from 'svelte';
 
-  import TextAreaContent from '../misc/TextAreaContent.svelte';
+  import JsonEditorContent from '../misc/JsonEditorContent.svelte';
 
   interface Props {
     active?: boolean;
@@ -30,8 +30,8 @@
   });
 </script>
 
-<div class={"mochart-demo-tab-container demo-layout-col data" + (active ? " active" : "")} inert={!active}>
+<div {...getDemoTabPanelAttrs('data')} class={"mochart-demo-tab-container demo-layout-col data" + (active ? " active" : "")} inert={!active}>
   <div class="mochart-demo-tab-content">
-    <TextAreaContent value={dataText} onChange={() => {}} />
+    <JsonEditorContent value={dataText} ariaLabel={demoText.randomDataTab.editorAria} readOnly={true} />
   </div>
 </div>

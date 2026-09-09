@@ -1,21 +1,21 @@
 <script lang="ts">
   import { untrack } from 'svelte';
 
-  import { applyDataEdit, buildMochartDemoConfig, collectUsedDataProperties, demoText, formatDataView, getJsonError, parseFullData } from '@mochart/demo-common';
+  import { applyDataEdit, buildMochartDemoConfig, collectUsedDataProperties, controlsMenuPlacement, demoText, formatDataView, getCategoryProperty, getDemoTabPanelAttrs, getJsonError, parseFullData } from '@mochart/demo-common';
 
-  import TextAreaContent from '../misc/TextAreaContent.svelte';
+  import JsonEditorContent from '../misc/JsonEditorContent.svelte';
   import ButtonWithTooltip from '../misc/ButtonWithTooltip.svelte';
   import Icon from '../misc/Icon.svelte';
   import OverflowMenu from '../misc/OverflowMenu.svelte';
   import { createPhoneViewport } from '../misc/phoneViewport.svelte';
 
-  import type { DemoConfig, DataRow } from '../../types';
+  import type { DemoConfig, DataObject } from '../../types';
 
   interface Props {
     active?: boolean;
     config: DemoConfig;
-    data: DataRow[];
-    onDataChange: (data: DataRow[]) => void;
+    data: DataObject[];
+    onDataChange: (data: DataObject[]) => void;
     onDataError: (errorMessage: string) => void;
     onDataReset: () => void;
   }
@@ -35,14 +35,14 @@
   let dataText = $state('');
   let errorMessage = $state<string | null>(null);
 
-  function renderView(fullRows: DataRow[]): void {
+  function renderView(fullRows: DataObject[]): void {
     fullData = fullRows;
     viewUsedProperties = showUnused ? null : usedProperties;
     dataText = formatDataView(fullRows, viewUsedProperties);
   }
 
   function parseCurrentFullData(): ReturnType<typeof parseFullData> {
-    return parseFullData(dataText, fullData, viewUsedProperties);
+    return parseFullData(dataText, fullData, viewUsedProperties, getCategoryProperty(config));
   }
 
   // Props intentionally seed local state with their initial value only; the
@@ -147,16 +147,16 @@
   </ButtonWithTooltip>
 {/snippet}
 
-<div class={"mochart-demo-tab-container demo-layout-col data" + (active ? " active" : "")} inert={!active}>
+<div {...getDemoTabPanelAttrs('data')} class={"mochart-demo-tab-container demo-layout-col data" + (active ? " active" : "")} inert={!active}>
   <div class="mochart-demo-tab-content">
-    <TextAreaContent value={dataText} onChange={onTextChange} />
+    <JsonEditorContent value={dataText} ariaLabel={demoText.dataTab.editorAria} onChange={onTextChange} />
   </div>
   <div class="mochart-demo-tab-footer" bind:this={footerElement}>
-    <div class="demo-toolbar" role="toolbar">
+    <div class="demo-toolbar">
       {#if phone.isPhone}
         {@render applyButton()}
         <OverflowMenu text={demoText.overflowMenu.editor}
-                      placement={{ side: 'top', align: 'end', gap: 4 }}
+                      placement={controlsMenuPlacement}
                       getAnchor={() => footerElement}
                       active={active !== false}>
           <div class="demo-btn-group">{@render resetButton()}{@render unusedButton()}</div>

@@ -107,6 +107,21 @@ describe('getActualDefaults', () => {
     });
   });
 
+  it('evaluates conditional members inside a conditional group', () => {
+    const group = (colored: boolean) => getActualDefaults({
+      colorScale: conditionalDefault(
+        [
+          { condition: (c: { colored: boolean }) => c.colored, suffix: null, default: { min: () => '#0000ff', max: () => '#ff0000' } },
+          { ...defaultRule, default: null }
+        ],
+        { colored },
+        undefined
+      )
+    });
+    expect(group(true)).toEqual({ colorScale: { min: '#0000ff', max: '#ff0000' } });
+    expect(group(false)).toEqual({ colorScale: null });
+  });
+
   it('leaves the members of a nested default the recursion does not name alone', () => {
     // the conditional map names one member and deepMerge keeps the siblings
     const regularDefaults = { shapeStyle: { normal: { strokeColor: '#000000', fillOpacity: 0.5 } } };
@@ -122,10 +137,10 @@ describe('tooltip defaults', () => {
   it('matches icon size to the font by default', () => {
     const automatic = getDefaults({
       version: '1.0.0',
-      groupAxisConfig: { property: 'p' }
-    }) as { tooltipConfig: { iconSize: string | number } };
+      categoryAxis: { property: 'p' }
+    }) as { tooltip: { icon: { size: string | number } } };
 
-    expect(automatic.tooltipConfig.iconSize).toBe('auto');
+    expect(automatic.tooltip.icon.size).toBe('auto');
   });
 });
 
@@ -133,10 +148,38 @@ describe('legend defaults', () => {
   it('matches icon size to the measured text height by default', () => {
     const defaults = getDefaults({
       version: '1.0.0',
-      groupAxisConfig: { property: 'p' }
-    }) as { legendConfig: { iconSize: string | number } };
+      categoryAxis: { property: 'p' }
+    }) as { legend: { icon: { size: string | number } } };
 
-    expect(defaults.legendConfig.iconSize).toBe('auto');
+    expect(defaults.legend.icon.size).toBe('auto');
+  });
+});
+
+describe('color palette defaults', () => {
+  it('uses the Tol Bright palette for every element and focus state', () => {
+    const defaults = getDefaults({
+      version: '1.0.0',
+      categoryAxis: { property: 'p' }
+    }) as { colorPalette: Record<string, Record<string, { strokeColors: string[]; fillColors: string[] }>> };
+    const tolBright = ['#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee', '#aa3377', '#bbbbbb'];
+
+    for (const palettes of Object.values(defaults.colorPalette)) {
+      for (const palette of Object.values(palettes)) {
+        expect(palette.strokeColors).toEqual(tolBright);
+        expect(palette.fillColors).toEqual(tolBright);
+      }
+    }
+  });
+
+  // getDefaults is public: a consumer mutating one list must not change another state's list or a later call's defaults
+  it('hands out a fresh color list per state and per call', () => {
+    const config = { version: '1.0.0', categoryAxis: { property: 'p' } };
+    const first = getDefaults(config) as { colorPalette: Record<string, Record<string, { strokeColors: string[]; fillColors: string[] }>> };
+    const lists = Object.values(first.colorPalette).flatMap(palettes => Object.values(palettes).flatMap(palette => [palette.strokeColors, palette.fillColors]));
+    expect(new Set(lists).size).toBe(lists.length);
+    first.colorPalette.shape.normal.strokeColors.push('#000000');
+    const second = getDefaults(config) as typeof first;
+    expect(second.colorPalette.shape.normal.strokeColors).toHaveLength(7);
   });
 });
 
@@ -144,10 +187,10 @@ describe('series color-icon defaults', () => {
   function showColorFlags(shapeStyle?: Record<string, unknown>) {
     const defaults = getDefaults({
       version: '1.0.0',
-      groupAxisConfig: { property: 'p' },
-      seriesConfigs: [{ property: 'a', ...(shapeStyle ? { shapeStyle } : {}) }]
-    }) as { seriesConfigs: { showColorInLegend: boolean; showColorInTooltip: boolean }[] };
-    const { showColorInLegend, showColorInTooltip } = defaults.seriesConfigs[0]!;
+      categoryAxis: { property: 'p' },
+      series: [{ property: 'a', ...(shapeStyle ? { shapeStyle } : {}) }]
+    }) as { series: { showColorInLegend: boolean; showColorInTooltip: boolean }[] };
+    const { showColorInLegend, showColorInTooltip } = defaults.series[0]!;
     return { showColorInLegend, showColorInTooltip };
   }
 
@@ -155,58 +198,90 @@ describe('series color-icon defaults', () => {
     expect(showColorFlags()).toEqual({ showColorInLegend: true, showColorInTooltip: true });
   });
 
-  it('hides the color icon for a series colored by group index', () => {
-    // every group paints it differently, so a single swatch would be arbitrary
-    expect(showColorFlags({ normal: { strokeColor: 'groupIndex', fillColor: 'groupIndex' } }))
+  it('hides the color icon for a series colored by category index', () => {
+    // every category styles it differently, so a single swatch would be arbitrary
+    expect(showColorFlags({ normal: { strokeColor: 'categoryIndex', fillColor: 'categoryIndex' } }))
       .toEqual({ showColorInLegend: false, showColorInTooltip: false });
     // either member is enough
-    expect(showColorFlags({ normal: { fillColor: 'groupIndex' } }))
+    expect(showColorFlags({ normal: { fillColor: 'categoryIndex' } }))
       .toEqual({ showColorInLegend: false, showColorInTooltip: false });
-    expect(showColorFlags({ normal: { strokeColor: 'groupIndex' } }))
+    expect(showColorFlags({ normal: { strokeColor: 'categoryIndex' } }))
       .toEqual({ showColorInLegend: false, showColorInTooltip: false });
   });
 
-  it('keeps the icon when only a focus state names the group index', () => {
-    expect(showColorFlags({ focused: { fillColor: 'groupIndex' } }))
+  it('keeps the icon when only a focus state names the category index', () => {
+    expect(showColorFlags({ focused: { fillColor: 'categoryIndex' } }))
       .toEqual({ showColorInLegend: true, showColorInTooltip: true });
   });
 });
 
 describe('pie-mode conditional defaults', () => {
   it('hides the axes and unsnaps the tooltip when chartConfig.type is pie', () => {
-    const defaults = getDefaults({ version: '1.0.0', chartConfig: { type: 'pie' }, groupAxisConfig: { property: 'p' } }) as {
-      groupAxisConfig: { visible: boolean };
-      seriesAxisConfigs: { visible: boolean }[];
-      tooltipConfig: { snapToGroup: boolean; showGroup: boolean };
-      pieConfig: { innerRadiusPercent: number; labelType: string };
+    const defaults = getDefaults({ version: '1.0.0', chart: { type: 'pie' }, categoryAxis: { property: 'p' } }) as {
+      categoryAxis: { visible: boolean };
+      valueAxes: { visible: boolean }[];
+      tooltip: { snapToCategory: boolean; showCategory: boolean };
+      pie: { innerRadiusFraction: number; label: { type: string } };
     };
-    expect(defaults.groupAxisConfig.visible).toBe(false);
-    expect(defaults.seriesAxisConfigs[0]!.visible).toBe(false);
-    expect(defaults.tooltipConfig.snapToGroup).toBe(false);
-    expect(defaults.tooltipConfig.showGroup).toBe(false);
-    expect(defaults.pieConfig).toEqual(expect.objectContaining({ innerRadiusPercent: 0, labelType: 'percent' }));
+    expect(defaults.categoryAxis.visible).toBe(false);
+    expect(defaults.valueAxes[0]!.visible).toBe(false);
+    expect(defaults.tooltip.snapToCategory).toBe(false);
+    expect(defaults.tooltip.showCategory).toBe(false);
+    expect(defaults.pie).toEqual(expect.objectContaining({ innerRadiusFraction: 0, label: expect.objectContaining({ type: 'percent' }) }));
   });
 
   it('derives pieConfig.endAngle from startAngle so rotation never truncates the pie', () => {
-    const rotated = getDefaults({ version: '1.0.0', chartConfig: { type: 'pie' }, pieConfig: { startAngle: -90 }, groupAxisConfig: { property: 'p' } }) as {
-      pieConfig: { endAngle: number };
+    const rotated = getDefaults({ version: '1.0.0', chart: { type: 'pie' }, pie: { startAngle: -90 }, categoryAxis: { property: 'p' } }) as {
+      pie: { endAngle: number };
     };
-    expect(rotated.pieConfig.endAngle).toBe(270);
-    const plain = getDefaults({ version: '1.0.0', chartConfig: { type: 'pie' }, groupAxisConfig: { property: 'p' } }) as {
-      pieConfig: { endAngle: number };
+    expect(rotated.pie.endAngle).toBe(270);
+    const plain = getDefaults({ version: '1.0.0', chart: { type: 'pie' }, categoryAxis: { property: 'p' } }) as {
+      pie: { endAngle: number };
     };
-    expect(plain.pieConfig.endAngle).toBe(360);
+    expect(plain.pie.endAngle).toBe(360);
   });
 
   it('keeps the xy defaults when chartConfig.type is omitted', () => {
-    const defaults = getDefaults({ version: '1.0.0', groupAxisConfig: { property: 'p' } }) as {
-      groupAxisConfig: { visible: boolean };
-      seriesAxisConfigs: { visible: boolean }[];
-      tooltipConfig: { snapToGroup: boolean; showGroup: boolean };
+    const defaults = getDefaults({ version: '1.0.0', categoryAxis: { property: 'p' } }) as {
+      categoryAxis: { visible: boolean };
+      valueAxes: { visible: boolean }[];
+      tooltip: { snapToCategory: boolean; showCategory: boolean };
     };
-    expect(defaults.groupAxisConfig.visible).toBe(true);
-    expect(defaults.seriesAxisConfigs[0]!.visible).toBe(true);
-    expect(defaults.tooltipConfig.snapToGroup).toBe(true);
-    expect(defaults.tooltipConfig.showGroup).toBe(true);
+    expect(defaults.categoryAxis.visible).toBe(true);
+    expect(defaults.valueAxes[0]!.visible).toBe(true);
+    expect(defaults.tooltip.snapToCategory).toBe(true);
+    expect(defaults.tooltip.showCategory).toBe(true);
+  });
+});
+
+// Regression: the seriesStackConfigs stack-axis map iterated the raw section
+// unfiltered, so junk that validation is supposed to report (a number, a null
+// entry) threw inside getDefaults before validation could run.
+describe('getDefaults with malformed seriesStackConfigs', () => {
+  it('does not throw on junk section shapes', () => {
+    expect(() => getDefaults({ seriesStacks: 5 })).not.toThrow();
+    expect(() => getDefaults({ seriesStacks: [null] })).not.toThrow();
+    expect(() => getDefaults({ seriesStacks: 'junk' })).not.toThrow();
+    expect(() => getDefaults({ seriesStacks: { ignore: true } })).not.toThrow();
+  });
+
+  it('still marks the stacked axis for a valid stack section', () => {
+    const defaults = getDefaults({
+      seriesStacks: [{ id: 's' }],
+      series: [{ property: 'v', stack: 's' }]
+    }) as { valueAxes: { base: unknown }[] };
+    expect(defaults.valueAxes[0].base).toBe(0);
+  });
+
+  // Regression: a stack whose axis came from seriesStackDefaults read as axis-less and marked the
+  // first value axis stacked, so the actually stacked axis got the no-stack base default
+  it('marks the axis named by seriesStackDefaults as the stacked one', () => {
+    const defaults = getDefaults({
+      valueAxes: [{ id: 'A' }, { id: 'B' }],
+      seriesStackDefaults: { axis: 'B' },
+      seriesStacks: [{ id: 's' }],
+      series: [{ property: 'v', axis: 'B', stack: 's' }]
+    }) as { valueAxes: { base: unknown }[] };
+    expect(defaults.valueAxes.map(axis => axis.base)).toEqual([null, 0]);
   });
 });

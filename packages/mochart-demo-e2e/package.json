@@ -1,0 +1,19 @@
+{
+  "name": "@mochart/demo-e2e",
+  "version": "1.0.0",
+  "description": "Playwright smoke suite run against each framework demo gallery",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "@mochart/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  },
+  "scripts": {
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  }
+}

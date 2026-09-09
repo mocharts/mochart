@@ -3,7 +3,7 @@ import type { VerticalAlign } from '../config/core/constants';
 import { getSpacingWidth, getSpacingOuterWidth, getSpacingOuterHeight, getSpacingHeight, getMaxSpacingHeight } from './SpacingLayoutInfo';
 import { createSpacingLayoutInfo, getSpacingLeft } from './SpacingLayoutInfo';
 import type { MarginPadding, Bounds } from '../types/geometry';
-import type { MochartConfig, TitleConfig } from '../types/config';
+import type { EnhancedMochartConfig } from '../types/enhanced';
 import type { ChartTextBoundsData, LayoutInfo, SpacingLayoutInfo, TitleLayoutResult } from '../types/layout';
 
 function createTitleLayoutInfo(x: number, y: number, width: number, height: number, margin: MarginPadding, padding: MarginPadding, titleHeight: number, titleMargin: MarginPadding, titlePadding: MarginPadding, verticalAlign: VerticalAlign, expand: number): SpacingLayoutInfo {
@@ -32,16 +32,14 @@ function createTitleLayoutInfo(x: number, y: number, width: number, height: numb
   return createSpacingLayoutInfo({ x, y: y + textY, width, height}, margin, padding);
 }
 
-export function getTitleHeight(mochartConfig: MochartConfig, chartTextBoundsData: ChartTextBoundsData): number {
-  const { titleConfig } = mochartConfig;
+export function getTitleHeight(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData): number {
+  const { title: titleConfig } = mochartConfig;
   const { titleTextRawBounds, titlePrefixBounds, titleSuffixBounds } = chartTextBoundsData;
   let titleHeight = 0;
-  if (titleConfig.title !== NONE) {
-    // `prefix`/`suffix` are not TitleConfig properties (the config keys are `titlePrefix`/
-    // `titleSuffix`), so both are always undefined and both branches below always run;
-    // preserved as-is while adding types.
-    const { margin, padding, textMargin, textPadding, prefix, suffix, prefixMargin, prefixPadding, suffixMargin, suffixPadding } =
-      titleConfig as TitleConfig & { prefix?: string | null; suffix?: string | null };
+  if (titleConfig.text !== NONE) {
+    const { margin, padding, textMargin, textPadding } = titleConfig;
+    const { text: prefix, margin: prefixMargin, padding: prefixPadding } = titleConfig.prefix;
+    const { text: suffix, margin: suffixMargin, padding: suffixPadding } = titleConfig.suffix;
 
     titleHeight = getSpacingOuterHeight(titleTextRawBounds, textMargin, textPadding);
     if (prefix !== NONE) {
@@ -55,10 +53,11 @@ export function getTitleHeight(mochartConfig: MochartConfig, chartTextBoundsData
   return titleHeight;
 }
 
-export function getTitleLayoutInfo(mochartConfig: MochartConfig, chartTextBoundsData: ChartTextBoundsData, contentBounds: Bounds, seriesLayoutInfo: LayoutInfo, titleHeight: number, titleY: number): TitleLayoutResult {
-  const { titleConfig } = mochartConfig;
-  const { title, titlePrefix, titleSuffix, alignedToAxes, align, verticalAlign, verticalExpand,
-          margin, padding, textMargin, textPadding, prefixMargin, prefixPadding, suffixMargin, suffixPadding } = titleConfig;
+export function getTitleLayoutInfo(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, contentBounds: Bounds, seriesLayoutInfo: LayoutInfo, titleHeight: number, titleY: number): TitleLayoutResult {
+  const { title: titleConfig } = mochartConfig;
+  const { text: title, alignedToAxes, align, verticalAlign, verticalExpand, margin, padding, textMargin, textPadding } = titleConfig;
+  const { text: titlePrefix, margin: prefixMargin, padding: prefixPadding } = titleConfig.prefix;
+  const { text: titleSuffix, margin: suffixMargin, padding: suffixPadding } = titleConfig.suffix;
   const spacingLeft = getSpacingLeft(margin, padding);
   const { titlePrefixBounds, titleTextBounds, titleTextRawBounds, titleSuffixBounds } = chartTextBoundsData;
   const hasDefaultBounds = titlePrefixBounds.default || titleTextBounds.default || titleTextRawBounds.default || titleSuffixBounds.default;
@@ -102,22 +101,15 @@ export function getTitleLayoutInfo(mochartConfig: MochartConfig, chartTextBounds
     textRawWidth = 0;
   }
   else {
-    const textAllWidth = fixedWidth + spacingWidth + textSpacingWidth + textRawWidth;
-    if (alignedToAxes && textAllWidth <= seriesLayoutInfo.width) {
-      titleOffset = seriesLayoutInfo.x;
+    // textRawWidth already carries the text margin/padding; this is the title's full outer width
+    const textAllWidth = fixedWidth + spacingWidth + textRawWidth;
+    const alignToAxes = alignedToAxes && textAllWidth <= seriesLayoutInfo.width;
+    if (alignToAxes || textAllWidth <= width) {
+      const { x: availableX, width: availableWidth } = alignToAxes ? seriesLayoutInfo : contentBounds;
+      titleOffset = availableX;
       if (align !== ALIGN_LEFT) {
-        const extraWidth = seriesLayoutInfo.width - spacingWidth - textAllWidth;
-        titleOffset = Math.floor(titleOffset + (align === ALIGN_CENTER ? (extraWidth / 2.0) : extraWidth));
-      }
-      textWidth = textRawWidth;
-      titleWidth = textAllWidth;
-    }
-    else if (textAllWidth <= marginWidth) {
-      if (align !== ALIGN_LEFT) {
-        const extraWidth = marginWidth - textAllWidth;
-        if (extraWidth > 0) {
-          titleOffset = Math.floor(x + (align === ALIGN_CENTER ? (extraWidth / 2.0) : extraWidth));
-        }
+        const extraWidth = availableWidth - textAllWidth;
+        titleOffset = Math.floor(availableX + (align === ALIGN_CENTER ? (extraWidth / 2.0) : extraWidth));
       }
       textWidth = textRawWidth;
       titleWidth = textAllWidth;

@@ -1,6 +1,7 @@
 import { demoText } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
+import { staticDemoTabs } from '../misc/DemoTabs';
 import { el, errorTab } from '../misc/dom';
 import type { ErrorTabHandle } from '../misc/dom';
 import { topBar } from '../misc/TopBar';
@@ -34,16 +35,11 @@ export function demoMulti(props: DemoMultiProps): DemoMultiHandle {
   });
   const chartsBoundary: ErrorTabHandle = errorTab(() => charts.el, true);
 
-  const chartNav = el('button', {
-    className: 'demo-tab active',
-    attrs: { type: 'button' },
-    text: demoText.tabs.chart
-  });
-
   const bar = topBar({
     siteRootUrl: props.siteRootUrl,
     onBackToDemos,
-    tabs: [el('li', { className: 'demo-tab-item' }, [chartNav])],
+    // One pane, so the strip is a caption rather than a tablist.
+    tabs: staticDemoTabs(demoText.tabs.chart),
     notes: demoData.demoObjectMap[initialDemoId],
     modes: { demoMode: 'multi', onModeChanged }
   });

@@ -1,24 +1,28 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Browser Market Share (fictional)"
+  "title": {
+    "text": "Browser Market Share (fictional)"
   },
-  "chartConfig": {
+  "chart": {
     "type": "pie"
   },
-  "pieConfig": {
-    "tooltipValues": "percent",
-    "innerRadiusPercent": 0.6,
-    "showLabels": true,
-    "labelType": "percent",
-    "focusOffsetPercent": 0.05
+  "pie": {
+    "tooltip": {
+      "valueType": "percent"
+    },
+    "innerRadiusFraction": 0.6,
+    "label": {
+      "visible": true,
+      "type": "percent"
+    },
+    "focusOffsetFraction": 0.05
   },
-  "groupAxisConfig": {
-    "property": "group",
+  "categoryAxis": {
+    "property": "category",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesConfigs": [
+  "series": [
     {
       "id": "slice0",
       "property": "slice0",

@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import type { ReactNode, RefObject } from 'react';
 
+import { isMenuDismissingClick } from '@mochart/demo-common';
 import type { MenuPlacement } from '@mochart/demo-common';
 
 import Icon from './Icon';
-import { menuKeepOpenClassName, useMenu } from './useMenu';
+import { useMenu } from './useMenu';
 
 // The phone fold's container: a single `…` trigger whose panel holds the
 // controls that did not fit in the strip beside it.
@@ -57,12 +58,9 @@ export default function OverflowMenu(props: OverflowMenuProps) {
   }, [disabled, active, close]);
 
   const onPanelClick = (event: React.MouseEvent) => {
-    const target = event.target instanceof Element ? event.target : null;
-    const actionable = target?.closest('button, a') ?? null;
-    if (actionable === null || actionable.closest('.' + menuKeepOpenClassName) !== null) {
-      return;
+    if (isMenuDismissingClick(event.target)) {
+      close();
     }
-    close();
   };
 
   return (

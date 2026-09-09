@@ -13,6 +13,13 @@ export const switchableDemoModes = ['single', 'multi', 'random'] as const;
 
 export type SwitchableDemoMode = (typeof switchableDemoModes)[number];
 
+/** Font Awesome solid icon per mode, for the switcher's segments. */
+export const demoModeIcons: Record<SwitchableDemoMode, string> = {
+  single: 'pen-to-square',
+  multi: 'window-restore',
+  random: 'shuffle'
+};
+
 /** A gallery entry opening a demo (in single mode). */
 export interface GalleryDemoItem {
   kind: 'demo';

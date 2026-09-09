@@ -2,12 +2,15 @@ import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 
-import { applyTransitionConfigEdit, demoText, formatTransitionConfig } from '@mochart/demo-common';
+import { applyTransitionConfigEdit, demoText, formatTransitionConfig, getDemoTabPanelAttrs, getJsonError } from '@mochart/demo-common';
 
 import { LightElement } from '../misc/LightElement';
-import { textAreaContent, buttonWithTooltip, icon } from '../misc/templates';
+import { buttonWithTooltip, icon } from '../misc/templates';
+import '../misc/json-editor-content';
 
 import type { TransitionConfig } from '../../types';
+
+const panelAttrs = getDemoTabPanelAttrs('config');
 
 @customElement('transition-config-tab')
 export class TransitionConfigTab extends LightElement {
@@ -42,24 +45,19 @@ export class TransitionConfigTab extends LightElement {
   };
 
   private get jsonError(): string | null {
-    try {
-      JSON.parse(this.configText);
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
+    return getJsonError(this.configText);
   }
 
   override render(): unknown {
     const jsonError = this.jsonError;
     const footerError = jsonError ?? this.errorMessage;
-    return html`<div class=${'mochart-demo-tab-container demo-layout-col config' + (this.active ? ' active' : '')} ?inert=${!this.active}>
+    return html`<div id=${panelAttrs.id} role=${panelAttrs.role} aria-labelledby=${panelAttrs['aria-labelledby']}
+        class=${'mochart-demo-tab-container demo-layout-col config' + (this.active ? ' active' : '')} ?inert=${!this.active}>
       <div class="mochart-demo-tab-content">
-        ${textAreaContent({ value: this.configText, onChange: this.onTextChange })}
+        <json-editor-content .value=${this.configText} .ariaLabelText=${demoText.transitionConfigTab.editorAria} .onChange=${this.onTextChange}></json-editor-content>
       </div>
       <div class="mochart-demo-tab-footer">
-        <div class="demo-toolbar" role="toolbar">
+        <div class="demo-toolbar">
           ${buttonWithTooltip(
             { id: 'config-reset', label: demoText.transitionConfigTab.reset.label, tooltipText: demoText.transitionConfigTab.reset.tooltip, tooltipPlacement: 'top-start', onClick: () => this.onReset(), ariaLabel: demoText.transitionConfigTab.reset.aria },
             icon({ size: 'lg', fixedWidth: true, name: 'arrow-rotate-left' })

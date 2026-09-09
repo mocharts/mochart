@@ -1,19 +1,20 @@
-import { html, nothing } from 'lit';
+import { html } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 
-import { consumeSingleShareState, demoText } from '@mochart/demo-common';
+import { consumeSingleShareState, demoText, getConfigDataError } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import { LightElement } from '../misc/LightElement';
+import { demoTabs } from '../misc/demo-tabs';
+import '../misc/error-tab';
 import '../misc/top-bar';
 
 import './chart-tab';
 import './config-tab';
 import './data-tab';
-import '../misc/error-tab';
 
-import type { DemoData, DemoConfig, DataRow } from '../../types';
+import type { DemoData, DemoConfig, DataObject } from '../../types';
 
 type DataError = string | boolean | null;
 
@@ -35,13 +36,16 @@ export class DemoSingle extends LightElement {
   // Chart tab is shown again (so the chart animates one combined change).
   // pendingConfig/pendingData are reactive so the Chart tab badge updates.
   @state() private pendingConfig: DemoConfig | null = null;
-  @state() private pendingData: DataRow[] | null = null;
+  @state() private pendingData: DataObject[] | null = null;
   private pendingDataError: DataError = false;
   @state() private config: DemoConfig | null = null;
-  @state() private data: DataRow[] | null = null;
+  @state() private data: DataObject[] | null = null;
   @state() private viewingConfig: DemoConfig | null = null;
-  @state() private viewingData: DataRow[] | null = null;
+  @state() private viewingData: DataObject[] | null = null;
   @state() private viewingDataError: DataError = false;
+  // editor-reported error, or the viewing config/data pair failing validation;
+  // recomputed wherever the viewing values change, so a render always follows
+  private chartDataError: DataError = false;
 
 
   override willUpdate(changed: PropertyValues<this>): void {
@@ -60,6 +64,7 @@ export class DemoSingle extends LightElement {
       this.viewingConfig = this.config;
       this.viewingData = this.data;
       this.viewingDataError = false;
+      this.chartDataError = getConfigDataError(this.viewingConfig, this.viewingData);
       return;
     }
     // When the routed demo changes (history navigation between two demos),
@@ -87,6 +92,7 @@ export class DemoSingle extends LightElement {
         this.viewingDataError = this.pendingDataError;
         this.pendingDataError = null;
       }
+      this.chartDataError = this.viewingDataError || getConfigDataError(this.viewingConfig!, this.viewingData!);
     }
   }
 
@@ -108,7 +114,7 @@ export class DemoSingle extends LightElement {
     this.config = resetConfig;
   };
 
-  private onDataChange = (nextPendingData: DataRow[]): void => {
+  private onDataChange = (nextPendingData: DataObject[]): void => {
     this.pendingData = nextPendingData;
     this.pendingDataError = false;
   };
@@ -129,25 +135,24 @@ export class DemoSingle extends LightElement {
     return this.activeKey !== eventKeyChart && (this.pendingConfig !== null || this.pendingData !== null);
   }
 
-  private renderTab(eventKey: number, label: string): unknown {
-    const badge = eventKey === eventKeyChart && this.hasPendingChanges;
-    return html`<li class="demo-tab-item">
-      <button type="button" class=${'demo-tab' + (this.activeKey === eventKey ? ' active' : '')}
-              title=${badge ? demoText.tabs.chartPendingTitle : nothing}
-              @click=${() => this.handleSelect(eventKey)}>${label}${badge ? html`<span class="mochart-pending-badge" aria-hidden="true"></span>` : nothing}</button>
-    </li>`;
-  }
-
   override render(): unknown {
     return html`<div class="mochart-demo-container">
       <top-bar .siteRootUrl=${this.siteRootUrl} .onBackToDemos=${this.onBackToDemos}
                .notes=${this.demoData.demoObjectMap[this.initialDemoId]}
                .modes=${{ demoMode: 'single' as const, onModeChanged: this.onModeChanged }}
-               .tabs=${() => html`${this.renderTab(eventKeyChart, demoText.tabs.chart)}${this.renderTab(eventKeyConfig, demoText.tabs.config)}${this.renderTab(eventKeyData, demoText.tabs.data)}`}></top-bar>
+               .tabs=${() => demoTabs({
+                 activeKey: this.activeKey,
+                 onSelect: (key: number) => this.handleSelect(key),
+                 tabs: [
+                   { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart, pending: this.hasPendingChanges },
+                   { name: 'config', key: eventKeyConfig, label: demoText.tabs.config },
+                   { name: 'data', key: eventKeyData, label: demoText.tabs.data }
+                 ]
+               })}></top-bar>
       <div class="mochart-demo-content-pane">
         <div class="mochart-demo-content">
           <error-tab .active=${this.activeKey === eventKeyChart} .content=${() =>
-            html`<chart-tab .active=${this.activeKey === eventKeyChart} .config=${this.viewingConfig} .data=${this.viewingData} .dataError=${this.viewingDataError}></chart-tab>`}></error-tab>
+            html`<chart-tab .active=${this.activeKey === eventKeyChart} .config=${this.viewingConfig} .data=${this.viewingData} .dataError=${this.chartDataError}></chart-tab>`}></error-tab>
           <error-tab .active=${this.activeKey === eventKeyConfig} .content=${() =>
             html`<config-tab .active=${this.activeKey === eventKeyConfig} .config=${this.config!} .onConfigChange=${this.onConfigChange} .onConfigReset=${this.onConfigReset}></config-tab>`}></error-tab>
           <error-tab .active=${this.activeKey === eventKeyData} .content=${() =>

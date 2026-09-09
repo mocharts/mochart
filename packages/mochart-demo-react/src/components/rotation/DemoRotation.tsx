@@ -1,4 +1,4 @@
-import { rotationConfigs as configs, rotationData as data } from '@mochart/demo-common';
+import { getRotationGrid, rotationConfigs as configs, rotationData as data } from '@mochart/demo-common';
 
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -7,8 +7,6 @@ import { DefaultChart } from '@mochart/react';
 import TopBar from '../misc/TopBar';
 
 import type { OnBackToDemos } from '../../types';
-
-const minWidth = 400;
 
 interface DemoRotationProps {
   siteRootUrl?: string;
@@ -33,8 +31,7 @@ export default function DemoRotation({ siteRootUrl, onBackToDemos }: DemoRotatio
     return () => observer.disconnect();
   }, []);
 
-  const cols = Math.max(1, Math.floor(chartsWidth / minWidth));
-  const colWidth = Math.floor(chartsWidth / cols);
+  const { cols, colWidth } = getRotationGrid(chartsWidth);
 
   return (
     <div className="mochart-demo-container">

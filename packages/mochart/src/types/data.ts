@@ -1,9 +1,10 @@
-/** Values supported by a chart's group axis. */
-export type GroupValue = string | number | Date;
+/** Values supported by a chart's category axis. */
+export type CategoryValue = string | number | Date;
 export type DomainValue = number | Date;
 export type NullableDomain<T extends DomainValue = number> = [T | null, T | null];
-export type GroupAxisDomain = NullableDomain<number | Date>;
-export type NumericValue = number | undefined;
+export type CategoryAxisDomain = NullableDomain<number | Date>;
+/** A series value; a missing one is NaN (see isMissingValue), which keeps value arrays plain double arrays. */
+export type NumericValue = number;
 export type NumericValues = NumericValue[];
 export type AxisDomains = Record<string, NullableDomain>;
 
@@ -33,24 +34,25 @@ export type SeriesDomainObjects = Record<string, SeriesDomainObject>;
 
 export interface SeriesDataSet {
   axisDomains: AxisDomains;
+  /** The domains scales/ticks use: axisDomains, widened where collapsed (see getRenderAxisDomain). */
+  renderAxisDomains: AxisDomains;
   domains: SeriesDomainObjects;
   values: SeriesValueObjects;
-  /** Added by animation transitions while aligning old and new group values. */
+  /** Added by animation transitions while aligning old and new category values. */
   priorIndices?: number[];
 }
 
 export interface SeriesData {
-  axisBases: Record<string, number | null>;
+  /** Per series: the value it is drawn from and animates to when it enters or leaves. */
+  seriesBases: Record<string, number | null>;
   axisSeriesCounts: Record<string, number>;
-  stackSeriesCounts: Record<string, number>;
-  groupSeriesCounts: Record<string, number>;
   raw: SeriesDataSet;
   filteredFlags: Record<string, boolean>;
   filtered: SeriesDataSet;
 }
 
 export interface ChartData {
-  groupData: GroupData;
+  categoryData: CategoryData;
   seriesData: SeriesData;
 }
 
@@ -62,8 +64,8 @@ export interface StackData {
 }
 
 export type AxisValue = number | Date;
-export type TickLabel = GroupValue;
-export type TickLabelFormatter = (value: GroupValue) => TickLabel;
+export type TickLabel = CategoryValue;
+export type TickLabelFormatter = (value: CategoryValue) => TickLabel;
 
 export interface AxisScale {
   (value: AxisValue): number;
@@ -78,22 +80,22 @@ export interface AxisScale {
 export interface AxisTick {
   label: TickLabel;
   position: number;
-  value: GroupValue;
+  value: CategoryValue;
   hidden: boolean;
 }
 
-export interface GroupSpacingInfo {
-  groupRange: [number, number];
-  groupValueExtent: number;
-  groupValueOffset: number;
+export interface CategorySpacingInfo {
+  categoryRange: [number, number];
+  categoryValueExtent: number;
+  categoryValueOffset: number;
 }
 
-export interface GroupAxisData {
+export interface CategoryAxisData {
   axisScale: AxisScale;
   axisTickData: AxisTick[];
   maxTickLabelLength: number;
   valueData: {
-    spacingInfo: GroupSpacingInfo;
+    spacingInfo: CategorySpacingInfo;
     positions: number[];
   };
 }
@@ -103,14 +105,16 @@ export type SeriesPositionAccessor = (_datum: unknown, index: number) => SeriesP
 
 export interface SeriesPositionData extends ArrayLike<unknown> {
   readonly length: number;
-  skipGroupIndexMap: Record<number, number>;
+  /** True when positions were compacted (missingValueMode "connect"). */
+  skipped: boolean;
+  skipCategoryIndexMap: Record<number, number>;
   getDefined: (_datum: unknown, index: number) => boolean;
-  groupPositions: number[];
-  groupDefinedPositions: number[] | null;
-  getGroupPosition: SeriesPositionAccessor;
-  getOffsetGroupPosition: SeriesPositionAccessor;
-  groupValueExtent: number;
-  groupValueOffset: number;
+  categoryPositions: number[];
+  categoryDefinedPositions: number[] | null;
+  getCategoryPosition: SeriesPositionAccessor;
+  getOffsetCategoryPosition: SeriesPositionAccessor;
+  categoryValueExtent: number;
+  categoryValueOffset: number;
   seriesPositions: SeriesPosition[];
   seriesDefinedPositions: number[] | null;
   seriesPriorPositions: SeriesPosition[] | null;
@@ -121,59 +125,80 @@ export interface SeriesPositionData extends ArrayLike<unknown> {
   getSeriesExtent: (_datum: unknown, index: number) => number;
 }
 
-export interface SeriesAxisData {
+export interface ValueAxisData {
   axisScales: Record<string, AxisScale>;
   axisTickData: Record<string, AxisTick[]>;
 }
 
 export interface AxisData {
-  group: GroupAxisData | null;
-  series: SeriesAxisData | null;
+  category: CategoryAxisData | null;
+  value: ValueAxisData | null;
 }
 
-export interface GroupValues {
-  raw: readonly GroupValue[];
-  display: readonly GroupValue[];
-  parsed: readonly GroupValue[];
+export interface CategoryValues {
+  key: readonly CategoryValue[];
+  display: readonly CategoryValue[];
+  parsed: readonly CategoryValue[];
   numeric: number[];
 }
 
-export interface GroupData {
-  axisDomain: GroupAxisDomain;
-  values: GroupValues;
+/** Which plot edges have data hidden behind them, one flag per screen edge (see data/ClipData.ts). */
+export interface ClippedEdges {
+  top: boolean;
+  right: boolean;
+  bottom: boolean;
+  left: boolean;
 }
 
-export interface GroupValueObject {
-  axisDomain: GroupAxisDomain;
+export interface CategoryData {
+  axisDomain: CategoryAxisDomain;
+  /** The domain the scale/ticks use: axisDomain, widened where collapsed (see getRenderAxisDomain). */
+  renderAxisDomain: CategoryAxisDomain;
+  values: CategoryValues;
+}
+
+export interface CategoryValueObject {
+  axisDomain: CategoryAxisDomain;
   values: {
-    raw: GroupValue | undefined;
-    display: GroupValue | undefined;
-    parsed: GroupValue | undefined;
+    key: CategoryValue | undefined;
+    display: CategoryValue | undefined;
+    parsed: CategoryValue | undefined;
     numeric: number | undefined;
   };
 }
 
 /**
- * The data contract consumed by mochart.
- *
- * Providers may expose loading and error state in addition to the two data
- * accessors. Series values remain unknown until the chart config selects and
- * validates a property.
+ * Any value a data cell may hold: numbers for series properties, string/number/Date
+ * for category and display properties, null/undefined for missing; anything else is a data error.
  */
+export type DataValue = number | string | Date | null | undefined;
+
 /**
- * The interface charts read data through. `ArrayOfObjectsDataProvider` and
- * `ObjectOfArraysDataProvider` cover the common dataset shapes; implement
- * this to read straight from an existing store without copying.
+ * The interface charts read data through: a read-only property-values lookup over
+ * one dataset, answering every property the config names the same way.
+ * `ArrayOfObjectsDataProvider`/`ObjectOfArraysDataProvider` cover the common shapes;
+ * implement it to read straight from an existing store without copying.
  */
-export interface DataProvider<TGroupValue = GroupValue, TSeriesValue = unknown> {
-  /** The group (category) values, one per group, in display order. */
-  getGroupValues(): readonly TGroupValue[];
-  /** The value of `seriesProperty` for the given group (numeric or undefined for series values). */
-  getSeriesValue(groupValue: TGroupValue, groupIndex: number, seriesProperty: string): TSeriesValue;
-  /** When set and truthy, the chart shows its error state. */
+export interface DataProvider {
+  /**
+   * All values of one named property, index-aligned with every other property's
+   * values (the category property defines the length); `undefined` when absent.
+   * Called on every data recompute, so keep it a plain lookup; the chart
+   * snapshots what it needs and never mutates the array.
+   */
+  getPropertyValues(property: string): readonly DataValue[] | undefined;
+  /** When it returns anything but null/undefined, the chart shows its error state — `''` and `0` count. */
   getError?(): unknown;
   /** When set and true, the chart shows its loading state. */
   getLoading?(): boolean;
+  /** Re-index anything cached off the source dataset; the chart handle's `refresh` calls it before re-reading. */
+  refresh?(): void;
 }
 
-export type DataRow = Record<string, unknown>;
+export type DataObject = Record<string, unknown>;
+
+/** The dataset shape `ArrayOfObjectsDataProvider` wraps: one object per category. */
+export type ArrayOfObjectsData = readonly DataObject[];
+
+/** The dataset shape `ObjectOfArraysDataProvider` wraps: one values array per property. */
+export type ObjectOfArraysData = Readonly<Record<string, readonly DataValue[]>>;

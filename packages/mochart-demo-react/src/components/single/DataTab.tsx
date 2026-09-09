@@ -1,20 +1,20 @@
 import { useState, useRef, useMemo } from 'react';
 import Icon from '../misc/Icon';
 
-import { applyDataEdit, buildMochartDemoConfig, collectUsedDataProperties, demoText, formatDataView, getJsonError, parseFullData } from '@mochart/demo-common';
+import { applyDataEdit, buildMochartDemoConfig, collectUsedDataProperties, controlsMenuPlacement, demoText, formatDataView, getCategoryProperty, getDemoTabPanelAttrs, getJsonError, parseFullData } from '@mochart/demo-common';
 
-import TextAreaContent from '../misc/TextAreaContent';
+import JsonEditorContent from '../misc/JsonEditorContent';
 import ButtonWithTooltip from '../misc/ButtonWithTooltip';
 import OverflowMenu from '../misc/OverflowMenu';
 import { usePhoneViewport } from '../misc/usePhoneViewport';
 
-import type { DemoConfig, DataRow } from '../../types';
+import type { DemoConfig, DataObject } from '../../types';
 
 interface Props {
   active?: boolean;
   config?: DemoConfig | null;
-  data?: DataRow[] | null;
-  onDataChange: (data: DataRow[]) => void;
+  data?: DataObject[] | null;
+  onDataChange: (data: DataObject[]) => void;
   onDataError: (errorMessage: string) => void;
   onDataReset: () => void;
 }
@@ -26,10 +26,10 @@ export default function MochartDataTab({ active, config = null, data = null, onD
   // with (null when every property is shown).
   const usedProperties = useMemo(() => collectUsedDataProperties(buildMochartDemoConfig(config ?? {}).mochartConfig), [config]);
   const [showUnused, setShowUnused] = useState(false);
-  const fullDataRef = useRef<DataRow[]>([]);
+  const fullDataRef = useRef<DataObject[]>([]);
   const viewUsedRef = useRef<Set<string> | null>(null);
 
-  const renderView = (fullRows: DataRow[], show: boolean): string => {
+  const renderView = (fullRows: DataObject[], show: boolean): string => {
     const viewUsed = show ? null : usedProperties;
     fullDataRef.current = fullRows;
     viewUsedRef.current = viewUsed;
@@ -40,7 +40,7 @@ export default function MochartDataTab({ active, config = null, data = null, onD
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const footerRef = useRef<HTMLDivElement>(null);
 
-  const parseCurrentFullData = (text: string) => parseFullData(text, fullDataRef.current, viewUsedRef.current);
+  const parseCurrentFullData = (text: string) => parseFullData(text, fullDataRef.current, viewUsedRef.current, getCategoryProperty(config ?? {}));
 
   // Reformat when the incoming data changes.
   const prevData = useRef(data);
@@ -122,17 +122,17 @@ export default function MochartDataTab({ active, config = null, data = null, onD
   const errorSpan = footerError ? <span className="mochart-demo-footer-error" role="alert">{footerError}</span> : null;
 
   return (
-    <div className={"mochart-demo-tab-container demo-layout-col data" + (active ? " active" : "")} inert={!active}>
+    <div {...getDemoTabPanelAttrs('data')} className={"mochart-demo-tab-container demo-layout-col data" + (active ? " active" : "")} inert={!active}>
       <div className="mochart-demo-tab-content">
-        <TextAreaContent value={dataText} onChange={(text: string) => { setDataText(text); setErrorMessage(null); }} />
+        <JsonEditorContent value={dataText} ariaLabel={demoText.dataTab.editorAria}
+          onChange={(text: string) => { setDataText(text); setErrorMessage(null); }} />
       </div>
       <div className="mochart-demo-tab-footer" ref={footerRef}>
-        <div className="demo-toolbar" role="toolbar">
+        <div className="demo-toolbar">
           {isPhone ? (
             <>
               {applyButton}
-              <OverflowMenu text={demoText.overflowMenu.editor}
-                placement={{ side: 'top', align: 'end', gap: 4 }}
+              <OverflowMenu text={demoText.overflowMenu.editor} placement={controlsMenuPlacement}
                 anchorRef={footerRef} active={active !== false}>
                 <div className="demo-btn-group">{resetButton}{unusedButton}</div>
               </OverflowMenu>

@@ -1,7 +1,8 @@
 import { hasConfigStructureChange, NONE, ArrayOfObjectsDataProvider } from '@mochart/core';
+import type { DataProvider } from '@mochart/core';
 import { exportPNG, exportSVG } from '@mochart/export';
 
-import { applyPieSliceValue, getChartExportOptions, getGroupIndexTitle, getPieSequenceSteps, getPieSlices, getSeriesIndexTitle, demoText, isPhoneViewport, watchPhoneViewport } from '@mochart/demo-common';
+import { applyPieSliceValue, controlsMenuPlacement, createErrorDataProvider, getChartExportOptions, getCategoryIndexTitle, getPieSequenceSteps, getPieSlices, getSeriesIndexTitle, getSeriesValuesText, demoText, parseJson, isPhoneViewport, watchPhoneViewport } from '@mochart/demo-common';
 
 import type { PieSliceInfo, ShareState } from '@mochart/demo-common';
 
@@ -29,8 +30,8 @@ export interface EditableChartProps {
   /** Set on the chart instance that should render the share button. */
   showShareButton?: boolean;
   filteredSeriesIds: FilteredSeriesIds;
-  focusedGroupIndex: number;
-  focusedSeriesAxisId?: string | null;
+  focusedCategoryIndex: number;
+  focusedValueAxisId?: string | null;
   focusedSeriesId?: string | null;
   onFocus: (focusData: FocusData) => void;
   onSeriesFilter: (filterData: { filteredSeriesIds: FilteredSeriesIds }) => void;
@@ -44,9 +45,10 @@ export interface EditableChartUpdate {
   dataError?: string | boolean | null;
   isActive: boolean;
   chartCount: number;
+  showChartCountControls: boolean;
   filteredSeriesIds: FilteredSeriesIds;
-  focusedGroupIndex: number;
-  focusedSeriesAxisId?: string | null;
+  focusedCategoryIndex: number;
+  focusedValueAxisId?: string | null;
   focusedSeriesId?: string | null;
 }
 
@@ -64,22 +66,20 @@ export interface EditableChartHandle {
   destroy(): void;
 }
 
-interface EditableDataProvider {
-  getGroupValues?: (...args: any[]) => any;
-  getSeriesValue?: (...args: any[]) => any;
-  getError?: (...args: any[]) => any;
-}
+type EditableDataProvider = DataProvider;
 
 interface FocusPayload {
-  seriesAxisId?: string | null;
+  valueAxisId?: string | null;
   seriesId?: string | null;
-  groupIndex?: number;
+  categoryIndex?: number;
 }
 
-const emptyGroupText = demoText.editableChart.emptyGroupText;
+const emptyCategoryText = demoText.editableChart.emptyCategoryText;
 
 export function editableChart(props: EditableChartProps): EditableChartHandle {
-  const { onFocus, onSeriesFilter, onChartCountToggle, showChartCountControls } = props;
+  const { onFocus, onSeriesFilter, onChartCountToggle } = props;
+  // recomputed on every resize: the second chart is only offered on a viewport that can hold two
+  let showChartCountControls = props.showChartCountControls;
 
   let width = props.width;
   let mochartDemoConfig = props.mochartDemoConfig;
@@ -87,29 +87,29 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   let dataError = props.dataError ?? false;
   let chartCount = props.chartCount;
   let filteredSeriesIds = props.filteredSeriesIds;
-  let focusedGroupIndex = props.focusedGroupIndex;
-  let focusedSeriesAxisId = props.focusedSeriesAxisId ?? null;
+  let focusedCategoryIndex = props.focusedCategoryIndex;
+  let focusedValueAxisId = props.focusedValueAxisId ?? null;
   let focusedSeriesId = props.focusedSeriesId ?? null;
 
-  // Working copies of the demo data; mutated in place by the group/series
+  // Working copies of the demo data; mutated in place by the category/series
   // editing controls (same pattern as the framework demos).
   let filteredData: Row[] = [];
   let removedData: Row[] = [];
   let sequenceId: ReturnType<typeof setInterval> | null = null;
 
   let dataProvider: EditableDataProvider | null = null;
-  let groupIndex = -1;
-  let groupValuesText = '';
+  let categoryIndex = -1;
+  let categoryValuesText = '';
   let seriesIndex = 0;
   let seriesValuesText = '';
-  let selectionMode = 'group';
+  let selectionMode = 'category';
   let sequencePlaying = false;
-  // pie-mode slice editing: slices are the series, so the group machinery has
+  // pie-mode slice editing: slices are the series, so the category machinery has
   // nothing to operate on and a single slice panel replaces both panels
   let slices: PieSliceInfo[] = [];
   let sliceIndex = 0;
   let sliceValueText = '';
-  let filteredFocusedGroupIndex = -1;
+  let filteredFocusedCategoryIndex = -1;
   let orderChanged = false;
 
   // The phone fold. Read once up front and kept current by the watcher below;
@@ -120,40 +120,41 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     sync();
   });
 
-  function getFilteredFocusedGroupIndex(nextFilteredData: Row[]): number {
-    let nextFilteredFocusedGroupIndex = -1;
-    if (focusedGroupIndex >= 0) {
-      const groupProperty = mochartDemoConfig.groupProperty ?? '';
-      const groupValue = data[focusedGroupIndex][groupProperty];
+  function getFilteredFocusedCategoryIndex(nextFilteredData: Row[]): number {
+    let nextFilteredFocusedCategoryIndex = -1;
+    if (focusedCategoryIndex >= 0) {
+      const categoryProperty = mochartDemoConfig.categoryProperty ?? '';
+      // a stale index (combined config+data update) must degrade to no focus, not throw
+      const categoryValue = data[focusedCategoryIndex]?.[categoryProperty];
       const count = nextFilteredData.length;
       for (let i = 0; i < count; i++) {
-        if (nextFilteredData[i][groupProperty] === groupValue) {
-          nextFilteredFocusedGroupIndex = i;
+        if (nextFilteredData[i][categoryProperty] === categoryValue) {
+          nextFilteredFocusedCategoryIndex = i;
           break;
         }
       }
     }
-    return nextFilteredFocusedGroupIndex;
+    return nextFilteredFocusedCategoryIndex;
   }
 
   function updateFilteredDataState(
-    nextState: { orderChanged?: boolean; groupIndex?: number; seriesIndex?: number; groupValuesText?: string; seriesValuesText?: string },
+    nextState: { orderChanged?: boolean; categoryIndex?: number; seriesIndex?: number; categoryValuesText?: string; seriesValuesText?: string },
     nextFilteredData: Row[],
     nextRemovedData: Row[],
-    resetGroupIndex = true
+    resetCategoryIndex = true
   ): void {
     filteredData = nextFilteredData;
     removedData = nextRemovedData;
-    if (resetGroupIndex === true) {
-      groupIndex = -1;
-      seriesValuesText = demoText.editableChart.selectAGroupText;
+    if (resetCategoryIndex === true) {
+      categoryIndex = -1;
+      seriesValuesText = demoText.editableChart.selectACategoryText;
     }
-    filteredFocusedGroupIndex = dataError ? -1 : getFilteredFocusedGroupIndex(nextFilteredData);
+    filteredFocusedCategoryIndex = dataError ? -1 : getFilteredFocusedCategoryIndex(nextFilteredData);
     if (!dataError && mochartDemoConfig.mochartConfig.validation.valid) {
-      dataProvider = new ArrayOfObjectsDataProvider(nextFilteredData, mochartDemoConfig.mochartConfig.groupAxisConfig.property ?? '');
+      dataProvider = new ArrayOfObjectsDataProvider(nextFilteredData);
     }
     else if (dataError) {
-      dataProvider = { getError: () => dataError };
+      dataProvider = createErrorDataProvider(dataError);
     }
     else {
       dataProvider = null;
@@ -161,14 +162,14 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     if (nextState.orderChanged !== undefined) {
       orderChanged = nextState.orderChanged;
     }
-    if (nextState.groupIndex !== undefined) {
-      groupIndex = nextState.groupIndex;
+    if (nextState.categoryIndex !== undefined) {
+      categoryIndex = nextState.categoryIndex;
     }
     if (nextState.seriesIndex !== undefined) {
       seriesIndex = nextState.seriesIndex;
     }
-    if (nextState.groupValuesText !== undefined) {
-      groupValuesText = nextState.groupValuesText;
+    if (nextState.categoryValuesText !== undefined) {
+      categoryValuesText = nextState.categoryValuesText;
     }
     if (nextState.seriesValuesText !== undefined) {
       seriesValuesText = nextState.seriesValuesText;
@@ -189,7 +190,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
       sliceIndex = 0;
     }
     sliceValueText = getSliceValueText(nextFilteredData);
-    updateFilteredDataState({ orderChanged: false, seriesIndex: 0, groupValuesText: emptyGroupText }, nextFilteredData, []);
+    updateFilteredDataState({ orderChanged: false, seriesIndex: 0, categoryValuesText: emptyCategoryText }, nextFilteredData, []);
   }
 
   function getSliceValueText(rows: Row[]): string {
@@ -229,7 +230,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     }
   }
 
-  // The pie analog of the group add/remove sequences: suppress the slices one
+  // The pie analog of the category add/remove sequences: filter the slices one
   // at a time (via the shared legend filter, so the remaining slices re-sweep
   // and center totals count along), then restore them.
   function startSliceSequence(): void {
@@ -251,139 +252,139 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   }
 
   // mochart reports focus with the new payload shape; adapt it to the
-  // { seriesAxisId, seriesId, groupIndex } shape this demo tracks.
-  function onChartFocus({ focusedSeriesAxisId: seriesAxisId, focusedSeriesId: seriesId, focusedGroupIndex: chartGroupIndex }: { focusedSeriesAxisId?: string | null; focusedSeriesId?: string | null; focusedGroupIndex?: number }): void {
-    onLocalFocus({ seriesAxisId, seriesId, groupIndex: chartGroupIndex });
+  // { valueAxisId, seriesId, categoryIndex } shape this demo tracks.
+  function onChartFocus({ focusedValueAxisId: valueAxisId, focusedSeriesId: seriesId, focusedCategoryIndex: chartCategoryIndex }: { focusedValueAxisId?: string | null; focusedSeriesId?: string | null; focusedCategoryIndex?: number }): void {
+    onLocalFocus({ valueAxisId, seriesId, categoryIndex: chartCategoryIndex });
   }
 
-  function onLocalFocus({ seriesAxisId, seriesId, groupIndex: nextGroupIndex }: FocusPayload): void {
-    if (nextGroupIndex !== undefined) {
-      const nextFilteredFocusedGroupIndex = nextGroupIndex;
-      let newFocusedGroupIndex = -1;
-      if (nextFilteredFocusedGroupIndex >= 0) {
-        const groupProperty = mochartDemoConfig.groupProperty ?? '';
-        const groupValue = filteredData[nextFilteredFocusedGroupIndex][groupProperty];
+  function onLocalFocus({ valueAxisId, seriesId, categoryIndex: nextCategoryIndex }: FocusPayload): void {
+    if (nextCategoryIndex !== undefined) {
+      const nextFilteredFocusedCategoryIndex = nextCategoryIndex;
+      let newFocusedCategoryIndex = -1;
+      if (nextFilteredFocusedCategoryIndex >= 0) {
+        const categoryProperty = mochartDemoConfig.categoryProperty ?? '';
+        const categoryValue = filteredData[nextFilteredFocusedCategoryIndex][categoryProperty];
         const count = data.length;
         for (let i = 0; i < count; i++) {
-          if (data[i][groupProperty] === groupValue) {
-            newFocusedGroupIndex = i;
+          if (data[i][categoryProperty] === categoryValue) {
+            newFocusedCategoryIndex = i;
             break;
           }
         }
       }
-      filteredFocusedGroupIndex = nextFilteredFocusedGroupIndex;
-      onFocus({ seriesAxisId, seriesId, groupIndex: newFocusedGroupIndex });
+      filteredFocusedCategoryIndex = nextFilteredFocusedCategoryIndex;
+      onFocus({ valueAxisId, seriesId, categoryIndex: newFocusedCategoryIndex });
     }
     else {
-      onFocus({ seriesAxisId, seriesId, groupIndex: nextGroupIndex });
+      onFocus({ valueAxisId, seriesId, categoryIndex: nextCategoryIndex });
     }
   }
 
-  function onChartClick({ groupIndex: clickedGroupIndex }: { groupIndex: number }): void {
-    const groupProperty = mochartDemoConfig.groupProperty ?? '';
-    const clickedGroupValue = '' + filteredData[clickedGroupIndex][groupProperty];
+  function onChartClick({ categoryIndex: clickedCategoryIndex }: { categoryIndex: number }): void {
+    const categoryProperty = mochartDemoConfig.categoryProperty ?? '';
+    const clickedCategoryValue = '' + filteredData[clickedCategoryIndex][categoryProperty];
     if (selectionMode === 'series') {
-      groupIndex = clickedGroupIndex;
-      seriesValuesText = getSeriesValuesText(mochartDemoConfig, filteredData, clickedGroupIndex, seriesIndex);
+      categoryIndex = clickedCategoryIndex;
+      seriesValuesText = getSeriesValuesText(mochartDemoConfig, filteredData, clickedCategoryIndex, seriesIndex);
     }
-    else if (selectionMode === 'group') {
-      const dataGroupValues: any[] = [];
+    else if (selectionMode === 'category') {
+      const dataCategoryValues: any[] = [];
       const count = filteredData.length;
       for (let i = 0; i < count; i++) {
-        dataGroupValues.push(filteredData[i][groupProperty]);
+        dataCategoryValues.push(filteredData[i][categoryProperty]);
       }
-      let parsedGroupValues = groupValuesText === emptyGroupText ? [] : groupValuesText.split(',');
-      parsedGroupValues = parsedGroupValues.filter((parsedGroupValue) => dataGroupValues.indexOf(parsedGroupValue) !== -1 || dataGroupValues.indexOf(+parsedGroupValue) !== -1);
-      const clickedIndex = parsedGroupValues.indexOf(clickedGroupValue);
+      let parsedCategoryValues = categoryValuesText === emptyCategoryText ? [] : categoryValuesText.split(',');
+      parsedCategoryValues = parsedCategoryValues.filter((parsedCategoryValue) => dataCategoryValues.indexOf(parsedCategoryValue) !== -1 || dataCategoryValues.indexOf(+parsedCategoryValue) !== -1);
+      const clickedIndex = parsedCategoryValues.indexOf(clickedCategoryValue);
       if (clickedIndex === -1) {
-        parsedGroupValues = parsedGroupValues.concat(clickedGroupValue);
+        parsedCategoryValues = parsedCategoryValues.concat(clickedCategoryValue);
       }
       else {
-        parsedGroupValues.splice(clickedIndex, 1);
+        parsedCategoryValues.splice(clickedIndex, 1);
       }
-      groupValuesText = parsedGroupValues.length === 0 ? emptyGroupText : parsedGroupValues.join(',');
+      categoryValuesText = parsedCategoryValues.length === 0 ? emptyCategoryText : parsedCategoryValues.join(',');
     }
     sync();
   }
 
   function onModeToggle(): void {
-    selectionMode = selectionMode === 'group' ? 'series' : 'group';
+    selectionMode = selectionMode === 'category' ? 'series' : 'category';
     sync();
   }
 
-  function selectAllGroups(): void {
-    const groupProperty = mochartDemoConfig.groupProperty ?? '';
-    const allGroupValues: any[] = [];
+  function selectAllCategories(): void {
+    const categoryProperty = mochartDemoConfig.categoryProperty ?? '';
+    const allCategoryValues: any[] = [];
     const count = data.length;
     for (let i = 0; i < count; i++) {
-      allGroupValues.push(data[i][groupProperty]);
+      allCategoryValues.push(data[i][categoryProperty]);
     }
-    groupValuesText = allGroupValues.join(',');
+    categoryValuesText = allCategoryValues.join(',');
     sync();
   }
 
-  function resetGroups(): void {
-    const groupProperty = mochartDemoConfig.groupProperty ?? '';
-    const groupToObjectMap: Record<string, Row> = {};
+  function resetCategories(): void {
+    const categoryProperty = mochartDemoConfig.categoryProperty ?? '';
+    const categoryToObjectMap: Record<string, Row> = {};
     removedData.forEach(removedObject => {
-      groupToObjectMap[removedObject[groupProperty]] = removedObject;
+      categoryToObjectMap[removedObject[categoryProperty]] = removedObject;
     });
     filteredData.forEach(oldObject => {
-      groupToObjectMap[oldObject[groupProperty]] = oldObject;
+      categoryToObjectMap[oldObject[categoryProperty]] = oldObject;
     });
-    const nextFilteredData = data.map(o => groupToObjectMap[o[groupProperty] as string]);
+    const nextFilteredData = data.map(o => categoryToObjectMap[o[categoryProperty] as string]);
     updateFilteredDataState({ orderChanged: false }, nextFilteredData, []);
   }
 
-  function reverseGroups(): void {
+  function reverseCategories(): void {
     if (filteredData && filteredData.length > 1) {
       const nextFilteredData = filteredData.slice().reverse();
       updateFilteredDataState({ orderChanged: true }, nextFilteredData, removedData);
     }
   }
 
-  function decreaseGroupOrder(): void {
-    if (filteredData && filteredData.length > 1 && groupIndex > 0) {
+  function decreaseCategoryOrder(): void {
+    if (filteredData && filteredData.length > 1 && categoryIndex > 0) {
       const nextFilteredData = filteredData.slice();
-      const temp = nextFilteredData[groupIndex - 1];
-      nextFilteredData[groupIndex - 1] = nextFilteredData[groupIndex];
-      nextFilteredData[groupIndex] = temp;
-      updateFilteredDataState({ orderChanged: true, groupIndex: groupIndex - 1 }, nextFilteredData, removedData, false);
+      const temp = nextFilteredData[categoryIndex - 1];
+      nextFilteredData[categoryIndex - 1] = nextFilteredData[categoryIndex];
+      nextFilteredData[categoryIndex] = temp;
+      updateFilteredDataState({ orderChanged: true, categoryIndex: categoryIndex - 1 }, nextFilteredData, removedData, false);
     }
   }
 
-  function increaseGroupOrder(): void {
-    if (filteredData && filteredData.length > 1 && groupIndex < filteredData.length - 1) {
+  function increaseCategoryOrder(): void {
+    if (filteredData && filteredData.length > 1 && categoryIndex < filteredData.length - 1) {
       const nextFilteredData = filteredData.slice();
-      const temp = nextFilteredData[groupIndex + 1];
-      nextFilteredData[groupIndex + 1] = nextFilteredData[groupIndex];
-      nextFilteredData[groupIndex] = temp;
-      updateFilteredDataState({ orderChanged: true, groupIndex: groupIndex + 1 }, nextFilteredData, removedData, false);
+      const temp = nextFilteredData[categoryIndex + 1];
+      nextFilteredData[categoryIndex + 1] = nextFilteredData[categoryIndex];
+      nextFilteredData[categoryIndex] = temp;
+      updateFilteredDataState({ orderChanged: true, categoryIndex: categoryIndex + 1 }, nextFilteredData, removedData, false);
     }
   }
 
-  function addGroups(): void {
+  function addCategories(): void {
     const oldFilteredData = filteredData;
     const oldRemovedData = removedData;
-    const groupProperty = mochartDemoConfig.groupProperty ?? '';
-    const groupValuesToAdd = groupValuesText === emptyGroupText ? [] : groupValuesText.split(',');
-    const groupValueToAddMap: Record<string, boolean> = {};
-    groupValuesToAdd.forEach(groupValueToAdd => {
-      groupValueToAddMap[groupValueToAdd] = true;
+    const categoryProperty = mochartDemoConfig.categoryProperty ?? '';
+    const categoryValuesToAdd = categoryValuesText === emptyCategoryText ? [] : categoryValuesText.split(',');
+    const categoryValueToAddMap: Record<string, boolean> = {};
+    categoryValuesToAdd.forEach(categoryValueToAdd => {
+      categoryValueToAddMap[categoryValueToAdd] = true;
     });
     const removedMap: Record<string, Row> = {};
     oldRemovedData.forEach(removedObject => {
-      removedMap[removedObject[groupProperty]] = removedObject;
+      removedMap[removedObject[categoryProperty]] = removedObject;
     });
     const count = data.length;
     const filteredCount = oldFilteredData.length;
     const nextFilteredData: Row[] = [];
     for (let i = 0, fi = 0; i < count; i++) {
       if (fi < filteredCount) {
-        if (data[i][groupProperty] !== oldFilteredData[fi][groupProperty]) {
-          if (groupValueToAddMap[data[i][groupProperty]] === true) {
-            nextFilteredData.push(removedMap[data[i][groupProperty]]);
-            delete removedMap[data[i][groupProperty]];
+        if (data[i][categoryProperty] !== oldFilteredData[fi][categoryProperty]) {
+          if (categoryValueToAddMap[data[i][categoryProperty]] === true) {
+            nextFilteredData.push(removedMap[data[i][categoryProperty]]);
+            delete removedMap[data[i][categoryProperty]];
           }
         }
         else {
@@ -391,33 +392,33 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
           fi++;
         }
       }
-      else if (groupValueToAddMap[data[i][groupProperty]] === true) {
-        nextFilteredData.push(removedMap[data[i][groupProperty]]);
-        delete removedMap[data[i][groupProperty]];
+      else if (categoryValueToAddMap[data[i][categoryProperty]] === true) {
+        nextFilteredData.push(removedMap[data[i][categoryProperty]]);
+        delete removedMap[data[i][categoryProperty]];
       }
     }
     const nextRemovedData: Row[] = [];
     oldRemovedData.forEach(removedObject => {
-      if (removedMap[removedObject[groupProperty]] !== undefined) {
-        nextRemovedData.push(removedMap[removedObject[groupProperty]]);
+      if (removedMap[removedObject[categoryProperty]] !== undefined) {
+        nextRemovedData.push(removedMap[removedObject[categoryProperty]]);
       }
     });
     updateFilteredDataState({}, nextFilteredData, nextRemovedData);
   }
 
-  function removeGroups(): void {
+  function removeCategories(): void {
     const oldFilteredData = filteredData;
     const nextRemovedData = removedData;
-    const groupProperty = mochartDemoConfig.groupProperty ?? '';
-    const groupValuesToRemove = groupValuesText === emptyGroupText ? [] : groupValuesText.split(',');
-    const groupValueToRemoveMap: Record<string, boolean> = {};
-    groupValuesToRemove.forEach(groupValueToRemove => {
-      groupValueToRemoveMap[groupValueToRemove] = true;
+    const categoryProperty = mochartDemoConfig.categoryProperty ?? '';
+    const categoryValuesToRemove = categoryValuesText === emptyCategoryText ? [] : categoryValuesText.split(',');
+    const categoryValueToRemoveMap: Record<string, boolean> = {};
+    categoryValuesToRemove.forEach(categoryValueToRemove => {
+      categoryValueToRemoveMap[categoryValueToRemove] = true;
     });
     const count = oldFilteredData.length;
     const nextFilteredData: Row[] = [];
     for (let i = 0; i < count; i++) {
-      if (groupValueToRemoveMap[oldFilteredData[i][groupProperty]] !== true) {
+      if (categoryValueToRemoveMap[oldFilteredData[i][categoryProperty]] !== true) {
         nextFilteredData.push(oldFilteredData[i]);
       }
       else {
@@ -430,26 +431,26 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   function startAddSequence(): void {
     const oldFilteredData = filteredData;
     const oldRemovedData = removedData;
-    const groupProperty = mochartDemoConfig.groupProperty ?? '';
-    const groupValuesToAdd = groupValuesText === emptyGroupText ? [] : groupValuesText.split(',');
-    const groupValueToAddMap: Record<string, boolean> = {};
-    groupValuesToAdd.forEach(groupValueToAdd => {
-      groupValueToAddMap[groupValueToAdd] = true;
+    const categoryProperty = mochartDemoConfig.categoryProperty ?? '';
+    const categoryValuesToAdd = categoryValuesText === emptyCategoryText ? [] : categoryValuesText.split(',');
+    const categoryValueToAddMap: Record<string, boolean> = {};
+    categoryValuesToAdd.forEach(categoryValueToAdd => {
+      categoryValueToAddMap[categoryValueToAdd] = true;
     });
     const removedIndexMap: Record<string, number> = {};
     oldRemovedData.forEach((removedObject, removedIndex) => {
-      removedIndexMap[removedObject[groupProperty]] = removedIndex;
+      removedIndexMap[removedObject[categoryProperty]] = removedIndex;
     });
-    const groupObjectsToAdd: { removedIndex: number; dataIndex: number }[] = [];
+    const categoryObjectsToAdd: { removedIndex: number; dataIndex: number }[] = [];
     const count = data.length;
     const filteredCount = oldFilteredData.length;
     for (let i = 0, fi = 0; i < count; i++) {
       if (fi < filteredCount) {
-        if (data[i][groupProperty] !== oldFilteredData[fi][groupProperty]) {
-          if (groupValueToAddMap[data[i][groupProperty]] === true) {
-            groupObjectsToAdd.push({
-              removedIndex: removedIndexMap[data[i][groupProperty]] - groupObjectsToAdd.length,
-              dataIndex: fi + groupObjectsToAdd.length
+        if (data[i][categoryProperty] !== oldFilteredData[fi][categoryProperty]) {
+          if (categoryValueToAddMap[data[i][categoryProperty]] === true) {
+            categoryObjectsToAdd.push({
+              removedIndex: removedIndexMap[data[i][categoryProperty]] - categoryObjectsToAdd.length,
+              dataIndex: fi + categoryObjectsToAdd.length
             });
           }
         }
@@ -457,20 +458,20 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
           fi++;
         }
       }
-      else if (groupValueToAddMap[data[i][groupProperty]] === true) {
-        groupObjectsToAdd.push({
-          removedIndex: removedIndexMap[data[i][groupProperty]] - groupObjectsToAdd.length,
-          dataIndex: fi + groupObjectsToAdd.length
+      else if (categoryValueToAddMap[data[i][categoryProperty]] === true) {
+        categoryObjectsToAdd.push({
+          removedIndex: removedIndexMap[data[i][categoryProperty]] - categoryObjectsToAdd.length,
+          dataIndex: fi + categoryObjectsToAdd.length
         });
       }
     }
-    if (groupObjectsToAdd.length > 0) {
+    if (categoryObjectsToAdd.length > 0) {
       sequencePlaying = true;
       let addCount = 0;
       sequenceId = setInterval(() => {
-        oldFilteredData.splice(groupObjectsToAdd[addCount].dataIndex, 0, oldRemovedData.splice(groupObjectsToAdd[addCount].removedIndex, 1)[0]);
+        oldFilteredData.splice(categoryObjectsToAdd[addCount].dataIndex, 0, oldRemovedData.splice(categoryObjectsToAdd[addCount].removedIndex, 1)[0]);
         updateFilteredDataState({}, oldFilteredData, oldRemovedData);
-        if (addCount < groupObjectsToAdd.length - 1) {
+        if (addCount < categoryObjectsToAdd.length - 1) {
           addCount++;
         }
         else {
@@ -484,25 +485,25 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   function startRemoveSequence(): void {
     const oldFilteredData = filteredData;
     const oldRemovedData = removedData;
-    const groupProperty = mochartDemoConfig.groupProperty ?? '';
-    const groupValuesToRemove = groupValuesText === emptyGroupText ? [] : groupValuesText.split(',');
-    const groupValueToRemoveMap: Record<string, boolean> = {};
-    groupValuesToRemove.forEach(groupValueToRemove => {
-      groupValueToRemoveMap[groupValueToRemove] = true;
+    const categoryProperty = mochartDemoConfig.categoryProperty ?? '';
+    const categoryValuesToRemove = categoryValuesText === emptyCategoryText ? [] : categoryValuesText.split(',');
+    const categoryValueToRemoveMap: Record<string, boolean> = {};
+    categoryValuesToRemove.forEach(categoryValueToRemove => {
+      categoryValueToRemoveMap[categoryValueToRemove] = true;
     });
     const removedIndexMap: Record<string, number> = {};
     oldRemovedData.forEach((removedObject, removedIndex) => {
-      removedIndexMap[removedObject[groupProperty]] = removedIndex;
+      removedIndexMap[removedObject[categoryProperty]] = removedIndex;
     });
-    const groupObjectsToRemove: { removedIndex: number; dataIndex: number }[] = [];
+    const categoryObjectsToRemove: { removedIndex: number; dataIndex: number }[] = [];
     const count = data.length;
     const filteredCount = oldFilteredData.length;
     for (let i = 0, fi = 0, ri = 0; i < count && fi < filteredCount; i++) {
-      if (data[i][groupProperty] === oldFilteredData[fi][groupProperty]) {
-        if (groupValueToRemoveMap[data[i][groupProperty]] === true) {
-          groupObjectsToRemove.push({
+      if (data[i][categoryProperty] === oldFilteredData[fi][categoryProperty]) {
+        if (categoryValueToRemoveMap[data[i][categoryProperty]] === true) {
+          categoryObjectsToRemove.push({
             removedIndex: ri,
-            dataIndex: fi - groupObjectsToRemove.length
+            dataIndex: fi - categoryObjectsToRemove.length
           });
           ri++;
         }
@@ -512,13 +513,13 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
         ri++;
       }
     }
-    if (groupObjectsToRemove.length > 0) {
+    if (categoryObjectsToRemove.length > 0) {
       sequencePlaying = true;
       let removeCount = 0;
       sequenceId = setInterval(() => {
-        oldRemovedData.splice(groupObjectsToRemove[removeCount].removedIndex, 0, oldFilteredData.splice(groupObjectsToRemove[removeCount].dataIndex, 1)[0]);
+        oldRemovedData.splice(categoryObjectsToRemove[removeCount].removedIndex, 0, oldFilteredData.splice(categoryObjectsToRemove[removeCount].dataIndex, 1)[0]);
         updateFilteredDataState({}, oldFilteredData, oldRemovedData);
-        if (removeCount < groupObjectsToRemove.length - 1) {
+        if (removeCount < categoryObjectsToRemove.length - 1) {
           removeCount++;
         }
         else {
@@ -543,58 +544,31 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   }
 
   function prevSeries(): void {
-    if (groupIndex !== -1 && seriesIndex > 0) {
+    if (categoryIndex !== -1 && seriesIndex > 0) {
       seriesIndex--;
-      seriesValuesText = getSeriesValuesText(mochartDemoConfig, filteredData, groupIndex, seriesIndex);
+      seriesValuesText = getSeriesValuesText(mochartDemoConfig, filteredData, categoryIndex, seriesIndex);
       sync();
     }
   }
 
   function nextSeries(): void {
     const { seriesCount } = mochartDemoConfig;
-    if (groupIndex !== -1 && seriesIndex < seriesCount - 1) {
+    if (categoryIndex !== -1 && seriesIndex < seriesCount - 1) {
       seriesIndex++;
-      seriesValuesText = getSeriesValuesText(mochartDemoConfig, filteredData, groupIndex, seriesIndex);
+      seriesValuesText = getSeriesValuesText(mochartDemoConfig, filteredData, categoryIndex, seriesIndex);
       sync();
     }
   }
 
-  function getSeriesValuesText({ mochartConfig }: MochartDemoConfig, currentFilteredData: Row[], currentGroupIndex: number, currentSeriesIndex: number): string {
-    const dataObject = currentFilteredData[currentGroupIndex];
-    const { seriesConfigs } = mochartConfig;
-    if (seriesConfigs.length > 0) {
-      const seriesConfig = seriesConfigs[currentSeriesIndex];
-      const { property, rangeProperty, markerProperty, labelProperty, colorProperty } = seriesConfig;
-      const seriesValuesTextObject: Record<string, unknown> = {};
-      seriesValuesTextObject['p'] = dataObject[property!];
-      if (rangeProperty !== NONE) {
-        seriesValuesTextObject['r'] = dataObject[rangeProperty];
-      }
-      if (markerProperty !== NONE) {
-        seriesValuesTextObject['m'] = dataObject[markerProperty];
-      }
-      if (labelProperty !== NONE) {
-        seriesValuesTextObject['l'] = dataObject[labelProperty];
-      }
-      if (colorProperty !== NONE) {
-        seriesValuesTextObject['c'] = dataObject[colorProperty];
-      }
-      return JSON.stringify(seriesValuesTextObject);
-    }
-    else {
-      return '';
-    }
-  }
-
   function applySeriesChanges(): void {
-    const filteredDataObject = filteredData[groupIndex];
+    const filteredDataObject = filteredData[categoryIndex];
     const { mochartConfig } = mochartDemoConfig;
-    const { seriesConfigs } = mochartConfig;
+    const { series: seriesConfigs } = mochartConfig;
     if (seriesConfigs.length > 0) {
       try {
-        const dataObject = JSON.parse(seriesValuesText);
+        const dataObject = parseJson(seriesValuesText) as Record<string, unknown>;
         const seriesConfig = seriesConfigs[seriesIndex];
-        const { property, rangeProperty, markerProperty, labelProperty, colorProperty } = seriesConfig;
+        const { property, rangeProperty, markerProperty, labelProperty, colorProperty, tooltipProperty, errorLowProperty, errorHighProperty } = seriesConfig;
         filteredDataObject[property!] = dataObject['p'];
         if (rangeProperty !== NONE) {
           filteredDataObject[rangeProperty] = dataObject['r'];
@@ -608,6 +582,15 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
         if (colorProperty !== NONE) {
           filteredDataObject[colorProperty] = dataObject['c'];
         }
+        if (tooltipProperty !== NONE) {
+          filteredDataObject[tooltipProperty] = dataObject['t'];
+        }
+        if (errorLowProperty !== NONE) {
+          filteredDataObject[errorLowProperty] = dataObject['el'];
+        }
+        if (errorHighProperty !== NONE) {
+          filteredDataObject[errorHighProperty] = dataObject['eh'];
+        }
         updateFilteredDataState({}, filteredData, removedData, false);
       }
       catch {
@@ -618,20 +601,20 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
 
   function resetSeriesChanges(): void {
     const { mochartConfig } = mochartDemoConfig;
-    const groupProperty = mochartDemoConfig.groupProperty ?? '';
-    const { seriesConfigs } = mochartConfig;
+    const categoryProperty = mochartDemoConfig.categoryProperty ?? '';
+    const { series: seriesConfigs } = mochartConfig;
     if (seriesConfigs.length > 0) {
-      const filteredDataObject = filteredData[groupIndex];
-      const filteredGroupValue = filteredDataObject[groupProperty];
+      const filteredDataObject = filteredData[categoryIndex];
+      const filteredCategoryValue = filteredDataObject[categoryProperty];
       const count = data.length;
       let dataObject: Row | null = null;
       for (let i = 0; i < count; i++) {
-        if (data[i][groupProperty] === filteredGroupValue) {
+        if (data[i][categoryProperty] === filteredCategoryValue) {
           dataObject = data[i];
         }
       }
       const seriesConfig = seriesConfigs[seriesIndex];
-      const { property, rangeProperty, markerProperty, labelProperty, colorProperty } = seriesConfig;
+      const { property, rangeProperty, markerProperty, labelProperty, colorProperty, tooltipProperty, errorLowProperty, errorHighProperty } = seriesConfig;
       filteredDataObject[property!] = dataObject![property!];
       if (rangeProperty !== NONE) {
         filteredDataObject[rangeProperty] = dataObject![rangeProperty];
@@ -645,7 +628,16 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
       if (colorProperty !== NONE) {
         filteredDataObject[colorProperty] = dataObject![colorProperty];
       }
-      updateFilteredDataState({ seriesValuesText: getSeriesValuesText(mochartDemoConfig, filteredData, groupIndex, seriesIndex) }, filteredData, removedData, false);
+      if (tooltipProperty !== NONE) {
+        filteredDataObject[tooltipProperty] = dataObject![tooltipProperty];
+      }
+      if (errorLowProperty !== NONE) {
+        filteredDataObject[errorLowProperty] = dataObject![errorLowProperty];
+      }
+      if (errorHighProperty !== NONE) {
+        filteredDataObject[errorHighProperty] = dataObject![errorHighProperty];
+      }
+      updateFilteredDataState({ seriesValuesText: getSeriesValuesText(mochartDemoConfig, filteredData, categoryIndex, seriesIndex) }, filteredData, removedData, false);
     }
   }
 
@@ -659,8 +651,8 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
       mochartConfig: mochartDemoConfig.mochartConfig,
       dataProvider,
       filteredSeriesIds,
-      focusedGroupIndex: filteredFocusedGroupIndex,
-      focusedSeriesAxisId,
+      focusedCategoryIndex: filteredFocusedCategoryIndex,
+      focusedValueAxisId,
       focusedSeriesId,
       onFocus: onChartFocus,
       onSeriesFilter,
@@ -674,23 +666,22 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
 
   // Common controls shared by both panels; moved into whichever panel is
   // visible (the framework demos render them per-branch instead).
-  const chartCountButton = showChartCountControls ? buttonWithTooltip({
-    id: 'edit-chart-count', label: demoText.editableChart.secondChart.label, pressed: chartCount === 2, ariaLabel: demoText.editableChart.secondChart.aria,
+  const chartCountButton = buttonWithTooltip({
+    label: demoText.editableChart.secondChart.label, pressed: chartCount === 2, ariaLabel: demoText.editableChart.secondChart.aria,
     tooltipText: chartCount === 2 ? demoText.editableChart.secondChart.tooltipHide : demoText.editableChart.secondChart.tooltipShow,
     onClick: onChartCountToggle,
     content: [icon(chartCount === 2 ? 'window-maximize' : 'window-restore', { size: 'lg', fixedWidth: true })]
-  }) : null;
+  });
   const modeButton = buttonWithTooltip({
-    id: 'edit-mode', label: demoText.editableChart.editMode.labelToSeries, ariaLabel: demoText.editableChart.editMode.aria,
+    label: demoText.editableChart.editMode.labelToSeries, ariaLabel: demoText.editableChart.editMode.aria,
     tooltipText: demoText.editableChart.editMode.tooltipToSeries,
     onClick: onModeToggle,
     content: [icon('bullseye', { size: 'lg', fixedWidth: true })]
   });
   // The export/share menu sits at the far right of the controls row (past the
-  // group/series input). Share is only offered on the chart flagged for it
+  // category/series input). Share is only offered on the chart flagged for it
   // (the first, when two are shown).
   const exportShareMenuHandle = exportShareMenu({
-    idPrefix: 'edit',
     exportPng: () => { void exportPNG(chartContentElement, getChartExportOptions()); },
     exportSvg: () => { exportSVG(chartContentElement, getChartExportOptions()); },
     getShareState: props.showShareButton
@@ -707,9 +698,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   // the menus pinned to the right of whichever panel is visible.
   const overflowMenuHandle = overflowMenu({
     text: demoText.overflowMenu.chart,
-    // Opens upward over the chart (the strip is at the bottom of the pane) and
-    // right-aligned.
-    placement: { side: 'top', align: 'end', gap: 4 },
+    placement: controlsMenuPlacement,
     // Measured against the whole trailing group, not the trigger: the
     // export/share trigger sits to the ⋯'s right, so aligning to the ⋯ alone
     // would stop the panel ~50px short of the row's end — and on a 390px phone
@@ -717,128 +706,128 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     getAnchor: () => menuSpan
   });
   const menuSpan = el('span', { className: 'chart-controls-menu' }, [overflowMenuHandle.el, exportShareMenuHandle.el]);
-  const chartCountControl = chartCountButton ? el('div', { className: 'demo-btn-group' }, [chartCountButton.el]) : null;
+  const chartCountControl = el('div', { className: 'demo-btn-group' }, [chartCountButton.el]);
   const modeControl = el('div', { className: 'demo-btn-group' }, [modeButton.el]);
-  const commonControls = [...(chartCountControl ? [chartCountControl] : []), modeControl];
+  const commonControls = [chartCountControl, modeControl];
 
-  // Group-mode panel
-  const resetGroupsButton = buttonWithTooltip({
-    id: 'edit-reset-groups', label: demoText.editableChart.resetGroups.label, ariaLabel: demoText.editableChart.resetGroups.aria,
-    tooltipText: demoText.editableChart.resetGroups.tooltip,
-    onClick: resetGroups,
+  // Category-mode panel
+  const resetCategoriesButton = buttonWithTooltip({
+    label: demoText.editableChart.resetCategories.label, ariaLabel: demoText.editableChart.resetCategories.aria,
+    tooltipText: demoText.editableChart.resetCategories.tooltip,
+    onClick: resetCategories,
     content: [icon('arrow-rotate-left', { size: 'lg', fixedWidth: true })]
   });
-  const reverseGroupsButton = buttonWithTooltip({
-    id: 'edit-reverse-groups', label: demoText.editableChart.reverseGroups.label, ariaLabel: demoText.editableChart.reverseGroups.aria,
-    tooltipText: demoText.editableChart.reverseGroups.tooltip,
-    onClick: reverseGroups,
+  const reverseCategoriesButton = buttonWithTooltip({
+    label: demoText.editableChart.reverseCategories.label, ariaLabel: demoText.editableChart.reverseCategories.aria,
+    tooltipText: demoText.editableChart.reverseCategories.tooltip,
+    onClick: reverseCategories,
     content: [icon('right-left', { size: 'lg', fixedWidth: true })]
   });
-  const addGroupsButton = buttonWithTooltip({
-    id: 'edit-add-groups', label: demoText.editableChart.addGroups.label, ariaLabel: demoText.editableChart.addGroups.aria,
-    tooltipText: demoText.editableChart.addGroups.tooltip,
-    onClick: addGroups,
+  const addCategoriesButton = buttonWithTooltip({
+    label: demoText.editableChart.addCategories.label, ariaLabel: demoText.editableChart.addCategories.aria,
+    tooltipText: demoText.editableChart.addCategories.tooltip,
+    onClick: addCategories,
     content: [icon('plus', { size: 'lg', fixedWidth: true })]
   });
-  const removeGroupsButton = buttonWithTooltip({
-    id: 'edit-remove-groups', label: demoText.editableChart.removeGroups.label, ariaLabel: demoText.editableChart.removeGroups.aria,
-    tooltipText: demoText.editableChart.removeGroups.tooltip,
-    onClick: removeGroups,
+  const removeCategoriesButton = buttonWithTooltip({
+    label: demoText.editableChart.removeCategories.label, ariaLabel: demoText.editableChart.removeCategories.aria,
+    tooltipText: demoText.editableChart.removeCategories.tooltip,
+    onClick: removeCategories,
     content: [icon('minus', { size: 'lg', fixedWidth: true })]
   });
   // The three transport buttons are icon-only at every width by design, so they
   // carry `menuLabel` for the fold — without it they read as a column of bare
   // glyphs once they are inside the overflow panel.
   const playAddButton = buttonWithTooltip({
-    id: 'edit-play-add', ariaLabel: demoText.editableChart.playAddGroups.aria,
-    menuLabel: demoText.editableChart.playAddGroups.menuLabel,
-    tooltipText: demoText.editableChart.playAddGroups.tooltip,
+    ariaLabel: demoText.editableChart.playAddCategories.aria,
+    menuLabel: demoText.editableChart.playAddCategories.menuLabel,
+    tooltipText: demoText.editableChart.playAddCategories.tooltip,
     onClick: startAddSequence,
     content: [icon('play', { size: 'lg' }), el('span', { style: 'padding-right: 2px;' }), icon('plus', { size: 'lg' })]
   });
   const playRemoveButton = buttonWithTooltip({
-    id: 'edit-play-remove', ariaLabel: demoText.editableChart.playRemoveGroups.aria,
-    menuLabel: demoText.editableChart.playRemoveGroups.menuLabel,
-    tooltipText: demoText.editableChart.playRemoveGroups.tooltip,
+    ariaLabel: demoText.editableChart.playRemoveCategories.aria,
+    menuLabel: demoText.editableChart.playRemoveCategories.menuLabel,
+    tooltipText: demoText.editableChart.playRemoveCategories.tooltip,
     onClick: startRemoveSequence,
     content: [icon('play', { size: 'lg' }), el('span', { style: 'padding-right: 2px;' }), icon('minus', { size: 'lg' })]
   });
   const stopButton = buttonWithTooltip({
-    id: 'edit-stop', ariaLabel: demoText.editableChart.stopSequence.aria,
+    ariaLabel: demoText.editableChart.stopSequence.aria,
     menuLabel: demoText.editableChart.stopSequence.menuLabel,
     tooltipText: demoText.editableChart.stopSequence.tooltip,
     onClick: stopSequence,
     content: [icon('stop', { size: 'lg', fixedWidth: true })]
   });
   const selectAllButton = buttonWithTooltip({
-    id: 'edit-select-all', label: demoText.editableChart.selectAllGroups.label, ariaLabel: demoText.editableChart.selectAllGroups.aria,
-    tooltipText: demoText.editableChart.selectAllGroups.tooltip,
-    onClick: selectAllGroups,
+    label: demoText.editableChart.selectAllCategories.label, ariaLabel: demoText.editableChart.selectAllCategories.aria,
+    tooltipText: demoText.editableChart.selectAllCategories.tooltip,
+    onClick: selectAllCategories,
     content: [icon('check-double', { size: 'lg', fixedWidth: true })]
   });
 
-  const groupInput = el('input', { className: 'demo-input', attrs: { type: 'text' } });
-  groupInput.addEventListener('input', () => {
-    groupValuesText = groupInput.value;
+  const categoryInput = el('input', { className: 'demo-input', attrs: { type: 'text' } });
+  categoryInput.addEventListener('input', () => {
+    categoryValuesText = categoryInput.value;
     sync();
   });
 
   // The strip's order at desktop widths; also the list the fold restores.
-  const groupButtons = [
-    resetGroupsButton.el, reverseGroupsButton.el, addGroupsButton.el, removeGroupsButton.el,
+  const categoryButtons = [
+    resetCategoriesButton.el, reverseCategoriesButton.el, addCategoriesButton.el, removeCategoriesButton.el,
     playAddButton.el, playRemoveButton.el, stopButton.el, selectAllButton.el
   ];
-  const groupButtonGroup = el('div', { className: 'demo-btn-group' }, groupButtons);
-  const groupToolbar = el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, [groupButtonGroup]);
+  const categoryButtonGroup = el('div', { className: 'demo-btn-group' }, categoryButtons);
+  const categoryToolbar = el('div', { className: 'demo-toolbar' }, [categoryButtonGroup]);
 
   // Menu-side homes for the loose buttons the fold takes out of the strip —
   // cached `.demo-btn-group`s; OverflowMenu.ts's header says why that shape.
   const menuOrderGroup = el('div', { className: 'demo-btn-group' });
   const menuSequenceGroup = el('div', { className: 'demo-btn-group' });
-  const groupPanel = el('div', { className: 'chart-controls-container' }, [
+  const categoryPanel = el('div', { className: 'chart-controls-container' }, [
     el('div', { className: 'chart-controls-buttons' }, [
-      el('form', { className: 'demo-form-row' }, [
-        el('div', { className: 'demo-field' }, [groupToolbar])
+      el('form', {}, [
+        el('div', { className: 'demo-field' }, [categoryToolbar])
       ])
     ]),
     el('span', { className: 'chart-controls-input' }, [
-      el('form', { className: 'demo-form-row' }, [groupInput])
+      el('form', {}, [categoryInput])
     ])
   ]);
 
   // Series-mode panel
-  const groupDecreaseButton = buttonWithTooltip({
-    id: 'edit-group-decrease', ariaLabel: demoText.editableChart.decreaseGroupOrder.aria,
-    tooltipText: demoText.editableChart.decreaseGroupOrder.tooltip,
-    onClick: decreaseGroupOrder,
+  const categoryDecreaseButton = buttonWithTooltip({
+    ariaLabel: demoText.editableChart.decreaseCategoryOrder.aria,
+    tooltipText: demoText.editableChart.decreaseCategoryOrder.tooltip,
+    onClick: decreaseCategoryOrder,
     content: [icon('arrow-left', { size: 'lg', fixedWidth: true })]
   });
-  const groupIncreaseButton = buttonWithTooltip({
-    id: 'edit-group-increase', ariaLabel: demoText.editableChart.increaseGroupOrder.aria,
-    tooltipText: demoText.editableChart.increaseGroupOrder.tooltip,
-    onClick: increaseGroupOrder,
+  const categoryIncreaseButton = buttonWithTooltip({
+    ariaLabel: demoText.editableChart.increaseCategoryOrder.aria,
+    tooltipText: demoText.editableChart.increaseCategoryOrder.tooltip,
+    onClick: increaseCategoryOrder,
     content: [icon('arrow-right', { size: 'lg', fixedWidth: true })]
   });
   const previousSeriesButton = buttonWithTooltip({
-    id: 'edit-previous-series', ariaLabel: demoText.editableChart.previousSeries.aria,
+    ariaLabel: demoText.editableChart.previousSeries.aria,
     tooltipText: demoText.editableChart.previousSeries.tooltip,
     onClick: prevSeries,
     content: [icon('chevron-down', { size: 'lg', fixedWidth: true })]
   });
   const nextSeriesButton = buttonWithTooltip({
-    id: 'edit-next-series', ariaLabel: demoText.editableChart.nextSeries.aria,
+    ariaLabel: demoText.editableChart.nextSeries.aria,
     tooltipText: demoText.editableChart.nextSeries.tooltip,
     onClick: nextSeries,
     content: [icon('chevron-up', { size: 'lg', fixedWidth: true })]
   });
   const resetSeriesButton = buttonWithTooltip({
-    id: 'edit-reset-series', label: demoText.editableChart.resetSeries.label, ariaLabel: demoText.editableChart.resetSeries.aria,
+    label: demoText.editableChart.resetSeries.label, ariaLabel: demoText.editableChart.resetSeries.aria,
     tooltipText: demoText.editableChart.resetSeries.tooltip,
     onClick: resetSeriesChanges,
     content: [icon('arrow-rotate-left', { size: 'lg', fixedWidth: true })]
   });
   const applySeriesButton = buttonWithTooltip({
-    id: 'edit-apply-series', label: demoText.editableChart.applySeries.label, ariaLabel: demoText.editableChart.applySeries.aria,
+    label: demoText.editableChart.applySeries.label, ariaLabel: demoText.editableChart.applySeries.aria,
     tooltipText: demoText.editableChart.applySeries.tooltip,
     onClick: applySeriesChanges,
     content: [icon('check', { size: 'lg', fixedWidth: true })]
@@ -847,7 +836,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   // The index sits in its own fixed-width span so stepping through indexes
   // never shifts the controls to the right of the label.
   //
-  // The `Group: ` / `Series: ` prefixes get a span of their own so the phone
+  // The `Category: ` / `Series: ` prefixes get a span of their own so the phone
   // tier can take them out of the layout — see `.demo-label-prefix` in the
   // stylesheet's phone block, and the width arithmetic beside the margin
   // toggle in placeControls. They are CLIPPED there, not removed: the readout
@@ -856,14 +845,14 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   // The compact spans are the phone-tier stand-ins: a bare `-1` between two
   // arrows names nothing visually, so `G` / `S` carry the meaning in the space
   // the strip can actually spare. `aria-hidden`, so the accessible name stays
-  // the clipped full prefix and never doubles up as "Group: G -1". Hidden by
+  // the clipped full prefix and never doubles up as "Category: G -1". Hidden by
   // the base stylesheet at every other width.
-  const groupIndexValue = el('span', { className: 'demo-index-value' });
+  const categoryIndexValue = el('span', { className: 'demo-index-value' });
   const seriesIndexValue = el('span', { className: 'demo-index-value' });
-  const groupIndexLabel = el('span', { className: 'demo-label', style: 'margin-left: 5px; margin-right: 5px;' }, [
-    el('span', { className: 'demo-label-prefix', text: demoText.editableChart.groupIndexPrefix }),
-    el('span', { className: 'demo-label-prefix-compact', attrs: { 'aria-hidden': 'true' }, text: demoText.editableChart.groupIndexPrefixCompact }),
-    groupIndexValue
+  const categoryIndexLabel = el('span', { className: 'demo-label', style: 'margin-left: 5px; margin-right: 5px;' }, [
+    el('span', { className: 'demo-label-prefix', text: demoText.editableChart.categoryIndexPrefix }),
+    el('span', { className: 'demo-label-prefix-compact', attrs: { 'aria-hidden': 'true' }, text: demoText.editableChart.categoryIndexPrefixCompact }),
+    categoryIndexValue
   ]);
   const seriesIndexLabel = el('span', { className: 'demo-label', style: 'margin-left: 5px; margin-right: 5px;' }, [
     el('span', { className: 'demo-label-prefix', text: demoText.editableChart.seriesIndexPrefix }),
@@ -883,26 +872,26 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   // restores, so the desktop order has exactly one definition.
   const seriesActionButtons = [resetSeriesButton.el, applySeriesButton.el];
   const seriesActionGroup = el('div', { className: 'demo-btn-group' }, seriesActionButtons);
-  const seriesForm = el('form', { className: 'demo-form-row' }, [
+  const seriesForm = el('form', {}, [
     el('div', { className: 'demo-field' }, [
-      el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, [
-        el('div', { className: 'demo-btn-group' }, [groupDecreaseButton.el])
+      el('div', { className: 'demo-toolbar' }, [
+        el('div', { className: 'demo-btn-group' }, [categoryDecreaseButton.el])
       ])
     ]),
-    el('div', { className: 'demo-field' }, [groupIndexLabel]),
+    el('div', { className: 'demo-field' }, [categoryIndexLabel]),
     el('div', { className: 'demo-field' }, [
-      el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, [
-        el('div', { className: 'demo-btn-group' }, [groupIncreaseButton.el])
+      el('div', { className: 'demo-toolbar' }, [
+        el('div', { className: 'demo-btn-group' }, [categoryIncreaseButton.el])
       ])
     ]),
     el('div', { className: 'demo-field' }, [
-      el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, [
+      el('div', { className: 'demo-toolbar' }, [
         el('div', { className: 'demo-btn-group' }, [previousSeriesButton.el])
       ])
     ]),
     el('div', { className: 'demo-field' }, [seriesIndexLabel]),
     el('div', { className: 'demo-field' }, [
-      el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, [
+      el('div', { className: 'demo-toolbar' }, [
         el('div', { className: 'demo-btn-group' }, [nextSeriesButton.el]),
         seriesActionGroup
       ])
@@ -910,9 +899,9 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   ]);
   // Menu-side home for Reset (a cached `.demo-btn-group` — see OverflowMenu.ts).
   const menuSeriesActionGroup = el('div', { className: 'demo-btn-group' });
-  const seriesCommonToolbar = el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } });
+  const seriesCommonToolbar = el('div', { className: 'demo-toolbar' });
   // Emptied by the fold (commonControls move into the menu), and an empty flex
-  // item still spends one of `.demo-form-row`'s 10px column gaps — which the
+  // item still spends one of the form row's 10px column gaps — which the
   // tightest strip of the three cannot spare. placeControls hides it for the
   // duration of the fold.
   const seriesCommonField = el('div', { className: 'demo-field' }, [seriesCommonToolbar]);
@@ -920,7 +909,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
 
   // Named so the fold can move Apply in beside the input it applies — see the
   // series branch of placeControls.
-  const seriesInputForm = el('form', { className: 'demo-form-row' }, [seriesInput]);
+  const seriesInputForm = el('form', {}, [seriesInput]);
   const seriesPanel = el('div', { className: 'chart-controls-container' }, [
     el('div', { className: 'chart-controls-buttons' }, [seriesForm]),
     el('span', { className: 'chart-controls-input' }, [seriesInputForm])
@@ -928,43 +917,43 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
 
   // Pie-mode slice panel — replaces both panels when slices are the series:
   // click a slice (or step prev/next) to select it, edit its value, or play
-  // the suppress/restore sequence.
+  // the filter/restore sequence.
   const previousSliceButton = buttonWithTooltip({
-    id: 'edit-previous-slice', ariaLabel: demoText.editableChart.previousSlice.aria,
+    ariaLabel: demoText.editableChart.previousSlice.aria,
     tooltipText: demoText.editableChart.previousSlice.tooltip,
     onClick: () => selectSlice(sliceIndex - 1),
     content: [icon('chevron-left', { size: 'lg', fixedWidth: true })]
   });
   const nextSliceButton = buttonWithTooltip({
-    id: 'edit-next-slice', ariaLabel: demoText.editableChart.nextSlice.aria,
+    ariaLabel: demoText.editableChart.nextSlice.aria,
     tooltipText: demoText.editableChart.nextSlice.tooltip,
     onClick: () => selectSlice(sliceIndex + 1),
     content: [icon('chevron-right', { size: 'lg', fixedWidth: true })]
   });
   const resetSliceButton = buttonWithTooltip({
-    id: 'edit-reset-slice', label: demoText.editableChart.resetSlice.label, ariaLabel: demoText.editableChart.resetSlice.aria,
+    label: demoText.editableChart.resetSlice.label, ariaLabel: demoText.editableChart.resetSlice.aria,
     tooltipText: demoText.editableChart.resetSlice.tooltip,
     onClick: resetSliceChanges,
     content: [icon('arrow-rotate-left', { size: 'lg', fixedWidth: true })]
   });
   const applySliceButton = buttonWithTooltip({
-    id: 'edit-apply-slice', label: demoText.editableChart.applySlice.label, ariaLabel: demoText.editableChart.applySlice.aria,
+    label: demoText.editableChart.applySlice.label, ariaLabel: demoText.editableChart.applySlice.aria,
     tooltipText: demoText.editableChart.applySlice.tooltip,
     onClick: applySliceChanges,
     content: [icon('check', { size: 'lg', fixedWidth: true })]
   });
-  // Icon-only at every width by design, so — like the group panel's transport
+  // Icon-only at every width by design, so — like the category panel's transport
   // buttons — they carry `menuLabel` for the fold, which renders only inside a
   // menu and so leaves the desktop strip untouched.
   const playSliceButton = buttonWithTooltip({
-    id: 'edit-play-slices', ariaLabel: demoText.editableChart.playSliceSequence.aria,
+    ariaLabel: demoText.editableChart.playSliceSequence.aria,
     menuLabel: demoText.editableChart.playSliceSequence.menuLabel,
     tooltipText: demoText.editableChart.playSliceSequence.tooltip,
     onClick: startSliceSequence,
     content: [icon('play', { size: 'lg', fixedWidth: true })]
   });
   const stopSliceButton = buttonWithTooltip({
-    id: 'edit-stop-slices', ariaLabel: demoText.editableChart.stopSliceSequence.aria,
+    ariaLabel: demoText.editableChart.stopSliceSequence.aria,
     menuLabel: demoText.editableChart.stopSliceSequence.menuLabel,
     tooltipText: demoText.editableChart.stopSliceSequence.tooltip,
     onClick: stopSequence,
@@ -980,7 +969,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     sync();
   });
 
-  const sliceCommonToolbar = el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } });
+  const sliceCommonToolbar = el('div', { className: 'demo-toolbar' });
   // Same split as the series panel: Reset folds out of the action group, and
   // the whole play/stop group folds out of the toolbar (moving the group itself
   // rather than emptying it, so no empty flex item is left spending a gap).
@@ -989,19 +978,20 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   const sliceActionGroup = el('div', { className: 'demo-btn-group' }, sliceActionButtons);
   const sliceSequenceGroup = el('div', { className: 'demo-btn-group' }, [playSliceButton.el, stopSliceButton.el]);
   const sliceToolbarGroups = [sliceStepGroup, sliceActionGroup, sliceSequenceGroup];
-  const sliceToolbar = el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, sliceToolbarGroups);
+  const sliceToolbar = el('div', { className: 'demo-toolbar' }, sliceToolbarGroups);
   const menuSliceActionGroup = el('div', { className: 'demo-btn-group' });
   // The slice menu's optional tail. Built once, and empty rather than
   // `[divider, null]` when there is no second-chart button: `setItems` drops
   // nulls but keeps dividers, so the unconditional form would rule off the
   // bottom of the panel with nothing under it — which on a phone (where the
   // second chart is never offered) is the usual case, not the corner one.
-  const sliceMenuTail: MenuItem[] = chartCountControl ? [menuDivider, chartCountControl] : [];
+  const sliceMenuTail = (): MenuItem[] => showChartCountControls ? [menuDivider, chartCountControl] : [];
+  const menuCommonControls = (): MenuItem[] => showChartCountControls ? commonControls : [modeControl];
   const sliceCommonField = el('div', { className: 'demo-field' }, [sliceCommonToolbar]);
-  const sliceForm = el('form', { className: 'demo-form-row' }, [
+  const sliceForm = el('form', {}, [
     sliceCommonField,
     el('div', { className: 'demo-field' }, [
-      el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, [
+      el('div', { className: 'demo-toolbar' }, [
         el('div', { className: 'demo-btn-group' }, [previousSliceButton.el])
       ])
     ]),
@@ -1011,11 +1001,11 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   const slicePanel = el('div', { className: 'chart-controls-container' }, [
     el('div', { className: 'chart-controls-buttons' }, [sliceForm]),
     el('span', { className: 'chart-controls-input' }, [
-      el('form', { className: 'demo-form-row' }, [sliceInput])
+      el('form', {}, [sliceInput])
     ])
   ]);
 
-  const controls = el('div', { className: 'editable-chart-controls' }, [groupPanel, seriesPanel, slicePanel]);
+  const controls = el('div', { className: 'editable-chart-controls' }, [categoryPanel, seriesPanel, slicePanel]);
   const container = el('div', { className: 'editable-mochart-chart' }, [
     el('div', { className: 'editable-chart-container' }, [chartContentElement, controls])
   ]);
@@ -1029,8 +1019,8 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     mochartConfig: unknown;
     dataProvider: unknown;
     filteredSeriesIds: FilteredSeriesIds;
-    focusedGroupIndex: number;
-    focusedSeriesAxisId: string | null;
+    focusedCategoryIndex: number;
+    focusedValueAxisId: string | null;
     focusedSeriesId: string | null;
   } | null = null;
 
@@ -1044,12 +1034,13 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
    * Only the visible panel folds. The other two are `display: none` at this
    * point, so their strips are restored unconditionally — that is also what
    * pulls their controls back out of the menu when the active panel changes
-   * (switching Edit Groups → Edit Series swaps the whole item list, which
-   * detaches the group panel's menu rows; the restore below re-homes them).
+   * (switching Edit Categories → Edit Series swaps the whole item list, which
+   * detaches the category panel's menu rows; the restore below re-homes them).
    */
-  function placeControls(pieMode: boolean, groupMode: boolean): void {
-    const foldGroup = isPhone && !pieMode && groupMode;
-    const foldSeries = isPhone && !pieMode && !groupMode;
+  function placeControls(pieMode: boolean, categoryMode: boolean): void {
+    chartCountControl.style.display = showChartCountControls ? '' : 'none';
+    const foldCategory = isPhone && !pieMode && categoryMode;
+    const foldSeries = isPhone && !pieMode && !categoryMode;
     const foldSlice = isPhone && pieMode;
 
     // Do this first: emptying the panel detaches whatever it was hosting, so
@@ -1057,23 +1048,23 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     // controls back rather than believing they are already placed.
     //
     // The slice list carries `chartCountControl` but not `modeControl`: there
-    // are no group/series panels to switch to in pie mode, which is why the
+    // are no category/series panels to switch to in pie mode, which is why the
     // desktop branch removes that button rather than placing it.
     overflowMenuHandle.setItems(
-      foldGroup ? [menuOrderGroup, menuDivider, menuSequenceGroup, menuDivider, ...commonControls]
-        : foldSeries ? [menuSeriesActionGroup, menuDivider, ...commonControls]
-          : foldSlice ? [menuSliceActionGroup, menuDivider, sliceSequenceGroup, ...sliceMenuTail]
+      foldCategory ? [menuOrderGroup, menuDivider, menuSequenceGroup, menuDivider, ...menuCommonControls()]
+        : foldSeries ? [menuSeriesActionGroup, menuDivider, ...menuCommonControls()]
+          : foldSlice ? [menuSliceActionGroup, menuDivider, sliceSequenceGroup, ...sliceMenuTail()]
             : []);
 
-    // Group panel. Add/Remove act on what is typed in the input beside them, so
+    // Category panel. Add/Remove act on what is typed in the input beside them, so
     // they stay in the strip; everything else folds.
-    setChildren(groupButtonGroup, foldGroup ? [addGroupsButton.el, removeGroupsButton.el] : groupButtons);
-    if (foldGroup) {
-      setChildren(menuOrderGroup, [resetGroupsButton.el, reverseGroupsButton.el, selectAllButton.el]);
+    setChildren(categoryButtonGroup, foldCategory ? [addCategoriesButton.el, removeCategoriesButton.el] : categoryButtons);
+    if (foldCategory) {
+      setChildren(menuOrderGroup, [resetCategoriesButton.el, reverseCategoriesButton.el, selectAllButton.el]);
       setChildren(menuSequenceGroup, [playAddButton.el, playRemoveButton.el, stopButton.el]);
     }
 
-    // Series panel. The steppers and their readouts stay — they are how a group
+    // Series panel. The steppers and their readouts stay — they are how a category
     // and a series get picked at all. Apply stays visible too, but moves DOWN,
     // onto the input row beside the JSON it applies: with it gone the stepper
     // row is four buttons and two readouts, which is what lets the panel hold
@@ -1097,8 +1088,8 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     // rather than toggled, so the desktop branch always restores the exact
     // string the elements were built with.
     const indexLabelMargin = foldSeries ? '0px' : '5px';
-    groupIndexLabel.style.marginLeft = indexLabelMargin;
-    groupIndexLabel.style.marginRight = indexLabelMargin;
+    categoryIndexLabel.style.marginLeft = indexLabelMargin;
+    categoryIndexLabel.style.marginRight = indexLabelMargin;
     seriesIndexLabel.style.marginLeft = indexLabelMargin;
     seriesIndexLabel.style.marginRight = indexLabelMargin;
 
@@ -1117,16 +1108,16 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
 
     if (pieMode) {
       modeControl.remove();
-      if (!foldSlice && chartCountControl && chartCountControl.parentElement !== sliceCommonToolbar) {
+      if (!foldSlice && chartCountControl.parentElement !== sliceCommonToolbar) {
         sliceCommonToolbar.append(chartCountControl);
       }
     }
-    else if (foldGroup || foldSeries) {
+    else if (foldCategory || foldSeries) {
       // commonControls are hosted by the overflow panel; setItems put them there.
     }
-    else if (groupMode) {
-      if (commonControls[0].parentElement !== groupToolbar) {
-        groupToolbar.prepend(...commonControls);
+    else if (categoryMode) {
+      if (commonControls[0].parentElement !== categoryToolbar) {
+        categoryToolbar.prepend(...commonControls);
       }
     }
     else if (commonControls[0].parentElement !== seriesCommonToolbar) {
@@ -1138,25 +1129,25 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     const chartDataError = !!(dataProvider && dataProvider.getError && dataProvider.getError());
     const configError = !mochartDemoConfig.valid;
     const error = chartDataError || configError;
-    const filteredGroupValues: any[] = error || !dataProvider?.getGroupValues ? [] : dataProvider.getGroupValues();
-    const selectedGroupValues = (error || groupValuesText === emptyGroupText) ? [] : groupValuesText.split(',');
-    const filteredGroupMap = filteredGroupValues.reduce<Record<string, boolean>>((map, group) => { map[group] = true; return map; }, {});
-    const disableRemove = orderChanged || !selectedGroupValues.some(group => filteredGroupMap[group]);
-    const disableAdd = orderChanged || !selectedGroupValues.some(group => !filteredGroupMap[group]);
-    const seriesControlsDisabled = sequencePlaying || groupIndex === -1;
-    const groupOrderControlsDisabled = sequencePlaying || groupIndex === -1;
-    const isFirstGroup = groupIndex === 0;
-    const isLastGroup = groupIndex === filteredGroupValues.length - 1;
+    const filteredCategoryValues: readonly any[] = error || !dataProvider ? [] : dataProvider.getPropertyValues(mochartDemoConfig.mochartConfig.categoryAxis.property ?? '') ?? [];
+    const selectedCategoryValues = (error || categoryValuesText === emptyCategoryText) ? [] : categoryValuesText.split(',');
+    const filteredCategoryMap = filteredCategoryValues.reduce<Record<string, boolean>>((map, category) => { map[category] = true; return map; }, {});
+    const disableRemove = orderChanged || !selectedCategoryValues.some(category => filteredCategoryMap[category]);
+    const disableAdd = orderChanged || !selectedCategoryValues.some(category => !filteredCategoryMap[category]);
+    const seriesControlsDisabled = sequencePlaying || categoryIndex === -1;
+    const categoryOrderControlsDisabled = sequencePlaying || categoryIndex === -1;
+    const isFirstCategory = categoryIndex === 0;
+    const isLastCategory = categoryIndex === filteredCategoryValues.length - 1;
     const hasPrevSeries = seriesIndex > 0;
     const hasNextSeries = seriesIndex < mochartDemoConfig.seriesCount - 1;
 
     // panel visibility + common controls placement (pie mode shows only the
-    // slice panel; the group/series machinery has nothing to edit there)
+    // slice panel; the category/series machinery has nothing to edit there)
     const pieMode = mochartDemoConfig.pieMode;
-    const groupMode = selectionMode === 'group';
-    placeControls(pieMode, groupMode);
-    groupPanel.style.display = !pieMode && groupMode ? '' : 'none';
-    seriesPanel.style.display = !pieMode && !groupMode ? '' : 'none';
+    const categoryMode = selectionMode === 'category';
+    placeControls(pieMode, categoryMode);
+    categoryPanel.style.display = !pieMode && categoryMode ? '' : 'none';
+    seriesPanel.style.display = !pieMode && !categoryMode ? '' : 'none';
     slicePanel.style.display = pieMode ? '' : 'none';
 
     // Keep the export/share menu as the last child of the visible panel (after
@@ -1168,46 +1159,44 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     // detaches the button that was just pressed, which drops focus to <body>
     // and, with it, the menu controller's ability to hand focus back to the
     // trigger when it closes a moment later.
-    const activePanel = pieMode ? slicePanel : groupMode ? groupPanel : seriesPanel;
+    const activePanel = pieMode ? slicePanel : categoryMode ? categoryPanel : seriesPanel;
     if (menuSpan.parentElement !== activePanel) {
       withPreservedFocus(() => activePanel.append(menuSpan));
     }
 
-    modeButton.setLabel(groupMode ? demoText.editableChart.editMode.labelToSeries : demoText.editableChart.editMode.labelToGroups);
-    modeButton.setTooltip(groupMode
+    modeButton.setLabel(categoryMode ? demoText.editableChart.editMode.labelToSeries : demoText.editableChart.editMode.labelToCategories);
+    modeButton.setTooltip(categoryMode
       ? demoText.editableChart.editMode.tooltipToSeries
-      : demoText.editableChart.editMode.tooltipToGroups);
-    modeButton.setContent([icon(groupMode ? 'bullseye' : 'sliders', { size: 'lg', fixedWidth: true })]);
-    if (chartCountButton) {
-      chartCountButton.setPressed(chartCount === 2);
-      chartCountButton.setTooltip(chartCount === 2 ? demoText.editableChart.secondChart.tooltipHide : demoText.editableChart.secondChart.tooltipShow);
-      chartCountButton.setContent([icon(chartCount === 2 ? 'window-maximize' : 'window-restore', { size: 'lg', fixedWidth: true })]);
-    }
+      : demoText.editableChart.editMode.tooltipToCategories);
+    modeButton.setContent([icon(categoryMode ? 'bullseye' : 'sliders', { size: 'lg', fixedWidth: true })]);
+    chartCountButton.setPressed(chartCount === 2);
+    chartCountButton.setTooltip(chartCount === 2 ? demoText.editableChart.secondChart.tooltipHide : demoText.editableChart.secondChart.tooltipShow);
+    chartCountButton.setContent([icon(chartCount === 2 ? 'window-maximize' : 'window-restore', { size: 'lg', fixedWidth: true })]);
     exportShareMenuHandle.setDisabled(!!error);
     overflowMenuHandle.setDisabled(!!error);
 
-    resetGroupsButton.setDisabled(error || sequencePlaying);
-    reverseGroupsButton.setDisabled(error || sequencePlaying);
-    addGroupsButton.setDisabled(error || sequencePlaying || disableAdd);
-    removeGroupsButton.setDisabled(error || sequencePlaying || disableRemove);
+    resetCategoriesButton.setDisabled(error || sequencePlaying);
+    reverseCategoriesButton.setDisabled(error || sequencePlaying);
+    addCategoriesButton.setDisabled(error || sequencePlaying || disableAdd);
+    removeCategoriesButton.setDisabled(error || sequencePlaying || disableRemove);
     playAddButton.setDisabled(error || sequencePlaying || disableAdd);
     playRemoveButton.setDisabled(error || sequencePlaying || disableRemove);
     stopButton.setDisabled(error || !sequencePlaying);
     selectAllButton.setDisabled(error || sequencePlaying);
-    groupInput.disabled = error || sequencePlaying;
-    if (groupInput.value !== groupValuesText) {
-      groupInput.value = groupValuesText;
+    categoryInput.disabled = error || sequencePlaying;
+    if (categoryInput.value !== categoryValuesText) {
+      categoryInput.value = categoryValuesText;
     }
 
-    groupDecreaseButton.setDisabled(error || groupOrderControlsDisabled || isFirstGroup);
-    groupIncreaseButton.setDisabled(error || groupOrderControlsDisabled || isLastGroup);
+    categoryDecreaseButton.setDisabled(error || categoryOrderControlsDisabled || isFirstCategory);
+    categoryIncreaseButton.setDisabled(error || categoryOrderControlsDisabled || isLastCategory);
     previousSeriesButton.setDisabled(error || seriesControlsDisabled || !hasPrevSeries);
     nextSeriesButton.setDisabled(error || seriesControlsDisabled || !hasNextSeries);
     resetSeriesButton.setDisabled(error || seriesControlsDisabled);
     applySeriesButton.setDisabled(error || seriesControlsDisabled);
-    groupIndexValue.textContent = '' + groupIndex;
+    categoryIndexValue.textContent = '' + categoryIndex;
     seriesIndexValue.textContent = '' + seriesIndex;
-    groupIndexLabel.title = getGroupIndexTitle(mochartDemoConfig, filteredData, groupIndex);
+    categoryIndexLabel.title = getCategoryIndexTitle(mochartDemoConfig, filteredData, categoryIndex);
     seriesIndexLabel.title = getSeriesIndexTitle(mochartDemoConfig, seriesIndex);
     seriesInput.disabled = error || seriesControlsDisabled;
     if (seriesInput.value !== seriesValuesText) {
@@ -1245,16 +1234,16 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
         lastChartProps.mochartConfig !== mochartDemoConfig.mochartConfig ||
         lastChartProps.dataProvider !== dataProvider ||
         lastChartProps.filteredSeriesIds !== filteredSeriesIds ||
-        lastChartProps.focusedGroupIndex !== filteredFocusedGroupIndex ||
-        lastChartProps.focusedSeriesAxisId !== focusedSeriesAxisId ||
+        lastChartProps.focusedCategoryIndex !== filteredFocusedCategoryIndex ||
+        lastChartProps.focusedValueAxisId !== focusedValueAxisId ||
         lastChartProps.focusedSeriesId !== focusedSeriesId) {
       lastChartProps = {
         width,
         mochartConfig: mochartDemoConfig.mochartConfig,
         dataProvider,
         filteredSeriesIds,
-        focusedGroupIndex: filteredFocusedGroupIndex,
-        focusedSeriesAxisId,
+        focusedCategoryIndex: filteredFocusedCategoryIndex,
+        focusedValueAxisId,
         focusedSeriesId
       };
       chartHost.update({
@@ -1262,8 +1251,8 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
         mochartConfig: mochartDemoConfig.mochartConfig,
         dataProvider,
         filteredSeriesIds,
-        focusedGroupIndex: filteredFocusedGroupIndex,
-        focusedSeriesAxisId,
+        focusedCategoryIndex: filteredFocusedCategoryIndex,
+        focusedValueAxisId,
         focusedSeriesId,
         onFocus: onChartFocus,
         onSeriesFilter,
@@ -1281,23 +1270,24 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
       const configStructureChanged = next.mochartDemoConfig !== mochartDemoConfig &&
         hasConfigStructureChange(mochartDemoConfig.mochartConfig, next.mochartDemoConfig.mochartConfig);
       const dataChanged = next.data !== data || (next.dataError ?? false) !== dataError;
-      const focusChanged = next.focusedGroupIndex !== focusedGroupIndex;
+      const focusChanged = next.focusedCategoryIndex !== focusedCategoryIndex;
 
       width = next.width;
       mochartDemoConfig = next.mochartDemoConfig;
       data = next.data;
       dataError = next.dataError ?? false;
       chartCount = next.chartCount;
+      showChartCountControls = next.showChartCountControls;
       filteredSeriesIds = next.filteredSeriesIds;
-      focusedGroupIndex = next.focusedGroupIndex;
-      focusedSeriesAxisId = next.focusedSeriesAxisId ?? null;
+      focusedCategoryIndex = next.focusedCategoryIndex;
+      focusedValueAxisId = next.focusedValueAxisId ?? null;
       focusedSeriesId = next.focusedSeriesId ?? null;
 
       if (dataChanged || configStructureChanged) {
         initData();
       }
       else if (focusChanged) {
-        filteredFocusedGroupIndex = getFilteredFocusedGroupIndex(filteredData);
+        filteredFocusedCategoryIndex = getFilteredFocusedCategoryIndex(filteredData);
         sync();
       }
       else {

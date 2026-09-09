@@ -1,9 +1,9 @@
 [
-  { "group": 1 },
-  { "group": 2 },
-  { "group": 3 },
-  { "group": 4 },
-  { "group": 5 },
-  { "group": 6 },
-  { "group": 7 }
+  {"category":1},
+  {"category":2},
+  {"category":3},
+  {"category":4},
+  {"category":5},
+  {"category":6},
+  {"category":7}
 ]

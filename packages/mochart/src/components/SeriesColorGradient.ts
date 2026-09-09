@@ -1,15 +1,17 @@
 import { Renderer, svgEl } from '../render';
 
 import { getSeriesGradientColors } from '../utils/SeriesColors';
-import type { SeriesConfig } from '../types/config';
+import type { EnhancedSeriesConfig } from '../types/enhanced';
 
 interface SeriesColorGradientProps {
   uniqueId: string;
-  seriesConfig: SeriesConfig;
+  seriesConfig: EnhancedSeriesConfig;
 }
 
+// 2 colors = one ramp; 4 colors = below ramp 0–50%, above ramp 50–100% with a hard break at the base.
 function toPercent(i: number, count: number): string {
-  return (count === 2 ? (i * 100) : (i * 25)) + '%';
+  const offsets = count === 2 ? [0, 100] : [0, 50, 50, 100];
+  return offsets[i] + '%';
 }
 
 export default class SeriesColorGradient extends Renderer<SeriesColorGradientProps> {

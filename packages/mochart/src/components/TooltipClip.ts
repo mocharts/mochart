@@ -2,11 +2,11 @@ import { Renderer, svgEl } from '../render';
 import type { El } from '../render';
 
 import { getCutoutRectanglePath } from '../utils/svgUtils';
-import type { MochartConfig } from '../types/config';
+import type { EnhancedMochartConfig } from '../types/enhanced';
 import type { SpacingLayoutInfo } from '../types/layout';
 
 interface TooltipClipProps {
-  mochartConfig: MochartConfig;
+  mochartConfig: EnhancedMochartConfig;
   tooltipVisible: boolean;
   tooltipShown: boolean;
   width: number;
@@ -39,7 +39,7 @@ export default class TooltipClip extends Renderer<TooltipClipProps> {
 
   sync() {
     const { mochartConfig, tooltipVisible, tooltipShown, width, height, tooltipLayoutInfo, chartContentLayoutInfo, tooltipClipPathUniqueId } = this.props;
-    if (mochartConfig.tooltipConfig.visible && tooltipVisible) {
+    if (mochartConfig.tooltip.visible && tooltipVisible) {
       this.setPresent(true);
       this.root.set({ id: tooltipClipPathUniqueId, clipRule: 'evenodd' });
       if (tooltipShown) {

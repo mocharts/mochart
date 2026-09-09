@@ -4,6 +4,9 @@ import { ArrayOfObjectsDataProvider } from '@mochart/core';
 import type { MochartConfig } from '@mochart/core';
 
 import buildMochartDemoConfig from './mochartDemoConfig';
+import { demoText } from './demoText';
+import { getJsonErrorMessage, parseJson } from './json';
+import { stringifyWithSpacedCommas } from './dataEditing';
 
 import type { TransitionConfig, ChartDataProviderLike } from './types';
 
@@ -13,40 +16,40 @@ const arrayValidator = validators.array();
 export const defaultTransitionConfig: TransitionConfig = {
   "config": {
     "version": "1.0.0",
-    "animationConfig": {
+    "animation": {
       "initialDuration": 1000,
       "expansionDuration": 3000,
       "valueChangeDuration": 3000,
-      "collapseDuration": 3000
+      "contractionDuration": 3000
     },
-    "groupAxisConfig": {
+    "categoryAxis": {
       "property": "timestamp",
       "type": "string",
       "scale": "ordinal",
       "valueLabel": "Date",
       "dateUTC": false
     },
-    "legendConfig": {
+    "legend": {
       "visible": true
     },
-    "seriesAxisConfigs": [
+    "valueAxes": [
       {
-        "id": "SA0",
+        "id": "VA0",
         "min": 0
       }
     ],
-    "seriesStackConfigs": [{
+    "seriesStacks": [{
       "id": "SS0",
-      "axis": "SA0"
+      "axis": "VA0"
     }],
-    "seriesConfigs": [
+    "series": [
       {
-        "axis": "SA0",
+        "axis": "VA0",
         "stack": "SS0",
         "property": "count",
         "title": "Count",
         "renderer": "bar",
-        "markerShape": null,
+        "marker": { "shape": null },
         "valueFormat": ",d"
       }
     ]
@@ -84,9 +87,8 @@ export function getTransitionMochartConfig(transitionConfig: TransitionConfig): 
 }
 
 export function getTransitionDataProviders(transitionConfig: TransitionConfig): ChartDataProviderLike[] {
-  // TODO - this doesn't handle group display property or extra series properties...
-  const groupProperty = transitionConfig.config.groupAxisConfig.property;
-  return transitionConfig.data.map(data => new ArrayOfObjectsDataProvider(data, groupProperty));
+  // the providers wrap the rows wholesale: every configured property is a column read
+  return transitionConfig.data.map(data => new ArrayOfObjectsDataProvider(data));
 }
 
 export function formatTransitionConfig(transitionConfig: TransitionConfig): string {
@@ -94,9 +96,8 @@ export function formatTransitionConfig(transitionConfig: TransitionConfig): stri
     let configText = '{}';
     let dataText = '[]';
     if (transitionConfig.config && objectValidator(transitionConfig.config)) {
-      configText = JSON.stringify(transitionConfig.config, null, '\t');
-      configText = configText.replace(/\n\t/g, '\n\t\t');
-      configText = configText.replace(/\n}/g, '\n\t}');
+      // Raw newlines in stringify output are always structural, so re-indenting by newline is safe.
+      configText = JSON.stringify(transitionConfig.config, null, 2).replace(/\n/g, '\n  ');
     }
     if (transitionConfig.data && arrayValidator(transitionConfig.data)) {
       const dataArray = transitionConfig.data;
@@ -104,15 +105,15 @@ export function formatTransitionConfig(transitionConfig: TransitionConfig): stri
       let aDataText: string;
       for (const data of dataArray) {
         if (data && arrayValidator(data)) {
-          aDataText = JSON.stringify(data).replace(/},{/g, '},\n\t\t\t{').replace(/,/g, ', ');
-          aDataText = aDataText.replace(/\[{/, '[\n\t\t\t{');
-          aDataText = aDataText.replace(/}\]/, '}\n\t\t]');
+          // structural spacing keeps commas inside string values untouched
+          const rowTexts = (data as unknown[]).map(row => stringifyWithSpacedCommas(row));
+          aDataText = rowTexts.length === 0 ? '[]' : '[\n      ' + rowTexts.join(', \n      ') + '\n    ]';
           dataTexts.push(aDataText);
         }
       }
-      dataText = '[\n\t\t' + dataTexts.join(',\n\t\t') + '\n\t]';
+      dataText = '[\n    ' + dataTexts.join(',\n    ') + '\n  ]';
     }
-    return '{\n' + '\t"config": ' + configText + ',\n\t"data": ' + dataText + '\n}';
+    return '{\n' + '  "config": ' + configText + ',\n  "data": ' + dataText + '\n}';
   }
   else {
     return String(transitionConfig);
@@ -124,7 +125,7 @@ export type TransitionConfigEditResult = { ok: true; config: TransitionConfig } 
 /** Parse + validate a transition-config edit for Apply. */
 export function applyTransitionConfigEdit(configText: string): TransitionConfigEditResult {
   try {
-    const newConfig = JSON.parse(configText);
+    const newConfig = parseJson(configText) as TransitionConfig;
     if (objectValidator(newConfig)) {
       if (objectValidator(newConfig.config)) {
         const mochartDemoConfig = buildMochartDemoConfig(newConfig.config);
@@ -136,7 +137,7 @@ export function applyTransitionConfigEdit(configText: string): TransitionConfigE
           }
           else {
             console.warn('Invalid Transition Config, data should be an array of arrays: ', newConfig.data);
-            return { ok: false, errorMessage: '"data" should be an array of arrays' };
+            return { ok: false, errorMessage: demoText.errors.transitionDataArrays };
           }
         }
         else {
@@ -146,21 +147,21 @@ export function applyTransitionConfigEdit(configText: string): TransitionConfigE
           if (warnings.length > 0) {
             console.warn('warnings: ', warnings);
           }
-          return { ok: false, errorMessage: 'Invalid chart config — details in the browser console' };
+          return { ok: false, errorMessage: demoText.errors.invalidChartConfig };
         }
       }
       else {
         console.warn('Invalid Transition Config, config should be an object: ', newConfig.config);
-        return { ok: false, errorMessage: '"config" should be an object' };
+        return { ok: false, errorMessage: demoText.errors.transitionConfigObject };
       }
     }
     else {
       console.warn('Invalid Transition Config, should be an object: ', configText);
-      return { ok: false, errorMessage: 'Transition config should be an object' };
+      return { ok: false, errorMessage: demoText.errors.transitionObject };
     }
   }
-  catch {
+  catch (error) {
     console.warn('Invalid Transition Config JSON: ', configText);
-    return { ok: false, errorMessage: 'Invalid JSON' };
+    return { ok: false, errorMessage: getJsonErrorMessage(error) };
   }
 }

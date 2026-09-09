@@ -62,6 +62,33 @@ export interface MenuPlacement {
   viewportMargin?: number;
 }
 
+// The demo shell has exactly three menu placements; named here so the numbers live once.
+
+/** The navigation row's overflow trigger: below the bar, right-aligned with the row-ending trigger. */
+export const navMenuPlacement: MenuPlacement = { side: 'bottom', align: 'end', gap: 6 };
+
+/** Every menu hanging off a controls strip (export/share, overflow triggers): upward from the bottom-of-pane strip, right-aligned. */
+export const controlsMenuPlacement: MenuPlacement = { side: 'top', align: 'end', gap: 4 };
+
+/** The "about this demo" popover; `width` mirrors `.demo-menu-notes` in demo.css (a `display: none` panel measures 0) — keep the two in step. */
+export const notesMenuPlacement: MenuPlacement = { side: 'bottom', align: 'start', gap: 6, width: 340, viewportMargin: 32 };
+
+/** Marks a subtree inside a menu panel whose clicks must NOT dismiss it (a stepper beside a number input, say). */
+export const menuKeepOpenClassName = 'demo-menu-keep-open';
+
+/** Whether a click inside a menu panel should close it: only activating a button or link outside a keep-open subtree; `panel` rejects actionable ancestors outside it. */
+export function isMenuDismissingClick(target: EventTarget | null, panel?: HTMLElement | null): boolean {
+  const element = target instanceof Element ? target : null;
+  const actionable = element === null ? null : element.closest('button, a');
+  if (actionable === null) {
+    return false;
+  }
+  if (panel !== undefined && panel !== null && !panel.contains(actionable)) {
+    return false;
+  }
+  return actionable.closest('.' + menuKeepOpenClassName) === null;
+}
+
 /**
  * Only the two edges the placement anchors from are set; the other two are left
  * `undefined` so the caller can skip writing them and let CSS keep `auto`.
@@ -160,12 +187,11 @@ export function watchMenuDismiss(options: MenuDismissOptions): () => void {
 
   const { isInside, onDismiss, getScrollableEl } = options;
 
-  // `pointerdown`, not `mousedown`: the chart's own `touchstart` handler calls
-  // `preventDefault()` to own the gesture, which suppresses the synthesized
-  // mouse events — so on a touch device `mousedown` may never arrive and
-  // tapping the chart would leave the menu stranded open. Capture phase for the
-  // same family of reasons: a handler in between that stops propagation must
-  // not be able to hold the menu open either.
+  // `pointerdown`, not `mousedown`: it fires for every pointer type before any
+  // synthesized mouse events, so tap dismissal does not depend on the compat
+  // mouse sequence, which a page-level touch handler may cancel. Capture phase
+  // for the same family of reasons: a handler in between that stops propagation
+  // must not be able to hold the menu open either.
   function onPointerDown(event: PointerEvent): void {
     if (!isInside(toNode(event.target))) {
       onDismiss();
@@ -275,7 +301,7 @@ function ensureId(element: HTMLElement, prefix: string): string {
  * No `role="menu"`, no `menuitem`, no `aria-haspopup` (which the ports used to
  * set, promising a keyboard menu with roving tabindex that the markup never
  * implemented). The promise would be unkeepable anyway: these panels hold a
- * link, a `role="toolbar"` group and a number input, none of which are valid
+ * link, a row of buttons and a number input, none of which are valid
  * `menuitem`s, and `aria-pressed` — which several of the toggles rely on — is
  * invalid on `role="menuitem"`. A disclosure describes what is actually there.
  */

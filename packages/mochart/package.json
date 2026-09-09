@@ -9,33 +9,74 @@
     "dynamic",
     "svg"
   ],
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "author": {
     "name": "Jon Harris",
     "url": "https://github.com/jharris4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jharris4/mochart.git"
+    "url": "https://github.com/mocharts/mochart.git",
+    "directory": "packages/mochart"
+  },
+  "homepage": "https://mochart.org",
+  "bugs": {
+    "url": "https://github.com/mocharts/mochart/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/mochart.js"
+      },
+      "./mochart.css": "./css/mochart.css",
+      "./mochart.iife.js": "./dist/mochart.iife.js",
+      "./package.json": "./package.json"
+    }
   },
   "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
   "main": "./dist/mochart.js",
   "module": "./dist/mochart.js",
   "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
       "development": "./src/index.ts",
+      "types": "./dist/types/index.d.ts",
       "default": "./dist/mochart.js"
     },
-    "./mochart.css": "./css/mochart.css"
+    "./mochart.css": "./css/mochart.css",
+    "./mochart.iife.js": "./dist/mochart.iife.js",
+    "./package.json": "./package.json"
   },
   "files": [
     "src",
     "dist",
-    "css"
+    "css",
+    "CHANGELOG.md"
   ],
   "dependencies": {
+    "@mochart/movalid": "^1.0.0"
+  },
+  "scripts": {
+    "prebuild": "tsx scripts/stampVersion.ts --check",
+    "build": "vite build && npm run build:types",
+    "build:types": "tsc -p tsconfig.build.json",
+    "prepack": "npm run stamp-version && npm run build",
+    "test": "vitest run --coverage",
+    "fuzz": "tsx --conditions=development test/fuzz/run.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json && tsc --noEmit -p scripts/tsconfig.json",
+    "lint": "eslint .",
+    "generate-docs": "tsx scripts/generator.ts",
+    "generate-jsdoc": "tsx scripts/generateJsdoc.ts",
+    "stamp-version": "tsx scripts/stampVersion.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@vitest/coverage-v8": "^4.1.10",
     "d3-color": "^3.1.0",
     "d3-format": "^3.1.2",
     "d3-interpolate": "^3.0.1",
@@ -43,23 +84,6 @@
     "d3-scale": "^4.0.2",
     "d3-shape": "^3.2.0",
     "d3-time-format": "^4.1.0",
-    "@mochart/movalid": "^1.0.0"
-  },
-  "scripts": {
-    "prebuild": "tsx scripts/stampVersion.ts",
-    "build": "vite build && npm run build:types",
-    "build:types": "tsc -p tsconfig.build.json",
-    "prepack": "npm run build",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json && tsc --noEmit -p scripts/tsconfig.json",
-    "lint": "eslint .",
-    "generate-docs": "tsx scripts/generator.ts",
-    "generate-jsdoc": "tsx scripts/generateJsdoc.ts"
-  },
-  "devDependencies": {
-    "@types/node": "^26.1.1",
-    "@vitest/coverage-v8": "^4.1.10",
-    "tsx": "^4.20.6"
+    "tsx": "^4.23.12"
   }
 }

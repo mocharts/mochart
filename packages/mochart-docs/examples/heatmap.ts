@@ -1,6 +1,7 @@
 // createHeatmap turns a grid of values into heatmap pieces: each row becomes
-// a full-width bar series floating on a one-unit band of a hidden series
-// axis, and each cell's value colors it from a shared sequential ramp.
+// a full-width bar series floating on a one-unit band of the value axis
+// (labelled with the row names via explicit ticks), and each cell's value
+// colors it from a shared sequential ramp.
 import { createHeatmap } from '@mochart/core';
 import type { MochartInputConfig } from '@mochart/core';
 
@@ -20,11 +21,11 @@ const heatmap = createHeatmap(
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Support Tickets by Weekday (fictional)' },
-  groupAxisConfig: heatmap.groupAxisConfig,
-  seriesAxisConfigs: [heatmap.seriesAxisConfig],
+  title: { text: 'Support Tickets by Weekday (fictional)' },
+  categoryAxis: heatmap.categoryAxis,
+  valueAxes: heatmap.valueAxes,
   // valueFormat formats the tooltip's cell values (via tooltipProperty).
-  seriesConfigs: heatmap.seriesConfigs.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.0f' }))
+  series: heatmap.series.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.0f' }))
 };
 
 export const data = heatmap.data;

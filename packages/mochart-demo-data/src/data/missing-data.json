@@ -1,14 +1,14 @@
 [
-  { "group": "A" },
-  { "group": "B" },
-  { "group": "C", "value1": 2, "value2": -2, "value3": -5 },
-  { "group": "D", "value1": 1, "value2": -1, "value3": -4 },
-  { "group": "E", "value1": 3, "value2": -3, "value3": -6 },
-  { "group": "F" },
-  { "group": "G" },
-  { "group": "H", "value1": 2, "value2": -2, "value3": -5 },
-  { "group": "I", "value1": 3, "value2": -3, "value3": -6 },
-  { "group": "J" },
-  { "group": "K", "value1": 3, "value2": -3, "value3": -6 },
-  { "group": "L", "value1": 2, "value2": -2, "value3": -5 }
+  {"category":"A"},
+  {"category":"B"},
+  {"category":"C","value1":2,"value2":-2,"value3":-5},
+  {"category":"D","value1":1,"value2":-1,"value3":-4},
+  {"category":"E","value1":3,"value2":-3,"value3":-6},
+  {"category":"F"},
+  {"category":"G"},
+  {"category":"H","value1":2,"value2":-2,"value3":-5},
+  {"category":"I","value1":3,"value2":-3,"value3":-6},
+  {"category":"J"},
+  {"category":"K","value1":3,"value2":-3,"value3":-6},
+  {"category":"L","value1":2,"value2":-2,"value3":-5}
 ]

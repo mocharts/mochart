@@ -1,49 +1,63 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Ordinal Dates"
+  "title": {
+    "text": "Ordinal Dates"
   },
-  "animationConfig": {
-    "animate": true,
+  "animation": {
+    "enabled": true,
     "expansionDuration": 300,
     "initialDuration": 300,
     "valueChangeDuration": 300,
-    "collapseDuration": 300,
+    "contractionDuration": 300,
     "focusDuration": 500
   },
-  "groupAxisConfig": {
+  "categoryAxis": {
     "property": "month_bought",
     "type": "date",
-    "before": false,
-    "axisLine": true,
-    "axisLineMargin": 0,
-    "gridLines": true,
-    "scale": "ordinal",
-    "tickLabelFormat": "%B %Y",
-    "tickLabelTruncationEnabled": false,
-    "valueFormat": "%B %Y",
-    "valueLabel": "Group"
-  },
-  "seriesAxisConfigs": [
-    {
-      "id": "SA0",
-      "before": true,
+    "axisLine": {
       "visible": true,
-      "axisLineMargin": 0,
-      "gridLines": true,
-      "tickLabelFormat": "$.0f",
-      "min": 0
+      "marginInner": 0
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "scale": "ordinal",
+    "tickLabel": {
+      "format": "%B %Y",
+      "truncation": {
+        "enabled": false
+      }
+    },
+    "valueFormat": "%B %Y",
+    "valueLabel": "Category",
+    "side": "end"
+  },
+  "valueAxes": [
+    {
+      "id": "VA0",
+      "visible": true,
+      "axisLine": {
+        "marginInner": 0
+      },
+      "gridLine": {
+        "visible": true
+      },
+      "tickLabel": {
+        "format": "$.0f"
+      },
+      "min": 0,
+      "side": "start"
     }
   ],
-  "seriesStackConfigs": [
+  "seriesStacks": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "id": "SS0"
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "stack": "SS0",
       "property": "total",
       "renderer": "bar",

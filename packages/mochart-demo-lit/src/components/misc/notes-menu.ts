@@ -2,7 +2,7 @@ import { html, nothing } from 'lit';
 import type { PropertyValues } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 
-import { createMenuController, demoText } from '@mochart/demo-common';
+import { createMenuController, demoText, notesMenuPlacement } from '@mochart/demo-common';
 import type { MenuController } from '@mochart/demo-common';
 
 import { LightElement } from './LightElement';
@@ -71,14 +71,10 @@ export class NotesMenu extends LightElement {
     if (trigger === undefined || panel === undefined) {
       return;
     }
-    // Downward from the navigation row, left-aligned, clamped so a 340px panel
-    // opened from a right-hand trigger stays on screen. The width must match
-    // `.demo-menu-notes` in demo.css — a closed panel measures 0, so the clamp
-    // has to be told the width the stylesheet will give it.
     this.controller = createMenuController({
       trigger,
       panel,
-      placement: { side: 'bottom', align: 'start', gap: 6, width: 340, viewportMargin: 32 },
+      placement: notesMenuPlacement,
       bindTrigger: false
     });
   }

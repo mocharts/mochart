@@ -1,12 +1,7 @@
-// CLI for the config reference docs. Builds the structured model (see
-// configReferenceModel.ts), writes it to generated/config-reference.json for
-// downstream consumers (the docs site), and renders the legacy standalone
-// mochart-docs.html. Exits non-zero when the config docs sources (defaults /
-// validators / descriptions / details) have mismatched keys.
-//
-// Usage: tsx scripts/generator.ts [htmlPath] [jsonPath]
-// Paths default to <package>/mochart-docs.html and
-// <package>/generated/config-reference.json regardless of cwd.
+// CLI for the config reference docs: builds the model (configReferenceModel.ts), writes
+// generated/config-reference.json for the docs site, and renders a standalone html page on request.
+// Exits non-zero when the config docs sources have mismatched keys.
+// Usage: tsx scripts/generator.ts [htmlPath] [jsonPath] [apiJsonPath] — paths default into <package> regardless of cwd.
 
 import {
   buildConfigReference,
@@ -71,6 +66,9 @@ function renderDefaultValue(value: DefaultValue): string {
 }
 
 function renderPropertyDefault(property: PropertyDoc): string {
+  if (property.required) {
+    return '<div>required</div>\n';
+  }
   if (property.conditionalDefaults) {
     return property.conditionalDefaults.map(conditional =>
       '<div>' + renderDefaultValue(conditional.value) + ' (' + conditional.condition + ')' + '</div>\n'
@@ -123,20 +121,23 @@ function renderTopLevel(topLevel: TopLevelKeyDoc[]): string {
 }
 
 // a member's anchor extends its parent's, matching the docs site
-function renderPropertyRows(sectionId: string, property: PropertyDoc, parentPath: string[]): string {
+function renderPropertyRows(sectionId: string, property: PropertyDoc, parentPath: string[], parentLabels: string[] = []): string {
   const path = [...parentPath, property.key];
+  const labels = [...parentLabels, property.key];
+  // members of an array element are labelled `stops[].offset`, while the id keeps the plain dotted path
+  const childLabels = [...parentLabels, property.key + (property.itemShape === true ? '[]' : '')];
   const keyId = sectionId + '.' + path.join('.');
   const indent = '&nbsp;&nbsp;&nbsp;&nbsp;'.repeat(parentPath.length);
   let out = '<tr id="' + keyId + '">\n';
   out += tags('td', [
-    indent + '<a href="#' + keyId + '">' + path.join('.') + '</a>',
+    indent + '<a href="#' + keyId + '">' + labels.join('.') + '</a>',
     renderDescription(property),
     renderRules(property.rules),
     renderPropertyDefault(property)
   ]);
   out += '</tr>\n';
   for (const nested of property.properties ?? []) {
-    out += renderPropertyRows(sectionId, nested, path);
+    out += renderPropertyRows(sectionId, nested, path, childLabels);
   }
   return out;
 }
@@ -174,13 +175,12 @@ function writeFileEnsuringDir(filename: string, contents: string) {
   fs.writeFileSync(filename, contents);
 }
 
-export default function generateDocs(htmlPath: string, jsonPath: string, apiJsonPath: string): boolean {
+/** The site renders the json models; the standalone html is only written when a path is asked for. */
+export default function generateDocs(htmlPath: string | null, jsonPath: string, apiJsonPath: string): boolean {
+  // both models are built before anything is written: a failing run must leave the
+  // previous artifacts in place rather than half-regenerated ones the checks rejected
   const { model, integrityErrors } = buildConfigReference();
-  writeFileEnsuringDir(jsonPath, JSON.stringify(model, null, 2) + '\n');
-  writeFileEnsuringDir(htmlPath, renderHtml(model));
-
-  const api = buildApiReference();
-  writeFileEnsuringDir(apiJsonPath, JSON.stringify(api.model, null, 2) + '\n');
+  const api = buildApiReference(model);
 
   let valid = true;
   if (integrityErrors.length > 0) {
@@ -197,12 +197,21 @@ export default function generateDocs(htmlPath: string, jsonPath: string, apiJson
     }
     valid = false;
   }
+  if (!valid) {
+    return false;
+  }
+
+  writeFileEnsuringDir(jsonPath, JSON.stringify(model, null, 2) + '\n');
+  if (htmlPath !== null) {
+    writeFileEnsuringDir(htmlPath, renderHtml(model));
+  }
+  writeFileEnsuringDir(apiJsonPath, JSON.stringify(api.model, null, 2) + '\n');
   return valid;
 }
 
 const runDirectly = process.argv[1] === fileURLToPath(import.meta.url);
 if (runDirectly) {
-  const htmlPath = process.argv[2] ?? path.join(packageDir, 'mochart-docs.html');
+  const htmlPath = process.argv[2] ?? null;
   const jsonPath = process.argv[3] ?? path.join(packageDir, 'generated', 'config-reference.json');
   const apiJsonPath = process.argv[4] ?? path.join(packageDir, 'generated', 'api-reference.json');
   if (!generateDocs(htmlPath, jsonPath, apiJsonPath)) {

@@ -1,4 +1,4 @@
-import { createMenuController } from '@mochart/demo-common';
+import { createMenuController, isMenuDismissingClick } from '@mochart/demo-common';
 import type { MenuPlacement } from '@mochart/demo-common';
 
 import { el, icon, withPreservedFocus } from './dom';
@@ -27,7 +27,7 @@ import { el, icon, withPreservedFocus } from './dom';
 // Callers that fold LOOSE buttons (rather than one of the strip's existing
 // groups) give them a menu-side home: a cached `.demo-btn-group`. A group,
 // because that is the class `.demo-menu-overflow` restyles into a full-width
-// column — a loose `span.button-with-tooltip` dropped straight into the panel
+// column — a loose button wrapper span dropped straight into the panel
 // would lay out inline. Cached, because a wrapper minted per call is never
 // identical to the last one and would defeat `setItems`' bail-out exactly the
 // way a freshly created divider would (see the divider cache below).
@@ -79,13 +79,6 @@ export interface OverflowMenuHandle {
 
 /** No caret: `.demo-menu-trigger` draws one, and the ellipsis already says "more". */
 const triggerClassName = 'demo-btn demo-btn-secondary';
-
-/**
- * Escape hatch for panel contents that must NOT close the menu when clicked —
- * a stepper beside a number input, say, where closing after every press would
- * make the control unusable.
- */
-const keepOpenSelector = '.demo-menu-keep-open';
 
 export function overflowMenu(props: OverflowMenuProps): OverflowMenuHandle {
   const { text, placement, getAnchor, className, iconName = 'ellipsis' } = props;
@@ -174,18 +167,9 @@ export function overflowMenu(props: OverflowMenuProps): OverflowMenuHandle {
   // target's handler, i.e. the button has already done its work by the time the
   // panel disappears out from under it.
   function onPanelClick(event: MouseEvent): void {
-    const target = event.target instanceof Element ? event.target : null;
-    if (target === null) {
-      return;
+    if (isMenuDismissingClick(event.target, panel)) {
+      controller.close();
     }
-    const actionable = target.closest('button, a');
-    if (actionable === null || !panel.contains(actionable)) {
-      return;
-    }
-    if (actionable.closest(keepOpenSelector) !== null) {
-      return;
-    }
-    controller.close();
   }
 
   panel.addEventListener('click', onPanelClick);

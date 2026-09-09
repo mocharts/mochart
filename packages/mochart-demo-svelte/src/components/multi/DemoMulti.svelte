@@ -4,6 +4,7 @@
 
   import ChartsTab from './ChartsTab.svelte';
   import ErrorTab from '../misc/ErrorTab.svelte';
+  import StaticDemoTabs from '../misc/StaticDemoTabs.svelte';
   import TopBar from '../misc/TopBar.svelte';
 
   import type { DemoData } from '../../types';
@@ -37,12 +38,9 @@
   <TopBar {siteRootUrl} {onBackToDemos}
           notes={demoData.demoObjectMap[demoId]}
           modes={{ demoMode: 'multi', onModeChanged }}>
+    <!-- One pane, so the strip is a caption rather than a tablist. -->
     {#snippet tabs()}
-      <li class="demo-tab-item">
-        <button type="button" class="demo-tab active">
-          {demoText.tabs.chart}
-        </button>
-      </li>
+      <StaticDemoTabs label={demoText.tabs.chart} />
     {/snippet}
   </TopBar>
   <div class="mochart-demo-content-pane">

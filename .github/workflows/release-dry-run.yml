@@ -1,0 +1,30 @@
+name: Release dry run
+
+# Manual rehearsal of the publish path without touching npm: packs all nine
+# public packages exactly as `pnpm publish` would, checks the tarballs, and
+# installs them into a scratch project to import each one. See RELEASE.md.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      # prepare builds every library, which is what gets packed
+      - run: npm ci
+      - run: npm run check:publish
+      - run: npm run pack:libs -- --smoke
+      # the tarballs, for inspecting by hand or installing into a real project
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-tarballs
+          path: pack/*.tgz
+          retention-days: 14

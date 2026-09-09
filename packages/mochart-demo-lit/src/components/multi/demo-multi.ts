@@ -6,10 +6,11 @@ import { demoText } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import { LightElement } from '../misc/LightElement';
+import { staticDemoTabs } from '../misc/demo-tabs';
+import '../misc/error-tab';
 import '../misc/top-bar';
 
 import './charts-tab';
-import '../misc/error-tab';
 
 import type { DemoData } from '../../types';
 
@@ -35,9 +36,7 @@ export class DemoMulti extends LightElement {
       <top-bar .siteRootUrl=${this.siteRootUrl} .onBackToDemos=${this.onBackToDemos}
                .notes=${this.demoData.demoObjectMap[this.initialDemoId]}
                .modes=${{ demoMode: 'multi' as const, onModeChanged: this.onModeChanged }}
-               .tabs=${() => html`<li class="demo-tab-item">
-                 <button type="button" class="demo-tab active">${demoText.tabs.chart}</button>
-               </li>`}></top-bar>
+               .tabs=${() => staticDemoTabs(demoText.tabs.chart)}></top-bar>
       <div class="mochart-demo-content-pane">
         <div class="mochart-demo-content">
           <error-tab .active=${true} .content=${() =>

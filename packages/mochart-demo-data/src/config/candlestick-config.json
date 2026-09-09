@@ -1,38 +1,46 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Daily Share Price (fictional, $)"
+  "title": {
+    "text": "Daily Share Price (fictional, $)"
   },
-  "groupAxisConfig": {
+  "categoryAxis": {
     "property": "label",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
       "id": "price",
-      "minMarginPercent": 0.3333333333333333,
-      "title": "$ per share"
+      "minMarginFraction": 0.35,
+      "maxMarginFraction": 0.05,
+      "title": {
+        "text": "$ per share"
+      }
     },
     {
       "id": "volume",
       "min": 0,
-      "maxMarginPercent": 4,
+      "maxMarginFraction": 4,
       "visible": false
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
       "id": "upWick",
       "property": "upHigh",
       "rangeProperty": "low",
       "axis": "price",
       "renderer": "bar",
-      "barWidthPercent": 0.15,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 0.15
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "showInLegend": false,
+      "followSeries": "up",
+      "valueLabel": "Range",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#1baf7a",
@@ -40,9 +48,6 @@
           "fillOpacity": 1
         }
       },
-      "showInLegend": false,
-      "followSeries": "up",
-      "valueLabel": "Range",
       "valueFormat": ",.2f"
     },
     {
@@ -51,11 +56,16 @@
       "rangeProperty": "low",
       "axis": "price",
       "renderer": "bar",
-      "barWidthPercent": 0.15,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 0.15
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "showInLegend": false,
+      "followSeries": "down",
+      "valueLabel": "Range",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#e34948",
@@ -63,9 +73,6 @@
           "fillOpacity": 1
         }
       },
-      "showInLegend": false,
-      "followSeries": "down",
-      "valueLabel": "Range",
       "valueFormat": ",.2f"
     },
     {
@@ -74,11 +81,15 @@
       "rangeProperty": "open",
       "axis": "price",
       "renderer": "bar",
-      "barWidthPercent": 1,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 1,
+        "minExtent": 2
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "title": "Up",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#1baf7a",
@@ -86,7 +97,6 @@
           "fillOpacity": 1
         }
       },
-      "title": "Up",
       "valueFormat": ",.2f"
     },
     {
@@ -95,11 +105,15 @@
       "rangeProperty": "open",
       "axis": "price",
       "renderer": "bar",
-      "barWidthPercent": 1,
-      "skipMissing": true,
-      "skipPartialRange": true,
+      "bar": {
+        "widthFraction": 1,
+        "minExtent": 2
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
       "group": null,
       "stack": null,
+      "title": "Down",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#e34948",
@@ -107,7 +121,6 @@
           "fillOpacity": 1
         }
       },
-      "title": "Down",
       "valueFormat": ",.2f"
     },
     {
@@ -115,9 +128,12 @@
       "property": "upVolume",
       "axis": "volume",
       "renderer": "bar",
-      "skipMissing": true,
+      "missingValueMode": "connect",
       "group": null,
       "stack": null,
+      "showInLegend": false,
+      "followSeries": "up",
+      "valueLabel": "Volume",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#1baf7a",
@@ -125,9 +141,6 @@
           "fillOpacity": 1
         }
       },
-      "showInLegend": false,
-      "followSeries": "up",
-      "valueLabel": "Volume",
       "valueFormat": ",.0f"
     },
     {
@@ -135,9 +148,12 @@
       "property": "downVolume",
       "axis": "volume",
       "renderer": "bar",
-      "skipMissing": true,
+      "missingValueMode": "connect",
       "group": null,
       "stack": null,
+      "showInLegend": false,
+      "followSeries": "down",
+      "valueLabel": "Volume",
       "shapeStyle": {
         "normal": {
           "strokeColor": "#e34948",
@@ -145,9 +161,6 @@
           "fillOpacity": 1
         }
       },
-      "showInLegend": false,
-      "followSeries": "down",
-      "valueLabel": "Volume",
       "valueFormat": ",.0f"
     }
   ]

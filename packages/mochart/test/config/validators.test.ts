@@ -15,10 +15,20 @@ describe('svgColor', () => {
     expect(validate('currentColor')).toBe(true);
   });
 
-  it('rejects malformed hex and named/hsl colors', () => {
+  // an svg color goes straight to a dom attribute, so the browser is the authority
+  it('accepts every css color form, including ones d3-color predates', () => {
+    for (const value of ['red', 'rebeccapurple', 'transparent', '#ff000080', 'rgb(255 0 0)',
+      'rgb(100%,0%,0%)', 'hsl(200,50%,50%)', 'hsl(200 50% 50%)', 'oklch(0.7 0.1 200)',
+      'lab(50% 40 59.5)', 'color(display-p3 1 0 0)', 'var(--brand)']) {
+      expect(validate(value), value).toBe(true);
+    }
+  });
+
+  it('rejects malformed colors', () => {
     expect(validate('#WWW')).toBe(false);
-    expect(validate('red')).toBe(false);
     expect(validate('not-a-color')).toBe(false);
+    expect(validate('')).toBe(false);
+    expect(validate(42)).toBe(false);
   });
 });
 
@@ -32,13 +42,37 @@ describe('cssColor', () => {
   });
 
   it('rejects "none", which is not a css color', () => {
-    // in a css declaration 'none' is dropped as invalid, it does not switch the paint off
+    // in a css declaration 'none' is dropped as invalid, it does not switch the style off
     expect(validate('none')).toBe(false);
+  });
+
+  it('accepts named, hsl and modern-space colors', () => {
+    for (const value of ['red', 'hsl(200,50%,50%)', 'oklch(0.7 0.1 200)', 'var(--brand)']) {
+      expect(validate(value), value).toBe(true);
+    }
   });
 
   it('rejects malformed colors', () => {
     expect(validate('#WWW')).toBe(false);
     expect(validate('not-a-color')).toBe(false);
+  });
+});
+
+// the ramp bounds are handed to d3 scale ranges, so they must stay parseable by d3-color — no keywords or css-only forms
+describe('color (series color-scale bounds)', () => {
+  const validate = configValidators.color();
+
+  it('accepts anything d3-color can interpolate', () => {
+    for (const value of ['red', 'rebeccapurple', '#f00', '#ff000080', 'rgb(1,2,3)',
+      'rgba(0,0,0,0.3)', 'hsl(200,50%,50%)', 'transparent']) {
+      expect(validate(value), value).toBe(true);
+    }
+  });
+
+  it('rejects keywords and css forms d3-color cannot resolve to a value', () => {
+    for (const value of ['currentColor', 'none', 'var(--brand)', 'oklch(0.7 0.1 200)', 'not-a-color', '']) {
+      expect(validate(value), value).toBe(false);
+    }
   });
 });
 
@@ -65,8 +99,19 @@ describe('dashArray', () => {
     expect(validate('4')).toBe(true);
   });
 
-  it('rejects non-numeric dash arrays', () => {
+  it('accepts decimals and mixed comma/whitespace separators', () => {
+    expect(validate('0.5, 2')).toBe(true);
+    expect(validate('.5 2.25')).toBe(true);
+    expect(validate('5 , 3')).toBe(true);
+    expect(validate(' 5,3 ')).toBe(true);
+  });
+
+  it('rejects non-numeric dash arrays and malformed separators', () => {
     expect(validate('dash')).toBe(false);
+    expect(validate('5,,3')).toBe(false);
+    expect(validate('5,')).toBe(false);
+    expect(validate('5.')).toBe(false);
+    expect(validate('5px 3px')).toBe(false);
   });
 });
 
@@ -80,6 +125,22 @@ describe('numberFormat', () => {
 
   it('rejects invalid specifiers', () => {
     expect(validate('nonsense!!')).toBe(false);
+  });
+
+  // Regression: the transcribed d3 regex lacked the trim group, rejecting the core's own auto format
+  it('accepts the d3 trim flag', () => {
+    expect(validate('~s')).toBe(true);
+    expect(validate('.3~f')).toBe(true);
+    expect(validate('~~s')).toBe(false);
+  });
+
+  it('agrees with d3-format on a sweep of specifiers', async () => {
+    const { formatSpecifier } = await import('d3-format');
+    for (const specifier of ['~s', '$,.2~f', '.0%', '~%', 's~', '(,.2~e', 'nonsense!!', '~']) {
+      let d3Accepts = true;
+      try { formatSpecifier(specifier); } catch { d3Accepts = false; }
+      expect(validate(specifier), specifier).toBe(d3Accepts);
+    }
   });
 });
 

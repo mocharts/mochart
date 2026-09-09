@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 
-import { buildShareUrl, demoText } from '@mochart/demo-common';
-import type { ShareState } from '@mochart/demo-common';
+import { controlsMenuPlacement, createShareLinkCopier, demoText } from '@mochart/demo-common';
+import type { ShareLinkCopier, ShareState } from '@mochart/demo-common';
 
 import { useMenu } from './useMenu';
 
@@ -16,9 +16,8 @@ import { useMenu } from './useMenu';
 // including the reason any of it is hand-rolled: the controls strips clip an
 // absolutely-positioned dropdown, and the chart's interaction rect eats clicks
 // through anything stacked below it. What stays here is what the hook does not
-// know about: the items, the copied-link feedback, and `disabled`.
+// know about: the items, their copied label, and `disabled`.
 interface Props {
-  idPrefix: string;
   exportPng: () => void;
   exportSvg: () => void;
   /** Omit to hide the Share item (e.g. a chart whose state isn't shareable). */
@@ -32,18 +31,15 @@ interface Props {
   active?: boolean;
 }
 
-const copiedFeedbackMs = 1500;
-
-export default function ExportShareMenu({ idPrefix, exportPng, exportSvg, getShareState, disabled = false, active = true }: Props) {
+export default function ExportShareMenu({ exportPng, exportSvg, getShareState, disabled = false, active = true }: Props) {
   const [copied, setCopied] = useState(false);
-  const revertTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // `setCopied` is stable, so one lazily created copier lasts the component's life.
+  const shareLinkCopier = useRef<ShareLinkCopier | null>(null);
+  if (shareLinkCopier.current === null) {
+    shareLinkCopier.current = createShareLinkCopier(setCopied);
+  }
 
-  // Opens upward (the controls row sits at the bottom of the pane) and
-  // right-aligned (the trigger is the last control in the row).
-  const menu = useMenu({
-    placement: { side: 'top', align: 'end', gap: 4 },
-    triggerId: idPrefix + '-export-share'
-  });
+  const menu = useMenu({ placement: controlsMenuPlacement });
   const { close } = menu;
 
   // A disabled trigger fires no click, so the menu cannot be opened — but one
@@ -54,10 +50,9 @@ export default function ExportShareMenu({ idPrefix, exportPng, exportSvg, getSha
     }
   }, [disabled, active, close]);
 
-  useEffect(() => () => {
-    if (revertTimer.current !== null) {
-      clearTimeout(revertTimer.current);
-    }
+  useEffect(() => {
+    const copier = shareLinkCopier.current;
+    return () => copier?.dispose();
   }, []);
 
   const runAndClose = (action: () => void) => {
@@ -69,23 +64,12 @@ export default function ExportShareMenu({ idPrefix, exportPng, exportSvg, getSha
     if (!getShareState) {
       return;
     }
-    const url = buildShareUrl(getShareState());
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      if (revertTimer.current !== null) {
-        clearTimeout(revertTimer.current);
-      }
-      revertTimer.current = setTimeout(() => setCopied(false), copiedFeedbackMs);
-    }, () => {
-      // Clipboard access can be unavailable (e.g. insecure context); let the
-      // user copy the link manually instead of failing silently.
-      window.prompt(demoText.shareButton.tooltip, url);
-    });
+    shareLinkCopier.current?.copy(getShareState());
     close();
   };
 
   return (
-    <div className="demo-btn-group demo-menu-up mochart-export-share-menu">
+    <div className="demo-btn-group mochart-export-share-menu">
       <button type="button" ref={menu.triggerRef} {...menu.triggerProps}
         className={'demo-btn demo-btn-secondary demo-menu-trigger' + (menu.open ? ' active' : '')}
         disabled={disabled}
@@ -96,18 +80,18 @@ export default function ExportShareMenu({ idPrefix, exportPng, exportSvg, getSha
         className={'demo-menu' + (menu.isPositioned ? ' open' : '')}>
         <button type="button" className="demo-menu-item" onClick={() => runAndClose(exportPng)}
           aria-label={demoText.exportButtons.png.aria}>
-          <Icon fixedWidth={true} name="file-image" /> <span className="mochart-menu-item-label">{demoText.exportButtons.png.label}</span>
+          <Icon fixedWidth={true} name="file-image" /> <span>{demoText.exportButtons.png.label}</span>
         </button>
         <button type="button" className="demo-menu-item" onClick={() => runAndClose(exportSvg)}
           aria-label={demoText.exportButtons.svg.aria}>
-          <Icon fixedWidth={true} name="file-code" /> <span className="mochart-menu-item-label">{demoText.exportButtons.svg.label}</span>
+          <Icon fixedWidth={true} name="file-code" /> <span>{demoText.exportButtons.svg.label}</span>
         </button>
         {getShareState ? (
           <React.Fragment>
             <div className="demo-menu-divider" />
             <button type="button" className="demo-menu-item" onClick={onShare}
               aria-label={demoText.shareButton.aria}>
-              <Icon fixedWidth={true} name={copied ? 'check' : 'link'} /> <span className="mochart-menu-item-label">{copied ? demoText.shareButton.tooltipCopied : demoText.shareButton.label}</span>
+              <Icon fixedWidth={true} name={copied ? 'check' : 'link'} /> <span>{copied ? demoText.shareButton.tooltipCopied : demoText.shareButton.label}</span>
             </button>
           </React.Fragment>
         ) : null}

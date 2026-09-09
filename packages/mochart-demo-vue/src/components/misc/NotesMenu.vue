@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { watch } from 'vue';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, notesMenuPlacement } from '@mochart/demo-common';
 
 import Icon from './Icon.vue';
 import { useMenu } from './useMenu';
@@ -25,12 +25,8 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { notes: undefined });
 
-// Downward from the navigation row, left-aligned, clamped so a 340px panel
-// opened from a right-hand trigger stays on screen. The width must match
-// `.demo-menu-notes` in demo.css — a closed panel measures 0, so the clamp
-// has to be told the width the stylesheet will give it.
 const { open, close, setTrigger, setPanel, triggerProps, panelProps, isPositioned } = useMenu({
-  placement: { side: 'bottom', align: 'start', gap: 6, width: 340, viewportMargin: 32 }
+  placement: notesMenuPlacement
 });
 
 // Close whenever the demo changes under us (history navigation between demos).

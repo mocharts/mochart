@@ -2,21 +2,24 @@ import { Renderer, svgEl, textEl } from '../render';
 
 import { getSeriesLabelFormat } from '../utils/ValueFormat';
 import { mochartCssClasses } from '../utils/ChartDom';
-import { NONE, AUTO, LABEL_POSITION_CENTER, LABEL_POSITION_INSIDE } from '../config/core/constants';
-import { translate } from '../utils/utils';
+import { NONE, AUTO, LABEL_POSITION_CENTER, LABEL_POSITION_INSIDE, RENDERER_BAR } from '../config/core/constants';
+import { translate, isMissingValue } from '../utils/utils';
 import { getSeriesLabelFillColor, getSeriesLabelStrokeColor } from '../utils/SeriesColors';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
-import { getFocusValue, getGroupFocusPercentage } from '../utils/FocusValue';
+import { getFocusStyle, getCategoryFocusPercentage } from '../utils/FocusValue';
 import type { El, ElListAdapter, TextEl } from '../render';
-import type { ColorPaletteConfig, SeriesConfig } from '../types/config';
+import type { ColorPaletteConfig } from '../types/config';
+import type { EnhancedSeriesConfig } from '../types/enhanced';
 import type { FocusData } from '../types/animation';
 import type { AxisScale, NullableDomain, SeriesPositionData, SeriesValueObject } from '../types/data';
 import type { LabelPosition } from '../config/core/constants';
+import { CategoryShapeCache } from '../utils/CategoryShapes';
+import type { CategoryShape } from '../utils/CategoryShapes';
 
-const getLabelPosition = (isAboveBase: boolean, hasBase: boolean, seriesConfig: SeriesConfig): LabelPosition => {
-  let { labelPosition } = seriesConfig;
+const getLabelPosition = (isAboveBase: boolean, hasBase: boolean, seriesConfig: EnhancedSeriesConfig): LabelPosition => {
+  let { position: labelPosition } = seriesConfig.label;
   if (hasBase) {
-    const { labelAboveBasePosition, labelBelowBasePosition } = seriesConfig;
+    const labelAboveBasePosition = seriesConfig.label.aboveBase.position, labelBelowBasePosition = seriesConfig.label.belowBase.position;
     if (isAboveBase && labelAboveBasePosition !== AUTO) {
       labelPosition = labelAboveBasePosition;
     }
@@ -37,18 +40,18 @@ const getDY = (inverted: boolean, isAboveBase: boolean, position: LabelPosition)
     (position === LABEL_POSITION_INSIDE ? (isAboveBase ? '1.35em' : '-0.65em') : (isAboveBase ? '-0.65em' : '1.35em'));
 };
 
-interface SeriesLabelData { key: string; attrs: Record<string, unknown>; text: string | number }
+interface SeriesLabelShape extends CategoryShape { text: string }
 interface SeriesLabelHandle { root: El; value: TextEl }
 
-const labelAdapter: ElListAdapter<SeriesLabelData, SeriesLabelHandle> = {
-  key: (label: SeriesLabelData) => label.key,
+const labelAdapter: ElListAdapter<SeriesLabelShape, SeriesLabelHandle> = {
+  key: (label: SeriesLabelShape) => label.key,
   create: () => {
     const root = svgEl('text');
     const value = textEl();
     root.append(value);
     return { root, value };
   },
-  update: (handle: SeriesLabelHandle, label: SeriesLabelData) => {
+  update: (handle: SeriesLabelHandle, label: SeriesLabelShape) => {
     handle.root.set(label.attrs);
     handle.value.set(label.text);
   }
@@ -56,72 +59,77 @@ const labelAdapter: ElListAdapter<SeriesLabelData, SeriesLabelHandle> = {
 
 interface SeriesLabelsProps {
   colorPaletteConfig: ColorPaletteConfig;
-  seriesConfig: SeriesConfig;
+  seriesConfig: EnhancedSeriesConfig;
   seriesIndex: number;
-  rawSeriesAxisDomain: NullableDomain;
-  seriesAxisScale: AxisScale;
+  rawValueAxisDomain: NullableDomain;
+  valueAxisScale: AxisScale;
   seriesPositionData: SeriesPositionData;
   filteredValues: SeriesValueObject;
   inverted: boolean;
   focusData: FocusData;
-  onGroupEnter: (groupIndex: number) => void;
-  onGroupLeave: (groupIndex: number) => void;
-  onGroupClick: (groupIndex: number) => void;
+  accessibility: boolean;
+  onCategoryEnter: (categoryIndex: number) => void;
+  onCategoryLeave: (categoryIndex: number) => void;
+  onCategoryClick: (categoryIndex: number, event: Event) => void;
 }
 
 export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
   root = svgEl('g');
-  labels = this.elList<SeriesLabelData, SeriesLabelHandle>(this.root);
+  labels = this.elList<SeriesLabelShape, SeriesLabelHandle>(this.root);
+  labelShapes = new CategoryShapeCache<SeriesLabelShape>('seriesLabel', () => this.props, shape => ({ ...shape, text: '' }));
 
   create() {
     return this.root.node;
   }
 
   sync() {
-    const { colorPaletteConfig, seriesConfig, seriesIndex, rawSeriesAxisDomain, seriesAxisScale, seriesPositionData,
-      filteredValues, inverted, focusData, onGroupEnter, onGroupLeave, onGroupClick } = this.props;
+    const { colorPaletteConfig, seriesConfig, seriesIndex, rawValueAxisDomain, valueAxisScale, seriesPositionData,
+      filteredValues, inverted, focusData, accessibility } = this.props;
     if (seriesConfig.labelProperty !== NONE) {
-      const { seriesAxisConfig, skipMissing } = seriesConfig;
-      const hasBase = seriesAxisConfig.base !== NONE;
-      const domainMin = rawSeriesAxisDomain[0];
-      const domainMax = rawSeriesAxisDomain[1];
+      const { valueAxisConfig } = seriesConfig;
+      const hasBase = valueAxisConfig.base !== NONE;
+      const domainMin = rawValueAxisDomain[0];
+      const domainMax = rawValueAxisDomain[1];
 
       if (domainMin !== null && domainMax !== null) {
         const domainExtent = domainMax - domainMin;
-        const base = hasBase ? Math.min(Math.max(seriesAxisConfig.base!, domainMin), domainMax) : domainMin;
-        const labels: SeriesLabelData[] = [];
+        const base = hasBase ? Math.min(Math.max(valueAxisConfig.base!, domainMin), domainMax) : domainMin;
+        const labels: SeriesLabelShape[] = [];
         const { max: maxValuesNullable, min: minValues, label: labelValuesNullable } = filteredValues;
         const maxValues = maxValuesNullable!;
         const labelValues = labelValuesNullable!;
-        let labelStrokeColor, labelFillColor, labelStrokeWidth, labelStrokeOpacity, labelFillOpacity;
-        const { normal: labelNormal, focused: labelFocused, defocused: labelDefocused } = seriesConfig.labelTextStyle;
+        let labelStrokeColor, labelFillColor;
 
         let withinPercentages = (_seriesValue: number, _minSeriesValue?: number | null) => {
           return true;
         };
 
-        const { labelOffset } = seriesConfig;
+        const { offset: labelOffset } = seriesConfig.label;
+
+        // a reversed value axis flips the pixel direction, so the offset and the label side flip with it
+        const { reversed } = valueAxisConfig;
+        const offsetSign = reversed ? -1 : 1;
 
         let getOffset = (_aboveBase: boolean) => {
-          return labelOffset;
+          return offsetSign * labelOffset;
         };
 
         if (hasBase) {
-          const aboveBaseLabelOffset = seriesConfig.labelAboveBaseOffset === AUTO ? labelOffset : seriesConfig.labelAboveBaseOffset;
-          const belowBaseLabelOffset = seriesConfig.labelBelowBaseOffset === AUTO ? -1 * labelOffset : seriesConfig.labelBelowBaseOffset;
+          const aboveBaseLabelOffset = seriesConfig.label.aboveBase.offset === AUTO ? labelOffset : seriesConfig.label.aboveBase.offset;
+          const belowBaseLabelOffset = seriesConfig.label.belowBase.offset === AUTO ? -1 * labelOffset : seriesConfig.label.belowBase.offset;
 
           getOffset = (aboveBase: boolean) => {
-            return aboveBase ? aboveBaseLabelOffset : belowBaseLabelOffset;
+            return offsetSign * (aboveBase ? aboveBaseLabelOffset : belowBaseLabelOffset);
           };
         }
 
-        const {
-          labelMinPositionPercent, labelMaxPositionPercent, labelAboveBaseMinPositionPercent,
-          labelAboveBaseMaxPositionPercent, labelBelowBaseMinPositionPercent, labelBelowBaseMaxPositionPercent } = seriesConfig;
+        const { minPositionFraction: labelMinPositionFraction, maxPositionFraction: labelMaxPositionFraction, aboveBase: aboveBaseLabel, belowBase: belowBaseLabel } = seriesConfig.label;
+        const { minPositionFraction: labelAboveBaseMinPositionFraction, maxPositionFraction: labelAboveBaseMaxPositionFraction } = aboveBaseLabel;
+        const { minPositionFraction: labelBelowBaseMinPositionFraction, maxPositionFraction: labelBelowBaseMaxPositionFraction } = belowBaseLabel;
 
-        if ((labelMinPositionPercent !== NONE || labelMaxPositionPercent !== NONE) || (hasBase &&
-            (labelAboveBaseMinPositionPercent !== NONE || labelAboveBaseMaxPositionPercent !== NONE ||
-             labelBelowBaseMinPositionPercent !== NONE || labelBelowBaseMaxPositionPercent !== NONE)
+        if ((labelMinPositionFraction !== NONE || labelMaxPositionFraction !== NONE) || (hasBase &&
+            (labelAboveBaseMinPositionFraction !== NONE || labelAboveBaseMaxPositionFraction !== NONE ||
+             labelBelowBaseMinPositionFraction !== NONE || labelBelowBaseMaxPositionFraction !== NONE)
           )) {
 
           let minValue: number | null = null;
@@ -132,21 +140,21 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
           let belowBaseMaxValue: number | null = null;
 
           if (hasBase) {
-            if (labelAboveBaseMinPositionPercent !== NONE && !(labelAboveBaseMinPositionPercent === AUTO && labelMinPositionPercent === NONE)) {
-              const percent = (labelAboveBaseMinPositionPercent === AUTO ? labelMinPositionPercent : labelAboveBaseMinPositionPercent)!;
-              aboveBaseMinValue = domainExtent === 0 ? (domainMin + 1) : (base + percent * domainExtent);
+            if (labelAboveBaseMinPositionFraction !== NONE && !(labelAboveBaseMinPositionFraction === AUTO && labelMinPositionFraction === NONE)) {
+              const percent = (labelAboveBaseMinPositionFraction === AUTO ? labelMinPositionFraction : labelAboveBaseMinPositionFraction)!;
+              aboveBaseMinValue = base + percent * domainExtent;
             }
-            if (labelAboveBaseMaxPositionPercent !== NONE && !(labelAboveBaseMaxPositionPercent === AUTO && labelMaxPositionPercent === NONE)) {
-              const percent = (labelAboveBaseMaxPositionPercent === AUTO ? labelMaxPositionPercent : labelAboveBaseMaxPositionPercent)!;
-              aboveBaseMaxValue = domainExtent === 0 ? (domainMax - 1) : (domainMax - percent * domainExtent);
+            if (labelAboveBaseMaxPositionFraction !== NONE && !(labelAboveBaseMaxPositionFraction === AUTO && labelMaxPositionFraction === NONE)) {
+              const percent = (labelAboveBaseMaxPositionFraction === AUTO ? labelMaxPositionFraction : labelAboveBaseMaxPositionFraction)!;
+              aboveBaseMaxValue = domainMax - percent * domainExtent;
             }
-            if (labelBelowBaseMinPositionPercent !== NONE && !(labelBelowBaseMinPositionPercent === AUTO && labelMinPositionPercent === NONE)) {
-              const percent = (labelBelowBaseMinPositionPercent === AUTO ? labelMinPositionPercent : labelBelowBaseMinPositionPercent)!;
-              belowBaseMinValue = domainExtent === 0 ? (domainMin + 1) : (base - percent * domainExtent);
+            if (labelBelowBaseMinPositionFraction !== NONE && !(labelBelowBaseMinPositionFraction === AUTO && labelMinPositionFraction === NONE)) {
+              const percent = (labelBelowBaseMinPositionFraction === AUTO ? labelMinPositionFraction : labelBelowBaseMinPositionFraction)!;
+              belowBaseMinValue = base - percent * domainExtent;
             }
-            if (labelBelowBaseMaxPositionPercent !== NONE && !(labelBelowBaseMaxPositionPercent === AUTO && labelMaxPositionPercent === NONE)) {
-              const percent = (labelBelowBaseMaxPositionPercent === AUTO ? labelMaxPositionPercent : labelBelowBaseMaxPositionPercent)!;
-              belowBaseMaxValue = domainExtent === 0 ? (domainMax - 1) : (domainMin + percent * domainExtent);
+            if (labelBelowBaseMaxPositionFraction !== NONE && !(labelBelowBaseMaxPositionFraction === AUTO && labelMaxPositionFraction === NONE)) {
+              const percent = (labelBelowBaseMaxPositionFraction === AUTO ? labelMaxPositionFraction : labelBelowBaseMaxPositionFraction)!;
+              belowBaseMaxValue = domainMin + percent * domainExtent;
             }
             withinPercentages = (seriesValue: number) => {
               if (seriesValue >= base) {
@@ -158,11 +166,11 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
             };
           }
           else {
-            if (labelMinPositionPercent !== NONE) {
-              minValue = domainExtent === 0 ? domainMin + 1 : domainMin + labelMinPositionPercent * domainExtent;
+            if (labelMinPositionFraction !== NONE) {
+              minValue = domainMin + labelMinPositionFraction * domainExtent;
             }
-            if (labelMaxPositionPercent !== NONE) {
-              maxValue = domainExtent === 0 ? domainMax - 1 : domainMax - labelMaxPositionPercent * domainExtent;
+            if (labelMaxPositionFraction !== NONE) {
+              maxValue = domainMax - labelMaxPositionFraction * domainExtent;
             }
 
             withinPercentages = (seriesValue: number) => {
@@ -170,10 +178,10 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
             };
           }
         }
-        if (seriesConfig.labelMinRangePercent !== NONE) {
+        if (seriesConfig.label.minRangeFraction !== NONE) {
           const oldWithinPercentages = withinPercentages;
           const hasStack = seriesConfig.stack !== NONE;
-          const minAbsoluteValue = domainExtent === 0 ? domainMin + 1 : seriesConfig.labelMinRangePercent * domainExtent;
+          const minAbsoluteValue = seriesConfig.label.minRangeFraction * domainExtent;
 
           if (hasStack) {
             if (hasBase) {
@@ -182,7 +190,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
                 if (minSeriesValue !== null && minSeriesValue !== undefined) {
                   valueMin = minSeriesValue;
                 }
-                return oldWithinPercentages(maxSeriesValue) && (maxSeriesValue - valueMin) >= minAbsoluteValue;
+                return oldWithinPercentages(maxSeriesValue) && Math.abs(maxSeriesValue - valueMin) >= minAbsoluteValue;
               };
             }
             else {
@@ -191,64 +199,72 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
                 if (minSeriesValue !== null && minSeriesValue !== undefined) {
                   valueMin = minSeriesValue;
                 }
-                return oldWithinPercentages(maxSeriesValue) && (maxSeriesValue - valueMin) >= minAbsoluteValue;
+                return oldWithinPercentages(maxSeriesValue) && Math.abs(maxSeriesValue - valueMin) >= minAbsoluteValue;
               };
             }
           }
           else {
+            // an unstacked value with no rangeProperty spans from where the bars start, like a stacked one
+            const unstackedMin = hasBase ? base : domainMin;
             withinPercentages = (maxSeriesValue: number, minSeriesValue?: number | null) => {
               let valueMin = maxSeriesValue;
               if (minSeriesValue !== undefined) {
-                // Preserve the original numeric coercion: a null minimum
-                // represents the zero baseline for an unstacked value.
-                valueMin = minSeriesValue ?? 0;
+                valueMin = minSeriesValue ?? unstackedMin;
               }
               return oldWithinPercentages(maxSeriesValue) && Math.abs(maxSeriesValue - valueMin) >= minAbsoluteValue;
             };
           }
         }
 
-        const valueFormat = getSeriesLabelFormat(seriesConfig, seriesAxisConfig, seriesAxisScale);
+        const valueFormat = getSeriesLabelFormat(seriesConfig, valueAxisConfig, valueAxisScale);
 
-        const { groupFocusPercentages, seriesAxisFocusPercentages, seriesFocusPercentages } = focusData;
-        const seriesFocusPercentage = getSeriesFocusPercentage(seriesConfig, seriesAxisFocusPercentages, seriesFocusPercentages);
+        const { categoryFocusPercentages, valueAxisFocusPercentages, seriesFocusPercentages } = focusData;
+        const seriesFocusPercentage = getSeriesFocusPercentage(seriesConfig, valueAxisFocusPercentages, seriesFocusPercentages);
 
         let focusPercentage, aboveBase, textAnchor, dy, seriesPosition, x, y;
-        const position = getLabelPosition(inverted, hasBase, seriesConfig);
-        const aboveBaseTextAnchor = getTextAnchor(inverted, true, position);
-        const belowBaseTextAnchor = getTextAnchor(inverted, false, position);
-        const aboveBaseDY = getDY(inverted, true, seriesConfig.labelPosition);
-        const belowBaseDY = getDY(inverted, false, seriesConfig.labelPosition);
+        // Each side resolves its own position (labelAboveBasePosition/
+        // labelBelowBasePosition fall back to labelPosition).
+        const aboveBasePosition = getLabelPosition(true, hasBase, seriesConfig);
+        const belowBasePosition = getLabelPosition(false, hasBase, seriesConfig);
+        // the side is a value-space choice; the anchor/dy direction is a pixel-space one
+        const aboveBaseTextAnchor = getTextAnchor(inverted, !reversed, aboveBasePosition);
+        const belowBaseTextAnchor = getTextAnchor(inverted, reversed, belowBasePosition);
+        const aboveBaseDY = getDY(inverted, !reversed, aboveBasePosition);
+        const belowBaseDY = getDY(inverted, reversed, belowBasePosition);
 
-        const { length, getDefined, getSeriesPosition, getGroupPosition, skipGroupIndexMap } = seriesPositionData;
+        const { length, getDefined, getSeriesPosition, getCategoryPosition, getOffsetCategoryPosition, categoryValueExtent, skipped, skipCategoryIndexMap } = seriesPositionData;
+        // a bar label centers on the bar's own slot (group sub-slot, barWidthFraction), not the category slot
+        const isBar = seriesConfig.renderer === RENDERER_BAR;
 
         for (let i = 0; i < length; i++) {
-          const skipI = skipMissing ? skipGroupIndexMap[i] : i;
-          if (getDefined(null, i) && labelValues[skipI] !== undefined && withinPercentages(maxValues[skipI]!, minValues ? minValues[skipI] : null)) {
+          const skipI = skipped ? skipCategoryIndexMap[i] : i;
+          // a missing prior (NaN) reads as undefined here so the base/domain fallbacks above apply
+          const minValue = minValues ? (isMissingValue(minValues[skipI]) ? undefined : minValues[skipI]) : null;
+          if (getDefined(null, i) && !isMissingValue(labelValues[skipI]) && withinPercentages(maxValues[skipI]!, minValue)) {
             aboveBase = !hasBase || maxValues[skipI]! >= base;
             textAnchor = aboveBase ? aboveBaseTextAnchor : belowBaseTextAnchor;
             dy = aboveBase ? aboveBaseDY : belowBaseDY;
 
-            focusPercentage = getGroupFocusPercentage(groupFocusPercentages[skipI], seriesFocusPercentage);
-            labelFillColor = getSeriesLabelFillColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, i);
-            labelStrokeColor = getSeriesLabelStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, i);
-            labelStrokeWidth = getFocusValue(focusPercentage, labelNormal.strokeWidth!, labelFocused.strokeWidth!, labelDefocused.strokeWidth!);
-            labelStrokeOpacity = getFocusValue(focusPercentage, labelNormal.strokeOpacity!, labelFocused.strokeOpacity!, labelDefocused.strokeOpacity!);
-            labelFillOpacity = getFocusValue(focusPercentage, labelNormal.fillOpacity!, labelFocused.fillOpacity!, labelDefocused.fillOpacity!);
+            focusPercentage = getCategoryFocusPercentage(categoryFocusPercentages[skipI], seriesFocusPercentage);
+            labelFillColor = getSeriesLabelFillColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, skipI);
+            labelStrokeColor = getSeriesLabelStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, skipI);
+            const { strokeWidth: labelStrokeWidth, strokeOpacity: labelStrokeOpacity, fillOpacity: labelFillOpacity } = getFocusStyle(focusPercentage, seriesConfig.label.textStyle);
             seriesPosition = getSeriesPosition(null, i)! + getOffset(aboveBase);
-            x = inverted ? seriesPosition : getGroupPosition(null, i)!;
-            y = inverted ? getGroupPosition(null, i)! : seriesPosition;
-            labels.push({
-              key: 'label-' + i,
-              attrs: { className: mochartCssClasses['seriesLabel'] + i, transform: translate(x, y),
-                textAnchor, dy, stroke: labelStrokeColor, fill: labelFillColor, fillOpacity: labelFillOpacity, strokeOpacity: labelStrokeOpacity,
-                strokeWidth: labelStrokeWidth, onMouseEnter: () => onGroupEnter(i), onMouseLeave: () => onGroupLeave(i), onClick: () => onGroupClick(i) },
-              text: String(valueFormat(labelValues[skipI]!))
-            });
+            const categoryPosition = isBar ? getOffsetCategoryPosition(null, i)! + categoryValueExtent / 2 : getCategoryPosition(null, i)!;
+            x = inverted ? seriesPosition : categoryPosition;
+            y = inverted ? categoryPosition : seriesPosition;
+            const label = this.labelShapes.get(skipI);
+            label.attrs = { className: label.className, transform: translate(x, y),
+              textAnchor, dy, stroke: labelStrokeColor, fill: labelFillColor, fillOpacity: labelFillOpacity, strokeOpacity: labelStrokeOpacity,
+              strokeWidth: labelStrokeWidth, onPointerEnter: label.onPointerEnter, onPointerLeave: label.onPointerLeave, onClick: label.onClick };
+            label.text = String(valueFormat(labelValues[skipI]!));
+            labels.push(label);
           }
         }
         this.setPresent(true);
-        this.root.set({ className: mochartCssClasses['seriesLabels'] });
+        // unattributed values, interpolated mid-animation: the tooltip live region reads the settled ones
+        this.root.set({ className: mochartCssClasses['seriesLabels'],
+          ariaHidden: accessibility ? 'true' : null });
         this.labels.sync(labels, labelAdapter);
         return;
       }

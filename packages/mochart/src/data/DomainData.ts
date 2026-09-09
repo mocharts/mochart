@@ -3,17 +3,21 @@ import type { DomainValue, NullableDomain } from '../types/data';
 
 export const nullDomain: NullableDomain = [null, null];
 
-function numericValue(value: DomainValue): number {
+/** A domain value as something comparable. Shared with AxisDomainData; does not parse date strings. */
+export function numericValue(value: DomainValue): number {
   return value instanceof Date ? value.getTime() : value;
 }
 
-export function getGroupDomainForValues<T extends DomainValue>(values: readonly T[]): NullableDomain<T> { // since group values are never undefined, we don't need to check for that...
+export function getCategoryDomainForValues<T extends DomainValue>(values: readonly T[]): NullableDomain<T> { // category values are never undefined
   let min: T | null = null;
   let max: T | null = null;
   let value: T;
   const valueCount = values.length;
   for (let i=0; i<valueCount; i++) {
     value = values[i];
+    if (!Number.isFinite(numericValue(value))) { // NaN (e.g. an Invalid Date), Infinity or null would seed min/max and stick
+      continue;
+    }
     if (min === null || numericValue(value) < numericValue(min)) {
       min = value;
     }
@@ -24,7 +28,7 @@ export function getGroupDomainForValues<T extends DomainValue>(values: readonly 
   return [min, max];
 }
 
-export function getDomainForValues(values: readonly (number | undefined)[] | null): NullableDomain {
+export function getDomainForValues(values: readonly number[] | null): NullableDomain {
   let min: number | null = null;
   let max: number | null = null;
   if (values !== null) {
@@ -32,7 +36,8 @@ export function getDomainForValues(values: readonly (number | undefined)[] | nul
     const valueCount = values.length;
     for (let i=0; i<valueCount; i++) {
       value = values[i];
-      if (value !== undefined) {
+      // a missing value is NaN; null would compare as 0 and re-arm the `min === null` sentinel, discarding the minimum
+      if (typeof value === 'number' && Number.isFinite(value)) {
         if (min === null || value < min) {
           min = value;
         }
@@ -69,9 +74,16 @@ export function getDomainExtents<T extends DomainValue>(domains: Record<string, 
   return mapMap(domains, x => getDomainExtent(x));
 }
 
-// TODO - check if this is leading to unexpected marker / color / label behaviour
+// Collapsed or inverted domains fall back to a positive magnitude (1 when null or 0) so delta weights stay positive.
 export function getSafeDomainExtent(domain: NullableDomain): number {
-  return domain[0] !== domain[1] ? getDomainExtent(domain) : (domain[0] !== null ? domain[0] : 1);
+  if (domain[0] !== domain[1]) {
+    return Math.abs(getDomainExtent(domain));
+  }
+  return domain[0] === null || domain[0] === 0 ? 1 : Math.abs(domain[0]);
+}
+
+export function getSafeDomainExtents(domains: Record<string, NullableDomain>): Record<string, number> {
+  return mapMap(domains, x => getSafeDomainExtent(x));
 }
 
 export function getMaxDomain<T extends DomainValue>(domain: NullableDomain<T>, otherDomain: NullableDomain<T>): NullableDomain<T> {

@@ -2,7 +2,7 @@ import { html } from 'lit';
 import type { PropertyValues, TemplateResult } from 'lit';
 import { customElement, property, query } from 'lit/decorators.js';
 
-import { createMenuController } from '@mochart/demo-common';
+import { createMenuController, isMenuDismissingClick } from '@mochart/demo-common';
 import type { MenuController, MenuPlacement } from '@mochart/demo-common';
 
 import { LightElement } from './LightElement';
@@ -102,12 +102,9 @@ export class OverflowMenu extends LightElement {
   }
 
   private onPanelClick = (event: MouseEvent): void => {
-    const target = event.target instanceof Element ? event.target : null;
-    const actionable = target?.closest('button, a') ?? null;
-    if (actionable === null || actionable.closest('.demo-menu-keep-open') !== null) {
-      return;
+    if (isMenuDismissingClick(event.target)) {
+      this.controller?.close();
     }
-    this.controller?.close();
   };
 
   override render(): TemplateResult {

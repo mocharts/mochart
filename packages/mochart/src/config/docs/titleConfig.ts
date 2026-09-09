@@ -2,32 +2,53 @@ import { style, spacing } from './shared';
 
 export default function getDescriptions() {
   return {
-    title: 'the text to display in the title at the top of the chart (use null for none)',
+    text: 'the text to display in the title (use null for none)',
     position: 'the position of the title relative to the chart (top or bottom)',
-    titlePrefix: 'the text to display at the start of the title at the top of the chart (use null for none)',
-    titleSuffix: 'the text to display at the end of the title at the top of the chart (use null for none)',
     link: 'the link to create for the title (use null for none)',
     linkDisabled: 'whether to prevent default navigation behaviour when the link is clicked',
-    truncationEnabled: 'whether to use text truncation when the title width exceeds the width of the chart',
-    truncationValue: 'the truncation text to append to the title when its length exceeds the length of the chart',
+    truncation: {
+      description: 'the truncation applied to the title when its width exceeds the width of the chart',
+      properties: {
+        enabled: 'whether to use text truncation when the title width exceeds the width of the chart',
+        text: 'the truncation text to append when text is truncated',
+        tooltipEnabled: 'whether truncated text shows its full string as the browser’s native tooltip while a pointer rests on it'
+      }
+    },
     alignedToAxes: 'whether the title should be aligned between the axes (true) or the chart bounds (false)',
     align: 'the alignment for the title (left, center, right)',
-    verticalAlign: 'the vertical alignment of the prefix/text/suffix within the title',
+    verticalAlign: 'the vertical alignment of the prefix/text/suffix within the title (top, middle, bottom)',
     verticalExpand: 'whether to expand the padding height of the prefix/text/suffix to match the max section height',
     margin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the title'),
     padding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the title'),
     textMargin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the title text'),
     textPadding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the title text'),
-    prefixMargin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the title prefix'),
-    prefixPadding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the title prefix'),
-    suffixMargin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the title suffix'),
-    suffixPadding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the title suffix'),
     backgroundStyle: style('the styles to apply to the title background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
-    titleBackgroundStyle: style('the styles to apply to the title text background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
-    titleTextStyle: style('the styles to apply to the title text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)'),
-    prefixBackgroundStyle: style('the styles to apply to the title prefix background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
-    prefixTextStyle: style('the styles to apply to the title prefix text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)'),
-    suffixBackgroundStyle: style('the styles to apply to the title suffix background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
-    suffixTextStyle: style('the styles to apply to the title suffix text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)')
+    textBackgroundStyle: style('the styles to apply to the title text background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
+    textStyle: style('the styles to apply to the title text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)'),
+    prefix: {
+      description: 'the prefix box shown at the start of the title',
+      properties: {
+        text: 'the text to display in the box (use null for none)',
+        margin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the box'),
+        padding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the box'),
+        backgroundStyle: style('the styles to apply to the box background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
+        textStyle: style('the styles to apply to the box text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)')
+      }
+    },
+    suffix: {
+      description: 'the suffix box shown at the end of the title',
+      properties: {
+        text: 'the text to display in the box (use null for none)',
+        margin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the box'),
+        padding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the box'),
+        backgroundStyle: style('the styles to apply to the box background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
+        textStyle: style('the styles to apply to the box text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)')
+      }
+    }
+  };
+}
+export function getDetails() {
+  return {
+    truncation: { properties: { tooltipEnabled: 'When `true`, a truncated title carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; the chart’s accessible name already uses the full text.' } }
   };
 }

@@ -21,6 +21,59 @@
   margin-top: 8px;
 }
 
+/* Rolling event log under callback examples (LiveChart's `events` prop). */
+.live-chart-events {
+  position: relative;
+  margin-top: 8px;
+  padding: 6px 56px 6px 12px; /* right padding keeps entries clear of the Clear button */
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  background-color: var(--vp-c-bg-soft);
+  font-family: var(--vp-font-family-mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--vp-c-text-2);
+  overflow-wrap: anywhere;
+}
+
+/* The list scrolls; the box (and the Clear button anchored to it) stays put. */
+.live-chart-events-list {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.live-chart-events-clear {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 4px;
+  padding: 1px 8px;
+  font-family: var(--vp-font-family-base);
+  font-size: 11px;
+  color: var(--vp-c-text-2);
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.live-chart-events-clear:hover {
+  color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-1);
+}
+
+.live-chart-event-name {
+  color: var(--vp-c-brand-1);
+  font-weight: 600;
+}
+
+.live-chart-event-payload {
+  margin-left: 8px;
+}
+
+.live-chart-events-hint {
+  font-family: var(--vp-font-family-base);
+  font-style: italic;
+}
+
 .live-chart-controls button {
   border: 1px solid var(--vp-c-brand-1);
   color: var(--vp-c-brand-1);
@@ -34,6 +87,28 @@
 .live-chart-controls button:hover {
   background-color: var(--vp-c-brand-1);
   color: var(--vp-c-white);
+}
+
+.live-chart-controls button + button {
+  margin-left: 8px;
+}
+
+.live-chart-easing {
+  margin-right: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vp-c-text-2);
+}
+
+.live-chart-easing select {
+  margin-left: 6px;
+  border: 1px solid var(--vp-c-brand-1);
+  color: var(--vp-c-brand-1);
+  background-color: transparent;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .live-chart-controls .live-chart-demo-link {

@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, navMenuPlacement } from '@mochart/demo-common';
 
 import { BackToDemosButton, ModeSwitcher, SiteRootButton, ThemeToggleButton } from './mode-switcher';
 import { NotesMenu } from './notes-menu';
@@ -27,10 +27,10 @@ import type { SwitchableDemoMode } from '../../types';
  * (which fits at every width), and folding them would produce a row whose only
  * content is a `…` holding two rows.
  *
- * The tab strip arrives as projected content rather than an input, because it
- * is markup carrying each page's own click handlers. A given `<ng-content>`
- * projects to exactly one place, which is why the `<ul>` sits in the nav group
- * common to both branches rather than inside either of them — and why the
+ * The tab strip (`DemoTabs`/`StaticDemoTabs`) arrives as projected content
+ * rather than an input, because it carries each page's own handlers. A given
+ * `<ng-content>` projects to exactly one place, which is why it sits in the nav
+ * group common to both branches rather than inside either of them — and why the
  * caller has to declare `[hasTabs]`, since Angular gives no way to ask whether
  * anything was projected.
  */
@@ -50,9 +50,7 @@ import type { SwitchableDemoMode } from '../../types';
           }
           <button appBackToDemosButton (click)="onBackToDemos()"></button>
         }
-        @if (hasTabs) {
-          <ul class="demo-tabs"><ng-content /></ul>
-        }
+        <ng-content />
         @if (!folded() && hasNotes()) {
           <app-notes-menu [demoTitle]="notes!.title" [notes]="notes!.notes" />
         }
@@ -111,7 +109,7 @@ export class TopBar {
 
   readonly overflowText = demoText.overflowMenu.nav;
   readonly modeSectionLabel = demoText.modeSwitcher.menuSectionLabel;
-  readonly navPlacement = { side: 'bottom', align: 'end', gap: 6 } as const;
+  readonly navPlacement = navMenuPlacement;
 
   private readonly phone = phoneViewport();
 

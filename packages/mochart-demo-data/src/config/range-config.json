@@ -1,16 +1,16 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Range Series Example"
+  "title": {
+    "text": "Range Series Example"
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "group",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "category",
     "type": "number",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": {},
-  "seriesConfigs": [
+  "valueAxes": {},
+  "series": [
     {
       "property": "range-max",
       "rangeProperty": "range-min",
@@ -22,7 +22,9 @@
           "fillColor": "#9467bd"
         }
       },
-      "markerShape": null
+      "marker": {
+        "shape": null
+      }
     },
     {
       "property": "middle",
@@ -34,8 +36,10 @@
           "fillColor": "#1f77b4"
         }
       },
-      "markerSize": 8,
-      "markerShape": "star"
+      "marker": {
+        "size": 8,
+        "shape": "star"
+      }
     }
   ]
 }

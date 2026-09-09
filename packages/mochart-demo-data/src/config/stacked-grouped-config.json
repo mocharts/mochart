@@ -1,19 +1,19 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Stacked Grouped Bar"
+  "title": {
+    "text": "Stacked Grouped Bar"
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "groupNO",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categoryNO",
     "type": "number",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": {
-    "before": true,
-    "min": 0
+  "valueAxes": {
+    "min": 0,
+    "side": "start"
   },
-  "seriesStackConfigs": [
+  "seriesStacks": [
     {
       "id": "SS0"
     },
@@ -21,41 +21,38 @@
       "id": "SS1"
     }
   ],
-  "seriesGroupConfigs": [
+  "seriesGroups": [
     {
       "id": "SG0"
-    },
-    {
-      "id": "SG1"
     }
   ],
-  "seriesAllConfig": {
+  "seriesDefaults": {
     "renderer": "bar"
   },
-  "seriesConfigs": [
+  "series": [
     {
       "stack": "SS0",
       "group": "SG0",
       "property": "value1",
-      "title": "Group 1 Stack 1"
+      "title": "Stack 1 Bottom"
     },
     {
       "stack": "SS1",
       "group": "SG0",
       "property": "value2",
-      "title": "Group 1 Stack 2"
+      "title": "Stack 2 Bottom"
     },
     {
       "stack": "SS0",
-      "group": "SG1",
+      "group": "SG0",
       "property": "value3",
-      "title": "Group 2 Stack 1"
+      "title": "Stack 1 Top"
     },
     {
       "stack": "SS1",
-      "group": "SG1",
+      "group": "SG0",
       "property": "value4",
-      "title": "Group 2 Stack 2"
+      "title": "Stack 2 Top"
     }
   ]
 }

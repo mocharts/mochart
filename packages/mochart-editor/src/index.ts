@@ -1,5 +1,7 @@
 export { createJsonEditor } from './jsonEditor.js';
 export { createMochartConfigSupport, mochartConfigEditorModel } from './mochartSupport.js';
+export { findDuplicateJsonKeys, formatJsonPath, duplicateJsonKeyMessage, JsonDuplicateKeyError, parseJson } from './jsonDuplicateKeys.js';
+export type { DuplicateJsonKey } from './jsonDuplicateKeys.js';
 export type {
   JsonEditorDiagnostic,
   JsonEditorHandle,

@@ -1,16 +1,19 @@
 import { NONE } from './constants';
-import { deepMerge, deepMergeAll, withoutUndefined } from './deepMerge';
+import { filterConfig, filterConfigs, getConfigKey } from './configUtils';
+import { deepClone, deepMerge, deepMergeAll, withoutUndefined } from './deepMerge';
+import { getDefaults, implicitEntrySectionKeys } from '../defaults/mochartConfig';
 import type { ConfigValidation, MochartConfig } from '../../types/config';
 
 type ConfigRecord = Record<string, unknown>;
 
 export const sectionKeyAllMap: Record<string, string> = {
-  linearGradientConfigs: 'linearGradientAllConfig',
-  radialGradientConfigs: 'radialGradientAllConfig',
-  seriesAxisConfigs: 'seriesAxisAllConfig',
-  seriesConfigs: 'seriesAllConfig',
-  seriesGroupConfigs: 'seriesGroupAllConfig',
-  seriesStackConfigs: 'seriesStackAllConfig'
+  linearGradients: 'linearGradientDefaults',
+  patterns: 'patternDefaults',
+  radialGradients: 'radialGradientDefaults',
+  valueAxes: 'valueAxisDefaults',
+  series: 'seriesDefaults',
+  seriesGroups: 'seriesGroupDefaults',
+  seriesStacks: 'seriesStackDefaults'
 };
 
 function isObject(v: unknown): v is ConfigRecord {
@@ -18,10 +21,13 @@ function isObject(v: unknown): v is ConfigRecord {
 }
 
 const configsToIdMap = <T>(configs: ConfigRecord[], value: (config: ConfigRecord) => T): Record<string, T> => {
-  const map: Record<string, T> = {};
+  const map: Record<string, T> = Object.create(null); // null proto: ids like "constructor" must not hit Object.prototype
   if (Array.isArray(configs)) {
     for (const config of configs) {
-      map[String(config.id)] = value(config);
+      const key = getConfigKey(config.id);
+      if (key !== null) {
+        map[key] = value(config);
+      }
     }
   }
   return map;
@@ -66,9 +72,10 @@ const assignConfigReferences = (configs: ConfigRecord[], referenceKey: string, r
     for (const config of configs) {
       if (isObject(config) && config[referenceKey] !== undefined) {
         if (config[referenceName] !== undefined) {
-          console.warn('mochartConfig.' + configDescriptor + '[' + config.id + '] had a ' + referenceName + ' property that will be overriden');
+          console.warn('mochartConfig.' + configDescriptor + '[' + getConfigKey(config.id) + '] had a ' + referenceName + ' property that will be overriden');
         }
-        config[referenceName] = configMap[String(config[referenceKey])];
+        const key = getConfigKey(config[referenceKey]);
+        config[referenceName] = key !== null ? configMap[key] : undefined;
       }
     }
   }
@@ -79,9 +86,10 @@ const assignConfigListReferences = (configs: ConfigRecord[], referenceName: stri
     for (const config of configs) {
       if (isObject(config)) {
         if (config[referenceName] !== undefined) {
-          console.warn('mochartConfig.' + configDescriptor + '[' + config.id + '] had a ' + referenceName + ' property that will be overriden');
+          console.warn('mochartConfig.' + configDescriptor + '[' + getConfigKey(config.id) + '] had a ' + referenceName + ' property that will be overriden');
         }
-        config[referenceName] = configListMap[String(config.id)];
+        const key = getConfigKey(config.id);
+        config[referenceName] = key !== null ? configListMap[key] : undefined;
       }
     }
   }
@@ -92,7 +100,7 @@ const assignConfigListIndexReferences = (configs: ConfigRecord[], referenceName:
     for (const config of configs) {
       if (isObject(config)) {
         if (config[referenceName] !== undefined) {
-          console.warn('mochartConfig.' + configDescriptor + '[' + config.id + '] had a ' + referenceName + ' property that will be overriden');
+          console.warn('mochartConfig.' + configDescriptor + '[' + getConfigKey(config.id) + '] had a ' + referenceName + ' property that will be overriden');
         }
         config[referenceName] = arrayToIdIndexMap(config[listReferenceName]);
       }
@@ -100,8 +108,32 @@ const assignConfigListIndexReferences = (configs: ConfigRecord[], referenceName:
   }
 }
 
+// a group lays its series out side by side, one sub-slot per stack (stack-mates share one) or per unstacked series
+const assignGroupSubSlots = (groupConfigs: ConfigRecord[]): void => {
+  if (Array.isArray(groupConfigs)) {
+    for (const groupConfig of groupConfigs) {
+      if (isObject(groupConfig)) {
+        const subSlotIndicesById: Record<string, number> = Object.create(null);
+        const subSlotIndicesByKey: Record<string, number> = Object.create(null);
+        let subSlotCount = 0;
+        for (const seriesConfig of Array.isArray(groupConfig.seriesConfigs) ? groupConfig.seriesConfigs as ConfigRecord[] : []) {
+          if (isObject(seriesConfig) && isString(seriesConfig.id)) {
+            const key = isString(seriesConfig.stack) && seriesConfig.stack !== NONE ? 'stack:' + seriesConfig.stack : 'series:' + seriesConfig.id;
+            if (subSlotIndicesByKey[key] === undefined) {
+              subSlotIndicesByKey[key] = subSlotCount++;
+            }
+            subSlotIndicesById[seriesConfig.id] = subSlotIndicesByKey[key];
+          }
+        }
+        groupConfig.subSlotIndicesById = subSlotIndicesById;
+        groupConfig.subSlotCount = subSlotCount;
+      }
+    }
+  }
+};
+
 const arrayToIdIndexMap = (configs: unknown): Record<string, number> => {
-  const map: Record<string, number> = {};
+  const map: Record<string, number> = Object.create(null);
   if (Array.isArray(configs)) {
     const count = configs.length;
     let i, config;
@@ -131,16 +163,41 @@ function validateValidation(validation: unknown): asserts validation is ConfigVa
   }
 }
 
-export function filterConfigs(configs: unknown): ConfigRecord[] {
-  return Array.isArray(configs) ? configs.filter(filterConfig) : [];
+let defaultsSectionKeys: string[] | undefined;
+
+const getDefaultsSectionKeys = (): string[] => defaultsSectionKeys ?? (defaultsSectionKeys = Object.keys(getDefaults({})));
+
+function getSectionCount(configSection: unknown): number {
+  if (Array.isArray(configSection)) {
+    return filterConfigs(configSection).length;
+  }
+  return filterConfig(configSection) ? 1 : 0;
 }
 
-export function filterConfig(config: unknown): config is ConfigRecord {
-  return isObject(config) && config.ignore !== true
+function validateDefaults(config: ConfigRecord, defaults: ConfigRecord): void {
+  for (const sectionKey of getDefaultsSectionKeys()) {
+    const defaultsSection = defaults[sectionKey];
+    if (defaultsSection === undefined) {
+      throw new Error('mochartConfig defaults are missing the ' + sectionKey + ' section');
+    }
+    if (Array.isArray(defaultsSection)) {
+      const sectionCount = getSectionCount(config[sectionKey]);
+      if (sectionCount > 0 && sectionCount !== defaultsSection.length) {
+        throw new Error('mochartConfig defaults are for a different config: ' + sectionKey + ' has ' +
+          sectionCount + ' entries, its defaults have ' + defaultsSection.length);
+      }
+    }
+  }
 }
 
-export function applyDefaults(configWithoutDefaults: unknown, defaults: ConfigRecord): ConfigRecord {
+// the *Defaults section still applies to an implicit entry, which is the only entry valueAxes ever has
+const copyDefaultsList = (defaultsSection: unknown[], allSection: ConfigRecord): unknown[] =>
+  defaultsSection.map(entry => isObject(entry) ? deepMerge<ConfigRecord>(entry, allSection) : entry);
+
+/** A fully independent config with `defaults` merged in: the result shares no object with either argument. `defaults` is derived from the config when omitted; pass it to reuse one set across calls on the same config. Throws if the defaults were not derived from this config. */
+export function getConfigWithDefaults(configWithoutDefaults: unknown, defaults: ConfigRecord = getDefaults(configWithoutDefaults)): ConfigRecord {
   if (isObject(configWithoutDefaults)) {
+    validateDefaults(configWithoutDefaults, defaults);
     const config = { ...configWithoutDefaults };
     const sectionKeys = Object.keys(defaults);
     let allSection: ConfigRecord, configSection: unknown, defaultsSection: unknown, listCount: number, i: number, aConfig: unknown, allKey: string | undefined;
@@ -160,13 +217,16 @@ export function applyDefaults(configWithoutDefaults: unknown, defaults: ConfigRe
               filteredConfigSection[i] = deepMergeAll<ConfigRecord>(defaultsSection[i], allSection, aConfig);
             }
           }
-          config[sectionKey] = filteredConfigSection;
+          // every entry ignored/non-object means the section was effectively not specified
+          config[sectionKey] = listCount === 0 ? copyDefaultsList(defaultsSection, allSection) : filteredConfigSection;
         }
         else if (isObject(configSection)) {
-          config[sectionKey] = [deepMerge<ConfigRecord>(isObject(defaultsSection[0]) ? defaultsSection[0] : {}, configSection)];
+          config[sectionKey] = filterConfig(configSection)
+            ? [deepMergeAll<ConfigRecord>(isObject(defaultsSection[0]) ? defaultsSection[0] : {}, allSection, configSection)]
+            : copyDefaultsList(defaultsSection, allSection);
         }
         else if (configSection === undefined) {
-          config[sectionKey] = defaultsSection;
+          config[sectionKey] = copyDefaultsList(defaultsSection, allSection);
         }
       }
       else if (isObject(defaultsSection)) {
@@ -178,21 +238,138 @@ export function applyDefaults(configWithoutDefaults: unknown, defaults: ConfigRe
         }
       }
     }
-    return config;
+    return deepClone(config);
   }
   return {};
 }
 
+function areEqual(a: unknown, b: unknown): boolean {
+  if (a === b) {
+    return true;
+  }
+  else if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length === b.length) {
+      const count = a.length;
+      let i;
+      for (i = 0; i < count; i++) {
+        if (!areEqual(a[i], b[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+  else if (isObject(a) && isObject(b)) {
+    const keys = Object.keys(a);
+    if (areEqual(keys, Object.keys(b))) {
+      for (const key of keys) {
+        if (!areEqual(a[key], b[key])) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
+const isGroup = (value: unknown): value is ConfigRecord => isObject(value) && !Array.isArray(value);
+
+function removeSectionDefaults(defaultSectionValue: unknown, allSection: ConfigRecord, configSection: unknown): unknown {
+  if (isObject(configSection)) {
+    const defaultSection = isObject(defaultSectionValue) ? defaultSectionValue : {};
+    const sectionKeys = Object.keys(configSection);
+    const newSection: ConfigRecord = {};
+    for (const sectionKey of sectionKeys) {
+      // the all-config overrides the default, so an entry value equal to the default still has an effect under it
+      const effectiveDefault = allSection[sectionKey] !== undefined ? allSection[sectionKey] : defaultSection[sectionKey];
+      const sectionValue = configSection[sectionKey];
+      // a grouped key is a config of its own: strip its default-equal members instead of comparing the group whole
+      if (isGroup(sectionValue) && isGroup(effectiveDefault)) {
+        const allGroup = isGroup(allSection[sectionKey]) ? allSection[sectionKey] : {};
+        const newGroup = removeSectionDefaults(defaultSection[sectionKey], allGroup, sectionValue) as ConfigRecord;
+        if (Object.keys(newGroup).length > 0) {
+          newSection[sectionKey] = newGroup;
+        }
+      }
+      else if (!areEqual(effectiveDefault, sectionValue)) {
+        newSection[sectionKey] = sectionValue;
+      }
+    }
+    return newSection;
+  }
+  else {
+    return configSection;
+  }
+}
+
+/** The minimal config: a fully independent copy of `config` with every value that matches `defaults` (or the config's own `*Defaults` sections) removed. Inverse of `getConfigWithDefaults`; `defaults` is derived from the config when omitted, and throws if the defaults given were not derived from this config. */
+export function getConfigWithoutDefaults(config: unknown, defaults: ConfigRecord = getDefaults(config)): ConfigRecord {
+  const minimal: ConfigRecord = {};
+  if (isObject(config) && isObject(defaults)) {
+    validateDefaults(config, defaults);
+    const sectionKeys = Object.keys(config);
+    for (const sectionKey of sectionKeys) {
+      const configSection = config[sectionKey];
+      const allKey = sectionKeyAllMap[sectionKey];
+      const allSectionValue = allKey && config[allKey] !== undefined ? config[allKey] : {};
+      const allSection = isObject(allSectionValue) ? allSectionValue : {};
+      if (configSection !== undefined) {
+        const defaultsSection = defaults[sectionKey];
+        if (defaultsSection !== undefined) {
+          if (Array.isArray(configSection)) {
+            const defaultSections = Array.isArray(defaultsSection) ? defaultsSection : [];
+            // defaults are built from the filtered list, so pair against it (ignored entries drop, like getConfigWithDefaults)
+            const filteredConfigSection = filterConfigs(configSection);
+            const newSections: unknown[] = [];
+            const count = filteredConfigSection.length;
+            let i, newSection;
+            for (i = 0; i < count; i++) {
+              newSection = removeSectionDefaults(defaultSections[i], allSection, filteredConfigSection[i]);
+              newSections.push(newSection);
+            }
+            // defaults-only sections (e.g. seriesStacks: []) stay out, like empty objects below,
+            // as does the lone implicit entry, which comes back on its own when the section is absent
+            const implicitOnly = newSections.length === 1 && implicitEntrySectionKeys.indexOf(sectionKey) !== -1 &&
+              isObject(newSections[0]) && Object.keys(newSections[0]).length === 0;
+            if (newSections.length > 0 && !implicitOnly) {
+              minimal[sectionKey] = newSections;
+            }
+          }
+          else if (isObject(configSection)) {
+            // a list section in single-object shorthand minimizes against its lone entry's defaults, keeping the shorthand shape;
+            // an entry left empty stays out, which is the list branch's implicitOnly drop for the one-entry case
+            const defaultSectionValue = Array.isArray(defaultsSection) ? defaultsSection[0] : defaultsSection;
+            const newSection = removeSectionDefaults(defaultSectionValue, allSection, configSection);
+            if (isObject(newSection) && Object.keys(newSection).length > 0) {
+              minimal[sectionKey] = newSection;
+            }
+          }
+          else {
+            minimal[sectionKey] = configSection;
+          }
+        }
+        else {
+          minimal[sectionKey] = configSection;
+        }
+      }
+    }
+  }
+  return deepClone(minimal);
+}
+
 function applyAllConfig(configs: ConfigRecord[], allConfig: unknown): ConfigRecord[] {
   if (isObject(allConfig)) {
+    // cloned so the built graph shares nothing with the caller's *Defaults sections
+    const ownedAllConfig = deepClone(allConfig);
     if (Array.isArray(configs)) {
-      configs = configs.map(config => isObject(config) ? deepMerge<ConfigRecord>(allConfig, config) : allConfig);
+      configs = configs.map(config => isObject(config) ? deepMerge<ConfigRecord>(ownedAllConfig, config) : ownedAllConfig);
     }
   }
   return configs;
 }
 
-export default function buildMochartConfig(configWithoutDefaults: unknown, configDefaults: ConfigRecord, validation?: ConfigValidation): MochartConfig {
+export default function buildMochartConfig(configWithoutDefaults: unknown, configDefaults: ConfigRecord = getDefaults(configWithoutDefaults), validation?: ConfigValidation): MochartConfig {
   if (validation === undefined) {
     validation = { valid: true, errors: [], warnings: [] };
   }
@@ -209,25 +386,27 @@ export default function buildMochartConfig(configWithoutDefaults: unknown, confi
     console.warn('mochartConfig had a validation property that will be overriden');
   }
 
-  const config = applyDefaults(configWithoutDefaults, configDefaults);
-  let seriesAxisConfigs = config.seriesAxisConfigs as ConfigRecord[];
-  let seriesStackConfigs = config.seriesStackConfigs as ConfigRecord[];
-  let seriesGroupConfigs = config.seriesGroupConfigs as ConfigRecord[];
-  let seriesConfigs = config.seriesConfigs as ConfigRecord[];
-  let linearGradientConfigs = config.linearGradientConfigs as ConfigRecord[];
-  let radialGradientConfigs = config.radialGradientConfigs as ConfigRecord[];
-  const { seriesAxisAllConfig, seriesStackAllConfig, seriesGroupAllConfig, seriesAllConfig, linearGradientAllConfig, radialGradientAllConfig } = configWithoutDefaults;
+  const config = getConfigWithDefaults(configWithoutDefaults, configDefaults);
+  let valueAxisConfigs = config.valueAxes as ConfigRecord[];
+  let seriesStackConfigs = config.seriesStacks as ConfigRecord[];
+  let seriesGroupConfigs = config.seriesGroups as ConfigRecord[];
+  let seriesConfigs = config.series as ConfigRecord[];
+  let linearGradientConfigs = config.linearGradients as ConfigRecord[];
+  let patternConfigs = config.patterns as ConfigRecord[];
+  let radialGradientConfigs = config.radialGradients as ConfigRecord[];
+  const { valueAxisDefaults, seriesStackDefaults, seriesGroupDefaults, seriesDefaults, linearGradientDefaults, patternDefaults, radialGradientDefaults } = configWithoutDefaults;
 
-  seriesAxisConfigs = applyAllConfig(seriesAxisConfigs, seriesAxisAllConfig);
-  seriesStackConfigs = applyAllConfig(seriesStackConfigs, seriesStackAllConfig);
-  seriesGroupConfigs = applyAllConfig(seriesGroupConfigs, seriesGroupAllConfig);
-  seriesConfigs = applyAllConfig(seriesConfigs, seriesAllConfig);
-  linearGradientConfigs = applyAllConfig(linearGradientConfigs, linearGradientAllConfig);
-  radialGradientConfigs = applyAllConfig(radialGradientConfigs, radialGradientAllConfig);
+  valueAxisConfigs = applyAllConfig(valueAxisConfigs, valueAxisDefaults);
+  seriesStackConfigs = applyAllConfig(seriesStackConfigs, seriesStackDefaults);
+  seriesGroupConfigs = applyAllConfig(seriesGroupConfigs, seriesGroupDefaults);
+  seriesConfigs = applyAllConfig(seriesConfigs, seriesDefaults);
+  linearGradientConfigs = applyAllConfig(linearGradientConfigs, linearGradientDefaults);
+  patternConfigs = applyAllConfig(patternConfigs, patternDefaults);
+  radialGradientConfigs = applyAllConfig(radialGradientConfigs, radialGradientDefaults);
 
-  const seriesAxisConfigsById = configsToIdMap(seriesAxisConfigs, value => value);
-  const seriesAxisConfigsOrdered = configsToOrderedList(seriesAxisConfigs);
-  const seriesAxisSeriesConfigsById = configsToIdMap(seriesAxisConfigs, () => []);
+  const valueAxisConfigsById = configsToIdMap(valueAxisConfigs, value => value);
+  const valueAxisConfigsOrdered = configsToOrderedList(valueAxisConfigs);
+  const valueAxisSeriesConfigsById = configsToIdMap(valueAxisConfigs, () => []);
 
   const seriesStackConfigsById = configsToIdMap(seriesStackConfigs, value => value);
   const seriesStackSeriesConfigsById = configsToIdMap(seriesStackConfigs, () => []);
@@ -236,83 +415,96 @@ export default function buildMochartConfig(configWithoutDefaults: unknown, confi
   const seriesGroupSeriesConfigsById = configsToIdMap(seriesGroupConfigs, () => []);
 
   const linearGradientConfigsById = configsToIdMap(linearGradientConfigs, value => value);
+  const patternConfigsById = configsToIdMap(patternConfigs, value => value);
   const radialGradientConfigsById = configsToIdMap(radialGradientConfigs, value => value);
 
   const seriesConfigsById = configsToIdMap(seriesConfigs, value => value);
   const seriesConfigsOrdered = configsToOrderedList(seriesConfigs);
 
-  addToIdMap(seriesAxisSeriesConfigsById, seriesConfigsOrdered, 'axis');
+  addToIdMap(valueAxisSeriesConfigsById, seriesConfigsOrdered, 'axis');
   addToIdMap(seriesStackSeriesConfigsById, seriesConfigsOrdered, 'stack');
   addToIdMap(seriesGroupSeriesConfigsById, seriesConfigsOrdered, 'group');
 
-  assignConfigReferences(seriesStackConfigs, 'axis', 'seriesAxisConfig', seriesAxisConfigsById, 'seriesStackConfigs');
-  assignConfigReferences(seriesConfigs, 'axis', 'seriesAxisConfig', seriesAxisConfigsById, 'seriesConfigs');
-  assignConfigReferences(seriesConfigs, 'stack', 'seriesStackConfig', seriesStackConfigsById, 'seriesConfigs');
-  assignConfigReferences(seriesConfigs, 'group', 'seriesGroupConfig', seriesGroupConfigsById, 'seriesConfigs');
-  assignConfigReferences(seriesConfigs, 'gradient', 'linearGradientConfig', linearGradientConfigsById, 'seriesConfigs');
-  assignConfigReferences(seriesConfigs, 'gradient', 'radialGradientConfig', radialGradientConfigsById, 'seriesConfigs');
+  assignConfigReferences(seriesStackConfigs, 'axis', 'valueAxisConfig', valueAxisConfigsById, 'seriesStacks');
+  assignConfigReferences(seriesConfigs, 'axis', 'valueAxisConfig', valueAxisConfigsById, 'series');
+  assignConfigReferences(seriesConfigs, 'stack', 'seriesStackConfig', seriesStackConfigsById, 'series');
+  assignConfigReferences(seriesConfigs, 'group', 'seriesGroupConfig', seriesGroupConfigsById, 'series');
+  assignConfigReferences(seriesConfigs, 'gradient', 'linearGradientConfig', linearGradientConfigsById, 'series');
+  assignConfigReferences(seriesConfigs, 'gradient', 'radialGradientConfig', radialGradientConfigsById, 'series');
+  assignConfigReferences(seriesConfigs, 'pattern', 'patternConfig', patternConfigsById, 'series');
 
-  assignConfigListReferences(seriesAxisConfigs, 'seriesConfigs', seriesAxisSeriesConfigsById, 'seriesAxisConfigs');
-  assignConfigListReferences(seriesStackConfigs, 'seriesConfigs', seriesStackSeriesConfigsById, 'seriesStackConfigs');
-  assignConfigListReferences(seriesGroupConfigs, 'seriesConfigs', seriesGroupSeriesConfigsById, 'seriesGroupConfigs');
+  assignConfigListReferences(valueAxisConfigs, 'seriesConfigs', valueAxisSeriesConfigsById, 'valueAxisConfigs');
+  assignConfigListReferences(seriesStackConfigs, 'seriesConfigs', seriesStackSeriesConfigsById, 'seriesStacks');
+  assignConfigListReferences(seriesGroupConfigs, 'seriesConfigs', seriesGroupSeriesConfigsById, 'seriesGroups');
 
-  const seriesAxisConfigIndicesById = arrayToIdIndexMap(seriesAxisConfigsOrdered);
+  const valueAxisConfigIndicesById = arrayToIdIndexMap(valueAxisConfigsOrdered);
   const seriesConfigIndicesById = arrayToIdIndexMap(seriesConfigsOrdered);
 
-  assignConfigListIndexReferences(seriesAxisConfigs, 'seriesConfigIndicesById', 'seriesConfigs', 'seriesAxisConfigs');
-  assignConfigListIndexReferences(seriesStackConfigs, 'seriesConfigIndicesById', 'seriesConfigs', 'seriesStackConfigs');
-  assignConfigListIndexReferences(seriesGroupConfigs, 'seriesConfigIndicesById', 'seriesConfigs', 'seriesGroupConfigs');
+  assignConfigListIndexReferences(valueAxisConfigs, 'seriesConfigIndicesById', 'seriesConfigs', 'valueAxisConfigs');
+  assignConfigListIndexReferences(seriesStackConfigs, 'seriesConfigIndicesById', 'seriesConfigs', 'seriesStacks');
+  assignConfigListIndexReferences(seriesGroupConfigs, 'seriesConfigIndicesById', 'seriesConfigs', 'seriesGroups');
+  assignGroupSubSlots(seriesGroupConfigs);
 
   return {
     ...config,
-    seriesAxisConfigs: seriesAxisConfigsOrdered,
-    seriesAxisConfigsById,
-    seriesAxisConfigIndicesById,
-    seriesGroupConfigs,
-    seriesGroupConfigsById,
-    seriesStackConfigs,
-    seriesStackConfigsById,
-    seriesConfigs: seriesConfigsOrdered,
-    seriesConfigsById,
-    seriesConfigIndicesById,
+    valueAxes: valueAxisConfigsOrdered,
+    valueAxesById: valueAxisConfigsById,
+    valueAxisIndicesById: valueAxisConfigIndicesById,
+    seriesGroups: seriesGroupConfigs,
+    seriesGroupsById: seriesGroupConfigsById,
+    seriesStacks: seriesStackConfigs,
+    seriesStacksById: seriesStackConfigsById,
+    series: seriesConfigsOrdered,
+    seriesById: seriesConfigsById,
+    seriesIndicesById: seriesConfigIndicesById,
     validation,
   } as unknown as MochartConfig;
 }
 
-export function hasConfigStructureChange(configOld: MochartConfig, configNew: MochartConfig): boolean {
+/** Either side may be null (a host loading); a config appearing or going away is structural. */
+export function hasConfigStructureChange(configOld: MochartConfig | null, configNew: MochartConfig | null): boolean {
+  if (!configOld || !configNew) {
+    return configOld !== configNew;
+  }
+  const oldComplete = configOld.chart !== undefined && configOld.categoryAxis !== undefined;
+  const newComplete = configNew.chart !== undefined && configNew.categoryAxis !== undefined;
+  if (!oldComplete || !newComplete) {
+    return oldComplete !== newComplete;
+  }
   if (configOld.validation.valid !== configNew.validation.valid || !configNew.validation.valid) {
     return true;
   }
   if (configOld.id !== configNew.id) {
     return true;
   }
-  if (configOld.chartConfig.type !== configNew.chartConfig.type) {
+  if (configOld.chart.type !== configNew.chart.type) {
     return true;
   }
-  const { groupAxisConfig } = configOld;
-  const { groupAxisConfig: newGroupAxisConfig } = configNew;
-  if (groupAxisConfig.property !== newGroupAxisConfig.property ||
-      groupAxisConfig.type !== newGroupAxisConfig.type ||
-      groupAxisConfig.scale !== newGroupAxisConfig.scale ||
-      groupAxisConfig.dateUTC !== newGroupAxisConfig.dateUTC) {
+  const { categoryAxis: categoryAxisConfig } = configOld;
+  const { categoryAxis: newCategoryAxisConfig } = configNew;
+  if (categoryAxisConfig.property !== newCategoryAxisConfig.property ||
+      categoryAxisConfig.keyProperty !== newCategoryAxisConfig.keyProperty ||
+      categoryAxisConfig.type !== newCategoryAxisConfig.type ||
+      categoryAxisConfig.scale !== newCategoryAxisConfig.scale ||
+      categoryAxisConfig.dateUTC !== newCategoryAxisConfig.dateUTC) {
     return true;
   }
 
-  const { seriesAxisConfigs } = configOld;
-  const { seriesAxisConfigs: newSeriesAxisConfigs } = configNew;
-  if (seriesAxisConfigs.length !== newSeriesAxisConfigs.length) {
+  const { valueAxes: valueAxisConfigs } = configOld;
+  const { valueAxes: newValueAxisConfigs } = configNew;
+  if (valueAxisConfigs.length !== newValueAxisConfigs.length) {
     return true;
   }
-  for (let seriesAxisIndex = 0; seriesAxisIndex < seriesAxisConfigs.length; seriesAxisIndex++) {
-    const seriesAxisConfig = seriesAxisConfigs[seriesAxisIndex];
-    const newSeriesAxisConfig = newSeriesAxisConfigs[seriesAxisIndex];
-    if (seriesAxisConfig.id !== newSeriesAxisConfig.id) {
+  for (let valueAxisIndex = 0; valueAxisIndex < valueAxisConfigs.length; valueAxisIndex++) {
+    const valueAxisConfig = valueAxisConfigs[valueAxisIndex];
+    const newValueAxisConfig = newValueAxisConfigs[valueAxisIndex];
+    if (valueAxisConfig.id !== newValueAxisConfig.id) {
       return true;
     }
   }
 
-  const { seriesStackConfigs } = configOld;
-  const { seriesStackConfigs: newSeriesStackConfigs } = configNew;
+  const { seriesStacks: seriesStackConfigs } = configOld;
+  const { seriesStacks: newSeriesStackConfigs } = configNew;
   if (seriesStackConfigs.length !== newSeriesStackConfigs.length) {
     return true;
   }
@@ -325,8 +517,8 @@ export function hasConfigStructureChange(configOld: MochartConfig, configNew: Mo
     }
   }
 
-  const { seriesConfigs } = configOld;
-  const { seriesConfigs: newSeriesConfigs } = configNew;
+  const { series: seriesConfigs } = configOld;
+  const { series: newSeriesConfigs } = configNew;
   if (seriesConfigs.length !== newSeriesConfigs.length) {
     return true;
   }
@@ -334,13 +526,15 @@ export function hasConfigStructureChange(configOld: MochartConfig, configNew: Mo
   for (let seriesIndex = 0; seriesIndex < seriesConfigs.length; seriesIndex++) {
     const seriesConfig = seriesConfigs[seriesIndex];
     const newSeriesConfig = newSeriesConfigs[seriesIndex];
-    if (seriesConfig.property !== newSeriesConfig.property ||
+    if (seriesConfig.id !== newSeriesConfig.id ||
+        seriesConfig.property !== newSeriesConfig.property ||
         seriesConfig.rangeProperty !== newSeriesConfig.rangeProperty ||
         seriesConfig.errorLowProperty !== newSeriesConfig.errorLowProperty ||
         seriesConfig.errorHighProperty !== newSeriesConfig.errorHighProperty ||
         seriesConfig.markerProperty !== newSeriesConfig.markerProperty ||
         seriesConfig.colorProperty !== newSeriesConfig.colorProperty ||
         seriesConfig.labelProperty !== newSeriesConfig.labelProperty ||
+        seriesConfig.tooltipProperty !== newSeriesConfig.tooltipProperty ||
         seriesConfig.axis !== newSeriesConfig.axis ||
         seriesConfig.stack !== newSeriesConfig.stack ||
         seriesConfig.group !== newSeriesConfig.group) {
@@ -350,19 +544,3 @@ export function hasConfigStructureChange(configOld: MochartConfig, configNew: Mo
   return false;
 }
 
-export function configWithAll(config: unknown, allConfig: unknown): unknown {
-  if (isObject(allConfig)) {
-    if (Array.isArray(config)) {
-      return config.map(aConfig => configWithAll(aConfig, allConfig));
-    }
-    else if (isObject(config)) {
-      return deepMerge<ConfigRecord>(allConfig, config);
-    }
-    else {
-      return { ...allConfig };
-    }
-  }
-  else {
-    return config;
-  }
-}

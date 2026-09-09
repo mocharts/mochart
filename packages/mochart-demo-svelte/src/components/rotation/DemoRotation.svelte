@@ -1,7 +1,5 @@
 <script module lang="ts">
-  import { rotationConfigs as configs, rotationData as data } from '@mochart/demo-common';
-
-  const minWidth = 400;
+  import { getRotationGrid, rotationConfigs as configs, rotationData as data } from '@mochart/demo-common';
 </script>
 
 <script lang="ts">
@@ -20,8 +18,9 @@
   // grid stays inside the padded shell.
   let chartsWidth = $state(0);
 
-  const cols = $derived(Math.max(1, Math.floor(chartsWidth / minWidth)));
-  const colWidth = $derived(Math.floor(chartsWidth / cols));
+  const grid = $derived(getRotationGrid(chartsWidth));
+  const cols = $derived(grid.cols);
+  const colWidth = $derived(grid.colWidth);
 </script>
 
 <div class="mochart-demo-container">

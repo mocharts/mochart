@@ -110,14 +110,13 @@ export function chartsControls(props: ChartsControlsProps): ChartsControlsHandle
   });
 
   const menu = exportShareMenu({
-    idPrefix: 'multi',
     exportPng: props.exportPng,
     exportSvg: props.exportSvg,
     getShareState: props.getShareState
   });
 
   const container = el('div', { className: 'multi-controls' }, [
-    el('form', { className: 'demo-form-row' }, [
+    el('form', {}, [
       el('div', { className: 'demo-field' }, [
         el('label', { className: 'demo-label', attrs: { for: 'grid-rows' }, text: demoText.multiChartsTab.gridLabel }),
         rowsInput,
@@ -125,7 +124,7 @@ export function chartsControls(props: ChartsControlsProps): ChartsControlsHandle
         colsInput
       ]),
       el('div', { className: 'demo-field' }, [
-        el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, [
+        el('div', { className: 'demo-toolbar' }, [
           el('div', { className: 'demo-btn-group' }, [
             stepBackButton.el, stepForwardButton.el, playBackwardButton.el, playForwardButton.el, stopButton.el
           ])
@@ -136,7 +135,7 @@ export function chartsControls(props: ChartsControlsProps): ChartsControlsHandle
         rateInput
       ]),
       el('div', { className: 'demo-field' }, [
-        el('div', { className: 'demo-toolbar', attrs: { role: 'toolbar' } }, [menu.el])
+        el('div', { className: 'demo-toolbar' }, [menu.el])
       ])
     ])
   ]);

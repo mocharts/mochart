@@ -1,52 +1,68 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Skip Undefined Stack Values"
+  "title": {
+    "text": "Skip Undefined Stack Values"
   },
-  "tooltipConfig": {
+  "tooltip": {
     "showMissingValues": true,
     "missingValueText": "N/A"
   },
-  "groupAxisConfig": {
-    "before": false,
-    "title": "Group Axis",
-    "gridLines": true,
-    "gridLineWidth": 1,
-    "gridLineDashArray": "5, 5",
+  "categoryAxis": {
+    "title": {
+      "text": "Category Axis"
+    },
+    "gridLine": {
+      "visible": true,
+      "style": {
+        "normal": {
+          "strokeWidth": 1,
+          "strokeDashArray": "5, 5"
+        }
+      }
+    },
     "min": "auto",
     "max": "auto",
     "type": "number",
     "scale": "ordinal",
-    "valueLabel": "Group",
-    "property": "group"
+    "valueLabel": "Category",
+    "property": "category",
+    "side": "end"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "before": true,
-      "title": "Series Axis 1",
-      "axisLine": true,
-      "gridLines": false,
-      "id": "SA1",
+      "title": {
+        "text": "Value Axis 1"
+      },
+      "axisLine": {
+        "visible": true
+      },
+      "gridLine": {
+        "visible": false
+      },
+      "id": "VA1",
       "base": 0,
       "softMin": 0,
-      "softMax": 0
+      "softMax": 0,
+      "side": "start"
     }
   ],
-  "seriesStackConfigs": [
+  "seriesStacks": [
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "id": "SS1"
     }
   ],
-  "seriesAllConfig": {
+  "seriesDefaults": {
     "renderer": "area",
-    "markerSize": 6,
-    "markerShape": "circle",
-    "axis": "SA1",
+    "marker": {
+      "size": 6,
+      "shape": "circle"
+    },
+    "axis": "VA1",
     "stack": "SS1",
-    "skipMissing": true
+    "missingValueMode": "connect"
   },
-  "seriesConfigs": [
+  "series": [
     {
       "title": "Value 6",
       "property": "value6"

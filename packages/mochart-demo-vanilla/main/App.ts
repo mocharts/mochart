@@ -1,12 +1,13 @@
 import demoData from '@mochart/demo-data';
 
-import { isPhoneViewport, phoneFallbackDemoMode, watchPhoneViewport } from '@mochart/demo-common';
+import { demoText, isPhoneViewport, phoneFallbackDemoMode, watchPhoneViewport } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import { getPath, navigate, onNavigate } from './router';
 
 import { el } from '../src/components/misc/dom';
 import { galleryPage } from '../src/components/gallery/GalleryPage';
+import type { GalleryPageHandle } from '../src/components/gallery/GalleryPage';
 import { demoSingle } from '../src/components/single/DemoSingle';
 import type { DemoSingleHandle } from '../src/components/single/DemoSingle';
 import { demoMulti } from '../src/components/multi/DemoMulti';
@@ -71,7 +72,7 @@ function resolveRoute(path: string): Route {
 type View =
   | { kind: 'none' }
   | { kind: 'message'; el: HTMLElement }
-  | { kind: 'gallery'; el: HTMLElement }
+  | { kind: 'gallery'; handle: GalleryPageHandle }
   | { kind: 'single'; handle: DemoSingleHandle }
   | { kind: 'multi'; handle: DemoMultiHandle }
   | { kind: 'random'; handle: DemoRandomHandle }
@@ -96,7 +97,7 @@ export function mountApp(root: HTMLElement): void {
   let view: View = { kind: 'none' };
 
   function clearView(): void {
-    if (view.kind === 'single' || view.kind === 'multi' || view.kind === 'random') {
+    if (view.kind === 'gallery' || view.kind === 'single' || view.kind === 'multi' || view.kind === 'random') {
       view.handle.destroy();
     }
     else if (view.kind === 'transition' || view.kind === 'rotation' || view.kind === 'sparkline') {
@@ -127,7 +128,7 @@ export function mountApp(root: HTMLElement): void {
       onOpenPage: mode => navigate(`/${mode}`)
     });
     root.append(gallery.el);
-    view = { kind: 'gallery', el: gallery.el };
+    view = { kind: 'gallery', handle: gallery };
   }
 
   function onBackToDemos(): void {
@@ -174,7 +175,7 @@ export function mountApp(root: HTMLElement): void {
       return;
     }
     if (route.notFound !== undefined) {
-      showMessage('No route found matching ' + route.notFound);
+      showMessage(demoText.routeErrors.noRoute(route.notFound));
       return;
     }
     if (route.gallery === true) {
@@ -188,7 +189,7 @@ export function mountApp(root: HTMLElement): void {
 
     const demoId = route.demoId!;
     if (demoObjectMap[demoId] === undefined) {
-      showMessage('No demo found for id: ' + demoId);
+      showMessage(demoText.routeErrors.noDemo(demoId));
       return;
     }
 
@@ -224,7 +225,7 @@ export function mountApp(root: HTMLElement): void {
       const randomId = Number(route.randomId);
       const isValidRandomId = randomId > Number.MIN_SAFE_INTEGER && randomId < Number.MAX_SAFE_INTEGER;
       if (!isValidRandomId) {
-        showMessage('Bad random id: ' + route.randomId);
+        showMessage(demoText.routeErrors.badRandomId(route.randomId!));
         return;
       }
       const incrementRandomId = () => {

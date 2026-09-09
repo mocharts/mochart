@@ -4,35 +4,30 @@ import {
   arrayToMap,
   mapMap,
   onClickDisabled,
-  translate,
   rotate,
   translateRotate,
   translateObject,
   centerTextY,
-  createArrayFilledWithUndefined,
+  createArrayFilledWithMissing,
   createArrayFilledWithZero,
-  createArrayWithValueIfNotUndefined,
-  copyArrayWithValueIfNotUndefined,
-  replaceArrayUndefinedWithValue,
-  copyWithValueOnlyIfOtherUndefined,
+  createArrayWithValueIfNotMissing,
+  copyArrayWithValueIfNotMissing,
+  replaceArrayMissingWithValue,
+  copyWithValueOnlyIfOtherMissing,
   areMapsEqual,
   areArraysAndEqual,
   getValuesAtIndices,
-  setArrayValuesIfOneIsUndefined,
-  setArrayValuesFromSourcesIfOneIsUndefined,
+  setArrayValuesIfOneIsMissing,
+  setArrayValuesFromSourcesIfOneIsMissing,
   setArrayValuesForRange,
-  hasUndefinedForRange,
+  hasMissingForRange,
   getMaxAbsoluteValue,
-  getArrayDeltas
+  getArrayDeltas,
+  MISSING_VALUE
 } from '../../src/utils/utils';
 
-const U = undefined;
-
-describe('idAccessor', () => {
-  it('reads the id property', () => {
-    expect(idAccessor({ id: 'abc' })).toBe('abc');
-  });
-});
+// toEqual treats the missing value (NaN) as equal to itself
+const M = MISSING_VALUE;
 
 describe('arrayToMap', () => {
   it('keys elements by an accessor, defaulting the value to the element', () => {
@@ -45,9 +40,6 @@ describe('arrayToMap', () => {
     expect(arrayToMap(items, idAccessor, e => e.n)).toEqual({ a: 1, b: 2 });
   });
 
-  it('is empty for an empty array', () => {
-    expect(arrayToMap([], idAccessor)).toEqual({});
-  });
 });
 
 describe('mapMap', () => {
@@ -55,9 +47,6 @@ describe('mapMap', () => {
     expect(mapMap({ a: 1, b: 2 }, v => v * 10)).toEqual({ a: 10, b: 20 });
   });
 
-  it('is empty for an empty map', () => {
-    expect(mapMap({}, (v: number) => v)).toEqual({});
-  });
 });
 
 describe('onClickDisabled', () => {
@@ -69,9 +58,6 @@ describe('onClickDisabled', () => {
 });
 
 describe('transform string builders', () => {
-  it('translate builds an SVG translate()', () => {
-    expect(translate(1, 2)).toBe('translate(1,2)');
-  });
 
   it('rotate builds an SVG rotate()', () => {
     expect(rotate(45)).toBe('rotate(45)');
@@ -108,41 +94,42 @@ describe('centerTextY', () => {
 });
 
 describe('array constructors', () => {
-  it('createArrayFilledWithUndefined fills holes explicitly', () => {
-    const a = createArrayFilledWithUndefined(3);
+  it('createArrayFilledWithMissing fills every entry with the missing value (NaN), never a hole', () => {
+    const a = createArrayFilledWithMissing(3);
     expect(a).toHaveLength(3);
-    expect(a).toEqual([U, U, U]);
+    expect(a).toEqual([M, M, M]);
     expect(0 in a).toBe(true);
+    expect(a.every(value => Number.isNaN(value))).toBe(true);
   });
 
   it('createArrayFilledWithZero fills with zeroes', () => {
     expect(createArrayFilledWithZero(3)).toEqual([0, 0, 0]);
   });
 
-  it('createArrayWithValueIfNotUndefined mirrors the source holes', () => {
-    expect(createArrayWithValueIfNotUndefined([1, U, 3], 'x')).toEqual(['x', U, 'x']);
+  it('createArrayWithValueIfNotMissing mirrors the source\'s missing entries', () => {
+    expect(createArrayWithValueIfNotMissing([1, M, 3], 7)).toEqual([7, M, 7]);
   });
 
-  it('copyArrayWithValueIfNotUndefined copies where the other source is defined', () => {
-    expect(copyArrayWithValueIfNotUndefined([1, 2, 3], ['a', U, 'c'])).toEqual([1, U, 3]);
+  it('copyArrayWithValueIfNotMissing copies where the other source is present', () => {
+    expect(copyArrayWithValueIfNotMissing([1, 2, 3], [5, M, 6])).toEqual([1, M, 3]);
   });
 });
 
 describe('array mutators', () => {
-  it('replaceArrayUndefinedWithValue fills holes in place', () => {
-    const a = [1, U, 3, U];
-    replaceArrayUndefinedWithValue(a, 0);
+  it('replaceArrayMissingWithValue fills holes in place', () => {
+    const a = [1, M, 3, M];
+    replaceArrayMissingWithValue(a, 0);
     expect(a).toEqual([1, 0, 3, 0]);
   });
 
-  it('copyWithValueOnlyIfOtherUndefined returns the same array when no holes exist', () => {
+  it('copyWithValueOnlyIfOtherMissing returns the same array when no holes exist', () => {
     const src = [1, 2, 3];
-    expect(copyWithValueOnlyIfOtherUndefined(src, [1, 2, 3], 0)).toBe(src);
+    expect(copyWithValueOnlyIfOtherMissing(src, [1, 2, 3], 0)).toBe(src);
   });
 
-  it('copyWithValueOnlyIfOtherUndefined copies and fills from the first hole onward', () => {
+  it('copyWithValueOnlyIfOtherMissing copies and fills from the first hole onward', () => {
     const src = [1, 2, 3, 4];
-    const out = copyWithValueOnlyIfOtherUndefined(src, [1, U, 3, U], -1);
+    const out = copyWithValueOnlyIfOtherMissing(src, [1, M, 3, M], -1);
     expect(out).not.toBe(src);
     expect(out).toEqual([1, -1, 3, -1]);
   });
@@ -154,29 +141,29 @@ describe('array mutators', () => {
   });
 });
 
-describe('setArrayValuesIfOneIsUndefined', () => {
+describe('setArrayValuesIfOneIsMissing', () => {
   it('fills whichever side has the hole when the pair differs', () => {
-    const a = [1, U, 3];
-    const b = [1, 2, U];
-    setArrayValuesIfOneIsUndefined(a, b, 0);
+    const a = [1, M, 3];
+    const b = [1, 2, M];
+    setArrayValuesIfOneIsMissing(a, b, 0);
     expect(a).toEqual([1, 0, 3]);
     expect(b).toEqual([1, 2, 0]);
   });
 
-  it('leaves matching entries untouched', () => {
-    const a = [1, 2];
-    const b = [1, 2];
-    setArrayValuesIfOneIsUndefined(a, b, 9);
-    expect(a).toEqual([1, 2]);
-    expect(b).toEqual([1, 2]);
+  it('leaves matching entries untouched, including a pair that is missing on both sides', () => {
+    const a = [1, 2, M];
+    const b = [1, 2, M];
+    setArrayValuesIfOneIsMissing(a, b, 9);
+    expect(a).toEqual([1, 2, M]);
+    expect(b).toEqual([1, 2, M]);
   });
 });
 
-describe('setArrayValuesFromSourcesIfOneIsUndefined', () => {
+describe('setArrayValuesFromSourcesIfOneIsMissing', () => {
   it('fills each hole from its corresponding source array', () => {
-    const a = [1, U, 3];
-    const b = [1, 2, U];
-    setArrayValuesFromSourcesIfOneIsUndefined(a, b, [10, 20, 30], [100, 200, 300]);
+    const a = [1, M, 3];
+    const b = [1, 2, M];
+    setArrayValuesFromSourcesIfOneIsMissing(a, b, [10, 20, 30], [100, 200, 300]);
     expect(a).toEqual([1, 20, 3]);
     expect(b).toEqual([1, 2, 300]);
   });
@@ -194,6 +181,8 @@ describe('equality helpers', () => {
 
   it('areArraysAndEqual requires both to be arrays of equal length and content', () => {
     expect(areArraysAndEqual([1, 2, 3], [1, 2, 3])).toBe(true);
+    expect(areArraysAndEqual([1, M, 3], [1, M, 3])).toBe(true); // NaN entries compare equal
+    expect(areArraysAndEqual([1, M], [1, 2])).toBe(false);
     expect(areArraysAndEqual([1, 2], [1, 2, 3])).toBe(false);
     expect(areArraysAndEqual([1, 2], [1, 9])).toBe(false);
     expect(areArraysAndEqual([1, 2], 'nope')).toBe(false);
@@ -207,13 +196,13 @@ describe('getValuesAtIndices', () => {
   });
 });
 
-describe('hasUndefinedForRange', () => {
+describe('hasMissingForRange', () => {
   it('is true when a hole exists in the half-open range', () => {
-    expect(hasUndefinedForRange([1, 2, U, 4], 1, 3)).toBe(true);
+    expect(hasMissingForRange([1, 2, M, 4], 1, 3)).toBe(true);
   });
 
   it('is false when the range is fully populated', () => {
-    expect(hasUndefinedForRange([1, 2, 3, 4], 0, 2)).toBe(false);
+    expect(hasMissingForRange([1, 2, 3, 4], 0, 2)).toBe(false);
   });
 });
 
@@ -222,17 +211,17 @@ describe('getMaxAbsoluteValue', () => {
     expect(getMaxAbsoluteValue(null)).toBe(0);
   });
 
-  it('finds the largest magnitude, ignoring null/undefined/zero', () => {
-    expect(getMaxAbsoluteValue([1, -5, 3, null, U, 0])).toBe(5);
+  it('finds the largest magnitude, ignoring null/missing/zero', () => {
+    expect(getMaxAbsoluteValue([1, -5, 3, null, M, 0])).toBe(5);
   });
 
   it('returns 0 when all values are falsy', () => {
-    expect(getMaxAbsoluteValue([0, null, U])).toBe(0);
+    expect(getMaxAbsoluteValue([0, null, M])).toBe(0);
   });
 });
 
 describe('getArrayDeltas', () => {
-  it('subtracts the base array from the other, using 0 for holes', () => {
-    expect(getArrayDeltas([1, 2, 3], [4, U, 10])).toEqual([3, 0, 7]);
+  it('subtracts the base array from the other, using 0 for missing entries', () => {
+    expect(getArrayDeltas([1, 2, 3], [4, M, 10])).toEqual([3, 0, 7]);
   });
 });

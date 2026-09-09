@@ -89,7 +89,7 @@
 </script>
 
 <div class="multi-controls">
-  <form class="demo-form-row">
+  <form>
     <div class="demo-field">
       <label class="demo-label" for="grid-rows">{demoText.multiChartsTab.gridLabel}</label>
       <input id="grid-rows" disabled={playing} type="number" min="1" max="4" class="demo-input" value={rowsText}
@@ -99,7 +99,7 @@
              oninput={colsChanged} aria-label={demoText.multiChartsTab.gridColsAria} />
     </div>
     <div class="demo-field">
-      <div class="demo-toolbar" role="toolbar">
+      <div class="demo-toolbar">
         <div class="demo-btn-group">
           <ButtonWithTooltip id="step-back" disabled={playing} tooltipText={demoText.multiChartsTab.stepBackward.tooltip} tooltipPlacement="top-start"
                              onClick={onStepBackwardClick} aria-label={demoText.multiChartsTab.stepBackward.aria}>
@@ -130,8 +130,8 @@
              oninput={rateChanged} aria-label={demoText.multiChartsTab.intervalAria} />
     </div>
     <div class="demo-field">
-      <div class="demo-toolbar" role="toolbar">
-        <ExportShareMenu idPrefix="multi" {exportPng} {exportSvg} {getShareState} />
+      <div class="demo-toolbar">
+        <ExportShareMenu {exportPng} {exportSvg} {getShareState} />
       </div>
     </div>
   </form>

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { pathAt, rangeForPath } from '../src/jsonTree';
 
 const source = `{
-  "seriesConfigs": [
+  "series": [
     { "property": "revenue", "axis": "money" }
   ]
 }`;
@@ -16,11 +16,11 @@ function state() {
 describe('JSON tree paths', () => {
   it('finds paths through objects and arrays', () => {
     const position = source.indexOf('"money"') + 2;
-    expect(pathAt(state(), position)).toEqual(['seriesConfigs', 0, 'axis']);
+    expect(pathAt(state(), position)).toEqual(['series', 0, 'axis']);
   });
 
   it('maps a path back to its JSON value', () => {
-    const range = rangeForPath(state(), ['seriesConfigs', 0, 'axis']);
+    const range = rangeForPath(state(), ['series', 0, 'axis']);
     expect(source.slice(range.from, range.to)).toBe('"money"');
   });
 });

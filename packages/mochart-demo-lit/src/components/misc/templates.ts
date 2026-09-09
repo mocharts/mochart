@@ -5,7 +5,7 @@ import { demoText, getReferenceSectionIds, getReferenceSectionUrl } from '@mocha
 
 // Stateless building blocks kept as plain lit-html template functions rather
 // than custom elements — the natural Lit altitude for the Vue demo's Icon /
-// ButtonWithTooltip / TextAreaContent components.
+// ButtonWithTooltip components.
 
 interface IconProps {
   name: string;
@@ -35,7 +35,9 @@ export function icon({ name, size, fixedWidth, flip, style }: IconProps): Templa
 }
 
 interface ButtonWithTooltipProps {
-  id: string;
+  // Optional: only buttons that exist once per page carry one (a per-chart
+  // control would mint duplicate ids on the second chart).
+  id?: string;
   tooltipText?: string;
   tooltipPlacement?: string;
   disabled?: boolean;
@@ -63,25 +65,14 @@ export function buttonWithTooltip(
   { id, tooltipText, disabled = false, onClick, color = 'secondary', ariaLabel, label, menuLabel, pressed }: ButtonWithTooltipProps,
   children: unknown
 ): TemplateResult {
-  return html`<span class="button-with-tooltip">
-    <button id=${id} type="button" class=${`demo-btn demo-btn-${color}` + (pressed ? ' active' : '')} ?disabled=${disabled}
+  // Unstyled wrapper: it keeps the button one flex item wherever it is folded.
+  return html`<span>
+    <button id=${id ?? nothing} type="button" class=${`demo-btn demo-btn-${color}` + (pressed ? ' active' : '')} ?disabled=${disabled}
             title=${tooltipText ?? nothing} aria-label=${ariaLabel ?? nothing}
             aria-pressed=${pressed === undefined ? nothing : String(pressed)} @click=${() => onClick()}>
       ${children}${menuLabel ? html`<span class="btn-menu-label">${menuLabel}</span>` : nothing}${label ? html`<span class="btn-label">${label}</span>` : nothing}
     </button>
   </span>`;
-}
-
-interface TextAreaContentProps {
-  value: string;
-  onChange: (value: string) => void;
-}
-
-/** The sized textarea the config/data editor tabs share (css in demo.css). */
-export function textAreaContent({ value, onChange }: TextAreaContentProps): TemplateResult {
-  return html`<div class="text-area-content">
-    <textarea .value=${value} @input=${(event: Event) => onChange((event.currentTarget as HTMLTextAreaElement).value)}></textarea>
-  </div>`;
 }
 
 /**

@@ -1,12 +1,12 @@
 [
-  {"groupSO": "AAA", "value1": 15, "value2": -11, "value3": 2, "value4": 5, "value5": 2, "value6": -6},
-  {"groupSO": "BBB", "value1": 15, "value2": -4, "value3": -4, "value4": -7, "value5": 3, "value6": -2},
-  {"groupSO": "CCC", "value1": 4, "value2": -3, "value3": 3, "value4": 1, "value5": 4, "value6": -4},
-  {"groupSO": "DDD", "value1": -2, "value2": 7, "value3": 7, "value4": 0, "value5": 1, "value6": -11},
-  {"groupSO": "EEE", "value1": 1, "value2": -1, "value3": 6, "value4": -4, "value5": -12, "value6": 3},
-  {"groupSO": "FFF", "value1": 0, "value2": 7, "value3": 2, "value4": 5, "value5": 4, "value6": -1},
-  {"groupSO": "GGG", "value1": 13, "value2": -7, "value3": 0, "value4": 7, "value5": 2, "value6": -4},
-  {"groupSO": "HHH", "value1": 5, "value2": -4, "value3": -3, "value4": -8, "value5": 1, "value6": -4},
-  {"groupSO": "III", "value1": -4, "value2": 9, "value3": 8, "value4": 3, "value5": 5, "value6": -3},
-  {"groupSO": "JJJ", "value1": 16, "value2": -12, "value3": 5, "value4": 5, "value5": 2, "value6": -1}
+  {"categorySO":"AAA","value1":15,"value2":-11,"value3":2,"value4":5,"value5":2,"value6":-6},
+  {"categorySO":"BBB","value1":15,"value2":-4,"value3":-4,"value4":-7,"value5":3,"value6":-2},
+  {"categorySO":"CCC","value1":4,"value2":-3,"value3":3,"value4":1,"value5":4,"value6":-4},
+  {"categorySO":"DDD","value1":-2,"value2":7,"value3":7,"value4":0,"value5":1,"value6":-11},
+  {"categorySO":"EEE","value1":1,"value2":-1,"value3":6,"value4":-4,"value5":-12,"value6":3},
+  {"categorySO":"FFF","value1":0,"value2":7,"value3":2,"value4":5,"value5":4,"value6":-1},
+  {"categorySO":"GGG","value1":13,"value2":-7,"value3":0,"value4":7,"value5":2,"value6":-4},
+  {"categorySO":"HHH","value1":5,"value2":-4,"value3":-3,"value4":-8,"value5":1,"value6":-4},
+  {"categorySO":"III","value1":-4,"value2":9,"value3":8,"value4":3,"value5":5,"value6":-3},
+  {"categorySO":"JJJ","value1":16,"value2":-12,"value3":5,"value4":5,"value5":2,"value6":-1}
 ]

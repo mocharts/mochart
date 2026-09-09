@@ -1,5 +1,5 @@
 // createPie turns labelled values into pie pieces: every slice is its own
-// series (so the legend lists the slices and clicking one suppresses it),
+// series (so the legend lists the slices and clicking one filters it),
 // and the data is a single row holding every slice value.
 import { createPie } from '@mochart/core';
 import type { MochartInputConfig } from '@mochart/core';
@@ -14,18 +14,18 @@ const pie = createPie(
     { label: 'Other', value: 30 }
   ],
   // valuePercent puts each slice's share next to its value in the tooltip,
-  // e.g. "420 (48.8%)"
-  { valueFormat: ',.0f', tooltipValues: 'valuePercent' }
+  // e.g. "420 (44.7%)"
+  { valueFormat: ',.0f', tooltipValueType: 'valuePercent' }
 );
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Revenue by Product (fictional, $k)' },
-  // chartConfig.type 'pie' swaps the axis plot for the radial plot.
-  chartConfig: pie.chartConfig,
-  pieConfig: pie.pieConfig,
-  groupAxisConfig: pie.groupAxisConfig,
-  seriesConfigs: pie.seriesConfigs
+  title: { text: 'Revenue by Product (fictional, $k)' },
+  // chart.type 'pie' swaps the axis plot for the radial plot.
+  chart: pie.chart,
+  pie: pie.pie,
+  categoryAxis: pie.categoryAxis,
+  series: pie.series
 };
 
 export const data = pie.data;

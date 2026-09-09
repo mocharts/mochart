@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
 
-  import { buildShareUrl, demoText } from '@mochart/demo-common';
+  import { controlsMenuPlacement, createShareLinkCopier, demoText } from '@mochart/demo-common';
   import type { ShareState } from '@mochart/demo-common';
 
   import Icon from './Icon.svelte';
@@ -17,9 +17,8 @@
   // including the reason any of it is hand-rolled (the controls strips clip an
   // absolutely-positioned dropdown, and the chart's interaction rect eats
   // clicks through anything stacked below it). What stays here is what the
-  // class does not know about: the items, the copied-link feedback, `disabled`.
+  // class does not know about: the items, their copied label, `disabled`.
   interface Props {
-    idPrefix: string;
     exportPng: () => void;
     exportSvg: () => void;
     /** Omit to hide the Share item (e.g. a chart whose state isn't shareable). */
@@ -33,20 +32,12 @@
     active?: boolean;
   }
 
-  let { idPrefix, exportPng, exportSvg, getShareState = undefined, disabled = false, active = true }: Props = $props();
-
-  const copiedFeedbackMs = 1500;
+  let { exportPng, exportSvg, getShareState = undefined, disabled = false, active = true }: Props = $props();
 
   let copied = $state(false);
-  let revertTimer: ReturnType<typeof setTimeout> | null = null;
+  const shareLinkCopier = createShareLinkCopier(nextCopied => { copied = nextCopied; });
 
-  // Opens upward (the controls row sits at the bottom of the pane) and
-  // right-aligned (the trigger is the last control in the row).
-  // svelte-ignore state_referenced_locally -- idPrefix is fixed per mount
-  const menu = new Menu({
-    placement: { side: 'top', align: 'end', gap: 4 },
-    triggerId: idPrefix + '-export-share'
-  });
+  const menu = new Menu({ placement: controlsMenuPlacement });
 
   // A disabled trigger fires no click, so the menu cannot be opened — but one
   // already open when its trigger is disabled would be stranded.
@@ -56,11 +47,7 @@
     }
   });
 
-  onDestroy(() => {
-    if (revertTimer !== null) {
-      clearTimeout(revertTimer);
-    }
-  });
+  onDestroy(() => shareLinkCopier.dispose());
 
   function runAndClose(action: () => void) {
     action();
@@ -71,23 +58,12 @@
     if (!getShareState) {
       return;
     }
-    const url = buildShareUrl(getShareState());
-    navigator.clipboard.writeText(url).then(() => {
-      copied = true;
-      if (revertTimer !== null) {
-        clearTimeout(revertTimer);
-      }
-      revertTimer = setTimeout(() => { copied = false; revertTimer = null; }, copiedFeedbackMs);
-    }, () => {
-      // Clipboard access can be unavailable (e.g. insecure context); let the
-      // user copy the link manually instead of failing silently.
-      window.prompt(demoText.shareButton.tooltip, url);
-    });
+    shareLinkCopier.copy(getShareState());
     menu.close();
   }
 </script>
 
-<div class="demo-btn-group demo-menu-up mochart-export-share-menu">
+<div class="demo-btn-group mochart-export-share-menu">
   <button type="button" bind:this={menu.trigger} {...menu.triggerProps}
           class={'demo-btn demo-btn-secondary demo-menu-trigger' + (menu.open ? ' active' : '')}
           {disabled}
@@ -98,17 +74,17 @@
        class={'demo-menu' + (menu.isPositioned ? ' open' : '')}>
     <button type="button" class="demo-menu-item" onclick={() => runAndClose(exportPng)}
             aria-label={demoText.exportButtons.png.aria}>
-      <Icon fixedWidth={true} name="file-image" /> <span class="mochart-menu-item-label">{demoText.exportButtons.png.label}</span>
+      <Icon fixedWidth={true} name="file-image" /> <span>{demoText.exportButtons.png.label}</span>
     </button>
     <button type="button" class="demo-menu-item" onclick={() => runAndClose(exportSvg)}
             aria-label={demoText.exportButtons.svg.aria}>
-      <Icon fixedWidth={true} name="file-code" /> <span class="mochart-menu-item-label">{demoText.exportButtons.svg.label}</span>
+      <Icon fixedWidth={true} name="file-code" /> <span>{demoText.exportButtons.svg.label}</span>
     </button>
     {#if getShareState}
       <div class="demo-menu-divider"></div>
       <button type="button" class="demo-menu-item" onclick={onShare}
               aria-label={demoText.shareButton.aria}>
-        <Icon fixedWidth={true} name={copied ? 'check' : 'link'} /> <span class="mochart-menu-item-label">{copied ? demoText.shareButton.tooltipCopied : demoText.shareButton.label}</span>
+        <Icon fixedWidth={true} name={copied ? 'check' : 'link'} /> <span>{copied ? demoText.shareButton.tooltipCopied : demoText.shareButton.label}</span>
       </button>
     {/if}
   </div>

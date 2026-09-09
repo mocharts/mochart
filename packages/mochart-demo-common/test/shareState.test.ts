@@ -7,9 +7,9 @@ const singleState: ShareState = {
   mode: 'single',
   config: {
     version: '1.0.0',
-    titleConfig: { title: 'Ünïcode — dashes & “quotes”' },
-    groupAxisConfig: { property: 'month', type: 'string', scale: 'ordinal' },
-    seriesConfigs: [{ property: 'revenue', title: 'Revenue' }]
+    title: { text: 'Ünïcode — dashes & “quotes”' },
+    categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+    series: [{ property: 'revenue', title: 'Revenue' }]
   },
   data: [
     { month: 'Jan', revenue: 10 },
@@ -22,7 +22,7 @@ const multiState: ShareState = { mode: 'multi', rows: 2, cols: 3, step: 5, inter
 
 const randomState = {
   mode: 'random',
-  randomConfig: { group: { count: 10 }, series: {} },
+  randomConfig: { category: { count: 10 }, series: {} },
   applyReuse: false,
   interval: 2000
 } as unknown as ShareState;
@@ -39,6 +39,22 @@ describe('shareState codec', () => {
 
   it('round-trips random-mode generator state', () => {
     expect(decodeShareState(encodeShareState(randomState))).toEqual(randomState);
+  });
+
+  it('clamps a hand-edited interval into the input limits', () => {
+    expect(decodeShareState(encodeShareState({ ...multiState, interval: 0 } as ShareState))).toMatchObject({ interval: 5 });
+    expect(decodeShareState(encodeShareState({ ...multiState, interval: 999999 } as ShareState))).toMatchObject({ interval: 60000 });
+    expect(decodeShareState(encodeShareState({ ...randomState, interval: -100 } as ShareState))).toMatchObject({ interval: 5 });
+  });
+
+  it('normalizes a hand-edited step to a non-negative integer', () => {
+    expect(decodeShareState(encodeShareState({ ...multiState, step: -3.7 } as ShareState))).toMatchObject({ step: 0 });
+    expect(decodeShareState(encodeShareState({ ...multiState, step: 4.4 } as ShareState))).toMatchObject({ step: 4 });
+  });
+
+  it('clamps a hand-edited grid size into the stepper limits', () => {
+    expect(decodeShareState(encodeShareState({ ...multiState, rows: 0, cols: 9 } as ShareState))).toMatchObject({ rows: 1, cols: 4 });
+    expect(decodeShareState(encodeShareState({ ...multiState, rows: 2.6, cols: -5 } as ShareState))).toMatchObject({ rows: 3, cols: 1 });
   });
 
   it('produces URL-safe output', () => {

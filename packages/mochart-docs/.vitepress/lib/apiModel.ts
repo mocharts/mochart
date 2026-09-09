@@ -36,8 +36,28 @@ export interface ApiPageDoc {
   groups: ApiGroupDoc[];
 }
 
+export interface EnumerationUse {
+  label: string;
+  link: string;
+}
+
+export interface EnumerationDoc {
+  name: string;
+  description: string;
+  values: string[];
+  usedBy: EnumerationUse[];
+}
+
+export interface EnumerationsPageDoc {
+  id: string;
+  title: string;
+  lead: string;
+  entries: EnumerationDoc[];
+}
+
 export interface ApiReferenceModel {
   pages: ApiPageDoc[];
+  enumerations: EnumerationsPageDoc;
 }
 
 export const apiModelPath = path.join(

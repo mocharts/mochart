@@ -3,7 +3,7 @@
 
   import demoData from '@mochart/demo-data';
 
-  import { isPhoneViewport, phoneFallbackDemoMode, watchPhoneViewport } from '@mochart/demo-common';
+  import { demoText, isPhoneViewport, phoneFallbackDemoMode, watchPhoneViewport } from '@mochart/demo-common';
   import type { ShowcaseMode, SwitchableDemoMode } from '@mochart/demo-common';
 
   import GalleryPage from '../src/components/gallery/GalleryPage.svelte';
@@ -149,7 +149,7 @@
 {#if route.redirect !== undefined}
   <!-- redirecting -->
 {:else if route.notFound !== undefined}
-  <div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">No route found matching {route.notFound}</div></div>
+  <div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">{demoText.routeErrors.noRoute(route.notFound)}</div></div>
 {:else if route.gallery === true}
   <GalleryPage {demoData} {siteRootUrl} {onOpenDemo} {onOpenPage} />
 {:else if route.mode === 'transition'}
@@ -159,14 +159,14 @@
 {:else if route.mode === 'sparkline'}
   <DemoSparkline {siteRootUrl} {onBackToDemos} />
 {:else if !isKnownDemo}
-  <div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">No demo found for id: {demoId}</div></div>
+  <div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">{demoText.routeErrors.noDemo(demoId!)}</div></div>
 {:else if route.mode === 'single'}
   <DemoSingle {demoData} initialDemoId={demoId!} {siteRootUrl} {onModeChanged} {onBackToDemos} />
 {:else if route.mode === 'multi'}
   <DemoMulti {demoData} initialDemoId={demoId!} {siteRootUrl} {onModeChanged} {onBackToDemos} />
 {:else if route.mode === 'random'}
   {#if !isValidRandomId}
-    <div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">Bad random id: {route.randomId}</div></div>
+    <div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">{demoText.routeErrors.badRandomId(route.randomId!)}</div></div>
   {:else}
     <DemoRandom {demoData} initialDemoId={demoId!} {siteRootUrl} {onModeChanged} {onBackToDemos}
       {randomId} {incrementRandomId} {decrementRandomId} />

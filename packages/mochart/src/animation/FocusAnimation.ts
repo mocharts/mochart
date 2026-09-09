@@ -2,6 +2,7 @@ import type {
   ArrayFocusDeltaData,
   FocusAnimationData,
   FocusData,
+  FocusDeltaData,
   FocusPercentage,
   FocusPercentageMap,
   MapFocusDeltaData
@@ -18,21 +19,21 @@ export function getFocusDataForPercent(focusAnimationData: FocusAnimationData, p
     return focusAnimationData.end;
   }
   else {
-    const groupFocusPercentages = getGroupFocusPercentages(focusAnimationData.group, percentage);
-    const seriesAxisFocusPercentages = getSeriesAxisFocusPercentages(focusAnimationData.seriesAxis, percentage);
-    const seriesFocusPercentages = getSeriesFocusPercentages(focusAnimationData.series, percentage);
+    const categoryFocusPercentages = getArrayFocusPercentages(focusAnimationData.category, percentage);
+    const valueAxisFocusPercentages = getMapFocusPercentages(focusAnimationData.valueAxis, percentage);
+    const seriesFocusPercentages = getMapFocusPercentages(focusAnimationData.series, percentage);
 
     return {
-      groupFocusPercentages,
-      seriesAxisFocusPercentages,
+      categoryFocusPercentages,
+      valueAxisFocusPercentages,
       seriesFocusPercentages,
-      focusedGroupIndex: focusAnimationData.end.focusedGroupIndex,
-      focusedSeriesAxisId: focusAnimationData.end.focusedSeriesAxisId,
+      focusedCategoryIndex: focusAnimationData.end.focusedCategoryIndex,
+      focusedValueAxisId: focusAnimationData.end.focusedValueAxisId,
       focusedSeriesId: focusAnimationData.end.focusedSeriesId,
-      groupFocusDomainPercentages: focusAnimationData.end.groupFocusDomainPercentages,
-      seriesAxisFocusDomainPercentages: focusAnimationData.end.seriesAxisFocusDomainPercentages,
+      categoryFocusDomainPercentages: focusAnimationData.end.categoryFocusDomainPercentages,
+      valueAxisFocusDomainPercentages: focusAnimationData.end.valueAxisFocusDomainPercentages,
       seriesFocusDomainPercentages: focusAnimationData.end.seriesFocusDomainPercentages,
-      seriesAxisComputedFocusDomainPercentages: focusAnimationData.end.seriesAxisComputedFocusDomainPercentages
+      valueAxisComputedFocusDomainPercentages: focusAnimationData.end.valueAxisComputedFocusDomainPercentages
     };
   }
 }
@@ -49,62 +50,21 @@ function getFocusPercentage(start: FocusPercentage, percentage: number, deltaFac
   }
 }
 
-function getGroupFocusPercentages(
-  { start, deltas, deltaPercentage, deltaPercentages, deltaFactors, end }: ArrayFocusDeltaData,
-  percentage: number
-): FocusPercentage[] {
-  if (start === end) {
-    return start;
-  }
-  else if (deltaPercentage === 0) {
-    return start;
-  }
-  else if (deltaPercentages !== null && deltaFactors !== null) {
-    const focusPercentages: FocusPercentage[] = []; // TODO, investigate reusing this array for subsequent calls
-    const count = start.length;
-    for (let i=0; i<count; i++) {
-      if (deltaPercentages[i] >= percentage) {
-        focusPercentages.push(getFocusPercentage(start[i], percentage, deltaFactors[i], deltas[i]));
-      }
-      else {
-        focusPercentages.push(end[i]);
-      }
-    }
-    return focusPercentages;
-  }
-  return start;
+function getArrayFocusPercentages(focusDeltaData: ArrayFocusDeltaData, percentage: number): FocusPercentage[] {
+  // arrays satisfy Record<number, ...> going in, so the assertion only restores the array type coming out
+  return getKeyedFocusPercentages<number>(focusDeltaData.start.keys(), focusDeltaData, percentage, () => []) as FocusPercentage[];
 }
 
-function getSeriesAxisFocusPercentages(
-  { start, deltas, deltaPercentage, deltaPercentages, deltaFactors, end }: MapFocusDeltaData,
-  percentage: number
-): FocusPercentageMap {
-  if (start === end) {
-    return start;
-  }
-  else if (deltaPercentage === 0) {
-    return start;
-  }
-  else if (deltaPercentages !== null && deltaFactors !== null) {
-    const focusPercentages: FocusPercentageMap = {}; // TODO, investigate reusing this map for subsequent calls
-    const seriesAxisIds = Object.keys(start);
-    for (const seriesAxisId of seriesAxisIds) {
-      if (deltaPercentages[seriesAxisId] >= percentage) {
-        focusPercentages[seriesAxisId] = getFocusPercentage(start[seriesAxisId], percentage, deltaFactors[seriesAxisId], deltas[seriesAxisId]);
-      }
-      else {
-        focusPercentages[seriesAxisId] = end[seriesAxisId];
-      }
-    }
-    return focusPercentages;
-  }
-  return start;
+function getMapFocusPercentages(focusDeltaData: MapFocusDeltaData, percentage: number): FocusPercentageMap {
+  return getKeyedFocusPercentages<string>(Object.keys(focusDeltaData.start), focusDeltaData, percentage, () => Object.create(null) as FocusPercentageMap);
 }
 
-function getSeriesFocusPercentages(
-  { start, deltas, deltaPercentage, deltaPercentages, deltaFactors, end }: MapFocusDeltaData,
-  percentage: number
-): FocusPercentageMap {
+function getKeyedFocusPercentages<K extends string | number>(
+  keys: Iterable<K>,
+  { start, deltas, deltaPercentage, deltaPercentages, deltaFactors, end }: FocusDeltaData<Record<K, FocusPercentage>, Record<K, number>>,
+  percentage: number,
+  createFocusPercentages: () => Record<K, FocusPercentage>
+): Record<K, FocusPercentage> {
   if (start === end) {
     return start;
   }
@@ -112,14 +72,13 @@ function getSeriesFocusPercentages(
     return start;
   }
   else if (deltaPercentages !== null && deltaFactors !== null) {
-    const focusPercentages: FocusPercentageMap = {}; // TODO, investigate reusing this map for subsequent calls
-    const seriesIds = Object.keys(start);
-    for (const seriesId of seriesIds) {
-      if (deltaPercentages[seriesId] >= percentage) {
-        focusPercentages[seriesId] = getFocusPercentage(start[seriesId], percentage, deltaFactors[seriesId], deltas[seriesId]);
+    const focusPercentages = createFocusPercentages(); // TODO, investigate reusing this collection for subsequent calls
+    for (const key of keys) {
+      if (deltaPercentages[key] >= percentage) {
+        focusPercentages[key] = getFocusPercentage(start[key], percentage, deltaFactors[key], deltas[key]);
       }
       else {
-        focusPercentages[seriesId] = end[seriesId];
+        focusPercentages[key] = end[key];
       }
     }
     return focusPercentages;

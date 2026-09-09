@@ -1,14 +1,15 @@
 <script lang="ts">
-  import { consumeSingleShareState, demoText } from '@mochart/demo-common';
+  import { consumeSingleShareState, demoText, getConfigDataError } from '@mochart/demo-common';
   import type { SwitchableDemoMode } from '@mochart/demo-common';
 
   import ChartTab from './ChartTab.svelte';
   import ConfigTab from './ConfigTab.svelte';
   import DataTab from './DataTab.svelte';
+  import DemoTabs from '../misc/DemoTabs.svelte';
   import ErrorTab from '../misc/ErrorTab.svelte';
   import TopBar from '../misc/TopBar.svelte';
 
-  import type { DemoData, DemoConfig, DataRow } from '../../types';
+  import type { DemoData, DemoConfig, DataObject } from '../../types';
 
   interface Props {
     demoData: DemoData;
@@ -39,16 +40,16 @@
   // svelte-ignore state_referenced_locally
   let demoId = $state(initialDemoId);
   let pendingConfig = $state.raw<DemoConfig | null>(null);
-  let pendingData = $state.raw<DataRow[] | null>(null);
+  let pendingData = $state.raw<DataObject[] | null>(null);
   let pendingDataError = $state.raw<DataError>(false);
   // svelte-ignore state_referenced_locally
   let config = $state.raw<DemoConfig>(sharedState?.config ?? demoData.demoObjectMap[initialDemoId].config);
   // svelte-ignore state_referenced_locally
-  let data = $state.raw<DataRow[]>(sharedState?.data ?? demoData.demoObjectMap[initialDemoId].data);
+  let data = $state.raw<DataObject[]>(sharedState?.data ?? demoData.demoObjectMap[initialDemoId].data);
   // svelte-ignore state_referenced_locally
   let viewingConfig = $state.raw<DemoConfig>(sharedState?.config ?? demoData.demoObjectMap[initialDemoId].config);
   // svelte-ignore state_referenced_locally
-  let viewingData = $state.raw<DataRow[]>(sharedState?.data ?? demoData.demoObjectMap[initialDemoId].data);
+  let viewingData = $state.raw<DataObject[]>(sharedState?.data ?? demoData.demoObjectMap[initialDemoId].data);
   let viewingDataError = $state.raw<DataError>(false);
 
   function chartShown() {
@@ -103,7 +104,7 @@
     config = resetConfig;
   }
 
-  function onDataChange(nextPendingData: DataRow[]) {
+  function onDataChange(nextPendingData: DataObject[]) {
     pendingData = nextPendingData;
     pendingDataError = false;
   }
@@ -121,6 +122,9 @@
   // Applied config/data edits are held until the Chart tab is shown; badge the
   // Chart tab so it's visible that something is waiting there.
   const hasPendingChanges = $derived(activeKey !== eventKeyChart && (pendingConfig !== null || pendingData !== null));
+
+  // editor-reported error, or the viewing config/data pair failing validation
+  const chartDataError = $derived(viewingDataError || getConfigDataError(viewingConfig, viewingData));
 </script>
 
 <div class="mochart-demo-container">
@@ -128,31 +132,18 @@
           notes={demoData.demoObjectMap[initialDemoId]}
           modes={{ demoMode: 'single', onModeChanged }}>
     {#snippet tabs()}
-      <li class="demo-tab-item">
-        <button type="button" class={"demo-tab" + (activeKey === eventKeyChart ? " active" : "")}
-                title={hasPendingChanges ? demoText.tabs.chartPendingTitle : undefined}
-                onclick={() => handleSelect(eventKeyChart)}>
-          {demoText.tabs.chart}{#if hasPendingChanges}<span class="mochart-pending-badge" aria-hidden="true"></span>{/if}
-        </button>
-      </li>
-      <li class="demo-tab-item">
-        <button type="button" class={"demo-tab" + (activeKey === eventKeyConfig ? " active" : "")}
-                onclick={() => handleSelect(eventKeyConfig)}>
-          {demoText.tabs.config}
-        </button>
-      </li>
-      <li class="demo-tab-item">
-        <button type="button" class={"demo-tab" + (activeKey === eventKeyData ? " active" : "")}
-                onclick={() => handleSelect(eventKeyData)}>
-          {demoText.tabs.data}
-        </button>
-      </li>
+      <DemoTabs {activeKey} onSelect={handleSelect}
+                tabs={[
+                  { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart, pending: hasPendingChanges },
+                  { name: 'config', key: eventKeyConfig, label: demoText.tabs.config },
+                  { name: 'data', key: eventKeyData, label: demoText.tabs.data }
+                ]} />
     {/snippet}
   </TopBar>
   <div class="mochart-demo-content-pane">
     <div class="mochart-demo-content">
       <ErrorTab active={activeKey === eventKeyChart}>
-        <ChartTab active={activeKey === eventKeyChart} config={viewingConfig} data={viewingData} dataError={viewingDataError} />
+        <ChartTab active={activeKey === eventKeyChart} config={viewingConfig} data={viewingData} dataError={chartDataError} />
       </ErrorTab>
       <ErrorTab active={activeKey === eventKeyConfig}>
         <ConfigTab active={activeKey === eventKeyConfig} {config} {onConfigChange} {onConfigReset} />

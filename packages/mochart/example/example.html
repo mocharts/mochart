@@ -29,19 +29,19 @@
 
         var config = {
             version: '1.0.0',
-            titleConfig: { title: 'Fruit' },
-            groupAxisConfig: {
+            title: { text: 'Fruit' },
+            categoryAxis: {
                 property: "name",
                 type: "string",
                 scale: "ordinal"
             },
-            seriesAxisConfigs: [
+            valueAxes: [
                 {
                     id: "sa",
                     min: 0
                 }
             ],
-            seriesConfigs: [
+            series: [
                 {
                     axis: "sa",
                     property: "weight",

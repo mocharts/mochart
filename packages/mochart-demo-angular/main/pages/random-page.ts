@@ -1,6 +1,7 @@
 import { Component, Input, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
+import { demoText } from '@mochart/demo-common';
 import demoData from '@mochart/demo-data';
 
 import { DemoRandom } from '../../src/components/random/demo-random';
@@ -12,9 +13,9 @@ import { createDemoNavigation, isKnownDemo, navigate, siteRootUrl } from './navi
   styles: [':host { display: contents; }'],
   template: `
     @if (!knownDemo) {
-      <div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">No demo found for id: {{ demoId }}</div></div>
+      <div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">{{ text.noDemo(demoId) }}</div></div>
     } @else if (!isValidRandomId) {
-      <div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">Bad random id: {{ randomId }}</div></div>
+      <div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">{{ text.badRandomId(randomId) }}</div></div>
     } @else {
       <app-demo-random [demoData]="demoData" [initialDemoId]="demoId" [siteRootUrl]="siteRootUrl"
                        [onModeChanged]="onModeChanged" [onBackToDemos]="nav.onBackToDemos"
@@ -27,6 +28,7 @@ export class RandomPage {
   @Input({ required: true }) demoId!: string;
   @Input({ required: true }) randomId!: string;
 
+  readonly text = demoText.routeErrors;
   readonly demoData = demoData;
   readonly siteRootUrl = siteRootUrl;
   private readonly router = inject(Router);

@@ -1,5 +1,6 @@
 import DefaultTheme from 'vitepress/theme';
 import type { Theme } from 'vitepress';
+import EasingGallery from './EasingGallery.vue';
 import LiveChart from './LiveChart.vue';
 // Structural defaults for the chart's HTML overlays — shields the live
 // examples from VitePress's base CSS resets (e.g. `svg { display: block }`).
@@ -12,6 +13,7 @@ import './custom.css';
 export default {
   extends: DefaultTheme,
   enhanceApp({ app }) {
+    app.component('EasingGallery', EasingGallery);
     app.component('LiveChart', LiveChart);
   }
 } satisfies Theme;

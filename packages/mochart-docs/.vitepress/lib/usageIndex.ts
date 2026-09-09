@@ -8,24 +8,57 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import * as basic from '../../examples/basic';
-import * as hero from '../../examples/hero';
-import * as animation from '../../examples/animation';
-import * as interaction from '../../examples/interaction';
-import * as stackedBars from '../../examples/stackedBars';
-import * as dualAxes from '../../examples/dualAxes';
-import * as dateAxis from '../../examples/dateAxis';
-import * as groupedSeries from '../../examples/groupedSeries';
-import * as horizontal from '../../examples/horizontal';
-import * as thresholdRange from '../../examples/thresholdRange';
-import * as gradients from '../../examples/gradients';
-import * as markersLabels from '../../examples/markersLabels';
-import * as tooltipFormat from '../../examples/tooltipFormat';
-import * as histogram from '../../examples/histogram';
-import * as waterfall from '../../examples/waterfall';
-import * as sparkline from '../../examples/sparkline';
-import * as heatmap from '../../examples/heatmap';
-import * as errorBars from '../../examples/errorBars';
+import * as basic from '../../examples/basic.ts';
+import * as hero from '../../examples/hero.ts';
+import * as animation from '../../examples/animation.ts';
+import * as interaction from '../../examples/interaction.ts';
+import * as palette from '../../examples/palette.ts';
+import * as stackedBars from '../../examples/stackedBars.ts';
+import * as dualAxes from '../../examples/dualAxes.ts';
+import * as dateAxis from '../../examples/dateAxis.ts';
+import * as groupedSeries from '../../examples/groupedSeries.ts';
+import * as horizontal from '../../examples/horizontal.ts';
+import * as thresholdRange from '../../examples/thresholdRange.ts';
+import * as gradients from '../../examples/gradients.ts';
+import * as patterns from '../../examples/patterns.ts';
+import * as markersLabels from '../../examples/markersLabels.ts';
+import * as tooltipFormat from '../../examples/tooltipFormat.ts';
+import * as histogram from '../../examples/histogram.ts';
+import * as waterfall from '../../examples/waterfall.ts';
+import * as sparkline from '../../examples/sparkline.ts';
+import * as heatmap from '../../examples/heatmap.ts';
+import * as errorBars from '../../examples/errorBars.ts';
+import * as accessibility from '../../examples/accessibility.ts';
+import * as animationCategoryDomain from '../../examples/animation-category-domain.ts';
+import * as animationEasing from '../../examples/animation-easing.ts';
+import * as animationValueDomain from '../../examples/animation-value-domain.ts';
+import * as axisBounds from '../../examples/axisBounds.ts';
+import * as axisReversed from '../../examples/axisReversed.ts';
+import * as barCaps from '../../examples/barCaps.ts';
+import * as barCapsStacked from '../../examples/barCapsStacked.ts';
+import * as candlestick from '../../examples/candlestick.ts';
+import * as candlestickHollow from '../../examples/candlestickHollow.ts';
+import * as candlestickVolume from '../../examples/candlestickVolume.ts';
+import * as chartStates from '../../examples/chart-states.ts';
+import * as colorByValue from '../../examples/colorByValue.ts';
+import * as colorByValueBase from '../../examples/colorByValueBase.ts';
+import * as curves from '../../examples/curves.ts';
+import * as curvesStep from '../../examples/curvesStep.ts';
+import * as donut from '../../examples/donut.ts';
+import * as gauge from '../../examples/gauge.ts';
+import * as ohlc from '../../examples/ohlc.ts';
+import * as pie from '../../examples/pie.ts';
+import * as posNeg from '../../examples/posNeg.ts';
+import * as posNegStacked from '../../examples/posNegStacked.ts';
+import * as scatterBubble from '../../examples/scatterBubble.ts';
+import * as theming from '../../examples/theming.ts';
+import * as tickLabels from '../../examples/tickLabels.ts';
+import * as tickLabelsDense from '../../examples/tickLabelsDense.ts';
+import * as legend from '../../examples/legend.ts';
+import * as legendSingle from '../../examples/legendSingle.ts';
+import * as spacing from '../../examples/spacing.ts';
+import * as title from '../../examples/title.ts';
+import * as titleCaption from '../../examples/titleCaption.ts';
 
 export interface UsageLink {
   text: string;
@@ -47,7 +80,9 @@ const docsExamples: { config: object; page: UsageLink }[] = [
   { config: hero.config, page: { text: 'Home', link: '/' } },
   { config: basic.config, page: { text: 'Getting started', link: '/guide/getting-started' } },
   { config: animation.config, page: { text: 'Staged animation', link: '/guide/staged-animation' } },
+  { config: animationEasing.config, page: { text: 'Staged animation', link: '/guide/staged-animation#tuning' } },
   { config: interaction.config, page: { text: 'Interaction', link: '/guide/interaction' } },
+  { config: palette.config, page: { text: 'Colors and theming', link: '/guide/theming#series-color-palettes' } },
   { config: stackedBars.config, page: { text: 'Stacked bars', link: '/recipes/stacked-bars' } },
   { config: dualAxes.config, page: { text: 'Dual value axes', link: '/recipes/dual-axes' } },
   { config: dateAxis.config, page: { text: 'Date axis', link: '/recipes/date-axis' } },
@@ -55,32 +90,69 @@ const docsExamples: { config: object; page: UsageLink }[] = [
   { config: horizontal.config, page: { text: 'Horizontal charts', link: '/recipes/horizontal-bars' } },
   { config: thresholdRange.config, page: { text: 'Thresholds and ranges', link: '/recipes/thresholds-ranges' } },
   { config: gradients.config, page: { text: 'Gradients', link: '/recipes/gradients' } },
+  { config: patterns.config, page: { text: 'Patterns', link: '/recipes/patterns' } },
   { config: markersLabels.config, page: { text: 'Markers and labels', link: '/recipes/markers-labels' } },
   { config: tooltipFormat.config, page: { text: 'Tooltip formatting', link: '/recipes/tooltip-formatting' } },
   { config: histogram.config, page: { text: 'Histogram', link: '/recipes/histogram' } },
   { config: waterfall.config, page: { text: 'Waterfall', link: '/recipes/waterfall' } },
   { config: sparkline.config, page: { text: 'Sparklines', link: '/recipes/sparklines' } },
   { config: heatmap.config, page: { text: 'Heatmap', link: '/recipes/heatmap' } },
-  { config: errorBars.config, page: { text: 'Error Bars', link: '/recipes/error-bars' } }
+  { config: errorBars.config, page: { text: 'Error bars', link: '/recipes/error-bars' } },
+  { config: accessibility.config, page: { text: 'Accessibility', link: '/guide/accessibility' } },
+  { config: chartStates.config, page: { text: 'Chart states', link: '/guide/chart-states' } },
+  { config: theming.config, page: { text: 'Colors and theming', link: '/guide/theming' } },
+  { config: animationCategoryDomain.config, page: { text: 'Staged animation', link: '/guide/staged-animation' } },
+  { config: animationValueDomain.config, page: { text: 'Staged animation', link: '/guide/staged-animation' } },
+  { config: axisBounds.config, page: { text: 'Axis bounds', link: '/recipes/axis-bounds' } },
+  { config: axisReversed.config, page: { text: 'Reversing an axis', link: '/recipes/axis-bounds#reversing-an-axis' } },
+  { config: barCaps.config, page: { text: 'Bar caps', link: '/recipes/bar-caps' } },
+  { config: barCapsStacked.config, page: { text: 'Capping a stack', link: '/recipes/bar-caps#capping-a-stack' } },
+  { config: candlestick.config, page: { text: 'Candlestick', link: '/recipes/candlestick' } },
+  { config: candlestickHollow.config, page: { text: 'Hollow candles', link: '/recipes/candlestick#hollow-candles' } },
+  { config: candlestickVolume.config, page: { text: 'Volume pane', link: '/recipes/candlestick#volume-pane' } },
+  { config: colorByValue.config, page: { text: 'Color by value', link: '/recipes/color-by-value' } },
+  { config: colorByValueBase.config, page: { text: 'Diverging around a base', link: '/recipes/color-by-value#diverging-around-a-base' } },
+  { config: curves.config, page: { text: 'Curves', link: '/recipes/curves' } },
+  { config: curvesStep.config, page: { text: 'Step charts', link: '/recipes/curves#step-charts' } },
+  { config: ohlc.config, page: { text: 'OHLC bars', link: '/recipes/ohlc' } },
+  { config: pie.config, page: { text: 'Pie and donut', link: '/recipes/pie' } },
+  { config: donut.config, page: { text: 'Donut and slice labels', link: '/recipes/pie#donut-and-slice-labels' } },
+  { config: gauge.config, page: { text: 'Half pies and gauges', link: '/recipes/pie#half-pies-and-gauges' } },
+  { config: posNeg.config, page: { text: 'Positive and negative values', link: '/recipes/positive-negative' } },
+  { config: posNegStacked.config, page: { text: 'Stacking mixed signs', link: '/recipes/positive-negative#stacking-mixed-signs' } },
+  { config: scatterBubble.config, page: { text: 'Scatter and bubble', link: '/recipes/markers-labels' } },
+  { config: tickLabels.config, page: { text: 'Tick labels', link: '/recipes/tick-labels' } },
+  { config: tickLabelsDense.config, page: { text: 'Fewer ticks instead', link: '/recipes/tick-labels#fewer-ticks-instead' } },
+  { config: legend.config, page: { text: 'Legend', link: '/recipes/legend' } },
+  { config: legendSingle.config, page: { text: 'A single-series key', link: '/recipes/legend#a-single-series-key' } },
+  { config: spacing.config, page: { text: 'Layout and spacing', link: '/guide/layout' } },
+  { config: title.config, page: { text: 'Chart title', link: '/recipes/title' } },
+  { config: titleCaption.config, page: { text: 'A caption under the chart', link: '/recipes/title#a-caption-under-the-chart' } }
 ];
 
-const objectSectionIds = new Set([
-  'animationConfig', 'chartConfig', 'colorPaletteConfig', 'crosshairConfig',
-  'groupAxisConfig', 'legendConfig', 'pieConfig', 'plotConfig', 'titleConfig', 'tooltipConfig'
+/** exported for scripts/checkSectionCoverage.ts: every examples/*.ts exporting a config must be here */
+export const registeredExampleConfigs: readonly object[] = docsExamples.map(example => example.config);
+
+// exported for scripts/checkSectionCoverage.ts, which verifies these
+// registries against the sections the core enhancer actually emits
+export const objectSectionIds = new Set([
+  'accessibility', 'animation', 'chart', 'clipIndicator', 'colorPalette',
+  'crosshair', 'categoryAxis', 'legend', 'pie', 'plot', 'title', 'tooltip'
 ]);
 
-const listSectionIds = new Set([
-  'linearGradientConfigs', 'radialGradientConfigs', 'seriesAxisConfigs',
-  'seriesConfigs', 'seriesGroupConfigs', 'seriesStackConfigs'
+export const listSectionIds = new Set([
+  'linearGradients', 'patterns', 'radialGradients', 'valueAxes',
+  'series', 'seriesGroups', 'seriesStacks'
 ]);
 
-const allKeySectionMap: Record<string, string> = {
-  linearGradientAllConfig: 'linearGradientConfigs',
-  radialGradientAllConfig: 'radialGradientConfigs',
-  seriesAxisAllConfig: 'seriesAxisConfigs',
-  seriesAllConfig: 'seriesConfigs',
-  seriesGroupAllConfig: 'seriesGroupConfigs',
-  seriesStackAllConfig: 'seriesStackConfigs'
+export const allKeySectionMap: Record<string, string> = {
+  linearGradientDefaults: 'linearGradients',
+  patternDefaults: 'patterns',
+  radialGradientDefaults: 'radialGradients',
+  valueAxisDefaults: 'valueAxes',
+  seriesDefaults: 'series',
+  seriesGroupDefaults: 'seriesGroups',
+  seriesStackDefaults: 'seriesStacks'
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -91,6 +163,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function collectPropertyKeys(config: Record<string, unknown>): Set<string> {
   const keys = new Set<string>();
   const addSectionKeys = (prefix: string, section: unknown) => {
+    // a list of objects (thresholds, gradient stops) keys its members off the property, matching their reference anchors
+    if (Array.isArray(section)) {
+      for (const entry of section) {
+        addSectionKeys(prefix, entry);
+      }
+      return;
+    }
     if (!isRecord(section)) {
       return;
     }
@@ -128,8 +207,20 @@ export function buildUsageIndex(): UsageIndex {
   const docsLinks = new Map<string, UsageLink[]>();
   const demoLinks = new Map<string, UsageLink[]>();
 
+  // at most one link per page: several examples on one page would otherwise fill the cap with the
+  // same page. The first registered wins, so a property only one example sets links to its section.
+  const docsPagesSeen = new Map<string, Set<string>>();
   for (const example of docsExamples) {
+    const page = example.page.link.split('#')[0]!;
     for (const key of collectPropertyKeys(example.config as Record<string, unknown>)) {
+      let pages = docsPagesSeen.get(key);
+      if (pages === undefined) {
+        docsPagesSeen.set(key, pages = new Set());
+      }
+      if (pages.has(page)) {
+        continue;
+      }
+      pages.add(page);
       let links = docsLinks.get(key);
       if (links === undefined) {
         docsLinks.set(key, links = []);
@@ -156,7 +247,9 @@ export function buildUsageIndex(): UsageIndex {
   const allKeys = new Set([...docsLinks.keys(), ...demoLinks.keys()]);
   for (const key of allKeys) {
     const docs = docsLinks.get(key) ?? [];
-    const demos = demoLinks.get(key) ?? [];
+    // some demos carry a recipe's name and show a similar chart; the recipe is the better link
+    const docsTexts = new Set(docs.map(link => link.text));
+    const demos = (demoLinks.get(key) ?? []).filter(link => !docsTexts.has(link.text));
     perProperty[key] = [...docs.slice(0, docsLinkCap), ...demos.slice(0, demoLinkCap)];
     const hidden = Math.max(0, docs.length - docsLinkCap) + Math.max(0, demos.length - demoLinkCap);
     if (hidden > 0) {

@@ -6,11 +6,11 @@ import { el, observeSize, setActiveClass, tabContainer } from '../misc/dom';
 import { editableChart } from './EditableChart';
 import type { EditableChartHandle } from './EditableChart';
 
-import type { DemoConfig, DataRow, MochartDemoConfig, FocusData, FilteredSeriesIds } from '../../types';
+import type { DemoConfig, DataObject, MochartDemoConfig, FocusData, FilteredSeriesIds } from '../../types';
 
 export interface ChartTabProps {
   config?: DemoConfig | null;
-  data?: DataRow[] | null;
+  data?: DataObject[] | null;
   dataError?: string | boolean | null;
   active?: boolean;
 }
@@ -18,7 +18,7 @@ export interface ChartTabProps {
 export interface ChartTabHandle {
   el: HTMLElement;
   setActive(active: boolean): void;
-  update(next: { config: DemoConfig | null; data: DataRow[] | null; dataError: string | boolean | null }): void;
+  update(next: { config: DemoConfig | null; data: DataObject[] | null; dataError: string | boolean | null }): void;
   destroy(): void;
 }
 
@@ -37,31 +37,31 @@ export function chartTab(props: ChartTabProps): ChartTabHandle {
   let width = 0;
 
   let chartCount = defaultChartCount;
-  let focusedSeriesAxisId: string | null = null;
+  let focusedValueAxisId: string | null = null;
   let focusedSeriesId: string | null = null;
-  let focusedGroupIndex = -1;
+  let focusedCategoryIndex = -1;
   let filteredSeriesIds: FilteredSeriesIds = {};
   let mochartDemoConfig: MochartDemoConfig | null = config ? buildMochartDemoConfig(config) : null;
 
   let charts: EditableChartHandle[] = [];
 
   function resetFocusAndFiltered(): void {
-    focusedSeriesAxisId = null;
+    focusedValueAxisId = null;
     focusedSeriesId = null;
-    focusedGroupIndex = -1;
+    focusedCategoryIndex = -1;
     filteredSeriesIds = {};
   }
 
   function onFocus(focusData: FocusData = {}): void {
-    const { seriesAxisId, seriesId, groupIndex } = focusData;
-    if (seriesAxisId !== undefined) {
-      focusedSeriesAxisId = seriesAxisId;
+    const { valueAxisId, seriesId, categoryIndex } = focusData;
+    if (valueAxisId !== undefined) {
+      focusedValueAxisId = valueAxisId;
     }
     if (seriesId !== undefined) {
       focusedSeriesId = seriesId;
     }
-    if (groupIndex !== undefined) {
-      focusedGroupIndex = groupIndex;
+    if (categoryIndex !== undefined) {
+      focusedCategoryIndex = categoryIndex;
     }
     syncCharts();
   }
@@ -79,7 +79,7 @@ export function chartTab(props: ChartTabProps): ChartTabHandle {
 
   const chartsHost = el('div', { className: 'editable-charts' });
   const sizer = el('div', { className: 'editable-charts-sizer' }, [chartsHost]);
-  const container = tabContainer('demo-layout-row chart', active, [sizer]);
+  const container = tabContainer('demo-layout-row chart', active, [sizer], 'chart');
 
   const stopObserving = observeSize(container, (nextWidth) => {
     width = nextWidth;
@@ -126,8 +126,8 @@ export function chartTab(props: ChartTabProps): ChartTabHandle {
         showChartCountControls,
         showShareButton: charts.length === 0,
         filteredSeriesIds,
-        focusedGroupIndex,
-        focusedSeriesAxisId,
+        focusedCategoryIndex,
+        focusedValueAxisId,
         focusedSeriesId,
         onFocus,
         onSeriesFilter,
@@ -136,17 +136,18 @@ export function chartTab(props: ChartTabProps): ChartTabHandle {
       charts.push(chart);
       chartsHost.append(chart.el);
     }
-    for (const chart of charts) {
-      chart.update({
+    for (let index = 0; index < charts.length; index++) {
+      charts[index].update({
         width: chartWidth,
         mochartDemoConfig,
         data: data ?? [],
         dataError,
         isActive: active,
         chartCount,
+        showChartCountControls: allowed > 1 && index === 0,
         filteredSeriesIds,
-        focusedGroupIndex,
-        focusedSeriesAxisId,
+        focusedCategoryIndex,
+        focusedValueAxisId,
         focusedSeriesId
       });
     }
@@ -168,40 +169,38 @@ export function chartTab(props: ChartTabProps): ChartTabHandle {
     },
     // Mirror the framework lifecycle: a config change rebuilds the demo config
     // and resets focus/filter state when the structure changed (or on data
-    // errors); a data change remaps the focused group index onto the new data.
-    update(next: { config: DemoConfig | null; data: DataRow[] | null; dataError: string | boolean | null }) {
+    // errors); a data change remaps the focused category index onto the new data.
+    update(next: { config: DemoConfig | null; data: DataObject[] | null; dataError: string | boolean | null }) {
       const nextConfig = next.config;
       const nextData = next.data;
       const nextDataError = next.dataError;
-      if (nextDataError || nextConfig !== config) {
-        let configChanged = false;
-        if (nextConfig !== config) {
-          const nextDemoConfig = nextConfig ? buildMochartDemoConfig(nextConfig) : null;
-          if (nextDemoConfig && mochartDemoConfig) {
-            configChanged = hasConfigStructureChange(mochartDemoConfig.mochartConfig, nextDemoConfig.mochartConfig);
-          }
-          mochartDemoConfig = nextDemoConfig;
+      let configChanged = false;
+      if (nextConfig !== config) {
+        const nextDemoConfig = nextConfig ? buildMochartDemoConfig(nextConfig) : null;
+        if (nextDemoConfig && mochartDemoConfig) {
+          configChanged = hasConfigStructureChange(mochartDemoConfig.mochartConfig, nextDemoConfig.mochartConfig);
         }
-        if (nextDataError || configChanged) {
-          resetFocusAndFiltered();
-        }
+        mochartDemoConfig = nextDemoConfig;
+      }
+      if (nextDataError || configChanged) {
+        resetFocusAndFiltered();
       }
       else if (nextData !== data) {
         const { configValidation, mochartConfig } = mochartDemoConfig ?? {};
         const valid = configValidation?.valid ?? false;
         if (!dataError && data && nextData && valid && mochartConfig) {
-          if (focusedGroupIndex >= 0) {
-            const property = mochartConfig.groupAxisConfig.property ?? '';
-            const groupValue = data[focusedGroupIndex][property];
-            let newFocusedGroupIndex = -1;
+          if (focusedCategoryIndex >= 0) {
+            const property = mochartConfig.categoryAxis.property ?? '';
+            const categoryValue = data[focusedCategoryIndex][property];
+            let newFocusedCategoryIndex = -1;
             const count = nextData.length;
             for (let i = 0; i < count; i++) {
-              if (nextData[i][property] === groupValue) {
-                newFocusedGroupIndex = i;
+              if (nextData[i][property] === categoryValue) {
+                newFocusedCategoryIndex = i;
                 break;
               }
             }
-            focusedGroupIndex = newFocusedGroupIndex;
+            focusedCategoryIndex = newFocusedCategoryIndex;
           }
         }
         else {

@@ -44,16 +44,16 @@
                 { label: 'Net income', total: true }
             ];
 
-            const { data, groupAxisConfig, seriesConfigs } = createWaterfall(items);
+            const { data, categoryAxis: categoryAxisConfig, series: seriesConfigs } = createWaterfall(items);
 
             const mochartConfig = enhanceConfig({
                 version: '1.0.0',
-                titleConfig: { title: 'Income statement (fictional, $k)' },
-                groupAxisConfig,
-                seriesAxisConfigs: [{ id: 'sa' }],
-                seriesConfigs: seriesConfigs.map((seriesConfig) => ({ ...seriesConfig, axis: 'sa' }))
+                title: { text: 'Income statement (fictional, $k)' },
+                categoryAxis: categoryAxisConfig,
+                valueAxes: [{ id: 'va' }],
+                series: seriesConfigs.map((seriesConfig) => ({ ...seriesConfig, axis: 'va' }))
             });
-            const dataProvider = new ArrayOfObjectsDataProvider(data, mochartConfig.groupAxisConfig.property);
+            const dataProvider = new ArrayOfObjectsDataProvider(data);
 
             if (chart === null) {
                 chart = createChart(chartEl, { mochartConfig, dataProvider, width: 720, height: 400 });

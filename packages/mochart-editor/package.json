@@ -2,38 +2,81 @@
   "name": "@mochart/editor",
   "version": "1.0.0",
   "description": "Framework-neutral JSON editor with Mochart config intelligence",
-  "private": true,
-  "license": "BSD-3-Clause",
+  "keywords": [
+    "json",
+    "editor",
+    "codemirror",
+    "completions",
+    "validation",
+    "mochart"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Jon Harris",
+    "url": "https://github.com/jharris4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mocharts/mochart.git",
+    "directory": "packages/mochart-editor"
+  },
+  "homepage": "https://mochart.org",
+  "bugs": {
+    "url": "https://github.com/mocharts/mochart/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./json": {
+        "types": "./dist/json.d.ts",
+        "default": "./dist/json.js"
+      },
+      "./editor.css": "./css/editor.css"
+    }
+  },
   "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
       "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./json": {
+      "development": "./src/json.ts",
+      "types": "./dist/json.d.ts",
+      "default": "./dist/json.js"
     },
     "./editor.css": "./css/editor.css"
   },
   "files": [
     "src",
     "dist",
-    "css"
+    "css",
+    "CHANGELOG.md"
   ],
   "dependencies": {
     "@codemirror/autocomplete": "^6.0.0",
-    "@codemirror/commands": "^6.0.0",
     "@codemirror/lang-json": "^6.0.0",
     "@codemirror/language": "^6.0.0",
     "@codemirror/lint": "^6.0.0",
-    "@codemirror/search": "^6.0.0",
     "@codemirror/state": "^6.0.0",
-    "@codemirror/view": "^6.0.0",
+    "@codemirror/view": "^6.43.8",
     "@lezer/common": "^1.0.0",
     "@lezer/highlight": "^1.0.0",
-    "@mochart/core": "^1.0.0",
     "codemirror": "^6.0.0"
+  },
+  "peerDependencies": {
+    "@mochart/core": "^1.0.0"
   },
   "scripts": {
     "generate": "node --import tsx ../mochart/scripts/generateEditorModel.ts",
@@ -42,11 +85,14 @@
     "predev": "npm run generate",
     "dev": "vite --config playground/vite.config.ts",
     "build:playground": "npm run generate && vite build --config playground/vite.config.ts",
-    "test": "npm run generate && vitest run",
+    "test": "npm run generate && vitest run --coverage",
     "typecheck": "npm run generate && tsc --noEmit",
+    "lint": "eslint .",
     "prepack": "npm run build"
   },
   "devDependencies": {
-    "tsx": "^4.20.6"
+    "@mochart/core": "^1.0.0",
+    "@vitest/coverage-v8": "^4.1.10",
+    "tsx": "^4.23.12"
   }
 }

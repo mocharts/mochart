@@ -7,7 +7,7 @@
     "probability": 0.2
   },
   "reuse": {
-    "globalPercentage": 0,
-    "stepPercentage": 0.5
+    "globalFraction": 0,
+    "stepFraction": 0.5
   }
 }

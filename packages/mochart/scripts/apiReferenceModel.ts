@@ -1,19 +1,16 @@
-// Builds the structured api-reference model consumed by the docs site's prop
-// and callback pages. Where the config reference is assembled from the
-// validators, this one is read straight from the prop interfaces in
-// src/types/chart.ts — the JSDoc on those members is the single source for
-// the shipped .d.ts, editor hovers, and the reference pages, so the three
-// cannot disagree.
-//
-// Every exported interface in that file must either belong to a page group
-// below or be listed in `internalInterfaces`, and every member must carry a
-// JSDoc description — both are reported as integrity errors, which fail the
-// generator (and so the docs build).
+// Builds the api-reference model for the docs prop/callback pages straight from the prop
+// interfaces in src/types/chart.ts, whose JSDoc also feeds the shipped .d.ts and hovers.
+// Every exported interface needs a page group or an internalInterfaces entry, and every
+// member a JSDoc description — violations are integrity errors that fail the generator.
+// The ratchet covers this one file: everything else on the public surface is checked by
+// mochart-docs/scripts/checkApiCoverage.ts against the hand-written reference/api.md.
 
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { parseInterfaces } from './tsSource';
+import { buildConfigReference, type ConfigReferenceModel } from './configReferenceModel';
+import { buildEnumerations, type EnumerationsPageDoc } from './enumerationsModel';
 
 const packageDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const chartTypesPath = path.join(packageDir, 'src', 'types', 'chart.ts');
@@ -54,6 +51,8 @@ export interface ApiPageDoc {
 
 export interface ApiReferenceModel {
   pages: ApiPageDoc[];
+  /** The enumerated config values, by the union type each set forms. */
+  enumerations: EnumerationsPageDoc;
 }
 
 export interface ApiReferenceResult {
@@ -76,10 +75,10 @@ interface PageSource {
 }
 
 // Interfaces in src/types/chart.ts that are deliberately absent from the
-// reference pages, with the reason they need no page.
+// generated props/callbacks pages, with the reason they need no group there.
 const internalInterfaces: Record<string, string> = {
   ChartDomAccessors: 'test/measurement seam; documented by the shipped .d.ts only',
-  InternalFocus: 'internal focus update shape, never crosses the public boundary'
+  InternalFocus: 'neither a prop nor a callback; internal to chart/ChartDataSource and the components, not exported by the package'
 };
 
 const pageSources: PageSource[] = [
@@ -181,12 +180,19 @@ const pageSources: PageSource[] = [
         title: 'ChartSliceClickPayload',
         interfaceName: 'ChartSliceClickPayload',
         description: 'Received by `onSliceClick`.'
+      },
+      {
+        id: 'chartSeriesClickPayload',
+        title: 'ChartSeriesClickPayload',
+        interfaceName: 'ChartSeriesClickPayload',
+        description: 'Received by `onSeriesClick`.'
       }
     ]
   }
 ];
 
-export function buildApiReference(): ApiReferenceResult {
+/** `configModel` lets a caller that has already built the config reference pass it in rather than build it twice. */
+export function buildApiReference(configModel: ConfigReferenceModel = buildConfigReference().model): ApiReferenceResult {
   const integrityErrors: string[] = [];
   const interfaces = parseInterfaces(chartTypesPath);
   const exportedNames = [...interfaces.values()]
@@ -214,6 +220,14 @@ export function buildApiReference(): ApiReferenceResult {
   for (const name of Object.keys(internalInterfaces)) {
     if (!exportedNames.includes(name)) {
       integrityErrors.push(`internalInterfaces lists ${name}, which no longer exists in types/chart.ts`);
+    }
+  }
+  for (const [name, parsed] of interfaces) {
+    if (referenceByInterface.has(name) && parsed.skippedMembers.length > 0) {
+      integrityErrors.push(
+        `${name} has members the reference cannot render (${parsed.skippedMembers.join(', ')}) —` +
+        ' give them property syntax, or move the interface to internalInterfaces with a reason'
+      );
     }
   }
 
@@ -256,5 +270,8 @@ export function buildApiReference(): ApiReferenceResult {
     })
   }));
 
-  return { model: { pages }, integrityErrors };
+  const enumerations = buildEnumerations(configModel);
+  integrityErrors.push(...enumerations.integrityErrors);
+
+  return { model: { pages, enumerations: enumerations.page }, integrityErrors };
 }

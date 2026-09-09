@@ -1,17 +1,16 @@
 <script lang="ts">
   import { untrack } from 'svelte';
 
-  import { NONE, getDataErrors } from '@mochart/core';
-  import type { MochartConfig, DataProvider } from '@mochart/core';
+  import { getDataErrors } from '@mochart/core';
 
   import RandomChartTab from './RandomChartTab.svelte';
   import RandomConfigTab from './RandomConfigTab.svelte';
   import RandomDataTab from './RandomDataTab.svelte';
   import ErrorTab from '../misc/ErrorTab.svelte';
 
-  import { consumeShareState, demoText, generateDemoDataProvider, neutralizeRandomReuse } from '@mochart/demo-common';
+  import { consumeShareState, createErrorDataProvider, demoText, generateDemoDataProvider, getRandomDataObjects, neutralizeRandomReuse, restoreSharedRandomConfig } from '@mochart/demo-common';
 
-  import type { MochartDemoConfig, RandomConfigWithValid, DemoDataProvider, GroupValue } from '../../types';
+  import type { MochartDemoConfig, RandomConfigWithValid, DemoDataProvider } from '../../types';
 
   interface EventKeys {
     eventKeyChart: number;
@@ -52,7 +51,7 @@
   const sharedState = consumeShareState('random');
   const shared = sharedState && sharedState.mode === 'random' ? sharedState : null;
   // svelte-ignore state_referenced_locally
-  const initialResolvedRandomConfig: RandomConfigWithValid = shared ? { ...shared.randomConfig, valid: true } : initialRandomConfig;
+  const initialResolvedRandomConfig: RandomConfigWithValid = shared ? restoreSharedRandomConfig(shared.randomConfig, generator) : initialRandomConfig;
   const initialRate = shared ? shared.interval : undefined;
 
   // svelte-ignore state_referenced_locally
@@ -68,27 +67,6 @@
     updateDataProvider();
   }
 
-  function getData(mochartConfig: MochartConfig, groupValues: GroupValue[], seriesValues: Record<string, (number | undefined)[]>) {
-    const { groupAxisConfig } = mochartConfig;
-    const groupProperty = groupAxisConfig.property ?? '';
-    const nextData: Record<string, any>[] = groupValues.map(g => ({ [groupProperty]: g }));
-    const groupCount = groupValues.length;
-    if (groupAxisConfig.displayProperty !== NONE) {
-      const displayProperty = groupAxisConfig.displayProperty;
-      for (let i = 0; i < groupCount; i++) {
-        nextData[i][displayProperty] = groupValues[i];
-      }
-    }
-    const seriesProperties = Object.keys(seriesValues);
-    for (const seriesProperty of seriesProperties) {
-      const seriesPropertyValues = seriesValues[seriesProperty];
-      for (let i = 0; i < groupCount; i++) {
-        nextData[i][seriesProperty] = seriesPropertyValues[i];
-      }
-    }
-    return nextData;
-  }
-
   function updateDataProvider(forcedRandomConfig?: RandomConfigWithValid) {
     const { mochartConfig } = mochartDemoConfig;
     const nextRandomConfig = forcedRandomConfig !== undefined ? forcedRandomConfig : randomConfig;
@@ -98,17 +76,14 @@
       // neutralized, so every dataset is generated independently
       const generatorConfig = applyReuse ? nextRandomConfig : neutralizeRandomReuse(nextRandomConfig);
       const nextDataProvider = generateDemoDataProvider(generator, mochartConfig, generatorConfig, randomId);
-      const { groupValues = [], seriesValues = {} } = nextDataProvider;
-      const nextData = getData(mochartConfig, groupValues, seriesValues);
-      const dataErrors = getDataErrors(mochartConfig, nextDataProvider as unknown as DataProvider);
+      const { categoryValues = [], seriesValues = {} } = nextDataProvider;
+      const nextData = getRandomDataObjects(mochartConfig, categoryValues, seriesValues);
+      const dataErrors = getDataErrors(mochartConfig, nextDataProvider);
       if (dataErrors.length > 0) {
         console.error('data errors: ', dataErrors);
-        console.warn('group values: ', groupValues);
+        console.warn('category values: ', categoryValues);
         console.warn('series values: ', seriesValues);
-        dataProvider = {
-          getGroupValues: () => [],
-          getError: () => demoText.errors.creatingDataProvider
-        };
+        dataProvider = createErrorDataProvider(demoText.errors.creatingDataProvider);
         data = { error: demoText.errors.creatingDataProvider };
         randomConfig = nextRandomConfig;
       }
@@ -119,10 +94,7 @@
       }
     }
     else {
-      dataProvider = {
-        getGroupValues: () => [],
-        getError: () => demoText.errors.invalidRandomConfig
-      };
+      dataProvider = createErrorDataProvider(demoText.errors.invalidRandomConfig);
       data = {
         error: demoText.errors.invalidRandomConfig
       };

@@ -2,8 +2,10 @@ import { Component, Input, signal } from '@angular/core';
 import type { OnChanges, OnInit, SimpleChanges } from '@angular/core';
 
 import { buildMochartDemoConfig, demoText } from '@mochart/demo-common';
+import type { DemoTab } from '@mochart/demo-common';
 
 import { RandomContent } from './random-content';
+import { DemoTabs } from '../misc/demo-tabs';
 import { TopBar } from '../misc/top-bar';
 
 import type { DemoData, MochartDemoConfig, RandomConfigWithValid, SwitchableDemoMode } from '../../types';
@@ -14,25 +16,14 @@ const eventKeyData = 3;
 
 @Component({
   selector: 'app-demo-random',
-  imports: [RandomContent, TopBar],
+  imports: [DemoTabs, RandomContent, TopBar],
   styles: [':host { display: contents; }'],
   template: `
     <div class="mochart-demo-container multi">
       <app-top-bar [siteRootUrl]="siteRootUrl" [onBackToDemos]="onBackToDemos" [hasTabs]="true"
                    [notes]="demoData.demoObjectMap[initialDemoId]"
                    [modes]="{ demoMode: 'random', onModeChanged }">
-        <li class="demo-tab-item">
-          <button type="button" [class]="'demo-tab' + (activeKey() === eventKeys.eventKeyChart ? ' active' : '')"
-                  (click)="handleSelect(eventKeys.eventKeyChart)">{{ text.chart }}</button>
-        </li>
-        <li class="demo-tab-item">
-          <button type="button" [class]="'demo-tab' + (activeKey() === eventKeys.eventKeyConfig ? ' active' : '')"
-                  (click)="handleSelect(eventKeys.eventKeyConfig)">{{ text.randomConfig }}</button>
-        </li>
-        <li class="demo-tab-item">
-          <button type="button" [class]="'demo-tab' + (activeKey() === eventKeys.eventKeyData ? ' active' : '')"
-                  (click)="handleSelect(eventKeys.eventKeyData)">{{ text.data }}</button>
-        </li>
+        <app-demo-tabs [tabs]="tabItems" [activeKey]="activeKey()" [onSelect]="handleSelect" />
       </app-top-bar>
       <div class="mochart-demo-content-pane">
         <app-random-content [mochartDemoConfig]="mochartDemoConfig()!" [initialRandomConfig]="randomConfig()!"
@@ -91,7 +82,15 @@ export class DemoRandom implements OnInit, OnChanges {
     this.generator.set(nextState.generator);
   }
 
-  handleSelect(nextActiveKey: number): void {
-    this.activeKey.set(nextActiveKey);
+  get tabItems(): DemoTab[] {
+    return [
+      { name: 'chart', key: this.eventKeys.eventKeyChart, label: this.text.chart },
+      { name: 'config', key: this.eventKeys.eventKeyConfig, label: this.text.randomConfig },
+      { name: 'data', key: this.eventKeys.eventKeyData, label: this.text.data }
+    ];
   }
+
+  handleSelect = (nextActiveKey: number): void => {
+    this.activeKey.set(nextActiveKey);
+  };
 }

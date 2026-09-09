@@ -1,5 +1,5 @@
 // createCandlestick turns OHLC items into direction-colored open/close body
-// bars painted over thin low/high wick bars — four ordinary bar series.
+// bars drawn over thin low/high wick bars — four ordinary bar series.
 import { createCandlestick } from '@mochart/core';
 import type { MochartInputConfig } from '@mochart/core';
 
@@ -18,10 +18,10 @@ const candlestick = createCandlestick([
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Daily Share Price (fictional, $)' },
-  groupAxisConfig: candlestick.groupAxisConfig,
-  seriesAxisConfigs: [{ title: '$ per share' }],
-  seriesConfigs: candlestick.seriesConfigs
+  title: { text: 'Daily Share Price (fictional, $)' },
+  categoryAxis: candlestick.categoryAxis,
+  valueAxes: [{ title: { text: '$ per share' } }],
+  series: candlestick.series
 };
 
 export const data = candlestick.data;

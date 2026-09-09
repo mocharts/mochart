@@ -1,10 +1,15 @@
+import type {
+  Bounds, ChartEventPayload, ChartFocus, ChartSeriesClickPayload, ChartSeriesFilter, ChartSliceClickPayload,
+  ArrayOfObjectsData, DataProvider, MochartConfig, MochartInputConfig, ObjectOfArraysData
+} from '@mochart/core';
+
 /** Props mochart passes to placeholder templates (loading, error, and empty states). */
 export interface PlaceholderProps {
   width?: number;
   height?: number;
-  mochartConfig?: any;
-  dataProvider?: any;
-  error?: any;
+  mochartConfig?: MochartConfig | null;
+  dataProvider?: DataProvider | null;
+  error?: unknown;
   hasData?: boolean;
 }
 
@@ -15,15 +20,16 @@ export interface PlaceholderProps {
 export type PlaceholderTemplate = (props: PlaceholderProps) => unknown;
 
 export interface ChartCallbackProps {
-  onChartClick?: (eventPayload: any) => void;
-  onSliceClick?: (payload: any) => void;
-  onChartMouseEnter?: (eventPayload: any) => void;
-  onChartMouseMove?: (eventPayload: any) => void;
-  onChartMouseLeave?: (eventPayload: any) => void;
-  onTitleClick?: (eventPayload: any) => void;
-  onFocus?: (focusData: any) => void;
-  onSeriesFilter?: (filterData: any) => void;
-  onSeriesLayoutInfoChange?: (bounds: any) => void;
+  onChartClick?: (eventPayload: ChartEventPayload) => void;
+  onSliceClick?: (payload: ChartSliceClickPayload) => void;
+  onSeriesClick?: (payload: ChartSeriesClickPayload) => void;
+  onChartMouseEnter?: (eventPayload: ChartEventPayload) => void;
+  onChartMouseMove?: (eventPayload: ChartEventPayload) => void;
+  onChartMouseLeave?: (eventPayload: ChartEventPayload) => void;
+  onTitleClick?: () => void; // core calls it with no arguments
+  onFocus?: (focusData: ChartFocus) => void;
+  onSeriesFilter?: (filterData: ChartSeriesFilter) => void;
+  onSeriesLayoutBoundsChange?: (bounds: Bounds) => void;
   loadingTemplate?: PlaceholderTemplate;
   errorTemplate?: PlaceholderTemplate;
   noDataTemplate?: PlaceholderTemplate;
@@ -32,7 +38,23 @@ export interface ChartCallbackProps {
   configErrorTemplate?: PlaceholderTemplate;
 }
 
+/**
+ * The imperative handle a `chartRef` callback receives. `refresh()` re-reads
+ * the current config/data (rebuilding or re-indexing the data provider)
+ * without needing new references — the escape hatch for hosts that mutate
+ * data in place.
+ */
+export interface ChartRef {
+  refresh(): void;
+}
+
 export interface BaseChartProps extends ChartCallbackProps {
+  /**
+   * Callback ref, like Lit's own `ref()` directive: called with the
+   * `ChartRef` handle once the chart mounts and with `null` when the
+   * directive disconnects.
+   */
+  chartRef?: (ref: ChartRef | null) => void;
   /** Explicit pixel width; omit to track the container element's width. */
   width?: number;
   /** Explicit pixel height; omit to track the container element's height. */
@@ -44,34 +66,37 @@ export interface BaseChartProps extends ChartCallbackProps {
   className?: string;
   /** Inline style for the container div; explicit `width`/`height` props win. */
   style?: string;
+  /** `data-testid` attribute applied to the container div, for test selectors. */
+  dataTestId?: string;
   loading?: boolean;
-  error?: any;
+  error?: unknown;
   /**
-   * Controlled focused group index (-1 = none). When set it overrides the
+   * Controlled focused category index (-1 = none). When set it overrides the
    * chart's internal focus on every render; pass back the value reported by
    * `onFocus` to keep several charts in sync. Omit to leave focus
    * chart-managed.
    */
-  focusedGroupIndex?: number;
-  /** Controlled focused series-axis id (null = none). See `focusedGroupIndex`. */
-  focusedSeriesAxisId?: string | null;
-  /** Controlled focused series id (null = none). See `focusedGroupIndex`. */
+  focusedCategoryIndex?: number;
+  /** Controlled focused value-axis id (null = none). See `focusedCategoryIndex`. */
+  focusedValueAxisId?: string | null;
+  /** Controlled focused series id (null = none); use the id of a series that does not set `followSeries`. See `focusedCategoryIndex`. */
   focusedSeriesId?: string | null;
   /**
    * Controlled filter map (series id → true = filtered out); pass back the
    * map reported by `onSeriesFilter` to sync legend filtering across charts.
+   * Key it by series that do not set `followSeries`: a series that follows another filters with it.
    */
   filteredSeriesIds?: Record<string, boolean>;
 }
 
-/** Props for the `chart` directive: a pre-enhanced config plus a data provider. */
+/** Props for the `chart` directive: a pre-enhanced config plus a data provider (null while loading). */
 export interface ChartProps extends BaseChartProps {
-  mochartConfig: any;
-  dataProvider: any;
+  mochartConfig: MochartConfig | null;
+  dataProvider: DataProvider | null;
 }
 
-/** Props for the `defaultChart` directive: a raw config plus a plain array-of-objects dataset. */
+/** Props for the `defaultChart` directive: a raw config plus a plain dataset — an array of objects or an object of arrays. */
 export interface DefaultChartProps extends BaseChartProps {
-  config: any;
-  data: any[];
+  config: MochartInputConfig;
+  data: ArrayOfObjectsData | ObjectOfArraysData;
 }

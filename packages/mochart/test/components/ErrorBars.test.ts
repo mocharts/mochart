@@ -1,18 +1,13 @@
-/**
- * Error bar rendering tests: errorLowProperty/errorHighProperty draw a
- * whisker per point from the low bound to the high bound with horizontal
- * caps, centered on the bar layout slot (including grouped sub-slots) or on
- * the point for line series. Charts are mounted through createDefaultChart in
- * jsdom, assertions parse the rendered whisker paths — vertical whiskers are
- * `M{cx},{low}V{high}` followed by one `M{x},{y}H{x2}` cap per defined bound.
- */
-import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
+// errorLowProperty/errorHighProperty whiskers, centered on the bar slot (grouped sub-slots included) or line point;
+// asserts parse whisker paths: `M{cx},{low}V{high}` plus one `M{x},{y}H{x2}` cap per defined bound.
+import { describe, it, expect, beforeAll } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
+import { mockBoundingClientRect, mountContainer, trackHandle, barRects } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
-import type { ChartHandle } from '../../src/createChart';
 import type { DefaultChartProps } from '../../src/types/chart';
 import type { MochartInputConfig } from '../../src/types/config';
-import type { DataRow } from '../../src/types/data';
+import type { DataObject } from '../../src/types/data';
+import { getIdCssClass, getIdCssSelector, getCssClassMatchSelector } from '../../src/utils/ChartDom';
 
 const VERSION = '1.0.0';
 const WIDTH = 800;
@@ -24,28 +19,12 @@ const rows = [
   { label: 'C', value: 30, low: 28, high: 37 }
 ];
 
-let handles: ChartHandle<DefaultChartProps>[] = [];
-
-function mountChart(config: MochartInputConfig, data: DataRow[] = rows): Element {
-  const container = document.createElement('div');
-  document.body.appendChild(container);
-  const handle = createDefaultChart(container, {
+function mountChart(config: MochartInputConfig, data: DataObject[] = rows): Element {
+  const container = mountContainer();
+  trackHandle(createDefaultChart(container, {
     config, data, width: WIDTH, height: HEIGHT
-  } as DefaultChartProps);
-  handles.push(handle);
+  } as DefaultChartProps));
   return container;
-}
-
-interface BarRect { x: number; y: number; width: number; height: number }
-
-function barRects(container: Element, seriesId: string): BarRect[] {
-  const paths = container.querySelectorAll(`.mochart-series-${seriesId} path[class*="mochart-series-bar"]`);
-  return Array.from(paths).map((path) => {
-    const d = path.getAttribute('d') ?? '';
-    const match = /^M(-?[\d.]+),(-?[\d.]+)h(-?[\d.]+)v(-?[\d.]+)/.exec(d);
-    expect(match, `unexpected bar path: ${d}`).not.toBeNull();
-    return { x: Number(match![1]), y: Number(match![2]), width: Number(match![3]), height: Number(match![4]) };
-  });
 }
 
 interface Whisker { center: number; low: number; high: number; caps: { at: number; from: number; to: number }[] }
@@ -62,34 +41,21 @@ function whiskers(container: Element, seriesId: string): Whisker[] {
 }
 
 function errorBarPaths(container: Element, seriesId: string): string[] {
-  const paths = container.querySelectorAll(`.mochart-series-${seriesId} path[class*="mochart-series-error-bar-"]`);
+  const paths = container.querySelectorAll(getIdCssSelector('series', seriesId) + ' path' + getCssClassMatchSelector(getIdCssClass('seriesErrorBar', '')));
   return Array.from(paths).map((path) => path.getAttribute('d') ?? '');
 }
 
 beforeAll(() => {
   installSvgMeasurementShims();
-  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-    return {
-      x: 0, y: 0, left: 0, top: 0, right: WIDTH, bottom: HEIGHT,
-      width: WIDTH, height: HEIGHT, toJSON: () => ({})
-    } as DOMRect;
-  });
+  mockBoundingClientRect(WIDTH, HEIGHT);
 });
 
-afterEach(() => {
-  for (const handle of handles) {
-    handle.destroy();
-  }
-  handles = [];
-  document.body.innerHTML = '';
-});
-
-function makeConfig(seriesConfigs: Record<string, unknown>[], overrides: Record<string, unknown> = {}): MochartInputConfig {
+function makeConfig(series: Record<string, unknown>[], overrides: Record<string, unknown> = {}): MochartInputConfig {
   return {
     version: VERSION,
-    animationConfig: { animate: false },
-    groupAxisConfig: { property: 'label', type: 'string', scale: 'ordinal' },
-    seriesConfigs,
+    animation: { enabled: false },
+    categoryAxis: { property: 'label', type: 'string', scale: 'ordinal' },
+    series,
     ...overrides
   } as unknown as MochartInputConfig;
 }
@@ -124,13 +90,13 @@ describe('error bars on bar series', () => {
     }
   });
 
-  it('expands the series axis domain to cover the error bounds', () => {
+  it('expands the value axis domain to cover the error bounds', () => {
     const container = mountChart(makeConfig([
       { id: 'V', property: 'value', renderer: 'bar', errorLowProperty: 'low', errorHighProperty: 'high' }
     ]));
     const valueBars = barRects(container, 'V');
     const valueWhiskers = whiskers(container, 'V');
-    // the highest bound (37 on group C) must render inside the plot: above
+    // the highest bound (37 on category C) must render inside the plot: above
     // its bar's value edge yet at a non-negative plot y
     const topWhisker = valueWhiskers[2];
     expect(topWhisker.high).toBeLessThan(valueBars[2].y);
@@ -141,7 +107,7 @@ describe('error bars on bar series', () => {
     const container = mountChart(makeConfig([
       { id: 'V1', property: 'value', renderer: 'bar', group: 'G', errorLowProperty: 'low', errorHighProperty: 'high' },
       { id: 'V2', property: 'high', renderer: 'bar', group: 'G', errorLowProperty: 'low', errorHighProperty: 'high' }
-    ], { seriesGroupConfigs: [{ id: 'G' }] }));
+    ], { seriesGroups: [{ id: 'G' }] }));
     const firstBars = barRects(container, 'V1');
     const secondBars = barRects(container, 'V2');
     const firstWhiskers = whiskers(container, 'V1');
@@ -155,8 +121,8 @@ describe('error bars on bar series', () => {
 
   it('clamps the cap width to the bar layout slot', () => {
     const container = mountChart(makeConfig([
-      { id: 'V', property: 'value', renderer: 'bar', barWidthPercent: 0.02,
-        errorLowProperty: 'low', errorHighProperty: 'high', errorBarCapSize: 500 }
+      { id: 'V', property: 'value', renderer: 'bar', bar: { widthFraction: 0.02 },
+        errorLowProperty: 'low', errorHighProperty: 'high', errorBar: { capSize: 500 } }
     ]));
     const valueBars = barRects(container, 'V');
     const valueWhiskers = whiskers(container, 'V');
@@ -168,7 +134,7 @@ describe('error bars on bar series', () => {
 
   it('draws plain whiskers without caps when errorBarCapSize is 0', () => {
     const container = mountChart(makeConfig([
-      { id: 'V', property: 'value', renderer: 'bar', errorLowProperty: 'low', errorHighProperty: 'high', errorBarCapSize: 0 }
+      { id: 'V', property: 'value', renderer: 'bar', errorLowProperty: 'low', errorHighProperty: 'high', errorBar: { capSize: 0 } }
     ]));
     const valueWhiskers = whiskers(container, 'V');
     expect(valueWhiskers).toHaveLength(rows.length);
@@ -183,7 +149,7 @@ describe('error bars on line series', () => {
     const container = mountChart(makeConfig([
       { id: 'V', property: 'value', renderer: 'line', errorLowProperty: 'low', errorHighProperty: 'high' }
     ]));
-    const markerTransforms = Array.from(container.querySelectorAll('.mochart-series-V path[class*="mochart-series-marker-"]'))
+    const markerTransforms = Array.from(container.querySelectorAll(getIdCssSelector('series', 'V') + ' path' + getCssClassMatchSelector(getIdCssClass('seriesMarker', ''))))
       .map((marker) => /translate\((-?[\d.]+)/.exec(marker.getAttribute('transform') ?? '')![1])
       .map(Number);
     const valueWhiskers = whiskers(container, 'V');
@@ -198,7 +164,7 @@ describe('error bars on inverted charts', () => {
   it('draws horizontal whiskers with vertical caps', () => {
     const container = mountChart(makeConfig([
       { id: 'V', property: 'value', renderer: 'bar', errorLowProperty: 'low', errorHighProperty: 'high' }
-    ], { plotConfig: { inverted: true } }));
+    ], { plot: { inverted: true } }));
     const paths = errorBarPaths(container, 'V');
     expect(paths).toHaveLength(rows.length);
     for (const d of paths) {
@@ -221,7 +187,7 @@ describe('missing bounds and values', () => {
     const referenceBars = barRects(container, 'R');
     const valueWhiskers = whiskers(container, 'V');
     expect(valueWhiskers).toHaveLength(2);
-    // group A: high is missing, so the whisker runs from the value position
+    // category A: high is missing, so the whisker runs from the value position
     // down to the low bound with a single cap on the low end
     expect(valueWhiskers[0].high).toBeCloseTo(referenceBars[0].y, 6);
     expect(valueWhiskers[0].low).toBeGreaterThan(valueWhiskers[0].high);
@@ -230,14 +196,14 @@ describe('missing bounds and values', () => {
     expect(valueWhiskers[1].caps).toHaveLength(2);
   });
 
-  it('skips error bars for groups with no bounds and for missing points', () => {
+  it('skips error bars for categories with no bounds and for missing points', () => {
     const data = [
       { label: 'A', value: 10 },
       { label: 'B', low: 15, high: 24 },
       { label: 'C', value: 30, low: 28, high: 37 }
     ];
     const container = mountChart(makeConfig([
-      { id: 'V', property: 'value', renderer: 'bar', skipMissing: true, errorLowProperty: 'low', errorHighProperty: 'high' }
+      { id: 'V', property: 'value', renderer: 'bar', missingValueMode: 'connect', errorLowProperty: 'low', errorHighProperty: 'high' }
     ]), data);
     // A has no bounds and B has no point: only C gets an error bar, indexed
     // by its compacted position
@@ -256,7 +222,7 @@ describe('validation', () => {
     const { getDefaults } = await import('../../src/config/defaults/mochartConfig');
     const bad = makeConfig([
       { id: 'V', property: 'value', renderer: 'bar', stack: 'S', errorLowProperty: 'low' }
-    ], { seriesStackConfigs: [{ id: 'S' }] });
+    ], { seriesStacks: [{ id: 'S' }] });
     const { errors } = validateConfig(bad, getDefaults(bad as never) as never);
     expect(errors.join('\n')).toContain('errorLowProperty');
   });

@@ -1,81 +1,81 @@
-import validators from './validators';
+import validators, { boundValue } from './validators';
+import getTruncationValidators from './truncationConfig';
+import { filterConfig, getRawIndices } from '../core/configUtils';
+import { getPropertyMessage, isConfigObject } from './messages';
+import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators';
 
-import { AUTO, NONE, ANCHORS, COLOR_SAME } from '../core/constants';
+import { AUTO, NONE, ANCHORS, STYLE_SAME, SIDES, THRESHOLD_TITLE_SIDES, TYPE_DATE } from '../core/constants';
 
+import type { ConfigObject, LocatedValidationMessage } from './messages';
 import type { Validator } from '@mochart/movalid';
 
-export type StyleMember = 'strokeColor' | 'strokeOpacity' | 'strokeWidth' | 'fillColor' | 'fillOpacity';
-
-/** A line's stroke width is a flat property, so its style carries color and opacity only. */
-const lineMembers: StyleMember[] = ['strokeColor', 'strokeOpacity'];
-const styleMembers: StyleMember[] = ['strokeColor', 'strokeOpacity', 'strokeWidth', 'fillColor', 'fillOpacity'];
-
-function memberValidator(member: StyleMember, allowSame: boolean): Validator {
-  switch (member) {
-    // Never null: an axis writes stroke="none" so a host-css stroke cannot inherit onto its text.
-    case 'strokeColor':
-    case 'fillColor':
-      return allowSame ? validators.svgColor().orEqual(COLOR_SAME) : validators.svgColor();
-    case 'strokeOpacity':
-    case 'fillOpacity':
-      return validators.opacity();
-    case 'strokeWidth':
-      return validators.numberMin(0).orEqual(NONE);
-  }
-}
-
-// Partial, and extra members pass: an unknown member is reported once by the unknown-key walk.
-function styleShape(members: StyleMember[], allowSame: boolean) {
-  const shape: Record<string, Validator> = {};
-  for (const member of members) {
-    shape[member] = memberValidator(member, allowSame);
-  }
-  return validators.partialObjectWithShape(shape, true);
-}
-
-function styleStates(members: StyleMember[]) {
-  return validators.partialObjectWithShape({
-    normal: styleShape(members, false),
-    focused: styleShape(members, true),
-    defocused: styleShape(members, true)
-  }, true);
-}
+// Never null: an axis writes stroke="none" so a host-css stroke cannot inherit onto its text.
+const { styleShape, styleStates } = createStyleValidators(allowSame =>
+  allowSame ? validators.svgColor().orEqual(STYLE_SAME) : validators.svgColor()
+);
 
 export const axisStyleValidators = { styleShape, styleStates, lineMembers, styleMembers };
 
-export default function getValidators() {
+// A nested config group: partial like every nested config (deep-merged over its default); extras pass for the unknown-key walk.
+const group = (shape: Record<string, Validator>) => validators.partialObjectWithShape(shape, true);
+
+/** The tick label members shared by both axes; each axis adds its own (format rules, truncation, filtering). */
+export function getTickLabelValidators(): Record<string, Validator> {
   return {
-    axisLine: validators.boolean(),
-    axisLineFront: validators.boolean(),
-    axisLineDashArray: validators.dashArray().orEqual(NONE),
-    axisLineMargin: validators.numberMin(0),
-    axisLineWidth: validators.numberMin(0),
-    axisLineStyle: styleStates(lineMembers),
+    front: validators.boolean(),
+    backgroundStyle: validators.style(),
+    size: validators.numberMin(0).orEqual(AUTO),
+    marginInner: validators.numberMin(0),
+    marginOuter: validators.numberMin(0),
+    paddingInner: validators.numberMin(0),
+    paddingOuter: validators.numberMin(0),
+    prefix: validators.string().orEqual(NONE),
+    suffix: validators.string().orEqual(NONE),
+    rotation: validators.numberMinMax(-90, 90),
+    anchor: validators.oneOf(ANCHORS.concat([AUTO])),
+    textStyle: styleStates(styleMembers)
+  };
+}
+
+// a threshold sits on the axis's value scale, so its value takes the axis's own primitive: number by default, date on a date category axis
+export default function getValidators(thresholdValue = validators.number(), tickLabelValidators: Record<string, Validator> = getTickLabelValidators(), pieMode = false) {
+  return {
+    axisLine: group({
+      visible: validators.boolean(),
+      front: validators.boolean(),
+      marginInner: validators.numberMin(0),
+      style: styleStates(lineMembers)
+    }),
 
     backgroundStyle: validators.style(),
     backgroundFront: validators.boolean(),
 
-    before: validators.boolean(),
+    side: validators.oneOf(SIDES),
+
+    reversed: validators.boolean(),
 
     collapsed: validators.boolean(),
 
-    focusRange: validators.boolean(),
-    focusRangeFront: validators.boolean(),
-    focusRangeApplyToTitle: validators.boolean(),
-    focusRangeStyle: styleShape(styleMembers, false),
-    focusRangeDashArray: validators.dashArray().orEqual(NONE),
+    focusRange: group({
+      visible: validators.boolean(),
+      front: validators.boolean(),
+      applyToTitle: validators.boolean(),
+      style: styleShape(styleMembers, false)
+    }),
 
-    focusTickMarks: validators.boolean(),
-    focusTickMarksFront: validators.boolean(),
-    focusTickMarkSize: validators.numberMin(0),
-    focusTickMarkMargin: validators.numberMin(0),
-    focusTickMarkStyle: styleShape(['strokeColor', 'strokeOpacity', 'strokeWidth'], false),
+    focusTickMark: group({
+      visible: validators.boolean(),
+      front: validators.boolean(),
+      size: validators.numberMin(0),
+      marginInner: validators.numberMin(0),
+      style: styleShape(['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray'], false)
+    }),
 
-    gridLines: validators.boolean(),
-    gridLinesFront: validators.boolean(),
-    gridLineStyle: styleStates(lineMembers),
-    gridLineDashArray: validators.dashArray().orEqual(NONE),
-    gridLineWidth: validators.numberMin(0),
+    gridLine: group({
+      visible: validators.boolean(),
+      front: validators.boolean(),
+      style: styleStates(lineMembers)
+    }),
 
     marginInner: validators.numberMin(0),
     marginOuter: validators.numberMin(0),
@@ -88,52 +88,97 @@ export default function getValidators() {
     paddingInner: validators.numberMin(0),
     paddingOuter: validators.numberMin(0),
 
-    thresholdFront: validators.boolean(),
-    thresholdTitle: validators.string().orEqual(NONE),
-    thresholdTitleBefore: validators.boolean(),
-    thresholdTitleSnapToValue: validators.boolean(),
-    thresholdTitleMargin: validators.margin(),
-    thresholdTitlePadding: validators.padding(),
-    thresholdTitleTextStyle: styleStates(styleMembers),
-    thresholdTitleBackgroundStyle: validators.style(),
-    thresholdWidth: validators.numberMin(0),
-    thresholdDashArray: validators.dashArray().orEqual(NONE),
-    thresholdStyle: styleStates(lineMembers),
+    thresholds: validators.arrayOf(validators.objectWithShape({
+      value: thresholdValue,
+      front: validators.boolean().orEqual(undefined),
+      style: styleStates(lineMembers).orEqual(undefined),
+      title: validators.partialObjectWithShape({
+        text: validators.string().orOneOf([NONE, undefined]),
+        side: validators.oneOf(THRESHOLD_TITLE_SIDES).orEqual(undefined),
+        snapToValue: validators.boolean().orEqual(undefined),
+        margin: validators.margin().orEqual(undefined),
+        padding: validators.padding().orEqual(undefined),
+        textStyle: styleStates(styleMembers).orEqual(undefined),
+        backgroundStyle: validators.style().orEqual(undefined)
+      }, true).orEqual(undefined)
+    }), true),
 
     tickCount: validators.integerMin(0).orEqual(AUTO),
 
-    tickLabelFront: validators.boolean(),
-    tickLabelBackgroundStyle: validators.style(),
-    tickLabelSize: validators.numberMin(0).orEqual(AUTO),
-    tickLabelMarginInner: validators.numberMin(0),
-    tickLabelMarginOuter: validators.numberMin(0),
-    tickLabelPaddingInner: validators.numberMin(0),
-    tickLabelPaddingOuter: validators.numberMin(0),
-    tickLabelPrefix: validators.string().orEqual(NONE),
-    tickLabelSuffix: validators.string().orEqual(NONE),
-    tickLabelRotation: validators.numberMinMax(-90, 90),
-    tickLabelAnchor: validators.oneOf(ANCHORS.concat([AUTO])),
-    tickLabelTextStyle: styleStates(styleMembers),
+    tickLabel: group(tickLabelValidators),
 
-    tickMarks: validators.boolean(),
-    tickMarkFront: validators.boolean(),
-    tickMarkSize: validators.numberMin(0),
-    tickMarkMargin: validators.numberMin(0),
-    tickMarkWidth: validators.numberMin(0),
-    tickMarkStyle: styleStates(lineMembers),
+    tickMark: group({
+      visible: validators.boolean(),
+      front: validators.boolean(),
+      size: validators.numberMin(0),
+      marginInner: validators.numberMin(0),
+      style: styleStates(lineMembers)
+    }),
 
-    title: validators.string().orEqual(NONE),
-    titleFront: validators.boolean(),
-    titleBackgroundStyle: validators.style(),
-    titleTruncationEnabled: validators.boolean(),
-    titleTruncationValue: validators.string(),
-    titleSize: validators.numberMin(0).orEqual(AUTO),
-    titleMarginInner: validators.numberMin(0),
-    titleMarginOuter: validators.numberMin(0),
-    titlePaddingInner: validators.numberMin(0),
-    titlePaddingOuter: validators.numberMin(0),
-    titleTextStyle: styleStates(styleMembers),
+    title: group({
+      text: validators.string().orEqual(NONE),
+      front: validators.boolean(),
+      backgroundStyle: validators.style(),
+      truncation: group(getTruncationValidators()),
+      size: validators.numberMin(0).orEqual(AUTO),
+      marginInner: validators.numberMin(0),
+      marginOuter: validators.numberMin(0),
+      paddingInner: validators.numberMin(0),
+      paddingOuter: validators.numberMin(0),
+      textStyle: styleStates(styleMembers)
+    }),
 
-    visible: validators.boolean()
+    visible: validators.conditional([
+      { condition: () => pieMode, suffix: 'when chart type is not xy', validator: validators.equal(false) },
+      { condition: () => !pieMode, suffix: 'when chart type is xy', validator: validators.boolean() }
+    ], {})
   };
+}
+
+/** min above max is a mistake (axis.reversed is the way to invert an axis); min === max stays legal, as auto produces it from flat data. */
+export function getAxisBoundsMessage(maxKey: string, max: unknown): string {
+  return 'should not be above the ' + maxKey + ' property of the same axis: ' + JSON.stringify(max);
+}
+
+export function validateAxisBounds(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
+  checkAxisBounds(config['categoryAxis'], 'categoryAxis', undefined, errors, errorDetails);
+  const valueAxes = config['valueAxes'];
+  if (Array.isArray(valueAxes)) {
+    const rawValueAxes = configWithoutDefaults['valueAxes'];
+    const rawIndices = getRawIndices(rawValueAxes);
+    // no authored entries: the implicit axis takes its bounds from valueAxisDefaults, so report there
+    if (rawIndices === null ? !filterConfig(rawValueAxes) : rawIndices.length === 0) {
+      checkAxisBounds(valueAxes[0], 'valueAxisDefaults', undefined, errors, errorDetails);
+      return;
+    }
+    for (let i = 0; i < valueAxes.length; i++) {
+      checkAxisBounds(valueAxes[i], 'valueAxes', rawIndices?.[i] ?? i, errors, errorDetails);
+    }
+  }
+}
+
+function checkAxisBounds(section: unknown, sectionKey: string, index: number | undefined, errors: string[], errorDetails: LocatedValidationMessage[]): void {
+  if (!isConfigObject(section)) {
+    return;
+  }
+  checkAxisBoundsPair(section, 'min', 'max', AUTO, sectionKey, index, errors, errorDetails);
+  checkAxisBoundsPair(section, 'softMin', 'softMax', NONE, sectionKey, index, errors, errorDetails);
+}
+
+function checkAxisBoundsPair(section: ConfigObject, minKey: string, maxKey: string, unset: unknown, sectionKey: string, index: number | undefined, errors: string[], errorDetails: LocatedValidationMessage[]): void {
+  const min = section[minKey];
+  const max = section[maxKey];
+  // an unset end (auto for min/max, null for the soft pair) is computed from the data, so there is no authored pair to compare
+  if (min === unset || max === unset || min === undefined || max === undefined) {
+    return;
+  }
+  const dateAxis = section['type'] === TYPE_DATE;
+  const minValue = boundValue(min, dateAxis);
+  const maxValue = boundValue(max, dateAxis);
+  if (minValue === null || maxValue === null || minValue <= maxValue) {
+    return;
+  }
+  const message = getAxisBoundsMessage(maxKey, max);
+  errors.push(getPropertyMessage(sectionKey, minKey, message, index));
+  errorDetails.push({ path: index === undefined ? [sectionKey, minKey] : [sectionKey, index, minKey], message });
 }

@@ -1,77 +1,77 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Stacked Bar & Area Example"
+  "title": {
+    "text": "Stacked Bar & Area Example"
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "groupNO",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categoryNO",
     "type": "number",
     "scale": "ordinal"
   },
-  "seriesAxisAllConfig": {
+  "valueAxisDefaults": {
     "base": 0,
     "softMin": 0,
     "softMax": 0
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "id": "SA0",
-      "before": true
+      "id": "VA0",
+      "side": "start"
     },
     {
-      "id": "SA1",
-      "before": false
+      "id": "VA1",
+      "side": "end"
     }
   ],
-  "seriesStackConfigs": [
+  "seriesStacks": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "id": "SS0"
     },
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "id": "SS1"
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "stack": "SS0",
       "property": "value1",
       "title": "Stacked Bar 1",
       "renderer": "bar"
     },
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "stack": "SS0",
       "property": "value2",
       "title": "Stacked Bar 2",
       "renderer": "bar"
     },
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "stack": "SS0",
       "property": "value3",
       "title": "Stacked Bar 3",
       "renderer": "bar"
     },
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "stack": "SS1",
       "property": "value4",
       "title": "Stacked Area 1",
       "renderer": "area"
     },
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "stack": "SS1",
       "property": "value5",
       "title": "Stacked Area 2",
       "renderer": "area"
     },
     {
-      "axis": "SA1",
+      "axis": "VA1",
       "stack": "SS1",
       "property": "value6",
       "title": "Stacked Area 3",

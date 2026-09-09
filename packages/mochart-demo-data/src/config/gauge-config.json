@@ -1,31 +1,39 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Customer Sentiment (fictional survey)"
+  "title": {
+    "text": "Customer Sentiment (fictional survey)"
   },
-  "chartConfig": {
+  "chart": {
     "type": "pie"
   },
-  "pieConfig": {
-    "tooltipValues": "percentValue",
+  "pie": {
+    "tooltip": {
+      "valueType": "percentValue"
+    },
     "startAngle": -90,
     "endAngle": 90,
-    "innerRadiusPercent": 0.55,
+    "innerRadiusFraction": 0.55,
     "padAngle": 1,
     "cornerRadius": 3,
-    "showLabels": true,
-    "labelType": "title",
-    "centerLabel": "responses",
-    "showCenterTotal": true,
-    "centerTotalFormat": ",.0f",
-    "centerOffsetYPercent": -0.25
+    "label": {
+      "visible": true,
+      "type": "title"
+    },
+    "centerLabel": {
+      "text": "responses"
+    },
+    "centerTotal": {
+      "visible": true,
+      "format": ",.0f"
+    },
+    "centerOffsetYFraction": -0.25
   },
-  "groupAxisConfig": {
-    "property": "group",
+  "categoryAxis": {
+    "property": "category",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesConfigs": [
+  "series": [
     {
       "id": "slice0",
       "property": "slice0",

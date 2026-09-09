@@ -1,24 +1,26 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Response Time Distribution"
+  "title": {
+    "text": "Response Time Distribution"
   },
-  "groupAxisConfig": {
+  "categoryAxis": {
     "property": "binLabel",
     "type": "string",
     "scale": "ordinal",
-    "groupPadding": {
+    "categoryPaddingFraction": {
       "inner": 0,
       "outer": 0
     },
-    "title": "Response time (ms)"
+    "title": {
+      "text": "Response time (ms)"
+    }
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
       "min": 0
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
       "property": "value",
       "renderer": "bar",

@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitepress';
-import { loadConfigReference } from './lib/model';
-import { loadApiReference } from './lib/apiModel';
+import { loadConfigReference } from './lib/model.ts';
+import { loadApiReference } from './lib/apiModel.ts';
+import { depSourcemaps } from '../../../scripts/dep-sourcemaps.mts';
+import { FRAMEWORK_PROPS_PAGE } from '../reference/[section].paths.ts';
 
 // The deployed site nests the demo galleries next to the docs (see
 // scripts/build-pages.mjs), so demo links resolve only on the assembled site,
@@ -17,26 +19,88 @@ const demoLinks = [
   { text: 'Vue', link: '/vue/', target: '_self' }
 ];
 
+// Markdown links into the demo galleries leave the VitePress site, so they
+// need the same treatment as the demoLinks nav entries: target="_self" keeps
+// the SPA router from intercepting the click (and 404ing), and because a
+// target attribute makes VitePress skip its own href rewriting (.html suffix,
+// base prefix), the base is prepended here instead.
+const demoLinkPattern = /^\/(angular|lit|react|svelte|vanilla|vue)\//;
+
+function demoLinkTargets(md: import('vitepress').MarkdownRenderer): void {
+  const fallback = md.renderer.rules.link_open
+    ?? ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
+  md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
+    const token = tokens[idx];
+    const href = token?.attrGet('href');
+    if (token !== undefined && typeof href === 'string' && demoLinkPattern.test(href)) {
+      token.attrSet('href', (base + href).replace(/\/{2,}/g, '/'));
+      token.attrSet('target', '_self');
+      return self.renderToken(tokens, idx, options);
+    }
+    return fallback(tokens, idx, options, env, self);
+  };
+}
+
 const referenceItems = loadConfigReference().sections.map(section => ({
   text: section.title,
   link: '/reference/' + section.id
 }));
 
+const apiReference = loadApiReference();
 const apiItems = [
-  ...loadApiReference().pages.map(page => ({
+  ...apiReference.pages.map(page => ({
     text: page.title,
     link: '/reference/' + page.id
   })),
-  { text: 'Framework props', link: '/reference/framework-props' }
+  { text: 'Framework props', link: '/reference/' + FRAMEWORK_PROPS_PAGE }
 ];
+
+const siteTitle = 'mochart';
+const siteDescription = 'Animated interactive SVG charting library with zero framework dependencies';
+// Link previews need an absolute image URL, so the canonical host is fixed here
+// rather than derived from the base path; scripts/og-image renders the file into public/.
+const siteOrigin = 'https://mochart.org';
 
 export default defineConfig({
   base,
-  title: 'mochart',
-  description: 'Animated interactive SVG charting library with zero framework dependencies',
+  title: siteTitle,
+  description: siteDescription,
   srcExclude: ['README.md'],
-  // Demo gallery links resolve on the assembled site only.
-  ignoreDeadLinks: [/^\/(angular|lit|react|svelte|vanilla|vue)\//],
+  head: [
+    // inline SVG favicon, the same mark the demo galleries use: the site ships no /favicon.ico
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%233e63dd'/%3E%3Crect x='3' y='9' width='2.5' height='4' fill='%23fff'/%3E%3Crect x='6.75' y='6' width='2.5' height='7' fill='%23fff'/%3E%3Crect x='10.5' y='3' width='2.5' height='10' fill='%23fff'/%3E%3C/svg%3E" }],
+    // social preview card for links to the site; og:title is per page, see transformPageData
+    ['meta', { property: 'og:type', content: 'website' }],
+    ['meta', { property: 'og:site_name', content: siteTitle }],
+    ['meta', { property: 'og:description', content: siteDescription }],
+    ['meta', { property: 'og:image', content: siteOrigin + '/og-image.png' }],
+    ['meta', { property: 'og:image:width', content: '1200' }],
+    ['meta', { property: 'og:image:height', content: '630' }],
+    ['meta', { property: 'og:image:alt', content: 'mochart: animated interactive SVG charts, beside a stacked bar chart drawn by the library' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }]
+  ],
+  // Mirrors the <title> VitePress emits: "<page> | mochart" on content pages, "mochart" on the home page.
+  transformPageData(pageData) {
+    const title = pageData.title !== '' && pageData.title !== siteTitle ? `${pageData.title} | ${siteTitle}` : siteTitle;
+    const head = [...(pageData.frontmatter.head ?? []), ['meta', { property: 'og:title', content: title }]];
+    return { frontmatter: { ...pageData.frontmatter, head } };
+  },
+  markdown: { config: demoLinkTargets },
+  vite: {
+    build: {
+      sourcemap: true,
+      rollupOptions: {
+        // vitepress transforms every .md/.vue without a map; nobody source-maps markdown
+        onwarn(warning, warn) {
+          if (warning.code === 'SOURCEMAP_BROKEN' && warning.plugin === 'vitepress') {
+            return;
+          }
+          warn(warning);
+        }
+      }
+    },
+    plugins: [depSourcemaps()]
+  },
   themeConfig: {
     nav: [
       { text: 'Guide', link: '/guide/getting-started', activeMatch: '^/(guide|recipes)/' },
@@ -49,6 +113,7 @@ export default defineConfig({
       '/reference/': [
         { text: 'Overview', link: '/reference/' },
         { text: 'API', link: '/reference/api' },
+        { text: apiReference.enumerations.title, link: '/reference/' + apiReference.enumerations.id },
         { text: 'Props and callbacks', items: apiItems },
         { text: 'Config sections', items: referenceItems }
       ]
@@ -56,10 +121,10 @@ export default defineConfig({
     outline: { level: [2, 3] },
     search: { provider: 'local' },
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/jharris4/mochart' }
+      { icon: 'github', link: 'https://github.com/mocharts/mochart' }
     ],
     footer: {
-      message: 'Released under the BSD-3-Clause License.'
+      message: 'Released under the MIT License.'
     }
   }
 });
@@ -71,10 +136,15 @@ function guideSidebar() {
       items: [
         { text: 'Getting started', link: '/guide/getting-started' },
         { text: 'The config model', link: '/guide/config-model' },
+        { text: 'Layout and spacing', link: '/guide/layout' },
         { text: 'Data providers', link: '/guide/data-providers' },
         { text: 'Staged animation', link: '/guide/staged-animation' },
         { text: 'Interaction', link: '/guide/interaction' },
-        { text: 'Chart states', link: '/guide/chart-states' }
+        { text: 'Accessibility', link: '/guide/accessibility' },
+        { text: 'Chart states', link: '/guide/chart-states' },
+        { text: 'Colors, theming, and dark mode', link: '/guide/theming' },
+        { text: 'Exporting images', link: '/guide/export' },
+        { text: 'Editing config JSON', link: '/guide/editor' }
       ]
     },
     {
@@ -94,19 +164,28 @@ function guideSidebar() {
         { text: 'Grouped series', link: '/recipes/grouped-series' },
         { text: 'Dual value axes', link: '/recipes/dual-axes' },
         { text: 'Date axis', link: '/recipes/date-axis' },
+        { text: 'Axis bounds', link: '/recipes/axis-bounds' },
+        { text: 'Tick labels', link: '/recipes/tick-labels' },
         { text: 'Horizontal charts', link: '/recipes/horizontal-bars' },
+        { text: 'Positive and negative values', link: '/recipes/positive-negative' },
         { text: 'Thresholds and ranges', link: '/recipes/thresholds-ranges' },
         { text: 'Gradients', link: '/recipes/gradients' },
+        { text: 'Patterns', link: '/recipes/patterns' },
+        { text: 'Color by value', link: '/recipes/color-by-value' },
+        { text: 'Bar caps', link: '/recipes/bar-caps' },
+        { text: 'Curves', link: '/recipes/curves' },
         { text: 'Markers and labels', link: '/recipes/markers-labels' },
+        { text: 'Chart title', link: '/recipes/title' },
+        { text: 'Legend', link: '/recipes/legend' },
         { text: 'Tooltip formatting', link: '/recipes/tooltip-formatting' },
         { text: 'Histogram', link: '/recipes/histogram' },
         { text: 'Waterfall', link: '/recipes/waterfall' },
         { text: 'Sparklines', link: '/recipes/sparklines' },
         { text: 'Heatmap', link: '/recipes/heatmap' },
         { text: 'Candlestick', link: '/recipes/candlestick' },
-        { text: 'OHLC Bars', link: '/recipes/ohlc' },
-        { text: 'Error Bars', link: '/recipes/error-bars' },
-        { text: 'Pie and Donut', link: '/recipes/pie' }
+        { text: 'OHLC bars', link: '/recipes/ohlc' },
+        { text: 'Error bars', link: '/recipes/error-bars' },
+        { text: 'Pie and donut', link: '/recipes/pie' }
       ]
     }
   ];

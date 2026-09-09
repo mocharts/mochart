@@ -1,38 +1,57 @@
-import { getGroupData, getGroupDataWithAxisDomain, getGroupValueObject } from './GroupData';
-import { getSeriesData, getSeriesDataWithAxisDomains, getSeriesDataWithDomains, getSeriesDataWithSeriesValues, getSeriesValueObjects } from './SeriesData';
-import type { MochartConfig } from '../types/config';
-import type { AxisDomains, ChartData, DataProvider, GroupAxisDomain, GroupData, SeriesData, SeriesDomainObjects, SeriesValueObjects } from '../types/data';
+import { getCategoryData, getCategoryDataWithRenderAxisDomain, getCategoryValueObject } from './CategoryData';
+import { getSeriesData, getSeriesDataWithRenderAxisDomains, getSeriesDataWithDomains, getSeriesDataWithSeriesValues, getSeriesValueObjects } from './SeriesData';
+import type { EnhancedMochartConfig } from '../types/enhanced';
+import type { AxisDomains, ChartData, DataProvider, CategoryAxisDomain, CategoryData, SeriesData, SeriesDomainObjects, SeriesValueObjects } from '../types/data';
 
-export function isDataProviderValid(dataProvider: DataProvider | null | undefined): boolean {
-  const dataProviderError = dataProvider && dataProvider.getError && dataProvider.getError instanceof Function && dataProvider.getError();
-  return !!dataProvider && !dataProviderError;
+/** The members every provider must implement; getError/getLoading/refresh are optional. */
+const requiredDataProviderMembers = ['getPropertyValues'] as const;
+
+/** Names the required members a provider is missing, so getDataErrors can report them. */
+export function getMissingDataProviderMembers(dataProvider: DataProvider): string[] {
+  const missingMembers: string[] = [];
+  for (const member of requiredDataProviderMembers) {
+    if (typeof dataProvider[member] !== 'function') {
+      missingMembers.push(member);
+    }
+  }
+  return missingMembers;
 }
 
-export function getChartData(mochartConfig: MochartConfig, dataProvider: DataProvider, filteredSeriesMap: Record<string, unknown>): ChartData {
-  const groupData = getGroupData(mochartConfig.groupAxisConfig, dataProvider);
-  const seriesData = getSeriesData(mochartConfig, dataProvider, filteredSeriesMap, groupData);
+export function isDataProviderValid(dataProvider: DataProvider | null | undefined): boolean {
+  // checked inline rather than through getMissingDataProviderMembers: this runs on every sync, including animation frames
+  if (!dataProvider || typeof dataProvider.getPropertyValues !== 'function') {
+    return false;
+  }
+  // '' and 0 count as errors, matching the error prop; only null/undefined don't
+  const dataProviderError = dataProvider.getError instanceof Function ? dataProvider.getError() : undefined;
+  return dataProviderError == null;
+}
+
+export function getChartData(mochartConfig: EnhancedMochartConfig, dataProvider: DataProvider, filteredSeriesMap: Record<string, unknown>): ChartData {
+  const categoryData = getCategoryData(mochartConfig.categoryAxis, dataProvider);
+  const seriesData = getSeriesData(mochartConfig, dataProvider, filteredSeriesMap, categoryData);
 
   return {
-    groupData,
+    categoryData,
     seriesData
   };
 }
 
-export function getChartDataWithGroupData(chartData: ChartData, groupData: GroupData): ChartData {
-  return Object.assign({}, chartData, { groupData });
+export function getChartDataWithCategoryData(chartData: ChartData, categoryData: CategoryData): ChartData {
+  return Object.assign({}, chartData, { categoryData });
 }
 
 export function getChartDataWithSeriesData(chartData: ChartData, seriesData: SeriesData): ChartData {
   return Object.assign({}, chartData, { seriesData });
 }
 
-export function getChartDataWithData(chartData: ChartData, groupData: GroupData, seriesData: SeriesData): ChartData {
-  return Object.assign({}, chartData, { groupData, seriesData });
+export function getChartDataWithData(chartData: ChartData, categoryData: CategoryData, seriesData: SeriesData): ChartData {
+  return Object.assign({}, chartData, { categoryData, seriesData });
 }
 
-export function getChartDataWithAxisDomains(chartData: ChartData, groupAxisDomain: GroupAxisDomain, rawSeriesAxisDomains: AxisDomains, filteredSeriesAxisDomains: AxisDomains): ChartData {
-  return getChartDataWithData(chartData, getGroupDataWithAxisDomain(chartData.groupData, groupAxisDomain),
-    getSeriesDataWithAxisDomains(chartData.seriesData, rawSeriesAxisDomains, filteredSeriesAxisDomains));
+export function getChartDataWithRenderAxisDomains(chartData: ChartData, categoryRenderAxisDomain: CategoryAxisDomain, rawRenderAxisDomains: AxisDomains, filteredRenderAxisDomains: AxisDomains): ChartData {
+  return getChartDataWithData(chartData, getCategoryDataWithRenderAxisDomain(chartData.categoryData, categoryRenderAxisDomain),
+    getSeriesDataWithRenderAxisDomains(chartData.seriesData, rawRenderAxisDomains, filteredRenderAxisDomains));
 }
 
 export function getChartDataWithSeriesDomains(chartData: ChartData, rawSeriesDomains: SeriesDomainObjects, filteredSeriesDomains: SeriesDomainObjects): ChartData {
@@ -43,17 +62,17 @@ export function getChartDataWithValues(chartData: ChartData, values: SeriesValue
   return getChartDataWithSeriesData(chartData, getSeriesDataWithSeriesValues(chartData.seriesData, values, filteredValues));
 }
 
-export function getGroupSeriesValueObject(chartData: ChartData, groupIndex: number) {
-  const { groupData, seriesData } = chartData;
+export function getCategorySeriesValueObject(chartData: ChartData, categoryIndex: number) {
+  const { categoryData, seriesData } = chartData;
 
   return {
-    group: getGroupValueObject(groupData, groupIndex),
-    series: getSeriesValueObjects(seriesData, groupIndex),
+    category: getCategoryValueObject(categoryData, categoryIndex),
+    series: getSeriesValueObjects(seriesData, categoryIndex),
   }
 }
 
-export type GroupSeriesValueObject = ReturnType<typeof getGroupSeriesValueObject>;
+export type CategorySeriesValueObject = ReturnType<typeof getCategorySeriesValueObject>;
 
-export function getChartDataGroupCount(chartData: ChartData | null): number {
-  return chartData ? chartData.groupData.values.raw.length : 0;
+export function getChartDataCategoryCount(chartData: ChartData | null): number {
+  return chartData ? chartData.categoryData.values.key.length : 0;
 }

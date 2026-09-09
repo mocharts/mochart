@@ -1,26 +1,26 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Color Property"
+  "title": {
+    "text": "Color Property"
   },
-  "legendConfig": {
+  "legend": {
     "visible": true
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "groupSO",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categorySO",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "id": "SA0",
+      "id": "VA0",
       "base": 0
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "value7",
       "title": "Color Property Series",
       "renderer": "bar",

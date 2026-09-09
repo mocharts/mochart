@@ -1,6 +1,7 @@
 import { buildMochartDemoConfig, demoText } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
+import { demoTabs } from '../misc/DemoTabs';
 import { el } from '../misc/dom';
 import { topBar } from '../misc/TopBar';
 import { randomContent } from './RandomContent';
@@ -58,24 +59,20 @@ export function demoRandom(props: DemoRandomProps): DemoRandomHandle {
     decrementRandomId
   });
 
-  function navItem(text: string, key: number): { li: HTMLLIElement; button: HTMLButtonElement } {
-    const button = el('button', {
-      className: 'demo-tab' + (activeKey === key ? ' active' : ''),
-      attrs: { type: 'button' },
-      text
-    });
-    button.addEventListener('click', () => handleSelect(key));
-    return { li: el('li', { className: 'demo-tab-item' }, [button]), button };
-  }
-
-  const chartNav = navItem(demoText.tabs.chart, eventKeyChart);
-  const configNav = navItem(demoText.tabs.randomConfig, eventKeyConfig);
-  const dataNav = navItem(demoText.tabs.data, eventKeyData);
+  const tabs = demoTabs({
+    tabs: [
+      { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart },
+      { name: 'config', key: eventKeyConfig, label: demoText.tabs.randomConfig },
+      { name: 'data', key: eventKeyData, label: demoText.tabs.data }
+    ],
+    activeKey,
+    onSelect: handleSelect
+  });
 
   const bar = topBar({
     siteRootUrl: props.siteRootUrl,
     onBackToDemos,
-    tabs: [chartNav.li, configNav.li, dataNav.li],
+    tabs: tabs.el,
     notes: demoData.demoObjectMap[initialDemoId],
     modes: { demoMode: 'random', onModeChanged }
   });
@@ -91,9 +88,7 @@ export function demoRandom(props: DemoRandomProps): DemoRandomHandle {
   }
 
   function sync(): void {
-    chartNav.button.classList.toggle('active', activeKey === eventKeyChart);
-    configNav.button.classList.toggle('active', activeKey === eventKeyConfig);
-    dataNav.button.classList.toggle('active', activeKey === eventKeyData);
+    tabs.sync(activeKey);
     content.setActiveKey(activeKey);
   }
 

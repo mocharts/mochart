@@ -3,34 +3,36 @@
   "version": "1.0.0",
   "description": "Documentation site for the mochart charting library",
   "private": true,
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "author": {
     "name": "Jon Harris",
     "url": "https://github.com/jharris4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jharris4/mochart.git"
+    "url": "https://github.com/mocharts/mochart.git"
   },
   "type": "module",
   "scripts": {
-    "gen": "tsx ../mochart/scripts/generator.ts && tsx scripts/generateBindings.ts",
+    "gen": "tsx --conditions=development ../mochart/scripts/generator.ts && tsx --conditions=development scripts/generateBindings.ts",
     "dev": "npm run gen && vitepress dev --port 5181",
+    "prebuild": "node ../../scripts/ensure-libs-fresh.mjs",
     "build": "npm run gen && vitepress build",
     "preview": "vitepress preview",
-    "test": "npm run gen && tsx scripts/checkExamples.ts && tsx scripts/checkApiCoverage.ts",
+    "test": "npm run gen && tsx --conditions=development scripts/checkExamples.ts && tsx --conditions=development scripts/checkApiCoverage.ts && tsx --conditions=development scripts/checkSectionCoverage.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json && vue-tsc --noEmit -p tsconfig.vue.json",
     "lint": "eslint ."
   },
   "dependencies": {
-    "@mochart/core": "^1.0.0",
-    "@mochart/demo-common": "^1.0.0"
+    "@mochart/core": "*",
+    "@mochart/demo-common": "*",
+    "@mochart/export": "*"
   },
   "devDependencies": {
-    "tsx": "^4.20.6",
+    "tsx": "^4.23.12",
     "typescript": "^6.0.3",
-    "vitepress": "^1.6.4",
-    "vue": "^3.5.13",
-    "vue-tsc": "^3.1.5"
+    "vitepress": "2.0.0-alpha.19",
+    "vue": "^3.5.41",
+    "vue-tsc": "^3.3.9"
   }
 }

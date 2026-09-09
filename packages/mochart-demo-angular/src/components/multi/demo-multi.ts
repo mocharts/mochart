@@ -4,6 +4,7 @@ import type { OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { demoText } from '@mochart/demo-common';
 
 import { ChartsTab } from './charts-tab';
+import { StaticDemoTabs } from '../misc/demo-tabs';
 import { ErrorTab } from '../misc/error-tab';
 import { TopBar } from '../misc/top-bar';
 
@@ -11,21 +12,22 @@ import type { DemoData, SwitchableDemoMode } from '../../types';
 
 @Component({
   selector: 'app-demo-multi',
-  imports: [ChartsTab, ErrorTab, TopBar],
+  imports: [ChartsTab, ErrorTab, StaticDemoTabs, TopBar],
   styles: [':host { display: contents; }'],
   template: `
     <div class="mochart-demo-container multi">
       <app-top-bar [siteRootUrl]="siteRootUrl" [onBackToDemos]="onBackToDemos" [hasTabs]="true"
                    [notes]="demoData.demoObjectMap[initialDemoId]"
                    [modes]="{ demoMode: 'multi', onModeChanged }">
-        <li class="demo-tab-item">
-          <button type="button" class="demo-tab active">{{ text.chart }}</button>
-        </li>
+        <!-- One pane, so the strip is a caption rather than a tablist. -->
+        <app-static-demo-tabs [label]="text.chart" />
       </app-top-bar>
       <div class="mochart-demo-content-pane">
         <div class="mochart-demo-content">
           <app-error-tab [active]="true">
-            <app-charts-tab [active]="true" [demoObject]="demoData.demoObjectMap[demoId()]" />
+            <ng-template>
+              <app-charts-tab [active]="true" [demoObject]="demoData.demoObjectMap[demoId()]" />
+            </ng-template>
           </app-error-tab>
         </div>
       </div>

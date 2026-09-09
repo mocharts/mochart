@@ -44,7 +44,7 @@ export interface JsonEditorHandle {
   setTheme(theme: 'light' | 'dark'): void;
   focus(): void;
   /** Select and reveal a source range, then move keyboard focus to the editor. */
-  focusRange(from: number, to?: number): void;
+  showFocusRange(from: number, to?: number): void;
   format(): boolean;
   destroy(): void;
 }

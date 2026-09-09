@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "One Value"
+  },
+  "categoryAxis": {
+    "property": "category"
+  },
+  "series": [
+    {
+      "renderer": "line",
+      "title": "Value 0",
+      "marker": {
+        "shape": "circle"
+      },
+      "property": "value"
+    }
+  ],
+  "legend": {
+    "visible": true
+  }
+}

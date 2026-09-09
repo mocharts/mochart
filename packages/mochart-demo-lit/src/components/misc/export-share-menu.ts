@@ -2,13 +2,11 @@ import { html, nothing } from 'lit';
 import type { PropertyValues } from 'lit';
 import { customElement, property, state, query } from 'lit/decorators.js';
 
-import { buildShareUrl, createMenuController, demoText } from '@mochart/demo-common';
-import type { MenuController, ShareState } from '@mochart/demo-common';
+import { controlsMenuPlacement, createMenuController, createShareLinkCopier, demoText } from '@mochart/demo-common';
+import type { MenuController, ShareLinkCopier, ShareState } from '@mochart/demo-common';
 
 import { LightElement } from './LightElement';
 import { icon } from './templates';
-
-const copiedFeedbackMs = 1500;
 
 /**
  * A collapsed export/share menu placed at the end of each mode's controls row.
@@ -21,7 +19,7 @@ const copiedFeedbackMs = 1500;
  * it is hand-rolled (the controls strips clip an absolutely-positioned
  * dropdown, and the chart's interaction rect eats clicks through anything
  * stacked below it). What stays here is what the controller does not know
- * about: the items, the copied-link feedback, and `disabled`.
+ * about: the items, their copied label, and `disabled`.
  *
  * The trigger and panel carry STATIC classes and no `aria-expanded` or `style`
  * binding, because the controller writes those itself; an interpolated
@@ -30,7 +28,6 @@ const copiedFeedbackMs = 1500;
  */
 @customElement('export-share-menu')
 export class ExportShareMenu extends LightElement {
-  @property({ attribute: false }) idPrefix = 'edit';
   @property({ attribute: false }) exportPng: () => void = () => { /* no-op */ };
   @property({ attribute: false }) exportSvg: () => void = () => { /* no-op */ };
   /** Omit to hide the Share item (e.g. a chart whose state isn't shareable). */
@@ -49,7 +46,7 @@ export class ExportShareMenu extends LightElement {
   @query('.demo-menu') private panelElement?: HTMLElement;
 
   private controller: MenuController | null = null;
-  private revertTimer: ReturnType<typeof setTimeout> | null = null;
+  private shareLinkCopier: ShareLinkCopier = createShareLinkCopier(copied => { this.copied = copied; });
 
   override firstUpdated(): void {
     const trigger = this.triggerElement;
@@ -57,12 +54,10 @@ export class ExportShareMenu extends LightElement {
     if (trigger === undefined || panel === undefined) {
       return;
     }
-    // Opens upward (the controls row sits at the bottom of the pane) and
-    // right-aligned (the trigger is the last control in the row).
     this.controller = createMenuController({
       trigger,
       panel,
-      placement: { side: 'top', align: 'end', gap: 4 },
+      placement: controlsMenuPlacement,
       bindTrigger: false
     });
   }
@@ -77,10 +72,7 @@ export class ExportShareMenu extends LightElement {
 
   override disconnectedCallback(): void {
     super.disconnectedCallback();
-    if (this.revertTimer !== null) {
-      clearTimeout(this.revertTimer);
-      this.revertTimer = null;
-    }
+    this.shareLinkCopier.dispose();
     this.controller?.destroy();
     this.controller = null;
   }
@@ -94,27 +86,14 @@ export class ExportShareMenu extends LightElement {
     if (!this.getShareState) {
       return;
     }
-    const url = buildShareUrl(this.getShareState());
-    navigator.clipboard.writeText(url).then(() => {
-      this.copied = true;
-      if (this.revertTimer !== null) {
-        clearTimeout(this.revertTimer);
-      }
-      this.revertTimer = setTimeout(() => {
-        this.copied = false;
-        this.revertTimer = null;
-      }, copiedFeedbackMs);
-    }, () => {
-      // Clipboard access can be unavailable (e.g. insecure context); let the
-      // user copy the link manually instead of failing silently.
-      window.prompt(demoText.shareButton.tooltip, url);
-    });
+    this.shareLinkCopier.copy(this.getShareState());
     this.controller?.close();
   };
 
   override render(): unknown {
-    return html`<div class="demo-btn-group demo-menu-up mochart-export-share-menu">
-      <button id=${this.idPrefix + '-export-share'} type="button"
+    // The trigger carries no id: the controller mints a unique one, so two charts stay distinct.
+    return html`<div class="demo-btn-group mochart-export-share-menu">
+      <button type="button"
               class="demo-btn demo-btn-secondary demo-menu-trigger"
               ?disabled=${this.disabled}
               title=${demoText.exportShareMenu.trigger.tooltip} aria-label=${demoText.exportShareMenu.trigger.aria}
@@ -124,17 +103,17 @@ export class ExportShareMenu extends LightElement {
       <div class="demo-menu">
         <button type="button" class="demo-menu-item" @click=${() => this.runAndClose(this.exportPng)}
                 aria-label=${demoText.exportButtons.png.aria}>
-          ${icon({ fixedWidth: true, name: 'file-image' })} <span class="mochart-menu-item-label">${demoText.exportButtons.png.label}</span>
+          ${icon({ fixedWidth: true, name: 'file-image' })} <span>${demoText.exportButtons.png.label}</span>
         </button>
         <button type="button" class="demo-menu-item" @click=${() => this.runAndClose(this.exportSvg)}
                 aria-label=${demoText.exportButtons.svg.aria}>
-          ${icon({ fixedWidth: true, name: 'file-code' })} <span class="mochart-menu-item-label">${demoText.exportButtons.svg.label}</span>
+          ${icon({ fixedWidth: true, name: 'file-code' })} <span>${demoText.exportButtons.svg.label}</span>
         </button>
         ${this.getShareState ? html`
           <div class="demo-menu-divider"></div>
           <button type="button" class="demo-menu-item" @click=${this.onShare}
                   aria-label=${demoText.shareButton.aria}>
-            ${icon({ fixedWidth: true, name: this.copied ? 'check' : 'link' })} <span class="mochart-menu-item-label">${this.copied ? demoText.shareButton.tooltipCopied : demoText.shareButton.label}</span>
+            ${icon({ fixedWidth: true, name: this.copied ? 'check' : 'link' })} <span>${this.copied ? demoText.shareButton.tooltipCopied : demoText.shareButton.label}</span>
           </button>` : nothing}
       </div>
     </div>`;

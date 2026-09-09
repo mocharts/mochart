@@ -88,8 +88,8 @@ function parseArgs(argv) {
     throw new Error('missing <outDir> argument');
   }
   options.baseUrl = options.baseUrl.replace(/\/+$/, '');
-  // `--base-url` implies `--no-server`, and this default is load-bearing rather
-  // than a convenience. The only server this harness knows how to start is
+  // `--base-url` implies `--no-server`, and this default is a safety measure
+  // rather than a convenience. The only server this harness knows how to start is
   // VANILLA's. Point it at another port, forget `--no-server`, and if that port
   // happens to be down it starts vanilla there instead — then captures vanilla,
   // diffs it against vanilla, and reports a flawless 147/147 for a port it
@@ -130,8 +130,10 @@ function isPhoneViewport(viewport) {
 
 const tabConfig = { kind: 'tab', name: 'Config' };
 const tabData = { kind: 'tab', name: 'Data' };
-const clickEditMode = { kind: 'click', selector: '#edit-mode' };
-const clickChartCount = { kind: 'click', selector: '#edit-chart-count' };
+
+// Controls are addressed by `aria-label` (state-stable, unlike the visible label); strings mirror demo-common/src/demoText.ts.
+const clickEditMode = { kind: 'click', selector: '[aria-label="Toggle Mode"]' };
+const clickChartCount = { kind: 'click', selector: '[aria-label="Toggle Chart Count"]' };
 
 // Open-menu steps. A `menu` step is a click that additionally waits for the
 // panel it discloses to actually be `.open` and visible before the shot is
@@ -142,13 +144,13 @@ const clickChartCount = { kind: 'click', selector: '#edit-chart-count' };
 // trigger, so where it lands relative to the viewport edges IS the behaviour
 // under test — that is why these shots are full-viewport rather than scoped to
 // the menu element, which would frame out exactly the clamping being checked.
-function openExportShareMenu(idPrefix) {
-  return {
-    kind: 'menu',
-    selector: '#' + idPrefix + '-export-share',
-    panel: '.mochart-export-share-menu .demo-menu'
-  };
-}
+//
+// No per-view prefix: each of these shots is on its own path, so the first menu on the page is the right one.
+const openExportShareMenu = {
+  kind: 'menu',
+  selector: '.mochart-export-share-menu > .demo-menu-trigger',
+  panel: '.mochart-export-share-menu .demo-menu'
+};
 
 const openNotesMenu = {
   kind: 'menu',
@@ -278,10 +280,10 @@ function buildShots(options) {
     //
     // All three modes get an export menu because each mounts its own instance
     // with its own id prefix, in a differently-sized controls row.
-    push(viewport, single, singlePath, 'menu-export', 'light', [openExportShareMenu('edit')]);
-    push(viewport, `random-${barDemo}-0`, `/random/${barDemo}/0`, 'menu-export', 'light', [openExportShareMenu('random')]);
+    push(viewport, single, singlePath, 'menu-export', 'light', [openExportShareMenu]);
+    push(viewport, `random-${barDemo}-0`, `/random/${barDemo}/0`, 'menu-export', 'light', [openExportShareMenu]);
     if (!isPhoneViewport(viewport)) {
-      push(viewport, `multi-${barDemo}`, `/multi/${barDemo}`, 'menu-export', 'light', [openExportShareMenu('multi')]);
+      push(viewport, `multi-${barDemo}`, `/multi/${barDemo}`, 'menu-export', 'light', [openExportShareMenu]);
     }
     push(viewport, `single-${notesDemo}`, `/single/${notesDemo}`, 'menu-notes', 'light', [notesStep(viewport)]);
 
@@ -290,14 +292,14 @@ function buildShots(options) {
     // `hidden`, so there is nothing to open and the shot would be a guaranteed
     // failure rather than a missing state.
     //
-    // One shot per panel, because each folds a different list: the group panel
+    // One shot per panel, because each folds a different list: the category panel
     // sends eight buttons over, the series panel Reset plus the mode toggle,
     // the slice panel Reset plus the play/stop pair. `clickEditMode` reaches
-    // the series panel through the group panel's own fold (revealControl opens
-    // the ⋯ to get at `#edit-mode`), and the trigger follows the panel it
+    // the series panel through the category panel's own fold (revealControl opens
+    // the ⋯ to get at the mode toggle), and the trigger follows the panel it
     // switched to, so the second step finds it in place.
     //
-    // The shortest phone tier does double duty: at 896x414 the group panel's
+    // The shortest phone tier does double duty: at 896x414 the category panel's
     // `max-height` (the room above a trigger 414px down the screen) is smaller
     // than the eight rows it holds, so that shot is also the `overflow-y: auto`
     // case — the one that decides what happens as more controls fold in.
@@ -355,7 +357,7 @@ function buildShots(options) {
   for (const name of ['320x568', '390x844']) {
     const viewport = viewports.find(entry => entry.name === name);
     push(viewport, `single-${barDemo}`, `/single/${barDemo}`, 'menu-export-flushright', 'light',
-      [openExportShareMenu('edit')], { extraCss: flushRightCss });
+      [openExportShareMenu], { extraCss: flushRightCss });
   }
 
   for (const name of ['1440x900', '390x844']) {
@@ -549,7 +551,7 @@ function overflowTriggerIndexOf(element, selectors) {
  * Make `locator` clickable, opening whatever the phone fold hid it behind.
  *
  * The fold MOVES controls into a `…` panel rather than duplicating them, so
- * below the phone breakpoint a control like `#edit-mode` is still in the
+ * below the phone breakpoint a control like the mode toggle is still in the
  * document, still the same element, but sitting inside a `display: none` panel.
  * Waiting for it to become visible therefore times out and the step used to be
  * abandoned — which quietly deleted five phone shots from the matrix.
@@ -692,7 +694,7 @@ async function captureShot(browser, options, shot, outPath) {
     // Park the pointer and drop focus so no :hover / :focus-visible styling
     // leaks into the shot depending on where the last click happened.
     //
-    // Both are load-bearing for the open-menu shots in particular: opening a
+    // Both matter for the open-menu shots in particular: opening a
     // menu leaves the pointer on the trigger and focus in it, and the menu items
     // carry a :hover background. (0, 0) is safe to park on — every panel is
     // pinned at least one gap in from both edges it anchors to — and moving

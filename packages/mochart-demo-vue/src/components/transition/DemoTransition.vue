@@ -3,6 +3,7 @@ import { ref, shallowRef } from 'vue';
 
 import { defaultTransitionConfig, demoText, getTransitionDataProviders, getTransitionMochartConfig } from '@mochart/demo-common';
 
+import DemoTabs from '../misc/DemoTabs.vue';
 import TopBar from '../misc/TopBar.vue';
 import TransitionChartTab from './TransitionChartTab.vue';
 import TransitionConfigTab from './TransitionConfigTab.vue';
@@ -46,18 +47,11 @@ function onResetConfig() {
   <div class="mochart-demo-container multi">
     <TopBar :site-root-url="props.siteRootUrl" :on-back-to-demos="props.onBackToDemos">
       <template #tabs>
-        <li class="demo-tab-item">
-          <button type="button" :class="'demo-tab' + (activeKey === eventKeyChart ? ' active' : '')"
-                  @click="handleSelect(eventKeyChart)">
-            {{ demoText.tabs.chart }}
-          </button>
-        </li>
-        <li class="demo-tab-item">
-          <button type="button" :class="'demo-tab' + (activeKey === eventKeyConfig ? ' active' : '')"
-                  @click="handleSelect(eventKeyConfig)">
-            {{ demoText.tabs.transitionConfig }}
-          </button>
-        </li>
+        <DemoTabs :active-key="activeKey" :on-select="handleSelect"
+                  :tabs="[
+                    { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart },
+                    { name: 'config', key: eventKeyConfig, label: demoText.tabs.transitionConfig }
+                  ]" />
       </template>
     </TopBar>
     <div class="mochart-demo-content-pane">

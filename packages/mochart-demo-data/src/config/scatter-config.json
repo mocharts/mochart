@@ -1,19 +1,21 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Scatter Chart Example"
+  "title": {
+    "text": "Scatter Chart Example"
   },
-  "groupAxisConfig": {
-    "valueLabel": "Group",
-    "property": "group",
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "category",
     "type": "number",
     "scale": "linear"
   },
-  "seriesAllConfig": {
+  "seriesDefaults": {
     "renderer": "none",
-    "markerSize": 6
+    "marker": {
+      "size": 6
+    }
   },
-  "seriesConfigs": [
+  "series": [
     {
       "property": "value1",
       "title": "Scatter 1",
@@ -23,10 +25,12 @@
           "fillColor": "#9467bd"
         }
       },
-      "markerShape": "star"
+      "marker": {
+        "shape": "star"
+      }
     },
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "value2",
       "title": "Scatter 2",
       "shapeStyle": {
@@ -35,10 +39,12 @@
           "fillColor": "#ffbb78"
         }
       },
-      "markerShape": "cross"
+      "marker": {
+        "shape": "cross"
+      }
     },
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "property": "value3",
       "title": "Scatter 3",
       "shapeStyle": {
@@ -47,7 +53,9 @@
           "fillColor": "#1f77b4"
         }
       },
-      "markerShape": "wye"
+      "marker": {
+        "shape": "wye"
+      }
     }
   ]
 }

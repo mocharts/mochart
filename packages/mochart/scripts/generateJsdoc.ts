@@ -1,12 +1,7 @@
-// Generates JSDoc comments on the config interfaces in src/types/config.ts
-// from the config-reference model (descriptions, details, defaults), so IDE
-// hovers and the shipped .d.ts document every config property from the same
-// source as the generated reference docs. Existing JSDoc on covered
-// properties is replaced; properties without a model entry (back-references,
-// internal fields) are left untouched.
-//
-// Usage: tsx scripts/generateJsdoc.ts [--check]
-// --check exits 1 when src/types/config.ts differs from the generated output
+// Regenerates JSDoc on the config interfaces in src/types/config.ts from the config-reference
+// model, so hovers, the shipped .d.ts, and the reference docs share one source. Covered
+// properties' JSDoc is replaced; properties without a model entry are left untouched.
+// Usage: tsx scripts/generateJsdoc.ts [--check] — --check exits 1 on drift
 // (the same ratchet is enforced by test/config/jsdocSync.test.ts).
 
 import ts from 'typescript';
@@ -19,7 +14,8 @@ import {
   type ConditionalDefaultValue,
   type DefaultValue,
   type PropertyDoc,
-  type SectionDoc
+  type SectionDoc,
+  type TopLevelKeyDoc
 } from './configReferenceModel';
 
 const packageDir = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -38,30 +34,30 @@ interface MemberDoc {
 
 // --- Model → per-interface member docs --------------------------------------
 
-const sectionInterfaceMap: Record<string, string> = {
-  animationConfig: 'AnimationConfig',
-  chartConfig: 'ChartConfig',
-  colorPaletteConfig: 'ColorPaletteConfig',
-  crosshairConfig: 'CrosshairConfig',
-  groupAxisConfig: 'GroupAxisConfig',
-  legendConfig: 'LegendConfig',
-  linearGradientConfigs: 'LinearGradientConfig',
-  pieConfig: 'PieConfig',
-  plotConfig: 'PlotConfig',
-  radialGradientConfigs: 'RadialGradientConfig',
-  seriesAxisConfigs: 'SeriesAxisConfig',
-  seriesConfigs: 'SeriesConfig',
-  seriesGroupConfigs: 'SeriesGroupConfig',
-  seriesStackConfigs: 'SeriesStackConfig',
-  titleConfig: 'TitleConfig',
-  tooltipConfig: 'TooltipConfig'
+export const sectionInterfaceMap: Record<string, string> = {
+  accessibility: 'AccessibilityConfig',
+  animation: 'AnimationConfig',
+  chart: 'ChartConfig',
+  colorPalette: 'ColorPaletteConfig',
+  clipIndicator: 'ClipIndicatorConfig',
+  crosshair: 'CrosshairConfig',
+  categoryAxis: 'CategoryAxisConfig',
+  legend: 'LegendConfig',
+  linearGradients: 'LinearGradientConfig',
+  patterns: 'PatternConfig',
+  pie: 'PieConfig',
+  plot: 'PlotConfig',
+  radialGradients: 'RadialGradientConfig',
+  valueAxes: 'ValueAxisConfig',
+  series: 'SeriesConfig',
+  seriesGroups: 'SeriesGroupConfig',
+  seriesStacks: 'SeriesStackConfig',
+  title: 'TitleConfig',
+  tooltip: 'TooltipConfig'
 };
 
-/**
- * Interfaces that are the value of nested config properties (a style, a palette entry) rather than a
- * section of their own, documented from one representative use of the shape. Defaults are left off:
- * the shape is used with different defaults at every site, so each using property documents its own.
- */
+/** Interfaces that are the value of nested config properties rather than a section, documented from
+ * one representative use of the shape. Defaults are left off: each using property documents its own. */
 interface SharedInterfaceSource {
   interfaceName: string;
   sectionId: string;
@@ -69,35 +65,95 @@ interface SharedInterfaceSource {
   propertyKey: string;
   /** The members this interface declares. Omit to take all of them; set it when the interface extends another. */
   members?: string[];
+  /** Set for an array-element shape, whose entry defaults are the same wherever the shape is used. */
+  includeDefaults?: boolean;
 }
 
 const sharedInterfaceSources: SharedInterfaceSource[] = [
-  { interfaceName: 'StrokeStyle', sectionId: 'chartConfig', propertyKey: 'backgroundStyle', members: ['strokeColor', 'strokeOpacity', 'strokeWidth'] },
-  { interfaceName: 'Style', sectionId: 'chartConfig', propertyKey: 'backgroundStyle', members: ['fillColor', 'fillOpacity'] },
-  { interfaceName: 'ColorPaletteStates', sectionId: 'colorPaletteConfig', propertyKey: 'series' },
-  { interfaceName: 'ColorPalette', sectionId: 'colorPaletteConfig', propertyKey: 'series.normal' },
-  { interfaceName: 'SeriesCurve', sectionId: 'seriesConfigs', propertyKey: 'curve' },
-  { interfaceName: 'SeriesColorScale', sectionId: 'seriesConfigs', propertyKey: 'colorScale' },
-  { interfaceName: 'SeriesColorScaleBase', sectionId: 'seriesConfigs', propertyKey: 'colorScale.base' }
+  { interfaceName: 'StrokeStyle', sectionId: 'chart', propertyKey: 'backgroundStyle', members: ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray'] },
+  { interfaceName: 'Style', sectionId: 'chart', propertyKey: 'backgroundStyle', members: ['fillColor', 'fillOpacity'] },
+  { interfaceName: 'StrokeStyleState', sectionId: 'categoryAxis', propertyKey: 'axisLine.style.normal', members: ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray'] },
+  { interfaceName: 'StyleState', sectionId: 'categoryAxis', propertyKey: 'tickLabel.textStyle.normal', members: ['fillColor', 'fillOpacity'] },
+  { interfaceName: 'ColorPaletteStates', sectionId: 'colorPalette', propertyKey: 'shape' },
+  { interfaceName: 'ColorPalette', sectionId: 'colorPalette', propertyKey: 'shape.normal' },
+  { interfaceName: 'SeriesCurve', sectionId: 'series', propertyKey: 'curve' },
+  { interfaceName: 'SeriesColorScale', sectionId: 'series', propertyKey: 'colorScale' },
+  { interfaceName: 'SeriesColorScaleBase', sectionId: 'series', propertyKey: 'colorScale.base' },
+  { interfaceName: 'SeriesBarConfig', sectionId: 'series', propertyKey: 'bar', includeDefaults: true },
+  { interfaceName: 'SeriesCapConfig', sectionId: 'series', propertyKey: 'cap', includeDefaults: true },
+  { interfaceName: 'SeriesErrorBarConfig', sectionId: 'series', propertyKey: 'errorBar', includeDefaults: true },
+  { interfaceName: 'SeriesLabelConfig', sectionId: 'series', propertyKey: 'label', includeDefaults: true },
+  { interfaceName: 'SeriesLabelBaseSideConfig', sectionId: 'series', propertyKey: 'label.aboveBase', includeDefaults: true },
+  { interfaceName: 'SeriesMarkerConfig', sectionId: 'series', propertyKey: 'marker', includeDefaults: true },
+  { interfaceName: 'SeriesStackOuterCapConfig', sectionId: 'seriesStacks', propertyKey: 'outerCap', includeDefaults: true },
+  { interfaceName: 'ClipIndicatorHatchConfig', sectionId: 'clipIndicator', propertyKey: 'hatch' },
+  { interfaceName: 'LegendItemConfig', sectionId: 'legend', propertyKey: 'item', includeDefaults: true },
+  { interfaceName: 'SeriesIconBorderStyle', sectionId: 'legend', propertyKey: 'icon.borderStyle', includeDefaults: true },
+  { interfaceName: 'TitleAffixConfig', sectionId: 'title', propertyKey: 'prefix' },
+  { interfaceName: 'TickLabelTruncationConfig', sectionId: 'categoryAxis', propertyKey: 'tickLabel.truncation', members: ['minLength', 'maxFraction'], includeDefaults: true },
+  { interfaceName: 'PieLabelConfig', sectionId: 'pie', propertyKey: 'label', includeDefaults: true },
+  { interfaceName: 'PieTooltipConfig', sectionId: 'pie', propertyKey: 'tooltip', includeDefaults: true },
+  { interfaceName: 'CrosshairLineConfig', sectionId: 'crosshair', propertyKey: 'categoryLine', includeDefaults: true },
+  { interfaceName: 'PieCenterLabelConfig', sectionId: 'pie', propertyKey: 'centerLabel', includeDefaults: true },
+  { interfaceName: 'PieCenterTotalConfig', sectionId: 'pie', propertyKey: 'centerTotal', includeDefaults: true },
+  { interfaceName: 'TooltipDropShadowConfig', sectionId: 'tooltip', propertyKey: 'dropShadow', includeDefaults: true },
+  { interfaceName: 'ThresholdConfig', sectionId: 'valueAxes', propertyKey: 'thresholds', includeDefaults: true },
+  { interfaceName: 'ThresholdTitleConfig', sectionId: 'valueAxes', propertyKey: 'thresholds.title', includeDefaults: true },
+  { interfaceName: 'AxisBaseLineConfig', sectionId: 'valueAxes', propertyKey: 'baseLine', includeDefaults: true },
+  { interfaceName: 'ValueAxisTick', sectionId: 'valueAxes', propertyKey: 'ticks', includeDefaults: true },
+  { interfaceName: 'GradientStop', sectionId: 'linearGradients', propertyKey: 'stops', includeDefaults: true }
 ];
 
-/**
- * Interfaces that several config sections extend, documented from those sections: the prose comes
- * from the first, and any section that words it differently has its wording documented alongside.
- */
+/** Nested axis groups shared by the category axis and the value axes: members both axes have are
+ * documented on the shared interface (with both defaults where they differ, like AxisConfigBase);
+ * members only one axis has go on that axis's own extension of it. */
+interface SharedAxisInterface {
+  interfaceName: string;
+  propertyKey: string;
+  categoryInterfaceName?: string;
+  valueInterfaceName?: string;
+}
+
+const sharedAxisInterfaces: SharedAxisInterface[] = [
+  { interfaceName: 'AxisLineConfig', propertyKey: 'axisLine' },
+  { interfaceName: 'AxisFocusRangeConfig', propertyKey: 'focusRange' },
+  { interfaceName: 'AxisFocusTickMarkConfig', propertyKey: 'focusTickMark' },
+  { interfaceName: 'AxisGridLineConfig', propertyKey: 'gridLine' },
+  { interfaceName: 'AxisTickMarkConfig', propertyKey: 'tickMark' },
+  { interfaceName: 'AxisTickLabelConfig', propertyKey: 'tickLabel', categoryInterfaceName: 'CategoryAxisTickLabelConfig', valueInterfaceName: 'ValueAxisTickLabelConfig' },
+  { interfaceName: 'AxisTitleConfig', propertyKey: 'title' }
+];
+
+/** Interfaces several config sections share — extended by them, or (with propertyKey) held under one of
+ * their nested properties — documented from those sections: the first supplies the prose, and any
+ * section wording it differently has its wording documented alongside. */
 interface SharedSectionInterface {
   interfaceName: string;
-  /** The sections that extend it, in the order their prose is documented. */
-  sections: { id: string; name: string }[];
+  /** The sections that share it, in the order their prose is documented; a section holding the shape
+   * somewhere other than the shared propertyKey gives its own. */
+  sections: { id: string; name: string; propertyKey?: string }[];
   members: string[];
+  /** Dotted path to the nested property holding the shape; omit when the sections extend the interface. */
+  propertyKey?: string;
 }
 
 const sharedSectionInterfaces: SharedSectionInterface[] = [
   {
+    interfaceName: 'TruncationConfig',
+    sections: [
+      { id: 'title', name: 'the title', propertyKey: 'truncation' },
+      { id: 'legend', name: 'the legend', propertyKey: 'truncation' },
+      { id: 'categoryAxis', name: 'an axis title', propertyKey: 'title.truncation' },
+      { id: 'categoryAxis', name: 'the category axis tick labels', propertyKey: 'tickLabel.truncation' }
+    ],
+    members: ['enabled', 'text', 'tooltipEnabled']
+  },
+  {
     interfaceName: 'SeriesIconConfig',
-    sections: [{ id: 'legendConfig', name: 'legendConfig' }, { id: 'tooltipConfig', name: 'tooltipConfig' }],
-    members: ['showIconColors', 'showIconShapes', 'showIconPlaceholders', 'iconSize', 'iconSpacerSize',
-      'iconBorderSize', 'iconBorderColor', 'iconBorderOpacity', 'iconSuppressedColor', 'iconUnsuppressedColor']
+    sections: [{ id: 'legend', name: 'legend' }, { id: 'tooltip', name: 'tooltip' }],
+    propertyKey: 'icon',
+    members: ['showColors', 'showShapes', 'showPlaceholders', 'size', 'spacing',
+      'borderStyle', 'filteredColor', 'unfilteredColor']
   }
 ];
 
@@ -155,54 +211,55 @@ function toMemberDoc(property: PropertyDoc, includeDefault = true): MemberDoc {
   return doc;
 }
 
-function mergedAxisMemberDoc(groupProperty: PropertyDoc, seriesProperty: PropertyDoc): MemberDoc {
+function mergedAxisMemberDoc(categoryProperty: PropertyDoc, seriesProperty: PropertyDoc): MemberDoc {
   const doc: MemberDoc = {
-    description: upperFirst(groupProperty.description) + '.',
+    description: upperFirst(categoryProperty.description) + '.',
     defaultLines: []
   };
-  const details = groupProperty.details ?? seriesProperty.details;
+  const details = categoryProperty.details ?? seriesProperty.details;
   if (details !== undefined) {
     doc.details = details;
   }
-  const groupText = groupProperty.conditionalDefaults
+  const categoryText = categoryProperty.conditionalDefaults
     ? undefined
-    : defaultValueText(groupProperty.default ?? { kind: 'none' });
+    : defaultValueText(categoryProperty.default ?? { kind: 'none' });
   const seriesText = seriesProperty.conditionalDefaults
     ? undefined
     : defaultValueText(seriesProperty.default ?? { kind: 'none' });
-  if (groupProperty.conditionalDefaults || seriesProperty.conditionalDefaults) {
-    if (groupProperty.conditionalDefaults) {
-      doc.defaultLines.push('Group axis defaults:');
-      doc.defaultLines.push(...conditionalDefaultLines(groupProperty.conditionalDefaults).slice(1));
+  if (categoryProperty.conditionalDefaults || seriesProperty.conditionalDefaults) {
+    if (categoryProperty.conditionalDefaults) {
+      doc.defaultLines.push('Category axis defaults:');
+      doc.defaultLines.push(...conditionalDefaultLines(categoryProperty.conditionalDefaults).slice(1));
     }
-    else if (groupText !== undefined) {
-      doc.defaultLines.push('Group axis default: `' + groupText + '`.');
+    else if (categoryText !== undefined) {
+      doc.defaultLines.push('Category axis default: `' + categoryText + '`.');
     }
     if (seriesProperty.conditionalDefaults) {
-      doc.defaultLines.push('Series axis defaults:');
+      doc.defaultLines.push('Value axis defaults:');
       doc.defaultLines.push(...conditionalDefaultLines(seriesProperty.conditionalDefaults).slice(1));
     }
     else if (seriesText !== undefined) {
-      doc.defaultLines.push('Series axis default: `' + seriesText + '`.');
+      doc.defaultLines.push('Value axis default: `' + seriesText + '`.');
     }
   }
-  else if (groupText === seriesText) {
-    if (groupText !== undefined) {
-      doc.defaultTag = groupText;
+  else if (categoryText === seriesText) {
+    if (categoryText !== undefined) {
+      doc.defaultTag = categoryText;
     }
   }
   else {
-    if (groupText !== undefined) {
-      doc.defaultLines.push('Group axis default: `' + groupText + '`.');
+    if (categoryText !== undefined) {
+      doc.defaultLines.push('Category axis default: `' + categoryText + '`.');
     }
     if (seriesText !== undefined) {
-      doc.defaultLines.push('Series axis default: `' + seriesText + '`.');
+      doc.defaultLines.push('Value axis default: `' + seriesText + '`.');
     }
   }
   return doc;
 }
 
-/** The first section's prose, then any section wording it differently, then the default: one tag when the sections agree, a line each when they do not. */
+/** The first section's prose, then any section wording it differently, then the default: one tag when every
+ * section agrees, and a line naming the departures when a conditional default in one of them does not. */
 function sharedSectionMemberDoc(entries: { name: string; property: PropertyDoc }[]): MemberDoc {
   const first = entries[0]!;
   const doc: MemberDoc = {
@@ -225,35 +282,76 @@ function sharedSectionMemberDoc(entries: { name: string; property: PropertyDoc }
   const texts = entries.map(entry => entry.property.conditionalDefaults
     ? undefined
     : defaultValueText(entry.property.default ?? { kind: 'none' }));
-  const allSimple = entries.every(entry => !entry.property.conditionalDefaults);
-  if (allSimple && texts.every(text => text === texts[0])) {
-    if (texts[0] !== undefined) {
-      doc.defaultTag = texts[0];
+  const plain = entries.filter(entry => !entry.property.conditionalDefaults);
+  const plainTexts = texts.filter((_text, index) => !entries[index]!.property.conditionalDefaults);
+  const sharedText = plain.length > 0 && plainTexts.every(text => text === plainTexts[0]) ? plainTexts[0] : undefined;
+  if (sharedText !== undefined) {
+    // only the sections departing from the shared default need saying; a tag would state it as the whole story
+    const departures: string[] = [];
+    for (const entry of entries) {
+      for (const conditional of entry.property.conditionalDefaults ?? []) {
+        const text = defaultValueText(conditional.value);
+        if (text !== sharedText) {
+          departures.push('in ' + entry.name + ' `' + (text ?? 'none') + '` ' + conditional.condition);
+        }
+      }
+    }
+    if (departures.length === 0) {
+      doc.defaultTag = sharedText;
+    }
+    else {
+      doc.defaultLines.push('Default: `' + sharedText + '`, and ' + departures.join(', and ') + '.');
     }
     return doc;
   }
   for (const [index, entry] of entries.entries()) {
     if (entry.property.conditionalDefaults) {
-      doc.defaultLines.push(entry.name + ' defaults:');
+      doc.defaultLines.push('Defaults in ' + entry.name + ':');
       doc.defaultLines.push(...conditionalDefaultLines(entry.property.conditionalDefaults).slice(1));
     }
     else if (texts[index] !== undefined) {
-      doc.defaultLines.push(entry.name + ' default: `' + texts[index] + '`.');
+      doc.defaultLines.push('Default in ' + entry.name + ': `' + texts[index] + '`.');
     }
   }
   return doc;
 }
 
-function buildInterfaceDocs(sections: SectionDoc[], warnings: string[]): Map<string, Map<string, MemberDoc>> {
+/** The two public config interfaces, documented from the top-level key descriptions rather than from a
+ * section: the enhanced config carries the sections themselves, the input config also their `*Defaults`. */
+const TOP_LEVEL_INTERFACES = { enhanced: 'MochartConfig', input: 'MochartInputConfig' };
+
+function topLevelMemberDocs(topLevel: TopLevelKeyDoc[], includeAllKeys: boolean): Map<string, MemberDoc> {
+  const memberDocs = new Map<string, MemberDoc>();
+  for (const key of topLevel) {
+    // version is hand-documented on each interface: the enhanced config says it is carried through
+    // rather than defaulted, which the one model description cannot say for both
+    if (key.key !== 'version') {
+      memberDocs.set(key.key, { description: key.description, defaultLines: [] });
+    }
+    if (includeAllKeys && key.allKey !== undefined && key.allDescription !== undefined) {
+      memberDocs.set(key.allKey, { description: key.allDescription, defaultLines: [] });
+    }
+  }
+  return memberDocs;
+}
+
+function buildInterfaceDocs(sections: SectionDoc[], topLevel: TopLevelKeyDoc[], warnings: string[]): Map<string, Map<string, MemberDoc>> {
   const bySection = new Map<string, Map<string, PropertyDoc>>();
   for (const section of sections) {
     bySection.set(section.id, new Map(section.properties.map(property => [property.key, property])));
+  }
+
+  for (const sectionId of bySection.keys()) {
+    if (sectionInterfaceMap[sectionId] === undefined) {
+      warnings.push(sectionId + ': config section has no interface in sectionInterfaceMap');
+    }
   }
 
   const interfaceDocs = new Map<string, Map<string, MemberDoc>>();
   for (const [sectionId, interfaceName] of Object.entries(sectionInterfaceMap)) {
     const properties = bySection.get(sectionId);
     if (!properties) {
+      warnings.push(interfaceName + ': mapped from ' + sectionId + ', which is not a config section');
       continue;
     }
     const memberDocs = new Map<string, MemberDoc>();
@@ -263,19 +361,58 @@ function buildInterfaceDocs(sections: SectionDoc[], warnings: string[]): Map<str
     interfaceDocs.set(interfaceName, memberDocs);
   }
 
-  // AxisConfigBase holds the properties shared by the group axis and the
-  // series axes; where their defaults differ, both are documented.
-  const groupProperties = bySection.get('groupAxisConfig');
-  const seriesProperties = bySection.get('seriesAxisConfigs');
-  if (groupProperties && seriesProperties) {
+  interfaceDocs.set(TOP_LEVEL_INTERFACES.enhanced, topLevelMemberDocs(topLevel, false));
+  interfaceDocs.set(TOP_LEVEL_INTERFACES.input, topLevelMemberDocs(topLevel, true));
+
+  // AxisConfigBase holds the properties shared by the category axis and the
+  // value axes; where their defaults differ, both are documented.
+  const categoryProperties = bySection.get('categoryAxis');
+  const seriesProperties = bySection.get('valueAxes');
+  if (categoryProperties && seriesProperties) {
     const memberDocs = new Map<string, MemberDoc>();
-    for (const [key, groupProperty] of groupProperties) {
+    for (const [key, categoryProperty] of categoryProperties) {
       const seriesProperty = seriesProperties.get(key);
       if (seriesProperty) {
-        memberDocs.set(key, mergedAxisMemberDoc(groupProperty, seriesProperty));
+        memberDocs.set(key, mergedAxisMemberDoc(categoryProperty, seriesProperty));
       }
     }
     interfaceDocs.set('AxisConfigBase', memberDocs);
+
+    for (const shared of sharedAxisInterfaces) {
+      const categoryMembers = findPropertyDoc(categoryProperties, shared.propertyKey)?.properties ?? [];
+      const valueMembers = findPropertyDoc(seriesProperties, shared.propertyKey)?.properties ?? [];
+      const valueByKey = new Map(valueMembers.map(member => [member.key, member]));
+      const sharedDocs = new Map<string, MemberDoc>();
+      const categoryDocs = new Map<string, MemberDoc>();
+      for (const categoryMember of categoryMembers) {
+        const valueMember = valueByKey.get(categoryMember.key);
+        if (valueMember) {
+          sharedDocs.set(categoryMember.key, mergedAxisMemberDoc(categoryMember, valueMember));
+        }
+        else {
+          categoryDocs.set(categoryMember.key, toMemberDoc(categoryMember));
+        }
+      }
+      const valueDocs = new Map<string, MemberDoc>();
+      for (const valueMember of valueMembers) {
+        if (!categoryMembers.some(member => member.key === valueMember.key)) {
+          valueDocs.set(valueMember.key, toMemberDoc(valueMember));
+        }
+      }
+      interfaceDocs.set(shared.interfaceName, sharedDocs);
+      if (shared.categoryInterfaceName !== undefined) {
+        interfaceDocs.set(shared.categoryInterfaceName, categoryDocs);
+      }
+      else if (categoryDocs.size > 0) {
+        warnings.push(shared.interfaceName + ': ' + [...categoryDocs.keys()].join(', ') + ' documented only at categoryAxis.' + shared.propertyKey);
+      }
+      if (shared.valueInterfaceName !== undefined) {
+        interfaceDocs.set(shared.valueInterfaceName, valueDocs);
+      }
+      else if (valueDocs.size > 0) {
+        warnings.push(shared.interfaceName + ': ' + [...valueDocs.keys()].join(', ') + ' documented only at valueAxes.' + shared.propertyKey);
+      }
+    }
   }
 
   for (const shared of sharedSectionInterfaces) {
@@ -283,7 +420,10 @@ function buildInterfaceDocs(sections: SectionDoc[], warnings: string[]): Map<str
     for (const member of shared.members) {
       const entries: { name: string; property: PropertyDoc }[] = [];
       for (const section of shared.sections) {
-        const property = bySection.get(section.id)?.get(member);
+        const propertyKey = section.propertyKey ?? shared.propertyKey;
+        const property = propertyKey === undefined
+          ? bySection.get(section.id)?.get(member)
+          : findPropertyDoc(bySection.get(section.id), propertyKey + '.' + member);
         if (property) {
           entries.push({ name: section.name, property });
         }
@@ -311,7 +451,7 @@ function buildInterfaceDocs(sections: SectionDoc[], warnings: string[]): Map<str
       if (shared.members !== undefined && !shared.members.includes(member.key)) {
         continue;
       }
-      memberDocs.set(member.key, toMemberDoc(member, false));
+      memberDocs.set(member.key, toMemberDoc(member, shared.includeDefaults === true));
     }
     for (const memberKey of shared.members ?? []) {
       if (!memberDocs.has(memberKey)) {
@@ -391,8 +531,12 @@ interface Edit {
 
 export function buildDocumentedTypesSource(source: string): { output: string; warnings: string[] } {
   const { model, integrityErrors } = buildConfigReference();
-  const warnings = [...integrityErrors];
-  const interfaceDocs = buildInterfaceDocs(model.sections, warnings);
+  // an out-of-sync model has holes (e.g. undefined descriptions) the doc builders cannot render
+  if (integrityErrors.length > 0) {
+    throw new Error('Cannot generate JSDoc, config docs sources are out of sync:\n  - ' + integrityErrors.join('\n  - '));
+  }
+  const warnings: string[] = [];
+  const interfaceDocs = buildInterfaceDocs(model.sections, model.topLevel, warnings);
 
   const sourceFile = ts.createSourceFile('config.ts', source, ts.ScriptTarget.Latest, true);
   const edits: Edit[] = [];
@@ -444,15 +588,18 @@ export function buildDocumentedTypesSource(source: string): { output: string; wa
   }
 
   // Shared axis properties are declared (and documented) on AxisConfigBase,
-  // which GroupAxisConfig and SeriesAxisConfig extend.
+  // which CategoryAxisConfig and ValueAxisConfig extend.
   const axisBaseUsed = usedKeys.get('AxisConfigBase') ?? new Set();
   const axisConcreteUsed = new Set([
-    ...(usedKeys.get('GroupAxisConfig') ?? new Set<string>()),
-    ...(usedKeys.get('SeriesAxisConfig') ?? new Set<string>())
+    ...(usedKeys.get('CategoryAxisConfig') ?? new Set<string>()),
+    ...(usedKeys.get('ValueAxisConfig') ?? new Set<string>())
   ]);
   // the same holds for members a section declares on a shared interface it extends
   const sharedInherited = new Map<string, Set<string>>();
   for (const shared of sharedSectionInterfaces) {
+    if (shared.propertyKey !== undefined) {
+      continue;
+    }
     for (const section of shared.sections) {
       const interfaceName = sectionInterfaceMap[section.id];
       if (interfaceName === undefined) {
@@ -467,7 +614,7 @@ export function buildDocumentedTypesSource(source: string): { output: string; wa
   }
   for (const [interfaceName, memberDocs] of interfaceDocs) {
     const used = usedKeys.get(interfaceName) ?? new Set();
-    const inherited = interfaceName === 'GroupAxisConfig' || interfaceName === 'SeriesAxisConfig'
+    const inherited = interfaceName === 'CategoryAxisConfig' || interfaceName === 'ValueAxisConfig'
       ? axisBaseUsed
       : interfaceName === 'AxisConfigBase' ? axisConcreteUsed : sharedInherited.get(interfaceName) ?? new Set<string>();
     for (const key of memberDocs.keys()) {

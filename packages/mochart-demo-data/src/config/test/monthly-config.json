@@ -1,64 +1,84 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Monthly Data"
+  "title": {
+    "text": "Monthly Data"
   },
-  "animationConfig": {
-    "animate": true,
+  "animation": {
+    "enabled": true,
     "expansionDuration": 300,
     "initialDuration": 300,
     "valueChangeDuration": 300,
-    "collapseDuration": 300,
+    "contractionDuration": 300,
     "focusDuration": 500
   },
-  "groupAxisConfig": {
-    "before": false,
-    "title": "Month",
-    "axisLine": true,
-    "axisLineMargin": 0,
-    "gridLines": true,
-    "tickLabelFormat": "%b",
-    "tickLabelRotation": 45,
+  "categoryAxis": {
+    "title": {
+      "text": "Month"
+    },
+    "axisLine": {
+      "visible": true,
+      "marginInner": 0
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "tickLabel": {
+      "format": "%b",
+      "rotation": 45
+    },
     "tickCount": 12,
     "type": "date",
     "scale": "ordinal",
     "dateUTC": true,
-    "valueLabel": "Group",
+    "valueLabel": "Category",
     "valueFormat": "%B",
-    "property": "date"
+    "property": "date",
+    "side": "end"
   },
-  "seriesAxisConfigs": [
+  "valueAxes": [
     {
-      "before": true,
       "visible": true,
-      "axisLineMargin": 0,
-      "gridLines": true,
-      "tickLabelFormat": "$s",
-      "title": "Monthly Amount",
+      "axisLine": {
+        "marginInner": 0
+      },
+      "gridLine": {
+        "visible": true
+      },
+      "tickLabel": {
+        "format": "$s"
+      },
+      "title": {
+        "text": "Monthly Amount"
+      },
       "min": 0,
-      "id": "SA0"
+      "id": "VA0",
+      "side": "start"
     }
   ],
-  "seriesStackConfigs": [
+  "seriesStacks": [
     {
-      "axis": "SA0",
+      "axis": "VA0",
       "id": "SS0"
     }
   ],
-  "seriesConfigs": [
+  "series": [
     {
       "renderer": "bar",
       "title": "Value 1",
-      "markerShape": null,
-      "axis": "SA0",
+      "marker": {
+        "shape": null
+      },
+      "axis": "VA0",
       "stack": "SS0",
       "property": "value1"
     },
     {
       "renderer": "bar",
       "title": "Value 2",
-      "markerShape": null,
-      "axis": "SA0",
+      "marker": {
+        "shape": null
+      },
+      "axis": "VA0",
       "stack": "SS0",
       "property": "value2"
     }

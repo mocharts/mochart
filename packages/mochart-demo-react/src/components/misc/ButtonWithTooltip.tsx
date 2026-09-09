@@ -27,8 +27,9 @@ export default function ButtonWithTooltip(props: Props) {
   // tooltipPlacement is intentionally destructured out and ignored.
   const { children, tooltipText, tooltipPlacement, id, disabled, onClick, color = 'secondary', label, menuLabel, pressed, ...buttonProps } = props;
 
+  // Unstyled wrapper: it keeps the button one flex item wherever it is folded.
   return (
-    <span className="button-with-tooltip">
+    <span>
       <button id={id} type="button" className={`demo-btn demo-btn-${color}` + (pressed ? ' active' : '')}
         disabled={disabled} title={tooltipText}
         aria-pressed={pressed === undefined ? undefined : pressed} onClick={onClick}

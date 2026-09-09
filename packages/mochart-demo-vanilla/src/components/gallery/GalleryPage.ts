@@ -2,7 +2,7 @@ import { demoText, getGallerySections } from '@mochart/demo-common';
 import type { GalleryItem, GallerySection, ShowcaseMode } from '@mochart/demo-common';
 
 import { el, icon } from '../misc/dom';
-import { siteRootButton, themeToggleButton } from '../misc/ModeSwitcher';
+import { siteRootButton, themeToggle } from '../misc/ModeSwitcher';
 
 import type { DemoData } from '../../types';
 
@@ -15,6 +15,7 @@ export interface GalleryPageProps {
 
 export interface GalleryPageHandle {
   el: HTMLElement;
+  destroy(): void;
 }
 
 const pageIcons: Record<ShowcaseMode, string> = {
@@ -107,13 +108,19 @@ export function galleryPage(props: GalleryPageProps): GalleryPageHandle {
   }
 
   const siteRoot = siteRootButton(props.siteRootUrl);
+  const toggle = themeToggle();
   const container = el('div', { className: 'mochart-demo-container' }, [
-    el('div', { className: 'mochart-demo-gallery-header' }, [siteRoot, themeToggleButton()]),
+    el('div', { className: 'mochart-demo-gallery-header' }, [siteRoot, toggle.el]),
     el('div', { className: 'mochart-demo-content-pane' }, [
       el('div', { className: 'mochart-demo-gallery' },
         getGallerySections(demoData).map(sectionEl))
     ])
   ]);
 
-  return { el: container };
+  return {
+    el: container,
+    destroy() {
+      toggle.destroy();
+    }
+  };
 }

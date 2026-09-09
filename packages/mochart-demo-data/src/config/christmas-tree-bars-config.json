@@ -1,28 +1,28 @@
 {
   "version": "1.0.0",
-  "titleConfig": {
-    "title": "Christmas Tree Bars"
+  "title": {
+    "text": "Christmas Tree Bars"
   },
-  "legendConfig": {
+  "legend": {
     "visible": true
   },
-  "groupAxisConfig": {
+  "categoryAxis": {
     "valueLabel": "String",
-    "property": "groupSO",
+    "property": "categorySO",
     "type": "string",
     "scale": "ordinal"
   },
-  "seriesAxisConfigs": {
+  "valueAxes": {
     "min": 0
   },
-  "seriesConfigs": {
+  "series": {
     "property": "value2",
     "title": "Christmas Tree Bar Series",
     "renderer": "bar",
     "shapeStyle": {
       "normal": {
-        "strokeColor": "groupIndex",
-        "fillColor": "groupIndex"
+        "strokeColor": "categoryIndex",
+        "fillColor": "categoryIndex"
       }
     }
   }

@@ -1,70 +1,68 @@
-import { getChartDataWithSeriesData, getChartDataGroupCount } from '../data/ChartData';
+import { getChartDataWithSeriesData, getChartDataCategoryCount } from '../data/ChartData';
 
 import { getSeriesDataWithSeriesCounts, getSeriesDataWithFilteredFlags } from '../data/SeriesData';
 
-import { getInitialGroupDeltaData, getGroupDeltaData } from './GroupAnimationData';
+import { getInitialCategoryDeltaData, getCategoryDeltaData } from './CategoryAnimationData';
 
-import { emptyAxisDeltaData, getTransitionAxisExpansionData, getTransitionAxisCollapseData } from './DomainAnimationData';
+import { emptyAxisDeltaData, getTransitionAxisExpansionData, getTransitionAxisContractionData } from './DomainAnimationData';
 
 import { getInitialValueChangeData, getFilterDeltaData, getTransitionValueChangeData } from './SeriesAnimationData';
 
-import type { MochartConfig } from '../types/config';
+import type { EnhancedMochartConfig } from '../types/enhanced';
 import type {
   AnimationChartData,
   AxisTransitionData,
   ChartAnimationData,
-  EmptyAxisDeltaData,
-  GroupDeltaData,
+  CategoryDeltaData,
   ValueChangeData
 } from '../types/animation';
 
-/**
- *
- * Main animation logic functions
- *
- **/
+// Main animation logic functions
 
+/** `continueInitial`: a tween rebuilt mid-entrance from rendered data stays the initial animation. */
 export function getChartAnimationData(
-  mochartConfig: MochartConfig,
+  mochartConfig: EnhancedMochartConfig,
   oldChartData: AnimationChartData | null,
-  newChartData: AnimationChartData
+  newChartData: AnimationChartData,
+  continueInitial = false
 ): ChartAnimationData {
-  let groupDeltaData: GroupDeltaData;
+  let categoryDeltaData: CategoryDeltaData;
   let axisExpansionData: AxisTransitionData;
   let valueChangeData: ValueChangeData;
-  let axisCollapseData: AxisTransitionData;
+  let axisContractionData: AxisTransitionData;
 
-  const initialAnimation = getChartDataGroupCount(oldChartData) === 0;
+  const fromEmpty = getChartDataCategoryCount(oldChartData) === 0;
+  const initialAnimation = fromEmpty || continueInitial;
 
-  if (initialAnimation) {
-    groupDeltaData = getInitialGroupDeltaData(mochartConfig.groupAxisConfig, newChartData.groupData);
-    axisExpansionData = emptyAxisDeltaData as EmptyAxisDeltaData;
+  if (fromEmpty) {
+    categoryDeltaData = getInitialCategoryDeltaData(mochartConfig.categoryAxis, newChartData.categoryData);
+    axisExpansionData = emptyAxisDeltaData();
     valueChangeData = getInitialValueChangeData(mochartConfig, newChartData) as ValueChangeData;
-    axisCollapseData = emptyAxisDeltaData as EmptyAxisDeltaData;
+    axisContractionData = emptyAxisDeltaData();
   }
   else {
     if (oldChartData === null) {
       throw new Error('A previous chart data value is required for a transition animation');
     }
-    groupDeltaData = getGroupDeltaData(mochartConfig.groupAxisConfig, oldChartData.groupData, newChartData.groupData);
+    categoryDeltaData = getCategoryDeltaData(mochartConfig.categoryAxis, oldChartData.categoryData, newChartData.categoryData);
     const filterDeltaData = getFilterDeltaData(mochartConfig, oldChartData.seriesData, newChartData.seriesData);
-    let startSeriesData = getSeriesDataWithSeriesCounts(oldChartData.seriesData, filterDeltaData.axisSeriesCounts, filterDeltaData.stackSeriesCounts, filterDeltaData.groupSeriesCounts);
+    let startSeriesData = getSeriesDataWithSeriesCounts(oldChartData.seriesData, filterDeltaData.axisSeriesCounts);
     startSeriesData = getSeriesDataWithFilteredFlags(startSeriesData, newChartData.seriesData.filteredFlags);
     const startChartData = getChartDataWithSeriesData(oldChartData, startSeriesData);
-    axisExpansionData = getTransitionAxisExpansionData(mochartConfig, startChartData, newChartData, groupDeltaData) as AxisTransitionData;
+    axisExpansionData = getTransitionAxisExpansionData(mochartConfig, startChartData, newChartData, categoryDeltaData) as AxisTransitionData;
     if (axisExpansionData.final === null || axisExpansionData.final === undefined) {
       throw new Error('Axis expansion did not produce final chart data');
     }
-    valueChangeData = getTransitionValueChangeData(mochartConfig, axisExpansionData.final, newChartData, groupDeltaData) as ValueChangeData;
-    axisCollapseData = getTransitionAxisCollapseData(mochartConfig, valueChangeData.final, newChartData, groupDeltaData) as AxisTransitionData;
+    valueChangeData = getTransitionValueChangeData(mochartConfig, axisExpansionData.final, newChartData, categoryDeltaData) as ValueChangeData;
+    axisContractionData = getTransitionAxisContractionData(mochartConfig, valueChangeData.final, newChartData, categoryDeltaData) as AxisTransitionData;
   }
 
   return {
     initialAnimation,
-    groupDeltaData,
+    categoryDeltaData,
     axisExpansionData,
     valueChangeData,
-    axisCollapseData
+    axisContractionData
   }
 }
 

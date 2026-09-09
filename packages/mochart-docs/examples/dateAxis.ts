@@ -1,18 +1,18 @@
-// A linear date group axis positions each point by its actual date, so uneven
+// A linear date category axis positions each point by its actual date, so uneven
 // sampling shows as uneven spacing. Dates arrive as ISO strings.
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {
   version: '1.0.0',
-  titleConfig: { title: 'Active Users' },
-  groupAxisConfig: {
+  title: { text: 'Active Users' },
+  categoryAxis: {
     property: 'date',
     type: 'date',
     scale: 'linear',
-    tickLabelFormat: '%b %d'
+    tickLabel: { format: '%b %d' }
   },
-  seriesAllConfig: { renderer: 'area' },
-  seriesConfigs: [{ property: 'users', title: 'Active users' }]
+  seriesDefaults: { renderer: 'area' },
+  series: [{ property: 'users', title: 'Active users' }]
 };
 
 export const data = [

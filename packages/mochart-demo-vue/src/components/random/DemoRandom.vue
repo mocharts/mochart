@@ -4,6 +4,7 @@ import { ref, shallowRef, watch } from 'vue';
 import { buildMochartDemoConfig, demoText } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
+import DemoTabs from '../misc/DemoTabs.vue';
 import TopBar from '../misc/TopBar.vue';
 import RandomContent from './RandomContent.vue';
 
@@ -63,24 +64,12 @@ function handleSelect(nextActiveKey: number) {
             :notes="props.demoData.demoObjectMap[props.initialDemoId]"
             :modes="{ demoMode: 'random', onModeChanged: props.onModeChanged }">
       <template #tabs>
-        <li class="demo-tab-item">
-          <button type="button" :class="'demo-tab' + (activeKey === eventKeyChart ? ' active' : '')"
-                  @click="handleSelect(eventKeyChart)">
-            {{ demoText.tabs.chart }}
-          </button>
-        </li>
-        <li class="demo-tab-item">
-          <button type="button" :class="'demo-tab' + (activeKey === eventKeyConfig ? ' active' : '')"
-                  @click="handleSelect(eventKeyConfig)">
-            {{ demoText.tabs.randomConfig }}
-          </button>
-        </li>
-        <li class="demo-tab-item">
-          <button type="button" :class="'demo-tab' + (activeKey === eventKeyData ? ' active' : '')"
-                  @click="handleSelect(eventKeyData)">
-            {{ demoText.tabs.data }}
-          </button>
-        </li>
+        <DemoTabs :active-key="activeKey" :on-select="handleSelect"
+                  :tabs="[
+                    { name: 'chart', key: eventKeyChart, label: demoText.tabs.chart },
+                    { name: 'config', key: eventKeyConfig, label: demoText.tabs.randomConfig },
+                    { name: 'data', key: eventKeyData, label: demoText.tabs.data }
+                  ]" />
       </template>
     </TopBar>
     <div class="mochart-demo-content-pane">

@@ -1,11 +1,9 @@
-import { rotationConfigs as configs, rotationData as data } from '@mochart/demo-common';
+import { getRotationGrid, rotationConfigs as configs, rotationData as data } from '@mochart/demo-common';
 
 import { el, observeSize } from '../misc/dom';
 import { topBar } from '../misc/TopBar';
 import { mountDefaultChart } from '../misc/chartHost';
 import type { ChartHostHandle } from '../misc/chartHost';
-
-const minWidth = 400;
 
 export interface DemoRotationProps {
   siteRootUrl?: string;
@@ -37,8 +35,7 @@ export function demoRotation(props: DemoRotationProps): DemoRotationHandle {
   }
 
   function sync(): void {
-    const cols = Math.max(1, Math.floor(chartsWidth / minWidth));
-    const colWidth = Math.floor(chartsWidth / cols);
+    const { cols, colWidth } = getRotationGrid(chartsWidth);
     if (colWidth <= 0) {
       destroyCells();
       return;

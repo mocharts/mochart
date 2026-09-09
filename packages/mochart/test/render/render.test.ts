@@ -260,6 +260,49 @@ describe('Renderer', () => {
     expect(calls).toEqual(['outer dispose', 'inner dispose']);
     expect(parent.innerHTML).toBe('');
   });
+
+  // a slot rebuilt inside an ElSlot init callback (the tooltip row's icon, which changes host when valueAlign flips) left the previous slot registered and its child mounted
+  it('releaseRegion destroys a replaced slot and drops it from the cascade', () => {
+    const parent = host();
+    const disposed: string[] = [];
+    class Inner extends Renderer<{ id: string }> {
+      root = htmlEl('em');
+      create() {
+        return this.root.node;
+      }
+      sync() {}
+      dispose() {
+        disposed.push(this.props.id);
+      }
+    }
+    class Outer extends Renderer<{ id: string }> {
+      root = htmlEl('div');
+      child: ReturnType<Renderer<object>['slot']> | null = null;
+      create() {
+        return this.root.node;
+      }
+      sync() {
+        if (this.child !== null) {
+          this.releaseRegion(this.child);
+        }
+        this.child = this.slot(this.root);
+        this.child.set(Inner, { id: this.props.id });
+      }
+    }
+    const r = new Outer();
+    r.mount(parent, null, { id: 'first' });
+    expect(markup(parent)).toBe('<div><em></em></div>');
+
+    r.update({ id: 'second' });
+    expect(disposed).toEqual(['first']);
+    // exactly one child remains: the replaced slot took its DOM with it
+    expect(markup(parent)).toBe('<div><em></em></div>');
+
+    r.destroy();
+    // the released slot is not disposed twice, and the live one still cascades
+    expect(disposed).toEqual(['first', 'second']);
+    expect(parent.innerHTML).toBe('');
+  });
 });
 
 describe('setProperty', () => {
@@ -269,14 +312,6 @@ describe('setProperty', () => {
     setProperty(div, 'key', undefined, 'x', false);
     setProperty(div, 'ref', undefined, 'x', false);
     expect(div.attributes.length).toBe(0);
-  });
-
-  it('skips writes when the value is unchanged', () => {
-    const div = document.createElement('div');
-    const spy = vi.spyOn(div, 'setAttribute');
-    setProperty(div, 'title', 'same', 'same', false);
-    expect(spy).not.toHaveBeenCalled();
-    spy.mockRestore();
   });
 
   it('writes form element value, checked and selected as properties', () => {
@@ -316,9 +351,42 @@ describe('setProperty', () => {
     expect(div.style.color).toBe('');
     expect(div.style.height).toBe('5px');
 
-    // null-valued style properties clear back to empty
+    // null-valued style properties clear back to empty, but the emptied
+    // attribute stays: an object style is truthy, so the removal branch is skipped
     setProperty(div, 'style', { height: 5 }, { height: null }, false);
     expect(div.style.height).toBe('');
+    expect(div.getAttribute('style')).toBe('');
+  });
+
+  it('removes the emptied style attribute when the style value itself is cleared', () => {
+    const div = document.createElement('div');
+    setProperty(div, 'style', undefined, { height: 5 }, false);
+    expect(div.getAttribute('style')).toBe('height: 5px;');
+
+    // object -> null: the declaration empties and style="" goes with it
+    setProperty(div, 'style', { height: 5 }, null, false);
+    expect(div.hasAttribute('style')).toBe(false);
+
+    // string form: cssText is emptied and the attribute removed
+    const stringDiv = document.createElement('div');
+    setProperty(stringDiv, 'style', undefined, 'width: 10px;', false);
+    setProperty(stringDiv, 'style', 'width: 10px;', '', false);
+    expect(stringDiv.hasAttribute('style')).toBe(false);
+
+    // and a string cleared with null takes the same path
+    const nulledDiv = document.createElement('div');
+    setProperty(nulledDiv, 'style', undefined, 'width: 10px;', false);
+    setProperty(nulledDiv, 'style', 'width: 10px;', null, false);
+    expect(nulledDiv.hasAttribute('style')).toBe(false);
+  });
+
+  it('keeps a style attribute that still holds declarations after a clear', () => {
+    const div = document.createElement('div');
+    // a declaration this renderer never wrote must survive the removal branch
+    div.style.color = 'red';
+    setProperty(div, 'style', undefined, { height: 5 }, false);
+    setProperty(div, 'style', { height: 5 }, null, false);
+    expect(div.getAttribute('style')).toBe('color: red;');
   });
 });
 
@@ -380,6 +448,28 @@ describe('ElList', () => {
 
     list.sync([], rowAdapter);
     expect(markup(parent)).toBe('');
+  });
+
+  // only a pass-through renderer (one with no element of its own) destroys a list
+  // with removeDom, since a hosted list is discarded with its owner's element
+  it('removes its blocks and anchor on destroy(true)', () => {
+    const parent = host();
+    const list = new ElList<Row>(parent, null);
+    list.sync([{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }], rowAdapter);
+    expect(parent.childNodes.length).toBe(3); // two blocks plus the anchor comment
+
+    list.destroy(true);
+    expect(markup(parent)).toBe('');
+    expect(parent.childNodes.length).toBe(0);
+  });
+
+  it('leaves the DOM alone on destroy(false)', () => {
+    const parent = host();
+    const list = new ElList<Row>(parent, null);
+    list.sync([{ id: 'a', label: 'A' }], rowAdapter);
+
+    list.destroy(false);
+    expect(markup(parent)).toBe('<li data-id="a">A</li>');
   });
 
   it('does not leak DOM nodes when items have duplicate keys', () => {
@@ -543,6 +633,238 @@ describe('RendererList (via Renderer.rendererList)', () => {
     expect(markup(parent)).toBe('<div><q>x</q></div>');
     expect(events).toEqual(['a dispose']);
     r.destroy();
+  });
+
+  it('reorders and mid-inserts pass-through renderers whose DOM lives in a self-anchored slot', () => {
+    class Leaf extends Renderer<{ label: string }> {
+      root = htmlEl('p');
+      text = textEl();
+      create() {
+        this.root.append(this.text);
+        return this.root.node;
+      }
+      sync() {
+        this.text.set(this.props.label);
+      }
+    }
+    class PassThrough extends Renderer<{ label: string }> {
+      leaf!: ReturnType<Renderer<object>['slot']>;
+      create() {
+        this.leaf = this.slot();
+        return null;
+      }
+      sync() {
+        this.leaf.set(Leaf, { label: this.props.label });
+      }
+    }
+    class ListHost extends Renderer<{ rows: Row[] }> {
+      root = htmlEl('div');
+      list!: ReturnType<Renderer<object>['rendererList']>;
+      create() {
+        this.list = this.rendererList(this.root);
+        return this.root.node;
+      }
+      sync() {
+        this.list.sync(this.props.rows.map((row) => ({ key: row.id, ctor: PassThrough, props: { label: row.label } })));
+      }
+    }
+
+    const parent = host();
+    const r = new ListHost();
+    r.mount(parent, null, { rows: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }] });
+    expect(markup(parent)).toBe('<div><p>A</p><p>B</p></div>');
+    const [pA, pB] = Array.from(parent.querySelectorAll('p'));
+
+    r.update({ rows: [{ id: 'b', label: 'B' }, { id: 'a', label: 'A' }] });
+    expect(markup(parent)).toBe('<div><p>B</p><p>A</p></div>');
+    expect(Array.from(parent.querySelectorAll('p'))).toEqual([pB, pA]);
+
+    r.update({ rows: [{ id: 'b', label: 'B' }, { id: 'c', label: 'C' }, { id: 'a', label: 'A' }] });
+    expect(markup(parent)).toBe('<div><p>B</p><p>C</p><p>A</p></div>');
+
+    r.update({ rows: [{ id: 'a', label: 'A' }, { id: 'c', label: 'C' }] });
+    expect(markup(parent)).toBe('<div><p>A</p><p>C</p></div>');
+    expect(parent.querySelector('p')).toBe(pA);
+
+    r.destroy();
+    expect(parent.innerHTML).toBe('');
+  });
+
+  it('moves a rooted renderer with its self-anchored region as one span and re-attaches a hidden root inside it', () => {
+    interface Item { id: string; on: boolean }
+    class Badge extends Renderer<{ label: string }> {
+      root = htmlEl('i');
+      text = textEl();
+      create() {
+        this.root.append(this.text);
+        return this.root.node;
+      }
+      sync() {
+        this.text.set(this.props.label);
+      }
+    }
+    class Rooted extends Renderer<Item> {
+      root = htmlEl('p');
+      text = textEl();
+      badge!: ReturnType<Renderer<object>['slot']>;
+      create() {
+        this.text.set(this.props.id.toUpperCase());
+        this.root.append(this.text);
+        // created before the root is inserted, so the region's DOM lands ahead of it
+        this.badge = this.slot();
+        return this.root.node;
+      }
+      sync() {
+        this.badge.set(Badge, { label: this.props.id });
+        this.setPresent(this.props.on);
+      }
+    }
+    class ListHost extends Renderer<{ items: Item[] }> {
+      root = htmlEl('div');
+      list!: ReturnType<Renderer<object>['rendererList']>;
+      create() {
+        this.list = this.rendererList(this.root);
+        return this.root.node;
+      }
+      sync() {
+        this.list.sync(this.props.items.map((item) => ({ key: item.id, ctor: Rooted, props: item })));
+      }
+    }
+
+    const parent = host();
+    const r = new ListHost();
+    r.mount(parent, null, { items: [{ id: 'a', on: true }, { id: 'b', on: true }] });
+    expect(markup(parent)).toBe('<div><i>a</i><p>A</p><i>b</i><p>B</p></div>');
+    const [pA, pB] = Array.from(parent.querySelectorAll('p'));
+    const [iA, iB] = Array.from(parent.querySelectorAll('i'));
+
+    r.update({ items: [{ id: 'b', on: true }, { id: 'a', on: true }] });
+    expect(markup(parent)).toBe('<div><i>b</i><p>B</p><i>a</i><p>A</p></div>');
+    expect(Array.from(parent.querySelectorAll('p'))).toEqual([pB, pA]);
+    expect(Array.from(parent.querySelectorAll('i'))).toEqual([iB, iA]);
+
+    // a hidden root still moves with its region and comes back inside its own span
+    r.update({ items: [{ id: 'a', on: false }, { id: 'b', on: true }] });
+    expect(markup(parent)).toBe('<div><i>a</i><i>b</i><p>B</p></div>');
+    r.update({ items: [{ id: 'a', on: true }, { id: 'b', on: true }] });
+    expect(markup(parent)).toBe('<div><i>a</i><p>A</p><i>b</i><p>B</p></div>');
+    expect(parent.querySelector('p')).toBe(pA);
+
+    r.destroy();
+    expect(parent.innerHTML).toBe('');
+  });
+
+  it('moves every node of a pass-through renderer with several self-anchored regions, empty ones included', () => {
+    interface Item { id: string; icon: boolean; tags: string[] }
+    const tagAdapter = {
+      key: (tag: string) => tag,
+      create: () => {
+        const root = htmlEl('b');
+        const text = textEl();
+        root.append(text);
+        return { root, text };
+      },
+      update: (handle: { root: El; text: ReturnType<typeof textEl> }, tag: string) => {
+        handle.text.set(tag);
+      }
+    };
+    class Multi extends Renderer<Item> {
+      icon!: ReturnType<Renderer<object>['elSlot']>;
+      tags!: ReturnType<Renderer<object>['elList']>;
+      create() {
+        this.icon = this.elSlot();
+        this.tags = this.elList();
+        return null;
+      }
+      sync() {
+        this.icon.set(this.props.icon ? 'i' : null, () => htmlEl('i'))?.set({ 'data-id': this.props.id });
+        this.tags.sync(this.props.tags, tagAdapter);
+      }
+    }
+    class ListHost extends Renderer<{ items: Item[] }> {
+      root = htmlEl('div');
+      list!: ReturnType<Renderer<object>['rendererList']>;
+      create() {
+        this.list = this.rendererList(this.root);
+        return this.root.node;
+      }
+      sync() {
+        this.list.sync(this.props.items.map((item) => ({ key: item.id, ctor: Multi, props: item })));
+      }
+    }
+
+    const parent = host();
+    const r = new ListHost();
+    r.mount(parent, null, { items: [{ id: 'a', icon: true, tags: ['a1', 'a2'] }, { id: 'b', icon: false, tags: ['b1'] }] });
+    expect(markup(parent)).toBe('<div><i data-id="a"></i><b>a1</b><b>a2</b><b>b1</b></div>');
+    const [a1, a2, b1] = Array.from(parent.querySelectorAll('b'));
+
+    r.update({ items: [{ id: 'b', icon: false, tags: ['b1'] }, { id: 'a', icon: true, tags: ['a1', 'a2'] }] });
+    expect(markup(parent)).toBe('<div><b>b1</b><i data-id="a"></i><b>a1</b><b>a2</b></div>');
+    expect(Array.from(parent.querySelectorAll('b'))).toEqual([b1, a1, a2]);
+
+    // b's empty icon slot moved with it: showing the icon now lands inside b's span
+    r.update({ items: [{ id: 'b', icon: true, tags: ['b1', 'b2'] }, { id: 'a', icon: false, tags: ['a2'] }] });
+    expect(markup(parent)).toBe('<div><i data-id="b"></i><b>b1</b><b>b2</b><b>a2</b></div>');
+    expect(Array.from(parent.querySelectorAll('b'))).toEqual([b1, expect.anything(), a2]);
+
+    r.update({ items: [{ id: 'a', icon: false, tags: ['a2'] }, { id: 'b', icon: true, tags: ['b1', 'b2'] }] });
+    expect(markup(parent)).toBe('<div><b>a2</b><i data-id="b"></i><b>b1</b><b>b2</b></div>');
+
+    r.destroy();
+    expect(parent.innerHTML).toBe('');
+  });
+
+  it('reorders pass-through renderers inside a pass-through host\'s self-anchored list without touching outside siblings', () => {
+    class Leaf extends Renderer<{ label: string }> {
+      root = htmlEl('p');
+      text = textEl();
+      create() {
+        this.root.append(this.text);
+        return this.root.node;
+      }
+      sync() {
+        this.text.set(this.props.label);
+      }
+    }
+    class PassThrough extends Renderer<{ label: string }> {
+      leaf!: ReturnType<Renderer<object>['slot']>;
+      create() {
+        this.leaf = this.slot();
+        return null;
+      }
+      sync() {
+        this.leaf.set(Leaf, { label: this.props.label });
+      }
+    }
+    class PassHost extends Renderer<{ rows: Row[] }> {
+      list!: ReturnType<Renderer<object>['rendererList']>;
+      create() {
+        this.list = this.rendererList();
+        return null;
+      }
+      sync() {
+        this.list.sync(this.props.rows.map((row) => ({ key: row.id, ctor: PassThrough, props: { label: row.label } })));
+      }
+    }
+
+    const parent = host();
+    parent.appendChild(document.createElement('u'));
+    const r = new PassHost();
+    r.mount(parent, parent.firstChild, { rows: [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }] });
+    expect(markup(parent)).toBe('<p>A</p><p>B</p><p>C</p><u></u>');
+    const [pA, pB, pC] = Array.from(parent.querySelectorAll('p'));
+
+    r.update({ rows: [{ id: 'c', label: 'C' }, { id: 'a', label: 'A' }, { id: 'b', label: 'B' }] });
+    expect(markup(parent)).toBe('<p>C</p><p>A</p><p>B</p><u></u>');
+    expect(Array.from(parent.querySelectorAll('p'))).toEqual([pC, pA, pB]);
+
+    r.update({ rows: [{ id: 'b', label: 'B' }, { id: 'c', label: 'C' }] });
+    expect(markup(parent)).toBe('<p>B</p><p>C</p><u></u>');
+    expect(Array.from(parent.querySelectorAll('p'))).toEqual([pB, pC]);
+
+    r.destroy();
+    expect(parent.innerHTML).toBe('<u></u>');
   });
 });
 

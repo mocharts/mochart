@@ -1,12 +1,10 @@
 import { ChangeDetectorRef, Component, ElementRef, Input, ViewChild, inject, signal } from '@angular/core';
 import type { OnChanges, OnDestroy, OnInit } from '@angular/core';
 
-import { buildShareUrl, createMenuController, demoText } from '@mochart/demo-common';
-import type { MenuController, ShareState } from '@mochart/demo-common';
+import { controlsMenuPlacement, createMenuController, createShareLinkCopier, demoText } from '@mochart/demo-common';
+import type { MenuController, ShareLinkCopier, ShareState } from '@mochart/demo-common';
 
 import { Icon } from './icon';
-
-const copiedFeedbackMs = 1500;
 
 /**
  * A collapsed export/share menu placed at the end of each mode's controls row.
@@ -19,7 +17,7 @@ const copiedFeedbackMs = 1500;
  * it is hand-rolled (the controls strips clip an absolutely-positioned dropdown,
  * and the chart's interaction rect eats clicks through anything stacked below
  * it). What stays here is what the controller does not know about: the items,
- * the copied-link feedback, and `disabled`.
+ * their copied label, and `disabled`.
  *
  * The trigger and panel carry STATIC classes and no `aria-expanded`, because
  * the controller writes those itself; a binding on the same element would be
@@ -31,8 +29,8 @@ const copiedFeedbackMs = 1500;
   imports: [Icon],
   styles: [':host { display: contents; }'],
   template: `
-    <div class="demo-btn-group demo-menu-up mochart-export-share-menu">
-      <button [id]="idPrefix + '-export-share'" type="button" #trigger
+    <div class="demo-btn-group mochart-export-share-menu">
+      <button type="button" #trigger
               class="demo-btn demo-btn-secondary demo-menu-trigger"
               [disabled]="disabled"
               [attr.title]="text.trigger.tooltip" [attr.aria-label]="text.trigger.aria"
@@ -42,17 +40,17 @@ const copiedFeedbackMs = 1500;
       <div #panel class="demo-menu">
         <button type="button" class="demo-menu-item" (click)="runAndClose(exportPng)"
                 [attr.aria-label]="exportText.png.aria">
-          <app-icon [fixedWidth]="true" name="file-image" /> <span class="mochart-menu-item-label">{{ exportText.png.label }}</span>
+          <app-icon [fixedWidth]="true" name="file-image" /> <span>{{ exportText.png.label }}</span>
         </button>
         <button type="button" class="demo-menu-item" (click)="runAndClose(exportSvg)"
                 [attr.aria-label]="exportText.svg.aria">
-          <app-icon [fixedWidth]="true" name="file-code" /> <span class="mochart-menu-item-label">{{ exportText.svg.label }}</span>
+          <app-icon [fixedWidth]="true" name="file-code" /> <span>{{ exportText.svg.label }}</span>
         </button>
         @if (getShareState) {
           <div class="demo-menu-divider"></div>
           <button type="button" class="demo-menu-item" (click)="onShare()"
                   [attr.aria-label]="shareText.aria">
-            <app-icon [fixedWidth]="true" [name]="copied() ? 'check' : 'link'" /> <span class="mochart-menu-item-label">{{ copied() ? shareText.tooltipCopied : shareText.label }}</span>
+            <app-icon [fixedWidth]="true" [name]="copied() ? 'check' : 'link'" /> <span>{{ copied() ? shareText.tooltipCopied : shareText.label }}</span>
           </button>
         }
       </div>
@@ -64,7 +62,6 @@ export class ExportShareMenu implements OnInit, OnChanges, OnDestroy {
   readonly exportText = demoText.exportButtons;
   readonly shareText = demoText.shareButton;
 
-  @Input({ required: true }) idPrefix!: string;
   @Input({ required: true }) exportPng!: () => void;
   @Input({ required: true }) exportSvg!: () => void;
   /** Omit to hide the Share item (e.g. a chart whose state isn't shareable). */
@@ -85,15 +82,20 @@ export class ExportShareMenu implements OnInit, OnChanges, OnDestroy {
   controller?: MenuController;
 
   private readonly changeDetector = inject(ChangeDetectorRef);
-  private revertTimer: ReturnType<typeof setTimeout> | null = null;
+  // The clipboard promise and the revert timer both resolve outside Angular, and
+  // this is a zoneless app, so a signal write there only *schedules* change
+  // detection — flush it so the label swap lands on the spot.
+  private readonly shareLinkCopier: ShareLinkCopier = createShareLinkCopier(copied => {
+    this.copied.set(copied);
+    this.changeDetector.detectChanges();
+  });
 
   ngOnInit(): void {
-    // Opens upward (the controls row sits at the bottom of the pane) and
-    // right-aligned (the trigger is the last control in the row).
+    // The trigger has no id, so the controller mints a unique one.
     this.controller = createMenuController({
       trigger: this.triggerElement.nativeElement,
       panel: this.panelElement.nativeElement,
-      placement: { side: 'top', align: 'end', gap: 4 },
+      placement: controlsMenuPlacement,
       bindTrigger: false
     });
   }
@@ -107,10 +109,7 @@ export class ExportShareMenu implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.revertTimer !== null) {
-      clearTimeout(this.revertTimer);
-      this.revertTimer = null;
-    }
+    this.shareLinkCopier.dispose();
     this.controller?.destroy();
   }
 
@@ -123,26 +122,7 @@ export class ExportShareMenu implements OnInit, OnChanges, OnDestroy {
     if (!this.getShareState) {
       return;
     }
-    const url = buildShareUrl(this.getShareState());
-    navigator.clipboard.writeText(url).then(() => {
-      this.copied.set(true);
-      // The clipboard promise resolves outside Angular, and this is a zoneless
-      // app, so the signal write there only *schedules* change detection —
-      // flush it so the "Link copied" label appears on the spot.
-      this.changeDetector.detectChanges();
-      if (this.revertTimer !== null) {
-        clearTimeout(this.revertTimer);
-      }
-      this.revertTimer = setTimeout(() => {
-        this.copied.set(false);
-        this.revertTimer = null;
-        this.changeDetector.detectChanges();
-      }, copiedFeedbackMs);
-    }, () => {
-      // Clipboard access can be unavailable (e.g. insecure context); let the
-      // user copy the link manually instead of failing silently.
-      window.prompt(this.shareText.tooltip, url);
-    });
+    this.shareLinkCopier.copy(this.getShareState());
     this.controller?.close();
   }
 }

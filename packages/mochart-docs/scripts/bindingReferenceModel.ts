@@ -5,7 +5,7 @@
 // back to its core counterpart (`loadingComponent` → `getLoadingComponent`,
 // Angular's `chartClick` output → `onChartClick`), so the prose has exactly
 // one home; a binding prop only needs its own JSDoc when it has no core
-// counterpart (`className`, `class`). Integrity errors — reported by
+// counterpart (`className`, `class`, `style`). Integrity errors — reported by
 // scripts/generateBindings.ts, which fails the docs build and `npm test` —
 // cover the three ways this drifts:
 //
@@ -127,7 +127,9 @@ const bindingSources: BindingSource[] = [
     guideLink: '/guide/frameworks/react',
     surface: 'component props on `Chart` and `DefaultChart`',
     style: 'interfaces',
-    expectedMissing: {}
+    expectedMissing: {
+      style: 'the binding has its own style prop, applied to the container div it renders rather than forwarded to core'
+    }
   },
   {
     id: 'svelte',
@@ -137,7 +139,9 @@ const bindingSources: BindingSource[] = [
     guideLink: '/guide/frameworks/svelte',
     surface: 'component props on `Chart` and `DefaultChart`',
     style: 'interfaces',
-    expectedMissing: {}
+    expectedMissing: {
+      style: 'the binding has its own style prop, applied to the container div it renders rather than forwarded to core'
+    }
   },
   {
     id: 'vue',
@@ -159,7 +163,9 @@ const bindingSources: BindingSource[] = [
     guideLink: '/guide/frameworks/lit',
     surface: 'directive props on `chart()` and `defaultChart()`',
     style: 'interfaces',
-    expectedMissing: {}
+    expectedMissing: {
+      style: 'the directive has its own style prop, applied to the container div it renders rather than forwarded to core'
+    }
   },
   {
     id: 'angular',
@@ -175,7 +181,7 @@ const bindingSources: BindingSource[] = [
   }
 ];
 
-const groupTitles: Record<BindingPropKind, { title: string; description: string }> = {
+const categoryTitles: Record<BindingPropKind, { title: string; description: string }> = {
   entry: {
     title: 'Entry-point props',
     description:
@@ -213,8 +219,15 @@ function classifyKey(key: string, hint: BindingPropKind | undefined): BindingPro
   return hint ?? 'prop';
 }
 
+// Bindings strip `style` and apply it to the container div they render, so the
+// same-named core prop (inline style on core's root element) is not its counterpart.
+const bindingOwnKeys = new Set(['style']);
+
 /** The core prop a binding prop mirrors, following each binding's renaming rules. */
 function coreKeyFor(key: string, coreKeys: Set<string>): string | undefined {
+  if (bindingOwnKeys.has(key)) {
+    return undefined;
+  }
   if (coreKeys.has(key)) {
     return key;
   }
@@ -222,6 +235,14 @@ function coreKeyFor(key: string, coreKeys: Set<string>): string | undefined {
   const asCallback = 'on' + upperFirst(key);
   if (coreKeys.has(asCallback)) {
     return asCallback;
+  }
+  // An Angular `xChange` output mirrors a core `onX` callback when the bare
+  // name would shadow a native DOM event: focusChange → onFocus.
+  if (key.endsWith('Change')) {
+    const asChangeCallback = 'on' + upperFirst(key.slice(0, -'Change'.length));
+    if (coreKeys.has(asChangeCallback)) {
+      return asChangeCallback;
+    }
   }
   // Placeholders replace the core factories: loadingComponent (or lit's
   // loadingTemplate) → getLoadingComponent.
@@ -277,15 +298,28 @@ function readAngularBinding(source: BindingSource): SourceMember[] {
           kindHint: isOutput ? 'callback' : undefined,
           // Outputs declare no type annotation; their initializer names it.
           type: declaredType === 'unknown' && member.initializer !== undefined
-            ? member.initializer.getText(sourceFile).replace(/^new\s+/, '').replace(/\(\)$/, '')
+            ? outputTypeFromInitializer(member.initializer, sourceFile)
             : declaredType,
-          optional: member.questionToken !== undefined,
+          // an Output is always optional to a host: subscribing to it is opt-in
+          optional: isOutput || member.questionToken !== undefined,
           description: jsDocText(text, member)
         });
       }
     }
   }
   return members;
+}
+
+/** Factory call or constructor, the host-visible type is `EventEmitter<T>` either way. */
+function outputTypeFromInitializer(initializer: ts.Expression, sourceFile: ts.SourceFile): string {
+  if (ts.isNewExpression(initializer) || ts.isCallExpression(initializer)) {
+    const typeArguments = initializer.typeArguments;
+    const args = typeArguments && typeArguments.length > 0
+      ? '<' + typeArguments.map(typeArgument => typeArgument.getText(sourceFile)).join(', ') + '>'
+      : '';
+    return 'EventEmitter' + args;
+  }
+  return initializer.getText(sourceFile);
 }
 
 /** Vue declares props twice: runtime objects in props.ts, types in types.ts. */
@@ -406,8 +440,8 @@ export function buildBindingReference(coreModel: CoreApiModel): BindingReference
     const groups: BindingGroupDoc[] = (['entry', 'prop', 'callback', 'placeholder'] as BindingPropKind[])
       .map(kind => ({
         id: source.id + '.' + kind,
-        title: groupTitles[kind].title,
-        description: groupTitles[kind].description,
+        title: categoryTitles[kind].title,
+        description: categoryTitles[kind].description,
         properties: properties.filter(property => property.kind === kind)
       }))
       .filter(group => group.properties.length > 0);

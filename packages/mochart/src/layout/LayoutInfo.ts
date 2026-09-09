@@ -1,25 +1,25 @@
 import type { Bounds, Size } from '../types/geometry';
 import type { LayoutInfo } from '../types/layout';
 
-export function createLayoutInfo(groupPosition: number, seriesPosition: number, groupExtent: number, seriesExtent: number, inverted: boolean): LayoutInfo {
+export function createLayoutInfo(categoryPosition: number, valuePosition: number, categoryExtent: number, valueExtent: number, inverted: boolean): LayoutInfo {
   const layoutInfo = {
-    groupPosition,
-    seriesPosition,
-    groupExtent,
-    seriesExtent,
+    categoryPosition,
+    valuePosition,
+    categoryExtent,
+    valueExtent,
     inverted
   } as LayoutInfo;
   if (inverted) {
-    layoutInfo.x = seriesPosition;
-    layoutInfo.y = groupPosition;
-    layoutInfo.width = seriesExtent;
-    layoutInfo.height = groupExtent;
+    layoutInfo.x = valuePosition;
+    layoutInfo.y = categoryPosition;
+    layoutInfo.width = valueExtent;
+    layoutInfo.height = categoryExtent;
   }
   else {
-    layoutInfo.x = groupPosition;
-    layoutInfo.y = seriesPosition;
-    layoutInfo.width = groupExtent;
-    layoutInfo.height = seriesExtent;
+    layoutInfo.x = categoryPosition;
+    layoutInfo.y = valuePosition;
+    layoutInfo.width = categoryExtent;
+    layoutInfo.height = valueExtent;
   }
   return layoutInfo;
 }

@@ -19,18 +19,18 @@
 
         const config = {
             version: '1.0.0',
-            titleConfig: { title: 'Fruit' },
-            groupAxisConfig: {
+            title: { text: 'Fruit' },
+            categoryAxis: {
                 property: 'name',
                 type: 'string',
                 scale: 'ordinal'
             },
-            seriesAxisConfigs: [
-                { id: 'sa', min: 0 }
+            valueAxes: [
+                { id: 'va', min: 0 }
             ],
-            seriesConfigs: [
-                { axis: 'sa', property: 'weight', title: 'Weight', renderer: 'bar' },
-                { axis: 'sa', property: 'price', title: 'Price', renderer: 'line' }
+            series: [
+                { axis: 'va', property: 'weight', title: 'Weight', renderer: 'bar' },
+                { axis: 'va', property: 'price', title: 'Price', renderer: 'line' }
             ]
         };
 
@@ -41,11 +41,10 @@
         ];
 
         const mochartConfig = enhanceConfig(config);
-        const groupProperty = mochartConfig.groupAxisConfig.property;
 
         const chart = createChart(document.getElementById('chart'), {
             mochartConfig,
-            dataProvider: new ArrayOfObjectsDataProvider(data, groupProperty),
+            dataProvider: new ArrayOfObjectsDataProvider(data),
             width: 640,
             height: 360
         });
@@ -56,7 +55,7 @@
                 weight: Math.round(Math.random() * 12),
                 price: Math.round(Math.random() * 12)
             }));
-            chart.update({ dataProvider: new ArrayOfObjectsDataProvider(data, groupProperty) });
+            chart.update({ dataProvider: new ArrayOfObjectsDataProvider(data) });
         });
     </script>
 </body>

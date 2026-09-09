@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, useSlots } from 'vue';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, navMenuPlacement } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import BackToDemosButton from './BackToDemosButton.vue';
@@ -60,9 +60,9 @@ const hasNotes = computed(() => props.notes !== undefined && props.notes.notes !
        class and the trigger that justifies it render together or not at all. -->
   <div v-if="folded" class="mochart-demo-tabs-container demo-has-overflow">
     <div class="mochart-demo-nav-group">
-      <ul v-if="hasTabs" class="demo-tabs"><slot name="tabs"></slot></ul>
+      <slot name="tabs"></slot>
     </div>
-    <OverflowMenu :text="demoText.overflowMenu.nav" :placement="{ side: 'bottom', align: 'end', gap: 6 }">
+    <OverflowMenu :text="demoText.overflowMenu.nav" :placement="navMenuPlacement">
       <!-- The menu's contents, in the order a thumb should meet them: what
            this demo is, then where else to see it, then how it looks, then the
            two ways out. The about row has no trailing divider when the Mode
@@ -89,7 +89,7 @@ const hasNotes = computed(() => props.notes !== undefined && props.notes.notes !
     <div class="mochart-demo-nav-group">
       <SiteRootButton :site-root-url="props.siteRootUrl" />
       <BackToDemosButton :on-back-to-demos="props.onBackToDemos" />
-      <ul v-if="hasTabs" class="demo-tabs"><slot name="tabs"></slot></ul>
+      <slot name="tabs"></slot>
       <NotesMenu v-if="props.notes !== undefined" :title="props.notes.title" :notes="props.notes.notes" />
     </div>
     <div v-if="props.modes !== undefined" class="mochart-demo-nav-group">

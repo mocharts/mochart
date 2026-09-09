@@ -33,10 +33,10 @@ DevTools being open, background tabs, and low-power mode all skew results.
 ## Scenarios
 
 Configs and datasets are generated in [src/scenarios.ts](src/scenarios.ts)
-(no JSON fixtures) for a chosen series × groups size:
+(no JSON fixtures) for a chosen series × categories size:
 
 - **Bar** — one `<path>` element per bar, so DOM node count scales with
-  series × groups. The main SVG stress case.
+  series × categories. The main SVG stress case.
 - **Line** — one `<path>` per series regardless of point count; the cheap
   baseline to compare against.
 - **Line + markers** — line plus one marker element per point.
@@ -44,8 +44,8 @@ Configs and datasets are generated in [src/scenarios.ts](src/scenarios.ts)
 - **Dashboard** — a grid of many small charts (the "lots of charts on one
   page" case rather than "one big chart").
 
-The Animate and Legend checkboxes toggle `animationConfig.animate` and
-`legendConfig.visible` in the generated config.
+The Animate and Legend checkboxes toggle `animation.enabled` and
+`legend.visible` in the generated config.
 
 ## Measurements
 
@@ -68,7 +68,8 @@ animation for the stress pass.
 
 ## Notes
 
-- Generated configs must carry the current `CONFIG_VERSION` (see
+- Generated configs may omit `version` (omitted means the current format);
+  when present it must equal the current `CONFIG_VERSION` (see
   `src/config/core/constants.ts` in the mochart package) — `enhanceConfig`
   rejects older versions unless they go through `migrateConfig` first.
 - The update metric includes waiting for the next paint, so it has a floor of

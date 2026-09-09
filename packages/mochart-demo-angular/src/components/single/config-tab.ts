@@ -2,11 +2,11 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, ElementRef, Input, ViewChild, signal } from '@angular/core';
 import type { OnChanges, OnInit, SimpleChanges } from '@angular/core';
 
-import { buildMochartDemoConfig, copyDemoConfig, demoText, formatMochartDemoConfig, getReferenceSectionIds, parseConfig, slowAnimationConfig, toggleConfigProperty, toggleConfigSection } from '@mochart/demo-common';
+import { buildMochartDemoConfig, controlsMenuPlacement, copyDemoConfig, demoConfigFromText, demoText, formatMochartDemoConfig, getDemoTabPanelAttrs, getJsonError, getJsonErrorMessage, getReferenceSectionIds, isConfigSectionActive, parseConfigFromText, parseJson, slowAnimationConfig, toggleConfigFromText, toggleConfigProperty, toggleConfigSection } from '@mochart/demo-common';
 
 import type { DemoConfigView } from '@mochart/demo-common';
 
-import { TextAreaContent } from '../misc/text-area-content';
+import { JsonEditorContent } from '../misc/json-editor-content';
 import { ButtonWithTooltip } from '../misc/button-with-tooltip';
 import { DocsLinks } from '../misc/docs-links';
 import { Icon } from '../misc/icon';
@@ -17,7 +17,7 @@ import type { DemoConfig, MochartDemoConfig } from '../../types';
 
 @Component({
   selector: 'app-config-tab',
-  imports: [TextAreaContent, ButtonWithTooltip, DocsLinks, Icon, NgTemplateOutlet, OverflowMenu],
+  imports: [JsonEditorContent, ButtonWithTooltip, DocsLinks, Icon, NgTemplateOutlet, OverflowMenu],
   styles: [':host { display: contents; }'],
   template: `
     <ng-template #resetButton>
@@ -47,6 +47,13 @@ import type { DemoConfig, MochartDemoConfig } from '../../types';
         <app-icon size="lg" [fixedWidth]="true" [name]="slowIcon" />
       </app-button-with-tooltip>
     </ng-template>
+    <ng-template #formatButton>
+      <app-button-with-tooltip id="config-format" [label]="text.format.label" [disabled]="jsonError !== null"
+                               [tooltipText]="text.format.tooltip" tooltipPlacement="top-start"
+                               [onClick]="formatConfig" [aria-label]="text.format.aria">
+        <app-icon size="lg" [fixedWidth]="true" name="indent" />
+      </app-button-with-tooltip>
+    </ng-template>
     <ng-template #applyButton>
       <app-button-with-tooltip id="config-apply" [label]="text.apply.label" [disabled]="jsonError !== null"
                                [tooltipText]="text.apply.tooltip" tooltipPlacement="top-start"
@@ -62,12 +69,14 @@ import type { DemoConfig, MochartDemoConfig } from '../../types';
          \`role="alert"\` error span stays inline — a message that has to be read
          cannot live behind a tap. Everything else, including the reference
          links, goes to the \`⋯\` menu. -->
-    <div [class]="'mochart-demo-tab-container demo-layout-col config' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">
+    <div [id]="panelAttrs.id" [attr.role]="panelAttrs.role" [attr.aria-labelledby]="panelAttrs['aria-labelledby']"
+         [class]="'mochart-demo-tab-container demo-layout-col config' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">
       <div class="mochart-demo-tab-content">
-        <app-text-area-content [value]="configText()" [onChange]="onTextChange" />
+        <app-json-editor-content #editor [value]="configText()" [ariaLabel]="text.editorAria" [formatOnSet]="true"
+                                 [mochartSupport]="true" [onChange]="onTextChange" />
       </div>
       <div class="mochart-demo-tab-footer" #footer>
-        <div class="demo-toolbar" role="toolbar">
+        <div class="demo-toolbar">
           @if (phone()) {
             <ng-container [ngTemplateOutlet]="applyButton" />
             <!-- \`.editor\`, not \`.chart\`: what folds here edits the JSON, and
@@ -80,6 +89,7 @@ import type { DemoConfig, MochartDemoConfig } from '../../types';
                 <ng-container [ngTemplateOutlet]="defaultsButton" />
                 <ng-container [ngTemplateOutlet]="invertedButton" />
                 <ng-container [ngTemplateOutlet]="slowButton" />
+                <ng-container [ngTemplateOutlet]="formatButton" />
               </div>
               @if (hasDocsLinks) {
                 <div class="demo-menu-divider"></div>
@@ -91,6 +101,7 @@ import type { DemoConfig, MochartDemoConfig } from '../../types';
             <ng-container [ngTemplateOutlet]="defaultsButton" />
             <ng-container [ngTemplateOutlet]="invertedButton" />
             <ng-container [ngTemplateOutlet]="slowButton" />
+            <ng-container [ngTemplateOutlet]="formatButton" />
             <ng-container [ngTemplateOutlet]="applyButton" />
           }
           @if (footerError) {
@@ -105,6 +116,8 @@ import type { DemoConfig, MochartDemoConfig } from '../../types';
   `
 })
 export class ConfigTab implements OnInit, OnChanges {
+  readonly panelAttrs = getDemoTabPanelAttrs('config');
+
   @Input() active = false;
   @Input({ required: true }) config!: DemoConfig;
   @Input({ required: true }) onConfigChange!: (config: DemoConfig) => void;
@@ -112,9 +125,10 @@ export class ConfigTab implements OnInit, OnChanges {
 
   // The phone fold (see the comment above the pane in the template).
   @ViewChild('footer', { static: true }) footerElement!: ElementRef<HTMLDivElement>;
+  @ViewChild('editor', { static: true }) editorComponent!: JsonEditorContent;
   readonly phone = phoneViewport();
   readonly overflowText = demoText.overflowMenu.editor;
-  readonly editorPlacement = { side: 'top', align: 'end', gap: 4 } as const;
+  readonly editorPlacement = controlsMenuPlacement;
   readonly getFooterAnchor = (): HTMLElement => this.footerElement.nativeElement;
 
   get hasDocsLinks(): boolean {
@@ -144,8 +158,10 @@ export class ConfigTab implements OnInit, OnChanges {
     }
   }
 
+  // demoConfig tracks the text, so the Invert/Slow states and reference links follow unapplied edits.
   onTextChange = (nextConfigText: string): void => {
     this.configText.set(nextConfigText);
+    this.demoConfig.set(demoConfigFromText(nextConfigText, this.demoConfig()!));
     this.errorMessage.set(null);
   };
 
@@ -155,7 +171,7 @@ export class ConfigTab implements OnInit, OnChanges {
 
   private updateShowDefaults(nextShowDefaults: boolean): void {
     try {
-      const newConfig = JSON.parse(this.configText());
+      const newConfig = parseJson(this.configText()) as DemoConfig;
       const newMochartDemoConfig = buildMochartDemoConfig(newConfig);
       const { configValidation } = newMochartDemoConfig;
       const { valid } = configValidation;
@@ -175,9 +191,9 @@ export class ConfigTab implements OnInit, OnChanges {
         this.errorMessage.set(demoText.errors.invalidChartConfig);
       }
     }
-    catch {
+    catch (error) {
       console.warn('Invalid Chart Config JSON: ' + this.configText());
-      this.errorMessage.set(demoText.errors.invalidJson);
+      this.errorMessage.set(getJsonErrorMessage(error));
     }
   }
 
@@ -185,25 +201,42 @@ export class ConfigTab implements OnInit, OnChanges {
     this.updateShowDefaults(!this.showDefaults());
   };
 
+  // Toggle against the current text (the Defaults toggle's pattern), so
+  // unapplied textarea edits survive the toggle instead of being overwritten.
+  private applyConfigToggle(transform: (current: DemoConfigView) => DemoConfigView): void {
+    const result = toggleConfigFromText(this.configText(), this.showDefaults(), transform);
+    if (result.error !== null) {
+      this.errorMessage.set(result.error);
+    }
+    else {
+      this.demoConfig.set(result.demoConfig);
+      this.configText.set(result.text);
+      this.errorMessage.set(null);
+    }
+  }
+
   toggleConfigInverted = (): void => {
-    this.demoConfig.set(toggleConfigProperty(this.demoConfig()!, 'plotConfig', 'inverted', true));
-    this.configText.set(formatMochartDemoConfig(this.demoConfig()!, this.showDefaults()));
+    this.applyConfigToggle(current => toggleConfigProperty(current, 'plot', 'inverted', true));
   };
 
   toggleConfigAnimationSlow = (): void => {
-    this.demoConfig.set(toggleConfigSection(this.mochartDemoConfig()!, this.demoConfig()!, 'animationConfig', slowAnimationConfig));
-    this.configText.set(formatMochartDemoConfig(this.demoConfig()!, this.showDefaults()));
+    this.applyConfigToggle(current => toggleConfigSection(this.mochartDemoConfig()!, current, 'animation', slowAnimationConfig));
+  };
+
+  formatConfig = (): void => {
+    this.editorComponent.format();
   };
 
   applyConfig = (): void => {
-    const newConfig = parseConfig(this.configText());
-    if (newConfig !== null) {
-      this.onConfigChange(newConfig);
+    const { config, error } = parseConfigFromText(this.configText());
+    this.errorMessage.set(error);
+    if (config !== null) {
+      this.onConfigChange(config);
     }
   };
 
   get inverted(): boolean {
-    return !!this.demoConfig()?.configWithDefaults['plotConfig']?.inverted;
+    return !!this.demoConfig()?.configWithDefaults['plot']?.inverted;
   }
 
   get invertedIcon(): string {
@@ -211,7 +244,8 @@ export class ConfigTab implements OnInit, OnChanges {
   }
 
   get slow(): boolean {
-    return this.demoConfig()?.configWithDefaults['animationConfig'] === slowAnimationConfig;
+    const demoConfig = this.demoConfig();
+    return demoConfig !== null && isConfigSectionActive(demoConfig, 'animation', slowAnimationConfig);
   }
 
   get slowIcon(): string {
@@ -221,13 +255,7 @@ export class ConfigTab implements OnInit, OnChanges {
   // Live JSON validity — disables Apply and shows an inline hint while the
   // editor holds unparseable text.
   get jsonError(): string | null {
-    try {
-      JSON.parse(this.configText());
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
+    return getJsonError(this.configText());
   }
 
   get footerError(): string | null {

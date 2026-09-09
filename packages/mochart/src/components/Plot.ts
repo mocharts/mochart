@@ -8,37 +8,48 @@ import AxisBaseContainer from './AxisBaseContainer';
 import AxisContainer from './AxisContainer';
 import AxisThresholdContainer from './AxisThresholdContainer';
 import SeriesContainer from './SeriesContainer';
+import type { SeriesShapeA11yProps } from './SeriesBackground';
 import Crosshair from './Crosshair';
-import type { MochartConfig } from '../types/config';
+import ClipIndicator from './ClipIndicator';
+import type { EnhancedMochartConfig } from '../types/enhanced';
+import type { ClippedEdges } from '../types/data';
 import type { InternalFocus } from '../types/chart';
-import type { AxisData, ChartData, GroupAxisData, SeriesAxisData, StackData } from '../types/data';
+import type { AxisData, ChartData, CategoryAxisData, ValueAxisData, StackData } from '../types/data';
 import type { FocusData } from '../types/animation';
-import type { AxisLayoutInfo, GroupAxisLayoutInfo, LayoutInfo, SpacingLayoutInfo } from '../types/layout';
+import type { AxisLayoutInfo, CategoryAxisLayoutInfo, LayoutInfo, SpacingLayoutInfo } from '../types/layout';
 
-type CompleteAxisData = AxisData & { group: GroupAxisData; series: SeriesAxisData };
+type CompleteAxisData = AxisData & { category: CategoryAxisData; value: ValueAxisData };
 
 interface PlotFrontBackProps {
   front: boolean;
-  mochartConfig: MochartConfig;
-  groupAxisLayoutInfo: GroupAxisLayoutInfo;
-  seriesAxisLayoutInfos: Record<string, AxisLayoutInfo>;
+  mochartConfig: EnhancedMochartConfig;
+  categoryAxisLayoutInfo: CategoryAxisLayoutInfo;
+  valueAxisLayoutInfos: Record<string, AxisLayoutInfo>;
   seriesLayoutInfo: LayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
   chartData: ChartData;
   focusData: FocusData;
   axisData: CompleteAxisData;
-  groupAxisTitleClipPathUniqueId: string;
-  groupAxisTickLabelClipPathUniqueId: string;
-  seriesAxisTitleClipPathUniqueIds: Record<string, string>;
+  categoryAxisTitleClipPathUniqueId: string;
+  categoryAxisTickLabelClipPathUniqueId: string;
+  valueAxisTitleClipPathUniqueIds: Record<string, string>;
+  seriesClipPathUniqueId: string;
+  clippedEdges: ClippedEdges;
+  clipIndicatorPatternUniqueId: string;
   onFocus: (focus: InternalFocus) => void;
 }
 
 interface PlotProps extends Omit<PlotFrontBackProps, 'front'> {
   stackData: StackData;
-  groupValueData: GroupAxisData['valueData'];
+  categoryValueData: CategoryAxisData['valueData'];
   gradientIdMap: Record<string, string>;
+  patternIdMap: Record<string, string>;
   tooltipClipPathUniqueId: string;
+  /** TooltipClip only mounts its node while the tooltip is visible; the crosshair must not reference it otherwise. */
+  tooltipClipPresent: boolean;
+  onSeriesShapeClick: ((seriesId: string, categoryIndex: number, event: Event) => void) | null;
   shapeRef: (element: Element | null) => void;
+  a11yProps: SeriesShapeA11yProps | null;
 }
 
 class PlotFrontBack extends Renderer<PlotFrontBackProps> {
@@ -53,11 +64,12 @@ class PlotFrontBack extends Renderer<PlotFrontBackProps> {
   }
 
   sync() {
-    const { front, mochartConfig, groupAxisLayoutInfo, seriesAxisLayoutInfos, seriesLayoutInfo, plotLayoutInfo,
-      chartData, focusData, axisData, groupAxisTitleClipPathUniqueId,
-      groupAxisTickLabelClipPathUniqueId, seriesAxisTitleClipPathUniqueIds, onFocus } = this.props;
+    const { front, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos, seriesLayoutInfo, plotLayoutInfo,
+      chartData, focusData, axisData, categoryAxisTitleClipPathUniqueId,
+      categoryAxisTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, onFocus } = this.props;
     const { seriesData } = chartData;
 
+    // not aria-hidden: the axis tick labels and titles under here are text a screen reader should read
     this.root.set({ className: mochartCssClasses[front ? 'plotFront' : 'plotBack'] });
 
     this.gridContainer.set(AxisGridContainer, { front, mochartConfig, seriesLayoutInfo,
@@ -66,12 +78,12 @@ class PlotFrontBack extends Renderer<PlotFrontBackProps> {
     this.baseContainer.set(AxisBaseContainer, { front, mochartConfig, seriesLayoutInfo,
       seriesData, focusData });
 
-    this.axisContainer.set(AxisContainer, { front, mochartConfig, groupAxisLayoutInfo, seriesAxisLayoutInfos,
+    this.axisContainer.set(AxisContainer, { front, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos,
       plotLayoutInfo, seriesData, focusData, axisData,
-      groupAxisTitleClipPathUniqueId, groupAxisTickLabelClipPathUniqueId,
-      seriesAxisTitleClipPathUniqueIds, onFocus });
+      categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId,
+      valueAxisTitleClipPathUniqueIds, onFocus });
 
-    this.thresholdContainer.set(AxisThresholdContainer, { front, mochartConfig, groupAxisLayoutInfo, seriesAxisLayoutInfos,
+    this.thresholdContainer.set(AxisThresholdContainer, { front, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos,
       seriesLayoutInfo, chartData, focusData });
   }
 }
@@ -80,8 +92,10 @@ export default class Plot extends Renderer<PlotProps> {
   root = svgEl('g');
   background = this.slot(this.root);
   back = this.slot(this.root);
+  clipIndicatorBack = this.slot(this.root);
   seriesContainer = this.slot(this.root);
   front = this.slot(this.root);
+  clipIndicatorFront = this.slot(this.root);
   crosshair = this.slot(this.root);
 
   create() {
@@ -89,26 +103,26 @@ export default class Plot extends Renderer<PlotProps> {
   }
 
   sync() {
-    const { mochartConfig, groupAxisLayoutInfo, seriesAxisLayoutInfos, seriesLayoutInfo, plotLayoutInfo,
-      chartData, focusData, axisData, stackData, groupValueData, gradientIdMap, groupAxisTitleClipPathUniqueId,
-      groupAxisTickLabelClipPathUniqueId, seriesAxisTitleClipPathUniqueIds, tooltipClipPathUniqueId, onFocus, shapeRef } = this.props;
-    const { plotConfig } = mochartConfig;
-    const { groupFocusDomainPercentages = [], seriesFocusDomainPercentages = [] } = focusData;
-    const { series: seriesAxisData } = axisData;
+    const { mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos, seriesLayoutInfo, plotLayoutInfo,
+      chartData, focusData, axisData, stackData, categoryValueData, gradientIdMap, patternIdMap, categoryAxisTitleClipPathUniqueId,
+      categoryAxisTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, tooltipClipPathUniqueId, tooltipClipPresent, seriesClipPathUniqueId, clippedEdges, clipIndicatorPatternUniqueId, onFocus, onSeriesShapeClick, shapeRef, a11yProps } = this.props;
+    const { plot: plotConfig } = mochartConfig;
+    const { categoryFocusDomainPercentages = [], seriesFocusDomainPercentages = [] } = focusData;
+    const { value: valueAxisData } = axisData;
 
     const frontBackProps = (front: boolean) => ({
       front,
       mochartConfig,
-      groupAxisLayoutInfo,
-      seriesAxisLayoutInfos,
+      categoryAxisLayoutInfo,
+      valueAxisLayoutInfos,
       seriesLayoutInfo,
       plotLayoutInfo,
       chartData,
       focusData,
       axisData,
-      groupAxisTitleClipPathUniqueId,
-      groupAxisTickLabelClipPathUniqueId,
-      seriesAxisTitleClipPathUniqueIds,
+      categoryAxisTitleClipPathUniqueId,
+      categoryAxisTickLabelClipPathUniqueId,
+      valueAxisTitleClipPathUniqueIds,
       onFocus
     });
 
@@ -120,13 +134,18 @@ export default class Plot extends Renderer<PlotProps> {
     this.back.set(PlotFrontBack, frontBackProps(false));
 
     this.seriesContainer.set(SeriesContainer, { mochartConfig, seriesLayoutInfo, seriesData: chartData.seriesData,
-      seriesAxisData, stackData, focusData, onFocus, groupValueData,
-      gradientIdMap, shapeRef });
+      valueAxisData, stackData, focusData, onFocus, onSeriesShapeClick, categoryValueData,
+      gradientIdMap, patternIdMap, shapeRef, a11yProps, seriesClipPathUniqueId });
 
     this.front.set(PlotFrontBack, frontBackProps(true));
 
+    // one slot each side of the series container; only the chosen one is populated
+    const clipIndicatorProps = { mochartConfig, seriesLayoutInfo, clippedEdges, clipIndicatorPatternUniqueId };
+    this.clipIndicatorFront.set(mochartConfig.clipIndicator.front ? ClipIndicator : null, clipIndicatorProps);
+    this.clipIndicatorBack.set(mochartConfig.clipIndicator.front ? null : ClipIndicator, clipIndicatorProps);
+
     this.crosshair.set(Crosshair, { mochartConfig, seriesLayoutInfo,
-      groupPercentages: groupFocusDomainPercentages, seriesPercentages: seriesFocusDomainPercentages,
-      tooltipClipPathUniqueId });
+      categoryPercentages: categoryFocusDomainPercentages, seriesPercentages: seriesFocusDomainPercentages,
+      tooltipClipPathUniqueId, tooltipClipPresent });
   }
 }

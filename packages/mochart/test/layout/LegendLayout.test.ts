@@ -4,7 +4,7 @@ import type { LegendConfig } from '../../src/types/config';
 
 describe('legend icon sizing', () => {
   it('uses the measured font size for auto and preserves the placeholder fallback', () => {
-    const automatic = { iconSize: 'auto' } as LegendConfig;
+    const automatic = { icon: { size: 'auto' } } as LegendConfig;
 
     expect(resolveLegendIconSize(automatic, { width: 80, height: 20, fontSize: 16 })).toBe(16);
     expect(resolveLegendIconSize(automatic, { width: 80, height: 18, fontSize: 15.2 })).toBe(15);
@@ -13,13 +13,13 @@ describe('legend icon sizing', () => {
   });
 
   it('falls back to the measured text height when no font size was captured', () => {
-    const automatic = { iconSize: 'auto' } as LegendConfig;
+    const automatic = { icon: { size: 'auto' } } as LegendConfig;
 
     expect(resolveLegendIconSize(automatic, { width: 80, height: 18 })).toBe(18);
   });
 
   it('preserves an explicit pixel size', () => {
-    const fixed = { iconSize: 12 } as LegendConfig;
+    const fixed = { icon: { size: 12 } } as LegendConfig;
 
     expect(resolveLegendIconSize(fixed, { width: 80, height: 18 })).toBe(12);
   });

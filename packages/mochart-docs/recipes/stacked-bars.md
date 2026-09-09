@@ -1,7 +1,7 @@
 # Stacked bars
 
 Series stack when they share a stack id from
-[`seriesStackConfigs`](/reference/seriesStackConfigs). With exactly one stack
+[`seriesStacks`](/reference/seriesStacks). With exactly one stack
 configured, every series joins it automatically — declaring the stack is the
 only wiring needed.
 
@@ -21,11 +21,21 @@ shows gaps mid-transition (see
 ## Variations
 
 - Opt a series out of the stack with
-  [`stack: null`](/reference/seriesConfigs#seriesConfigs.stack) — handy for
+  [`stack: null`](/reference/series#series.stack) — handy for
   overlaying a line on stacked bars.
-- Cap only the top of the whole stack with
-  [`outerCapType`](/reference/seriesStackConfigs#seriesStackConfigs.outerCapType)
-  plus [`capOnlyStackOuter`](/reference/seriesConfigs#seriesConfigs.capOnlyStackOuter).
+- A stack belongs to one value axis
+  ([`seriesStacks[].axis`](/reference/seriesStacks#seriesStacks.axis),
+  defaulting to the sole axis); a series whose `axis` differs from its
+  stack's is a validation error. Several stacks can sit on
+  [different axes](/recipes/dual-axes).
+- Likewise a stack cannot span [series groups](/recipes/grouped-series): all
+  its series must share one [`group`](/reference/series#series.group) (or all
+  be ungrouped), otherwise its members would land in different sub-slots.
+- Cap only the outer end of the whole stack with
+  [`outerCap.type`](/reference/seriesStacks#seriesStacks.outerCap.type)
+  — see the [bar caps recipe](/recipes/bar-caps#capping-a-stack).
 - Side-by-side (grouped) bars instead of stacked: declare a
-  [`seriesGroupConfigs`](/reference/seriesGroupConfigs) entry rather than a
+  [`seriesGroups`](/reference/seriesGroups) entry rather than a
   stack — series default into a sole group the same way.
+- Series with negative values stack downward from the same zero base —
+  see [positive and negative values](/recipes/positive-negative#stacking-mixed-signs).

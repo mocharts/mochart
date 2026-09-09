@@ -1,9 +1,9 @@
 import { useState, useRef, useMemo } from 'react';
 import Icon from '../misc/Icon';
 
-import { applyTransitionConfigEdit, demoText, formatTransitionConfig } from '@mochart/demo-common';
+import { applyTransitionConfigEdit, demoText, formatTransitionConfig, getDemoTabPanelAttrs, getJsonError } from '@mochart/demo-common';
 
-import TextAreaContent from '../misc/TextAreaContent';
+import JsonEditorContent from '../misc/JsonEditorContent';
 import ButtonWithTooltip from '../misc/ButtonWithTooltip';
 
 import type { TransitionConfig } from '../../types';
@@ -36,24 +36,17 @@ export default function TransitionConfigTab({ active, transitionConfig, onUpdate
     }
   };
 
-  const jsonError = useMemo(() => {
-    try {
-      JSON.parse(configText);
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
-  }, [configText]);
+  const jsonError = useMemo(() => getJsonError(configText), [configText]);
   const footerError = jsonError ?? errorMessage;
 
   return (
-    <div className={"mochart-demo-tab-container demo-layout-col config" + (active ? " active" : "")} inert={!active}>
+    <div {...getDemoTabPanelAttrs('config')} className={"mochart-demo-tab-container demo-layout-col config" + (active ? " active" : "")} inert={!active}>
       <div className="mochart-demo-tab-content">
-        <TextAreaContent value={configText} onChange={(text: string) => { setConfigText(text); setErrorMessage(null); }} />
+        <JsonEditorContent value={configText} ariaLabel={demoText.transitionConfigTab.editorAria}
+          onChange={(text: string) => { setConfigText(text); setErrorMessage(null); }} />
       </div>
       <div className="mochart-demo-tab-footer">
-        <div className="demo-toolbar" role="toolbar">
+        <div className="demo-toolbar">
           <ButtonWithTooltip id="config-reset" label={demoText.transitionConfigTab.reset.label} tooltipText={demoText.transitionConfigTab.reset.tooltip} tooltipPlacement="top-start"
             onClick={onReset} aria-label={demoText.transitionConfigTab.reset.aria}>
             <Icon size="lg" fixedWidth={true} name="arrow-rotate-left" />

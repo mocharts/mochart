@@ -10,42 +10,57 @@
     "svg",
     "mochart"
   ],
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "author": {
     "name": "Jon Harris",
     "url": "https://github.com/jharris4"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jharris4/mochart.git"
+    "url": "https://github.com/mocharts/mochart.git",
+    "directory": "packages/mochart-react"
+  },
+  "homepage": "https://mochart.org",
+  "bugs": {
+    "url": "https://github.com/mocharts/mochart/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
   },
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
       "development": "./src/index.ts",
+      "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
   },
   "files": [
     "src",
-    "dist"
+    "dist",
+    "CHANGELOG.md"
   ],
-  "dependencies": {
-    "@mochart/core": "^1.0.0"
-  },
   "peerDependencies": {
+    "@mochart/core": "^1.0.0",
     "react": ">=18",
     "react-dom": ">=18"
   },
   "devDependencies": {
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "@mochart/core": "^1.0.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

@@ -2,19 +2,19 @@ import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { PropertyValues } from 'lit';
 
-import { buildMochartDemoConfig, copyDemoConfig, demoText, formatMochartDemoConfig, parseConfig, slowAnimationConfig, toggleConfigProperty, toggleConfigSection } from '@mochart/demo-common';
+import { buildMochartDemoConfig, controlsMenuPlacement, copyDemoConfig, demoConfigFromText, demoText, formatMochartDemoConfig, getDemoTabPanelAttrs, getJsonError, getJsonErrorMessage, isConfigSectionActive, parseConfigFromText, parseJson, slowAnimationConfig, toggleConfigFromText, toggleConfigProperty, toggleConfigSection } from '@mochart/demo-common';
 
 import type { DemoConfigView } from '@mochart/demo-common';
 
 import { LightElement } from '../misc/LightElement';
 import { PhoneViewportController } from '../misc/PhoneViewportController';
-import { textAreaContent, buttonWithTooltip, docsLinks, icon } from '../misc/templates';
+import { buttonWithTooltip, docsLinks, icon } from '../misc/templates';
+import '../misc/json-editor-content';
 import '../misc/overflow-menu';
 
 import type { DemoConfig, MochartDemoConfig } from '../../types';
 
-/** The footer sits at the bottom of the pane, so its menu opens upward. */
-const editorPlacement = { side: 'top', align: 'end', gap: 4 } as const;
+const panelAttrs = getDemoTabPanelAttrs('config');
 
 @customElement('config-tab')
 export class ConfigTab extends LightElement {
@@ -39,8 +39,10 @@ export class ConfigTab extends LightElement {
     }
   }
 
+  // demoConfig tracks the text, so the Invert/Slow states and reference links follow unapplied edits.
   private onTextChange = (nextConfigText: string): void => {
     this.configText = nextConfigText;
+    this.demoConfig = demoConfigFromText(nextConfigText, this.demoConfig);
     this.errorMessage = null;
   };
 
@@ -50,7 +52,7 @@ export class ConfigTab extends LightElement {
 
   private updateShowDefaults(nextShowDefaults: boolean): void {
     try {
-      const newConfig = JSON.parse(this.configText);
+      const newConfig = parseJson(this.configText) as DemoConfig;
       const newMochartDemoConfig = buildMochartDemoConfig(newConfig);
       const { configValidation } = newMochartDemoConfig;
       const { valid } = configValidation;
@@ -70,9 +72,9 @@ export class ConfigTab extends LightElement {
         this.errorMessage = demoText.errors.invalidChartConfig;
       }
     }
-    catch {
+    catch (error) {
       console.warn('Invalid Chart Config JSON: ' + this.configText);
-      this.errorMessage = demoText.errors.invalidJson;
+      this.errorMessage = getJsonErrorMessage(error);
     }
   }
 
@@ -80,39 +82,50 @@ export class ConfigTab extends LightElement {
     this.updateShowDefaults(!this.showDefaults);
   };
 
+  // Toggle against the current text (the Defaults toggle's pattern), so
+  // unapplied textarea edits survive the toggle instead of being overwritten.
+  private applyConfigToggle(transform: (current: DemoConfigView) => DemoConfigView): void {
+    const result = toggleConfigFromText(this.configText, this.showDefaults, transform);
+    if (result.error !== null) {
+      this.errorMessage = result.error;
+    }
+    else {
+      this.demoConfig = result.demoConfig;
+      this.configText = result.text;
+      this.errorMessage = null;
+    }
+  }
+
   private toggleConfigInverted = (): void => {
-    this.demoConfig = toggleConfigProperty(this.demoConfig, 'plotConfig', 'inverted', true) ?? this.demoConfig;
-    this.configText = formatMochartDemoConfig(this.demoConfig, this.showDefaults);
+    this.applyConfigToggle(current => toggleConfigProperty(current, 'plot', 'inverted', true));
   };
 
   private toggleConfigAnimationSlow = (): void => {
-    this.demoConfig = toggleConfigSection(this.mochartDemoConfig, this.demoConfig, 'animationConfig', slowAnimationConfig) ?? this.demoConfig;
-    this.configText = formatMochartDemoConfig(this.demoConfig, this.showDefaults);
+    this.applyConfigToggle(current => toggleConfigSection(this.mochartDemoConfig, current, 'animation', slowAnimationConfig));
   };
 
   private applyConfig = (): void => {
-    const newConfig = parseConfig(this.configText);
-    if (newConfig !== null) {
-      this.onConfigChange(newConfig);
+    const { config, error } = parseConfigFromText(this.configText);
+    this.errorMessage = error;
+    if (config !== null) {
+      this.onConfigChange(config);
     }
+  };
+
+  private formatConfig = (): void => {
+    this.querySelector('json-editor-content')?.format();
   };
 
   // Live JSON validity — disables Apply and shows an inline hint while the
   // editor holds unparseable text.
   private get jsonError(): string | null {
-    try {
-      JSON.parse(this.configText);
-      return null;
-    }
-    catch {
-      return demoText.errors.invalidJson;
-    }
+    return getJsonError(this.configText);
   }
 
   override render(): unknown {
-    const inverted = this.demoConfig.configWithDefaults.plotConfig.inverted;
+    const inverted = this.demoConfig.configWithDefaults.plot.inverted;
     const invertedIcon = inverted ? 'chart-bar' : 'chart-column';
-    const slow = this.demoConfig.configWithDefaults.animationConfig === slowAnimationConfig;
+    const slow = isConfigSectionActive(this.demoConfig, 'animation', slowAnimationConfig);
     const slowIcon = slow ? 'hourglass' : 'hourglass-end';
     const jsonError = this.jsonError;
     const footerError = jsonError ?? this.errorMessage;
@@ -137,17 +150,23 @@ export class ConfigTab extends LightElement {
       { id: 'config-animate-slow', label: demoText.configTab.slow.label, pressed: slow, tooltipText: demoText.configTab.slow.tooltip, tooltipPlacement: 'top-start', onClick: this.toggleConfigAnimationSlow, ariaLabel: demoText.configTab.slow.aria },
       icon({ size: 'lg', fixedWidth: true, name: slowIcon })
     );
+    const formatButton = buttonWithTooltip(
+      { id: 'config-format', label: demoText.configTab.format.label, disabled: jsonError !== null, tooltipText: demoText.configTab.format.tooltip, tooltipPlacement: 'top-start', onClick: this.formatConfig, ariaLabel: demoText.configTab.format.aria },
+      icon({ size: 'lg', fixedWidth: true, name: 'indent' })
+    );
     const applyButton = buttonWithTooltip(
       { id: 'config-apply', label: demoText.configTab.apply.label, disabled: jsonError !== null, tooltipText: demoText.configTab.apply.tooltip, tooltipPlacement: 'top-start', onClick: this.applyConfig, ariaLabel: demoText.configTab.apply.aria },
       icon({ size: 'lg', fixedWidth: true, name: 'check' })
     );
     const links = docsLinks(this.demoConfig.configWithoutDefaults);
-    return html`<div class=${'mochart-demo-tab-container demo-layout-col config' + (this.active ? ' active' : '')} ?inert=${!this.active}>
+    return html`<div id=${panelAttrs.id} role=${panelAttrs.role} aria-labelledby=${panelAttrs['aria-labelledby']}
+        class=${'mochart-demo-tab-container demo-layout-col config' + (this.active ? ' active' : '')} ?inert=${!this.active}>
       <div class="mochart-demo-tab-content">
-        ${textAreaContent({ value: this.configText, onChange: this.onTextChange })}
+        <json-editor-content .value=${this.configText} .ariaLabelText=${demoText.configTab.editorAria}
+          .formatOnSet=${true} .mochartSupport=${true} .onChange=${this.onTextChange}></json-editor-content>
       </div>
       <div class="mochart-demo-tab-footer">
-        <div class="demo-toolbar" role="toolbar">
+        <div class="demo-toolbar">
           ${folded
             ? html`${applyButton}
               <!-- \`.editor\`, not \`.chart\`: what folds here edits the JSON,
@@ -155,11 +174,11 @@ export class ConfigTab extends LightElement {
                    the wrong thing. Anchored to the full-width footer — the
                    trigger sits mid-row, left of an error span that comes and
                    goes. -->
-              <overflow-menu .text=${demoText.overflowMenu.editor} .placement=${editorPlacement}
+              <overflow-menu .text=${demoText.overflowMenu.editor} .placement=${controlsMenuPlacement}
                 .getAnchor=${this.getFooterAnchor} .active=${this.active}
-                .items=${() => html`<div class="demo-btn-group">${resetButton}${defaultsButton}${invertedButton}${slowButton}</div>
+                .items=${() => html`<div class="demo-btn-group">${resetButton}${defaultsButton}${invertedButton}${slowButton}${formatButton}</div>
                   ${links === nothing ? nothing : html`<div class="demo-menu-divider"></div>${links}`}`}></overflow-menu>`
-            : html`${resetButton}${defaultsButton}${invertedButton}${slowButton}${applyButton}`}
+            : html`${resetButton}${defaultsButton}${invertedButton}${slowButton}${formatButton}${applyButton}`}
           ${footerError ? html`<span class="mochart-demo-footer-error" role="alert">${footerError}</span>` : nothing}
         </div>
         ${folded ? nothing : links}

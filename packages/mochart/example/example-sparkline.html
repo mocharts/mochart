@@ -48,20 +48,20 @@
 
         const singleSeries = (renderer, color) => ({
             version: '1.0.0',
-            groupAxisConfig: { property: 'i', type: 'number', scale: 'linear' },
-            seriesAxisConfigs: [{ id: 'sa' }],
-            seriesConfigs: [{ axis: 'sa', property: 'value', renderer, strokeColor: color, fillColor: color }]
+            categoryAxis: { property: 'i', type: 'number', scale: 'linear' },
+            valueAxes: [{ id: 'va' }],
+            series: [{ axis: 'va', property: 'value', renderer, shapeStyle: { normal: { strokeColor: color, fillColor: color } } }]
         });
 
         // Win/loss reuses the waterfall trick: one property (and color) per
         // direction, each row filling exactly one of them.
         const winLossConfig = {
             version: '1.0.0',
-            groupAxisConfig: { property: 'i', type: 'string', scale: 'ordinal' },
-            seriesAxisConfigs: [{ id: 'sa', base: 0, min: -1, max: 1 }],
-            seriesConfigs: [
-                { axis: 'sa', property: 'up', renderer: 'bar', skipMissing: true, fillColor: '#1baf7a' },
-                { axis: 'sa', property: 'down', renderer: 'bar', skipMissing: true, fillColor: '#e34948' }
+            categoryAxis: { property: 'i', type: 'string', scale: 'ordinal' },
+            valueAxes: [{ id: 'va', base: 0, min: -1, max: 1 }],
+            series: [
+                { axis: 'va', property: 'up', renderer: 'bar', missingValueMode: 'connect', shapeStyle: { normal: { fillColor: '#1baf7a' } } },
+                { axis: 'va', property: 'down', renderer: 'bar', missingValueMode: 'connect', shapeStyle: { normal: { fillColor: '#e34948' } } }
             ]
         };
 
@@ -95,7 +95,7 @@
             for (const metric of metrics) {
                 const data = metric.generate();
                 const mochartConfig = enhanceConfig(createSparklineConfig(metric.config));
-                const dataProvider = new ArrayOfObjectsDataProvider(data, mochartConfig.groupAxisConfig.property);
+                const dataProvider = new ArrayOfObjectsDataProvider(data);
                 metric.valueEl.textContent = latestText(metric, data);
                 if (metric.chart === null) {
                     metric.chart = createChart(metric.chartEl, { mochartConfig, dataProvider, width: 150, height: 32 });

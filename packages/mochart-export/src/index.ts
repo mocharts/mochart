@@ -5,7 +5,9 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 // Single-class selectors derived from the shared mochart class map (some map
 // entries hold "base per-item" class pairs, so always take the first token).
 const chartClass = mochartCssClasses['chart'].split(' ')[0];
-const crosshairClass = mochartCssClasses['crosshair'].split(' ')[0];
+// the interaction chrome a focus draws: stripped from a clone when showFocusElements is false
+const focusElementClasses = (['crosshair', 'axisFocusRange', 'axisFocusTickMarks'] as const)
+  .map(key => mochartCssClasses[key].split(' ')[0]);
 const titleTextRawClass = mochartCssClasses['titleTextRaw'].split(' ')[0];
 
 const SVG_CONTAINER_TAGS = ['svg', 'g'];
@@ -33,8 +35,12 @@ export interface ExportSvgOptions {
   filenamePrefix?: string;
   /** Keep the background transparent instead of painting it with backgroundColor. */
   transparent?: boolean;
-  /** Background color painted behind the chart when not transparent. */
+  /** Background color painted behind the chart when not transparent. Defaults to the effective page background behind the chart (white when untraceable). */
   backgroundColor?: string;
+  /** CSS injected verbatim into a `<style>` element in the exported svg, once per file. For `@font-face` rules whose `src` is base64 data — the only way a web font survives the export (see the web fonts section of the README). */
+  fontFaceCss?: string;
+  /** Keep the focus chrome — crosshair, axis focus range and focus tick marks — as shown on screen. Defaults to true; false strips them (series drawn focused or defocused keep their on-screen styling either way). */
+  showFocusElements?: boolean;
 }
 
 export interface ExportPngOptions extends ExportSvgOptions {
@@ -71,7 +77,8 @@ export function findChartSvg(element: Element): SVGSVGElement | null {
 /**
  * Copy the computed svg presentation styles (fill, stroke, fonts on text)
  * onto the cloned nodes as inline styles, so the serialized svg renders the
- * same outside the page's stylesheets.
+ * same outside the page's stylesheets. Fonts are inlined by family name only, never as font data,
+ * so a web font the page loaded is absent from the export unless the caller passes fontFaceCss.
  */
 function inlineComputedStyles(targetNode: Element, sourceNode: Element): void {
   const targetChildren = targetNode.children;
@@ -123,12 +130,87 @@ function getSvgSize(svgElement: SVGSVGElement): { width: number; height: number 
 
 /**
  * Serialize the chart svg to standalone markup: computed styles inlined, the
- * crosshair stripped, and (unless transparent) a solid background rect
- * inserted beneath the chart.
+ * focus chrome stripped unless showFocusElements, any fontFaceCss added as a
+ * style element, and (unless transparent) a solid background rect inserted
+ * beneath the chart.
  */
 export function getChartSvgText(element: Element, options: ExportSvgOptions = {}): string | null {
   const svgElement = findChartSvg(element);
   return svgElement ? getSvgText(svgElement, options) : null;
+}
+
+interface ColorLayer {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+}
+
+const WHITE_LAYER: ColorLayer = { r: 255, g: 255, b: 255, a: 1 };
+
+/** The rgb/rgba forms getComputedStyle returns a color in; null for anything else. */
+function parseColorLayer(color: string): ColorLayer | null {
+  const match = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/.exec(color);
+  return match === null ? null : {
+    r: Number(match[1]), g: Number(match[2]), b: Number(match[3]), a: match[4] === undefined ? 1 : Number(match[4])
+  };
+}
+
+function isTransparentColor(color: string): boolean {
+  if (!color || color === 'transparent') {
+    return true;
+  }
+  const layer = parseColorLayer(color);
+  return layer !== null && layer.a === 0;
+}
+
+/** Translucent layers, nearest the chart first, painted source-over onto an opaque backdrop. */
+function flattenColorLayers(layers: ColorLayer[], backdrop: ColorLayer): string {
+  let result = backdrop;
+  for (let index = layers.length - 1; index >= 0; index--) {
+    const layer = layers[index];
+    const blend = (from: number, to: number) => layer.a * from + (1 - layer.a) * to;
+    result = { r: blend(layer.r, result.r), g: blend(layer.g, result.g), b: blend(layer.b, result.b), a: 1 };
+  }
+  return `rgb(${Math.round(result.r)}, ${Math.round(result.g)}, ${Math.round(result.b)})`;
+}
+
+/**
+ * The effective page background behind the chart: the nearest opaque ancestor
+ * background with any translucent ones in front of it composited onto it, since
+ * an exported file has nothing behind it to blend with. The export inlines the
+ * page's computed (theme-resolved) chart colors, so this default keeps exports
+ * WYSIWYG — a chart on a dark page exports onto its dark background, not white.
+ */
+function getEffectiveBackgroundColor(element: Element): string {
+  const layers: ColorLayer[] = [];
+  let current: Element | null = element;
+  while (current) {
+    const color = getComputedStyle(current).backgroundColor;
+    if (!isTransparentColor(color)) {
+      const layer = parseColorLayer(color);
+      // an opaque backdrop ends the walk, and so does one we cannot composite; white backs it when it is covered
+      if (layer === null || layer.a >= 1) {
+        return layers.length === 0 ? color : flattenColorLayers(layers, layer ?? WHITE_LAYER);
+      }
+      layers.push(layer);
+    }
+    current = current.parentElement;
+  }
+  return layers.length === 0 ? '#ffffff' : flattenColorLayers(layers, WHITE_LAYER);
+}
+
+/**
+ * A style element carrying host-supplied @font-face CSS, null when there is none. One per exported
+ * file, never per chart clone: a base64 font would otherwise repeat in every tile of a grid.
+ */
+function makeFontFaceStyle(fontFaceCss: string | undefined): SVGStyleElement | null {
+  if (!fontFaceCss || !fontFaceCss.trim()) {
+    return null;
+  }
+  const styleElement = document.createElementNS(SVG_NS, 'style') as SVGStyleElement;
+  styleElement.textContent = fontFaceCss;
+  return styleElement;
 }
 
 function makeBackgroundRect(width: number, height: number, backgroundColor: string): SVGRectElement {
@@ -141,26 +223,53 @@ function makeBackgroundRect(width: number, height: number, backgroundColor: stri
 }
 
 /**
- * Clone a live chart svg with its computed presentation styles inlined and the
- * crosshair removed, so it serializes/renders the same off-page. No background
- * is painted here — callers add one to the (possibly composed) outer svg.
+ * Clone a live chart svg with its computed presentation styles inlined (and
+ * the focus chrome removed unless showFocusElements), so it serializes/renders
+ * the same off-page. No background is painted here — callers add one to the
+ * (possibly composed) outer svg.
  */
-function cloneChartSvg(svgElement: SVGSVGElement): SVGSVGElement {
+function cloneChartSvg(svgElement: SVGSVGElement, showFocusElements: boolean): SVGSVGElement {
   const svgCloneElement = svgElement.cloneNode(true) as SVGSVGElement;
+  // the clone is already in the svg namespace, so the serializer declares it; the live chart's
+  // literal xmlns attribute would be written a second time and make the markup invalid xml
+  svgCloneElement.removeAttribute('xmlns');
   inlineComputedStyles(svgCloneElement, svgElement);
-  for (const crosshairElement of svgCloneElement.querySelectorAll('.' + crosshairClass)) {
-    crosshairElement.parentNode?.removeChild(crosshairElement);
+  if (!showFocusElements) {
+    for (const focusElement of svgCloneElement.querySelectorAll(focusElementClasses.map(cssClass => '.' + cssClass).join(','))) {
+      focusElement.parentNode?.removeChild(focusElement);
+    }
+  }
+  // The export is a static image: the tab stops and button semantics need the
+  // live keyboard handlers, so strip them and expose the svg as a plain
+  // labeled image instead of an interactive group.
+  for (const interactiveElement of svgCloneElement.querySelectorAll('[tabindex]')) {
+    for (const attribute of ['tabindex', 'role', 'aria-label', 'aria-expanded', 'aria-pressed']) {
+      interactiveElement.removeAttribute(attribute);
+    }
+  }
+  // role="img" only with a name to announce: an unnamed image is a harder failure than an unroled
+  // svg, and the chart writes aria-label only while accessibility is enabled and not hidden
+  if (svgCloneElement.hasAttribute('aria-label') || svgCloneElement.hasAttribute('aria-labelledby')) {
+    svgCloneElement.setAttribute('role', 'img');
+  }
+  else {
+    svgCloneElement.setAttribute('aria-hidden', 'true');
   }
   return svgCloneElement;
 }
 
 function getSvgText(svgElement: SVGSVGElement, options: ExportSvgOptions): string {
-  const { transparent = false, backgroundColor = '#ffffff' } = options;
-  const svgCloneElement = cloneChartSvg(svgElement);
+  const { transparent = false, fontFaceCss, backgroundColor = getEffectiveBackgroundColor(svgElement), showFocusElements = true } = options;
+  const svgCloneElement = cloneChartSvg(svgElement, showFocusElements);
 
   if (!transparent) {
     const { width, height } = getSvgSize(svgElement);
     svgCloneElement.insertBefore(makeBackgroundRect(width, height, backgroundColor), svgCloneElement.firstChild);
+  }
+
+  const fontFaceStyle = makeFontFaceStyle(fontFaceCss);
+  if (fontFaceStyle) {
+    svgCloneElement.insertBefore(fontFaceStyle, svgCloneElement.firstChild);
   }
 
   return new XMLSerializer().serializeToString(svgCloneElement);
@@ -172,7 +281,7 @@ function getSvgText(svgElement: SVGSVGElement, options: ExportSvgOptions): strin
  * chart so the grid stays aligned. Returns null when no chart svg is found.
  */
 function getStitchedSvgText(elements: Element[], options: StitchOptions): string | null {
-  const { transparent = false, backgroundColor = '#ffffff', cols, gap = 0 } = options;
+  const { transparent = false, cols, gap = 0, fontFaceCss, showFocusElements = true } = options;
   const charts: { svg: SVGSVGElement; width: number; height: number }[] = [];
   for (const element of elements) {
     const svg = findChartSvg(element);
@@ -184,18 +293,27 @@ function getStitchedSvgText(elements: Element[], options: StitchOptions): string
   if (charts.length === 0) {
     return null;
   }
-  const columns = Math.max(1, Math.floor(cols));
+  const backgroundColor = options.backgroundColor ?? getEffectiveBackgroundColor(charts[0].svg);
+  // cols is an upper bound; columns no chart can reach would only pad the image
+  const columns = Math.min(Math.max(1, Math.floor(cols)), charts.length);
   const rows = Math.ceil(charts.length / columns);
   const cellWidth = charts.reduce((max, chart) => Math.max(max, chart.width), 0);
   const cellHeight = charts.reduce((max, chart) => Math.max(max, chart.height), 0);
   const totalWidth = columns * cellWidth + (columns - 1) * gap;
   const totalHeight = rows * cellHeight + (rows - 1) * gap;
 
+  // createElementNS already puts the element in the svg namespace; setting xmlns
+  // here too would serialize the declaration twice and make the markup invalid xml
   const outer = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
-  outer.setAttribute('xmlns', SVG_NS);
   outer.setAttribute('width', String(totalWidth));
   outer.setAttribute('height', String(totalHeight));
   outer.setAttribute('viewBox', '0 0 ' + totalWidth + ' ' + totalHeight);
+
+  // one style element for the whole grid; css applies to the nested tiles too
+  const fontFaceStyle = makeFontFaceStyle(fontFaceCss);
+  if (fontFaceStyle) {
+    outer.appendChild(fontFaceStyle);
+  }
 
   if (!transparent) {
     outer.appendChild(makeBackgroundRect(totalWidth, totalHeight, backgroundColor));
@@ -207,7 +325,7 @@ function getStitchedSvgText(elements: Element[], options: StitchOptions): string
     // Center each chart within its (max-sized) cell so uneven sizes stay tidy.
     const x = col * (cellWidth + gap) + (cellWidth - chart.width) / 2;
     const y = row * (cellHeight + gap) + (cellHeight - chart.height) / 2;
-    const clone = cloneChartSvg(chart.svg);
+    const clone = cloneChartSvg(chart.svg, showFocusElements);
     clone.setAttribute('x', String(x));
     clone.setAttribute('y', String(y));
     clone.setAttribute('width', String(chart.width));
@@ -250,22 +368,29 @@ function rasterizeSvgText(svgText: string, width: number, height: number, scale:
   return new Promise<Blob>((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(width * scale));
-      canvas.height = Math.max(1, Math.round(height * scale));
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('mochart-export: could not create a 2d canvas context'));
-        return;
-      }
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          reject(new Error('mochart-export: could not encode the chart canvas as png'));
+      // a throw escapes the handler, not the executor, so the promise would never settle
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(width * scale));
+        canvas.height = Math.max(1, Math.round(height * scale));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('mochart-export: could not create a 2d canvas context'));
           return;
         }
-        resolve(blob);
-      });
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('mochart-export: could not encode the chart canvas as png'));
+            return;
+          }
+          resolve(blob);
+        });
+      }
+      catch (error) {
+        // as-is: a DOMException's SecurityError name is the diagnosis
+        reject(error);
+      }
     };
     img.onerror = () => {
       reject(new Error('mochart-export: failed to rasterize the chart svg'));

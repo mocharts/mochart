@@ -1,21 +1,21 @@
 import { describe, it, expect } from 'vitest';
 import { getPieSliceAngles, getPieSliceFractions, getPieSliceFractionMap, sweepPieSliceAngles, degreesToRadians } from '../../src/data/PieData';
 import { getRadialLayoutInfo } from '../../src/layout/RadialLayout';
-import type { PieConfig, SeriesConfig } from '../../src/types/config';
+import type { PieConfig } from '../../src/types/config';
 import type { SeriesValueObject } from '../../src/types/data';
 import type { LayoutInfo } from '../../src/types/layout';
+import type { EnhancedSeriesConfig } from '../../src/types/enhanced';
 
 const TWO_PI = Math.PI * 2;
 
-const seriesConfig = (id: string) => ({ id }) as SeriesConfig;
+const seriesConfig = (id: string) => ({ id }) as EnhancedSeriesConfig;
 // Mirrors the built defaults, including the conditional endAngle default of
 // startAngle + 360 (a full circle unless overridden).
 const pieConfig = (overrides: Partial<PieConfig> = {}) => ({
-  innerRadiusPercent: 0, outerRadiusPercent: 1, startAngle: 0,
+  innerRadiusFraction: 0, outerRadiusFraction: 1, startAngle: 0,
   endAngle: (overrides.startAngle ?? 0) + 360, padAngle: 0, cornerRadius: 0,
-  focusOffsetPercent: 0, showLabels: false, labelType: 'percent', labelFormat: 'auto',
-  labelRadiusPercent: 0.5, labelMinAnglePercent: 0.05,
-  centerLabel: null, showCenterTotal: false, centerTotalFormat: 'auto',
+  focusOffsetFraction: 0, label: { visible: false, type: 'percent', valueFormat: 'auto', radiusFraction: 0.5, minFraction: 0.05 },
+  centerLabel: { text: null }, centerTotal: { visible: false, format: 'auto' },
   ...overrides
 }) as PieConfig;
 const values = (plain: (number | undefined)[] | null) => ({ plain }) as SeriesValueObject;
@@ -37,13 +37,29 @@ describe('getPieSliceFractions', () => {
     expect(fractions).toEqual([0, 0, 0]);
   });
 
+  it('keeps the fractions correct when the values sum past Number.MAX_VALUE', () => {
+    const scalars: Record<string, number | null | undefined> = { a: Number.MAX_VALUE, b: Number.MAX_VALUE, c: 0 };
+    const { total, values: clamped, fractions } = getPieSliceFractions(configs, id => scalars[id]);
+    expect(total).toBe(Infinity);
+    expect(clamped).toEqual([Number.MAX_VALUE, Number.MAX_VALUE, 0]);
+    expect(fractions).toEqual([0.5, 0.5, 0]);
+  });
+
+  it('divides plainly right up to the overflow boundary', () => {
+    const half = Number.MAX_VALUE / 2;
+    const scalars: Record<string, number | null | undefined> = { a: half, b: half, c: 0 };
+    const { total, fractions } = getPieSliceFractions(configs, id => scalars[id]);
+    expect(total).toBe(Number.MAX_VALUE);
+    expect(fractions).toEqual([0.5, 0.5, 0]);
+  });
+
   it('keys the fraction map by series id', () => {
     const scalars: Record<string, number | null | undefined> = { a: 30, b: 10, c: null };
     expect(getPieSliceFractionMap(configs, id => scalars[id])).toEqual({ a: 0.75, b: 0.25, c: 0 });
   });
 
   it('normalizes the same way the slice angles do', () => {
-    // the tooltip reads one group's scalars, the slices read per-group arrays —
+    // the tooltip reads one category's scalars, the slices read per-category arrays —
     // both must agree on each slice's share
     const angles = getPieSliceAngles(configs, { a: values([30]), b: values([10]), c: values(null) }, pieConfig());
     const scalars: Record<string, number | null | undefined> = { a: 30, b: 10, c: null };
@@ -77,7 +93,7 @@ describe('getPieSliceAngles', () => {
     expect(angles.a.endAngle).toBeCloseTo(degreesToRadians(90) + TWO_PI, 10);
   });
 
-  it('skips suppressed (null) series and renormalizes the remainder', () => {
+  it('skips filtered (null) series and renormalizes the remainder', () => {
     const angles = getPieSliceAngles(
       [seriesConfig('a'), seriesConfig('b'), seriesConfig('c')],
       { a: values([1]), b: values(null), c: values([1]) },
@@ -103,6 +119,17 @@ describe('getPieSliceAngles', () => {
   it('returns an empty map when the total is not positive', () => {
     expect(getPieSliceAngles([seriesConfig('a')], { a: values([0]) }, pieConfig())).toEqual({});
     expect(getPieSliceAngles([seriesConfig('a')], { a: values(null) }, pieConfig())).toEqual({});
+  });
+
+  it('still divides the circle when the values sum past Number.MAX_VALUE', () => {
+    const angles = getPieSliceAngles(
+      [seriesConfig('a'), seriesConfig('b')],
+      { a: values([Number.MAX_VALUE]), b: values([Number.MAX_VALUE]) },
+      pieConfig()
+    );
+    expect(angles.a.endAngle).toBeCloseTo(Math.PI, 10);
+    expect(angles.b.startAngle).toBeCloseTo(Math.PI, 10);
+    expect(angles.b.endAngle).toBeCloseTo(TWO_PI, 10);
   });
 
   it('divides a partial span for half/gauge pies', () => {
@@ -161,10 +188,18 @@ describe('getRadialLayoutInfo', () => {
     expect(info).toEqual({ cx: 200, cy: 150, innerRadius: 0, outerRadius: 150 });
   });
 
-  it('applies outerRadiusPercent and innerRadiusPercent', () => {
-    const info = getRadialLayoutInfo(layout(400, 300), pieConfig({ outerRadiusPercent: 0.8, innerRadiusPercent: 0.5 }));
+  it('applies outerRadiusFraction and innerRadiusFraction', () => {
+    const info = getRadialLayoutInfo(layout(400, 300), pieConfig({ outerRadiusFraction: 0.8, innerRadiusFraction: 0.5 }));
     expect(info.outerRadius).toBeCloseTo(120, 10);
     expect(info.innerRadius).toBeCloseTo(60, 10);
+  });
+
+  it('reserves room for focusOffsetFraction so an exploded slice stays inside the rect', () => {
+    const info = getRadialLayoutInfo(layout(400, 300), pieConfig({ focusOffsetFraction: 0.1 }));
+    expect(info.outerRadius).toBeCloseTo(150 / 1.1, 10);
+    expect(info.outerRadius * 1.1).toBeCloseTo(150, 10);
+    expect(info.cx).toBeCloseTo(200, 10);
+    expect(info.cy).toBeCloseTo(150, 10);
   });
 
   it('fits a half-pie span into the rect instead of reserving the empty half', () => {

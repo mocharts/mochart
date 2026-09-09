@@ -2,20 +2,20 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, ElementRef, Input, ViewChild, signal } from '@angular/core';
 import type { OnChanges, OnInit, SimpleChanges } from '@angular/core';
 
-import { applyDataEdit, buildMochartDemoConfig, collectUsedDataProperties, demoText, formatDataView, getJsonError, parseFullData } from '@mochart/demo-common';
+import { applyDataEdit, buildMochartDemoConfig, collectUsedDataProperties, controlsMenuPlacement, demoText, formatDataView, getCategoryProperty, getDemoTabPanelAttrs, getJsonError, parseFullData } from '@mochart/demo-common';
 import type { ParsedFullData } from '@mochart/demo-common';
 
-import { TextAreaContent } from '../misc/text-area-content';
+import { JsonEditorContent } from '../misc/json-editor-content';
 import { ButtonWithTooltip } from '../misc/button-with-tooltip';
 import { Icon } from '../misc/icon';
 import { OverflowMenu } from '../misc/overflow-menu';
 import { phoneViewport } from '../misc/phone-viewport';
 
-import type { DemoConfig, DataRow } from '../../types';
+import type { DemoConfig, DataObject } from '../../types';
 
 @Component({
   selector: 'app-data-tab',
-  imports: [TextAreaContent, ButtonWithTooltip, Icon, NgTemplateOutlet, OverflowMenu],
+  imports: [JsonEditorContent, ButtonWithTooltip, Icon, NgTemplateOutlet, OverflowMenu],
   styles: [':host { display: contents; }'],
   template: `
     <ng-template #resetButton>
@@ -41,12 +41,13 @@ import type { DemoConfig, DataRow } from '../../types';
 
     <!-- Same fold as the config footer — Apply and the \`role="alert"\` error
          stay inline, the rest goes to the \`⋯\`; the reasons live on ConfigTab. -->
-    <div [class]="'mochart-demo-tab-container demo-layout-col data' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">
+    <div [id]="panelAttrs.id" [attr.role]="panelAttrs.role" [attr.aria-labelledby]="panelAttrs['aria-labelledby']"
+         [class]="'mochart-demo-tab-container demo-layout-col data' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">
       <div class="mochart-demo-tab-content">
-        <app-text-area-content [value]="dataText()" [onChange]="onTextChange" />
+        <app-json-editor-content [value]="dataText()" [ariaLabel]="text.editorAria" [onChange]="onTextChange" />
       </div>
       <div class="mochart-demo-tab-footer" #footer>
-        <div class="demo-toolbar" role="toolbar">
+        <div class="demo-toolbar">
           @if (phone()) {
             <ng-container [ngTemplateOutlet]="applyButton" />
             <app-overflow-menu [text]="overflowText" [placement]="editorPlacement" [getAnchor]="getFooterAnchor" [active]="active">
@@ -69,17 +70,19 @@ import type { DemoConfig, DataRow } from '../../types';
   `
 })
 export class DataTab implements OnInit, OnChanges {
+  readonly panelAttrs = getDemoTabPanelAttrs('data');
+
   @Input() active = false;
 
   // The phone fold (see the comment above the pane in the template).
   @ViewChild('footer', { static: true }) footerElement!: ElementRef<HTMLDivElement>;
   readonly phone = phoneViewport();
   readonly overflowText = demoText.overflowMenu.editor;
-  readonly editorPlacement = { side: 'top', align: 'end', gap: 4 } as const;
+  readonly editorPlacement = controlsMenuPlacement;
   readonly getFooterAnchor = (): HTMLElement => this.footerElement.nativeElement;
   @Input({ required: true }) config!: DemoConfig;
-  @Input({ required: true }) data!: DataRow[];
-  @Input({ required: true }) onDataChange!: (data: DataRow[]) => void;
+  @Input({ required: true }) data!: DataObject[];
+  @Input({ required: true }) onDataChange!: (data: DataObject[]) => void;
   @Input({ required: true }) onDataError!: (errorMessage: string) => void;
   @Input({ required: true }) onDataReset!: () => void;
 
@@ -92,7 +95,7 @@ export class DataTab implements OnInit, OnChanges {
   // textarea, viewUsedProperties the used-set its current content was rendered
   // with (null when every property is shown).
   showUnused = signal(false);
-  private fullData: DataRow[] = [];
+  private fullData: DataObject[] = [];
   private usedProperties: Set<string> | null = null;
   private viewUsedProperties: Set<string> | null = null;
 
@@ -120,14 +123,14 @@ export class DataTab implements OnInit, OnChanges {
     }
   }
 
-  private renderView(fullRows: DataRow[]): void {
+  private renderView(fullRows: DataObject[]): void {
     this.fullData = fullRows;
     this.viewUsedProperties = this.showUnused() ? null : this.usedProperties;
     this.dataText.set(formatDataView(fullRows, this.viewUsedProperties));
   }
 
   private parseCurrentFullData(): ParsedFullData {
-    return parseFullData(this.dataText(), this.fullData, this.viewUsedProperties);
+    return parseFullData(this.dataText(), this.fullData, this.viewUsedProperties, getCategoryProperty(this.config));
   }
 
   onTextChange = (nextDataText: string): void => {
