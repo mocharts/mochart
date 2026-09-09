@@ -6,7 +6,6 @@ import type { ChartHandle } from '@mochart/core';
 
 import { el } from '../ui/dom';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 type CreateChartFn = (container: Element, props: any) => ChartHandle<any>;
 
 export type ChartProps = Record<string, unknown>;

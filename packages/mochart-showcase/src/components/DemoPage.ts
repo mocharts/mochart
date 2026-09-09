@@ -12,7 +12,7 @@ import {
 } from '@mochart/demo-common';
 
 import type { ThemeController } from '../app/theme';
-import type { DataRow, DemoConfig } from '@mochart/demo-data';
+import type { DataObject, DemoConfig } from '@mochart/demo-data';
 
 import { button, el, segmented, toast } from '../ui/dom';
 import { getSearchParams, replaceSearchParams } from '../app/router';
@@ -49,12 +49,12 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 /** Scale the config's staged-animation durations for the player's slow motion. */
 function withAnimationSpeed(config: DemoConfig, speed: number): DemoConfig {
   const factor = 1 / speed;
-  const animation: Record<string, unknown> = isPlainObject(config.animationConfig) ? { ...config.animationConfig } : {};
-  for (const key of ['initialDuration', 'expansionDuration', 'valueChangeDuration', 'collapseDuration', 'focusDuration']) {
+  const animation: Record<string, unknown> = isPlainObject(config.animation) ? { ...config.animation } : {};
+  for (const key of ['initialDuration', 'expansionDuration', 'valueChangeDuration', 'contractionDuration', 'focusDuration']) {
     const base = typeof animation[key] === 'number' ? animation[key] as number : 1000;
     animation[key] = Math.round(base * factor);
   }
-  return { ...config, animationConfig: animation };
+  return { ...config, animation };
 }
 
 export function demoPage(props: DemoPageProps): DemoPageHandle {
@@ -64,7 +64,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
 
   const share = consumeShareState(entry.slug);
   let config: DemoConfig = share?.config ?? structuredClone(entry.config);
-  let rows: DataRow[] = share?.data ?? structuredClone(entry.data);
+  let rows: DataObject[] = share?.data ?? structuredClone(entry.data);
   let configDirty = share?.config !== undefined;
   let dataDirty = share?.data !== undefined;
 
@@ -78,13 +78,13 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
   let playTimer: ReturnType<typeof setInterval> | null = null;
 
   let filteredSeriesIds: Record<string, boolean> = {};
-  let focusedSeriesAxisId: string | null = null;
+  let focusedValueAxisId: string | null = null;
   let focusedSeriesId: string | null = null;
-  let focusedGroupIndex = -1;
+  let focusedCategoryIndex = -1;
 
   if (entry.special === 'rotation') {
     config = structuredClone(rotationConfigs[rotationIndex]) as DemoConfig;
-    rows = structuredClone(rotationData) as DataRow[];
+    rows = structuredClone(rotationData) as DataObject[];
   }
 
   let demoConfig: MochartDemoConfig = buildDemoConfig();
@@ -107,14 +107,13 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
     if (stateMode === 'error') {
       return { getError: () => 'Example upstream failure: the data service returned 503.' };
     }
-    const groupProperty = demoConfig.groupProperty ?? '';
     if (stateMode === 'empty') {
-      return new ArrayOfObjectsDataProvider([], groupProperty);
+      return new ArrayOfObjectsDataProvider([]);
     }
     if (seed !== null && entry.random !== undefined) {
       return generateDemoDataProvider(entry.generator, demoConfig.mochartConfig, entry.random, seed);
     }
-    return new ArrayOfObjectsDataProvider(structuredClone(rows), groupProperty);
+    return new ArrayOfObjectsDataProvider(structuredClone(rows));
   }
 
   // --- chart ---------------------------------------------------------------
@@ -145,23 +144,23 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
       dataProvider: buildDataProvider(),
       loading: stateMode === 'loading',
       filteredSeriesIds,
-      focusedSeriesAxisId,
+      focusedValueAxisId,
       focusedSeriesId,
-      focusedGroupIndex,
+      focusedCategoryIndex,
       // Both handlers bail when nothing changed: the chart notifies focus and
       // filter resets from inside update() (FocusController.reconcile), so an
       // unconditional re-update here would recurse forever.
-      onFocus(focus: { focusedSeriesAxisId?: string | null; focusedSeriesId?: string | null; focusedGroupIndex?: number }) {
-        const nextAxisId = focus.focusedSeriesAxisId ?? null;
+      onFocus(focus: { focusedValueAxisId?: string | null; focusedSeriesId?: string | null; focusedCategoryIndex?: number }) {
+        const nextAxisId = focus.focusedValueAxisId ?? null;
         const nextSeriesId = focus.focusedSeriesId ?? null;
-        const nextGroupIndex = focus.focusedGroupIndex ?? -1;
-        if (nextAxisId === focusedSeriesAxisId && nextSeriesId === focusedSeriesId && nextGroupIndex === focusedGroupIndex) {
+        const nextCategoryIndex = focus.focusedCategoryIndex ?? -1;
+        if (nextAxisId === focusedValueAxisId && nextSeriesId === focusedSeriesId && nextCategoryIndex === focusedCategoryIndex) {
           return;
         }
-        focusedSeriesAxisId = nextAxisId;
+        focusedValueAxisId = nextAxisId;
         focusedSeriesId = nextSeriesId;
-        focusedGroupIndex = nextGroupIndex;
-        logEvent('onFocus', `series=${focusedSeriesId ?? '—'} group=${focusedGroupIndex}`);
+        focusedCategoryIndex = nextCategoryIndex;
+        logEvent('onFocus', `series=${focusedSeriesId ?? '—'} category=${focusedCategoryIndex}`);
         updateChart();
       },
       onSeriesFilter(filter: { filteredSeriesIds: Record<string, boolean> }) {
@@ -175,8 +174,8 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
         logEvent('onSeriesFilter', 'hidden: ' + (Object.keys(filteredSeriesIds).filter(id => filteredSeriesIds[id]).join(', ') || 'none'));
         updateChart();
       },
-      onChartClick(event: { groupIndex: number; chartX: number; chartY: number }) {
-        logEvent('onChartClick', `group=${event.groupIndex} at ${Math.round(event.chartX)},${Math.round(event.chartY)}`);
+      onChartClick(event: { categoryIndex: number; chartX: number; chartY: number }) {
+        logEvent('onChartClick', `category=${event.categoryIndex} at ${Math.round(event.chartX)},${Math.round(event.chartY)}`);
       },
       onSliceClick(payload: { seriesId: string }) {
         logEvent('onSliceClick', payload.seriesId);
@@ -188,8 +187,8 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
         logMoveLine.textContent = 'pointer: outside plot';
         logEvent('onChartMouseLeave', '');
       },
-      onChartMouseMove(event: { chartX: number; chartY: number; groupIndex: number }) {
-        logMoveLine.textContent = `pointer: ${Math.round(event.chartX)},${Math.round(event.chartY)} (group ${event.groupIndex})`;
+      onChartMouseMove(event: { chartX: number; chartY: number; categoryIndex: number }) {
+        logMoveLine.textContent = `pointer: ${Math.round(event.chartX)},${Math.round(event.chartY)} (category ${event.categoryIndex})`;
       }
     };
   }
@@ -365,7 +364,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
     if (!Array.isArray(parsed) || parsed.some(row => !isPlainObject(row))) {
       return;
     }
-    rows = parsed as DataRow[];
+    rows = parsed as DataObject[];
     dataDirty = true;
     if (seed !== null) {
       stopPlaying();

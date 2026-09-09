@@ -4,7 +4,7 @@
 // authored in locals.ts or built from demo-common models.
 
 import demoData from '@mochart/demo-data';
-import type { DataRow, Demo, DemoConfig } from '@mochart/demo-data';
+import type { DataObject, Demo, DemoConfig } from '@mochart/demo-data';
 import { rotationConfigs, rotationData, tableSparklineMetrics } from '@mochart/demo-common';
 
 import type { ShowcaseEntry, ShowcaseSection, SpecialKind } from './types';
@@ -66,7 +66,7 @@ interface LocalEntryInput {
   blurb: string;
   notes?: string;
   config: DemoConfig;
-  data: DataRow[];
+  data: DataObject[];
   random?: ShowcaseEntry['random'];
   special?: SpecialKind;
 }
@@ -92,17 +92,17 @@ function playerEntry(): ShowcaseEntry {
     special: 'player',
     title: 'Staged Animation Player',
     blurb: 'Watch a staged transition frame by frame: axis expansion, value change, axis contraction — at full speed or slow motion.',
-    notes: 'Mochart plays every update as a staged sequence — axes expand first, then values (and group enter/exit) change, then axes contract — so only one kind of movement is on screen at a time, and stacked series move as one gapless unit. Step the seed to trigger a transition and use the speed control to stretch the animationConfig durations so each stage is legible. The config tab shows the durations being scaled.'
+    notes: 'Mochart plays every update as a staged sequence — axes expand first, then values (and category enter/exit) change, then axes contract — so only one kind of movement is on screen at a time, and stacked series move as one gapless unit. Step the seed to trigger a transition and use the speed control to stretch the animation durations so each stage is legible. The config tab shows the durations being scaled.'
   });
   entry.config = {
     ...entry.config,
-    titleConfig: { title: 'Staged Animation Player' },
-    animationConfig: {
-      animate: true,
+    title: { text: 'Staged Animation Player' },
+    animation: {
+      enabled: true,
       initialDuration: 1000,
       expansionDuration: 1000,
       valueChangeDuration: 1000,
-      collapseDuration: 1000,
+      contractionDuration: 1000,
       focusDuration: 500
     }
   };
@@ -114,9 +114,9 @@ function rotationEntry(): ShowcaseEntry {
     slug: 'rotation',
     title: 'Layout Morph',
     blurb: 'One dataset, sixty axis layouts: inverted plots, flipped axes, collapsed and rotated tick labels — every change animated.',
-    notes: 'The play button cycles through configurations that permute plotConfig.inverted, groupAxisConfig.before/collapsed, tick label rotation and anchoring. Because the data never changes, everything you see moving is the chart re-laying itself out — the same staged animation that drives data updates also drives structural changes.',
+    notes: 'The play button cycles through configurations that permute plot.inverted, categoryAxis.side/collapsed, tick label rotation and anchoring. Because the data never changes, everything you see moving is the chart re-laying itself out — the same staged animation that drives data updates also drives structural changes.',
     config: rotationConfigs[0] as DemoConfig,
-    data: rotationData as DataRow[],
+    data: rotationData as DataObject[],
     special: 'rotation'
   });
 }
@@ -135,7 +135,7 @@ function callbacksEntry(): ShowcaseEntry {
     special: 'callbacks',
     title: 'Interaction Callbacks',
     blurb: 'Click, hover, focus and legend-filter events streamed into a live log as you interact with the chart.',
-    notes: 'Every interaction the chart supports is also reported to the host: onChartClick with plot coordinates and the nearest group, onFocus as hover or legend interaction moves focus, onSeriesFilter as legend clicks filter series in and out, and onChartMouseEnter/Move/Leave for raw pointer tracking. The log below the chart prints each event as it fires.'
+    notes: 'Every interaction the chart supports is also reported to the host: onChartClick with plot coordinates and the nearest category, onFocus as hover or legend interaction moves focus, onSeriesFilter as legend clicks filter series in and out, and onChartMouseEnter/Move/Leave for raw pointer tracking. The log below the chart prints each event as it fires.'
   });
 }
 
@@ -196,13 +196,13 @@ export function getSections(): ShowcaseSection[] {
     {
       id: 'scales',
       title: 'Scales & axes',
-      tagline: 'Ordinal, linear and date group scales; multiple value axes; thresholds; and tick-label management.',
+      tagline: 'Ordinal, linear and date category scales; multiple value axes; thresholds; and tick-label management.',
       entries: [
         local({
           slug: 'time-series',
           title: 'Date & Time Axis',
-          blurb: 'A continuous date scale on the group axis, with d3-format tick and tooltip formatting.',
-          notes: 'groupAxisConfig.type "date" with scale "linear" plots rows on continuous time (ordinal keeps evenly-spaced slots instead). tickLabelFormat and valueFormat take d3-time-format strings for the axis and tooltip, and dateUTC pins parsing to UTC so the chart reads the same in every timezone.',
+          blurb: 'A continuous date scale on the category axis, with d3-format tick and tooltip formatting.',
+          notes: 'categoryAxis.type "date" with scale "linear" plots rows on continuous time (ordinal keeps evenly-spaced slots instead). tickLabel.format and valueFormat take d3-time-format strings for the axis and tooltip, and dateUTC pins parsing to UTC so the chart reads the same in every timezone.',
           config: timeSeriesConfig,
           data: timeSeriesData,
           random: timeSeriesRandom
@@ -232,7 +232,7 @@ export function getSections(): ShowcaseSection[] {
           slug: 'focus-styles',
           title: 'Focus Styles',
           blurb: 'Hover a series (or its legend entry) and watch the focused/defocused style states restyle the whole chart.',
-          notes: 'Every paintable element carries a style in three focus states — normal, focused, defocused. Here seriesAllConfig.shapeStyle gives every series a thicker focused outline and fades defocused fills to 15%, so pointing at any series makes the others step back. "same" in a focused/defocused color means "inherit the normal state’s color", so states usually only need to override opacities and widths.',
+          notes: 'Every paintable element carries a style in three focus states — normal, focused, defocused. Here seriesDefaults.shapeStyle gives every series a thicker focused outline and fades defocused fills to 15%, so pointing at any series makes the others step back. "same" in a focused/defocused color means "inherit the normal state’s color", so states usually only need to override opacities and widths.',
           config: focusStylesConfig,
           data: focusStylesData,
           random: focusStylesRandom

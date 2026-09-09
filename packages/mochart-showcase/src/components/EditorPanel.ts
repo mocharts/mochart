@@ -87,7 +87,7 @@ export function jsonPanel(options: JsonPanelOptions): JsonPanelHandle {
         attrs: { type: 'button', title: diagnostic.message },
         text: diagnostic.message
       });
-      item.addEventListener('click', () => editor.focusRange(diagnostic.from, diagnostic.to));
+      item.addEventListener('click', () => editor.showFocusRange(diagnostic.from, diagnostic.to));
       statusEl.append(item);
     }
   }

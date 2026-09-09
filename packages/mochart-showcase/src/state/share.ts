@@ -5,13 +5,13 @@
 
 import { deflateSync, inflateSync } from 'fflate';
 
-import type { DataRow, DemoConfig } from '@mochart/demo-data';
+import type { DataObject, DemoConfig } from '@mochart/demo-data';
 
 export interface ShowcaseShareState {
   v: 1;
   slug: string;
   config?: DemoConfig;
-  data?: DataRow[];
+  data?: DataObject[];
 }
 
 export const shareHashPrefix = '#s=';
@@ -63,7 +63,7 @@ export function decodeShareState(encoded: string): ShowcaseShareState | null {
       if (!Array.isArray(parsed.data) || parsed.data.some(row => !isPlainObject(row))) {
         return null;
       }
-      state.data = parsed.data as DataRow[];
+      state.data = parsed.data as DataObject[];
     }
     return state;
   }

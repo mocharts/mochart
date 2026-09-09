@@ -40,12 +40,12 @@ export function thumb(entry: ShowcaseEntry): ThumbHandle {
   // neither is readable at card size, and a wrapping legend can push the plot
   // height negative in a 170px box.
   const config = structuredClone(entry.config);
-  const animation = isPlainObject(config.animationConfig) ? config.animationConfig : {};
-  config.animationConfig = { ...animation, animate: false };
-  const legend = isPlainObject(config.legendConfig) ? config.legendConfig : {};
-  config.legendConfig = { ...legend, visible: false };
-  const title = isPlainObject(config.titleConfig) ? config.titleConfig : {};
-  config.titleConfig = { ...title, title: null };
+  const animation = isPlainObject(config.animation) ? config.animation : {};
+  config.animation = { ...animation, enabled: false };
+  const legend = isPlainObject(config.legend) ? config.legend : {};
+  config.legend = { ...legend, visible: false };
+  const title = isPlainObject(config.title) ? config.title : {};
+  config.title = { ...title, text: null };
 
   pending.set(container, () => {
     chart = mountDefaultChart(

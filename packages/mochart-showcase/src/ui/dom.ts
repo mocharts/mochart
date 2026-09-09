@@ -226,30 +226,3 @@ export function toast(message: string): void {
     toastTimer = null;
   }, 2200);
 }
-
-// ---------------------------------------------------------------------------
-// Size observation (for chart hosts that track their container).
-// ---------------------------------------------------------------------------
-
-export function observeSize(
-  element: HTMLElement,
-  onSize: (width: number, height: number) => void
-): () => void {
-  let lastWidth = -1;
-  let lastHeight = -1;
-  const report = () => {
-    const width = Math.floor(element.clientWidth);
-    const height = Math.floor(element.clientHeight);
-    if (width !== lastWidth || height !== lastHeight) {
-      lastWidth = width;
-      lastHeight = height;
-      onSize(width, height);
-    }
-  };
-  const observer = new ResizeObserver(report);
-  observer.observe(element);
-  // ResizeObserver fires its first callback asynchronously; report once the
-  // element is connected so mount-time layout doesn't wait a frame.
-  queueMicrotask(report);
-  return () => observer.disconnect();
-}
