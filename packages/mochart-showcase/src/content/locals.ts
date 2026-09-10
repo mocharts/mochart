@@ -43,56 +43,59 @@ export function makeGenericRandom(overrides: {
 }
 
 // ---------------------------------------------------------------------------
-// Date/time axis
+// Date/time axis: readings logged at uneven times on a linear date scale
 // ---------------------------------------------------------------------------
 
 export const timeSeriesConfig: DemoConfig = {
   version: '1.0.0',
-  title: { text: 'Sessions, March 2026' },
+  title: { text: 'Sensor Readings, Uneven Sampling' },
   categoryAxis: {
-    property: 'date',
-    valueLabel: 'Date',
+    property: 'time',
+    valueLabel: 'Logged',
     type: 'date',
     scale: 'linear',
     dateUTC: true,
-    title: { text: 'Date' },
-    tickLabel: { format: '%b %d' },
-    valueFormat: '%B %d',
+    title: { text: 'Time logged' },
+    tickLabel: { format: '%b %-d %H:%M' },
+    valueFormat: '%b %-d, %H:%M',
     gridLine: { visible: true }
   },
   valueAxes: [
-    { id: 'VA0', base: 0, min: 0, title: { text: 'Sessions' }, gridLine: { visible: true } }
+    { id: 'VA0', min: 0, max: 100, gridLine: { visible: true } }
   ],
+  seriesDefaults: { axis: 'VA0', renderer: 'line', marker: { shape: 'circle' } },
   series: [
-    { axis: 'VA0', property: 'sessions', title: 'Sessions', renderer: 'area' },
-    { axis: 'VA0', property: 'visitors', title: 'Unique visitors', renderer: 'line' }
+    { property: 'temperature', title: 'Temperature (C)' },
+    { property: 'humidity', title: 'Humidity (%)' }
   ]
 };
 
+// Bursts of readings a quarter to a few hours apart, then gaps of a day or
+// more: on the linear scale the bursts bunch up and the gaps stay open.
 export const timeSeriesData: DataObject[] = [
-  { date: '2026-03-01T00:00:00Z', sessions: 182, visitors: 121 },
-  { date: '2026-03-03T00:00:00Z', sessions: 264, visitors: 178 },
-  { date: '2026-03-05T00:00:00Z', sessions: 241, visitors: 152 },
-  { date: '2026-03-07T00:00:00Z', sessions: 128, visitors: 89 },
-  { date: '2026-03-09T00:00:00Z', sessions: 305, visitors: 214 },
-  { date: '2026-03-11T00:00:00Z', sessions: 356, visitors: 243 },
-  { date: '2026-03-13T00:00:00Z', sessions: 289, visitors: 197 },
-  { date: '2026-03-15T00:00:00Z', sessions: 176, visitors: 118 },
-  { date: '2026-03-17T00:00:00Z', sessions: 312, visitors: 208 },
-  { date: '2026-03-19T00:00:00Z', sessions: 384, visitors: 262 },
-  { date: '2026-03-21T00:00:00Z', sessions: 341, visitors: 226 },
-  { date: '2026-03-23T00:00:00Z', sessions: 219, visitors: 149 },
-  { date: '2026-03-25T00:00:00Z', sessions: 398, visitors: 274 },
-  { date: '2026-03-27T00:00:00Z', sessions: 421, visitors: 291 },
-  { date: '2026-03-29T00:00:00Z', sessions: 366, visitors: 247 },
-  { date: '2026-03-31T00:00:00Z', sessions: 302, visitors: 203 }
+  { time: '2026-03-03T06:00:00Z', temperature: 18, humidity: 62 },
+  { time: '2026-03-03T07:30:00Z', temperature: 21, humidity: 58 },
+  { time: '2026-03-03T09:00:00Z', temperature: 24, humidity: 55 },
+  { time: '2026-03-03T10:00:00Z', temperature: 26, humidity: 51 },
+  { time: '2026-03-04T18:00:00Z', temperature: 23, humidity: 64 },
+  { time: '2026-03-04T18:45:00Z', temperature: 22, humidity: 66 },
+  { time: '2026-03-04T20:00:00Z', temperature: 19, humidity: 71 },
+  { time: '2026-03-06T02:00:00Z', temperature: 12, humidity: 84 },
+  { time: '2026-03-06T02:30:00Z', temperature: 12, humidity: 86 },
+  { time: '2026-03-06T03:15:00Z', temperature: 11, humidity: 88 },
+  { time: '2026-03-06T05:00:00Z', temperature: 13, humidity: 83 },
+  { time: '2026-03-06T11:00:00Z', temperature: 22, humidity: 60 },
+  { time: '2026-03-07T08:00:00Z', temperature: 17, humidity: 69 },
+  { time: '2026-03-07T09:00:00Z', temperature: 20, humidity: 63 }
 ];
 
+// Quarter-hour slots across the same four days: a random pick of fourteen of
+// them is uneven by nature, so every seed keeps the point of the demo.
 export const timeSeriesRandom = makeGenericRandom({
-  categoryCount: 16,
-  categoryDate: { min: '2026-03-01', max: '2026-03-31', interval: 2, intervalUnit: 'day' },
-  seriesMin: 50,
-  seriesMax: 450
+  categoryCount: 14,
+  categoryDate: { min: '2026-03-03T00:00:00Z', max: '2026-03-07T12:00:00Z', interval: 15, intervalUnit: 'minute' },
+  seriesMin: 5,
+  seriesMax: 95
 });
 
 // ---------------------------------------------------------------------------
