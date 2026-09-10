@@ -173,6 +173,33 @@ describe('legend icon color-scale gradients', () => {
     expect(stopsOf(gradients[0])).toEqual([['0%', '#a00'], ['50%', '#f00'], ['50%', '#0f0'], ['100%', '#0a0']]);
   });
 
+  it('stripes the swatch with the palette for a series coloured by category index', () => {
+    // a categoryIndex fill has no single colour, so the swatch shows the palette it draws from;
+    // the filtered icon keeps its flat filtered colour, which the stripes make easy to tell apart
+    const container = mountChart({
+      colorPalette: { shape: { normal: { fillColors: ['#a00', '#0a0', '#00a', '#aa0', '#0aa'] } } },
+      series: [{ id: 'S0', property: 'sales', renderer: 'bar', shapeStyle: { normal: { fillColor: 'categoryIndex', strokeColor: 'categoryIndex' } } }, plainSeries]
+    });
+    const gradients = chartGradients(container);
+    const icons = legendIcons(container);
+
+    expect(gradients).toHaveLength(1);
+    expect(icons[0].getAttribute('fill')).toBe('url(#' + gradients[0].getAttribute('id') + ')');
+    expect(icons[1].getAttribute('fill')).not.toMatch(/^url\(/);
+    // the first four palette colours as hard-edged bands, left to right
+    expect(gradients[0].getAttribute('x1')).toBe('0');
+    expect(gradients[0].getAttribute('x2')).toBe('1');
+    expect(gradients[0].getAttribute('y1')).toBe('0');
+    expect(gradients[0].getAttribute('y2')).toBe('0');
+    expect(stopsOf(gradients[0])).toEqual([
+      ['0%', '#a00'], ['25%', '#a00'], ['25%', '#0a0'], ['50%', '#0a0'],
+      ['50%', '#00a'], ['75%', '#00a'], ['75%', '#aa0'], ['100%', '#aa0']
+    ]);
+
+    container.querySelector(getIdCssSelector('legendItem', 'S0'))!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(legendIcons(container)[0].getAttribute('fill')).not.toMatch(/^url\(/);
+  });
+
   it('gives each color-scale series its own gradient id', () => {
     const container = mountChart({ series: [rampSeries, { ...splitSeries, id: 'S1', property: 'costs', colorProperty: 'costs' }] });
     const gradients = chartGradients(container);

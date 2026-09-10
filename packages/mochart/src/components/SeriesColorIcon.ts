@@ -7,7 +7,7 @@ import SeriesColorGradient from './SeriesColorGradient';
 import Pattern from './Pattern';
 
 import { AUTO, NONE } from '../config/core/constants';
-import { getSeriesColor, getSeriesFillColor, getSeriesOpacities, getSeriesGradientColors } from '../utils/SeriesColors';
+import { getSeriesColor, getSeriesFillColor, getSeriesOpacities, getSeriesSwatchGradient } from '../utils/SeriesColors';
 import { getSymbolGenerator } from '../utils/shapeUtils';
 import { translate } from '../utils/utils';
 import { getGradientReference, getPatternReference } from '../utils/svgUtils';
@@ -156,7 +156,7 @@ export default class SeriesColorIcon extends Renderer<SeriesColorIconProps> {
 
     const { gradient, pattern } = seriesConfig;
 
-    const seriesGradientColors = getSeriesGradientColors(seriesConfig);
+    const swatchGradient = getSeriesSwatchGradient(this.props.colorPaletteConfig, seriesConfig);
     if (pattern !== NONE) {
       const fillPalette = this.props.colorPaletteConfig.shape.normal.fillColors;
       const fallbackColor = fillPalette[this.props.seriesIndex % fillPalette.length] ?? null;
@@ -176,8 +176,8 @@ export default class SeriesColorIcon extends Renderer<SeriesColorIconProps> {
         gradientSlot.set(RadialGradient, { uniqueId: fillDefinitionId, radialGradientConfig });
       }
     }
-    else if (seriesGradientColors) {
-      this.ensureDefsFillSlot().set(SeriesColorGradient, { uniqueId: fillDefinitionId, seriesConfig });
+    else if (swatchGradient !== null) {
+      this.ensureDefsFillSlot().set(SeriesColorGradient, { uniqueId: fillDefinitionId, gradient: swatchGradient });
     }
     else {
       this.defsSlot.set(null);
@@ -203,7 +203,7 @@ export default class SeriesColorIcon extends Renderer<SeriesColorIconProps> {
 
     const { pieMode } = this.props;
     const { opacity, focusedOpacity, defocusedOpacity } = getSeriesOpacities(seriesConfig, pieMode);
-    const hasFillDefinition = pattern !== NONE || gradient !== NONE || getSeriesGradientColors(seriesConfig);
+    const hasFillDefinition = pattern !== NONE || gradient !== NONE || getSeriesSwatchGradient(colorPaletteConfig, seriesConfig) !== null;
     const halfBorderSize = iconBorderSize / 2.0;
     // icon.size and icon.borderStyle.strokeWidth validate independently, so a border wider than the icon would
     // otherwise put a negative width on the rect and the browser would drop the element

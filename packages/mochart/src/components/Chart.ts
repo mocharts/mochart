@@ -34,7 +34,7 @@ import LinearGradient from './LinearGradient';
 import RadialGradient from './RadialGradient';
 import Pattern from './Pattern';
 import { accessibilityActive, focusRestored, translateObject } from '../utils/utils';
-import { getSeriesFillColor, getSeriesGradientColors } from '../utils/SeriesColors';
+import { getSeriesFillColor, getSeriesSwatchGradient } from '../utils/SeriesColors';
 import { getTooltipAnnouncement } from '../utils/TooltipFormat';
 import type { ChartFactoryContent, ChartFactoryContext, ChartContentFactory, ChartEventPayload, ChartSeriesClickPayload, ChartSliceClickPayload, InternalFocus } from '../types/chart';
 import type { LinearGradientConfig, PatternConfig, RadialGradientConfig } from '../types/config';
@@ -1351,10 +1351,11 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
     const seriesColorGradients: RendererItem[] = [];
     mochartConfig.series.forEach((seriesConfig: EnhancedSeriesConfig) => {
-      if (getSeriesGradientColors(seriesConfig)) {
+      const gradient = getSeriesSwatchGradient(mochartConfig.colorPalette, seriesConfig);
+      if (gradient !== null) {
         seriesColorGradients.push({
           key: seriesConfig.id, ctor: SeriesColorGradient,
-          props: { uniqueId: seriesColorGradientUniqueIds[seriesConfig.id], seriesConfig }
+          props: { uniqueId: seriesColorGradientUniqueIds[seriesConfig.id], gradient }
         });
       }
     });
