@@ -9,6 +9,10 @@ type DateUnit = RandomConfig['category']['date']['intervalUnit'];
 
 const DAY_MILLIS = 86400000;
 
+// demo-common's random schema caps string lengths at 20; past 21 digits the
+// generator's number prints in exponent form and its letters turn to NUL.
+const MAX_STRING_LENGTH = 20;
+
 const DATE_UNITS: [DateUnit, number][] = [
   ['day', DAY_MILLIS],
   ['hour', 3600000],
@@ -133,11 +137,11 @@ function deriveString(values: unknown[], count: number): Partial<RandomConfig['c
   if (lengths.length === 0) {
     return null;
   }
-  const minLength = Math.max(1, Math.min(...lengths));
-  let maxLength = Math.max(minLength + 1, ...lengths);
+  let maxLength = Math.max(1, Math.min(MAX_STRING_LENGTH, Math.max(...lengths)));
+  const minLength = Math.min(maxLength, Math.max(1, Math.min(...lengths)));
   // The string generator spells out a number with minLength to maxLength
   // digits, so the digit range decides how many distinct strings exist.
-  while (Math.pow(10, maxLength - 1) - Math.pow(10, minLength - 1) < count * 2) {
+  while (maxLength < MAX_STRING_LENGTH && Math.pow(10, maxLength - 1) - Math.pow(10, minLength - 1) < count * 2) {
     maxLength++;
   }
   return { string: { minLength, maxLength } };
