@@ -163,7 +163,7 @@ export function getTransitionValueChangeData(mochartConfig: EnhancedMochartConfi
 
   setAllBaseValuesForOuterChanges(mochartConfig.animation, mochartConfig.series, startSeriesData, endSeriesData,
     prevSeriesData, newChartData.seriesData, categoryDeltaData.outerCounts);
-  setAllBaseValuesForChanges(mochartConfig.series, startSeriesData, endSeriesData);
+  setAllBaseValuesForChanges(mochartConfig.series, startSeriesData, endSeriesData, endCategoryData.values.numeric);
 
   enhanceValueObjects(startSeriesData.filtered.values);
   enhanceValueObjects(endSeriesData.filtered.values);
@@ -428,12 +428,60 @@ function setBasePositionValuesForChanges(seriesConfig: EnhancedSeriesConfig, sta
   }
 }
 
-function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], startSeriesData: SeriesData, endSeriesData: SeriesData): void {
+// An interior point that enters or leaves animates from or onto the line between its
+// neighbours, weighted by category position, so a line or area never spikes to the base.
+function fillInteriorFromNeighbours(values: NumericValues, otherValues: NumericValues, coordinates: readonly number[]): void {
+  const source = values.slice();
+  const count = values.length;
+  for (let i = 1; i < count - 1; i++) {
+    if (!isMissingValue(source[i]) || isMissingValue(otherValues[i])) {
+      continue;
+    }
+    let left = i - 1;
+    while (left >= 0 && isMissingValue(source[left])) {
+      left--;
+    }
+    let right = i + 1;
+    while (right < count && isMissingValue(source[right])) {
+      right++;
+    }
+    if (left < 0 || right >= count) {
+      continue;
+    }
+    const span = coordinates[right]! - coordinates[left]!;
+    const fraction = span === 0 ? 0.5 : (coordinates[i]! - coordinates[left]!) / span;
+    values[i] = source[left]! + fraction * (source[right]! - source[left]!);
+  }
+}
+
+function setAdjacentValuesForInteriorChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, coordinates: readonly number[], onlyDifferentReferences: boolean, startRawValueObject: SeriesValueObject, endRawValueObject: SeriesValueObject): void {
+  for (const key of positionOrComputedKeys) {
+    const startValues = startValueObject[key];
+    const endValues = endValueObject[key];
+    if (startValues === null || endValues === null || startValues === endValues) {
+      continue;
+    }
+    if (onlyDifferentReferences && !areValueReferencesDifferent(startValueObject, endValueObject, startRawValueObject, endRawValueObject, key)) {
+      continue;
+    }
+    fillInteriorFromNeighbours(startValues, endValues, coordinates);
+    fillInteriorFromNeighbours(endValues, startValues, coordinates);
+  }
+}
+
+function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], startSeriesData: SeriesData, endSeriesData: SeriesData, categoryCoordinates: readonly number[]): void {
   for (const seriesConfig of seriesConfigs) {
     const { id } = seriesConfig;
     const seriesBase = startSeriesData.seriesBases[id] ?? MISSING_VALUE;
     const startValueObject = startSeriesData.raw.values[id];
     const endValueObject = endSeriesData.raw.values[id];
+    const startFilteredValueObject = startSeriesData.filtered.values[id];
+    const endFilteredValueObject = endSeriesData.filtered.values[id];
+
+    if (seriesConfig.animateBaseFromAdjacent) {
+      setAdjacentValuesForInteriorChanges(startValueObject, endValueObject, categoryCoordinates, false, startValueObject, endValueObject);
+      setAdjacentValuesForInteriorChanges(startFilteredValueObject, endFilteredValueObject, categoryCoordinates, true, startValueObject, endValueObject);
+    }
 
     setBasePositionValuesForChanges(seriesConfig, startValueObject, endValueObject, seriesBase, false, startValueObject, endValueObject);
 
@@ -443,9 +491,6 @@ function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], start
       setBaseExtraValuesForChanges(startValueObject, endValueObject, extraKey, copyKey, seriesBase, startRawSeriesDomainObject, extraKey !== 'label');
     }
     setStackBaseValuesForChanges(startValueObject, endValueObject);
-
-    const startFilteredValueObject = startSeriesData.filtered.values[id];
-    const endFilteredValueObject = endSeriesData.filtered.values[id];
 
     setBasePositionValuesForChanges(seriesConfig, startFilteredValueObject, endFilteredValueObject, seriesBase, true, startValueObject, endValueObject);
     for (const { extraKey, copyKey } of extraAndCopyKeys) {

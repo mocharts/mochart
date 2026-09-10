@@ -464,15 +464,16 @@ describe('getChartDataForValueDelta (range channel with an undefined hole)', () 
     rangeChartData([{ c: 0, a: 10, hi: 15 }, { c: 1, a: 20 }])
   );
 
-  it('tweens the plain channel while holding the vanishing range point', () => {
+  it('collapses the vanishing range point onto its plain value', () => {
     const mid = getChartDataForValueDelta(rangeConfig, cad, 0.5).seriesData.raw.values[rangeSeriesId];
     const end = getChartDataForValueDelta(rangeConfig, cad, 1).seriesData.raw.values[rangeSeriesId];
-    // the missing category-1 range has zero delta and holds at start; ranged plain/range keys
-    // share one duration, so range is at half its journey at the midpoint like plain
+    // the missing category-1 range animates to the plain value it collapses onto (the zero-extent
+    // bar it finally renders as), not to the base; ranged plain/range keys share one duration,
+    // so range is at half its journey at the midpoint like plain
     expect(mid.plain).toEqual([5, 10]);
-    expect(mid.range).toEqual([7.5, 0]);
+    expect(mid.range).toEqual([7.5, 10]);
     expect(end.plain).toEqual([10, 20]);
-    expect(end.range).toEqual([15, 0]);
+    expect(end.range).toEqual([15, 20]);
   });
 });
 
