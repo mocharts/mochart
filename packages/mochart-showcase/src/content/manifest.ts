@@ -397,7 +397,7 @@ export function getSections(): ShowcaseSection[] {
           slug: 'time-series',
           title: 'Date & Time Axis',
           blurb: 'Readings logged at uneven times on a linear date scale: bursts bunch up and the gaps between them stay open, where an ordinal scale would space every reading evenly.',
-          notes: 'categoryAxis.type "date" with scale "linear" places each row at its real time, so the four bursts of readings sit close together and the day-long gaps between them stay open. Change scale to "ordinal" in the config tab and every reading gets an equal slot, hiding the gaps. tickLabel.format and valueFormat take d3-time-format strings for the axis ticks and the tooltip\'s category line, and dateUTC pins parsing to UTC so the chart reads the same in every timezone. Randomizing picks quarter-hour slots across the same four days, so the sampling stays uneven.',
+          notes: 'categoryAxis.type "date" with scale "linear" places each row at its real time, so the four bursts of readings sit close together and the day-long gaps between them stay open. Change scale to "ordinal" in the config tab and every reading gets an equal slot, hiding the gaps. tickLabel.format and valueFormat take d3-time-format strings for the axis ticks and the tooltip\'s category line, and dateUTC pins parsing to UTC so the chart reads the same in every timezone. Randomizing picks quarter-hour slots from a window four and a half days wide that drifts with the seed, so the sampling stays uneven.',
           config: timeSeriesConfig,
           data: timeSeriesData,
           random: timeSeriesRandom

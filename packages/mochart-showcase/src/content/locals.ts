@@ -89,8 +89,9 @@ export const timeSeriesData: DataObject[] = [
   { time: '2026-03-07T09:00:00Z', temperature: 20, humidity: 63 }
 ];
 
-// Quarter-hour slots across the same four days: a random pick of fourteen of
-// them is uneven by nature, so every seed keeps the point of the demo.
+// Quarter-hour slots across four and a half days (the seed walk drifts the
+// window): a random pick of fourteen of them is uneven by nature, so every
+// seed keeps the point of the demo.
 export const timeSeriesRandom = makeGenericRandom({
   categoryCount: 14,
   categoryDate: { min: '2026-03-03T00:00:00Z', max: '2026-03-07T12:00:00Z', interval: 15, intervalUnit: 'minute' },
