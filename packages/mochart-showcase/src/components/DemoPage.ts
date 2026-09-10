@@ -129,7 +129,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
       return new ArrayOfObjectsDataProvider([]);
     }
     if (seed !== null && entry.random !== undefined) {
-      return generateDemoDataProvider(entry.generator, demoConfig.mochartConfig, randomForSeed(entry.random, seed), seed);
+      return generateDemoDataProvider(entry.generator, demoConfig.mochartConfig, randomForSeed(entry.random, seed, entry.walkBounds), seed);
     }
     return new ArrayOfObjectsDataProvider(structuredClone(rows));
   }

@@ -6,6 +6,8 @@
 
 import type { DemoRandomConfig, RandomConfig } from '@mochart/demo-data';
 
+import type { WalkBounds } from './types';
+
 type CategoryConfig = RandomConfig['category'];
 
 const DAY_MILLIS = 86400000;
@@ -136,17 +138,29 @@ function walkDate(date: CategoryConfig['date'], walk: Walk): CategoryConfig['dat
   };
 }
 
-function walkNumber(number: CategoryConfig['number'], walk: Walk): CategoryConfig['number'] {
+function walkNumber(number: CategoryConfig['number'], walk: Walk, bounds: WalkBounds | undefined): CategoryConfig['number'] {
   const curatedSpan = number.max - number.min;
   const count = slots(curatedSpan, number.interval);
   const whole = Number.isInteger(number.interval);
   const scaled = tidy(number.interval * walk.scale, whole);
-  const interval = whole ? Math.max(1, scaled) : scaled;
-  const span = interval * (count - 1);
+  let interval = whole ? Math.max(1, scaled) : scaled;
+  let span = interval * (count - 1);
+  // An entry with bounds keeps its whole window inside them: the interval is
+  // held so the window fits, and the window folds back off either end.
+  if (bounds !== undefined) {
+    const room = bounds.max - bounds.min;
+    if (span > room && count > 1) {
+      interval = whole ? Math.max(1, Math.floor(room / (count - 1))) : tidy(room / (count - 1), false);
+      span = interval * (count - 1);
+    }
+  }
   let min = tidy((number.min + number.max) / 2 + walk.shift * curatedSpan - span / 2, whole);
   // Categories the curated data keeps at or above zero stay there.
   if (number.min >= 0 && min < 0) {
     min = -min;
+  }
+  if (bounds !== undefined) {
+    min = bounds.max - span <= bounds.min ? bounds.min : tidy(reflect(min, bounds.min, bounds.max - span), whole);
   }
   return { min, max: min + span, interval };
 }
@@ -159,9 +173,10 @@ function isGeneric(random: DemoRandomConfig): random is RandomConfig {
  * The spec a seed generates from: the demo's own spec with its category reuse
  * unpinned and its category window walked. String categories have no window,
  * so they change through the reuse alone. Chart-type generator specs own their
- * own model and pass through untouched.
+ * own model and pass through untouched. `bounds` holds a number window inside
+ * a range (see ShowcaseEntry.walkBounds).
  */
-export function randomForSeed(random: DemoRandomConfig, seed: number): DemoRandomConfig {
+export function randomForSeed(random: DemoRandomConfig, seed: number, bounds?: WalkBounds): DemoRandomConfig {
   if (!isGeneric(random)) {
     return random;
   }
@@ -176,7 +191,7 @@ export function randomForSeed(random: DemoRandomConfig, seed: number): DemoRando
       // it: it still lines adjacent steps up where the window barely moves.
       reuse: { globalFraction: 0, stepFraction: category.reuse.stepFraction },
       date: walkDate(category.date, walk),
-      number: walkNumber(category.number, walk)
+      number: walkNumber(category.number, walk, bounds)
     }
   };
 }

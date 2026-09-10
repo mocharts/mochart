@@ -1,5 +1,10 @@
 import type { DataObject, DemoConfig, DemoRandomConfig } from '@mochart/demo-data';
 
+export interface WalkBounds {
+  min: number;
+  max: number;
+}
+
 /** A card's own thumbnail, for an entry whose page is more than one chart. */
 export interface ThumbnailHandle {
   el: HTMLElement;
@@ -22,6 +27,11 @@ export interface ShowcaseEntry {
   random?: DemoRandomConfig;
   /** Chart-type random-mode generator id (demo-common chartTypeGenerators). */
   generator?: string;
+  /**
+   * Number categories the seed walk keeps the random category window inside,
+   * for a demo whose axis bounds or whose point depends on where it sits.
+   */
+  walkBounds?: WalkBounds;
   special?: SpecialKind;
   /** Tweaks the gallery thumbnail's config clone after the generic stripping. */
   thumbnail?: (config: DemoConfig) => void;

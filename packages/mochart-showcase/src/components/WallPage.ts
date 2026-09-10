@@ -66,7 +66,7 @@ export function wallPage(props: WallPageProps): WallPageHandle {
     return {
       mochartConfig: demoConfig.mochartConfig,
       dataProvider: demoConfig.valid && entry.random !== undefined
-        ? generateDemoDataProvider(entry.generator, demoConfig.mochartConfig, randomForSeed(entry.random, seed), seed)
+        ? generateDemoDataProvider(entry.generator, demoConfig.mochartConfig, randomForSeed(entry.random, seed, entry.walkBounds), seed)
         : null
     };
   }
