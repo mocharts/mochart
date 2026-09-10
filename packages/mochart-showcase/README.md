@@ -16,13 +16,19 @@ playground:
   The config panel is powered by [@mochart/editor](../mochart-editor/README.md)
   (completions, hover docs, live movalid diagnostics); edits apply live, and a
   mochart-invalid config renders the chart's own config-error state.
-- **Deterministic randomize**: `?seed=N` in the URL; datasets come from
-  demo-common's seeded generators, so any state is reproducible by link. A
-  reused demo's generic random spec is derived from its curated rows
-  ([src/content/randomFromCurated.ts](src/content/randomFromCurated.ts)), so
-  every seed keeps the curated category spacing and value range, with the
-  category range wandering by a small margin around the curated one.
-  Play loops the seed to showcase staged transitions.
+- **Deterministic randomize**: `?seed=N` in the URL (up to four digits);
+  datasets come from demo-common's seeded generators, so any state is
+  reproducible by link. A reused demo's generic random spec is derived from
+  its curated rows ([src/content/randomFromCurated.ts](src/content/randomFromCurated.ts)):
+  category count, range and spacing, and the series value range. Each seed
+  then walks that category window
+  ([src/content/randomForSeed.ts](src/content/randomForSeed.ts)): the
+  window's centre takes a seeded random walk away from the curated one, and a
+  window inside a single day also walks its interval, so successive seeds
+  change which categories are in view rather than only reshuffling values.
+  An entry can pin the walk with `walkBounds` (Clipped Values keeps its
+  window inside its axis; Easing keeps its six categories fixed). Play steps
+  the seed to showcase staged transitions.
 - **Share & export**: a compressed `#s=` hash payload carries config/data
   edits; SVG/PNG export via [@mochart/export](../mochart-export/README.md).
 - **Wall** (`/wall`, desktop only): a grid of charts driven by one shared
@@ -47,7 +53,13 @@ npm run dev:showcase   # vite dev server on http://localhost:5182
 ```
 
 Or from this package: `npm run dev`, `npm run build`, `npm run preview`
-(port 4182), `npm run typecheck`.
+(port 4182), `npm run typecheck`, `npm run lint`, `npm test` (vitest unit
+tests over the content derivation, seed walk and share codec) and
+`npm run test:e2e` (the Playwright smoke suite, also run by root
+`npm run test:e2e`).
 
-See [docs/showcase-plan.md](../../docs/showcase-plan.md) for the plan and
-status; deployment wiring is deliberately not set up yet.
+The deployed site places the showcase at `/showcase/` next to the docs and
+the demo galleries (see `scripts/build-pages.mjs` and the docs site's nav
+entry). Under that base a bare `/<slug>` redirects to `/d/<slug>`, and deep
+links are restored through the docs 404 redirect on GitHub Pages and the
+`_redirects` rewrite on Cloudflare Pages.
