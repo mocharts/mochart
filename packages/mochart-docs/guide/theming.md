@@ -42,6 +42,8 @@ the datum's category index. Indices wrap, so index 7 reuses index 0. If that
 would make two things that readers must identify share a color, add another
 visual encoding or choose a suitable palette with more entries — see
 [Color and visual encoding](/guide/accessibility#color-and-visual-encoding).
+A series styled with `categoryIndex` has no single color, so its legend and
+tooltip icons show the palette's first colors as a striped swatch.
 
 Set both `strokeColors` and `fillColors` when line and filled renderers should
 share a palette. The arrays are replacements, not extensions of the defaults.

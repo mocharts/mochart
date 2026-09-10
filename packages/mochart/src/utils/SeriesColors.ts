@@ -246,6 +246,33 @@ export function getSeriesColorGenerator(seriesConfig: EnhancedSeriesConfig, rawD
   }
 }
 
+/** How many palette colours a per-category swatch shows. */
+const CATEGORY_SWATCH_COLOR_COUNT = 4;
+
+/** A series' icon swatch: a value ramp for a colour scale, or palette stripes for a per-category fill. */
+export interface SeriesSwatchGradient {
+  colors: string[];
+  striped: boolean;
+}
+
+export function getSeriesSwatchGradient(colorPaletteConfig: ColorPaletteConfig, seriesConfig: EnhancedSeriesConfig): SeriesSwatchGradient | null {
+  const rampColors = getSeriesGradientColors(seriesConfig);
+  if (rampColors !== null) {
+    return { colors: rampColors, striped: false };
+  }
+  // A categoryIndex colour has no single colour to show, so the swatch shows the palette it draws from.
+  if (seriesConfig.pattern !== NONE || seriesConfig.gradient !== NONE) {
+    return null;
+  }
+  for (const key of ['fillColors', 'strokeColors'] as const) {
+    if (readColor(seriesConfig, 'series', 'normal', styleMemberKeys[key]) === COLOR_CATEGORY_INDEX) {
+      const colors = colorPaletteConfig.shape.normal[key].slice(0, CATEGORY_SWATCH_COLOR_COUNT).filter((color): color is string => typeof color === 'string');
+      return colors.length > 0 ? { colors, striped: true } : null;
+    }
+  }
+  return null;
+}
+
 export function getSeriesGradientColors(seriesConfig: EnhancedSeriesConfig): string[] | null {
   const colorScale = seriesConfig.colorScale;
   if (colorScale === null) {

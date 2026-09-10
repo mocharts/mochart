@@ -3387,22 +3387,14 @@ export interface SeriesConfig {
    * Whether to show the series color as an icon next to the series title in the
    * legend.
    *
-   * Default:
-   * - `false` — when shapeStyle.normal.strokeColor or
-   *   shapeStyle.normal.fillColor is categoryIndex
-   * - `true` — when neither shapeStyle.normal.strokeColor nor
-   *   shapeStyle.normal.fillColor is categoryIndex
+   * @default true
    */
   showColorInLegend: boolean;
   /**
    * Whether to show the series color as an icon next to the series title in the
    * tooltip.
    *
-   * Default:
-   * - `false` — when shapeStyle.normal.strokeColor or
-   *   shapeStyle.normal.fillColor is categoryIndex
-   * - `true` — when neither shapeStyle.normal.strokeColor nor
-   *   shapeStyle.normal.fillColor is categoryIndex
+   * @default true
    */
   showColorInTooltip: boolean;
   /**

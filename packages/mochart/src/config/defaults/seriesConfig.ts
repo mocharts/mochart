@@ -108,6 +108,8 @@ export function getRegularDefaults() {
       }
     },
     showInTooltip: true,
+    showColorInLegend: true,
+    showColorInTooltip: true,
     filterable: true,
     followSeries: NONE,
     focusOnHover: false,
@@ -119,11 +121,6 @@ export function getRegularDefaults() {
   };
 }
 
-function isCategoryIndexColored({ shapeStyle }: SeriesConfig): boolean {
-  const normal = shapeStyle !== null && typeof shapeStyle === 'object' && !Array.isArray(shapeStyle) ? shapeStyle.normal : undefined;
-  const { strokeColor, fillColor } = normal !== null && typeof normal === 'object' ? normal : {};
-  return strokeColor === COLOR_CATEGORY_INDEX || fillColor === COLOR_CATEGORY_INDEX;
-}
 
 function usesFillRenderer({ renderer }: SeriesConfig, pieMode: boolean): boolean {
   return pieMode || renderer === RENDERER_AREA || renderer === RENDERER_BAR;
@@ -144,8 +141,6 @@ const followSeriesSuffix = 'when followSeries is not ' + NONE;
 const followSeriesNoneSuffix = 'when followSeries is ' + NONE;
 const nonColorRendererSuffix = 'when chart type is not xy or renderer is not bar';
 const colorRendererSuffix = 'when chart type is xy and renderer is bar';
-const categoryIndexColorSuffix = 'when shapeStyle.normal.strokeColor or shapeStyle.normal.fillColor is ' + COLOR_CATEGORY_INDEX;
-const notCategoryIndexColorSuffix = 'when neither shapeStyle.normal.strokeColor nor shapeStyle.normal.fillColor is ' + COLOR_CATEGORY_INDEX;
 
 export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, index: number, soleValueAxisId: string | null, soleSeriesStackId: string | null, soleSeriesGroupId: string | null, soleGradientConfigId: string | null, solePatternConfigId: string | null, pieMode = false) {
   return {
@@ -320,16 +315,6 @@ export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, 
     showInLegend: conditionalDefault([
       { condition: ({ followSeries }) => followSeries !== NONE, suffix: followSeriesSuffix, default: false },
       { condition: ({ followSeries }) => followSeries === NONE, suffix: followSeriesNoneSuffix, default: true },
-      { ...defaultRule, default: true }
-    ], configWithRegularDefaults, index),
-    showColorInLegend: conditionalDefault([
-      { condition: (config) => isCategoryIndexColored(config), suffix: categoryIndexColorSuffix, default: false },
-      { condition: (config) => !isCategoryIndexColored(config), suffix: notCategoryIndexColorSuffix, default: true },
-      { ...defaultRule, default: true }
-    ], configWithRegularDefaults, index),
-    showColorInTooltip: conditionalDefault([
-      { condition: (config) => isCategoryIndexColored(config), suffix: categoryIndexColorSuffix, default: false },
-      { condition: (config) => !isCategoryIndexColored(config), suffix: notCategoryIndexColorSuffix, default: true },
       { ...defaultRule, default: true }
     ], configWithRegularDefaults, index)
   };

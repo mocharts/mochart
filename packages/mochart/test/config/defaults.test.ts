@@ -198,19 +198,9 @@ describe('series color-icon defaults', () => {
     expect(showColorFlags()).toEqual({ showColorInLegend: true, showColorInTooltip: true });
   });
 
-  it('hides the color icon for a series colored by category index', () => {
-    // every category styles it differently, so a single swatch would be arbitrary
+  it('keeps the color icon for a series colored by category index', () => {
+    // the icon shows the palette as a striped swatch (see SeriesIconConfig), so there is a colour to show
     expect(showColorFlags({ normal: { strokeColor: 'categoryIndex', fillColor: 'categoryIndex' } }))
-      .toEqual({ showColorInLegend: false, showColorInTooltip: false });
-    // either member is enough
-    expect(showColorFlags({ normal: { fillColor: 'categoryIndex' } }))
-      .toEqual({ showColorInLegend: false, showColorInTooltip: false });
-    expect(showColorFlags({ normal: { strokeColor: 'categoryIndex' } }))
-      .toEqual({ showColorInLegend: false, showColorInTooltip: false });
-  });
-
-  it('keeps the icon when only a focus state names the category index', () => {
-    expect(showColorFlags({ focused: { fillColor: 'categoryIndex' } }))
       .toEqual({ showColorInLegend: true, showColorInTooltip: true });
   });
 });
