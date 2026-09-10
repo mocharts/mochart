@@ -70,7 +70,7 @@ export function thumb(entry: ShowcaseEntry): ThumbHandle {
 
   pending.set(container, () => {
     if (entry.thumbnailElement !== undefined) {
-      custom = entry.thumbnailElement();
+      custom = entry.thumbnailElement(config);
       container.append(custom.el);
       return;
     }

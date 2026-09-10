@@ -25,8 +25,11 @@ export interface ShowcaseEntry {
   special?: SpecialKind;
   /** Tweaks the gallery thumbnail's config clone after the generic stripping. */
   thumbnail?: (config: DemoConfig) => void;
-  /** Builds the card's thumbnail in place of the entry's chart (still mounted lazily). */
-  thumbnailElement?: () => ThumbnailHandle;
+  /**
+   * Builds the card's thumbnail in place of the entry's chart (still mounted
+   * lazily), given the entry's config stripped the way the card strips it.
+   */
+  thumbnailElement?: (config: DemoConfig) => ThumbnailHandle;
   /** Eligible for the wall (derived: has a random spec and no special body). */
   wall: boolean;
 }

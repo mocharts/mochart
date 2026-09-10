@@ -333,6 +333,23 @@ a:hover {
     font-variant-numeric: tabular-nums;
     padding-right: 0;
 }
+.sc-thumb-callbacks {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.sc-thumb-callbacks-chart {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+.sc-thumb-callbacks-log {
+    flex: none;
+    font-size: 0.7rem;
+    line-height: 1.35;
+    padding: 4px 10px;
+    border-width: 1px 0 0;
+    border-radius: 0;
+}
 .sc-card-text {
     padding: 10px 14px 14px;
 }

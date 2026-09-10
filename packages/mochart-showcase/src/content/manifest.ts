@@ -10,7 +10,9 @@ import { rotationConfigs, rotationData, tableSparklineMetrics } from '@mochart/d
 import type { ShowcaseEntry, ShowcaseSection, SpecialKind } from './types';
 import { randomFromCurated } from './randomFromCurated';
 import { sparklinesThumb } from '../components/SparklinesThumb';
+import { callbacksThumb } from '../components/CallbacksThumb';
 import {
+  callbacksConfig, callbacksData, callbacksRandom,
   currentColorConfig, currentColorData, currentColorRandom,
   easingConfig, easingData, easingRandom,
   editorConfig, editorData, editorRandom,
@@ -273,11 +275,17 @@ function statesEntry(): ShowcaseEntry {
 }
 
 function callbacksEntry(): ShowcaseEntry {
-  return specialFrom('grouped', 'callbacks', {
-    special: 'callbacks',
+  return local({
+    slug: 'callbacks',
     title: 'Interaction Callbacks',
     blurb: 'Click, hover, focus and legend-filter events streamed into a live log as you interact with the chart.',
-    notes: 'Every interaction the chart supports is also reported to the host: onChartClick with plot coordinates and the nearest category, onFocus as hover or legend interaction moves focus, onSeriesFilter as legend clicks filter series in and out, and onChartMouseEnter/Move/Leave for raw pointer tracking. The log below the chart prints each event as it fires.'
+    notes: 'Every interaction the chart supports is also reported to the host: onSeriesClick and onChartClick when a bar or the plot is clicked, onFocus as a click, a hover or a legend interaction moves focus, onSeriesFilter as legend clicks filter series in and out, and onChartMouseEnter/Move/Leave for raw pointer tracking. The bars set focusOnClick and showPointer, so clicking one focuses its series and reports both events. The log below the chart prints each event as it fires.',
+    config: callbacksConfig,
+    data: callbacksData,
+    random: callbacksRandom,
+    special: 'callbacks',
+    // The page is a chart over a log, so the card is too.
+    thumbnailElement: config => callbacksThumb(config, callbacksData)
   });
 }
 

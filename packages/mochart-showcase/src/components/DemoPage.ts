@@ -194,6 +194,9 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
       onChartClick(event: { categoryIndex: number; chartX: number; chartY: number }) {
         logEvent('onChartClick', `category=${event.categoryIndex} at ${Math.round(event.chartX)},${Math.round(event.chartY)}`);
       },
+      onSeriesClick(payload: { seriesId: string; categoryIndex: number }) {
+        logEvent('onSeriesClick', `${payload.seriesId} category=${payload.categoryIndex}`);
+      },
       onSliceClick(payload: { seriesId: string }) {
         logEvent('onSliceClick', payload.seriesId);
       },
