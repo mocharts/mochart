@@ -376,6 +376,7 @@ export function getSections(): ShowcaseSection[] {
         multipleAxesEntry(),
         thresholdLineEntry(),
         rotatedTicksEntry(),
+        rotationEntry(),
         reuse('truncated-text'),
         reuse('clipped', { random: clippedRandom() })
       ]
@@ -386,7 +387,6 @@ export function getSections(): ShowcaseSection[] {
       tagline: 'The staged animation model that sets mochart apart: slowed down, stepped through, and paced by sixteen easings.',
       entries: [
         playerEntry(),
-        rotationEntry(),
         easingEntry()
       ]
     },
