@@ -57,9 +57,12 @@ const apiItems = [
 
 const siteTitle = 'mochart';
 const siteDescription = 'Animated interactive SVG charting library with zero framework dependencies';
-// Link previews need an absolute image URL, so the canonical host is fixed here
-// rather than derived from the base path; scripts/og-image renders the file into public/.
-const siteOrigin = 'https://mochart.org';
+// Link previews need an absolute image URL, so the host comes from SITE_ORIGIN
+// rather than the base path; the develop deploy sets it to dev.mochart.org and
+// every other build falls back to the live site. scripts/og-image renders the
+// file into public/.
+const originFromEnv = process.env.SITE_ORIGIN;
+const siteOrigin = originFromEnv !== undefined && originFromEnv !== '' ? originFromEnv : 'https://mochart.org';
 
 export default defineConfig({
   base,

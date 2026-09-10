@@ -312,6 +312,16 @@ injected into the docs 404.html (GitHub Pages has no rewrites), and a
 are gated behind the `ENABLE_PAGES_DEPLOY` / `ENABLE_CLOUDFLARE_DEPLOY`
 repository variables — see `.github/workflows/ci.yml`.
 
+One variable gates two Cloudflare sites. `main` deploys to the `mochart` Pages
+project, which serves www.mochart.org, and `develop` deploys to `mochart-dev`,
+which serves dev.mochart.org. Each project holds the branch it deploys from as
+its production branch, so both uploads are production deployments of their own
+project. The workflow gives the develop build two extra variables:
+`SITE_ORIGIN` puts the dev.mochart.org host in its link-preview image URLs, and
+`PAGES_NOINDEX` makes `build:pages` write a `_headers` file keeping that copy
+of the docs out of search results, which Cloudflare adds by itself only for a
+preview deployment.
+
 ## CI guardrails, in one place
 
 | Check | Where it runs |

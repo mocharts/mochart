@@ -7,6 +7,8 @@
 //
 // Usage: node scripts/build-pages.mjs
 // The base path defaults to /mochart/ and can be overridden with PAGES_BASE.
+// PAGES_NOINDEX=true writes a _headers file keeping the site out of search
+// results; the develop deploy sets it, since dev.mochart.org copies the docs.
 import { execSync } from 'node:child_process';
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -96,5 +98,10 @@ writeFileSync(notFoundPath, notFoundHtml.replace('</head>', demoRedirectScript()
 writeFileSync(join(siteDir, '_redirects'), redirectsFile());
 // Without this GitHub Pages runs the site through Jekyll, which drops files.
 writeFileSync(join(siteDir, '.nojekyll'), '');
+
+// Cloudflare noindexes preview deployments only, so the dev site needs this.
+if (process.env.PAGES_NOINDEX === 'true') {
+  writeFileSync(join(siteDir, '_headers'), '/*\n  X-Robots-Tag: noindex\n');
+}
 
 console.log(`site assembled in site/ with base ${base}`);

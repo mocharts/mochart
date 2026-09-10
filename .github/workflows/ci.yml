@@ -8,11 +8,12 @@ on:
 permissions:
   contents: read
 
-# Superseded PR/branch runs are cancelled; main runs queue instead so an
-# in-flight deploy is never killed (rapid pushes skip straight to the newest).
+# Superseded PR/branch runs are cancelled; runs on the two deploying branches
+# queue instead so an in-flight deploy is never killed (rapid pushes skip
+# straight to the newest).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/develop' }}
 
 jobs:
   build-test:
@@ -37,9 +38,11 @@ jobs:
             e2e: true
     # Mirrors the two deploy jobs' conditions so a site is only built for a
     # deploy that will actually happen; otherwise one build verifies the site.
+    # GitHub Pages takes main only; Cloudflare takes main and develop, which
+    # deploy to separate Pages projects (see deploy-cloudflare).
     env:
       DEPLOY_PAGES: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_PAGES_DEPLOY == 'true' }}
-      DEPLOY_CLOUDFLARE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_CLOUDFLARE_DEPLOY == 'true' }}
+      DEPLOY_CLOUDFLARE: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && vars.ENABLE_CLOUDFLARE_DEPLOY == 'true' }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -111,11 +114,17 @@ jobs:
         with:
           path: site
       # Cloudflare Pages serves from the domain root, so rebuild with base /.
+      # On develop this build is the dev.mochart.org site, so it carries that
+      # origin for its link-preview image URLs and a noindex header: Cloudflare
+      # adds noindex to preview deployments only, and this is the mochart-dev
+      # project's own production deployment. Both are empty on main.
       - name: Build Cloudflare Pages site
         if: matrix.site && env.DEPLOY_CLOUDFLARE == 'true'
         run: npm run build:pages
         env:
           PAGES_BASE: /
+          SITE_ORIGIN: ${{ github.ref == 'refs/heads/develop' && 'https://dev.mochart.org' || '' }}
+          PAGES_NOINDEX: ${{ github.ref == 'refs/heads/develop' && 'true' || '' }}
       - if: matrix.site && env.DEPLOY_CLOUDFLARE == 'true'
         uses: actions/upload-artifact@v7
         with:
@@ -146,12 +155,16 @@ jobs:
     # Requires two repo secrets (CLOUDFLARE_API_TOKEN with the "Cloudflare
     # Pages: Edit" permission, and CLOUDFLARE_ACCOUNT_ID) plus the repo
     # variable ENABLE_CLOUDFLARE_DEPLOY=true under Settings > Secrets and
-    # variables > Actions.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_CLOUDFLARE_DEPLOY == 'true'
+    # variables > Actions. The one variable gates both branches.
+    #
+    # main and develop deploy to separate Pages projects, each holding the
+    # branch it deploys from as its production branch: mochart serves
+    # www.mochart.org, mochart-dev serves dev.mochart.org.
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop') && vars.ENABLE_CLOUDFLARE_DEPLOY == 'true'
     needs: build-test
     runs-on: ubuntu-latest
     env:
-      CLOUDFLARE_PROJECT: mochart
+      CLOUDFLARE_PROJECT: ${{ github.ref == 'refs/heads/main' && 'mochart' || 'mochart-dev' }}
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -164,13 +177,13 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create ${{ env.CLOUDFLARE_PROJECT }} --production-branch=main
+          command: pages project create ${{ env.CLOUDFLARE_PROJECT }} --production-branch=${{ github.ref_name }}
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy site --project-name=${{ env.CLOUDFLARE_PROJECT }} --branch=main
+          command: pages deploy site --project-name=${{ env.CLOUDFLARE_PROJECT }} --branch=${{ github.ref_name }}
 
   # npm releases (see RELEASE.md). Gated behind the repo variable
   # ENABLE_NPM_RELEASE=true, set only after the first manual 1.0.0 publish and
