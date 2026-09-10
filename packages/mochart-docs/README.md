@@ -73,5 +73,5 @@ The generated models are gitignored, which is why `dev`, `build`, and `test`
 each run `gen` first; invoking `vitepress` directly needs it run by hand.
 
 The deployed site is assembled by `scripts/build-pages.mjs`, which builds
-this package with the deploy base path and places the demo galleries at
-`/vanilla/`, `/react/`, etc. next to it.
+this package with the deploy base path and places the showcase and the demo
+galleries at `/showcase/`, `/vanilla/`, `/react/`, etc. next to it.

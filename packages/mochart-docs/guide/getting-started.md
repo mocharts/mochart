@@ -204,6 +204,8 @@ A few boundaries:
 - [Exporting images](/guide/export) — download any chart as a standalone
   SVG or PNG file
 - [Recipes](/recipes/stacked-bars) — working configs for common chart shapes
+- The [Showcase](/showcase/) — a mobile-first tour of the library's features,
+  curated chart by chart with seeded random data and live editing
 - The demo galleries ([Vanilla](/vanilla/demos), [Angular](/angular/demos),
   [Lit](/lit/demos), [React](/react/demos), [Svelte](/svelte/demos), [Vue](/vue/demos)) — browse
   dozens of demo charts and edit their configs and data live

@@ -36,6 +36,20 @@ function resolveRoute(path: string): Route {
   return { notFound: path };
 }
 
+// The site build injects VITE_SITE_ROOT (the docs site root) so the gallery
+// can link back to it; a standalone dev/build leaves it unset and no link
+// renders. `?siteRoot` forces the link (to `/`) for styling without a site
+// build, and `?siteRoot=<url>` points it at a specific target.
+function getDebugSiteRootUrl(): string | undefined {
+  const param = new URLSearchParams(window.location.search).get('siteRoot');
+  if (param === null) {
+    return undefined;
+  }
+  return param === '' ? '/' : param;
+}
+
+const siteRootUrl = (import.meta.env.VITE_SITE_ROOT as string | undefined) ?? getDebugSiteRootUrl();
+
 type View =
   | { kind: 'none' }
   | { kind: 'gallery' | 'wall' | 'demo' | 'message'; key: string; el: HTMLElement; destroy: () => void };
@@ -92,7 +106,7 @@ export function mountApp(root: HTMLElement): void {
       return;
     }
     if (route.gallery === true) {
-      show('gallery', 'gallery', () => galleryPage({ theme }));
+      show('gallery', 'gallery', () => galleryPage({ theme, siteRootUrl }));
       return;
     }
     if (route.wall === true) {

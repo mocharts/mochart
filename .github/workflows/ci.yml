@@ -85,8 +85,8 @@ jobs:
         run: npm run test:e2e
       # trace: 'on-first-retry' writes traces under test-results; without this
       # they die with the runner, which is the only place the failure happened.
-      # Both suites write their own: demo-basic's minimal harness and the
-      # vanilla gallery's (share links, editor tabs, phone fold).
+      # Each suite writes its own: demo-basic's minimal harness, the vanilla
+      # gallery's (share links, editor tabs, phone fold) and the showcase's smoke.
       - if: failure() && steps.e2e.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
@@ -94,6 +94,7 @@ jobs:
           path: |
             packages/mochart-demo-basic/test-results
             packages/mochart-demo-vanilla/test-results
+            packages/mochart-showcase/test-results
           retention-days: 7
       - name: Build site
         if: matrix.site && env.DEPLOY_PAGES != 'true' && env.DEPLOY_CLOUDFLARE != 'true'

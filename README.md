@@ -36,6 +36,7 @@ config section.
 | [@mochart/vue](packages/mochart-vue/README.md) | Vue 3 components wrapping mochart. |
 | [@mochart/export](packages/mochart-export/README.md) | SVG and PNG image export for rendered mochart charts. |
 | [@mochart/editor](packages/mochart-editor/README.md) | Framework-neutral JSON editor with mochart config intelligence — powers the config/data editors in the demo apps. |
+| [@mochart/showcase](packages/mochart-showcase/README.md) | Curated mobile-first feature showcase (private) — charts organized by feature with seeded random data, live editing, share links, and export. |
 | [@mochart/demo-vanilla](packages/mochart-demo-vanilla/README.md) | Full-featured demo gallery in plain TypeScript (private) — the no-framework peer of the framework demo apps. |
 | [@mochart/demo-basic](packages/mochart-demo-basic/README.md) | Minimal no-framework demo harness (private) — smallest integration example; home of the core Playwright e2e suite (the vanilla gallery has its own). |
 | [@mochart/demo-data](packages/mochart-demo-data/README.md) | Shared demo configs, datasets, and random specs (private) used by every demo app. |
@@ -51,7 +52,8 @@ demo modes (single edits one chart's config and data as JSON, multi steps a
 configurable grid of charts through dataset sizes together, and random
 generates whole seeded random datasets) plus transition, rotation, and
 sparkline showcases; `@mochart/demo-vanilla` is the same gallery in plain
-TypeScript.
+TypeScript. `@mochart/showcase` is a separate mobile-first app that tours the
+library's features chart by chart.
 All of them share the demo configs from `@mochart/demo-data` and the
 framework-agnostic demo logic from `@mochart/demo-common`.
 There are also build-free static HTML examples in
@@ -88,7 +90,7 @@ npm run deadcode      # knip: unused exports, files and dependencies
 npm run typecheck     # typecheck every workspace that has a typecheck script
 npm run check:publish # every publishable package's publishConfig.exports is dist-only
 npm test              # run tests in every workspace that has them
-npm run test:e2e      # playwright against @mochart/demo-basic, then @mochart/demo-vanilla
+npm run test:e2e      # playwright against @mochart/demo-basic, @mochart/demo-vanilla, @mochart/demo-e2e, then @mochart/showcase
 ```
 
 And the rest:

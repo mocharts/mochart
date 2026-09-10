@@ -24,7 +24,7 @@ const demoLinks = [
 // the SPA router from intercepting the click (and 404ing), and because a
 // target attribute makes VitePress skip its own href rewriting (.html suffix,
 // base prefix), the base is prepended here instead.
-const demoLinkPattern = /^\/(angular|lit|react|svelte|vanilla|vue)\//;
+const demoLinkPattern = /^\/(showcase|angular|lit|react|svelte|vanilla|vue)\//;
 
 function demoLinkTargets(md: import('vitepress').MarkdownRenderer): void {
   const fallback = md.renderer.rules.link_open
@@ -105,6 +105,7 @@ export default defineConfig({
     nav: [
       { text: 'Guide', link: '/guide/getting-started', activeMatch: '^/(guide|recipes)/' },
       { text: 'Reference', link: '/reference/', activeMatch: '^/reference/' },
+      { text: 'Showcase', link: '/showcase/', target: '_self' },
       { text: 'Demos', items: demoLinks }
     ],
     sidebar: {

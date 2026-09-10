@@ -2,6 +2,8 @@
 // live mini-chart thumbnail. Cards are real links (deep-linkable, middle-
 // clickable); navigation is intercepted for the client-side router.
 
+import { demoText } from '@mochart/demo-common';
+
 import type { ThemeController } from '../app/theme';
 
 import { getSections } from '../content/manifest';
@@ -13,6 +15,8 @@ import type { ThumbHandle } from './Thumb';
 
 export interface GalleryPageProps {
   theme: ThemeController;
+  /** The docs site root; undefined in a standalone build, which renders no link. */
+  siteRootUrl?: string;
 }
 
 export interface GalleryPageHandle {
@@ -21,7 +25,7 @@ export interface GalleryPageHandle {
 }
 
 export function galleryPage(props: GalleryPageProps): GalleryPageHandle {
-  const { theme } = props;
+  const { theme, siteRootUrl } = props;
   const thumbs: ThumbHandle[] = [];
 
   const themeButton = button({
@@ -40,10 +44,16 @@ export function galleryPage(props: GalleryPageProps): GalleryPageHandle {
     navigate('/wall');
   });
 
+  // A real anchor so middle-click works; it leaves the app for the docs site.
+  const siteRootLink = siteRootUrl === undefined ? null : el('a', {
+    className: 'sc-btn sc-btn-quiet sc-site-root-link',
+    attrs: { href: siteRootUrl, title: demoText.siteRootLink.tooltip, 'aria-label': demoText.siteRootLink.aria }
+  }, [svgIcon('house'), el('span', { className: 'sc-btn-label', text: demoText.siteRootLink.shortLabel })]);
+
   const header = el('header', { className: 'sc-hero' }, [
     el('div', { className: 'sc-hero-row' }, [
       el('h1', { className: 'sc-hero-title', text: 'Mochart Showcase' }),
-      el('div', { className: 'sc-appbar-actions' }, [wallLink, themeButton.el])
+      el('div', { className: 'sc-appbar-actions' }, [siteRootLink, wallLink, themeButton.el])
     ]),
     el('p', {
       className: 'sc-hero-tagline',

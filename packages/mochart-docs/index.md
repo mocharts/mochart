@@ -69,6 +69,10 @@ sizing and passes every chart prop through:
 
 ## Explore the demo galleries
 
+The [Showcase](/showcase/) is a mobile-first tour of the library's features:
+curated charts organized by feature, each with a seeded random data stepper,
+live config and data editors, share links, and image export.
+
 Every binding has a full demo app — [Vanilla TypeScript](/vanilla/demos),
 [Angular](/angular/demos), [Lit](/lit/demos), [React](/react/demos),
 [Svelte](/svelte/demos), and [Vue](/vue/demos) — where you can browse dozens

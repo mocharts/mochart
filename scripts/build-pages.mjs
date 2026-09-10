@@ -22,6 +22,7 @@ const rawBase = process.env.PAGES_BASE !== undefined ? process.env.PAGES_BASE : 
 const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
 
 const demos = [
+  { slug: 'showcase', pkg: '@mochart/showcase', title: 'Showcase', detail: 'mobile-first feature tour', historyRouting: true },
   { slug: 'angular', pkg: '@mochart/demo-angular', title: 'Angular', detail: 'angular router, zoneless', historyRouting: true },
   { slug: 'lit', pkg: '@mochart/demo-lit', title: 'Lit', detail: 'lit-html directive router', historyRouting: true },
   { slug: 'react', pkg: '@mochart/demo-react', title: 'React', detail: 'react-router 7', historyRouting: true },

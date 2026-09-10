@@ -10,6 +10,7 @@ const strokeIcons: Record<string, string> = {
   'chevron-left': '<path d="M15 18l-6-6 6-6"/>',
   'chevron-right': '<path d="M9 18l6-6-6-6"/>',
   'undo': '<path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+  'house': '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
   'grid': '<path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M3 14h7v7H3z"/><path d="M14 14h7v7h-7z"/>',
   'link': '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
   'x': '<path d="M18 6L6 18"/><path d="M6 6l12 12"/>',

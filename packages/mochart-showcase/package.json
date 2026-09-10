@@ -21,7 +21,8 @@
     "prebuild": "node ../../scripts/ensure-libs-fresh.mjs",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit && tsc -p e2e --noEmit",
     "lint": "eslint ."
   }
 }
