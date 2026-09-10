@@ -178,7 +178,9 @@ function deriveSeriesNumber(rows: DataObject[], properties: Set<string>): Random
     min,
     max: max > min ? max : min + 10,
     round: numbers.every(Number.isInteger),
-    limitToAxisConfig: true
+    // The curated values already respect the config, or exceed it on purpose
+    // (the clipped demo), so the axis bounds must not clamp the generated ones.
+    limitToAxisConfig: false
   };
 }
 
