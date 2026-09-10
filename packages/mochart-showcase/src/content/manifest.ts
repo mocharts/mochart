@@ -430,7 +430,8 @@ export function getSections(): ShowcaseSection[] {
       tagline: 'Gradients, patterns, data-driven color ramps, marker and label styling, and chrome that follows your page’s ink.',
       entries: [
         reuse('gradients'),
-        monthsEntry('patterns'),
+        // half the demo's year: 12 months of grouped bars leave each bar about 7px on a phone, too narrow for the 9px pattern spacing to repeat
+        monthsEntry('patterns', { data: clone(getDemo('patterns').data.slice(0, 6)) }),
         reuse('color-property'),
         stackedLabelsEntry(),
         reuse('christmas'),
