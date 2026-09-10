@@ -1,6 +1,6 @@
 import demoData from '@mochart/demo-data';
 
-import { demoText, isPhoneViewport, phoneFallbackDemoMode, watchPhoneViewport } from '@mochart/demo-common';
+import { demoText, isPhoneViewport, nextRandomId, parseRandomId, phoneFallbackDemoMode, previousRandomId, watchPhoneViewport } from '@mochart/demo-common';
 import type { SwitchableDemoMode } from '@mochart/demo-common';
 
 import { getPath, navigate, onNavigate } from './router';
@@ -222,17 +222,16 @@ export function mountApp(root: HTMLElement): void {
       }
     }
     else if (route.mode === 'random') {
-      const randomId = Number(route.randomId);
-      const isValidRandomId = randomId > Number.MIN_SAFE_INTEGER && randomId < Number.MAX_SAFE_INTEGER;
-      if (!isValidRandomId) {
+      const randomId = parseRandomId(route.randomId);
+      if (randomId === null) {
         showMessage(demoText.routeErrors.badRandomId(route.randomId!));
         return;
       }
       const incrementRandomId = () => {
-        navigate(`/random/${getCurrentRandomDemoId()}/${Math.floor(getCurrentRandomId()) + 1}`);
+        navigate(`/random/${getCurrentRandomDemoId()}/${nextRandomId(getCurrentRandomId())}`);
       };
       const decrementRandomId = () => {
-        navigate(`/random/${getCurrentRandomDemoId()}/${Math.floor(getCurrentRandomId()) - 1}`);
+        navigate(`/random/${getCurrentRandomDemoId()}/${previousRandomId(getCurrentRandomId())}`);
       };
       if (view.kind === 'random') {
         view.handle.update(demoId, randomId);
@@ -259,7 +258,7 @@ export function mountApp(root: HTMLElement): void {
 
   function getCurrentRandomId(): number {
     const route = resolveRoute(getPath());
-    return Number(route.randomId);
+    return parseRandomId(route.randomId) ?? 0;
   }
 
   onNavigate(render);
