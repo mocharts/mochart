@@ -272,7 +272,7 @@ function rotationEntry(): ShowcaseEntry {
   return local({
     slug: 'rotation',
     title: 'Layout Morph',
-    blurb: 'One dataset, sixty axis layouts: inverted plots, flipped axes, collapsed and rotated tick labels, every change animated.',
+    blurb: 'One dataset, fifty-five axis layouts: inverted plots, flipped axes, collapsed and rotated tick labels, every change animated.',
     notes: 'The play button cycles through configurations that permute plot.inverted, categoryAxis.side/collapsed, tick label rotation and anchoring. Because the data never changes, everything you see moving is the chart re-laying itself out. The same staged animation that drives data updates also drives structural changes.',
     config: rotationConfigs[0] as DemoConfig,
     data: rotationData as DataObject[],
