@@ -7,7 +7,10 @@ export default function getValidators() {
   return {
     visible: validators.boolean(),
     position: validators.oneOf(POSITIONS),
-    truncation: validators.partialObjectWithShape(getTruncationValidators(), true),
+    truncation: validators.partialObjectWithShape({
+      ...getTruncationValidators(),
+      maxFraction: validators.numberMinMax(0, 1)
+    }, true),
     alignedToAxes: validators.boolean(),
     align: validators.oneOf(ALIGNS),
     margin: validators.margin(),

@@ -11,7 +11,7 @@ export default function getDefaults(config: DeepPartial<LegendConfig> = {}, seri
 export function getRegularDefaults() {
   return {
     position: POSITION_BOTTOM,
-    truncation: getTruncationDefaults(),
+    truncation: { ...getTruncationDefaults(), maxFraction: 1 },
     alignedToAxes: true,
     align: ALIGN_CENTER,
     margin: { top: 5, right: 0, bottom: 0, left: 0 },

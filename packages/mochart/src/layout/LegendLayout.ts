@@ -55,6 +55,7 @@ interface LegendItemPlacements {
   iconWidth: number;
   itemHeight: number;
   itemTextHeight: number;
+  itemTextMaxWidth: number;
 }
 
 // one placement pass shared by the height and layout passes, so both wrap identically
@@ -94,7 +95,8 @@ function placeLegendItems(mochartConfig: EnhancedMochartConfig, chartTextBoundsD
   const legendMaxSpacingWidth = legendMaxWidth - legendSpacingWidth;
   const legendMaxSpacingX = legendMinSpacingX + legendMaxSpacingWidth;
 
-  const itemTextMaxWidth = legendMaxSpacingWidth - itemSpacingWidth - iconWidth;
+  // maxFraction limits the whole item, so at 0.5 two items always fit a row however long their titles are
+  const itemTextMaxWidth = legendMaxSpacingWidth * legendConfig.truncation.maxFraction - itemSpacingWidth - iconWidth;
   const itemTextHeight = legendItemMaxTextBounds.height;
 
   const itemHeight = Math.max(Math.max(iconHeight, itemTextHeight) + itemSpacingHeight, itemMinHeight);
@@ -123,7 +125,7 @@ function placeLegendItems(mochartConfig: EnhancedMochartConfig, chartTextBoundsD
     items, maxX, maxY,
     legendMinX, legendMinSpacingX, legendMaxWidth,
     legendSpacingTop, legendSpacingWidth, legendSpacingHeight,
-    itemSpacingLeft, itemSpacingWidth, iconWidth, itemHeight, itemTextHeight
+    itemSpacingLeft, itemSpacingWidth, iconWidth, itemHeight, itemTextHeight, itemTextMaxWidth
   };
 }
 
@@ -148,7 +150,7 @@ export function getLegendLayoutInfo(mochartConfig: EnhancedMochartConfig, chartT
     const {
       items, maxX,
       legendMinX, legendMinSpacingX, legendMaxWidth, legendSpacingWidth,
-      itemSpacingLeft, itemSpacingWidth, iconWidth, itemHeight, itemTextHeight
+      itemSpacingLeft, itemSpacingWidth, iconWidth, itemHeight, itemTextHeight, itemTextMaxWidth
     } = placements;
     const itemTextWidth = legendItemMaxTextBounds.width;
 
@@ -160,8 +162,10 @@ export function getLegendLayoutInfo(mochartConfig: EnhancedMochartConfig, chartT
     }
 
     const legendWidth = maxX - legendMinSpacingX + legendSpacingWidth;
+    // one clip rect and one truncation length serve every item, so the widest row's text width is
+    // bounded by the per-item limit as well, or a limited item would draw past its own box
     // clamped: a box too small for one item would go negative and produce an invalid clip rect
-    const legendItemTextWidth = Math.max(0, legendWidth - legendSpacingWidth - itemSpacingWidth - iconWidth);
+    const legendItemTextWidth = Math.max(0, Math.min(legendWidth - legendSpacingWidth - itemSpacingWidth - iconWidth, itemTextMaxWidth));
 
     let legendX = legendMinX;
     if (align !== ALIGN_LEFT && legendWidth < legendMaxWidth) {

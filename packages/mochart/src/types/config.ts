@@ -1251,6 +1251,24 @@ export interface LegendItemConfig {
   textStyle: Style;
 }
 
+/** The legend truncation, adding the limit on the width a single item may take. */
+export interface LegendTruncationConfig extends TruncationConfig {
+  /**
+   * The maximum fraction (0 - 1) of the legend width to allow any one legend
+   * item to occupy.
+   *
+   * At the default `1` a single item may take the whole legend width, so a long
+   * title wraps onto a row of its own and the legend grows downward at the
+   * plot’s expense. A lower fraction limits every item to that share of the
+   * legend width and truncates the titles that exceed it, so `0.5` fits two
+   * items to a row and `0.34` fits three. The limit never takes an item below
+   * the `accessibility.minTargetSize` floor.
+   *
+   * @default 1
+   */
+  maxFraction: number;
+}
+
 export interface LegendConfig {
   /**
    * Whether the legend should be visible.
@@ -1268,11 +1286,11 @@ export interface LegendConfig {
   position: Position;
   /**
    * The truncation applied to legend item text when its width exceeds the width
-   * of the chart.
+   * of the chart, or the width maxFraction allows one item.
    *
-   * @default { enabled: true, text: "…", tooltipEnabled: true }
+   * @default { enabled: true, text: "…", tooltipEnabled: true, maxFraction: 1 }
    */
-  truncation: TruncationConfig;
+  truncation: LegendTruncationConfig;
   /**
    * Whether the legend should be aligned between the axes (true) or the chart
    * bounds (false).

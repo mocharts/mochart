@@ -88,6 +88,7 @@ const sharedInterfaceSources: SharedInterfaceSource[] = [
   { interfaceName: 'SeriesStackOuterCapConfig', sectionId: 'seriesStacks', propertyKey: 'outerCap', includeDefaults: true },
   { interfaceName: 'ClipIndicatorHatchConfig', sectionId: 'clipIndicator', propertyKey: 'hatch' },
   { interfaceName: 'LegendItemConfig', sectionId: 'legend', propertyKey: 'item', includeDefaults: true },
+  { interfaceName: 'LegendTruncationConfig', sectionId: 'legend', propertyKey: 'truncation', members: ['maxFraction'], includeDefaults: true },
   { interfaceName: 'SeriesIconBorderStyle', sectionId: 'legend', propertyKey: 'icon.borderStyle', includeDefaults: true },
   { interfaceName: 'TitleAffixConfig', sectionId: 'title', propertyKey: 'prefix' },
   { interfaceName: 'TickLabelTruncationConfig', sectionId: 'categoryAxis', propertyKey: 'tickLabel.truncation', members: ['minLength', 'maxFraction'], includeDefaults: true },
