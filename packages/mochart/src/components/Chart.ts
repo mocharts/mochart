@@ -1349,9 +1349,10 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   syncConfigDefs(body: ChartBody, mochartConfig: EnhancedMochartConfig, uniqueIds: ChartUniqueIds): void {
     const { seriesColorGradientUniqueIds, linearGradientIdMap, radialGradientIdMap, patternIdMap } = uniqueIds;
 
+    const pieMode = mochartConfig.chart.type === CHART_TYPE_PIE;
     const seriesColorGradients: RendererItem[] = [];
     mochartConfig.series.forEach((seriesConfig: EnhancedSeriesConfig) => {
-      const gradient = getSeriesSwatchGradient(mochartConfig.colorPalette, seriesConfig);
+      const gradient = getSeriesSwatchGradient(mochartConfig.colorPalette, seriesConfig, pieMode);
       if (gradient !== null) {
         seriesColorGradients.push({
           key: seriesConfig.id, ctor: SeriesColorGradient,

@@ -156,7 +156,7 @@ export default class SeriesColorIcon extends Renderer<SeriesColorIconProps> {
 
     const { gradient, pattern } = seriesConfig;
 
-    const swatchGradient = getSeriesSwatchGradient(this.props.colorPaletteConfig, seriesConfig);
+    const swatchGradient = getSeriesSwatchGradient(this.props.colorPaletteConfig, seriesConfig, this.props.pieMode);
     if (pattern !== NONE) {
       const fillPalette = this.props.colorPaletteConfig.shape.normal.fillColors;
       const fallbackColor = fillPalette[this.props.seriesIndex % fillPalette.length] ?? null;
@@ -203,7 +203,7 @@ export default class SeriesColorIcon extends Renderer<SeriesColorIconProps> {
 
     const { pieMode } = this.props;
     const { opacity, focusedOpacity, defocusedOpacity } = getSeriesOpacities(seriesConfig, pieMode);
-    const hasFillDefinition = pattern !== NONE || gradient !== NONE || getSeriesSwatchGradient(colorPaletteConfig, seriesConfig) !== null;
+    const hasFillDefinition = pattern !== NONE || gradient !== NONE || getSeriesSwatchGradient(colorPaletteConfig, seriesConfig, pieMode) !== null;
     const halfBorderSize = iconBorderSize / 2.0;
     // icon.size and icon.borderStyle.strokeWidth validate independently, so a border wider than the icon would
     // otherwise put a negative width on the rect and the browser would drop the element

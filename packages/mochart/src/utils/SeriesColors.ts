@@ -255,22 +255,32 @@ export interface SeriesSwatchGradient {
   striped: boolean;
 }
 
-export function getSeriesSwatchGradient(colorPaletteConfig: ColorPaletteConfig, seriesConfig: EnhancedSeriesConfig): SeriesSwatchGradient | null {
+export function getSeriesSwatchGradient(colorPaletteConfig: ColorPaletteConfig, seriesConfig: EnhancedSeriesConfig, pieMode: boolean): SeriesSwatchGradient | null {
   const rampColors = getSeriesGradientColors(seriesConfig);
   if (rampColors !== null) {
     return { colors: rampColors, striped: false };
   }
-  // A categoryIndex colour has no single colour to show, so the swatch shows the palette it draws from.
+  // A categoryIndex colour has no single colour to show, so the swatch shows the palette it draws from,
+  // read from the same side of the shape style the flat icon colour comes from (see getSeriesColor).
   if (seriesConfig.pattern !== NONE || seriesConfig.gradient !== NONE) {
     return null;
   }
-  for (const key of ['fillColors', 'strokeColors'] as const) {
-    if (readColor(seriesConfig, 'series', 'normal', styleMemberKeys[key]) === COLOR_CATEGORY_INDEX) {
-      const colors = colorPaletteConfig.shape.normal[key].slice(0, CATEGORY_SWATCH_COLOR_COUNT).filter((color): color is string => typeof color === 'string');
-      return colors.length > 0 ? { colors, striped: true } : null;
-    }
+  const { renderer } = seriesConfig;
+  let key: FillOrStrokeKey;
+  if (isFilledShape(seriesConfig, pieMode) && !isHollowShape(seriesConfig)) {
+    key = 'fillColors';
   }
-  return null;
+  else if (pieMode || renderer === RENDERER_LINE || renderer === RENDERER_AREA || renderer === RENDERER_BAR) {
+    key = 'strokeColors';
+  }
+  else {
+    return null;
+  }
+  if (readColor(seriesConfig, 'series', 'normal', styleMemberKeys[key]) !== COLOR_CATEGORY_INDEX) {
+    return null;
+  }
+  const colors = colorPaletteConfig.shape.normal[key].slice(0, CATEGORY_SWATCH_COLOR_COUNT).filter((color): color is string => typeof color === 'string');
+  return colors.length > 0 ? { colors, striped: true } : null;
 }
 
 export function getSeriesGradientColors(seriesConfig: EnhancedSeriesConfig): string[] | null {

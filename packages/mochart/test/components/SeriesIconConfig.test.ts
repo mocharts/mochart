@@ -280,6 +280,28 @@ describe('legend icon color-scale gradients', () => {
     expect(chartGradients(container)).toHaveLength(0);
     expect(legendIcons(container)[0].getAttribute('fill')).not.toMatch(/^url\(/);
   });
+
+  it('stripes a line series with the stroke palette, since the flat icon takes its stroke colour', () => {
+    const container = mountChart({
+      colorPalette: { shape: { normal: { fillColors: ['#a00', '#0a0'], strokeColors: ['#123', '#456'] } } },
+      series: [{ id: 'S0', property: 'sales', renderer: 'line', shapeStyle: { normal: { strokeColor: 'categoryIndex' } } }, plainSeries]
+    });
+    const gradients = chartGradients(container);
+
+    expect(gradients).toHaveLength(1);
+    expect(legendIcons(container)[0].getAttribute('fill')).toBe('url(#' + gradients[0].getAttribute('id') + ')');
+    expect(stopsOf(gradients[0])).toEqual([['0%', '#123'], ['50%', '#123'], ['50%', '#456'], ['100%', '#456']]);
+  });
+
+  it('keeps a hollow bar flat when only its unseen fill is coloured by category index', () => {
+    // fillOpacity 0 draws the outline only, so the flat icon takes the literal stroke and the stripes would show a palette the series never paints
+    const container = mountChart({
+      series: [{ id: 'S0', property: 'sales', renderer: 'bar', shapeStyle: { normal: { fillColor: 'categoryIndex', fillOpacity: 0, strokeColor: '#123', strokeWidth: 2 } } }, plainSeries]
+    });
+
+    expect(chartGradients(container)).toHaveLength(0);
+    expect(legendIcons(container)[0].getAttribute('fill')).toBe('#123');
+  });
 });
 
 describe('tooltip icon switches', () => {
@@ -351,6 +373,21 @@ describe('tooltip icon gradients', () => {
     openTooltip(container);
 
     expect(container.querySelector(getCssSelector('tooltip') + ' defs radialGradient')).not.toBeNull();
+  });
+
+  it('stripes the icon of a series coloured by category index', () => {
+    const container = mountChart({
+      colorPalette: { shape: { normal: { fillColors: ['#a00', '#0a0', '#00a', '#aa0', '#0aa'] } } },
+      series: [{ id: 'S0', property: 'sales', renderer: 'bar', shapeStyle: { normal: { fillColor: 'categoryIndex' } } }]
+    });
+    openTooltip(container);
+    const icons = tooltipIcons(container);
+
+    expect(icons[0].getAttribute('fill')).toMatch(/^url\(#.+\)$/);
+    expect(gradientStops(container)).toEqual([
+      ['0%', '#a00'], ['25%', '#a00'], ['25%', '#0a0'], ['50%', '#0a0'],
+      ['50%', '#00a'], ['75%', '#00a'], ['75%', '#aa0'], ['100%', '#aa0']
+    ]);
   });
 
   it('builds a value-ramp gradient for a colorScale series', () => {
