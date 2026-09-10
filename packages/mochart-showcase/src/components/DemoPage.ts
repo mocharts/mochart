@@ -101,7 +101,23 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
     return buildMochartDemoConfig(structuredClone(effectiveConfig()));
   }
 
+  // Focus and filter updates reuse the provider: a rebuilt one counts as a
+  // data change on every hover and re-derives the data each time.
+  interface ProviderInputs { demoConfig: MochartDemoConfig; stateMode: StateMode; seed: number | null; rows: DataObject[] }
+  let cachedProvider: { inputs: ProviderInputs; provider: unknown } | null = null;
+
   function buildDataProvider(): unknown {
+    const inputs: ProviderInputs = { demoConfig, stateMode, seed, rows };
+    const cached = cachedProvider;
+    if (cached !== null && (Object.keys(inputs) as (keyof ProviderInputs)[]).every(key => cached.inputs[key] === inputs[key])) {
+      return cached.provider;
+    }
+    const provider = createDataProvider();
+    cachedProvider = { inputs, provider };
+    return provider;
+  }
+
+  function createDataProvider(): unknown {
     if (!demoConfig.valid) {
       return null;
     }
