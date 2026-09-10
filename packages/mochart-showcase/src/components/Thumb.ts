@@ -3,7 +3,7 @@
 // a phone never pays for charts it hasn't seen. Interaction is disabled via
 // CSS (pointer-events: none) so the card stays one big link.
 
-import type { ShowcaseEntry } from '../content/types';
+import type { ShowcaseEntry, ThumbnailHandle } from '../content/types';
 import { el } from '../ui/dom';
 import { mountDefaultChart } from './chartHost';
 import type { ChartHostHandle } from './chartHost';
@@ -53,6 +53,7 @@ const observer = new IntersectionObserver(entries => {
 export function thumb(entry: ShowcaseEntry): ThumbHandle {
   const container = el('div', { className: 'sc-thumb', attrs: { 'aria-hidden': 'true' } });
   let chart: ChartHostHandle | null = null;
+  let custom: ThumbnailHandle | null = null;
 
   // Thumbnails drop the title, legend and axis titles: the card already names
   // the demo, none of them is readable at card size, and a wrapping legend can
@@ -68,6 +69,11 @@ export function thumb(entry: ShowcaseEntry): ThumbHandle {
   entry.thumbnail?.(config);
 
   pending.set(container, () => {
+    if (entry.thumbnailElement !== undefined) {
+      custom = entry.thumbnailElement();
+      container.append(custom.el);
+      return;
+    }
     chart = mountDefaultChart(
       { config, data: structuredClone(entry.data) },
       { className: 'sc-thumb-chart' }
@@ -81,6 +87,8 @@ export function thumb(entry: ShowcaseEntry): ThumbHandle {
     destroy() {
       pending.delete(container);
       observer.unobserve(container);
+      custom?.destroy();
+      custom = null;
       chart?.destroy();
       chart = null;
     }

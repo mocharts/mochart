@@ -9,6 +9,7 @@ import { rotationConfigs, rotationData, tableSparklineMetrics } from '@mochart/d
 
 import type { ShowcaseEntry, ShowcaseSection, SpecialKind } from './types';
 import { randomFromCurated } from './randomFromCurated';
+import { sparklinesThumb } from '../components/SparklinesThumb';
 import {
   currentColorConfig, currentColorData, currentColorRandom,
   easingConfig, easingData, easingRandom,
@@ -90,6 +91,7 @@ interface LocalEntryInput {
   random?: ShowcaseEntry['random'];
   special?: SpecialKind;
   thumbnail?: ShowcaseEntry['thumbnail'];
+  thumbnailElement?: ShowcaseEntry['thumbnailElement'];
 }
 
 function local(input: LocalEntryInput): ShowcaseEntry {
@@ -103,6 +105,7 @@ function local(input: LocalEntryInput): ShowcaseEntry {
     random: input.random === undefined ? undefined : clone(input.random),
     special: input.special,
     thumbnail: input.thumbnail,
+    thumbnailElement: input.thumbnailElement,
     wall: input.random !== undefined && input.special === undefined
   };
 }
@@ -266,7 +269,8 @@ function sparklinesEntry(): ShowcaseEntry {
     notes: 'createSparklineConfig turns a normal chart config into a sparkline preset: axes, legend, and margins collapse so the plot fills the whole (tiny) canvas. This page weaves live sparklines into a sentence and builds a small-multiples metrics table. Randomize to watch every one of them transition in place.',
     config: metric.config as DemoConfig,
     data: metric.generate(0),
-    special: 'sparklines'
+    special: 'sparklines',
+    thumbnailElement: sparklinesThumb
   });
 }
 
