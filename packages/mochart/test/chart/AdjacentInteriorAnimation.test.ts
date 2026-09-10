@@ -58,8 +58,8 @@ describe('an interior line point that leaves', () => {
         tweenFrames++;
         // B starts above both neighbours (80 over 60 and 40) and must end on the
         // segment between them; it may never pass below them toward the base.
-        const [a, b, c] = points as [{ y: number }, { y: number }, { y: number }];
-        expect(b.y).toBeLessThanOrEqual(Math.max(a.y, c.y) + 1);
+        const [a, b, c] = points;
+        expect(b!.y).toBeLessThanOrEqual(Math.max(a!.y, c!.y) + 1);
       }
       advanceFrames(1);
     }
