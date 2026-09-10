@@ -202,8 +202,11 @@ replay is a pure value change with nothing else moving.
 
 The one knob that lives on the series instead:
 [`animateBaseFromAdjacent`](/reference/series#series.animateBaseFromAdjacent)
-picks whether a series' leading/trailing values animate from their adjacent
-values (`true`) or from the base value (`false`).
+picks where a value that enters or leaves animates from or to: its neighbours
+(`true`, the default for lines and areas), so a leading or trailing value
+takes the neighbour it joins and an interior value the point between its
+neighbours, or the base value (`false`, the default for bars), so it grows
+from and shrinks to the axis.
 
 ## Reduced motion
 

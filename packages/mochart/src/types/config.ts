@@ -3263,8 +3263,10 @@ export interface SeriesConfig {
   missingValueMode: MissingValueMode;
 
   /**
-   * Whether to animate leading/trailing series position values from their
-   * adjacent values (true) or from the base value (false).
+   * Whether a value that enters or leaves animates from or to its adjacent
+   * values (true) or the base value (false): a leading or trailing value takes
+   * the neighbour it joins, an interior value the point between its neighbours
+   * at its category position.
    *
    * Default:
    * - `false` — when renderer is bar

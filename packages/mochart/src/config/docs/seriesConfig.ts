@@ -164,7 +164,7 @@ export default function getDescriptions() {
     focusCategoryOnClick: 'whether the category should be focused whenever the user clicks/taps a category of the series in the chart',
     showPointer: 'whether to show the pointer cursor when the user mouses over the series shapes in the chart',
     useAxisFocus: 'whether to show the series as focused when the value axis it belongs to is focused',
-    animateBaseFromAdjacent: 'whether to animate leading/trailing series position values from their adjacent values (true) or from the base value (false)'
+    animateBaseFromAdjacent: 'whether a value that enters or leaves animates from or to its adjacent values (true) or the base value (false): a leading or trailing value takes the neighbour it joins, an interior value the point between its neighbours at its category position'
   };
 }
 export function getDetails() {
