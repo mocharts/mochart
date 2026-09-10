@@ -1,7 +1,7 @@
 import { Component, Input, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
-import { demoText } from '@mochart/demo-common';
+import { demoText, nextRandomId, parseRandomId, previousRandomId } from '@mochart/demo-common';
 import demoData from '@mochart/demo-data';
 
 import { DemoRandom } from '../../src/components/random/demo-random';
@@ -40,18 +40,18 @@ export class RandomPage {
   }
 
   get randomIdNumber(): number {
-    return Number(this.randomId);
+    return parseRandomId(this.randomId) ?? 0;
   }
 
   get isValidRandomId(): boolean {
-    return this.randomIdNumber > Number.MIN_SAFE_INTEGER && this.randomIdNumber < Number.MAX_SAFE_INTEGER;
+    return parseRandomId(this.randomId) !== null;
   }
 
   incrementRandomId = (): void => {
-    navigate(this.router, ['/random', this.demoId, Math.floor(this.randomIdNumber) + 1]);
+    navigate(this.router, ['/random', this.demoId, nextRandomId(this.randomIdNumber)]);
   };
 
   decrementRandomId = (): void => {
-    navigate(this.router, ['/random', this.demoId, Math.floor(this.randomIdNumber) - 1]);
+    navigate(this.router, ['/random', this.demoId, previousRandomId(this.randomIdNumber)]);
   };
 }
