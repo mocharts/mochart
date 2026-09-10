@@ -220,6 +220,36 @@ describe('pie chart rendering', () => {
     expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
   });
 
+  it('keeps the tooltip at the click point when the data is replaced', () => {
+    // The shared mock reports every element at chart size, which would pin a
+    // chart-wide tooltip to the left edge; measure the tooltip copies small.
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+      const inTooltip = this.closest('[class*="' + getCssClass('tooltip') + '"]') !== null;
+      const width = inTooltip ? 100 : WIDTH;
+      const height = inTooltip ? 60 : HEIGHT;
+      return { x: 0, y: 0, left: 0, top: 0, right: width, bottom: height, width, height, toJSON: () => ({}) } as DOMRect;
+    });
+    try {
+      const { config, data } = pieChartProps(ITEMS);
+      const { container, handle } = mountChart(config, data);
+      const root = container.querySelector(getChartRootCssSelector())!;
+      mouse(root, 'mousemove', WIDTH * 0.8, HEIGHT / 2);
+      mouse(root, 'click', WIDTH * 0.8, HEIGHT / 2);
+      runFrames();
+      const tooltip = () => container.querySelector<HTMLElement>(getCssSelector('tooltip'))!;
+      const left = parseFloat(tooltip().style.left);
+      expect(left).toBeGreaterThan(WIDTH / 2);
+      // A new provider of the same rows is a data change (the demo apps rebuild
+      // theirs on focus); the box used to jump to the pie's centre on it.
+      handle.update({ config, data: [...data], width: WIDTH, height: HEIGHT } as DefaultChartProps);
+      runFrames();
+      expect(parseFloat(tooltip().style.left)).toBe(left);
+    }
+    finally {
+      mockBoundingClientRect(WIDTH, HEIGHT);
+    }
+  });
+
   describe('tooltip values (pieConfig.tooltip.valueType)', () => {
     function tooltipRows(items: PieItem[], options: CreatePieOptions, extraProps: Partial<DefaultChartProps> = {}): string[] {
       const { config, data } = pieChartProps(items, options);

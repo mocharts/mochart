@@ -752,8 +752,11 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
                 tooltipCategoryIndex = indexOfCategoryValue(mochartConfig.categoryAxis, newCategoryValues, categoryValue);
                 if (tooltipCategoryIndex >= 0) {
                   tooltipValueObject = getCategorySeriesValueObject(chartData, tooltipCategoryIndex);
-                  // the unsnapped box follows the fraction, so a moved category must move it too
-                  const tooltipCategoryPercentage = getCategoryFraction(axisData!, layoutInfo!, tooltipCategoryIndex);
+                  // the unsnapped box follows the fraction, so a moved category must move it too;
+                  // a pie's one category has no axis position, so its box stays where it was opened
+                  const tooltipCategoryPercentage = mochartConfig.chart.type === CHART_TYPE_PIE
+                    ? this.state.tooltipCategoryPercentage
+                    : getCategoryFraction(axisData!, layoutInfo!, tooltipCategoryIndex);
                   tooltipStateSource = { ...this.state, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipValueObject };
                 }
                 else {
