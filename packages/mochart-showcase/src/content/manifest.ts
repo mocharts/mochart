@@ -312,6 +312,8 @@ function easingEntry(): ShowcaseEntry {
     config: easingConfig,
     data: easingData,
     random: easingRandom,
+    // the window is the pool, so the walk cannot move it and every step stays a pure value change
+    walkBounds: { min: easingRandom.category.number.min, max: easingRandom.category.number.max },
     special: 'easing'
   });
 }
