@@ -422,7 +422,7 @@ export function getSections(): ShowcaseSection[] {
     {
       id: 'interaction',
       title: 'Interaction',
-      tagline: 'Tooltips, crosshair, legend filtering, focus states, and the callbacks that report all of it to your app.',
+      tagline: 'Tooltips, legend filtering, focus states, and the callbacks that report all of it to your app.',
       entries: [
         callbacksEntry(),
         reuse('tooltip-controls'),
