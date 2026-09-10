@@ -198,10 +198,9 @@ const connectRoundInverted: Connector = (pathGenerator, y1, x1, x2, yExtent, off
   pathGenerator.lineTo(x1, y2 - radius);
   pathGenerator.arcTo(x1, y2, x, y2, radius);
 
-  if (size >= offset) {
-    pathGenerator.lineTo(x2, y1 + yExtent);
-    pathGenerator.lineTo(x2, y1);
-  }
+  // the second arc can land short of the base on a short bar, so always close across it
+  pathGenerator.lineTo(x, y2);
+  pathGenerator.lineTo(x, y);
   pathGenerator.closePath();
 };
 
@@ -227,10 +226,9 @@ const connectRound: Connector = (pathGenerator, x1, y1, y2, xExtent, offsetSign,
   pathGenerator.lineTo(x2 - radius, y1);
   pathGenerator.arcTo(x2, y1, x2, y, radius);
 
-  if (size >= offset) {
-    pathGenerator.lineTo(x1 + xExtent, y2);
-    pathGenerator.lineTo(x1, y2);
-  }
+  // the second arc can land short of the base on a short bar, so always close across it
+  pathGenerator.lineTo(x2, y);
+  pathGenerator.lineTo(x, y);
   pathGenerator.closePath();
 };
 

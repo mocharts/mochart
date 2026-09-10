@@ -164,9 +164,24 @@ describe('getColumnGenerator', () => {
 
     it('bounds the radius by the bar extent', () => {
       const stub = barPositions({ current: 96, prior: 100 });
-      // radius = min(10, 8, 4) = 4; shorter than the cap, so like point/curve it closes straight across the base
+      // radius = min(10, 8, 4) = 4, so the second arc lands on the base and the closing lines sit flat on it
       expect(column(round({ expand: true }), stub)).toBe(pathOf(p => {
-        p.moveTo(10, 100); p.arcTo(10, 96, 14, 96, 4); p.lineTo(26, 96); p.arcTo(30, 96, 30, 100, 4); p.closePath();
+        p.moveTo(10, 100); p.arcTo(10, 96, 14, 96, 4); p.lineTo(26, 96); p.arcTo(30, 96, 30, 100, 4);
+        p.lineTo(30, 100); p.lineTo(10, 100); p.closePath();
+      }));
+    });
+
+    it('closes down to the base when the slot bounds the radius below the bar extent', () => {
+      // slot x 10-16, so radius = min(10, 1, 3, 5) = 1 and the second arc stops 4px above the base
+      const narrowStub = barPositions({ current: 95, prior: 100, categoryValueExtent: 6 });
+      expect(column(round({ expand: true }), narrowStub)).toBe(pathOf(p => {
+        p.moveTo(10, 100); p.arcTo(10, 95, 11, 95, 1); p.lineTo(15, 95); p.arcTo(16, 95, 16, 100, 1);
+        p.lineTo(16, 100); p.lineTo(10, 100); p.closePath();
+      }));
+      const narrowInvertedStub = barPositions({ current: 105, prior: 100, categoryValueExtent: 6 });
+      expect(column(round({ expand: true }), narrowInvertedStub, true)).toBe(pathOf(p => {
+        p.moveTo(100, 10); p.arcTo(105, 10, 105, 11, 1); p.lineTo(105, 15); p.arcTo(105, 16, 100, 16, 1);
+        p.lineTo(100, 16); p.lineTo(100, 10); p.closePath();
       }));
     });
 
@@ -180,14 +195,16 @@ describe('getColumnGenerator', () => {
     it('narrows a short bar without capExpand and closes across its own base', () => {
       // narrows by min(capSize - extent = 4, 8) = 4 → x 12–28, radius min(10, 8, 6) = 6
       expect(column(round(), shortBar)).toBe(pathOf(p => {
-        p.moveTo(12, 100); p.arcTo(12, 94, 18, 94, 6); p.lineTo(22, 94); p.arcTo(28, 94, 28, 100, 6); p.closePath();
+        p.moveTo(12, 100); p.arcTo(12, 94, 18, 94, 6); p.lineTo(22, 94); p.arcTo(28, 94, 28, 100, 6);
+        p.lineTo(28, 100); p.lineTo(12, 100); p.closePath();
       }));
     });
 
     it('narrows a short inverted bar around the shifted slot edges', () => {
       // slot y 10–30 narrows to 12–28; the first arc corner sits on the shifted edge, not the slot edge
       expect(column(round(), shortRightBar, true)).toBe(pathOf(p => {
-        p.moveTo(100, 12); p.arcTo(106, 12, 106, 18, 6); p.lineTo(106, 22); p.arcTo(106, 28, 100, 28, 6); p.closePath();
+        p.moveTo(100, 12); p.arcTo(106, 12, 106, 18, 6); p.lineTo(106, 22); p.arcTo(106, 28, 100, 28, 6);
+        p.lineTo(100, 28); p.lineTo(100, 12); p.closePath();
       }));
     });
 
