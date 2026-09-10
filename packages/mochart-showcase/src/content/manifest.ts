@@ -123,13 +123,16 @@ function forEachValueAxis(config: DemoConfig, fn: (axis: Record<string, unknown>
 
 /** Four value axes leave a card almost no plot: two ticks each is enough. */
 function multipleAxesEntry(): ShowcaseEntry {
-  return reuse('axis-multiple', {
+  const entry = reuse('axis-multiple', {
     thumbnail(config) {
       forEachValueAxis(config, axis => {
         axis.tickCount = 2;
       });
     }
   });
+  // four axes leave the plot about a third of a phone's width, and a legend aligned to it stacks all eight items
+  entry.config.legend = { ...(entry.config.legend as object), alignedToAxes: false };
+  return entry;
 }
 
 /**
