@@ -19,7 +19,8 @@ import {
 import { getMaxAxisDomains, getCombinedDomainAxisIds, getCombinedAxisDomainDeltas, getCombinedCategoryDomainDelta,
   shouldCombineDomainChange, setAxisDeltaFactors, setDeltaFactor, withAxisDomainsForIds, withSeriesDomainsForAxes } from './DomainAnimationData';
 
-import { keyPlain, positionKeys, positionOrComputedKeys, valueKeys, extraAndCopyKeys } from '../data/constants';
+import { keyPlain, keyRange, positionKeys, positionOrComputedKeys, valueKeys, extraAndCopyKeys } from '../data/constants';
+import type { PositionKey } from '../data/constants';
 
 import { NONE, SCALE_ORDINAL } from '../config/core/constants';
 
@@ -401,6 +402,32 @@ function getSeriesValuesWithChanges(values: NumericValues | null, baseIndices: n
   }
 }
 
+// An unstacked ranged series whose value or range goes missing on one side
+// collapses onto the other end of its span rather than sweeping to the base,
+// so a candlestick body closes onto its open instead of the bottom of the axis.
+function getRangeFallbackKey(seriesConfig: EnhancedSeriesConfig, valueKey: PositionKey): PositionKey | null {
+  if (seriesConfig.rangeProperty === NONE || seriesConfig.stack !== NONE) {
+    return null;
+  }
+  return valueKey === keyPlain ? keyRange : valueKey === keyRange ? keyPlain : null;
+}
+
+function setBasePositionValuesForChanges(seriesConfig: EnhancedSeriesConfig, startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, seriesBase: number, onlyDifferentReferences: boolean, startRawValueObject: SeriesValueObject, endRawValueObject: SeriesValueObject): void {
+  // Read the fallbacks before any key is filled, so a wholly missing category still falls back to the base.
+  const startFallbacks: Partial<Record<PositionKey, NumericValues | null>> = {};
+  const endFallbacks: Partial<Record<PositionKey, NumericValues | null>> = {};
+  for (const key of positionKeys) {
+    const fallbackKey = getRangeFallbackKey(seriesConfig, key);
+    startFallbacks[key] = fallbackKey === null ? null : startValueObject[fallbackKey]?.slice() ?? null;
+    endFallbacks[key] = fallbackKey === null ? null : endValueObject[fallbackKey]?.slice() ?? null;
+  }
+  for (const key of positionKeys) {
+    if (!onlyDifferentReferences || areValueReferencesDifferent(startValueObject, endValueObject, startRawValueObject, endRawValueObject, key)) {
+      setBaseValuesForChanges(startValueObject, endValueObject, key, seriesBase, startFallbacks[key] ?? null, endFallbacks[key] ?? null);
+    }
+  }
+}
+
 function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], startSeriesData: SeriesData, endSeriesData: SeriesData): void {
   for (const seriesConfig of seriesConfigs) {
     const { id } = seriesConfig;
@@ -408,9 +435,7 @@ function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], start
     const startValueObject = startSeriesData.raw.values[id];
     const endValueObject = endSeriesData.raw.values[id];
 
-    for (const key of positionKeys) {
-      setBaseValuesForChanges(startValueObject, endValueObject, key, seriesBase);
-    }
+    setBasePositionValuesForChanges(seriesConfig, startValueObject, endValueObject, seriesBase, false, startValueObject, endValueObject);
 
     const startRawSeriesDomainObject = startSeriesData.raw.domains[id];
 
@@ -422,11 +447,7 @@ function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], start
     const startFilteredValueObject = startSeriesData.filtered.values[id];
     const endFilteredValueObject = endSeriesData.filtered.values[id];
 
-    for (const key of positionKeys) {
-      if (areValueReferencesDifferent(startFilteredValueObject, endFilteredValueObject, startValueObject, endValueObject, key)) {
-        setBaseValuesForChanges(startFilteredValueObject, endFilteredValueObject, key, seriesBase);
-      }
-    }
+    setBasePositionValuesForChanges(seriesConfig, startFilteredValueObject, endFilteredValueObject, seriesBase, true, startValueObject, endValueObject);
     for (const { extraKey, copyKey } of extraAndCopyKeys) {
       if (areValueReferencesDifferent(startFilteredValueObject, endFilteredValueObject, startValueObject, endValueObject, extraKey)) {
         setBaseExtraValuesForChanges(startFilteredValueObject, endFilteredValueObject, extraKey, copyKey, seriesBase, startRawSeriesDomainObject, extraKey !== 'label');
@@ -452,7 +473,8 @@ function setBaseExtraValuesForChanges(startValueObject: SeriesValueObject, endVa
   }
 }
 
-function setBaseValuesForChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, valueKey: ValueKey, seriesBase: number): void {
+function setBaseValuesForChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, valueKey: ValueKey, seriesBase: number,
+  startFallback: NumericValues | null = null, endFallback: NumericValues | null = null): void {
   const startValues = startValueObject[valueKey];
   const endValues = endValueObject[valueKey];
   if (startValues !== endValues) { // not both null
@@ -463,7 +485,7 @@ function setBaseValuesForChanges(startValueObject: SeriesValueObject, endValueOb
       endValueObject[valueKey] = createArrayWithValueIfNotMissing(startValues, seriesBase);
     }
     else {
-      setArrayValuesIfOneIsMissing(startValues, endValues, seriesBase);
+      setArrayValuesIfOneIsMissing(startValues, endValues, seriesBase, startFallback, endFallback);
     }
   }
 }

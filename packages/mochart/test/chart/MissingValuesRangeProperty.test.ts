@@ -7,7 +7,7 @@
  */
 import { describe, it, beforeAll, expect } from 'vitest';
 import { installSvgMeasurementShims } from '../components/svgShims';
-import { installFakeFrameClock, runFrames, mountContainer } from '../components/helpers';
+import { installFakeFrameClock, runFrames, advanceFrames, mountContainer, barRects } from '../components/helpers';
 import { getCssSelector } from '../../src/utils/ChartDom';
 
 let mochart: typeof import('../../src');
@@ -69,6 +69,61 @@ describe('partialRangeIsMissing on a connect bar series with a rangeProperty', (
     const bars = container.querySelectorAll('path' + getCssSelector('seriesBar'));
     expect(bars.length).toBe(12);
 
+    chart.destroy();
+  });
+});
+
+describe('a ranged bar whose value goes missing', () => {
+  it('collapses onto its range value instead of sweeping to the axis base', () => {
+    const { createChart, enhanceConfig, ArrayOfObjectsDataProvider } = mochart;
+    const mochartConfig = enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', type: 'string', scale: 'ordinal' },
+      valueAxes: [{ id: 'va' }],
+      series: [{
+        id: 'body', property: 'close', rangeProperty: 'open', axis: 'va', renderer: 'bar',
+        missingValueMode: 'connect', partialRangeIsMissing: true
+      }]
+    });
+    const container = mountContainer();
+    const props = { mochartConfig, width: 400, height: 200 };
+    const chart = createChart(container, {
+      ...props,
+      dataProvider: new ArrayOfObjectsDataProvider([{ label: 'A', open: 5, close: 10 }, { label: 'B', open: 20, close: 30 }])
+    });
+    runFrames();
+    const top = (rect: { y: number; height: number }) => Math.min(rect.y, rect.y + rect.height);
+    const bottom = (rect: { y: number; height: number }) => Math.max(rect.y, rect.y + rect.height);
+    // A spans exactly 5 to 10, which gives the pixel scale for B's 20 to 30 span.
+    const [a] = barRects(container, 'body').sort((first, second) => first.x - second.x);
+    const pixelsPerUnit = (bottom(a) - top(a)) / 5;
+    const yOf = (value: number) => top(a) - (value - 10) * pixelsPerUnit;
+
+    // B flips direction: its close goes missing while its open stays. The old
+    // behaviour animated the close to the axis base (5), so the bar swept
+    // below its own open and past A before it left.
+    chart.update({
+      ...props,
+      dataProvider: new ArrayOfObjectsDataProvider([{ label: 'A', open: 5, close: 10 }, { label: 'B', open: 25 }])
+    });
+    let tweenFrames = 0;
+    let lowest = -Infinity;
+    let highest = Infinity;
+    for (let frame = 0; frame < 80; frame++) {
+      const rects = barRects(container, 'body').sort((first, second) => first.x - second.x);
+      if (rects.length === 2) {
+        tweenFrames++;
+        lowest = Math.max(lowest, bottom(rects[1]!));
+        highest = Math.min(highest, top(rects[1]!));
+      }
+      advanceFrames(1);
+    }
+    expect(tweenFrames).toBeGreaterThan(0);
+    expect(lowest).toBeLessThanOrEqual(yOf(20) + 1);
+    expect(highest).toBeGreaterThanOrEqual(yOf(30) - 1);
+
+    runFrames();
+    expect(barRects(container, 'body').length).toBe(1);
     chart.destroy();
   });
 });

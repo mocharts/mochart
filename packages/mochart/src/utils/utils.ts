@@ -201,16 +201,25 @@ export function getValuesAtIndices<T>(source: readonly T[], indices: readonly nu
 }
 
 // where exactly one side is missing, fill it so both animate from the same base
-export function setArrayValuesIfOneIsMissing(array: number[], otherArray: number[], value: number): void {
+function fallbackOrValue(fallback: readonly number[] | null, index: number, value: number): number {
+  return fallback !== null && !isMissingValue(fallback[index]) ? fallback[index]! : value;
+}
+
+/**
+ * Fill each side's missing entries where the other side has a value: from that
+ * side's fallback array when it has a value there, otherwise with `value`.
+ */
+export function setArrayValuesIfOneIsMissing(array: number[], otherArray: number[], value: number,
+  fallback: readonly number[] | null = null, otherFallback: readonly number[] | null = null): void {
   const count = array.length;
   for (let i=0; i<count; i++) {
     const missing = isMissingValue(array[i]);
     const otherMissing = isMissingValue(otherArray[i]);
     if (missing && !otherMissing) {
-      array[i] = value;
+      array[i] = fallbackOrValue(fallback, i, value);
     }
     else if (otherMissing && !missing) {
-      otherArray[i] = value;
+      otherArray[i] = fallbackOrValue(otherFallback, i, value);
     }
   }
 }
