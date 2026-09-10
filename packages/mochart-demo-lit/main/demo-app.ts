@@ -5,7 +5,7 @@ import { getPath, navigate, subscribe } from './router';
 
 import demoData from '@mochart/demo-data';
 
-import { demoText, isDemoModeAvailable, phoneFallbackDemoMode } from '@mochart/demo-common';
+import { demoText, isDemoModeAvailable, nextRandomId, parseRandomId, phoneFallbackDemoMode, previousRandomId } from '@mochart/demo-common';
 import type { ShowcaseMode, SwitchableDemoMode } from '@mochart/demo-common';
 
 import { LightElement } from '../src/components/misc/LightElement';
@@ -183,18 +183,17 @@ export class DemoApp extends LightElement {
       return html`<demo-multi .demoData=${demoData} .initialDemoId=${demoId} .siteRootUrl=${siteRootUrl}
           .onModeChanged=${this.onModeChanged} .onBackToDemos=${this.onBackToDemos}></demo-multi>`;
     }
-    const randomId = Number(route.randomId);
-    const isValidRandomId = randomId > Number.MIN_SAFE_INTEGER && randomId < Number.MAX_SAFE_INTEGER;
-    if (!isValidRandomId) {
+    const randomId = parseRandomId(route.randomId);
+    if (randomId === null) {
       return html`<div class="mochart-demo-message"><div class="demo-alert demo-alert-error" role="alert">${demoText.routeErrors.badRandomId(route.randomId!)}</div></div>`;
     }
     // The randomize buttons read the demo id / random id from the routed URL;
     // the closures are rebuilt on every render, so they stay current.
     const incrementRandomId = (): void => {
-      navigate(`/random/${demoId}/${Math.floor(randomId) + 1}`);
+      navigate(`/random/${demoId}/${nextRandomId(randomId)}`);
     };
     const decrementRandomId = (): void => {
-      navigate(`/random/${demoId}/${Math.floor(randomId) - 1}`);
+      navigate(`/random/${demoId}/${previousRandomId(randomId)}`);
     };
     return html`<demo-random .demoData=${demoData} .initialDemoId=${demoId} .siteRootUrl=${siteRootUrl}
         .onModeChanged=${this.onModeChanged} .onBackToDemos=${this.onBackToDemos}
