@@ -16,6 +16,7 @@ import {
   editorConfig, editorData, editorRandom,
   focusStylesConfig, focusStylesData, focusStylesRandom,
   legendConfig, legendData, legendRandom,
+  makeGenericRandom,
   stackedLabelsData,
   timeSeriesConfig, timeSeriesData, timeSeriesRandom
 } from './locals';
@@ -354,7 +355,12 @@ export function getSections(): ShowcaseSection[] {
         thresholdLineEntry(),
         rotatedTicksEntry(),
         reuse('truncated-text'),
-        reuse('clipped')
+        // Bands should come and go: nine values in -6 to 6 cross each value-axis bound (-5, 5) on
+        // about half the seeds, and a pool only a little wider than the 5 to 20 category bounds
+        // keeps the side bands intermittent too.
+        reuse('clipped', {
+          random: makeGenericRandom({ categoryCount: 9, categoryNumber: { min: 3, max: 22, interval: 1 }, seriesMin: -6, seriesMax: 6 })
+        })
       ]
     },
     {

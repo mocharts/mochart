@@ -35,7 +35,7 @@ export function makeGenericRandom(overrides: {
       }
     },
     series: {
-      number: { min: overrides.seriesMin ?? 0, max: overrides.seriesMax ?? 500, round: true, limitToAxisConfig: true },
+      number: { min: overrides.seriesMin ?? 0, max: overrides.seriesMax ?? 500, round: true, limitToAxisConfig: false },
       missing: { probability: 0 },
       reuse: { global: false, step: true }
     }
