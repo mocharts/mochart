@@ -8,6 +8,7 @@ import type { ThemeController } from '../app/theme';
 
 import { defaultWallSlugs, getEntry, getWallEntries } from '../content/manifest';
 import type { ShowcaseEntry } from '../content/types';
+import { randomForSeed } from '../content/randomForSeed';
 import { getSearchParams, replaceSearchParams } from '../app/router';
 import { isDesktopViewport, watchDesktopViewport } from '../app/viewport';
 import { button, el, toast } from '../ui/dom';
@@ -65,7 +66,7 @@ export function wallPage(props: WallPageProps): WallPageHandle {
     return {
       mochartConfig: demoConfig.mochartConfig,
       dataProvider: demoConfig.valid && entry.random !== undefined
-        ? generateDemoDataProvider(entry.generator, demoConfig.mochartConfig, entry.random, seed)
+        ? generateDemoDataProvider(entry.generator, demoConfig.mochartConfig, randomForSeed(entry.random, seed), seed)
         : null
     };
   }

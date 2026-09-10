@@ -22,6 +22,7 @@ import { mountChart } from './chartHost';
 import { jsonPanel } from './EditorPanel';
 import type { JsonPanelHandle } from './EditorPanel';
 import type { ShowcaseEntry } from '../content/types';
+import { randomForSeed } from '../content/randomForSeed';
 
 type MochartDemoConfig = ReturnType<typeof buildMochartDemoConfig>;
 
@@ -128,7 +129,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
       return new ArrayOfObjectsDataProvider([]);
     }
     if (seed !== null && entry.random !== undefined) {
-      return generateDemoDataProvider(entry.generator, demoConfig.mochartConfig, entry.random, seed);
+      return generateDemoDataProvider(entry.generator, demoConfig.mochartConfig, randomForSeed(entry.random, seed), seed);
     }
     return new ArrayOfObjectsDataProvider(structuredClone(rows));
   }
