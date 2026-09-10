@@ -54,26 +54,27 @@ interface EntryPatch {
  * A reused demo's random spec. Chart-type generators own their specs; the
  * generic spec is re-derived from the entry's curated rows.
  */
-function reusedRandom(demo: Demo, data: DataObject[]): ShowcaseEntry['random'] {
+function reusedRandom(demo: Demo, config: DemoConfig, data: DataObject[]): ShowcaseEntry['random'] {
   const random = clone(demo.random);
   if (demo.generator !== undefined || !('category' in random)) {
     return random;
   }
-  return randomFromCurated(demo.config, data, random);
+  return randomFromCurated(config, data, random);
 }
 
 /** An entry reusing a demo-data demo's config/data/random (and prose). */
 function reuse(slug: string, patch: EntryPatch = {}): ShowcaseEntry {
   const demo = getDemo(slug);
   const special = patch.special;
+  const config = patch.config ?? clone(demo.config);
   const data = patch.data ?? clone(demo.data);
-  const random = patch.random ?? reusedRandom(demo, data);
+  const random = patch.random ?? reusedRandom(demo, config, data);
   return {
     slug,
     title: patch.title ?? demo.title,
     blurb: patch.blurb ?? demo.description ?? '',
     notes: patch.notes ?? demo.notes,
-    config: patch.config ?? clone(demo.config),
+    config,
     data,
     random,
     generator: demo.generator,
@@ -147,7 +148,14 @@ function multipleAxesEntry(): ShowcaseEntry {
  */
 function thresholdLineEntry(): ShowcaseEntry {
   const demo = getDemo('threshold-line');
+  // the series are cut before reuse() so the derived value range covers the three kept, not all five
+  const config = clone(demo.config);
+  const kept = new Set(['value1', 'value2', 'value6']);
+  config.series = (config.series as { property: string; title: string }[])
+    .filter(series => kept.has(series.property))
+    .map(series => series.property === 'value6' ? { ...series, title: 'Line' } : series);
   const entry = reuse('threshold-line', {
+    config,
     blurb: 'Two value axes, each drawing its own threshold line and title across the plot.',
     notes: 'The left axis carries two stacked bars with a thresholds entry at 20; the right axis carries one unstacked line with a thresholds entry at -8, and because the bars and the line read different scales the two threshold lines sit at unrelated heights. Each threshold\'s title.text labels it, title.side puts one label on the low side and the other on the high side, and snapToValue flips a label that has no room left. The axes also differ in adjustForFiltering: hiding a stacked series from the legend rescales the left axis and its threshold line rides along, while the right axis keeps its domain. All four animation durations are stretched to 2000ms, so the rescaling is easy to follow.',
     data: clone(demo.data.filter((_, index) => index % 2 === 0))
@@ -161,10 +169,6 @@ function thresholdLineEntry(): ShowcaseEntry {
       threshold.title.text = `Threshold ${threshold.value}`;
     }
   });
-  const kept = new Set(['value1', 'value2', 'value6']);
-  entry.config.series = (entry.config.series as { property: string; title: string }[])
-    .filter(series => kept.has(series.property))
-    .map(series => series.property === 'value6' ? { ...series, title: 'Line' } : series);
   return entry;
 }
 
