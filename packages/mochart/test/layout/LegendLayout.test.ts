@@ -34,11 +34,11 @@ describe('legend item width limit', () => {
   const ICON_SIZE = 10;
   const TEXT_HEIGHT = 12;
 
-  function mochartConfig(maxFraction: number): EnhancedMochartConfig {
+  function mochartConfig(maxFraction: number, ids: string[]): EnhancedMochartConfig {
     const zero = { top: 0, right: 0, bottom: 0, left: 0 };
     return {
-      series: [{ id: 'a', showInLegend: true }, { id: 'b', showInLegend: true }],
-      seriesById: { a: { followSeries: null, filterable: false }, b: { followSeries: null, filterable: false } },
+      series: ids.map(id => ({ id, showInLegend: true })),
+      seriesById: Object.fromEntries(ids.map(id => [id, { followSeries: null, filterable: false }])),
       accessibility: { minTargetSize: 0 },
       legend: {
         visible: true, alignedToAxes: false, align: 'left',
@@ -51,18 +51,21 @@ describe('legend item width limit', () => {
     } as unknown as EnhancedMochartConfig;
   }
 
-  // two titles too wide to share a row at their measured width
-  const textBounds = {
-    legendItemMaxTextBounds: { width: 200, height: TEXT_HEIGHT },
-    legendItemTextRawBounds: { a: { width: 200, height: TEXT_HEIGHT }, b: { width: 200, height: TEXT_HEIGHT } }
-  } as unknown as ChartTextBoundsData;
+  // titles too wide to share a row at their measured width
+  function textBounds(ids: string[]): ChartTextBoundsData {
+    return {
+      legendItemMaxTextBounds: { width: 200, height: TEXT_HEIGHT },
+      legendItemTextRawBounds: Object.fromEntries(ids.map(id => [id, { width: 200, height: TEXT_HEIGHT }]))
+    } as unknown as ChartTextBoundsData;
+  }
   const contentBounds = { x: 0, y: 0, width: CONTENT_WIDTH, height: 200 };
   const plotBounds = { x: 0, y: 0, width: CONTENT_WIDTH, height: 200 } as unknown as LayoutInfo;
 
-  function layout(maxFraction: number) {
-    const config = mochartConfig(maxFraction);
-    const height = getLegendHeight(config, textBounds, contentBounds, plotBounds);
-    return { height, ...getLegendLayoutInfo(config, textBounds, contentBounds, plotBounds, height, 0) };
+  function layout(maxFraction: number, ids = ['a', 'b']) {
+    const config = mochartConfig(maxFraction, ids);
+    const bounds = textBounds(ids);
+    const height = getLegendHeight(config, bounds, contentBounds, plotBounds);
+    return { height, ...getLegendLayoutInfo(config, bounds, contentBounds, plotBounds, height, 0) };
   }
 
   it('gives each item its measured width at the default fraction, wrapping the second onto its own row', () => {
@@ -79,6 +82,16 @@ describe('legend item width limit', () => {
     expect(legendItemLayoutInfos!.map(info => info.width)).toEqual([150, 150]);
     expect(legendItemLayoutInfos!.map(info => info.y)).toEqual([0, 0]);
     expect(height).toBe(TEXT_HEIGHT);
+  });
+
+  it('fits three items to a row at a third, as the reference says, where 0.34 wraps the third', () => {
+    const third = layout(1 / 3, ['a', 'b', 'c']);
+    expect(third.legendItemLayoutInfos!.map(info => info.width)).toEqual([100, 100, 100]);
+    expect(third.legendItemLayoutInfos!.map(info => info.y)).toEqual([0, 0, 0]);
+    expect(third.height).toBe(TEXT_HEIGHT);
+
+    const over = layout(0.34, ['a', 'b', 'c']);
+    expect(over.legendItemLayoutInfos!.map(info => info.y)).toEqual([0, 0, TEXT_HEIGHT]);
   });
 
   it('holds the shared truncation width to the limit, so a limited item cannot draw past its own box', () => {

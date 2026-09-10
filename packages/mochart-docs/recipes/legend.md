@@ -56,6 +56,10 @@ import * as legendSingle from '../examples/legendSingle'
 - [`truncation.enabled`](/reference/legend#legend.truncation.enabled) (on by
   default) cuts a title that is wider than the legend has room for and
   appends [`truncation.text`](/reference/legend#legend.truncation.text).
+  [`truncation.maxFraction`](/reference/legend#legend.truncation.maxFraction)
+  lowers that room for every item to a share of the width available to the
+  legend, so long titles are truncated to keep items side by side instead of
+  each wrapping onto its own row: `0.5` fits two to a row.
 - Clicking an item [filters](/guide/interaction#legend-filtering) its series out
   and back in while [`filterOnClick`](/reference/legend#legend.filterOnClick)
   is on (the default); a filtered item's icon switches to

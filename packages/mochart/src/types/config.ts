@@ -938,11 +938,11 @@ export interface TruncationConfig {
    * the chart.
    *
    * In the legend: whether to use text truncation when a legend item width
-   * exceeds the width of the chart. In an axis title: whether to apply text
-   * truncation to the contents of the axis title when it would overflow the
-   * axis bounds. In the category axis tick labels: whether or not to use text
-   * truncation (true) when the axis tick labels would overlap each other
-   * instead of skipping ticks (false).
+   * exceeds the width of the chart or the width maxFraction allows one item. In
+   * an axis title: whether to apply text truncation to the contents of the axis
+   * title when it would overflow the axis bounds. In the category axis tick
+   * labels: whether or not to use text truncation (true) when the axis tick
+   * labels would overlap each other instead of skipping ticks (false).
    *
    * Default: `true`, and in the category axis tick labels `false` when type is
    * not string.
@@ -1254,15 +1254,16 @@ export interface LegendItemConfig {
 /** The legend truncation, adding the limit on the width a single item may take. */
 export interface LegendTruncationConfig extends TruncationConfig {
   /**
-   * The maximum fraction (0 - 1) of the legend width to allow any one legend
-   * item to occupy.
+   * The maximum fraction (0 - 1) of the width available to the legend to allow
+   * any one legend item to occupy.
    *
    * At the default `1` a single item may take the whole legend width, so a long
    * title wraps onto a row of its own and the legend grows downward at the
    * plot’s expense. A lower fraction limits every item to that share of the
-   * legend width and truncates the titles that exceed it, so `0.5` fits two
-   * items to a row and `0.34` fits three. The limit never takes an item below
-   * the `accessibility.minTargetSize` floor.
+   * width available to the legend (the plot width when `alignedToAxes` is on)
+   * and truncates the titles that exceed it, so `0.5` fits two items to a row
+   * and a third fits three. The limit never takes an item below the
+   * `accessibility.minTargetSize` floor.
    *
    * @default 1
    */
