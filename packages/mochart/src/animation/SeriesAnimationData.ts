@@ -428,12 +428,13 @@ function setBasePositionValuesForChanges(seriesConfig: EnhancedSeriesConfig, sta
   }
 }
 
-// An interior point that enters or leaves animates from or onto the line between its
-// neighbours, weighted by category position, so a line or area never spikes to the base.
-function fillInteriorFromNeighbours(values: NumericValues, otherValues: NumericValues, coordinates: readonly number[]): void {
+// A point that enters or leaves animates from or onto its neighbours: between the nearest
+// present values on each side, weighted by category position, or onto the one neighbour a
+// leading or trailing point has, so a line or area never spikes to the base.
+function fillFromNeighbours(values: NumericValues, otherValues: NumericValues, coordinates: readonly number[]): void {
   const source = values.slice();
   const count = values.length;
-  for (let i = 1; i < count - 1; i++) {
+  for (let i = 0; i < count; i++) {
     if (!isMissingValue(source[i]) || isMissingValue(otherValues[i])) {
       continue;
     }
@@ -445,16 +446,24 @@ function fillInteriorFromNeighbours(values: NumericValues, otherValues: NumericV
     while (right < count && isMissingValue(source[right])) {
       right++;
     }
-    if (left < 0 || right >= count) {
+    if (left < 0 && right >= count) {
       continue;
     }
-    const span = coordinates[right]! - coordinates[left]!;
-    const fraction = span === 0 ? 0.5 : (coordinates[i]! - coordinates[left]!) / span;
-    values[i] = source[left]! + fraction * (source[right]! - source[left]!);
+    if (left < 0) {
+      values[i] = source[right]!;
+    }
+    else if (right >= count) {
+      values[i] = source[left]!;
+    }
+    else {
+      const span = coordinates[right]! - coordinates[left]!;
+      const fraction = span === 0 ? 0.5 : (coordinates[i]! - coordinates[left]!) / span;
+      values[i] = source[left]! + fraction * (source[right]! - source[left]!);
+    }
   }
 }
 
-function setAdjacentValuesForInteriorChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, coordinates: readonly number[], onlyDifferentReferences: boolean, startRawValueObject: SeriesValueObject, endRawValueObject: SeriesValueObject): void {
+function setAdjacentValuesForChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, coordinates: readonly number[], onlyDifferentReferences: boolean, startRawValueObject: SeriesValueObject, endRawValueObject: SeriesValueObject): void {
   for (const key of positionOrComputedKeys) {
     const startValues = startValueObject[key];
     const endValues = endValueObject[key];
@@ -464,8 +473,8 @@ function setAdjacentValuesForInteriorChanges(startValueObject: SeriesValueObject
     if (onlyDifferentReferences && !areValueReferencesDifferent(startValueObject, endValueObject, startRawValueObject, endRawValueObject, key)) {
       continue;
     }
-    fillInteriorFromNeighbours(startValues, endValues, coordinates);
-    fillInteriorFromNeighbours(endValues, startValues, coordinates);
+    fillFromNeighbours(startValues, endValues, coordinates);
+    fillFromNeighbours(endValues, startValues, coordinates);
   }
 }
 
@@ -479,8 +488,8 @@ function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], start
     const endFilteredValueObject = endSeriesData.filtered.values[id];
 
     if (seriesConfig.animateBaseFromAdjacent) {
-      setAdjacentValuesForInteriorChanges(startValueObject, endValueObject, categoryCoordinates, false, startValueObject, endValueObject);
-      setAdjacentValuesForInteriorChanges(startFilteredValueObject, endFilteredValueObject, categoryCoordinates, true, startValueObject, endValueObject);
+      setAdjacentValuesForChanges(startValueObject, endValueObject, categoryCoordinates, false, startValueObject, endValueObject);
+      setAdjacentValuesForChanges(startFilteredValueObject, endFilteredValueObject, categoryCoordinates, true, startValueObject, endValueObject);
     }
 
     setBasePositionValuesForChanges(seriesConfig, startValueObject, endValueObject, seriesBase, false, startValueObject, endValueObject);
