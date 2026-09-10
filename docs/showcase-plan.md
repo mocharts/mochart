@@ -80,7 +80,8 @@ Implemented as manifest flags handled by the demo page:
 5. **Interaction**: callbacks (new special), focus styles (new local),
    tooltip controls, axis filtering, positive/negative currency (reused).
 6. **Styling & theming**: gradients, patterns, color property, stacked
-   labels, christmas tree bars (reused) + currentColor chrome (new local).
+   labels, christmas tree bars (reused) + legend, currentColor chrome (new
+   local).
 7. **Data handling**: missing values, missing stacked values (reused), chart
    states (new special).
 8. **Config & validation**: editor playground (new local).
@@ -93,9 +94,10 @@ Implemented as manifest flags handled by the demo page:
 - [x] Demo page + editors + seed/share/export
 - [x] Specials (player, rotation, states, callbacks, sparklines)
 - [x] Wall mode
-- [x] Full curation (36 demos across 8 sections; 44 after the 2026-09-09
+- [x] Full curation (36 demos across 8 sections; 45 after the 2026-09-09
       refresh added patterns, bar caps, horizontal bars, clipped values,
-      easing, tooltip controls, axis filtering and missing stacked values)
+      easing, tooltip controls, axis filtering, missing stacked values and
+      legend)
 - [x] Verified: typecheck, prod build, zero console errors across all routes ×
       phone/tablet/desktop, scripted interaction pass (seed/legend/share
       round-trip/export/states/rotation), dark mode

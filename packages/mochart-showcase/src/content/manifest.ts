@@ -15,6 +15,7 @@ import {
   easingConfig, easingData, easingRandom,
   editorConfig, editorData, editorRandom,
   focusStylesConfig, focusStylesData, focusStylesRandom,
+  legendConfig, legendData, legendRandom,
   stackedLabelsData,
   timeSeriesConfig, timeSeriesData, timeSeriesRandom
 } from './locals';
@@ -383,7 +384,7 @@ export function getSections(): ShowcaseSection[] {
           data: focusStylesData,
           random: focusStylesRandom
         }),
-        reuse('currency-pos-neg')
+        reuse('currency-pos-neg', { blurb: 'Currency formatting on the tick labels and tooltip values of two value axes at different scales.' })
       ]
     },
     {
@@ -396,6 +397,19 @@ export function getSections(): ShowcaseSection[] {
         reuse('color-property'),
         stackedLabelsEntry(),
         reuse('christmas'),
+        local({
+          slug: 'legend',
+          title: 'Legend',
+          blurb: 'A legend above the plot, right-aligned against the chart bounds and boxed, with filtered series struck through and a long title truncated.',
+          notes: 'legend.position puts the legend above the plot and legend.align sets it right, with alignedToAxes false so it aligns to the chart bounds rather than the plot. backgroundStyle fills and outlines the padded box, item styles each entry and icon sizes the swatches. strikeThroughFiltered strikes a filtered series through instead of only greying it; click an entry to see it. truncation cuts a title that cannot fit its row, with the full text shown on hover; narrow the window until the EMEA entry has no room to see it.',
+          config: legendConfig,
+          data: legendData,
+          random: legendRandom,
+          // The card strips legends by default; this one is the legend.
+          thumbnail(config) {
+            config.legend = { ...(config.legend as object), visible: true };
+          }
+        }),
         local({
           slug: 'currentcolor',
           title: 'currentColor Chrome',
