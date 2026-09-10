@@ -9,7 +9,7 @@ import { exportPNG, exportSVG } from '@mochart/export';
 import { createMochartConfigSupport } from '@mochart/editor';
 import {
   buildMochartDemoConfig, generateDemoDataProvider, getChartExportOptions,
-  getReferenceSectionIds, getReferenceSectionUrl, rotationConfigs, rotationData
+  getReferenceSectionIds, getReferenceSectionUrl, nextRandomId, parseRandomId, previousRandomId, rotationConfigs, rotationData
 } from '@mochart/demo-common';
 
 import type { ThemeController } from '../app/theme';
@@ -18,7 +18,6 @@ import type { DataObject, DemoConfig } from '@mochart/demo-data';
 import { button, el, segmented, toast } from '../ui/dom';
 import { getSearchParams, replaceSearchParams } from '../app/router';
 import { buildShareUrl, consumeShareState } from '../state/share';
-import { MAX_SEED, nextSeed, parseSeed } from '../state/seed';
 import { mountChart } from './chartHost';
 import { jsonPanel } from './EditorPanel';
 import type { JsonPanelHandle } from './EditorPanel';
@@ -71,7 +70,8 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
   let configDirty = share?.config !== undefined;
   let dataDirty = share?.data !== undefined;
 
-  let seed: number | null = parseSeed(getSearchParams().get('seed'));
+  const seedParam = getSearchParams().get('seed');
+  let seed: number | null = parseRandomId(seedParam);
 
   let speed = 1;
   let stateMode: StateMode = 'data';
@@ -235,6 +235,11 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
     replaceSearchParams(params);
   }
 
+  // a seed the parser dropped leaves the URL at once, so a copied link does not carry it
+  if (seedParam !== null && seed === null) {
+    writeSeedToUrl();
+  }
+
   function setSeed(next: number | null): void {
     seed = next;
     writeSeedToUrl();
@@ -263,7 +268,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
     }
     else {
       const interval = entry.special === 'player' ? Math.round(PLAY_INTERVAL_MS / Math.min(speed, 1)) + 800 : PLAY_INTERVAL_MS;
-      playTimer = setInterval(() => (seed ?? 0) >= MAX_SEED ? stopPlaying() : setSeed(nextSeed(seed)), interval);
+      playTimer = setInterval(() => setSeed(nextRandomId(seed ?? 0)), interval);
     }
     syncControls();
   }
@@ -283,15 +288,15 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
   const seedValue = el('span', { className: 'sc-seed-value' });
   const prevButton = button({
     icon: 'chevron-left', ariaLabel: 'Previous step', title: 'Previous step',
-    onClick: () => entry.special === 'rotation' ? stepRotation(-1) : setSeed(Math.max(0, (seed ?? 0) - 1))
+    onClick: () => entry.special === 'rotation' ? stepRotation(-1) : setSeed(previousRandomId(seed ?? 0))
   });
   const nextButton = button({
     icon: 'chevron-right', ariaLabel: 'Next step', title: 'Next step',
-    onClick: () => entry.special === 'rotation' ? stepRotation(1) : setSeed(nextSeed(seed))
+    onClick: () => entry.special === 'rotation' ? stepRotation(1) : setSeed(nextRandomId(seed ?? 0))
   });
   const diceButton = button({
     icon: 'dice', label: 'Randomize', ariaLabel: 'Randomize data', title: 'Generate the next dataset (deterministic per seed)',
-    onClick: () => setSeed(nextSeed(seed))
+    onClick: () => setSeed(nextRandomId(seed ?? 0))
   });
   const playButton = button({
     icon: 'play', label: 'Play', ariaLabel: 'Play transitions', title: 'Step automatically',
@@ -368,7 +373,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
     }
     playButton.setIcon(playing ? 'pause' : 'play');
     playButton.setLabel(playing ? 'Pause' : 'Play');
-    prevButton.setDisabled(entry.special !== 'rotation' && (seed === null || seed <= 0));
+    prevButton.setDisabled(entry.special !== 'rotation' && seed === null);
     resetSeedButton.setDisabled(seed === null);
   }
 

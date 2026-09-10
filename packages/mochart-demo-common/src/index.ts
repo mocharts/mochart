@@ -32,6 +32,7 @@ export { createJsonEditorContent } from './jsonEditorContent';
 export type { JsonEditorContentHandle, JsonEditorContentOptions } from './jsonEditorContent';
 
 export { validateRandomConfig, restoreSharedRandomConfig, formatRandomConfig, neutralizeRandomReuse } from './randomConfig';
+export { MAX_RANDOM_ID, parseRandomId, nextRandomId, previousRandomId } from './randomId';
 
 export {
   defaultTransitionConfig, getTransitionMochartConfig, getTransitionDataProviders,

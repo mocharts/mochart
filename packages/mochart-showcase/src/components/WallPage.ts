@@ -3,14 +3,13 @@
 // selection and seed live in the URL (/wall?d=a,b,c&seed=n) so any wall is a
 // shareable link.
 
-import { buildMochartDemoConfig, generateDemoDataProvider } from '@mochart/demo-common';
+import { buildMochartDemoConfig, generateDemoDataProvider, nextRandomId, parseRandomId } from '@mochart/demo-common';
 import type { ThemeController } from '../app/theme';
 
 import { defaultWallSlugs, getEntry, getWallEntries } from '../content/manifest';
 import type { ShowcaseEntry } from '../content/types';
 import { randomForSeed } from '../content/randomForSeed';
 import { getSearchParams, replaceSearchParams } from '../app/router';
-import { MAX_SEED, nextSeed, parseSeed } from '../state/seed';
 import { isDesktopViewport, watchDesktopViewport } from '../app/viewport';
 import { button, el, toast } from '../ui/dom';
 import { mountChart } from './chartHost';
@@ -48,7 +47,8 @@ export function wallPage(props: WallPageProps): WallPageHandle {
   if (slugs.length === 0) {
     slugs = defaultWallSlugs.slice();
   }
-  let seed = parseSeed(params.get('seed')) ?? 0;
+  const seedParam = params.get('seed');
+  let seed = parseRandomId(seedParam) ?? 0;
   let playing = false;
   let playTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -59,6 +59,11 @@ export function wallPage(props: WallPageProps): WallPageHandle {
     next.set('d', slugs.join(','));
     next.set('seed', String(seed));
     replaceSearchParams(next);
+  }
+
+  // a seed the parser dropped leaves the URL at once, so a copied link does not carry it
+  if (seedParam !== null && parseRandomId(seedParam) === null) {
+    writeUrl();
   }
 
   function tileProps(tile: Pick<Tile, 'entry' | 'demoConfig'>): Record<string, unknown> {
@@ -137,7 +142,7 @@ export function wallPage(props: WallPageProps): WallPageHandle {
     playing = true;
     playButton.setIcon('pause');
     playButton.setLabel('Pause');
-    playTimer = setInterval(() => seed >= MAX_SEED ? stopPlaying() : setSeed(nextSeed(seed)), WALL_PLAY_INTERVAL_MS);
+    playTimer = setInterval(() => setSeed(nextRandomId(seed)), WALL_PLAY_INTERVAL_MS);
   }
 
   // --- picker --------------------------------------------------------------
@@ -205,7 +210,7 @@ export function wallPage(props: WallPageProps): WallPageHandle {
   });
   const diceButton = button({
     icon: 'dice', label: 'Randomize', ariaLabel: 'Randomize all charts', title: 'Step every chart to the next dataset',
-    onClick: () => setSeed(nextSeed(seed))
+    onClick: () => setSeed(nextRandomId(seed))
   });
   const playButton = button({
     icon: 'play', label: 'Play', ariaLabel: 'Play transitions', title: 'Step all charts automatically',

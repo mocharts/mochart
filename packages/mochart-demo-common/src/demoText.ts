@@ -45,7 +45,7 @@ export const demoText = {
   routeErrors: {
     noRoute: (path: string) => `No route found matching ${path}`,
     noDemo: (demoId: string) => `No demo found for id: ${demoId}`,
-    badRandomId: (randomId: string) => `Bad random id: ${randomId}`
+    badRandomId: (randomId: string) => `Bad random id: ${randomId} (a whole number from 0 to 9999)`
   },
   // The standalone demo gallery page (the landing route).
   gallery: {

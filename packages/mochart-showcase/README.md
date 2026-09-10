@@ -16,7 +16,9 @@ playground:
   The config panel is powered by [@mochart/editor](../mochart-editor/README.md)
   (completions, hover docs, live movalid diagnostics); edits apply live, and a
   mochart-invalid config renders the chart's own config-error state.
-- **Deterministic randomize**: `?seed=N` in the URL (up to four digits);
+- **Deterministic randomize**: `?seed=N` in the URL (a whole number from 0
+  to 9999, the range every demo app shares; stepping and play wrap at the
+  ends and a seed outside it is dropped from the URL);
   datasets come from demo-common's seeded generators, so any state is
   reproducible by link. A reused demo's generic random spec is derived from
   its curated rows ([src/content/randomFromCurated.ts](src/content/randomFromCurated.ts)):
