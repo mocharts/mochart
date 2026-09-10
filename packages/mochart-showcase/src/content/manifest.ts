@@ -452,7 +452,7 @@ export function getSections(): ShowcaseSection[] {
           slug: 'currentcolor',
           title: 'currentColor Chrome',
           blurb: 'Axes, ticks and title default to currentColor, and series can too. Toggle the theme and the chart follows.',
-          notes: 'The chart’s structural chrome (axis lines, tick labels, title, legend text) defaults to currentColor, so it inherits whatever color the surrounding page sets, which is how the dark theme restyles every chart without a single config change. This demo goes further and paints a series with currentColor as well. Flip the theme toggle and watch both follow the page’s ink.',
+          notes: 'The chart’s structural chrome (axis lines, tick labels, title, legend text) defaults to currentColor, so it inherits whatever color the surrounding page sets, which is how the dark theme restyles every chart without a single config change. This demo goes further: the bar series sets its shapeStyle fillColor and strokeColor to currentColor as well. Flip the theme toggle and watch both follow the page’s ink.',
           config: currentColorConfig,
           data: currentColorData,
           random: currentColorRandom

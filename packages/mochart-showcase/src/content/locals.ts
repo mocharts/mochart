@@ -412,7 +412,8 @@ export const currentColorConfig: DemoConfig = {
       title: 'currentColor bars',
       renderer: 'bar',
       shapeStyle: {
-        normal: { fillColor: 'currentColor', strokeColor: 'currentColor', fillOpacity: 0.3, strokeOpacity: 0.85 }
+        // near the ink's own value, not a wash of it: at a low opacity both themes land on the same mid grey and the demo has nothing to show
+        normal: { fillColor: 'currentColor', strokeColor: 'currentColor', fillOpacity: 0.85, strokeOpacity: 1 }
       }
     },
     {
