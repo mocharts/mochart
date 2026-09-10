@@ -8,7 +8,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5181',
+    baseURL: 'http://localhost:5182',
     trace: 'on-first-retry'
   },
   // A project, not per-test `setViewportSize`, so the page mounts at phone width; tag tests with `phoneTag` from e2e/helpers to move them here.
@@ -22,9 +22,9 @@ export default defineConfig({
     }
   ],
   webServer: {
-    // Dev server on vite.config's pinned 5181; --strictPort so a clash fails loudly.
+    // Dev server on vite.config's pinned 5182; --strictPort so a clash fails loudly.
     command: 'npm run dev -- --strictPort',
-    url: 'http://localhost:5181',
+    url: 'http://localhost:5182',
     reuseExistingServer: !process.env.CI
   }
 });

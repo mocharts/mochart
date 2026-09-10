@@ -43,11 +43,11 @@ phone / tablet / desktop tiers and VitePress-synced dark mode.
 This repo uses npm workspaces; install once from the repo root, then:
 
 ```sh
-npm run dev:showcase   # vite dev server on http://localhost:5181
+npm run dev:showcase   # vite dev server on http://localhost:5182
 ```
 
 Or from this package: `npm run dev`, `npm run build`, `npm run preview`
-(port 4181), `npm run typecheck`.
+(port 4182), `npm run typecheck`.
 
 See [docs/showcase-plan.md](../../docs/showcase-plan.md) for the plan and
 status; deployment wiring is deliberately not set up yet.
