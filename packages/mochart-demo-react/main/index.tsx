@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router';
 
-import { demoText, phoneFallbackDemoMode, shareHashPrefix } from '@mochart/demo-common';
+import { demoText, nextRandomId, parseRandomId, phoneFallbackDemoMode, previousRandomId, shareHashPrefix } from '@mochart/demo-common';
 
 import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
 import '@fortawesome/fontawesome-free/css/solid.min.css';
@@ -170,15 +170,15 @@ function RandomRoute() {
   if (demoObjectMap[demoId] === undefined) {
     return <div className="mochart-demo-message"><div className="demo-alert demo-alert-error" role="alert">{demoText.routeErrors.noDemo(demoId)}</div></div>;
   }
-  const randomId = Number(params.randomId);
-  if (!(randomId > Number.MIN_SAFE_INTEGER && randomId < Number.MAX_SAFE_INTEGER)) {
+  const randomId = parseRandomId(params.randomId);
+  if (randomId === null) {
     return <div className="mochart-demo-message"><div className="demo-alert demo-alert-error" role="alert">{demoText.routeErrors.badRandomId(params.randomId!)}</div></div>;
   }
   const incrementRandomId = () => {
-    demoNavigate(`/random/${demoId}/${Math.floor(randomId) + 1}`);
+    demoNavigate(`/random/${demoId}/${nextRandomId(randomId)}`);
   };
   const decrementRandomId = () => {
-    demoNavigate(`/random/${demoId}/${Math.floor(randomId) - 1}`);
+    demoNavigate(`/random/${demoId}/${previousRandomId(randomId)}`);
   };
   return <DemoRandom demoData={demoData} initialDemoId={demoId} siteRootUrl={siteRootUrl}
     onModeChanged={nav.onModeChanged} onBackToDemos={nav.onBackToDemos}
