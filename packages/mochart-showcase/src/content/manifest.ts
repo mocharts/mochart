@@ -12,6 +12,7 @@ import { randomFromCurated } from './randomFromCurated';
 import { sparklinesThumb } from '../components/SparklinesThumb';
 import { callbacksThumb } from '../components/CallbacksThumb';
 import {
+  barCapsConfig, barCapsData, barCapsRandom,
   callbacksConfig, callbacksData, callbacksRandom,
   currentColorConfig, currentColorData, currentColorRandom,
   easingConfig, easingData, easingRandom,
@@ -337,7 +338,15 @@ export function getSections(): ShowcaseSection[] {
         reuse('curved'),
         reuse('scatter'),
         reuse('bubble'),
-        monthsEntry('picket', { title: 'Bar Caps' }),
+        local({
+          slug: 'bar-caps',
+          title: 'Bar Caps',
+          blurb: 'Round, curve and point caps on plain bars, beside a stack capped only at its outer end.',
+          notes: 'cap.type draws a decorative cap on the value end of every bar in a series: round rounds the corners, curve bulges a dome, point rises to a peak, all at the shared cap.size. On a stack, capping every segment looks broken, so the stack declares outerCap.type instead and only whichever series is its outer segment at each category wears the cap. Filter Stack: Enterprise in the legend and the cap moves down to Stack: Pro. A series that sets its own cap.type keeps it in a stack; cap.onlyStackOuter limits that to where it is the outer segment.',
+          config: barCapsConfig,
+          data: barCapsData,
+          random: barCapsRandom
+        }),
         horizontalBarsEntry()
       ]
     },

@@ -237,6 +237,38 @@ export const focusStylesData: DataObject[] = [
 export const focusStylesRandom = makeGenericRandom({ categoryCount: 6, seriesMin: 60, seriesMax: 300 });
 
 // ---------------------------------------------------------------------------
+// Bar caps: the three cap shapes on plain bars beside a stack capped only at
+// its outer end, from the docs' two bar cap examples
+// ---------------------------------------------------------------------------
+
+export const barCapsConfig: DemoConfig = {
+  version: '1.0.0',
+  title: { text: 'Cap Shapes and a Capped Stack' },
+  categoryAxis: { property: 'quarter', valueLabel: 'Quarter', type: 'string', scale: 'ordinal' },
+  valueAxes: [{ id: 'VA0', min: 0, gridLine: { visible: true } }],
+  seriesGroups: [{ id: 'caps' }],
+  seriesStacks: [{ id: 'revenue', outerCap: { type: 'round', size: 8 } }],
+  seriesDefaults: { axis: 'VA0', renderer: 'bar', group: 'caps', cap: { size: 8 } },
+  series: [
+    { id: 'round', property: 'round', title: 'Round cap', stack: null, cap: { type: 'round' } },
+    { id: 'curve', property: 'curve', title: 'Curve cap', stack: null, cap: { type: 'curve' } },
+    { id: 'point', property: 'point', title: 'Point cap', stack: null, cap: { type: 'point' } },
+    { id: 'starter', property: 'starter', title: 'Stack: Starter', stack: 'revenue' },
+    { id: 'pro', property: 'pro', title: 'Stack: Pro', stack: 'revenue' },
+    { id: 'enterprise', property: 'enterprise', title: 'Stack: Enterprise', stack: 'revenue' }
+  ]
+};
+
+export const barCapsData: DataObject[] = [
+  { quarter: 'Q1', round: 38, curve: 31, point: 26, starter: 10, pro: 14, enterprise: 8 },
+  { quarter: 'Q2', round: 44, curve: 36, point: 33, starter: 12, pro: 18, enterprise: 11 },
+  { quarter: 'Q3', round: 41, curve: 42, point: 30, starter: 11, pro: 22, enterprise: 16 },
+  { quarter: 'Q4', round: 49, curve: 39, point: 37, starter: 13, pro: 25, enterprise: 22 }
+];
+
+export const barCapsRandom = makeGenericRandom({ categoryCount: 4, seriesMin: 8, seriesMax: 45 });
+
+// ---------------------------------------------------------------------------
 // Legend placement and styling
 // ---------------------------------------------------------------------------
 

@@ -69,7 +69,7 @@ Implemented as manifest flags handled by the demo page:
 ## Curated sections
 
 1. **Bars, lines & areas**: stacked, grouped, stacked-grouped, range, curved,
-   scatter, bubble, bar caps (picket), horizontal bars (all reused).
+   scatter, bubble, horizontal bars (all reused) + bar caps (new local).
 2. **Chart-type helpers**: histogram, waterfall, heatmap, candlestick,
    hollow candlestick, OHLC, error bars, pie, donut, gauge (reused) +
    sparklines (special).
