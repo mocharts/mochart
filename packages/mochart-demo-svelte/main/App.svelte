@@ -3,7 +3,7 @@
 
   import demoData from '@mochart/demo-data';
 
-  import { demoText, isPhoneViewport, phoneFallbackDemoMode, watchPhoneViewport } from '@mochart/demo-common';
+  import { demoText, isPhoneViewport, nextRandomId, parseRandomId, phoneFallbackDemoMode, previousRandomId, watchPhoneViewport } from '@mochart/demo-common';
   import type { ShowcaseMode, SwitchableDemoMode } from '@mochart/demo-common';
 
   import GalleryPage from '../src/components/gallery/GalleryPage.svelte';
@@ -123,8 +123,9 @@
 
   const demoId = $derived(route.demoId);
   const isKnownDemo = $derived(demoId !== undefined && demoObjectMap[demoId] !== undefined);
-  const randomId = $derived(Number(route.randomId));
-  const isValidRandomId = $derived(randomId > Number.MIN_SAFE_INTEGER && randomId < Number.MAX_SAFE_INTEGER);
+  const parsedRandomId = $derived(parseRandomId(route.randomId));
+  const randomId = $derived(parsedRandomId ?? 0);
+  const isValidRandomId = $derived(parsedRandomId !== null);
 
   // The randomize buttons read the demo id / random id from the current URL so
   // they stay correct after any navigation.
@@ -134,15 +135,15 @@
   }
 
   function getCurrentRandomId(): number {
-    return Number(resolveRoute(getPath()).randomId);
+    return parseRandomId(resolveRoute(getPath()).randomId) ?? 0;
   }
 
   function incrementRandomId() {
-    navigate(`/random/${getCurrentRandomDemoId()}/${Math.floor(getCurrentRandomId()) + 1}`);
+    navigate(`/random/${getCurrentRandomDemoId()}/${nextRandomId(getCurrentRandomId())}`);
   }
 
   function decrementRandomId() {
-    navigate(`/random/${getCurrentRandomDemoId()}/${Math.floor(getCurrentRandomId()) - 1}`);
+    navigate(`/random/${getCurrentRandomDemoId()}/${previousRandomId(getCurrentRandomId())}`);
   }
 </script>
 
