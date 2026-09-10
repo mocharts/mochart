@@ -67,6 +67,7 @@ function reuse(slug: string, patch: EntryPatch = {}): ShowcaseEntry {
   const demo = getDemo(slug);
   const special = patch.special;
   const data = patch.data ?? clone(demo.data);
+  const random = patch.random ?? reusedRandom(demo, data);
   return {
     slug,
     title: patch.title ?? demo.title,
@@ -74,12 +75,12 @@ function reuse(slug: string, patch: EntryPatch = {}): ShowcaseEntry {
     notes: patch.notes ?? demo.notes,
     config: patch.config ?? clone(demo.config),
     data,
-    random: patch.random ?? reusedRandom(demo, data),
+    random,
     generator: demo.generator,
     walkBounds: patch.walkBounds,
     special,
     thumbnail: patch.thumbnail,
-    wall: special === undefined
+    wall: random !== undefined && special === undefined
   };
 }
 
