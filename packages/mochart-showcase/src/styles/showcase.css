@@ -1,5 +1,5 @@
 /* ============================================================
-   Mochart Showcase — mobile-first stylesheet.
+   Mochart Showcase, mobile-first stylesheet.
    Tokens share the docs site's (VitePress) palette and the demos' dark-mode
    semantics: the `dark` class on <html> is owned by demo-common's theme
    controller, which shares the docs site's localStorage appearance key.
@@ -148,6 +148,15 @@ a:hover {
     box-shadow: var(--sc-shadow);
 }
 
+.sc-select {
+    min-height: 40px;
+    padding: 6px 10px;
+    border: 1px solid var(--sc-border-strong);
+    border-radius: var(--sc-radius);
+    background: var(--sc-surface);
+    color: var(--sc-text);
+    font: inherit;
+}
 .sc-seed-value {
     font-variant-numeric: tabular-nums;
     color: var(--sc-text-muted);

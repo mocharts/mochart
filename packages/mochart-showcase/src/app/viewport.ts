@@ -1,6 +1,6 @@
 // The showcase's one layout breakpoint JS needs to know about: the wall (and
 // the demo page's side-by-side split) only exist at desktop widths. The
-// stylesheet uses the same 1000px figure — keep them in sync by hand.
+// stylesheet uses the same 1000px figure. Keep them in sync by hand.
 
 const desktopQuery = '(min-width: 1000px)';
 

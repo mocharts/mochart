@@ -47,7 +47,7 @@ export function galleryPage(props: GalleryPageProps): GalleryPageHandle {
     ]),
     el('p', {
       className: 'sc-hero-tagline',
-      text: 'Every capability of the mochart charting library, one polished demo at a time — open any card to edit its config and data live, randomize it deterministically, and share exactly what you made.'
+      text: 'Every capability of the mochart charting library, one polished demo at a time. Open any card to edit its config and data live, randomize it deterministically, and share exactly what you made.'
     })
   ]);
 

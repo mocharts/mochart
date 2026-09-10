@@ -11,6 +11,7 @@ import type { DataObject, DemoConfig, RandomConfig } from '@mochart/demo-data';
 export function makeGenericRandom(overrides: {
   categoryCount?: number;
   categoryDate?: Partial<RandomConfig['category']['date']> & { enabled?: boolean };
+  categoryNumber?: Partial<RandomConfig['category']['number']>;
   seriesMin?: number;
   seriesMax?: number;
 } = {}): RandomConfig {
@@ -20,7 +21,11 @@ export function makeGenericRandom(overrides: {
       order: { sort: true },
       missing: { probability: 0 },
       reuse: { globalFraction: 0.5, stepFraction: 0.5 },
-      number: { min: -100, max: 100, interval: 1 },
+      number: {
+        min: overrides.categoryNumber?.min ?? -100,
+        max: overrides.categoryNumber?.max ?? 100,
+        interval: overrides.categoryNumber?.interval ?? 1
+      },
       string: { minLength: 3, maxLength: 10 },
       date: {
         min: overrides.categoryDate?.min ?? '2026-01-01',
@@ -43,7 +48,7 @@ export function makeGenericRandom(overrides: {
 
 export const timeSeriesConfig: DemoConfig = {
   version: '1.0.0',
-  title: { text: 'Sessions — March 2026' },
+  title: { text: 'Sessions, March 2026' },
   categoryAxis: {
     property: 'date',
     valueLabel: 'Date',
@@ -88,6 +93,136 @@ export const timeSeriesRandom = makeGenericRandom({
   categoryDate: { min: '2026-03-01', max: '2026-03-31', interval: 2, intervalUnit: 'day' },
   seriesMin: 50,
   seriesMax: 450
+});
+
+// ---------------------------------------------------------------------------
+// Stacked labels: a small dataset so every segment's label has room
+// ---------------------------------------------------------------------------
+
+export const stackedLabelsData: DataObject[] = [
+  { categoryNL: 1, value1: 12, value2: 8, value3: 5 },
+  { categoryNL: 2, value1: 15, value2: 6, value3: 9 },
+  { categoryNL: 4, value1: 9, value2: 11, value3: 7 },
+  { categoryNL: 5, value1: 18, value2: 7, value3: 4 },
+  { categoryNL: 7, value1: 11, value2: 13, value3: 8 },
+  { categoryNL: 8, value1: 14, value2: 9, value3: 12 },
+  { categoryNL: 10, value1: 8, value2: 12, value3: 6 },
+  { categoryNL: 12, value1: 16, value2: 10, value3: 9 }
+];
+
+export const stackedLabelsRandom = makeGenericRandom({
+  categoryCount: 8,
+  categoryNumber: { min: 1, max: 14, interval: 1 },
+  seriesMin: 3,
+  seriesMax: 20
+});
+
+// ---------------------------------------------------------------------------
+// Tooltip formatting and crosshair
+// ---------------------------------------------------------------------------
+
+export const tooltipConfig: DemoConfig = {
+  version: '1.0.0',
+  title: { text: 'Store Performance' },
+  categoryAxis: {
+    property: 'month',
+    valueLabel: 'Month',
+    type: 'date',
+    scale: 'ordinal',
+    dateUTC: true,
+    tickLabel: { format: '%b' },
+    valueFormat: '%B %Y'
+  },
+  valueAxes: [
+    { id: 'VA0', min: 0, title: { text: 'Thousands of dollars' }, gridLine: { visible: true } }
+  ],
+  seriesDefaults: {
+    axis: 'VA0',
+    valueFormat: ',.1f',
+    valuePrefix: '$',
+    valueSuffix: 'k'
+  },
+  series: [
+    { property: 'revenue', title: 'Revenue', renderer: 'bar' },
+    { property: 'costs', title: 'Costs', renderer: 'line' }
+  ],
+  tooltip: { valueAlign: 'right' },
+  crosshair: {
+    categoryLine: { visible: true },
+    seriesLine: {
+      visible: true,
+      style: { strokeColor: 'currentColor', strokeOpacity: 0.5, strokeWidth: 1, strokeDashArray: '4, 3' }
+    }
+  }
+};
+
+export const tooltipData: DataObject[] = [
+  { month: '2025-01-15T00:00:00Z', revenue: 41.2, costs: 28.4 },
+  { month: '2025-02-15T00:00:00Z', revenue: 46.8, costs: 30.1 },
+  { month: '2025-03-15T00:00:00Z', revenue: 44.1, costs: 31.7 },
+  { month: '2025-04-15T00:00:00Z', revenue: 52.6, costs: 33.2 },
+  { month: '2025-05-15T00:00:00Z', revenue: 57.9, costs: 35.8 },
+  { month: '2025-06-15T00:00:00Z', revenue: 63.4, costs: 36.5 },
+  { month: '2025-07-15T00:00:00Z', revenue: 61.7, costs: 38.0 },
+  { month: '2025-08-15T00:00:00Z', revenue: 58.3, costs: 37.2 },
+  { month: '2025-09-15T00:00:00Z', revenue: 66.9, costs: 39.6 },
+  { month: '2025-10-15T00:00:00Z', revenue: 72.4, costs: 41.3 },
+  { month: '2025-11-15T00:00:00Z', revenue: 81.0, costs: 44.9 },
+  { month: '2025-12-15T00:00:00Z', revenue: 94.5, costs: 48.2 }
+];
+
+// Thirty-day steps from mid January land in twelve distinct months, so the
+// "%b" tick labels never repeat.
+export const tooltipRandom = makeGenericRandom({
+  categoryCount: 12,
+  categoryDate: { min: '2025-01-15', max: '2025-12-31', interval: 30, intervalUnit: 'day' },
+  seriesMin: 20,
+  seriesMax: 95
+});
+
+// ---------------------------------------------------------------------------
+// Easing: a fixed axis so every seed step is a pure value change
+// ---------------------------------------------------------------------------
+
+export const easingConfig: DemoConfig = {
+  version: '1.0.0',
+  title: { text: 'Monthly Orders' },
+  categoryAxis: {
+    property: 'month',
+    valueLabel: 'Month',
+    type: 'number',
+    scale: 'ordinal'
+  },
+  valueAxes: [
+    { id: 'VA0', min: 0, max: 100, gridLine: { visible: true } }
+  ],
+  seriesDefaults: { axis: 'VA0', renderer: 'bar' },
+  series: [
+    { property: 'orders', title: 'Orders' }
+  ],
+  animation: {
+    enabled: true,
+    valueChangeDuration: 1500,
+    focusDuration: 600,
+    easing: 'sineInOut',
+    focusEasing: 'sineInOut'
+  }
+};
+
+export const easingData: DataObject[] = [
+  { month: 1, orders: 95 },
+  { month: 2, orders: 15 },
+  { month: 3, orders: 60 },
+  { month: 4, orders: 25 },
+  { month: 5, orders: 80 },
+  { month: 6, orders: 10 }
+];
+
+export const easingRandom = makeGenericRandom({
+  categoryCount: 6,
+  categoryNumber: { min: 1, max: 6, interval: 1 },
+  seriesMin: 5,
+  seriesMax: 95
 });
 
 // ---------------------------------------------------------------------------

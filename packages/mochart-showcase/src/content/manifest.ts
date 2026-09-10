@@ -10,9 +10,13 @@ import { rotationConfigs, rotationData, tableSparklineMetrics } from '@mochart/d
 import type { ShowcaseEntry, ShowcaseSection, SpecialKind } from './types';
 import {
   currentColorConfig, currentColorData, currentColorRandom,
+  easingConfig, easingData, easingRandom,
   editorConfig, editorData, editorRandom,
   focusStylesConfig, focusStylesData, focusStylesRandom,
-  timeSeriesConfig, timeSeriesData, timeSeriesRandom
+  makeGenericRandom,
+  stackedLabelsData, stackedLabelsRandom,
+  timeSeriesConfig, timeSeriesData, timeSeriesRandom,
+  tooltipConfig, tooltipData, tooltipRandom
 } from './locals';
 
 function clone<T>(value: T): T {
@@ -33,23 +37,26 @@ interface EntryPatch {
   notes?: string;
   special?: SpecialKind;
   config?: DemoConfig;
+  data?: DataObject[];
+  random?: ShowcaseEntry['random'];
+  thumbnail?: ShowcaseEntry['thumbnail'];
 }
 
 /** An entry reusing a demo-data demo's config/data/random (and prose). */
 function reuse(slug: string, patch: EntryPatch = {}): ShowcaseEntry {
   const demo = getDemo(slug);
   const special = patch.special;
-  const random = clone(demo.random);
   return {
     slug,
     title: patch.title ?? demo.title,
     blurb: patch.blurb ?? demo.description ?? '',
     notes: patch.notes ?? demo.notes,
     config: patch.config ?? clone(demo.config),
-    data: clone(demo.data),
-    random,
+    data: patch.data ?? clone(demo.data),
+    random: patch.random ?? clone(demo.random),
     generator: demo.generator,
     special,
+    thumbnail: patch.thumbnail,
     wall: special === undefined
   };
 }
@@ -69,6 +76,7 @@ interface LocalEntryInput {
   data: DataObject[];
   random?: ShowcaseEntry['random'];
   special?: SpecialKind;
+  thumbnail?: ShowcaseEntry['thumbnail'];
 }
 
 function local(input: LocalEntryInput): ShowcaseEntry {
@@ -81,8 +89,82 @@ function local(input: LocalEntryInput): ShowcaseEntry {
     data: clone(input.data),
     random: input.random === undefined ? undefined : clone(input.random),
     special: input.special,
+    thumbnail: input.thumbnail,
     wall: input.random !== undefined && input.special === undefined
   };
+}
+
+// --- Reused entries with showcase-side tweaks --------------------------------
+
+function forEachValueAxis(config: DemoConfig, fn: (axis: Record<string, unknown>) => void): void {
+  const axes = config.valueAxes;
+  for (const axis of Array.isArray(axes) ? axes : [axes]) {
+    if (axis !== null && typeof axis === 'object') {
+      fn(axis as Record<string, unknown>);
+    }
+  }
+}
+
+/** Four value axes leave a card almost no plot: two ticks each is enough. */
+function multipleAxesEntry(): ShowcaseEntry {
+  return reuse('axis-multiple', {
+    thumbnail(config) {
+      forEachValueAxis(config, axis => {
+        axis.tickCount = 2;
+      });
+    }
+  });
+}
+
+/** The demo-data threshold titles are long enough to overlap at phone widths. */
+function thresholdLineEntry(): ShowcaseEntry {
+  const entry = reuse('threshold-line');
+  forEachValueAxis(entry.config, axis => {
+    for (const threshold of axis.thresholds as { value: number; title: { text: string } }[]) {
+      threshold.title.text = `Threshold ${threshold.value}`;
+    }
+  });
+  return entry;
+}
+
+/** Full ISO dates rotated 90 degrees take most of a card's height. */
+function rotatedTicksEntry(): ShowcaseEntry {
+  return reuse('ticks-rotated', {
+    thumbnail(config) {
+      const categoryAxis = config.categoryAxis as Record<string, unknown>;
+      categoryAxis.tickLabel = { ...(categoryAxis.tickLabel as object), format: '%b %d' };
+    }
+  });
+}
+
+/** Eight categories instead of 27, so the labels on every segment stay legible. */
+function stackedLabelsEntry(): ShowcaseEntry {
+  const entry = reuse('label-property-stacked', {
+    data: stackedLabelsData,
+    random: stackedLabelsRandom,
+    // With no title row above the plot, the top labels need axis headroom.
+    thumbnail(config) {
+      config.valueAxes = { ...(config.valueAxes as object), softMax: 42 };
+    }
+  });
+  const seriesDefaults = entry.config.seriesDefaults as { label: Record<string, unknown> };
+  seriesDefaults.label = { ...seriesDefaults.label, format: '.0f' };
+  // The top segment's outside labels sit above the plot; let them overflow it.
+  entry.config.plot = { clipOverflow: { top: 16 } };
+  return entry;
+}
+
+/** Every third row of the 26-row demo dataset, with whole-number labels. */
+function horizontalBarsEntry(): ShowcaseEntry {
+  const demo = getDemo('label-property-pos-neg');
+  const entry = reuse('label-property-pos-neg', {
+    title: 'Horizontal Bars',
+    data: clone(demo.data.filter((_, index) => index % 3 === 0)),
+    random: makeGenericRandom({ categoryCount: 9, seriesMin: -15, seriesMax: 15 })
+  });
+  const series = entry.config.series as { label: Record<string, unknown> };
+  series.label = { ...series.label, format: '.0f' };
+  return entry;
 }
 
 // --- Special demo assembly ---------------------------------------------------
@@ -91,8 +173,8 @@ function playerEntry(): ShowcaseEntry {
   const entry = specialFrom('stacked', 'player', {
     special: 'player',
     title: 'Staged Animation Player',
-    blurb: 'Watch a staged transition frame by frame: axis expansion, value change, axis contraction — at full speed or slow motion.',
-    notes: 'Mochart plays every update as a staged sequence — axes expand first, then values (and category enter/exit) change, then axes contract — so only one kind of movement is on screen at a time, and stacked series move as one gapless unit. Step the seed to trigger a transition and use the speed control to stretch the animation durations so each stage is legible. The config tab shows the durations being scaled.'
+    blurb: 'Watch a staged transition frame by frame: axis expansion, value change, axis contraction, at full speed or in slow motion.',
+    notes: 'Mochart plays every update as a staged sequence: axes expand first, then values (and category enter/exit) change, then axes contract. Only one kind of movement is on screen at a time, and stacked series move as one gapless unit. Step the seed to trigger a transition and use the speed control to stretch the animation durations so each stage is legible. The speed control scales the config\'s durations before the chart is built.'
   });
   entry.config = {
     ...entry.config,
@@ -113,8 +195,8 @@ function rotationEntry(): ShowcaseEntry {
   return local({
     slug: 'rotation',
     title: 'Layout Morph',
-    blurb: 'One dataset, sixty axis layouts: inverted plots, flipped axes, collapsed and rotated tick labels — every change animated.',
-    notes: 'The play button cycles through configurations that permute plot.inverted, categoryAxis.side/collapsed, tick label rotation and anchoring. Because the data never changes, everything you see moving is the chart re-laying itself out — the same staged animation that drives data updates also drives structural changes.',
+    blurb: 'One dataset, sixty axis layouts: inverted plots, flipped axes, collapsed and rotated tick labels, every change animated.',
+    notes: 'The play button cycles through configurations that permute plot.inverted, categoryAxis.side/collapsed, tick label rotation and anchoring. Because the data never changes, everything you see moving is the chart re-laying itself out. The same staged animation that drives data updates also drives structural changes.',
     config: rotationConfigs[0] as DemoConfig,
     data: rotationData as DataObject[],
     special: 'rotation'
@@ -139,13 +221,26 @@ function callbacksEntry(): ShowcaseEntry {
   });
 }
 
+function easingEntry(): ShowcaseEntry {
+  return local({
+    slug: 'easing',
+    title: 'Easing',
+    blurb: 'Sixteen easing curves for the same value change: pick one, step the seed, and compare the pacing.',
+    notes: 'animation.easing paces each data animation phase and animation.focusEasing paces focus transitions. The value axis is pinned to 0 to 100, so every seed step is a pure value change with no axis phases, which is the cleanest stage for comparing easings. The picker writes both properties into the config so the config tab shows the current choice. Every easing stays between its start and its target: the bounce family settles onto the target rather than overshooting it.',
+    config: easingConfig,
+    data: easingData,
+    random: easingRandom,
+    special: 'easing'
+  });
+}
+
 function sparklinesEntry(): ShowcaseEntry {
   const metric = tableSparklineMetrics[0];
   return local({
     slug: 'sparklines',
     title: 'Sparklines',
     blurb: 'Word-sized charts: the sparkline preset strips axes and chrome for inline text and small-multiple tables.',
-    notes: 'createSparklineConfig turns a normal chart config into a sparkline preset: axes, legend, and margins collapse so the plot fills the whole (tiny) canvas. This page weaves live sparklines into a sentence and builds a small-multiples metrics table — randomize to watch every one of them transition in place.',
+    notes: 'createSparklineConfig turns a normal chart config into a sparkline preset: axes, legend, and margins collapse so the plot fills the whole (tiny) canvas. This page weaves live sparklines into a sentence and builds a small-multiples metrics table. Randomize to watch every one of them transition in place.',
     config: metric.config as DemoConfig,
     data: metric.generate(0),
     special: 'sparklines'
@@ -164,7 +259,7 @@ export function getSections(): ShowcaseSection[] {
     {
       id: 'series',
       title: 'Bars, lines & areas',
-      tagline: 'The core series renderers, freely mixable in one chart: stacked, grouped, ranged, scattered, curved.',
+      tagline: 'The core series renderers, freely mixable in one chart: stacked, grouped, ranged, scattered, curved, capped, horizontal.',
       entries: [
         reuse('stacked'),
         reuse('grouped'),
@@ -172,7 +267,9 @@ export function getSections(): ShowcaseSection[] {
         reuse('range'),
         reuse('curved'),
         reuse('scatter'),
-        reuse('bubble')
+        reuse('bubble'),
+        reuse('picket', { title: 'Bar Caps' }),
+        horizontalBarsEntry()
       ]
     },
     {
@@ -196,7 +293,7 @@ export function getSections(): ShowcaseSection[] {
     {
       id: 'scales',
       title: 'Scales & axes',
-      tagline: 'Ordinal, linear and date category scales; multiple value axes; thresholds; and tick-label management.',
+      tagline: 'Ordinal, linear and date category scales; multiple value axes; thresholds; axis bounds; and tick-label management.',
       entries: [
         local({
           slug: 'time-series',
@@ -207,19 +304,21 @@ export function getSections(): ShowcaseSection[] {
           data: timeSeriesData,
           random: timeSeriesRandom
         }),
-        reuse('axis-multiple'),
-        reuse('threshold-line'),
-        reuse('ticks-rotated'),
-        reuse('truncated-text')
+        multipleAxesEntry(),
+        thresholdLineEntry(),
+        rotatedTicksEntry(),
+        reuse('truncated-text'),
+        reuse('clipped')
       ]
     },
     {
       id: 'animation',
       title: 'Animation',
-      tagline: 'The staged animation model that sets mochart apart — slowed down, stepped through, and pushed around.',
+      tagline: 'The staged animation model that sets mochart apart: slowed down, stepped through, and paced by sixteen easings.',
       entries: [
         playerEntry(),
-        rotationEntry()
+        rotationEntry(),
+        easingEntry()
       ]
     },
     {
@@ -229,10 +328,21 @@ export function getSections(): ShowcaseSection[] {
       entries: [
         callbacksEntry(),
         local({
+          slug: 'tooltip-crosshair',
+          title: 'Tooltip & Crosshair',
+          blurb: 'Per-series tooltip formatting with a prefix and suffix, a formatted category line, and crosshair lines for the focused category and series.',
+          notes: 'Each series formats its own tooltip line: valueFormat is a d3-format string and valuePrefix and valueSuffix wrap the result, here as "$46.8k" from a value of 46.8. The category axis formats the tooltip\'s category line separately from its ticks: tickLabel.format "%b" gives the axis "Jan" while valueFormat "%B %Y" gives the tooltip "January 2025". The crosshair section draws a line through the focused category and, with seriesLine visible, a second line at the focused series\' value, each with its own stroke style.',
+          config: tooltipConfig,
+          data: tooltipData,
+          random: tooltipRandom
+        }),
+        reuse('tooltip-controls'),
+        reuse('axis-filtering'),
+        local({
           slug: 'focus-styles',
           title: 'Focus Styles',
           blurb: 'Hover a series (or its legend entry) and watch the focused/defocused style states restyle the whole chart.',
-          notes: 'Every paintable element carries a style in three focus states — normal, focused, defocused. Here seriesDefaults.shapeStyle gives every series a thicker focused outline and fades defocused fills to 15%, so pointing at any series makes the others step back. "same" in a focused/defocused color means "inherit the normal state’s color", so states usually only need to override opacities and widths.',
+          notes: 'Every styled element carries a style in three focus states: normal, focused, defocused. Here seriesDefaults.shapeStyle gives every series a thicker focused outline and fades defocused fills to 15%, so pointing at any series makes the others step back. "same" in a focused/defocused color means "inherit the normal state’s color", so states usually only need to override opacities and widths.',
           config: focusStylesConfig,
           data: focusStylesData,
           random: focusStylesRandom
@@ -243,17 +353,18 @@ export function getSections(): ShowcaseSection[] {
     {
       id: 'styling',
       title: 'Styling & theming',
-      tagline: 'Gradients, data-driven color ramps, marker and label styling, and chrome that follows your page’s ink.',
+      tagline: 'Gradients, patterns, data-driven color ramps, marker and label styling, and chrome that follows your page’s ink.',
       entries: [
         reuse('gradients'),
+        reuse('patterns'),
         reuse('color-property'),
-        reuse('label-property-stacked'),
+        stackedLabelsEntry(),
         reuse('christmas'),
         local({
           slug: 'currentcolor',
           title: 'currentColor Chrome',
-          blurb: 'Axes, ticks and title default to currentColor — and series can too. Toggle the theme and the chart follows.',
-          notes: 'The chart’s structural chrome (axis lines, tick labels, title, legend text) defaults to currentColor, so it inherits whatever color the surrounding page sets — which is how the dark theme restyles every chart without a single config change. This demo goes further and paints a series with currentColor as well. Flip the theme toggle and watch both follow the page’s ink.',
+          blurb: 'Axes, ticks and title default to currentColor, and series can too. Toggle the theme and the chart follows.',
+          notes: 'The chart’s structural chrome (axis lines, tick labels, title, legend text) defaults to currentColor, so it inherits whatever color the surrounding page sets, which is how the dark theme restyles every chart without a single config change. This demo goes further and paints a series with currentColor as well. Flip the theme toggle and watch both follow the page’s ink.',
           config: currentColorConfig,
           data: currentColorData,
           random: currentColorRandom
@@ -263,9 +374,10 @@ export function getSections(): ShowcaseSection[] {
     {
       id: 'data',
       title: 'Data handling',
-      tagline: 'Missing values, and the loading / error / empty states real data pipelines need.',
+      tagline: 'Missing values, plain and stacked, and the loading / error / empty states real data pipelines need.',
       entries: [
         reuse('missing'),
+        reuse('missing-stacked', { blurb: 'A bar stack with missing positive and negative values: segments stay coherent while the stack animates.' }),
         statesEntry()
       ]
     },
@@ -277,8 +389,8 @@ export function getSections(): ShowcaseSection[] {
         local({
           slug: 'editor',
           title: 'Config Editor Playground',
-          blurb: 'Edit a config with completions, hover docs and live validation — invalid configs explain themselves.',
-          notes: 'The config tab on every showcase page is powered by @mochart/editor with mochart intelligence: completions for every section and property, hover documentation with defaults, and live diagnostics that combine JSON syntax errors with @mochart/movalid’s validation messages. Break something on purpose — change a renderer to "pie chart", point a series at a missing axis — and the chart renders its config-error state with the same message the editor underlines.',
+          blurb: 'Edit a config with completions, hover docs and live validation. Invalid configs explain themselves.',
+          notes: 'The config tab on every showcase page is powered by @mochart/editor with mochart intelligence: completions for every section and property, hover documentation with defaults, and live diagnostics that combine JSON syntax errors with @mochart/movalid’s validation messages. Break something on purpose (change a renderer to "pie chart", or point a series at a missing axis) and the chart renders its config-error state with the same message the editor underlines.',
           config: editorConfig,
           data: editorData,
           random: editorRandom

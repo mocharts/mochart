@@ -127,7 +127,7 @@ export function button(options: ButtonOptions): ButtonHandle {
 }
 
 // ---------------------------------------------------------------------------
-// Segmented control — used for tabs and the specials' mode switchers.
+// Segmented control, used for tabs and the specials' mode switchers.
 // ---------------------------------------------------------------------------
 
 export interface SegmentedOptions<T extends string> {
@@ -205,7 +205,7 @@ export function segmented<T extends string>(options: SegmentedOptions<T>): Segme
 }
 
 // ---------------------------------------------------------------------------
-// Toast — transient confirmation ("Link copied").
+// Toast: transient confirmation ("Link copied").
 // ---------------------------------------------------------------------------
 
 let toastEl: HTMLElement | null = null;

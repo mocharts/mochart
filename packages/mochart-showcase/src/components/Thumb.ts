@@ -1,5 +1,5 @@
 // A gallery card's live mini-chart: the demo's real config and data, mounted
-// with animation off — and only once the card actually scrolls into view, so
+// with animation off, and only once the card actually scrolls into view, so
 // a phone never pays for charts it hasn't seen. Interaction is disabled via
 // CSS (pointer-events: none) so the card stays one big link.
 
@@ -15,6 +15,24 @@ export interface ThumbHandle {
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function hideTitle(section: unknown): void {
+  if (isPlainObject(section)) {
+    const title = isPlainObject(section.title) ? section.title : {};
+    section.title = { ...title, text: null };
+  }
+}
+
+/** Blank the category and value axis titles; the card names the demo already. */
+function hideAxisTitles(config: Record<string, unknown>): void {
+  hideTitle(config.categoryAxis);
+  if (Array.isArray(config.valueAxes)) {
+    config.valueAxes.forEach(hideTitle);
+  }
+  else {
+    hideTitle(config.valueAxes);
+  }
 }
 
 // One shared observer for every card; charts mount on first intersection.
@@ -36,9 +54,9 @@ export function thumb(entry: ShowcaseEntry): ThumbHandle {
   const container = el('div', { className: 'sc-thumb', attrs: { 'aria-hidden': 'true' } });
   let chart: ChartHostHandle | null = null;
 
-  // Thumbnails drop the title and legend: the card already names the demo,
-  // neither is readable at card size, and a wrapping legend can push the plot
-  // height negative in a 170px box.
+  // Thumbnails drop the title, legend and axis titles: the card already names
+  // the demo, none of them is readable at card size, and a wrapping legend can
+  // push the plot height negative in a 170px box.
   const config = structuredClone(entry.config);
   const animation = isPlainObject(config.animation) ? config.animation : {};
   config.animation = { ...animation, enabled: false };
@@ -46,6 +64,8 @@ export function thumb(entry: ShowcaseEntry): ThumbHandle {
   config.legend = { ...legend, visible: false };
   const title = isPlainObject(config.title) ? config.title : {};
   config.title = { ...title, text: null };
+  hideAxisTitles(config);
+  entry.thumbnail?.(config);
 
   pending.set(container, () => {
     chart = mountDefaultChart(

@@ -1,7 +1,7 @@
 // Tiny history-based router (same idiom as demo-vanilla's, adapted): routes
 // match on the pathname, and `navigate` takes a path with an optional query
 // string of its own. Unlike the galleries' router, the current query string is
-// NOT carried across navigations — the showcase uses query params for
+// NOT carried across navigations. The showcase uses query params for
 // per-view state (?seed=, /wall?d=), which must not leak between views.
 
 interface ShowcaseWindowConfig {

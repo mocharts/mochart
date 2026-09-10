@@ -1,9 +1,10 @@
 // The demo page: chart on top (always visible), a control strip driven by the
 // entry's capabilities (seed stepper/play for demos with a random spec, plus
-// the specials' extra controls), and Config / Data / About tabs below — which
+// the specials' extra controls), and Config / Data / About tabs below, which
 // the desktop layout moves into a side-by-side right panel via CSS only.
 
-import { ArrayOfObjectsDataProvider } from '@mochart/core';
+import { ArrayOfObjectsDataProvider, EASINGS } from '@mochart/core';
+import type { AnimationEasing } from '@mochart/core';
 import { exportPNG, exportSVG } from '@mochart/export';
 import { createMochartConfigSupport } from '@mochart/editor';
 import {
@@ -40,7 +41,7 @@ type StateMode = 'data' | 'loading' | 'error' | 'empty';
 
 const PLAY_INTERVAL_MS = 2400;
 const ROTATION_INTERVAL_MS = 1600;
-const SEED_HINT = 'The chart is showing data generated from the seed in the URL. The JSON below is the curated dataset — applying an edit (or Reset) returns to it.';
+const SEED_HINT = 'The chart is showing data generated from the seed in the URL. The JSON below is the curated dataset. Applying an edit (or Reset) returns to it.';
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -160,7 +161,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
         focusedValueAxisId = nextAxisId;
         focusedSeriesId = nextSeriesId;
         focusedCategoryIndex = nextCategoryIndex;
-        logEvent('onFocus', `series=${focusedSeriesId ?? '—'} category=${focusedCategoryIndex}`);
+        logEvent('onFocus', `series=${focusedSeriesId ?? 'none'} category=${focusedCategoryIndex}`);
         updateChart();
       },
       onSeriesFilter(filter: { filteredSeriesIds: Record<string, boolean> }) {
@@ -299,6 +300,26 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
       })
     : null;
 
+  // The easing picker writes into the config itself, so the config tab and a
+  // shared link both carry the chosen easing.
+  function easingPicker(): HTMLSelectElement {
+    const animation = isPlainObject(config.animation) ? config.animation : {};
+    const select = el('select', { className: 'sc-select', attrs: { 'aria-label': 'Easing', title: 'Easing for value changes and focus' } },
+      EASINGS.map(name => el('option', { attrs: { value: name }, text: name })));
+    select.value = typeof animation.easing === 'string' ? animation.easing : 'sineInOut';
+    select.addEventListener('change', () => {
+      const current = isPlainObject(config.animation) ? config.animation : {};
+      const easing = select.value as AnimationEasing;
+      config = { ...config, animation: { ...current, easing, focusEasing: easing } };
+      configDirty = true;
+      demoConfig = buildDemoConfig();
+      configPanel?.setValue(JSON.stringify(config, null, 2));
+      updateChart();
+    });
+    return select;
+  }
+  const easingControl = entry.special === 'easing' ? easingPicker() : null;
+
   const stateControl = entry.special === 'states'
     ? segmented<StateMode>({
         ariaLabel: 'Chart state',
@@ -342,6 +363,9 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
   }
   if (stateControl !== null) {
     controlStrip.append(stateControl.el);
+  }
+  if (easingControl !== null) {
+    controlStrip.append(easingControl);
   }
   syncControls();
 

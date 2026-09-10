@@ -227,7 +227,7 @@ export function wallPage(props: WallPageProps): WallPageHandle {
   // --- small-screen fallback ----------------------------------------------
 
   const notice = el('div', { className: 'sc-wall-notice' }, [
-    el('p', { text: 'The chart wall needs a bigger screen — it lays several charts out side by side.' }),
+    el('p', { text: 'The chart wall needs a bigger screen: it lays several charts out side by side.' }),
     el('p', { text: 'Rotate a tablet to landscape, or open this page on a desktop.' })
   ]);
 

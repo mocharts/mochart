@@ -1,7 +1,7 @@
 import type { DataObject, DemoConfig, DemoRandomConfig } from '@mochart/demo-data';
 
 /** Demos with bespoke behavior beyond the standard demo page. */
-export type SpecialKind = 'player' | 'rotation' | 'states' | 'callbacks' | 'sparklines';
+export type SpecialKind = 'player' | 'rotation' | 'states' | 'callbacks' | 'sparklines' | 'easing';
 
 export interface ShowcaseEntry {
   slug: string;
@@ -17,6 +17,8 @@ export interface ShowcaseEntry {
   /** Chart-type random-mode generator id (demo-common chartTypeGenerators). */
   generator?: string;
   special?: SpecialKind;
+  /** Tweaks the gallery thumbnail's config clone after the generic stripping. */
+  thumbnail?: (config: DemoConfig) => void;
   /** Eligible for the wall (derived: has a random spec and no special body). */
   wall: boolean;
 }

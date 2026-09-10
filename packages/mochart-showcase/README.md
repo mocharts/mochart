@@ -10,22 +10,22 @@ showcase is organized by *feature*: every capability of the library gets
 exactly one polished, deep-linkable home, and every demo page is also a
 playground:
 
-- **Gallery** (`/`) — feature sections with live mini-chart thumbnails
+- **Gallery** (`/`): feature sections with live mini-chart thumbnails
   (mounted lazily via IntersectionObserver).
-- **Demo page** (`/d/<slug>`) — the chart plus Config / Data / About panels.
+- **Demo page** (`/d/<slug>`): the chart plus Config / Data / About panels.
   The config panel is powered by [@mochart/editor](../mochart-editor/README.md)
   (completions, hover docs, live movalid diagnostics); edits apply live, and a
   mochart-invalid config renders the chart's own config-error state.
-- **Deterministic randomize** — `?seed=N` in the URL; datasets come from
+- **Deterministic randomize**: `?seed=N` in the URL; datasets come from
   demo-common's seeded generators, so any state is reproducible by link.
   Play loops the seed to showcase staged transitions.
-- **Share & export** — a compressed `#s=` hash payload carries config/data
+- **Share & export**: a compressed `#s=` hash payload carries config/data
   edits; SVG/PNG export via [@mochart/export](../mochart-export/README.md).
-- **Wall** (`/wall`, desktop only) — a grid of charts driven by one shared
+- **Wall** (`/wall`, desktop only): a grid of charts driven by one shared
   seed so the whole board transitions together.
-- **Specials** — a staged-animation player (slow-motion speed control), an
-  axis-layout morph player, a loading/error/empty state switcher, a live
-  interaction-callback log, and a sparklines page.
+- **Specials**: a staged-animation player (slow-motion speed control), an
+  axis-layout morph player, an easing picker, a loading/error/empty state
+  switcher, a live interaction-callback log, and a sparklines page.
 
 Reused demo configs/data come from [@mochart/demo-data](../mochart-demo-data/README.md);
 new showcase-only demos live in [src/content/locals.ts](src/content/locals.ts)
