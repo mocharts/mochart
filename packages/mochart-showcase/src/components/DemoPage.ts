@@ -138,7 +138,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
   const logEntries = el('ul', { className: 'sc-log-entries' });
   const logMoveLine = el('div', { className: 'sc-log-move', text: 'pointer: outside plot' });
   const logRegion = entry.special === 'callbacks'
-    ? el('div', { className: 'sc-log', attrs: { 'aria-label': 'Event log' } }, [logMoveLine, logEntries])
+    ? el('div', { className: 'sc-log sc-demo-log', attrs: { 'aria-label': 'Event log' } }, [logMoveLine, logEntries])
     : null;
 
   function logEvent(kind: string, detail: string): void {
@@ -581,14 +581,16 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
 
   // --- assembly ------------------------------------------------------------
 
-  const chartRegion = el('div', { className: 'sc-chart-region' },
-    logRegion === null ? [chartHost.el] : [chartHost.el, logRegion]);
+  // the log is a sibling of the chart region, not a child: the region is a fixed 45dvh band on a
+  // phone, so a log inside it would take its height off the chart instead of off the scrolling page
+  const chartRegion = el('div', { className: 'sc-chart-region' }, [chartHost.el]);
 
   const container = el('div', { className: 'sc-demo-page' }, [
     appBar,
     el('div', { className: 'sc-demo-layout' }, [
       el('div', { className: 'sc-demo-main' }, [
         chartRegion,
+        logRegion,
         controlStrip.childElementCount > 0 ? controlStrip : null
       ]),
       el('div', { className: 'sc-demo-side' }, [tabs.el, panelHost])

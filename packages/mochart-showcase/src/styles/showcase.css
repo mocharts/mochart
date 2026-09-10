@@ -522,9 +522,13 @@ a:hover {
     border-radius: var(--sc-radius);
     background: var(--sc-surface);
     padding: 8px 10px;
-    max-height: 150px;
     overflow: auto;
     flex: none;
+}
+.sc-demo-log {
+    /* the pointer line and four of the eight entries kept, reserved up front so nothing shifts as events arrive; the rest scroll */
+    height: calc(7.5em + 33px);
+    margin: 8px 12px 0;
 }
 .sc-log-move {
     color: var(--sc-text-muted);
