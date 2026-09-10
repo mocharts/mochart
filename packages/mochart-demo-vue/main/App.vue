@@ -5,7 +5,7 @@ import { navigate, getPath } from './router';
 
 import demoData from '@mochart/demo-data';
 
-import { demoText, phoneFallbackDemoMode } from '@mochart/demo-common';
+import { demoText, nextRandomId, parseRandomId, phoneFallbackDemoMode, previousRandomId } from '@mochart/demo-common';
 import type { ShowcaseMode, SwitchableDemoMode } from '@mochart/demo-common';
 
 import { usePhoneViewport } from '../src/components/misc/usePhoneViewport';
@@ -121,17 +121,18 @@ function onModeChanged(nextDemoMode: SwitchableDemoMode) {
 
 const demoId = computed(() => route.value.demoId !== undefined ? route.value.demoId : demoIds[0]);
 const isKnownDemo = computed(() => demoObjectMap[demoId.value] !== undefined);
-const randomId = computed(() => Number(route.value.randomId));
-const isValidRandomId = computed(() => randomId.value > Number.MIN_SAFE_INTEGER && randomId.value < Number.MAX_SAFE_INTEGER);
+const parsedRandomId = computed(() => parseRandomId(route.value.randomId));
+const randomId = computed(() => parsedRandomId.value ?? 0);
+const isValidRandomId = computed(() => parsedRandomId.value !== null);
 
 // The randomize buttons read the demo id / random id from the current URL so
 // they stay correct after any navigation.
 function incrementRandomId() {
-  navigate(`/random/${demoId.value}/${Math.floor(randomId.value) + 1}`);
+  navigate(`/random/${demoId.value}/${nextRandomId(randomId.value)}`);
 }
 
 function decrementRandomId() {
-  navigate(`/random/${demoId.value}/${Math.floor(randomId.value) - 1}`);
+  navigate(`/random/${demoId.value}/${previousRandomId(randomId.value)}`);
 }
 </script>
 
