@@ -90,6 +90,10 @@ function deriveDate(values: unknown[], count: number): Partial<RandomConfig['cat
     min += interval / 2;
     max = min + interval * (count - 1) + 1;
   }
+  // The spec's interval is a whole number of its unit, so a gap that is not
+  // one (sub-second samples, say) rounds to the nearest whole second.
+  const [unit, unitMillis] = DATE_UNITS.find(([, size]) => interval % size === 0) ?? DATE_UNITS[DATE_UNITS.length - 1];
+  interval = Math.max(unitMillis, Math.round(interval / unitMillis) * unitMillis);
   min -= margin(interval, count);
   max += margin(interval, count);
   // Times within one UTC day keep their pool inside that day, so a time-only
@@ -99,7 +103,6 @@ function deriveDate(values: unknown[], count: number): Partial<RandomConfig['cat
     min = Math.max(min, dayStart);
     max = Math.min(max, dayStart + DAY_MILLIS - 1);
   }
-  const [unit, unitMillis] = DATE_UNITS.find(([, size]) => interval % size === 0) ?? DATE_UNITS[DATE_UNITS.length - 1];
   return {
     count: Math.min(count, slots(max - min, interval)),
     date: {
