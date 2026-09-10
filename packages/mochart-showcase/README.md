@@ -20,7 +20,8 @@ playground:
   demo-common's seeded generators, so any state is reproducible by link. A
   reused demo's generic random spec is derived from its curated rows
   ([src/content/randomFromCurated.ts](src/content/randomFromCurated.ts)), so
-  the first seed keeps the curated category range, spacing and value range.
+  every seed keeps the curated category spacing and value range, with the
+  category range wandering by a small margin around the curated one.
   Play loops the seed to showcase staged transitions.
 - **Share & export**: a compressed `#s=` hash payload carries config/data
   edits; SVG/PNG export via [@mochart/export](../mochart-export/README.md).

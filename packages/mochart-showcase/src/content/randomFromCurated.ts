@@ -1,5 +1,5 @@
-// Derives a reused demo's random spec from its curated dataset, so the first
-// seed step keeps the curated category range, spacing and value range instead
+// Derives a reused demo's random spec from its curated dataset, so the seeds
+// keep close to the curated category range, spacing and value range instead
 // of jumping to demo-data's shared defaults (15 categories spread over 2014 to
 // 2018, values between -500 and 500).
 
@@ -7,8 +7,10 @@ import type { DataObject, DemoConfig, RandomConfig } from '@mochart/demo-data';
 
 type DateUnit = RandomConfig['category']['date']['intervalUnit'];
 
+const DAY_MILLIS = 86400000;
+
 const DATE_UNITS: [DateUnit, number][] = [
-  ['day', 86400000],
+  ['day', DAY_MILLIS],
   ['hour', 3600000],
   ['minute', 60000],
   ['second', 1000]
@@ -32,6 +34,12 @@ function typicalGap(sorted: number[]): number {
 
 function slots(range: number, interval: number): number {
   return Math.floor(range / interval) + 1;
+}
+
+// The pool extends past the curated ends by about a sixth of the categories
+// on each side, so a seed's min and max wander a few steps and settle back.
+function margin(interval: number, count: number): number {
+  return interval * Math.max(1, Math.round((count - 1) / 6));
 }
 
 // The generator redraws until it finds an unused category value, so the range
@@ -78,6 +86,15 @@ function deriveDate(values: unknown[], count: number): Partial<RandomConfig['cat
     min += interval / 2;
     max = min + interval * (count - 1) + 1;
   }
+  min -= margin(interval, count);
+  max += margin(interval, count);
+  // Times within one UTC day keep their pool inside that day, so a time-only
+  // tick format cannot show the same time twice.
+  const dayStart = Math.floor(millis[0] / DAY_MILLIS) * DAY_MILLIS;
+  if (millis[millis.length - 1] < dayStart + DAY_MILLIS) {
+    min = Math.max(min, dayStart);
+    max = Math.min(max, dayStart + DAY_MILLIS - 1);
+  }
   const [unit, unitMillis] = DATE_UNITS.find(([, size]) => interval % size === 0) ?? DATE_UNITS[DATE_UNITS.length - 1];
   return {
     count: Math.min(count, slots(max - min, interval)),
@@ -95,17 +112,18 @@ function deriveNumber(values: unknown[], count: number): Partial<RandomConfig['c
   if (numbers.length < 2) {
     return null;
   }
-  const min = numbers[0];
-  const max = numbers[numbers.length - 1];
-  const range = max - min;
+  const range = numbers[numbers.length - 1] - numbers[0];
   const gap = typicalGap(numbers);
   if (range === 0 || gap === 0) {
     return null;
   }
   const integers = numbers.every(Number.isInteger);
   const interval = fitInterval(range, gap, count, integers ? 1 : gap / 8);
+  // Curated categories that never go negative keep their pool at or above 0.
+  const min = Math.max(numbers[0] - margin(interval, count), numbers[0] >= 0 ? 0 : -Infinity);
+  const max = numbers[numbers.length - 1] + margin(interval, count);
   return {
-    count: Math.min(count, slots(range, interval)),
+    count: Math.min(count, slots(max - min, interval)),
     number: { min, max, interval }
   };
 }
@@ -166,9 +184,10 @@ function deriveSeriesNumber(rows: DataObject[], properties: Set<string>): Random
 
 /**
  * The demo's generic random spec with its category count, category range and
- * series value range replaced by what the curated rows show. Missing-value
- * probabilities, ordering and reuse fractions stay as the demo set them. Any
- * part that cannot be derived keeps the demo's value.
+ * series value range replaced by what the curated rows show, the category
+ * range widened by a small margin. Missing-value probabilities, ordering and
+ * reuse fractions stay as the demo set them. Any part that cannot be derived
+ * keeps the demo's value.
  */
 export function randomFromCurated(config: DemoConfig, rows: DataObject[], random: RandomConfig): RandomConfig {
   const categoryAxis = isRecord(config.categoryAxis) ? config.categoryAxis : {};

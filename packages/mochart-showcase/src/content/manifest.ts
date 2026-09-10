@@ -166,6 +166,18 @@ function stackedLabelsEntry(): ShowcaseEntry {
   return entry;
 }
 
+/**
+ * A month demo whose random pool reaches two months past each end of its
+ * year, so the "%b" tick labels get the year as well to stay distinct.
+ */
+function monthsEntry(slug: string, patch: EntryPatch = {}): ShowcaseEntry {
+  const entry = reuse(slug, patch);
+  const categoryAxis = entry.config.categoryAxis as Record<string, unknown>;
+  categoryAxis.tickLabel = { ...(categoryAxis.tickLabel as object), format: '%b %y' };
+  categoryAxis.valueFormat = '%B %Y';
+  return entry;
+}
+
 /** Every third row of the 26-row demo dataset, with whole-number labels. */
 function horizontalBarsEntry(): ShowcaseEntry {
   const demo = getDemo('label-property-pos-neg');
@@ -279,7 +291,7 @@ export function getSections(): ShowcaseSection[] {
         reuse('curved'),
         reuse('scatter'),
         reuse('bubble'),
-        reuse('picket', { title: 'Bar Caps' }),
+        monthsEntry('picket', { title: 'Bar Caps' }),
         horizontalBarsEntry()
       ]
     },
@@ -367,7 +379,7 @@ export function getSections(): ShowcaseSection[] {
       tagline: 'Gradients, patterns, data-driven color ramps, marker and label styling, and chrome that follows your page’s ink.',
       entries: [
         reuse('gradients'),
-        reuse('patterns'),
+        monthsEntry('patterns'),
         reuse('color-property'),
         stackedLabelsEntry(),
         reuse('christmas'),
