@@ -4,7 +4,7 @@
 // authored in locals.ts or built from demo-common models.
 
 import demoData from '@mochart/demo-data';
-import type { DataObject, Demo, DemoConfig } from '@mochart/demo-data';
+import type { DataObject, Demo, DemoConfig, RandomConfig } from '@mochart/demo-data';
 import { rotationConfigs, rotationData, tableSparklineMetrics } from '@mochart/demo-common';
 
 import type { ShowcaseEntry, ShowcaseSection, SpecialKind } from './types';
@@ -213,6 +213,20 @@ function horizontalBarsEntry(): ShowcaseEntry {
   return entry;
 }
 
+/**
+ * Bands should come and go: nine values in -8 to 8 (step reuse averages two
+ * draws, which pulls values toward the middle) cross each value-axis bound
+ * (-5, 5) on about half the seeds, and a category pool only a little
+ * wider than the 5 to 20 bounds keeps the side bands intermittent. No
+ * category is pinned across every seed, or one outside the bounds would keep
+ * its band up for good; half still carry over between neighbouring seeds.
+ */
+function clippedRandom(): RandomConfig {
+  const random = makeGenericRandom({ categoryCount: 9, categoryNumber: { min: 3, max: 22, interval: 1 }, seriesMin: -8, seriesMax: 8 });
+  random.category.reuse = { globalFraction: 0, stepFraction: 0.5 };
+  return random;
+}
+
 // --- Special demo assembly ---------------------------------------------------
 
 function playerEntry(): ShowcaseEntry {
@@ -355,12 +369,7 @@ export function getSections(): ShowcaseSection[] {
         thresholdLineEntry(),
         rotatedTicksEntry(),
         reuse('truncated-text'),
-        // Bands should come and go: nine values in -6 to 6 cross each value-axis bound (-5, 5) on
-        // about half the seeds, and a pool only a little wider than the 5 to 20 category bounds
-        // keeps the side bands intermittent too.
-        reuse('clipped', {
-          random: makeGenericRandom({ categoryCount: 9, categoryNumber: { min: 3, max: 22, interval: 1 }, seriesMin: -6, seriesMax: 6 })
-        })
+        reuse('clipped', { random: clippedRandom() })
       ]
     },
     {
