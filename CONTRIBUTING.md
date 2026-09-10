@@ -30,7 +30,7 @@ npm run deadcode      # knip: unused exports, files and dependencies
 npm run typecheck     # every workspace that has a typecheck script
 npm run check:publish # every package's publishConfig exports map is dist-only
 npm test              # tests in every workspace that has them
-npm run test:e2e      # Playwright suites (demo-basic, demo-vanilla, then the framework smoke suite)
+npm run test:e2e      # Playwright suites (demo-basic, demo-vanilla, the framework smoke suite, then the showcase)
 ```
 
 `test:e2e` needs browsers once per machine:
@@ -273,14 +273,16 @@ logic through `@mochart/demo-common` and their configs/datasets through
   and its reference sets are gitignored, so you capture a baseline yourself
   before the change. See
   [scripts/screenshots/README.md](scripts/screenshots/README.md).
-- There are three Playwright suites, and root `npm run test:e2e` runs all of
+- There are four Playwright suites, and root `npm run test:e2e` runs all of
   them. `@mochart/demo-basic` holds the core one and is a minimal harness
   rather than a gallery, not deployed; `@mochart/demo-vanilla` has its own,
   covering the editor, export, share menu and phone layout;
   `@mochart/demo-e2e` runs one smoke spec (render, tooltip, legend filter)
   against each of the five framework galleries, so a binding that builds but
   breaks at runtime fails the gate. `npx playwright test --project=angular`
-  from that package runs a single gallery.
+  from that package runs a single gallery. `@mochart/showcase` has a smoke
+  suite of its own covering the gallery, a deep-linked demo page with its
+  seed stepper and share link, and the wall, on desktop and phone widths.
 
 ## The documentation site
 
