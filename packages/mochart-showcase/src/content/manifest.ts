@@ -132,14 +132,31 @@ function multipleAxesEntry(): ShowcaseEntry {
   });
 }
 
-/** The demo-data threshold titles are long enough to overlap at phone widths. */
+/**
+ * Two stacked bars and one line over every other row of the demo dataset, with
+ * short threshold titles: five series over 26 categories buried the two
+ * threshold lines the demo is about.
+ */
 function thresholdLineEntry(): ShowcaseEntry {
-  const entry = reuse('threshold-line');
+  const demo = getDemo('threshold-line');
+  const entry = reuse('threshold-line', {
+    blurb: 'Two value axes, each drawing its own threshold line and title across the plot.',
+    notes: 'The left axis carries two stacked bars with a thresholds entry at 20; the right axis carries one unstacked line with a thresholds entry at -8, and because the bars and the line read different scales the two threshold lines sit at unrelated heights. Each threshold\'s title.text labels it, title.side puts one label on the low side and the other on the high side, and snapToValue flips a label that has no room left. The axes also differ in adjustForFiltering: hiding a stacked series from the legend rescales the left axis and its threshold line rides along, while the right axis keeps its domain. All four animation durations are stretched to 2000ms, so the rescaling is easy to follow.',
+    data: clone(demo.data.filter((_, index) => index % 2 === 0))
+  });
   forEachValueAxis(entry.config, axis => {
     for (const threshold of axis.thresholds as { value: number; title: { text: string } }[]) {
+      // -5 on the right axis sits level with 20 on the left for the curated rows, reading as one double line
+      if (threshold.value === -5) {
+        threshold.value = -8;
+      }
       threshold.title.text = `Threshold ${threshold.value}`;
     }
   });
+  const kept = new Set(['value1', 'value2', 'value6']);
+  entry.config.series = (entry.config.series as { property: string; title: string }[])
+    .filter(series => kept.has(series.property))
+    .map(series => series.property === 'value6' ? { ...series, title: 'Line' } : series);
   return entry;
 }
 
