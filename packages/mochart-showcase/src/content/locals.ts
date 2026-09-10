@@ -262,11 +262,14 @@ export const barCapsConfig: DemoConfig = {
 export const barCapsData: DataObject[] = [
   { quarter: 'Q1', round: 38, curve: 31, point: 26, starter: 10, pro: 14, enterprise: 8 },
   { quarter: 'Q2', round: 44, curve: 36, point: 33, starter: 12, pro: 18, enterprise: 11 },
-  { quarter: 'Q3', round: 41, curve: 42, point: 30, starter: 11, pro: 22, enterprise: 16 },
+  { quarter: 'Q3', round: 41, curve: 42, point: 30, starter: 11, pro: 22 },
   { quarter: 'Q4', round: 49, curve: 39, point: 37, starter: 13, pro: 25, enterprise: 22 }
 ];
 
+// Q3 has no Enterprise value, so its stack cap sits on Pro; the random spec
+// drops values now and then so seeds keep moving the cap around.
 export const barCapsRandom = makeGenericRandom({ categoryCount: 4, seriesMin: 8, seriesMax: 45 });
+barCapsRandom.series.missing.probability = 0.2;
 
 // ---------------------------------------------------------------------------
 // Legend placement and styling

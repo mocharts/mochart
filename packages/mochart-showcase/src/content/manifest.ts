@@ -342,7 +342,7 @@ export function getSections(): ShowcaseSection[] {
           slug: 'bar-caps',
           title: 'Bar Caps',
           blurb: 'Round, curve and point caps on plain bars, beside a stack capped only at its outer end.',
-          notes: 'cap.type draws a decorative cap on the value end of every bar in a series: round rounds the corners, curve bulges a dome, point rises to a peak, all at the shared cap.size. On a stack, capping every segment looks broken, so the stack declares outerCap.type instead and only whichever series is its outer segment at each category wears the cap. Filter Stack: Enterprise in the legend and the cap moves down to Stack: Pro. A series that sets its own cap.type keeps it in a stack; cap.onlyStackOuter limits that to where it is the outer segment.',
+          notes: 'cap.type draws a decorative cap on the value end of every bar in a series: round rounds the corners, curve bulges a dome, point rises to a peak, all at the shared cap.size. On a stack, capping every segment looks broken, so the stack declares outerCap.type instead and only whichever series is its outer segment at each category wears the cap: Q3 has no Enterprise value, so its cap sits on Pro, and filtering Stack: Enterprise in the legend moves every cap down the same way. A series that sets its own cap.type keeps it in a stack; cap.onlyStackOuter limits that to where it is the outer segment.',
           config: barCapsConfig,
           data: barCapsData,
           random: barCapsRandom
