@@ -33,6 +33,13 @@ const walkConfig = {
   reuse: { step: true }
 };
 
+const rangeConfig = {
+  categories: { min: 24, max: 30 },
+  value: { min: 2, max: 18, volatility: 0.15 },
+  width: { min: 1, max: 4 },
+  reuse: { step: true }
+};
+
 beforeEach(() => {
   vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 });
@@ -48,6 +55,7 @@ describe('validateRandomConfig', () => {
     expect(validateRandomConfig(pieConfig, 'gauge')).toBe(true);
     expect(validateRandomConfig(walkConfig, 'candlestick')).toBe(true);
     expect(validateRandomConfig(walkConfig, 'ohlc')).toBe(true);
+    expect(validateRandomConfig(rangeConfig, 'range')).toBe(true);
   });
 
   it('rejects the generic shape under a generator schema (old share links)', () => {
@@ -58,6 +66,7 @@ describe('validateRandomConfig', () => {
     expect(validateRandomConfig({ ...pieConfig, missing: { probability: 2 } }, 'pie')).toBe(false);
     expect(validateRandomConfig({ ...pieConfig, value: { min: 100, max: 0 } }, 'pie')).toBe(false);
     expect(validateRandomConfig({ ...walkConfig, candles: { min: 0, max: 20 } }, 'candlestick')).toBe(false);
+    expect(validateRandomConfig({ ...rangeConfig, width: { min: 5, max: 1 } }, 'range')).toBe(false);
   });
 
   it('falls back to the generic schema for unknown generator ids', () => {

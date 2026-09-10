@@ -285,6 +285,35 @@ describe('random config wiring', () => {
   });
 });
 
+// The range demo keeps its handwritten curated data, so its generator has no
+// snapshot and is checked here against the demo's own config.
+describe('range generator', () => {
+  const mochartConfig = enhanceConfig(demoData.demoObjectMap['range'].config);
+  const random = demoRandom('range');
+
+  it('keeps every band continuous with the middle inside it: range-min ≤ middle ≤ range-max', () => {
+    for (const randomId of [0, 1, 2, 7, 23]) {
+      const provider = generateChartTypeDataProvider('range', mochartConfig, random, randomId);
+      expect(getDataErrors(mochartConfig, toDataProvider(provider))).toEqual([]);
+      const mins = provider.seriesValues!['range-min'];
+      const maxes = provider.seriesValues!['range-max'];
+      const middles = provider.seriesValues!['middle'];
+      expect(mins.length).toBeGreaterThanOrEqual(24);
+      mins.forEach((min, i) => {
+        expect(min!).toBeLessThanOrEqual(middles[i]!);
+        expect(middles[i]!).toBeLessThanOrEqual(maxes[i]!);
+      });
+    }
+  });
+
+  it('numbers the categories from 1 and reproduces a step', () => {
+    const first = generateChartTypeDataProvider('range', mochartConfig, random, 5);
+    const second = generateChartTypeDataProvider('range', mochartConfig, random, 5);
+    expect(first.categoryValues![0]).toBe(1);
+    expect(second.seriesValues).toEqual(first.seriesValues);
+  });
+});
+
 describe('generateDemoDataProvider', () => {
   it('dispatches to the chart-type generator for known generator ids', () => {
     const heatmap = snapshots.find(snapshot => snapshot.id === 'heatmap')!;
@@ -295,7 +324,7 @@ describe('generateDemoDataProvider', () => {
   });
 
   it('exposes the generator ids', () => {
-    expect(chartTypeGenerators).toEqual(['histogram', 'waterfall', 'heatmap', 'candlestick', 'candlestick-hollow', 'ohlc', 'error-bars', 'pie', 'donut', 'gauge']);
+    expect(chartTypeGenerators).toEqual(['histogram', 'waterfall', 'heatmap', 'candlestick', 'candlestick-hollow', 'ohlc', 'error-bars', 'pie', 'donut', 'gauge', 'range']);
   });
 });
 

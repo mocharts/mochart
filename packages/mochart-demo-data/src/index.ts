@@ -5,7 +5,7 @@ import type { DataObject, Demo, DemoConfig, DemoData, DemoManifestEntry, DemoRan
 export type {
   DataObject, Demo, DemoConfig, DemoData, DemoRandomConfig,
   ErrorBarsRandomConfig, HeatmapRandomConfig, HistogramRandomConfig, PieRandomConfig,
-  RandomConfig, WalkRandomConfig, WaterfallRandomConfig
+  RandomConfig, RangeRandomConfig, WalkRandomConfig, WaterfallRandomConfig
 } from './types';
 
 type ModuleMap = Record<string, unknown>;
