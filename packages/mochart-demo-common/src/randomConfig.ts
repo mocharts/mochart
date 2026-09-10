@@ -6,7 +6,7 @@ import type { DemoRandomConfig, RandomConfigWithValid } from './types';
 // Every chart-type generator validates against the schema its random JSON
 // uses (see demo-data types.ts); demos without a generator use the generic
 // per-property schema. Unknown generator ids fall back to generic.
-type RandomSchemaId = 'pool' | 'walk' | 'histogram' | 'heatmap' | 'errorBars';
+type RandomSchemaId = 'pool' | 'walk' | 'histogram' | 'heatmap' | 'errorBars' | 'range';
 
 const generatorSchemaIds: Record<string, RandomSchemaId> = {
   pie: 'pool',
@@ -18,7 +18,8 @@ const generatorSchemaIds: Record<string, RandomSchemaId> = {
   ohlc: 'walk',
   histogram: 'histogram',
   heatmap: 'heatmap',
-  'error-bars': 'errorBars'
+  'error-bars': 'errorBars',
+  range: 'range'
 };
 
 const probabilityValidator = validators.numberMinMax(0, 1);
@@ -107,6 +108,12 @@ const schemaValidators: Record<RandomSchemaId, Record<string, Record<string, unk
     margin: { rangeValidator: minMaxRange, min: validators.numberMin(0), max: validators.numberMin(0) },
     missing: { probability: probabilityValidator },
     reuse: { global: booleanValidator, step: booleanValidator }
+  },
+  range: {
+    categories: { rangeValidator: minMaxRange, min: validators.integerMin(1), max: validators.integerMin(1) },
+    value: { rangeValidator: minMaxRange, min: validators.number(), max: validators.number(), volatility: validators.numberMinMax(0, 1) },
+    width: { rangeValidator: minMaxRange, min: validators.numberMin(0), max: validators.numberMin(0) },
+    reuse: { step: booleanValidator }
   }
 };
 

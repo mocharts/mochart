@@ -103,6 +103,19 @@ export interface ErrorBarsRandomConfig {
   reuse: { global: boolean; step: boolean };
 }
 
+/**
+ * Random config for the range generator: how many numbered categories each
+ * step keeps, the band the middle line walks in with its per-step volatility
+ * (a fraction of the band), the half-width range of the band on either side
+ * of the middle, and whether adjacent steps stay correlated.
+ */
+export interface RangeRandomConfig {
+  categories: { min: number; max: number };
+  value: { min: number; max: number; volatility: number };
+  width: { min: number; max: number };
+  reuse: { step: boolean };
+}
+
 /** Any demo's random config: the generic shape or a chart-type generator's. */
 export type DemoRandomConfig =
   | RandomConfig
@@ -111,7 +124,8 @@ export type DemoRandomConfig =
   | WalkRandomConfig
   | HistogramRandomConfig
   | HeatmapRandomConfig
-  | ErrorBarsRandomConfig;
+  | ErrorBarsRandomConfig
+  | RangeRandomConfig;
 
 /** One entry in the demos.json manifest, referencing files by basename. */
 export interface DemoManifestEntry {

@@ -361,7 +361,8 @@
       "notes": "The band series reads range-max as its property and range-min as its rangeProperty, so the area spans between the two values instead of growing from the axis base, and turns markers off with marker.shape null. The overlaid Middle line rides inside the band with star markers at marker.size 8. Category values are plain integers on an ordinal number axis.",
       "config": "range-config.json",
       "data": "range-data.json",
-      "random": "positive-random.json"
+      "random": "range-random.json",
+      "generator": "range"
     },
     {
       "id": "range-pos-neg",

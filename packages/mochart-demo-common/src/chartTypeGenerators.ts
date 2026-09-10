@@ -29,7 +29,7 @@ import { generateChartDataProvider } from './randomGenerator';
 import type {
   DataObject, DemoConfig, DemoDataProvider, DemoRandomConfig, CategoryValue, RandomConfig,
   ErrorBarsRandomConfig, HeatmapRandomConfig, HistogramRandomConfig, PieRandomConfig,
-  WalkRandomConfig, WaterfallRandomConfig
+  RangeRandomConfig, WalkRandomConfig, WaterfallRandomConfig
 } from './types';
 
 type Rng = () => number;
@@ -78,7 +78,7 @@ function poolEntryRng(scope: string, index: number, randomId: number, poolSize: 
 }
 
 /** The chart-type generator ids usable in a demos.json `generator` field. */
-export const chartTypeGenerators = ['histogram', 'waterfall', 'heatmap', 'candlestick', 'candlestick-hollow', 'ohlc', 'error-bars', 'pie', 'donut', 'gauge'] as const;
+export const chartTypeGenerators = ['histogram', 'waterfall', 'heatmap', 'candlestick', 'candlestick-hollow', 'ohlc', 'error-bars', 'pie', 'donut', 'gauge', 'range'] as const;
 
 export type ChartTypeGenerator = (typeof chartTypeGenerators)[number];
 
@@ -737,6 +737,72 @@ function buildGaugeSnapshot(): ChartTypeDemoSnapshot {
   };
 }
 
+// --- Range -------------------------------------------------------------------
+
+// The generic generator draws a range series' two ends and its middle line
+// independently, so the band crosses itself and the line leaves it. This
+// generator walks the middle and hangs the band off it instead. The range
+// demo keeps its handwritten curated data, so there is no snapshot builder:
+// the generator serves random mode only and reads the property names from
+// the demo config (the ranged series' property/rangeProperty and the first
+// un-ranged series' property).
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+interface RangeProperties {
+  category: string;
+  min: string;
+  max: string;
+  middle: string | null;
+}
+
+function rangeProperties(mochartConfig: MochartConfig): RangeProperties {
+  const ranged = mochartConfig.series.find(seriesConfig => seriesConfig.rangeProperty !== NONE);
+  const middle = mochartConfig.series.find(seriesConfig => seriesConfig.rangeProperty === NONE && seriesConfig.property !== NONE);
+  return {
+    category: mochartConfig.categoryAxis.property ?? 'category',
+    min: ranged?.rangeProperty ?? 'range-min',
+    max: ranged?.property ?? 'range-max',
+    middle: middle?.property ?? null
+  };
+}
+
+// Random config: categories = how many numbered categories each step keeps,
+// value = the band the middle walks in and its per-step volatility as a
+// fraction of that band, width = the half-width drawn for each side of the
+// band, reuse.step = correlate the walk with the neighbouring steps.
+function rangeRows(mochartConfig: MochartConfig, { categories, value, width, reuse }: RangeRandomConfig, randomId: number): DataObject[] {
+  const scope = 'range';
+  const properties = rangeProperties(mochartConfig);
+
+  const countMax = Math.max(1, Math.round(categories.max));
+  const countMin = Math.min(countMax, Math.max(1, Math.round(categories.min)));
+  const count = countMin + Math.floor(seedrandom(scope + ':count:' + randomId)() * (countMax - countMin + 1));
+  const span = value.max - value.min;
+  const widthSpan = width.max - width.min;
+
+  let middle = value.min + reusedDraw(scope, 'start', randomId, false, reuse.step) * span;
+  const rows: DataObject[] = [];
+  for (let category = 1; category <= count; category++) {
+    const draw = (key: string) => reusedDraw(scope, category + ':' + key, randomId, false, reuse.step);
+    middle = clamp(middle + value.volatility * span * (2 * draw('drift') - 1), value.min, value.max);
+    const low = width.min + widthSpan * draw('low');
+    const high = width.min + widthSpan * draw('high');
+    const row: DataObject = {
+      [properties.category]: category,
+      [properties.min]: Math.round(middle - low),
+      [properties.max]: Math.round(middle + high)
+    };
+    if (properties.middle !== null) {
+      row[properties.middle] = Math.round(middle);
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
 // --- Dispatch ----------------------------------------------------------------
 
 /** Rebuilds every chart-type demo's static config/data (snapshot script). */
@@ -786,6 +852,9 @@ export function generateChartTypeDataProvider(
   }
   else if (generator === 'gauge') {
     rows = gaugeRows(random as PieRandomConfig, randomId);
+  }
+  else if (generator === 'range') {
+    rows = rangeRows(mochartConfig, random as RangeRandomConfig, randomId);
   }
   else {
     rows = heatmapRows(random as HeatmapRandomConfig, randomId);

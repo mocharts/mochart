@@ -4,7 +4,7 @@ import type { DemoRandomConfig } from '@mochart/demo-data';
 export type {
   DataObject, Demo, DemoConfig, DemoData, DemoRandomConfig,
   ErrorBarsRandomConfig, HeatmapRandomConfig, HistogramRandomConfig, PieRandomConfig,
-  RandomConfig, WalkRandomConfig, WaterfallRandomConfig
+  RandomConfig, RangeRandomConfig, WalkRandomConfig, WaterfallRandomConfig
 } from '@mochart/demo-data';
 
 /** A value on the category axis of a generated data set. */
