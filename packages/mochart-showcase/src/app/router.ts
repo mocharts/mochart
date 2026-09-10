@@ -18,7 +18,7 @@ if (config !== undefined && config['routerBasePath'] !== undefined) {
 const normalizedBase = routerBasePath.replace(/\/+$/, '');
 
 function stripBasePath(pathname: string): string {
-  if (normalizedBase !== '' && pathname.startsWith(normalizedBase)) {
+  if (normalizedBase !== '' && (pathname === normalizedBase || pathname.startsWith(normalizedBase + '/'))) {
     pathname = pathname.slice(normalizedBase.length);
   }
   return pathname === '' ? '/' : pathname;
