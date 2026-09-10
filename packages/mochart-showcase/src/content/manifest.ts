@@ -20,7 +20,9 @@ import {
   focusStylesConfig, focusStylesData, focusStylesRandom,
   legendConfig, legendData, legendRandom,
   makeGenericRandom,
+  playerConfig, playerData, playerRandom,
   stackedLabelsData,
+  statesConfig, statesData, statesRandom,
   timeSeriesConfig, timeSeriesData, timeSeriesRandom
 } from './locals';
 
@@ -77,12 +79,6 @@ function reuse(slug: string, patch: EntryPatch = {}): ShowcaseEntry {
     thumbnail: patch.thumbnail,
     wall: special === undefined
   };
-}
-
-/** A special entry whose config/data are borrowed from a demo-data demo. */
-function specialFrom(baseId: string, slug: string, patch: EntryPatch & { special: SpecialKind }): ShowcaseEntry {
-  const entry = reuse(baseId, patch);
-  return { ...entry, slug, wall: false };
 }
 
 interface LocalEntryInput {
@@ -233,25 +229,16 @@ function clippedRandom(): RandomConfig {
 // --- Special demo assembly ---------------------------------------------------
 
 function playerEntry(): ShowcaseEntry {
-  const entry = specialFrom('stacked', 'player', {
-    special: 'player',
+  return local({
+    slug: 'player',
     title: 'Staged Animation Player',
     blurb: 'Watch a staged transition frame by frame: axis expansion, value change, axis contraction, at full speed or in slow motion.',
-    notes: 'Mochart plays every update as a staged sequence: axes expand first, then values (and category enter/exit) change, then axes contract. Only one kind of movement is on screen at a time, and stacked series move as one gapless unit. Step the seed to trigger a transition and use the speed control to stretch the animation durations so each stage is legible. The speed control scales the config\'s durations before the chart is built.'
+    notes: 'Mochart plays every update as a staged sequence: axes expand first, then values (and category enter/exit) change, then axes contract. Only one kind of movement is on screen at a time, and stacked series move as one gapless unit. Each seed changes the weeks in view and the size of the values, so every step plays all three phases. Use the speed control to stretch the animation durations so each stage is legible; it scales the config\'s durations before the chart is built.',
+    config: playerConfig,
+    data: playerData,
+    random: playerRandom,
+    special: 'player'
   });
-  entry.config = {
-    ...entry.config,
-    title: { text: 'Staged Animation Player' },
-    animation: {
-      enabled: true,
-      initialDuration: 1000,
-      expansionDuration: 1000,
-      valueChangeDuration: 1000,
-      contractionDuration: 1000,
-      focusDuration: 500
-    }
-  };
-  return entry;
 }
 
 function rotationEntry(): ShowcaseEntry {
@@ -267,11 +254,15 @@ function rotationEntry(): ShowcaseEntry {
 }
 
 function statesEntry(): ShowcaseEntry {
-  return specialFrom('grouped', 'states', {
-    special: 'states',
+  return local({
+    slug: 'states',
     title: 'Loading, Error & Empty States',
     blurb: 'The chart’s built-in loading, error, empty-data and invalid-config states, switchable live.',
-    notes: 'Charts rarely live alone: data arrives late, requests fail, filters empty the set. The loading and error props switch the chart into its corresponding state, an empty dataset renders the no-data state, and every one of them is customizable through factory props (getLoadingComponent, getErrorComponent, getNoDataComponent, …) that return any DOM node.'
+    notes: 'Charts rarely live alone: data arrives late, requests fail, filters empty the set. The loading and error props switch the chart into its corresponding state, an empty dataset renders the no-data state, and every one of them is customizable through factory props (getLoadingComponent, getErrorComponent, getNoDataComponent, …) that return any DOM node.',
+    config: statesConfig,
+    data: statesData,
+    random: statesRandom,
+    special: 'states'
   });
 }
 

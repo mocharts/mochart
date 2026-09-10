@@ -147,6 +147,75 @@ export const callbacksData: DataObject[] = [
 export const callbacksRandom = makeGenericRandom({ categoryCount: 7, seriesMin: 4, seriesMax: 34 });
 
 // ---------------------------------------------------------------------------
+// Staged animation player: a two-series stack over numbered weeks, with a
+// random spec whose week range and value range both vary between seeds so
+// every step plays expansion, value change and contraction
+// ---------------------------------------------------------------------------
+
+export const playerConfig: DemoConfig = {
+  version: '1.0.0',
+  title: { text: 'Weekly Orders' },
+  categoryAxis: { property: 'week', valueLabel: 'Week', type: 'number', scale: 'ordinal' },
+  valueAxes: [{ id: 'VA0', min: 0, gridLine: { visible: true } }],
+  seriesStacks: {},
+  seriesDefaults: { axis: 'VA0', renderer: 'bar' },
+  series: [
+    { property: 'online', title: 'Online' },
+    { property: 'inStore', title: 'In store' }
+  ],
+  animation: {
+    enabled: true,
+    initialDuration: 1000,
+    expansionDuration: 1000,
+    valueChangeDuration: 1000,
+    contractionDuration: 1000,
+    focusDuration: 500
+  }
+};
+
+export const playerData: DataObject[] = [
+  { week: 1, online: 14, inStore: 9 },
+  { week: 2, online: 11, inStore: 12 },
+  { week: 3, online: 17, inStore: 10 },
+  { week: 4, online: 13, inStore: 15 },
+  { week: 5, online: 21, inStore: 11 },
+  { week: 6, online: 18, inStore: 14 }
+];
+
+export const playerRandom = makeGenericRandom({
+  categoryCount: 6,
+  categoryNumber: { min: 1, max: 10, interval: 1 },
+  seriesMin: 4,
+  seriesMax: 60
+});
+
+// ---------------------------------------------------------------------------
+// Chart states: the docs' chart-states example
+// ---------------------------------------------------------------------------
+
+export const statesConfig: DemoConfig = {
+  version: '1.0.0',
+  title: { text: 'Subscriptions and Services' },
+  categoryAxis: { property: 'month', valueLabel: 'Month', type: 'string', scale: 'ordinal' },
+  valueAxes: [{ id: 'VA0', min: 0, gridLine: { visible: true } }],
+  seriesGroups: {},
+  seriesDefaults: { axis: 'VA0', renderer: 'bar' },
+  series: [
+    { property: 'subscriptions', title: 'Subscriptions' },
+    { property: 'services', title: 'Services' }
+  ]
+};
+
+export const statesData: DataObject[] = [
+  { month: 'Jan', subscriptions: 42, services: 21 },
+  { month: 'Feb', subscriptions: 48, services: 25 },
+  { month: 'Mar', subscriptions: 45, services: 30 },
+  { month: 'Apr', subscriptions: 54, services: 28 }
+];
+
+export const statesRandom = makeGenericRandom({ categoryCount: 4, seriesMin: 15, seriesMax: 60 });
+
+// ---------------------------------------------------------------------------
 // Easing: a fixed axis so every seed step is a pure value change
 // ---------------------------------------------------------------------------
 
