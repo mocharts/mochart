@@ -8,13 +8,13 @@ import type { DataObject, Demo, DemoConfig } from '@mochart/demo-data';
 import { rotationConfigs, rotationData, tableSparklineMetrics } from '@mochart/demo-common';
 
 import type { ShowcaseEntry, ShowcaseSection, SpecialKind } from './types';
+import { randomFromCurated } from './randomFromCurated';
 import {
   currentColorConfig, currentColorData, currentColorRandom,
   easingConfig, easingData, easingRandom,
   editorConfig, editorData, editorRandom,
   focusStylesConfig, focusStylesData, focusStylesRandom,
-  makeGenericRandom,
-  stackedLabelsData, stackedLabelsRandom,
+  stackedLabelsData,
   timeSeriesConfig, timeSeriesData, timeSeriesRandom,
   tooltipConfig, tooltipData, tooltipRandom
 } from './locals';
@@ -42,18 +42,31 @@ interface EntryPatch {
   thumbnail?: ShowcaseEntry['thumbnail'];
 }
 
+/**
+ * A reused demo's random spec. Chart-type generators own their specs; the
+ * generic spec is re-derived from the entry's curated rows.
+ */
+function reusedRandom(demo: Demo, data: DataObject[]): ShowcaseEntry['random'] {
+  const random = clone(demo.random);
+  if (demo.generator !== undefined || !('category' in random)) {
+    return random;
+  }
+  return randomFromCurated(demo.config, data, random);
+}
+
 /** An entry reusing a demo-data demo's config/data/random (and prose). */
 function reuse(slug: string, patch: EntryPatch = {}): ShowcaseEntry {
   const demo = getDemo(slug);
   const special = patch.special;
+  const data = patch.data ?? clone(demo.data);
   return {
     slug,
     title: patch.title ?? demo.title,
     blurb: patch.blurb ?? demo.description ?? '',
     notes: patch.notes ?? demo.notes,
     config: patch.config ?? clone(demo.config),
-    data: patch.data ?? clone(demo.data),
-    random: patch.random ?? clone(demo.random),
+    data,
+    random: patch.random ?? reusedRandom(demo, data),
     generator: demo.generator,
     special,
     thumbnail: patch.thumbnail,
@@ -141,7 +154,6 @@ function rotatedTicksEntry(): ShowcaseEntry {
 function stackedLabelsEntry(): ShowcaseEntry {
   const entry = reuse('label-property-stacked', {
     data: stackedLabelsData,
-    random: stackedLabelsRandom,
     // With no title row above the plot, the top labels need axis headroom.
     thumbnail(config) {
       config.valueAxes = { ...(config.valueAxes as object), softMax: 42 };
@@ -159,8 +171,7 @@ function horizontalBarsEntry(): ShowcaseEntry {
   const demo = getDemo('label-property-pos-neg');
   const entry = reuse('label-property-pos-neg', {
     title: 'Horizontal Bars',
-    data: clone(demo.data.filter((_, index) => index % 3 === 0)),
-    random: makeGenericRandom({ categoryCount: 9, seriesMin: -15, seriesMax: 15 })
+    data: clone(demo.data.filter((_, index) => index % 3 === 0))
   });
   const series = entry.config.series as { label: Record<string, unknown> };
   series.label = { ...series.label, format: '.0f' };

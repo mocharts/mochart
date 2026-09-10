@@ -17,7 +17,10 @@ playground:
   (completions, hover docs, live movalid diagnostics); edits apply live, and a
   mochart-invalid config renders the chart's own config-error state.
 - **Deterministic randomize**: `?seed=N` in the URL; datasets come from
-  demo-common's seeded generators, so any state is reproducible by link.
+  demo-common's seeded generators, so any state is reproducible by link. A
+  reused demo's generic random spec is derived from its curated rows
+  ([src/content/randomFromCurated.ts](src/content/randomFromCurated.ts)), so
+  the first seed keeps the curated category range, spacing and value range.
   Play loops the seed to showcase staged transitions.
 - **Share & export**: a compressed `#s=` hash payload carries config/data
   edits; SVG/PNG export via [@mochart/export](../mochart-export/README.md).

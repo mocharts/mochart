@@ -96,7 +96,8 @@ export const timeSeriesRandom = makeGenericRandom({
 });
 
 // ---------------------------------------------------------------------------
-// Stacked labels: a small dataset so every segment's label has room
+// Stacked labels: a small dataset so every segment's label has room (its
+// random spec is derived from these rows, like every reused entry's)
 // ---------------------------------------------------------------------------
 
 export const stackedLabelsData: DataObject[] = [
@@ -109,13 +110,6 @@ export const stackedLabelsData: DataObject[] = [
   { categoryNL: 10, value1: 8, value2: 12, value3: 6 },
   { categoryNL: 12, value1: 16, value2: 10, value3: 9 }
 ];
-
-export const stackedLabelsRandom = makeGenericRandom({
-  categoryCount: 8,
-  categoryNumber: { min: 1, max: 14, interval: 1 },
-  seriesMin: 3,
-  seriesMax: 20
-});
 
 // ---------------------------------------------------------------------------
 // Tooltip formatting and crosshair
