@@ -162,7 +162,14 @@ function walkNumber(number: CategoryConfig['number'], walk: Walk, bounds: WalkBo
   if (bounds !== undefined) {
     min = bounds.max - span <= bounds.min ? bounds.min : tidy(reflect(min, bounds.min, bounds.max - span), whole);
   }
-  return { min, max: min + span, interval };
+  // The generator counts slots as floor((max - min) / interval) + 1 and redraws
+  // until every category has one, so a fractional interval whose rounding
+  // loses a slot would spin forever; the top is nudged until the count holds.
+  let max = min + span;
+  while (slots(max - min, interval) < count) {
+    max += interval * 1e-9;
+  }
+  return { min, max, interval };
 }
 
 function isGeneric(random: DemoRandomConfig): random is RandomConfig {
