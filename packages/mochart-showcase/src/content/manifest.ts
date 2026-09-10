@@ -175,6 +175,17 @@ function rotatedTicksEntry(): ShowcaseEntry {
   });
 }
 
+/** Four long titles take a legend row each on a phone; half the legend width fits two to a row. */
+function truncatedTextEntry(): ShowcaseEntry {
+  const demo = getDemo('truncated-text');
+  const entry = reuse('truncated-text', {
+    notes: `${demo.notes ?? ''} The legend also sets truncation.maxFraction to 0.5, so no item may take more than half the legend width: every title that runs past that mark truncates and the items pair up on their rows instead of each taking a row of its own.`.trim()
+  });
+  const legend = entry.config.legend as { truncation?: object };
+  legend.truncation = { ...legend.truncation, maxFraction: 0.5 };
+  return entry;
+}
+
 /** Eight categories instead of 27, so the labels on every segment stay legible. */
 function stackedLabelsEntry(): ShowcaseEntry {
   const entry = reuse('label-property-stacked', {
@@ -380,7 +391,7 @@ export function getSections(): ShowcaseSection[] {
         thresholdLineEntry(),
         rotatedTicksEntry(),
         rotationEntry(),
-        reuse('truncated-text'),
+        truncatedTextEntry(),
         reuse('clipped', { random: clippedRandom() })
       ]
     },
