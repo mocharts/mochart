@@ -25,6 +25,7 @@
   "scripts": {
     "dev": "npm run dev -w @mochart/demo-vanilla",
     "dev:basic": "npm run dev -w @mochart/demo-basic",
+    "dev:showcase": "npm run dev -w @mochart/showcase",
     "dev:docs": "npm run dev -w @mochart/docs",
     "dev:editor": "npm run dev -w @mochart/editor",
     "prebuild": "node scripts/ensure-libs-fresh.mjs",

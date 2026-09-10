@@ -1,0 +1,27 @@
+{
+  "name": "@mochart/showcase",
+  "version": "1.0.0",
+  "description": "Curated mobile-first feature showcase for the mochart charting library",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "@mochart/core": "*",
+    "@mochart/demo-common": "*",
+    "@mochart/demo-data": "*",
+    "@mochart/editor": "*",
+    "@mochart/export": "*",
+    "fflate": "^0.8.2"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  },
+  "scripts": {
+    "dev": "vite",
+    "prebuild": "node ../../scripts/ensure-libs-fresh.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  }
+}
