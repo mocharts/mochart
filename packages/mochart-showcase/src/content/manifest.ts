@@ -166,6 +166,8 @@ function rotatedTicksEntry(): ShowcaseEntry {
     thumbnail(config) {
       const categoryAxis = config.categoryAxis as Record<string, unknown>;
       categoryAxis.tickLabel = { ...(categoryAxis.tickLabel as object), format: '%b %d' };
+      // With no title row above the plot, the top value label's 45 degree overhang needs room.
+      config.chart = { ...(config.chart as object), margin: { top: 14 } };
     }
   });
 }
