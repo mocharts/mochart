@@ -16,8 +16,7 @@ import {
   editorConfig, editorData, editorRandom,
   focusStylesConfig, focusStylesData, focusStylesRandom,
   stackedLabelsData,
-  timeSeriesConfig, timeSeriesData, timeSeriesRandom,
-  tooltipConfig, tooltipData, tooltipRandom
+  timeSeriesConfig, timeSeriesData, timeSeriesRandom
 } from './locals';
 
 function clone<T>(value: T): T {
@@ -373,15 +372,6 @@ export function getSections(): ShowcaseSection[] {
       tagline: 'Tooltips, crosshair, legend filtering, focus states, and the callbacks that report all of it to your app.',
       entries: [
         callbacksEntry(),
-        local({
-          slug: 'tooltip-crosshair',
-          title: 'Tooltip & Crosshair',
-          blurb: 'Per-series tooltip formatting with a prefix and suffix, a formatted category line, and crosshair lines for the focused category and series.',
-          notes: 'Each series formats its own tooltip line: valueFormat is a d3-format string and valuePrefix and valueSuffix wrap the result, here as "$46.8k" from a value of 46.8. The category axis formats the tooltip\'s category line separately from its ticks: tickLabel.format "%b" gives the axis "Jan" while valueFormat "%B %Y" gives the tooltip "January 2025". The crosshair section draws a line through the focused category and, with seriesLine visible, a second line at the focused series\' value, each with its own stroke style.',
-          config: tooltipConfig,
-          data: tooltipData,
-          random: tooltipRandom
-        }),
         reuse('tooltip-controls'),
         reuse('axis-filtering'),
         local({

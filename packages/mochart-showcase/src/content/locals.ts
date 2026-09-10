@@ -112,69 +112,6 @@ export const stackedLabelsData: DataObject[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Tooltip formatting and crosshair
-// ---------------------------------------------------------------------------
-
-export const tooltipConfig: DemoConfig = {
-  version: '1.0.0',
-  title: { text: 'Store Performance' },
-  categoryAxis: {
-    property: 'month',
-    valueLabel: 'Month',
-    type: 'date',
-    scale: 'ordinal',
-    dateUTC: true,
-    tickLabel: { format: '%b' },
-    valueFormat: '%B %Y'
-  },
-  valueAxes: [
-    { id: 'VA0', min: 0, title: { text: 'Thousands of dollars' }, gridLine: { visible: true } }
-  ],
-  seriesDefaults: {
-    axis: 'VA0',
-    valueFormat: ',.1f',
-    valuePrefix: '$',
-    valueSuffix: 'k'
-  },
-  series: [
-    { property: 'revenue', title: 'Revenue', renderer: 'bar' },
-    { property: 'costs', title: 'Costs', renderer: 'line' }
-  ],
-  tooltip: { valueAlign: 'right' },
-  crosshair: {
-    categoryLine: { visible: true },
-    seriesLine: {
-      visible: true,
-      style: { strokeColor: 'currentColor', strokeOpacity: 0.5, strokeWidth: 1, strokeDashArray: '4, 3' }
-    }
-  }
-};
-
-export const tooltipData: DataObject[] = [
-  { month: '2025-01-15T00:00:00Z', revenue: 41.2, costs: 28.4 },
-  { month: '2025-02-15T00:00:00Z', revenue: 46.8, costs: 30.1 },
-  { month: '2025-03-15T00:00:00Z', revenue: 44.1, costs: 31.7 },
-  { month: '2025-04-15T00:00:00Z', revenue: 52.6, costs: 33.2 },
-  { month: '2025-05-15T00:00:00Z', revenue: 57.9, costs: 35.8 },
-  { month: '2025-06-15T00:00:00Z', revenue: 63.4, costs: 36.5 },
-  { month: '2025-07-15T00:00:00Z', revenue: 61.7, costs: 38.0 },
-  { month: '2025-08-15T00:00:00Z', revenue: 58.3, costs: 37.2 },
-  { month: '2025-09-15T00:00:00Z', revenue: 66.9, costs: 39.6 },
-  { month: '2025-10-15T00:00:00Z', revenue: 72.4, costs: 41.3 },
-  { month: '2025-11-15T00:00:00Z', revenue: 81.0, costs: 44.9 },
-  { month: '2025-12-15T00:00:00Z', revenue: 94.5, costs: 48.2 }
-];
-
-// Thirty-day steps from mid January land in twelve distinct months, so the
-// "%b" tick labels never repeat.
-export const tooltipRandom = makeGenericRandom({
-  categoryCount: 12,
-  categoryDate: { min: '2025-01-15', max: '2025-12-31', interval: 30, intervalUnit: 'day' },
-  seriesMin: 20,
-  seriesMax: 95
-});
-
-// ---------------------------------------------------------------------------
 // Easing: a fixed axis so every seed step is a pure value change
 // ---------------------------------------------------------------------------
 
