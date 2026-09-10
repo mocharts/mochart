@@ -9,6 +9,7 @@ import { describe, it, beforeAll, expect } from 'vitest';
 import { installSvgMeasurementShims } from '../components/svgShims';
 import { installFakeFrameClock, runFrames, advanceFrames, mountContainer } from '../components/helpers';
 import { getCssSelector, getIdCssSelector } from '../../src/utils/ChartDom';
+import type { DataObject } from '../../src/types/data';
 
 let mochart: typeof import('../../src');
 
@@ -29,7 +30,7 @@ function linePoints(container: Element): { x: number; y: number }[] {
   return points;
 }
 
-function mountLine(rows: object[]) {
+function mountLine(rows: DataObject[]) {
   const { createChart, enhanceConfig, ArrayOfObjectsDataProvider } = mochart;
   const mochartConfig = enhanceConfig({
     version: '1.0.0',
@@ -43,7 +44,7 @@ function mountLine(rows: object[]) {
   runFrames();
   return {
     container,
-    update: (nextRows: object[]) => chart.update({ ...props, dataProvider: new ArrayOfObjectsDataProvider(nextRows) }),
+    update: (nextRows: DataObject[]) => chart.update({ ...props, dataProvider: new ArrayOfObjectsDataProvider(nextRows) }),
     destroy: () => chart.destroy()
   };
 }
