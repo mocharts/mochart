@@ -546,6 +546,13 @@ a:hover {
 .sc-log-kind {
     color: var(--sc-accent-text);
 }
+.sc-log-hint {
+    display: none;
+    color: var(--sc-text-muted);
+}
+.sc-log-entries:empty + .sc-log-hint {
+    display: block;
+}
 
 /* ---------- sparklines page ---------- */
 

@@ -137,8 +137,10 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
 
   const logEntries = el('ul', { className: 'sc-log-entries' });
   const logMoveLine = el('div', { className: 'sc-log-move', text: 'pointer: outside plot' });
+  // shown by css only while the entry list is empty, so the reserved box reads as waiting rather than blank
+  const logHint = el('div', { className: 'sc-log-hint', text: 'click or hover the chart to see callbacks fire' });
   const logRegion = entry.special === 'callbacks'
-    ? el('div', { className: 'sc-log sc-demo-log', attrs: { 'aria-label': 'Event log' } }, [logMoveLine, logEntries])
+    ? el('div', { className: 'sc-log sc-demo-log', attrs: { 'aria-label': 'Event log' } }, [logMoveLine, logEntries, logHint])
     : null;
 
   function logEvent(kind: string, detail: string): void {
