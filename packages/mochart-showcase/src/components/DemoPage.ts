@@ -18,6 +18,7 @@ import type { DataObject, DemoConfig } from '@mochart/demo-data';
 import { button, el, segmented, toast } from '../ui/dom';
 import { getSearchParams, replaceSearchParams } from '../app/router';
 import { buildShareUrl, consumeShareState } from '../state/share';
+import { MAX_SEED, nextSeed, parseSeed } from '../state/seed';
 import { mountChart } from './chartHost';
 import { jsonPanel } from './EditorPanel';
 import type { JsonPanelHandle } from './EditorPanel';
@@ -70,8 +71,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
   let configDirty = share?.config !== undefined;
   let dataDirty = share?.data !== undefined;
 
-  const seedParam = getSearchParams().get('seed');
-  let seed: number | null = seedParam !== null && /^-?\d+$/.test(seedParam) ? Number(seedParam) : null;
+  let seed: number | null = parseSeed(getSearchParams().get('seed'));
 
   let speed = 1;
   let stateMode: StateMode = 'data';
@@ -263,7 +263,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
     }
     else {
       const interval = entry.special === 'player' ? Math.round(PLAY_INTERVAL_MS / Math.min(speed, 1)) + 800 : PLAY_INTERVAL_MS;
-      playTimer = setInterval(() => setSeed((seed ?? 0) + 1), interval);
+      playTimer = setInterval(() => (seed ?? 0) >= MAX_SEED ? stopPlaying() : setSeed(nextSeed(seed)), interval);
     }
     syncControls();
   }
@@ -287,11 +287,11 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
   });
   const nextButton = button({
     icon: 'chevron-right', ariaLabel: 'Next step', title: 'Next step',
-    onClick: () => entry.special === 'rotation' ? stepRotation(1) : setSeed((seed ?? 0) + 1)
+    onClick: () => entry.special === 'rotation' ? stepRotation(1) : setSeed(nextSeed(seed))
   });
   const diceButton = button({
     icon: 'dice', label: 'Randomize', ariaLabel: 'Randomize data', title: 'Generate the next dataset (deterministic per seed)',
-    onClick: () => setSeed((seed ?? 0) + 1)
+    onClick: () => setSeed(nextSeed(seed))
   });
   const playButton = button({
     icon: 'play', label: 'Play', ariaLabel: 'Play transitions', title: 'Step automatically',
