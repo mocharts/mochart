@@ -51,6 +51,9 @@
         setConfig(next) {
           config = next;
           chart.update({ mochartConfig: enhanceConfig(config) });
+        },
+        setFilter(filteredSeriesIds) {
+          chart.update({ filteredSeriesIds });
         }
       };
       await document.fonts.ready;

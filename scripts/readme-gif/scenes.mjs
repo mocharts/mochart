@@ -68,9 +68,9 @@ const stacked = {
     seriesStacks: [{ id: 'stack', axis: 'va', outerCap: { type: 'round' } }],
     seriesDefaults: { renderer: 'bar', axis: 'va', stack: 'stack', marker: { shape: null } },
     series: [
-      { property: 'north', title: 'North' },
-      { property: 'south', title: 'South' },
-      { property: 'west', title: 'West' },
+      { id: 'north', property: 'north', title: 'North' },
+      { id: 'south', property: 'south', title: 'South' },
+      { id: 'west', property: 'west', title: 'West' },
       {
         property: 'target', title: 'Target', renderer: 'line', stack: null,
         marker: { shape: 'circle', size: 10 }, shapeStyle: { normal: { strokeWidth: 5 } }
@@ -79,13 +79,17 @@ const stacked = {
   }),
   data: stackedStart,
   settledData: stackedExtended,
-  async run({ wait, begin, setData }) {
+  async run({ wait, begin, setData, setFilter }) {
     await wait(PHASE);                 // mount animation, not recorded
     begin();
     await wait(HOLD);
     setData(stackedGrown);             // expansion + value change
     await wait(PHASE * 2 + HOLD);
     setData(stackedExtended);          // category joins: expansion + value change
+    await wait(PHASE * 2 + HOLD);
+    setFilter({ south: true });        // legend filter: the middle series leaves the stack
+    await wait(PHASE * 2 + HOLD);
+    setFilter({});                     // and comes back
     await wait(PHASE * 2 + HOLD);
     setData(stackedStart);             // value change + contraction on both axes
     await wait(PHASE * 2 + HOLD);
