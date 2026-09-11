@@ -1,6 +1,6 @@
 {
   "name": "@mochart/svelte",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Svelte 5 components for the mochart charting library",
   "keywords": [
     "chart",
@@ -54,11 +54,11 @@
     "CHANGELOG.md"
   ],
   "peerDependencies": {
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "svelte": "^5.0.0"
   },
   "devDependencies": {
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "@sveltejs/package": "^2.5.8",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "svelte": "^5.56.8",

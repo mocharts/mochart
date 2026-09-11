@@ -1,6 +1,6 @@
 {
   "name": "@mochart/lit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "lit-html directives for the mochart charting library",
   "keywords": [
     "chart",
@@ -52,11 +52,11 @@
     "CHANGELOG.md"
   ],
   "peerDependencies": {
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "lit-html": "^3.0.0"
   },
   "devDependencies": {
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "lit-html": "^3.3.0"
   },
   "scripts": {

@@ -1,6 +1,6 @@
 {
   "name": "@mochart/vue",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Vue 3 components for the mochart charting library",
   "keywords": [
     "chart",
@@ -51,11 +51,11 @@
     "CHANGELOG.md"
   ],
   "peerDependencies": {
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "vue": "^3.3.0"
   },
   "devDependencies": {
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "vue": "^3.5.41"
   },
   "scripts": {

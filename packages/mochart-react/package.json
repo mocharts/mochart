@@ -1,6 +1,6 @@
 {
   "name": "@mochart/react",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "React components for the mochart charting library",
   "keywords": [
     "chart",
@@ -51,12 +51,12 @@
     "CHANGELOG.md"
   ],
   "peerDependencies": {
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "react": ">=18",
     "react-dom": ">=18"
   },
   "devDependencies": {
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "react": "^19.2.8",
