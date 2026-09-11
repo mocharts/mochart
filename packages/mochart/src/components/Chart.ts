@@ -12,7 +12,7 @@ import { getAxisData, getAxisDataWithMutations, getAxisDataForCategoryChange, ge
 import { getStackData, getStackDataWithMutations } from '../data/StackData';
 import { getChartTextBoundsData, getChartTextBoundsDataWithMutations, getTooltipBounds, getBoundsWithMutations } from '../utils/TextMeasurement';
 import { mochartCssClasses, mochartVersionAttribute, getDomAccessors } from '../utils/ChartDom';
-import { CHART_TYPE_PIE } from '../config/core/constants';
+import { CHART_TYPE_PIE, NONE } from '../config/core/constants';
 
 import Background from './Background';
 import Title from './Title';
@@ -37,7 +37,11 @@ import { accessibilityActive, focusRestored, translateObject } from '../utils/ut
 import { getSeriesFillColor, getSeriesSwatchGradient } from '../utils/SeriesColors';
 import { getTooltipAnnouncement } from '../utils/TooltipFormat';
 import type { ChartFactoryContent, ChartFactoryContext, ChartContentFactory, ChartEventPayload, ChartSeriesClickPayload, ChartSliceClickPayload, InternalFocus } from '../types/chart';
-import type { LinearGradientConfig, PatternConfig, RadialGradientConfig } from '../types/config';
+import type { LinearGradientConfig, PatternConfig, RadialGradientConfig, ThresholdConfig } from '../types/config';
+import { resolveThresholds } from '../config/defaults/axisConfig';
+import { getThresholdPatternKey } from './AxisThreshold';
+import { CATEGORY_AXIS_THRESHOLD_KEY, getValueAxisThresholdKey } from './AxisThresholdContainer';
+import type { ResolvedThreshold } from '../config/defaults/axisConfig';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
 import type { AxisData, ChartData, ClippedEdges, DataProvider, StackData } from '../types/data';
 import type { FocusData } from '../types/animation';
@@ -369,6 +373,23 @@ const liveRegionStyle = {
 // long enough to swallow a key repeat, short enough that a deliberate step still speaks promptly
 const announceSettleDelay = 150;
 
+/** Every threshold entry filled by a pattern, with the patternIdMap key its definition lives under. */
+function getThresholdPatterns(mochartConfig: EnhancedMochartConfig): { key: string; threshold: ResolvedThreshold }[] {
+  const thresholdPatterns: { key: string; threshold: ResolvedThreshold }[] = [];
+  const collect = (axisKey: string, thresholds: readonly ThresholdConfig[] | undefined) => {
+    resolveThresholds(thresholds).forEach((threshold, thresholdIndex) => {
+      if (threshold.pattern !== NONE) {
+        thresholdPatterns.push({ key: getThresholdPatternKey(axisKey, thresholdIndex), threshold });
+      }
+    });
+  };
+  collect(CATEGORY_AXIS_THRESHOLD_KEY, mochartConfig.categoryAxis.thresholds);
+  for (const valueAxisConfig of mochartConfig.valueAxes) {
+    collect(getValueAxisThresholdKey(valueAxisConfig.id), valueAxisConfig.thresholds);
+  }
+  return thresholdPatterns;
+}
+
 export default class Chart extends Renderer<ChartProps, ChartState> {
   root = htmlEl('div');
   simpleContent = this.elSlot(this.root);
@@ -523,6 +544,10 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     for (const { id } of seriesConfigs) {
       seriesColorGradientUniqueIds[id] = seriesColorGradientIdPrefix + uniqueId + '__' + id;
       patternIdMap[id] = seriesPatternIdPrefix + uniqueId + '__' + id;
+    }
+    // a threshold range's pattern gets its own definition, coloured by the range's fill
+    for (const { key } of getThresholdPatterns(mochartConfig)) {
+      patternIdMap[key] = seriesPatternIdPrefix + uniqueId + '__' + key;
     }
     const gradientIdMap = { ...linearGradientIdMap, ...radialGradientIdMap };
     const uniqueIds = {
@@ -1387,6 +1412,17 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         });
       }
     });
+
+    const patternConfigsById: Record<string, PatternConfig> = Object.create(null);
+    for (const patternConfig of mochartConfig.patterns as PatternConfig[]) {
+      patternConfigsById[patternConfig.id] = patternConfig;
+    }
+    for (const { key, threshold } of getThresholdPatterns(mochartConfig)) {
+      const patternConfig = patternConfigsById[threshold.pattern!];
+      if (patternConfig !== undefined) {
+        patterns.push({ key, ctor: Pattern, props: { uniqueId: patternIdMap[key], patternConfig, seriesColor: threshold.style.normal.fillColor ?? null } });
+      }
+    }
 
     body.seriesColorGradients.sync(seriesColorGradients);
     body.linearGradients.sync(linearGradients);

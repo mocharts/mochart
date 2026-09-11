@@ -1,11 +1,13 @@
 # Thresholds and ranges
 
-Two ways to show reference context around your values: a **threshold line**
-drawn at a fixed value on an axis, and a **range series** that fills the band
-between two data properties.
+Three ways to show reference context around your values: a **threshold line**
+drawn at a fixed value on an axis, a **threshold range** filling the band
+between two fixed values, and a **range series** that fills the band between
+two data properties.
 
 <script setup>
 import * as thresholdRange from '../examples/thresholdRange'
+import * as thresholdBand from '../examples/thresholdBand'
 </script>
 
 <LiveChart :config="thresholdRange.config" :data="thresholdRange.data" demo="threshold-line" />
@@ -23,7 +25,7 @@ import * as thresholdRange from '../examples/thresholdRange'
   category axis takes the same `thresholds` for vertical reference lines (a
   date axis value is an ISO string or timestamp); an ordinal one has no value
   scale to place them on.
-- The band is an ordinary `area` series with
+- The data band is an ordinary `area` series with
   [`rangeProperty`](/reference/series#series.rangeProperty):
   the shape spans from the `rangeProperty` value (here `p5`) to the
   `property` value (`p95`) instead of starting at the axis base. Dropping
@@ -48,3 +50,34 @@ import * as thresholdRange from '../examples/thresholdRange'
   current domain is simply not drawn. If the data alone wouldn't reach the
   threshold, set [`softMax`](/reference/valueAxes#valueAxes.softMax) at or
   above it so the axis covers it.
+
+
+## Threshold ranges
+
+Give a thresholds entry a
+[`rangeValue`](/reference/valueAxes#valueAxes.thresholds.rangeValue) and it
+fills the band between its two values instead of drawing a line:
+
+<LiveChart :config="thresholdBand.config" :data="thresholdBand.data" demo="threshold-range" />
+
+<<< @/examples/thresholdBand.ts{12-18}
+
+- The stroke members of [`style`](/reference/valueAxes#valueAxes.thresholds.style)
+  draw the band's two edge lines and its fill members fill the interior; a
+  stroke opacity of 0 leaves just the fill. A
+  [`pattern`](/reference/valueAxes#valueAxes.thresholds.pattern) or
+  [`gradient`](/reference/valueAxes#valueAxes.thresholds.gradient) id fills
+  the band with that definition instead, and a pattern's `series` colour
+  resolves to the band's fill colour. `front: false` keeps the band behind
+  the series.
+- The title's `side` is `low` or `high` of the whole band, or `inside` to
+  centre it within the band; `align` places any threshold title at the
+  `start`, `middle` or `end` of the plot instead of the axis side.
+- A band partly outside the axis domain is clipped to it; one wholly outside
+  is not drawn.
+- Ordinal category axes take thresholds too: a value names a category, so a
+  line sits at that category's centre and a range covers whole slots from the
+  first named category to the second. Pairing each Monday with its Friday
+  bands alternate weeks on a daily trading axis, as the category ticks demo
+  in the gallery does.
+\n

@@ -33,6 +33,41 @@
       {
         "value": "2026-07-06"
       }
+    ],
+    "thresholds": [
+      {
+        "value": "2026-06-01",
+        "rangeValue": "2026-06-05",
+        "front": false,
+        "style": {
+          "normal": {
+            "strokeOpacity": 0,
+            "fillOpacity": 0.06
+          }
+        }
+      },
+      {
+        "value": "2026-06-15",
+        "rangeValue": "2026-06-19",
+        "front": false,
+        "style": {
+          "normal": {
+            "strokeOpacity": 0,
+            "fillOpacity": 0.06
+          }
+        }
+      },
+      {
+        "value": "2026-06-29",
+        "rangeValue": "2026-07-03",
+        "front": false,
+        "style": {
+          "normal": {
+            "strokeOpacity": 0,
+            "fillOpacity": 0.06
+          }
+        }
+      }
     ]
   },
   "valueAxes": [

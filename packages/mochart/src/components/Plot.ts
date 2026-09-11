@@ -36,14 +36,14 @@ interface PlotFrontBackProps {
   seriesClipPathUniqueId: string;
   clippedEdges: ClippedEdges;
   clipIndicatorPatternUniqueId: string;
+  gradientIdMap: Record<string, string>;
+  patternIdMap: Record<string, string>;
   onFocus: (focus: InternalFocus) => void;
 }
 
 interface PlotProps extends Omit<PlotFrontBackProps, 'front'> {
   stackData: StackData;
   categoryValueData: CategoryAxisData['valueData'];
-  gradientIdMap: Record<string, string>;
-  patternIdMap: Record<string, string>;
   tooltipClipPathUniqueId: string;
   /** TooltipClip only mounts its node while the tooltip is visible; the crosshair must not reference it otherwise. */
   tooltipClipPresent: boolean;
@@ -83,8 +83,9 @@ class PlotFrontBack extends Renderer<PlotFrontBackProps> {
       categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId,
       valueAxisTitleClipPathUniqueIds, onFocus });
 
+    const { gradientIdMap, patternIdMap } = this.props;
     this.thresholdContainer.set(AxisThresholdContainer, { front, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos,
-      seriesLayoutInfo, chartData, focusData });
+      seriesLayoutInfo, chartData, focusData, axisData, gradientIdMap, patternIdMap });
   }
 }
 
@@ -123,6 +124,8 @@ export default class Plot extends Renderer<PlotProps> {
       categoryAxisTitleClipPathUniqueId,
       categoryAxisTickLabelClipPathUniqueId,
       valueAxisTitleClipPathUniqueIds,
+      gradientIdMap,
+      patternIdMap,
       onFocus
     });
 

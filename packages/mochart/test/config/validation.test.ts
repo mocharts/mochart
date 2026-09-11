@@ -697,12 +697,31 @@ describe('tooltip drop-shadow validation', () => {
 });
 
 // An ordinal axis has no value scale to place a threshold on.
-describe('ordinal-scale thresholds validation', () => {
+describe('threshold entry validation', () => {
   const base = { version: V, series: [{ property: 'v' }] };
 
-  it('rejects thresholds on an ordinal category axis', () => {
+  it('accepts a category string threshold on an ordinal string axis, and rejects a number there', () => {
+    expect(errorsFor({ ...base, categoryAxis: { property: 'p', thresholds: [{ value: 'Mon', rangeValue: 'Fri' }] } })).toEqual([]);
     expect(errorsFor({ ...base, categoryAxis: { property: 'p', thresholds: [{ value: 5 }] } }))
-      .toContainEqual(expect.stringContaining('thresholds - should be an empty array when scale is ordinal'));
+      .toContainEqual(expect.stringContaining('thresholds'));
+  });
+
+  it('accepts a range with a fill style, and a pattern or gradient that exists', () => {
+    expect(errorsFor({ ...base, categoryAxis: { property: 'p' }, patterns: [{ id: 'hatch', type: 'lines' }], linearGradients: [{ id: 'fade', stops: [{ offset: 0, color: 'red', opacity: 1 }, { offset: 1, color: 'blue', opacity: 1 }] }],
+      valueAxes: [{ thresholds: [
+        { value: 1, rangeValue: 2, style: { normal: { fillColor: 'red', fillOpacity: 0.2 } }, pattern: 'hatch', title: { text: 'Band', side: 'inside', align: 'middle' } },
+        { value: 3, rangeValue: 4, gradient: 'fade' }
+      ] }] })).toEqual([]);
+  });
+
+  it('rejects an unknown pattern or gradient id, both at once, and an inside title on a line', () => {
+    const errors = errorsFor({ ...base, patterns: [{ id: 'hatch', type: 'lines' }],
+      categoryAxis: { property: 'p', thresholds: [{ value: 'Mon', title: { side: 'inside' } }] },
+      valueAxes: [{ thresholds: [{ value: 1, rangeValue: 2, pattern: 'missing', gradient: 'missing' }, { value: 3, rangeValue: 4, pattern: 'hatch', gradient: 'missing' }] }] });
+    expect(errors).toContainEqual(expect.stringContaining('valueAxes[0] - thresholds[0].pattern - should be the id of a patterns entry'));
+    expect(errors).toContainEqual(expect.stringContaining('valueAxes[0] - thresholds[0].gradient - should be the id of a linearGradients or radialGradients entry'));
+    expect(errors).toContainEqual(expect.stringContaining('valueAxes[0] - thresholds[1].pattern - cannot be combined with gradient'));
+    expect(errors).toContainEqual(expect.stringContaining('categoryAxis - thresholds[0].title.side - should be "inside" only on a threshold range'));
   });
 
   it('accepts thresholds on a linear category axis', () => {

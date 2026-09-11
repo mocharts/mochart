@@ -100,8 +100,9 @@ export const SIDES = [
 export const TITLE_SIDE_LOW = 'low';
 export const TITLE_SIDE_HIGH = 'high';
 
+export const TITLE_SIDE_INSIDE = 'inside';
 export const THRESHOLD_TITLE_SIDES = [
-  TITLE_SIDE_LOW, TITLE_SIDE_HIGH
+  TITLE_SIDE_LOW, TITLE_SIDE_HIGH, TITLE_SIDE_INSIDE
 ];
 
 export const CHART_TYPE_XY = 'xy';
@@ -261,7 +262,7 @@ export type AnimationEasing =
   typeof EASING_QUINT_IN | typeof EASING_QUINT_OUT | typeof EASING_QUINT_IN_OUT |
   typeof EASING_BOUNCE_IN | typeof EASING_BOUNCE_OUT | typeof EASING_BOUNCE_IN_OUT;
 export type AxisSide = typeof SIDE_START | typeof SIDE_END;
-export type ThresholdTitleSide = typeof TITLE_SIDE_LOW | typeof TITLE_SIDE_HIGH;
+export type ThresholdTitleSide = typeof TITLE_SIDE_LOW | typeof TITLE_SIDE_HIGH | typeof TITLE_SIDE_INSIDE;
 export type ChartType = typeof CHART_TYPE_XY | typeof CHART_TYPE_PIE;
 export type PieLabelType =
   typeof PIE_LABEL_TYPE_VALUE | typeof PIE_LABEL_TYPE_PERCENT | typeof PIE_LABEL_TYPE_TITLE |

@@ -4,7 +4,7 @@ import { filterConfig, getRawIndices } from '../core/configUtils';
 import { getPropertyMessage, isConfigObject } from './messages';
 import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators';
 
-import { AUTO, NONE, ANCHORS, STYLE_SAME, SIDES, THRESHOLD_TITLE_SIDES, TYPE_DATE } from '../core/constants';
+import { AUTO, NONE, ANCHORS, STYLE_SAME, SIDES, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants';
 
 import type { ConfigObject, LocatedValidationMessage } from './messages';
 import type { Validator } from '@mochart/movalid';
@@ -90,11 +90,15 @@ export default function getValidators(thresholdValue = validators.number(), tick
 
     thresholds: validators.arrayOf(validators.objectWithShape({
       value: thresholdValue,
+      rangeValue: thresholdValue.orOneOf([NONE, undefined]),
       front: validators.boolean().orEqual(undefined),
-      style: styleStates(lineMembers).orEqual(undefined),
+      style: styleStates(styleMembers).orEqual(undefined),
+      pattern: validators.string().orOneOf([NONE, undefined]),
+      gradient: validators.string().orOneOf([NONE, undefined]),
       title: validators.partialObjectWithShape({
         text: validators.string().orOneOf([NONE, undefined]),
         side: validators.oneOf(THRESHOLD_TITLE_SIDES).orEqual(undefined),
+        align: validators.oneOf(ANCHORS).orOneOf([AUTO, undefined]),
         snapToValue: validators.boolean().orEqual(undefined),
         margin: validators.margin().orEqual(undefined),
         padding: validators.padding().orEqual(undefined),
@@ -182,3 +186,64 @@ function checkAxisBoundsPair(section: ConfigObject, minKey: string, maxKey: stri
   errors.push(getPropertyMessage(sectionKey, minKey, message, index));
   errorDetails.push({ path: index === undefined ? [sectionKey, minKey] : [sectionKey, index, minKey], message });
 }
+
+const thresholdPatternMessage = 'should be the id of a patterns entry';
+const thresholdGradientMessage = 'should be the id of a linearGradients or radialGradients entry';
+const thresholdPatternGradientMessage = 'cannot be combined with gradient';
+const thresholdInsideMessage = 'should be "inside" only on a threshold range (an entry with a rangeValue)';
+
+function getSectionIds(config: ConfigObject, sectionKeys: string[]): Set<string> {
+  const ids = new Set<string>();
+  for (const sectionKey of sectionKeys) {
+    const sections = config[sectionKey];
+    if (Array.isArray(sections)) {
+      for (const section of sections) {
+        if (isConfigObject(section) && typeof section['id'] === 'string') {
+          ids.add(section['id']);
+        }
+      }
+    }
+  }
+  return ids;
+}
+
+/** The threshold entry rules that cross sections or members: pattern and gradient ids, their exclusivity, and the inside title side. */
+export function validateThresholdEntries(config: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
+  const patternIds = getSectionIds(config, ['patterns']);
+  const gradientIds = getSectionIds(config, ['linearGradients', 'radialGradients']);
+  const axes: { prefix: string; path: (string | number)[]; axis: unknown }[] = [{ prefix: 'categoryAxis', path: ['categoryAxis'], axis: config['categoryAxis'] }];
+  const valueAxes = config['valueAxes'];
+  if (Array.isArray(valueAxes)) {
+    valueAxes.forEach((axis, index) => axes.push({ prefix: 'valueAxes[' + index + ']', path: ['valueAxes', index], axis }));
+  }
+  for (const { prefix, path, axis } of axes) {
+    if (!isConfigObject(axis) || !Array.isArray(axis['thresholds'])) {
+      continue;
+    }
+    axis['thresholds'].forEach((threshold, index) => {
+      if (!isConfigObject(threshold)) {
+        return;
+      }
+      const report = (member: string, message: string, memberPath: (string | number)[]) => {
+        errors.push(getPropertyMessage(prefix, 'thresholds[' + index + '].' + member, message));
+        errorDetails.push({ path: [...path, 'thresholds', index, ...memberPath], message });
+      };
+      const pattern = threshold['pattern'];
+      const gradient = threshold['gradient'];
+      if (typeof pattern === 'string' && !patternIds.has(pattern)) {
+        report('pattern', thresholdPatternMessage, ['pattern']);
+      }
+      if (typeof gradient === 'string' && !gradientIds.has(gradient)) {
+        report('gradient', thresholdGradientMessage, ['gradient']);
+      }
+      if (typeof pattern === 'string' && typeof gradient === 'string') {
+        report('pattern', thresholdPatternGradientMessage, ['pattern']);
+      }
+      const title = threshold['title'];
+      if (isConfigObject(title) && title['side'] === TITLE_SIDE_INSIDE && (threshold['rangeValue'] === undefined || threshold['rangeValue'] === null)) {
+        report('title.side', thresholdInsideMessage, ['title', 'side']);
+      }
+    });
+  }
+}
+

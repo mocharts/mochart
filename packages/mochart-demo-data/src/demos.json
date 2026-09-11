@@ -47,6 +47,15 @@
       "random": "default-random.json"
     },
     {
+      "id": "threshold-range",
+      "title": "Threshold Range",
+      "description": "Threshold ranges on both value axes: a filled band with an inside title, and a patterned one titled above it.",
+      "notes": "The threshold-line chart with a rangeValue on each entry, so each draws a band between its two values instead of a line: the stroke members of style draw the band's two edge lines and the fill members fill it. The left axis band spans 10 to 25 with a translucent green fill and a title whose side is \"inside\", centred within the band, and whose align \"middle\" centres it along the plot; the right axis band spans -10 to -5 and names the hatch entry of patterns, whose \"series\" colour resolves to the band's fillColor, with its title on the high side. The left axis still adjusts for filtering, so hiding a stacked series rescales its band along with the axis.",
+      "config": "threshold-range-config.json",
+      "data": "mixed-categories-mixed-values-data.json",
+      "random": "default-random.json"
+    },
+    {
       "id": "ordinal",
       "title": "Category Ordinal",
       "description": "String category values placed in even slots by an ordinal category scale.",
@@ -67,8 +76,8 @@
     {
       "id": "category-ticks",
       "title": "Category Ticks",
-      "description": "Explicit category axis ticks naming only the Mondays of a daily ordinal date axis.",
-      "notes": "categoryAxis is type date on an ordinal scale with thirty consecutive trading days, and its ticks array lists the six Mondays by ISO date string, so only those categories get a tick, grid line and \"%b %d\" label where the generated ticks would be skipped at arbitrary days. The tooltip's valueFormat spells out the weekday. A tick naming no category is hidden, so randomised data keeps only the Mondays it happens to include.",
+      "description": "Explicit category axis ticks naming only the Mondays of a daily ordinal date axis, with a threshold range behind every other week.",
+      "notes": "categoryAxis is type date on an ordinal scale with thirty consecutive trading days, and its ticks array lists the six Mondays by ISO date string, so only those categories get a tick, grid line and \"%b %d\" label where the generated ticks would be skipped at arbitrary days. The tooltip's valueFormat spells out the weekday. Three thresholds entries on the ordinal axis each pair a Monday with its Friday as value and rangeValue, drawing a faint band (fillOpacity 0.06, strokeOpacity 0 so no edge lines) behind every other week; on an ordinal axis a range covers the named categories' whole slots, so the bands tile edge to edge, and front false keeps them behind the line. A tick naming no category is hidden, so randomised data keeps only the Mondays it happens to include.",
       "config": "category-ticks-config.json",
       "data": "category-ticks-data.json",
       "random": "category-ticks-random.json"

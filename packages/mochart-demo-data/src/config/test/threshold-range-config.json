@@ -1,0 +1,126 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Threshold Range"
+  },
+  "animation": {
+    "expansionDuration": 2000,
+    "initialDuration": 2000,
+    "valueChangeDuration": 2000,
+    "contractionDuration": 2000
+  },
+  "plot": {
+    "inverted": false
+  },
+  "categoryAxis": {
+    "valueLabel": "Category",
+    "property": "categoryNO",
+    "type": "number",
+    "scale": "ordinal"
+  },
+  "valueAxes": [
+    {
+      "id": "VA0",
+      "adjustForFiltering": true,
+      "side": "start",
+      "thresholds": [
+        {
+          "value": 10,
+          "rangeValue": 25,
+          "style": {
+            "normal": {
+              "fillColor": "#1baf7a",
+              "fillOpacity": 0.15,
+              "strokeColor": "#1baf7a",
+              "strokeOpacity": 0.8
+            }
+          },
+          "title": {
+            "text": "Target band",
+            "side": "inside",
+            "align": "middle",
+            "padding": {
+              "top": 4,
+              "right": 6,
+              "bottom": 4,
+              "left": 6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "VA1",
+      "adjustForFiltering": false,
+      "side": "end",
+      "thresholds": [
+        {
+          "value": -10,
+          "rangeValue": -5,
+          "pattern": "hatch",
+          "style": {
+            "normal": {
+              "fillColor": "#e34948",
+              "strokeColor": "#e34948",
+              "strokeOpacity": 0.8
+            }
+          },
+          "title": {
+            "text": "Danger zone",
+            "side": "high",
+            "padding": {
+              "top": 5,
+              "right": 5,
+              "bottom": 5,
+              "left": 5
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "seriesStacks": {
+    "axis": "VA0"
+  },
+  "series": [
+    {
+      "axis": "VA0",
+      "property": "value1",
+      "title": "Stacked Bar 1",
+      "renderer": "bar"
+    },
+    {
+      "axis": "VA0",
+      "property": "value2",
+      "title": "Stacked Bar 2",
+      "renderer": "bar"
+    },
+    {
+      "axis": "VA0",
+      "property": "value3",
+      "title": "Stacked Bar 3",
+      "renderer": "bar"
+    },
+    {
+      "axis": "VA1",
+      "stack": null,
+      "property": "value5",
+      "title": "Line 1",
+      "renderer": "line"
+    },
+    {
+      "axis": "VA1",
+      "stack": null,
+      "property": "value6",
+      "title": "Line 2",
+      "renderer": "line"
+    }
+  ],
+  "patterns": [
+    {
+      "id": "hatch",
+      "type": "lines",
+      "rotation": 45
+    }
+  ]
+}

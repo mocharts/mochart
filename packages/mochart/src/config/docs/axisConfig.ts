@@ -3,6 +3,7 @@ import type { DescriptionMap, NestedDescription } from './shared';
 
 const strokeMembers = ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray'];
 const lineMembers = ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray'];
+const fillLineMembers = [...lineMembers, 'fillColor', 'fillOpacity'];
 
 const sameNote = ', or "same" to use the color of the normal state';
 const sameValueNote = ', or "same" to use the value of the normal state';
@@ -117,16 +118,20 @@ export default function getDescriptions() {
 
 
     thresholds: {
-      description: 'the threshold lines to draw on the axis, each an object drawing a reference line across the plot at an axis value (the array replaces the default wholesale)',
+      description: 'the thresholds to draw on the axis, each an object drawing a reference line across the plot at an axis value, or a range filling the band between two values (the array replaces the default wholesale)',
       properties: {
-        value: 'the axis value to draw the threshold line at (on a date category axis, a millisecond timestamp or ISO date string); thresholds never extend the axis domain, and a value outside it is not drawn',
-        front: 'whether the line is drawn in front of (true) or behind (false) the series shapes',
-        style: styleStates('the style of the threshold line', lineMembers),
+        value: 'the axis value to draw the threshold at (on a date category axis, a millisecond timestamp or ISO date string; on an ordinal axis, a category value); thresholds never extend the axis domain, and a line outside it is not drawn',
+        rangeValue: 'the second axis value of a threshold range, in the same forms as value: with one set the entry fills the band between the two values instead of drawing a line (use null for a line)',
+        front: 'whether the threshold is drawn in front of (true) or behind (false) the series shapes',
+        style: styleStates('the style of the threshold: the stroke members draw the line, or the two edge lines of a range, and the fill members fill a range', fillLineMembers),
+        pattern: 'the unique id of the pattern config filling a threshold range (use null for none; cannot be combined with gradient)',
+        gradient: 'the unique id of the gradient config filling a threshold range (use null for none; cannot be combined with pattern)',
         title: {
-          description: 'the title label shown beside the threshold line',
+          description: 'the title label shown beside the threshold',
           properties: {
-            text: 'the title text shown beside the line (use null for none)',
-            side: 'which value side of the line the title sits on ("low" for smaller values, "high" for larger)',
+            text: 'the title text shown beside the threshold (use null for none)',
+            side: 'which value side of the threshold the title sits on ("low" for smaller values, "high" for larger, or "inside" to centre it within a range)',
+            align: 'where the title sits along the threshold ("start", "middle" or "end" of the plot, or "auto" for the end at the axis side)',
             snapToValue: 'whether the title flips to the other side of the line when its own side has no room, instead of being clamped inside the plot over the line',
             margin: spacing('the margin (in pixels) of the threshold title, relative to its orientation'),
             padding: spacing('the padding (in pixels) of the threshold title, relative to its orientation'),

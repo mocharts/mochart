@@ -1659,18 +1659,25 @@ export interface TooltipConfig {
  */
 export interface ThresholdTitleConfig {
   /**
-   * The title text shown beside the line (use null for none).
+   * The title text shown beside the threshold (use null for none).
    *
    * @default null
    */
   text?: string | null;
   /**
-   * Which value side of the line the title sits on ("low" for smaller values,
-   * "high" for larger).
+   * Which value side of the threshold the title sits on ("low" for smaller
+   * values, "high" for larger, or "inside" to centre it within a range).
    *
    * @default "high"
    */
   side?: ThresholdTitleSide;
+  /**
+   * Where the title sits along the threshold ("start", "middle" or "end" of the
+   * plot, or "auto" for the end at the axis side).
+   *
+   * @default "auto"
+   */
+  align?: Anchor | Auto;
   /**
    * Whether the title flips to the other side of the line when its own side has
    * no room, instead of being clamped inside the plot over the line.
@@ -1713,28 +1720,52 @@ export interface ThresholdTitleConfig {
  */
 export interface ThresholdConfig {
   /**
-   * The axis value to draw the threshold line at (on a date category axis, a
-   * millisecond timestamp or ISO date string); thresholds never extend the axis
-   * domain, and a value outside it is not drawn.
+   * The axis value to draw the threshold at (on a date category axis, a
+   * millisecond timestamp or ISO date string; on an ordinal axis, a category
+   * value); thresholds never extend the axis domain, and a line outside it is
+   * not drawn.
    */
   value: number | string;
   /**
-   * Whether the line is drawn in front of (true) or behind (false) the series
-   * shapes.
+   * The second axis value of a threshold range, in the same forms as value:
+   * with one set the entry fills the band between the two values instead of
+   * drawing a line (use null for a line).
+   *
+   * @default null
+   */
+  rangeValue?: number | string | null;
+  /**
+   * Whether the threshold is drawn in front of (true) or behind (false) the
+   * series shapes.
    *
    * @default true
    */
   front?: boolean;
   /**
-   * The style of the threshold line.
+   * The style of the threshold: the stroke members draw the line, or the two
+   * edge lines of a range, and the fill members fill a range.
    *
    * @default { normal: { … }, focused: { … }, defocused: { … } }
    */
-  style?: DeepPartial<StrokeStyleStates>;
+  style?: DeepPartial<StyleStates>;
   /**
-   * The title label shown beside the threshold line.
+   * The unique id of the pattern config filling a threshold range (use null for
+   * none; cannot be combined with gradient).
    *
-   * @default { text: null, side: "high", snapToValue: true, margin: { … }, padding: { … }, textStyle: { … }, backgroundStyle: { … } }
+   * @default null
+   */
+  pattern?: string | null;
+  /**
+   * The unique id of the gradient config filling a threshold range (use null
+   * for none; cannot be combined with pattern).
+   *
+   * @default null
+   */
+  gradient?: string | null;
+  /**
+   * The title label shown beside the threshold.
+   *
+   * @default { text: null, side: "high", align: "auto", snapToValue: true, margin: { … }, padding: { … }, textStyle: { … }, backgroundStyle: { … } }
    */
   title?: ThresholdTitleConfig;
 }
@@ -2313,15 +2344,19 @@ export interface AxisConfigBase {
    */
   softMax: number | string | null;
   /**
-   * The threshold lines to draw on the axis, each an object drawing a reference
-   * line across the plot at an axis value (the array replaces the default
-   * wholesale).
+   * The thresholds to draw on the axis, each an object drawing a reference line
+   * across the plot at an axis value, or a range filling the band between two
+   * values (the array replaces the default wholesale).
    *
-   * An ordinal axis places its categories at evenly spaced positions rather
-   * than on a value scale, so there is no position to place a threshold at — it
-   * accepts only an empty array. On a linear axis each entry's `value` takes
-   * the same forms as `min`: a number when `type` is `number`, and either a
-   * millisecond timestamp or an ISO date string when `type` is `date`.
+   * On a linear axis each entry's `value` (and `rangeValue`) takes the same
+   * forms as `min`: a number when `type` is `number`, and either a millisecond
+   * timestamp or an ISO date string when `type` is `date`. On an ordinal axis a
+   * value names a category, matched the way explicit `ticks` are (a date by
+   * instant, so the ISO and timestamp forms both find a `Date` category; the
+   * category string on a `string` axis): a line sits at the category's centre,
+   * and a range covers whole slots from the first named category's outer edge
+   * to the second's, so ranges over consecutive weeks tile without gaps. An
+   * entry naming no category is not drawn.
    *
    * @default []
    */

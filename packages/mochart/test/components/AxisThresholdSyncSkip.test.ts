@@ -1,7 +1,7 @@
 /**
  * Pointer tracking re-syncs the Chart on every move, but threshold lines only re-sync when their own
  * inputs changed: the resolved thresholds are cached by config identity and the position ranges are
- * kept while config and domain hold, so moves inside one category skip every AxisThresholdLine.
+ * kept while config and domain hold, so moves inside one category skip every AxisThresholdShape.
  */
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { installFakeFrameClock, runFrames, mockBoundingClientRect, mountContainer, trackHandle } from './helpers';
@@ -37,8 +37,8 @@ beforeAll(async () => {
   installSvgMeasurementShims();
   mockBoundingClientRect(WIDTH, HEIGHT);
   mochart = await import('../../src');
-  const { default: AxisThresholdLine } = await import('../../src/components/AxisThresholdLine');
-  syncSpy = vi.spyOn(AxisThresholdLine.prototype, 'sync');
+  const { default: AxisThresholdShape } = await import('../../src/components/AxisThresholdShape');
+  syncSpy = vi.spyOn(AxisThresholdShape.prototype, 'sync');
 });
 
 function mouse(target: Element, type: string, clientX: number, clientY: number): void {

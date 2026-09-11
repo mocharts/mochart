@@ -1,9 +1,9 @@
 import { AUTO, NONE, COLOR_CURRENT, STYLE_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants';
 import { deepMerge } from '../core/deepMerge';
 import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
-import type { StrokeStyleStates, Style, StyleStates, ThresholdConfig } from '../../types/config';
+import type { Style, StyleStates, ThresholdConfig } from '../../types/config';
 import type { MarginPadding } from '../../types/geometry';
-import type { ThresholdTitleSide } from '../core/constants';
+import type { Anchor, Auto, ThresholdTitleSide } from '../core/constants';
 
 export default function getDefaults() {
   return {
@@ -133,15 +133,19 @@ export default function getDefaults() {
 /** The defaults merged under each `thresholds` entry (the array itself replaces wholesale). */
 export function getThresholdEntryDefaults() {
   return {
+    rangeValue: NONE,
     front: true,
     style: {
-      normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.65, strokeWidth: 1, strokeDashArray: NONE },
-      focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.65, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME },
-      defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.325, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME }
+      normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.65, strokeWidth: 1, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: 0.1 },
+      focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.65, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 0.1 },
+      defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.325, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 0.05 }
     },
+    pattern: NONE,
+    gradient: NONE,
     title: {
       text: NONE,
       side: TITLE_SIDE_HIGH,
+      align: AUTO,
       snapToValue: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
       padding: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -160,6 +164,7 @@ export function getThresholdEntryDefaults() {
 export interface ResolvedThresholdTitle {
   text: string | null;
   side: ThresholdTitleSide;
+  align: Anchor | Auto;
   snapToValue: boolean;
   margin: MarginPadding;
   padding: MarginPadding;
@@ -169,10 +174,14 @@ export interface ResolvedThresholdTitle {
 
 /** A `thresholds` entry with every member filled from the entry defaults. */
 export interface ResolvedThreshold {
-  /** A number, or an ISO date string on date axes (validated by datePrimitive); other strings never validate or render. */
+  /** A number, an ISO date string on date axes (validated by datePrimitive), or a category string on a string ordinal axis. */
   value: number | string;
+  /** The second value of a range, in the same forms as `value`; null for a line. */
+  rangeValue: number | string | null;
   front: boolean;
-  style: StrokeStyleStates;
+  style: StyleStates;
+  pattern: string | null;
+  gradient: string | null;
   title: ResolvedThresholdTitle;
 }
 
