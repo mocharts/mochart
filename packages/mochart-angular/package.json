@@ -1,6 +1,6 @@
 {
   "name": "@mochart/angular",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Angular components for the mochart charting library",
   "keywords": [
     "chart",
@@ -52,11 +52,11 @@
   ],
   "peerDependencies": {
     "@angular/core": ">=22.0.0",
-    "@mochart/core": "^1.0.0"
+    "@mochart/core": "^1.0.1"
   },
   "devDependencies": {
     "@angular/compiler": "^22.1.1",
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "@angular/compiler-cli": "^22.1.1",
     "@angular/core": "^22.1.1",
     "@angular/platform-browser": "^22.1.1",

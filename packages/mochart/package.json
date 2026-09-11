@@ -1,6 +1,6 @@
 {
   "name": "@mochart/core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Animated interactive SVG charting library with zero framework dependencies",
   "keywords": [
     "chart",
@@ -59,7 +59,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@mochart/movalid": "^1.0.0"
+    "@mochart/movalid": "^1.0.1"
   },
   "scripts": {
     "prebuild": "tsx scripts/stampVersion.ts --check",

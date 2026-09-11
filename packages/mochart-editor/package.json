@@ -1,6 +1,6 @@
 {
   "name": "@mochart/editor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Framework-neutral JSON editor with Mochart config intelligence",
   "keywords": [
     "json",
@@ -76,7 +76,7 @@
     "codemirror": "^6.0.0"
   },
   "peerDependencies": {
-    "@mochart/core": "^1.0.0"
+    "@mochart/core": "^1.0.1"
   },
   "scripts": {
     "generate": "node --import tsx ../mochart/scripts/generateEditorModel.ts",
@@ -91,7 +91,7 @@
     "prepack": "npm run build"
   },
   "devDependencies": {
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "@vitest/coverage-v8": "^4.1.10",
     "tsx": "^4.23.12"
   }

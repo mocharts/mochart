@@ -1,6 +1,6 @@
 {
   "name": "@mochart/export",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SVG and PNG image export for the mochart charting library",
   "keywords": [
     "chart",
@@ -51,10 +51,10 @@
     "CHANGELOG.md"
   ],
   "peerDependencies": {
-    "@mochart/core": "^1.0.0"
+    "@mochart/core": "^1.0.1"
   },
   "devDependencies": {
-    "@mochart/core": "^1.0.0",
+    "@mochart/core": "^1.0.1",
     "@vitest/coverage-v8": "^4.1.10"
   },
   "scripts": {
