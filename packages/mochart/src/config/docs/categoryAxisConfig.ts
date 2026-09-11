@@ -28,6 +28,15 @@ export default function getDescriptions() {
         label: 'the text of the tick label (leave it out to format the value with tickLabel.format)'
       }
     },
+    tickStep: {
+      description: 'the step between the ticks shown along the axis: every count-th candidate from an offset, the candidates being the categories or, with a unit on a date axis, the first category of each period',
+      properties: {
+        count: 'every count-th candidate gets a tick ("auto" keeps as many as fit without overlapping); applies on an ordinal scale, a linear scale accepts only "auto"',
+        offset: 'the position among the candidates of the first one shown (0 for the first candidate); applies on an ordinal scale, a linear scale accepts only 0',
+        unit: 'the calendar period the ticks step by on a date axis (day, week starting Monday, month, year; use null for none): on an ordinal scale the first category of each period is a candidate, on a linear scale the period boundaries are the ticks',
+        includeFirst: 'whether the first category always gets a tick, even when count and offset would skip it; applies on an ordinal scale, a linear scale accepts only false'
+      }
+    },
     tickLabel: {
       description: tickLabelDescription,
       properties: {
@@ -59,6 +68,7 @@ export function getDetails() {
     max: 'The form the bound takes follows `type` on a linear axis: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string (`"2020-01-01"`) when `type` is `date` — the two forms `thresholds[].value` takes. An ordinal axis places its categories in data order, so it accepts only `"auto"`.',
     softMin: 'Takes the same forms as `min` — a number, or a timestamp or ISO date string on a date axis — but only applies while no category value falls below it, so real data still expands the domain. An ordinal axis accepts only `null`.',
     softMax: 'Takes the same forms as `max` — a number, or a timestamp or ISO date string on a date axis — but only applies while no category value rises above it, so real data still expands the domain. An ordinal axis accepts only `null`.',
+    tickStep: 'Chooses which ticks an axis shows by rule rather than by a list, so it keeps working as the data changes; explicit `ticks` take precedence over it. On an ordinal scale the candidates are the categories in order, or with a `unit` on a date axis the first category of each period (a week starts on Monday; boundaries follow `dateUTC`), so a daily series with `unit: "week"` gets a tick at each Monday whatever the holidays (a partial first week is a period of its own, so its first day gets one too; `offset: 1` skips it), and `count: 2` on top of that gives every second week. `count` and `offset` step through the candidates: `count: 5, offset: 3` shows the fourth category and every fifth after it. When more ticks survive the rule than fit, every k-th survivor is kept starting from the first, so thinned Mondays stay Mondays; `tickLabel.truncation` still decides whether crowded labels truncate or skip. On a linear date scale only `unit` applies, placing the ticks at the period boundaries themselves; a linear number scale accepts only the defaults.',
     ticks: 'Replaces the automatic tick generation entirely: tick counts, intervals and the tick skipping that keeps labels from overlapping are ignored, so the configured ticks show even where they overlap. Each entry\'s `value` takes the same forms as `min` on a linear axis: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string when `type` is `date`; on a `string` axis it is the category string. On an ordinal axis a tick shows at the category whose value matches (a date matches by instant, so the ISO and timestamp forms both find a `Date` category), and a tick matching no category is hidden; on a linear axis it is placed on the scale, and a tick outside the current axis domain is hidden. Useful for labelling only some of many categories, e.g. every Monday of a daily date axis, where the generated ticks would be truncated or skipped at arbitrary categories.',
     thresholds: 'An ordinal axis places its categories at evenly spaced positions rather than on a value scale, so there is no position to place a threshold at — it accepts only an empty array. On a linear axis each entry\'s `value` takes the same forms as `min`: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string when `type` is `date`.'
   };

@@ -45,8 +45,9 @@ import * as ohlc from '../examples/ohlc'
   and tooltip [`valueFormat`](/reference/categoryAxis#categoryAxis.valueFormat)
   as above; without it every label is a string shown as given.
 - With months of daily bars the generated tick labels are truncated or
-  skipped at arbitrary days; list the dates to label in
-  [`ticks`](/reference/categoryAxis#categoryAxis.ticks) instead. See
+  skipped at arbitrary days; step the ticks by week with
+  [`tickStep`](/reference/categoryAxis#categoryAxis.tickStep), or list the
+  dates to label in [`ticks`](/reference/categoryAxis#categoryAxis.ticks). See
   [labelling chosen dates](/recipes/date-axis#labelling-chosen-dates).
 - The default direction colors are teal-green/red rather than a pure
   green/red: green↔red is the classic red-green-blindness collision, and

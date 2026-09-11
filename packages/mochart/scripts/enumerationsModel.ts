@@ -63,6 +63,7 @@ const descriptions: Record<string, string> = {
   LabelPosition: 'Where a series value label sits relative to its shape.',
   MarkerShape: 'The symbol drawn at each series value.',
   MarkerSizeScale: 'How marker area scales with the marker size property.',
+  TickStepUnit: 'The calendar period a date category axis steps its ticks by: the first category of each period gets a tick on an ordinal scale, the period boundary itself on a linear one.',
   ColorMode: 'The keywords a series style color accepts in place of a CSS color, resolved against the palette.',
   ColorInterpolation: 'The color space a series color scale interpolates in.',
   PatternType: 'The fill pattern a `patterns` entry draws.',

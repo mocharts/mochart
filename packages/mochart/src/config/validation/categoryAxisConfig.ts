@@ -1,6 +1,6 @@
 import validators from './validators';
 
-import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_STRING, TYPE_NUMBER, TYPE_DATE } from '../core/constants';
+import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_STRING, TYPE_NUMBER, TYPE_DATE, TICK_STEP_UNITS } from '../core/constants';
 
 import getAxisValidators, { getTickLabelValidators } from './axisConfig';
 import getTruncationValidators from './truncationConfig';
@@ -98,6 +98,28 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
       ], config),
       label: validators.string().orEqual(undefined)
     }), true).orEqual(NONE),
+
+    tickStep: validators.partialObjectWithShape({
+      count: validators.conditional([
+        { ...scaleOrdinalRule, validator: validators.integerMin(1).orEqual(AUTO) },
+        { ...scaleLinearRule, validator: validators.equal(AUTO) },
+        { ...defaultRule, validator: validators.any() }
+      ], config),
+      offset: validators.conditional([
+        { ...scaleOrdinalRule, validator: validators.integerMin(0) },
+        { ...scaleLinearRule, validator: validators.equal(0) },
+        { ...defaultRule, validator: validators.any() }
+      ], config),
+      unit: validators.conditional([
+        { ...typeDateRule, validator: validators.oneOf(TICK_STEP_UNITS).orEqual(NONE) },
+        { ...defaultRule, validator: validators.equal(NONE) }
+      ], config),
+      includeFirst: validators.conditional([
+        { ...scaleOrdinalRule, validator: validators.boolean() },
+        { ...scaleLinearRule, validator: validators.equal(false) },
+        { ...defaultRule, validator: validators.any() }
+      ], config)
+    }, true),
 
     softMax: validators.conditional([
       { ...linearDateRule, validator: validators.datePrimitive().orEqual(NONE) },

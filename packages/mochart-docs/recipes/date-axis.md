@@ -9,6 +9,7 @@ spacing below matching the gaps in the data.
 <script setup>
 import * as dateAxis from '../examples/dateAxis'
 import * as categoryTicks from '../examples/categoryTicks'
+import * as tickStep from '../examples/tickStep'
 </script>
 
 <LiveChart :config="dateAxis.config" :data="dateAxis.data" demo="tick-prune" />
@@ -46,9 +47,32 @@ import * as categoryTicks from '../examples/categoryTicks'
 
 A daily ordinal axis has more categories than fit as labels, and the
 generated ticks are thinned by skipping every Nth category, which lands on
-arbitrary days. [`ticks`](/reference/categoryAxis#categoryAxis.ticks) replaces
-the generated ticks with a list of category values, so only those categories
-get a tick, grid line and label:
+arbitrary days. [`tickStep`](/reference/categoryAxis#categoryAxis.tickStep)
+chooses the ticks by rule instead. With a `unit` on a date axis the first
+category of each period gets the tick, here each week's first trading day,
+and that holds through holidays and as the data window slides:
+
+<LiveChart :config="tickStep.config" :data="tickStep.data" demo="candlestick" />
+
+<<< @/examples/tickStep.ts{14-17}
+
+- `unit` is `day`, `week`, `month` or `year`; weeks start on Monday and the
+  boundaries follow [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC).
+  A partial first week is a period of its own, so its first day gets a tick;
+  `offset: 1` skips it.
+- `count` and `offset` step through the candidates: `unit: 'week'` with
+  `count: 2` labels every second week, and on a string axis
+  `count: 5, offset: 3` shows the fourth category and every fifth after it.
+  `includeFirst` always keeps the first category.
+- When more ticks survive than fit, every k-th survivor is kept from the
+  first, so a thinned weekly rule still lands on Mondays.
+- On a linear date axis only `unit` applies, and the ticks sit on the period
+  boundaries themselves rather than on categories.
+
+To name the dates outright instead,
+[`ticks`](/reference/categoryAxis#categoryAxis.ticks) replaces the generated
+ticks with a list of category values, so only those categories get a tick,
+grid line and label:
 
 <LiveChart :config="categoryTicks.config" :data="categoryTicks.data" demo="category-ticks" />
 

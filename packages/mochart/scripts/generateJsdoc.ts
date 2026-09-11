@@ -103,6 +103,7 @@ const sharedInterfaceSources: SharedInterfaceSource[] = [
   { interfaceName: 'AxisBaseLineConfig', sectionId: 'valueAxes', propertyKey: 'baseLine', includeDefaults: true },
   { interfaceName: 'ValueAxisTick', sectionId: 'valueAxes', propertyKey: 'ticks', includeDefaults: true },
   { interfaceName: 'CategoryAxisTick', sectionId: 'categoryAxis', propertyKey: 'ticks', includeDefaults: true },
+  { interfaceName: 'CategoryAxisTickStepConfig', sectionId: 'categoryAxis', propertyKey: 'tickStep', includeDefaults: true },
   { interfaceName: 'GradientStop', sectionId: 'linearGradients', propertyKey: 'stops', includeDefaults: true }
 ];
 

@@ -347,15 +347,15 @@ const CANDLESTICK_DAYS = [
   '2026-06-15', '2026-06-16', '2026-06-17', '2026-06-18', '2026-06-19',
   '2026-06-22', '2026-06-23', '2026-06-24', '2026-06-25', '2026-06-26'
 ];
-const CANDLESTICK_MONDAYS = ['2026-06-01', '2026-06-08', '2026-06-15', '2026-06-22'];
 
-// The helpers' ordinal date axis with the demos' day formats and a tick at each Monday only.
+// The helpers' ordinal date axis with the demos' day formats, stepping the ticks by week so only the
+// first trading day of each week gets one, whatever days the random walk keeps.
 function candlestickCategoryAxis(categoryAxis: Partial<CategoryAxisConfig>): DeepPartial<CategoryAxisConfig> {
   return {
     ...categoryAxis,
     tickLabel: { format: '%b %d' },
     valueFormat: '%a %b %d',
-    ticks: CANDLESTICK_MONDAYS.map(value => ({ value }))
+    tickStep: { unit: 'week' }
   };
 }
 const CANDLESTICK_START_PRICE = 100;

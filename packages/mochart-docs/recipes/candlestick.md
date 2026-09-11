@@ -44,10 +44,11 @@ import * as candlestickVolume from '../examples/candlestickVolume'
   and tooltip [`valueFormat`](/reference/categoryAxis#categoryAxis.valueFormat)
   as above; without it every label is a string shown as given.
 - With months of daily candles the generated tick labels are truncated or
-  skipped at arbitrary days; list the dates to label in
-  [`ticks`](/reference/categoryAxis#categoryAxis.ticks) instead, as the example
-  does for its two Mondays. See
-  [labelling chosen dates](/recipes/date-axis#labelling-chosen-dates).
+  skipped at arbitrary days; step the ticks by week with
+  [`tickStep`](/reference/categoryAxis#categoryAxis.tickStep) instead, as the
+  example does, so the first trading day of each week gets the tick, or list
+  the dates to label in [`ticks`](/reference/categoryAxis#categoryAxis.ticks).
+  See [labelling chosen dates](/recipes/date-axis#labelling-chosen-dates).
 - The default direction colors are teal-green/red rather than a pure
   green/red: green↔red is the classic red-green-blindness collision, and
   shifting the green toward teal keeps the pair distinguishable on light and

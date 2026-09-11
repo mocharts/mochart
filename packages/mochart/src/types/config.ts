@@ -1,6 +1,6 @@
 import type {
   Auto, Align, TooltipValueAlign, AxisSide, MissingValueMode, VerticalAlign, Anchor, Position, Scale, DataType, RendererType, ThresholdTitleSide,
-  CurveType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, PatternType,
+  CurveType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, TickStepUnit, PatternType,
   ChartType, PieLabelType, PieTooltipValueType, DomainChange, AnimationEasing
 } from '../config/core/constants';
 import type { MarginPadding, InnerOuter } from './geometry';
@@ -2457,6 +2457,30 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    */
   ticks: CategoryAxisTick[] | null;
   /**
+   * The step between the ticks shown along the axis: every count-th candidate
+   * from an offset, the candidates being the categories or, with a unit on a
+   * date axis, the first category of each period.
+   *
+   * Chooses which ticks an axis shows by rule rather than by a list, so it
+   * keeps working as the data changes; explicit `ticks` take precedence over
+   * it. On an ordinal scale the candidates are the categories in order, or with
+   * a `unit` on a date axis the first category of each period (a week starts on
+   * Monday; boundaries follow `dateUTC`), so a daily series with `unit: "week"`
+   * gets a tick at each Monday whatever the holidays (a partial first week is a
+   * period of its own, so its first day gets one too; `offset: 1` skips it),
+   * and `count: 2` on top of that gives every second week. `count` and `offset`
+   * step through the candidates: `count: 5, offset: 3` shows the fourth
+   * category and every fifth after it. When more ticks survive the rule than
+   * fit, every k-th survivor is kept starting from the first, so thinned
+   * Mondays stay Mondays; `tickLabel.truncation` still decides whether crowded
+   * labels truncate or skip. On a linear date scale only `unit` applies,
+   * placing the ticks at the period boundaries themselves; a linear number
+   * scale accepts only the defaults.
+   *
+   * @default { count: "auto", offset: 0, unit: null, includeFirst: false }
+   */
+  tickStep: CategoryAxisTickStepConfig;
+  /**
    * The labels shown at each tick along the axis.
    *
    * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, truncation: { … } }
@@ -2502,6 +2526,41 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * @default null
    */
   valueSuffix: string | null;
+}
+
+export interface CategoryAxisTickStepConfig {
+  /**
+   * Every count-th candidate gets a tick ("auto" keeps as many as fit without
+   * overlapping); applies on an ordinal scale, a linear scale accepts only
+   * "auto".
+   *
+   * @default "auto"
+   */
+  count: number | Auto;
+  /**
+   * The position among the candidates of the first one shown (0 for the first
+   * candidate); applies on an ordinal scale, a linear scale accepts only 0.
+   *
+   * @default 0
+   */
+  offset: number;
+  /**
+   * The calendar period the ticks step by on a date axis (day, week starting
+   * Monday, month, year; use null for none): on an ordinal scale the first
+   * category of each period is a candidate, on a linear scale the period
+   * boundaries are the ticks.
+   *
+   * @default null
+   */
+  unit: TickStepUnit | null;
+  /**
+   * Whether the first category always gets a tick, even when count and offset
+   * would skip it; applies on an ordinal scale, a linear scale accepts only
+   * false.
+   *
+   * @default false
+   */
+  includeFirst: boolean;
 }
 
 export interface CategoryAxisTick {
