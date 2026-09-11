@@ -322,7 +322,10 @@ type MissingDefault = 'required' | 'optional';
 const missingDefaultWhitelist: Record<string, Record<string, MissingDefault>> = {
   categoryAxis: {
     property: 'required',
-    'thresholds[].value': 'required'
+    'thresholds[].value': 'required',
+    'ticks[].value': 'required',
+    // A tick with no label falls back to the value formatted with tickLabel.format.
+    'ticks[].label': 'optional'
   },
   linearGradients: {
     stops: 'required',

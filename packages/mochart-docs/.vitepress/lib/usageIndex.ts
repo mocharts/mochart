@@ -16,6 +16,7 @@ import * as palette from '../../examples/palette.ts';
 import * as stackedBars from '../../examples/stackedBars.ts';
 import * as dualAxes from '../../examples/dualAxes.ts';
 import * as dateAxis from '../../examples/dateAxis.ts';
+import * as categoryTicks from '../../examples/categoryTicks.ts';
 import * as groupedSeries from '../../examples/groupedSeries.ts';
 import * as horizontal from '../../examples/horizontal.ts';
 import * as thresholdRange from '../../examples/thresholdRange.ts';
@@ -86,6 +87,7 @@ const docsExamples: { config: object; page: UsageLink }[] = [
   { config: stackedBars.config, page: { text: 'Stacked bars', link: '/recipes/stacked-bars' } },
   { config: dualAxes.config, page: { text: 'Dual value axes', link: '/recipes/dual-axes' } },
   { config: dateAxis.config, page: { text: 'Date axis', link: '/recipes/date-axis' } },
+  { config: categoryTicks.config, page: { text: 'Date axis', link: '/recipes/date-axis#labelling-chosen-dates' } },
   { config: groupedSeries.config, page: { text: 'Grouped series', link: '/recipes/grouped-series' } },
   { config: horizontal.config, page: { text: 'Horizontal charts', link: '/recipes/horizontal-bars' } },
   { config: thresholdRange.config, page: { text: 'Thresholds and ranges', link: '/recipes/thresholds-ranges' } },

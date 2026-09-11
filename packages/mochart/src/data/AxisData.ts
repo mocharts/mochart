@@ -4,9 +4,10 @@ import { timeFormat, utcFormat } from 'd3-time-format';
 
 import { getWithMutations } from '../utils/WithMutations';
 import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData';
+import { getCategoryValueKey } from './CategoryValue';
 import { areArraysAndEqual, arrayToMap, idAccessor } from '../utils/utils';
 import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants';
-import type { AxisConfigBase, CategoryAxisConfig, PlotConfig } from '../types/config';
+import type { AxisConfigBase, CategoryAxisConfig, CategoryAxisTick, PlotConfig } from '../types/config';
 import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced';
 import type { AxisData, AxisScale, AxisTick, AxisValue, ChartData, CategoryAxisData, CategoryAxisDomain, CategorySpacingInfo, CategoryValue, CategoryValues, NullableDomain, ValueAxisData, TickLabelFormatter } from '../types/data';
 import type { AxisLayoutInfo, ChartLayoutInfo, CategoryAxisLayoutInfo } from '../types/layout';
@@ -192,6 +193,9 @@ function createOrdinalTickObject(scaleTickValue: number, categoryValues: readonl
 }
 
 export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
+  if (axisConfig.ticks !== NONE) {
+    return getExplicitCategoryAxisTickData(axisConfig, axisConfig.ticks, axisScale, categoryValues, categoryPositions);
+  }
   let ticks: AxisTick[] = [];
   // magnitude: a reversed axis has a descending range, and tick counting needs a positive extent
   const categoryAxisRangeExtent = Math.abs(axisScale.range()[1] - axisScale.range()[0]);
@@ -315,8 +319,57 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
   return ticks;
 }
 
+function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, explicitTicks: readonly CategoryAxisTick[], axisScale: AxisScale, categoryValues: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
+  if (axisConfig.scale === SCALE_ORDINAL) {
+    // by value, not by keyProperty: a tick names a category value, and every category sharing it gets the tick
+    const keyAxisConfig = { type: axisConfig.type, keyProperty: NONE };
+    const indexesByKey = new Map<string, number[]>();
+    categoryValues.forEach((categoryValue, index) => {
+      const key = getCategoryValueKey(keyAxisConfig, categoryValue);
+      const indexes = indexesByKey.get(key);
+      if (indexes === undefined) {
+        indexesByKey.set(key, [index]);
+      }
+      else {
+        indexes.push(index);
+      }
+    });
+    const tickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, axisScale, explicitTicks.length, categoryValues);
+    const ticks: AxisTick[] = [];
+    explicitTicks.forEach(({ value, label }) => {
+      const indexes = indexesByKey.get(getCategoryValueKey(keyAxisConfig, value));
+      if (indexes === undefined) {
+        ticks.push({ label: label ?? '', position: NaN, value, hidden: true });
+      }
+      else {
+        indexes.forEach(index => {
+          const tick = createOrdinalTickObject(index, categoryValues, categoryPositions, tickLabelFormatter, () => false);
+          ticks.push(label === undefined ? tick : { ...tick, label });
+        });
+      }
+    });
+    return ticks;
+  }
+  const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisScale, explicitTicks.length);
+  const [rangeStart, rangeEnd] = axisScale.range();
+  const rangeMin = Math.min(rangeStart, rangeEnd);
+  const rangeMax = Math.max(rangeStart, rangeEnd);
+  return explicitTicks.map(({ value, label }) => {
+    const axisValue: AxisValue = axisConfig.type === TYPE_DATE ? new Date(value) : value as number;
+    const position = axisScale(axisValue);
+    return {
+      label: label ?? tickLabelFormatter(axisValue),
+      position,
+      value: axisValue,
+      hidden: !Number.isFinite(position) || position < rangeMin || position > rangeMax
+    };
+  });
+}
+
 function getMaxTickLabelLength(_categoryAxisConfig: CategoryAxisConfig, categoryValues: readonly CategoryValue[], axisTickData: AxisTick[], spacingInfo: CategorySpacingInfo): number {
-  return categoryValues.length / axisTickData.reduce((count, tick) => count + (tick.hidden ? 0 : 1), 0) * spacingInfo.categoryValueExtent;
+  // at least one: explicit ticks can all be hidden, and the clip width must stay finite
+  const visibleTickCount = Math.max(1, axisTickData.reduce((count, tick) => count + (tick.hidden ? 0 : 1), 0));
+  return categoryValues.length / visibleTickCount * spacingInfo.categoryValueExtent;
 }
 
 function getValueAxisTickData(axisConfigArray: EnhancedValueAxisConfig[], axisLayoutInfoArray: ChartLayoutInfo['valueAxisLayoutInfos'], seriesData: ChartData['seriesData'], axisScaleArray: Record<string, AxisScale>, vertical: boolean): Record<string, AxisTick[]> {

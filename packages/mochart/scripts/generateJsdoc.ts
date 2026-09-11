@@ -102,6 +102,7 @@ const sharedInterfaceSources: SharedInterfaceSource[] = [
   { interfaceName: 'ThresholdTitleConfig', sectionId: 'valueAxes', propertyKey: 'thresholds.title', includeDefaults: true },
   { interfaceName: 'AxisBaseLineConfig', sectionId: 'valueAxes', propertyKey: 'baseLine', includeDefaults: true },
   { interfaceName: 'ValueAxisTick', sectionId: 'valueAxes', propertyKey: 'ticks', includeDefaults: true },
+  { interfaceName: 'CategoryAxisTick', sectionId: 'categoryAxis', propertyKey: 'ticks', includeDefaults: true },
   { interfaceName: 'GradientStop', sectionId: 'linearGradients', propertyKey: 'stops', includeDefaults: true }
 ];
 

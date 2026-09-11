@@ -39,6 +39,11 @@ import * as ohlc from '../examples/ohlc'
 - The category axis is ordinal, so non-trading days (weekends, holidays)
   simply don't exist on the axis instead of leaving gaps — `Jun 05` sits next
   to `Jun 08` above.
+- With months of daily bars the generated tick labels are truncated or
+  skipped at arbitrary days; list the dates to label in
+  [`ticks`](/reference/categoryAxis#categoryAxis.ticks) instead, spread over the
+  helper's axis fragment. See
+  [labelling chosen dates](/recipes/date-axis#labelling-chosen-dates).
 - The default direction colors are teal-green/red rather than a pure
   green/red: green↔red is the classic red-green-blindness collision, and
   shifting the green toward teal keeps the pair distinguishable on light and

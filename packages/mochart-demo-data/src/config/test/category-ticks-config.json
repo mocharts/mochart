@@ -1,0 +1,57 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Category Ticks"
+  },
+  "categoryAxis": {
+    "property": "date",
+    "type": "date",
+    "scale": "ordinal",
+    "gridLine": {
+      "visible": true
+    },
+    "tickLabel": {
+      "format": "%b %d"
+    },
+    "valueFormat": "%a %b %d",
+    "ticks": [
+      {
+        "value": "2026-06-01"
+      },
+      {
+        "value": "2026-06-08"
+      },
+      {
+        "value": "2026-06-15"
+      },
+      {
+        "value": "2026-06-22"
+      },
+      {
+        "value": "2026-06-29"
+      },
+      {
+        "value": "2026-07-06"
+      }
+    ]
+  },
+  "valueAxes": [
+    {
+      "id": "VA0",
+      "tickLabel": {
+        "format": "$.0f"
+      },
+      "gridLine": {
+        "visible": true
+      }
+    }
+  ],
+  "series": [
+    {
+      "axis": "VA0",
+      "property": "close",
+      "renderer": "line",
+      "title": "Close"
+    }
+  ]
+}

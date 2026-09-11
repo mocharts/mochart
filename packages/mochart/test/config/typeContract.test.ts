@@ -3,8 +3,8 @@ import { describe, it, expect } from 'vitest';
 import ts from 'typescript';
 
 import type {
-  ColorPaletteConfig, DeepPartial, GradientStop, MochartConfig, MochartInputConfig, PatternInputConfig, SeriesColor,
-  SeriesConfig, Style, ValueAxisConfig, ValueAxisTick
+  CategoryAxisConfig, CategoryAxisTick, ColorPaletteConfig, DeepPartial, GradientStop, MochartConfig, MochartInputConfig,
+  PatternInputConfig, SeriesColor, SeriesConfig, Style, ValueAxisConfig, ValueAxisTick
 } from '../../src';
 import validateConfig, { configWithoutAllValidators } from '../../src/config/validation/mochartConfig';
 import { getDefaults } from '../../src/config/defaults/mochartConfig';
@@ -177,6 +177,7 @@ describe('DeepPartial', () => {
     expectType<Equal<DeepPartial<readonly string[]>, readonly string[]>>();
     expectType<Equal<Defined<Defined<DeepPartial<ColorPaletteConfig>['shape']>['normal']>['strokeColors'], string[] | undefined>>();
     expectType<Equal<DeepPartial<ValueAxisConfig>['ticks'], ValueAxisTick[] | null | undefined>>();
+    expectType<Equal<DeepPartial<CategoryAxisConfig>['ticks'], CategoryAxisTick[] | null | undefined>>();
     const config: MochartInputConfig = {
       version: V,
       categoryAxis: { property: 'c' },

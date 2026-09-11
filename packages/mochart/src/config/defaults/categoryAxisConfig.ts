@@ -28,6 +28,8 @@ export function getRegularDefaults() {
 
     scale: SCALE_ORDINAL,
 
+    ticks: NONE,
+
     tickLabel: {
       ...axisDefaults.tickLabel,
       truncation: { ...getTruncationDefaultsWithoutEnabled(), minLength: 0, maxFraction: 0.2 }

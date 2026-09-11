@@ -65,6 +65,15 @@
       "random": "default-random.json"
     },
     {
+      "id": "category-ticks",
+      "title": "Category Ticks",
+      "description": "Explicit category axis ticks naming only the Mondays of a daily ordinal date axis.",
+      "notes": "categoryAxis is type date on an ordinal scale with thirty consecutive trading days, and its ticks array lists the six Mondays by ISO date string, so only those categories get a tick, grid line and \"%b %d\" label where the generated ticks would be skipped at arbitrary days. The tooltip's valueFormat spells out the weekday. A tick naming no category is hidden, so randomised data keeps only the Mondays it happens to include.",
+      "config": "category-ticks-config.json",
+      "data": "category-ticks-data.json",
+      "random": "category-ticks-random.json"
+    },
+    {
       "id": "category-key",
       "title": "Category Key Property",
       "description": "A keyProperty on the category axis: category values that repeat, kept distinct by a separate key.",

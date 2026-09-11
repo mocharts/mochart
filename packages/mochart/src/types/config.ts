@@ -2437,6 +2437,26 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    */
   scale: Scale;
   /**
+   * The explicit ticks to show on the axis in place of the generated ones, each
+   * placing label text at a category value (use null for none).
+   *
+   * Replaces the automatic tick generation entirely: tick counts, intervals and
+   * the tick skipping that keeps labels from overlapping are ignored, so the
+   * configured ticks show even where they overlap. Each entry's `value` takes
+   * the same forms as `min` on a linear axis: a number when `type` is `number`,
+   * and either a millisecond timestamp or an ISO date string when `type` is
+   * `date`; on a `string` axis it is the category string. On an ordinal axis a
+   * tick shows at the category whose value matches (a date matches by instant,
+   * so the ISO and timestamp forms both find a `Date` category), and a tick
+   * matching no category is hidden; on a linear axis it is placed on the scale,
+   * and a tick outside the current axis domain is hidden. Useful for labelling
+   * only some of many categories, e.g. every Monday of a daily date axis, where
+   * the generated ticks would be truncated or skipped at arbitrary categories.
+   *
+   * @default null
+   */
+  ticks: CategoryAxisTick[] | null;
+  /**
    * The labels shown at each tick along the axis.
    *
    * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, truncation: { … } }
@@ -2482,6 +2502,20 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * @default null
    */
   valueSuffix: string | null;
+}
+
+export interface CategoryAxisTick {
+  /**
+   * The category value to place the tick at: the category string on a string
+   * axis, a number on a number axis, and a millisecond timestamp or ISO date
+   * string on a date axis.
+   */
+  value: number | string;
+  /**
+   * The text of the tick label (leave it out to format the value with
+   * tickLabel.format).
+   */
+  label?: string;
 }
 
 export interface ValueAxisTick {

@@ -21,6 +21,13 @@ export default function getDescriptions() {
       }
     },
     categoryCountPadding: 'the extra count to be added to the category value count when dividing the category extent for displaying category values',
+    ticks: {
+      description: 'the explicit ticks to show on the axis in place of the generated ones, each placing label text at a category value (use null for none)',
+      properties: {
+        value: 'the category value to place the tick at: the category string on a string axis, a number on a number axis, and a millisecond timestamp or ISO date string on a date axis',
+        label: 'the text of the tick label (leave it out to format the value with tickLabel.format)'
+      }
+    },
     tickLabel: {
       description: tickLabelDescription,
       properties: {
@@ -52,6 +59,7 @@ export function getDetails() {
     max: 'The form the bound takes follows `type` on a linear axis: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string (`"2020-01-01"`) when `type` is `date` — the two forms `thresholds[].value` takes. An ordinal axis places its categories in data order, so it accepts only `"auto"`.',
     softMin: 'Takes the same forms as `min` — a number, or a timestamp or ISO date string on a date axis — but only applies while no category value falls below it, so real data still expands the domain. An ordinal axis accepts only `null`.',
     softMax: 'Takes the same forms as `max` — a number, or a timestamp or ISO date string on a date axis — but only applies while no category value rises above it, so real data still expands the domain. An ordinal axis accepts only `null`.',
+    ticks: 'Replaces the automatic tick generation entirely: tick counts, intervals and the tick skipping that keeps labels from overlapping are ignored, so the configured ticks show even where they overlap. Each entry\'s `value` takes the same forms as `min` on a linear axis: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string when `type` is `date`; on a `string` axis it is the category string. On an ordinal axis a tick shows at the category whose value matches (a date matches by instant, so the ISO and timestamp forms both find a `Date` category), and a tick matching no category is hidden; on a linear axis it is placed on the scale, and a tick outside the current axis domain is hidden. Useful for labelling only some of many categories, e.g. every Monday of a daily date axis, where the generated ticks would be truncated or skipped at arbitrary categories.',
     thresholds: 'An ordinal axis places its categories at evenly spaced positions rather than on a value scale, so there is no position to place a threshold at — it accepts only an empty array. On a linear axis each entry\'s `value` takes the same forms as `min`: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string when `type` is `date`.'
   };
 }

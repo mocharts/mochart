@@ -89,6 +89,16 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
       { ...defaultRule, validator: validators.oneOf([SCALE_LINEAR, SCALE_ORDINAL]) }
     ], config),
 
+    ticks: validators.arrayOf(validators.objectWithShape({
+      value: validators.conditional([
+        { ...typeStringRule, validator: validators.string() },
+        { ...typeDateRule, validator: validators.datePrimitive() },
+        { ...typeNumberRule, validator: validators.number() },
+        { ...defaultRule, validator: validators.any() }
+      ], config),
+      label: validators.string().orEqual(undefined)
+    }), true).orEqual(NONE),
+
     softMax: validators.conditional([
       { ...linearDateRule, validator: validators.datePrimitive().orEqual(NONE) },
       { ...linearNumberRule, validator: validators.number().orEqual(NONE) },
