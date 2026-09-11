@@ -6,7 +6,7 @@ the **@mochart/movalid** validation library it uses for config validation.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mocharts/mochart/main/assets/stacked-dark.gif">
-  <img alt="A stacked bar chart animating through a data update: the value axis expands, the bars grow, a new category joins, then the axes contract back" src="https://raw.githubusercontent.com/mocharts/mochart/main/assets/stacked-light.gif" width="800">
+  <img alt="A stacked bar chart with a target line animating through a data update: the value axis expands, the bars grow, a new category joins, one series is filtered out of the stack and returns, then the axes contract back" src="https://raw.githubusercontent.com/mocharts/mochart/main/assets/stacked-light.gif" width="800">
 </picture>
 
 **Documentation, live examples, and the demo gallery: [mochart.org](https://mochart.org)**
