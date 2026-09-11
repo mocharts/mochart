@@ -33,7 +33,7 @@ export type { WaterfallDirection, WaterfallItem, WaterfallStep, CreateWaterfallO
 export { createHeatmap, createHeatmapColorScale } from './data/Heatmap';
 export type { HeatmapRow, CreateHeatmapOptions, CreateHeatmapColorScaleOptions, HeatmapData } from './data/Heatmap';
 export { computeCandlesticks, createCandlestick } from './data/Candlestick';
-export type { CandlestickDirection, CandlestickItem, Candlestick, CreateCandlestickOptions, CandlestickVolumeOptions, CandlestickData } from './data/Candlestick';
+export type { CandlestickAxisType, CandlestickLabel, CandlestickDirection, CandlestickItem, Candlestick, CreateCandlestickOptions, CandlestickVolumeOptions, CandlestickData } from './data/Candlestick';
 export { createOhlc } from './data/Ohlc';
 export type { CreateOhlcOptions, OhlcData } from './data/Ohlc';
 export { computePieFractions, createPie } from './data/Pie';

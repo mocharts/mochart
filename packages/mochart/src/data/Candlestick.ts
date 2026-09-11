@@ -4,9 +4,19 @@ import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } f
 
 export type CandlestickDirection = 'up' | 'down';
 
+/** The category axis type the candlestick and OHLC helpers chart their labels on. */
+export type CandlestickAxisType = 'string' | 'date';
+
+/** A candle label: a string on the default string axis, or an ISO date string, timestamp or Date with `axisType: 'date'`. */
+export type CandlestickLabel = string | number | Date;
+
 export interface CandlestickItem {
-  /** The candle label (e.g. the trading day), used as the category value when charted. */
-  label: string;
+  /**
+   * The candle label (e.g. the trading day), used as the category value when
+   * charted: a string on the default string axis, or an ISO date string,
+   * millisecond timestamp or Date object with the `axisType: 'date'` option.
+   */
+  label: CandlestickLabel;
   open: number;
   high: number;
   low: number;
@@ -16,7 +26,7 @@ export interface CandlestickItem {
 }
 
 export interface Candlestick {
-  label: string;
+  label: CandlestickLabel;
   open: number;
   high: number;
   low: number;
@@ -53,6 +63,17 @@ export interface CandlestickVolumeOptions {
 }
 
 export interface CreateCandlestickOptions {
+  /**
+   * The category axis type the labels are charted on. `string` keeps each
+   * label as given, so it must be a string. `date` parses the labels as dates
+   * (ISO strings, millisecond timestamps or Date objects, two of the same
+   * instant counting as duplicates), so the axis `tickLabel.format` and
+   * `valueFormat` take d3 time formats and `ticks` can name dates. Either way
+   * the scale stays ordinal, so trading-day gaps keep even spacing.
+   *
+   * @default "string"
+   */
+  axisType?: CandlestickAxisType;
   /** The per-direction series titles, e.g. shown in the legend and tooltip. */
   seriesTitles?: Partial<Record<CandlestickDirection, string>>;
   /**
@@ -112,7 +133,7 @@ export interface CandlestickData {
    * undefined) with the high mirrored the same way (`upHigh`/`downHigh`) so
    * the wicks split by direction too.
    */
-  data: Record<string, number | string | undefined>[];
+  data: Record<string, number | string | Date | undefined>[];
   /** Fragment to spread into the chart config's `categoryAxis`. */
   categoryAxis: Partial<CategoryAxisConfig>;
   /**
@@ -161,15 +182,42 @@ const DEFAULT_VOLUME_GAP_FRACTION = 0.05;
 const DEFAULT_VOLUME_LABEL = 'Volume';
 
 export function computeCandlesticks(items: readonly CandlestickItem[]): Candlestick[] {
-  return computeCandlesticksFor('computeCandlesticks', items);
+  return computeCandlesticksFor('computeCandlesticks', items, null);
 }
 
-/** computeCandlesticks naming the public helper it serves, so its errors name the function the caller called */
-export function computeCandlesticksFor(helperName: string, items: readonly CandlestickItem[]): Candlestick[] {
-  checkUniqueLabels(helperName, 'labels', items.map((item) => item.label));
+/** The label as the helper errors name it: a Date by its ISO instant, anything else as given. */
+export function labelText(label: CandlestickLabel): string {
+  return label instanceof Date ? label.toISOString() : String(label);
+}
+
+/**
+ * computeCandlesticks naming the public helper it serves, so its errors name the function the caller called;
+ * `axisType` checks the labels fit the axis they will be charted on (null for the math-only entry point).
+ */
+export function computeCandlesticksFor(helperName: string, items: readonly CandlestickItem[], axisType: CandlestickAxisType | null): Candlestick[] {
+  const labels = items.map((item) => item.label);
+  if (axisType === 'string') {
+    for (const label of labels) {
+      if (typeof label !== 'string') {
+        throw new Error(`${helperName}: label ${labelText(label)} is not a string; pass axisType 'date' to chart date labels`);
+      }
+    }
+    checkUniqueLabels(helperName, 'labels', labels);
+  }
+  else if (axisType === 'date') {
+    for (const label of labels) {
+      if (Number.isNaN(new Date(label).getTime())) {
+        throw new Error(`${helperName}: label ${labelText(label)} is not a valid date`);
+      }
+    }
+    checkUniqueLabels(helperName, 'labels', labels, (label) => String(new Date(label).getTime()), labelText);
+  }
+  else {
+    checkUniqueLabels(helperName, 'labels', labels, labelText, labelText);
+  }
   return items.map((item) => {
     const { label, open, high, low, close, volume } = item;
-    checkCandleValues(helperName, label, { open, high, low, close });
+    checkCandleValues(helperName, labelText(label), { open, high, low, close });
     return {
       label, open, high, low, close,
       ...(volume !== undefined ? { volume } : {}),
@@ -280,11 +328,11 @@ export function buildDirectionRows(
   candles: readonly Candlestick[],
   openDirections: readonly CandlestickDirection[],
   volumeOptions: Required<CandlestickVolumeOptions> | null
-): Record<string, number | string | undefined>[] {
+): Record<string, number | string | Date | undefined>[] {
   return candles.map((candle) => {
     if (volumeOptions !== null && (typeof candle.volume !== 'number' || !Number.isFinite(candle.volume))) {
       // an unreported one leaves the pane blank while its axis margin still reserves the height
-      throw new Error(`${helperName}: ${candle.label} has a missing or non-finite volume: ${String(candle.volume)}`);
+      throw new Error(`${helperName}: ${labelText(candle.label)} has a missing or non-finite volume: ${String(candle.volume)}`);
     }
     const gated = (direction: CandlestickDirection, value: number | undefined) => candle.direction === direction ? value : undefined;
     const openProperties: Record<string, number | undefined> = {};
@@ -314,7 +362,8 @@ export function buildDirectionRows(
 }
 
 export function createCandlestick(items: readonly CandlestickItem[], options: CreateCandlestickOptions = {}): CandlestickData {
-  const candles = computeCandlesticksFor('createCandlestick', items);
+  const axisType = options.axisType ?? 'string';
+  const candles = computeCandlesticksFor('createCandlestick', items, axisType);
   const wickWidthFraction = options.wickWidthFraction ?? DEFAULT_WICK_WIDTH_FRACTION;
   const bodyWidthFraction = options.bodyWidthFraction ?? 1;
   const rangeTitle = options.rangeTitle ?? DEFAULT_RANGE_TITLE;
@@ -329,7 +378,7 @@ export function createCandlestick(items: readonly CandlestickItem[], options: Cr
   // with gaps (weekends, holidays) — a linear/time scale would leave holes.
   const categoryAxis: Partial<CategoryAxisConfig> = {
     property: CATEGORY_PROPERTY,
-    type: 'string',
+    type: axisType,
     scale: 'ordinal'
   };
 

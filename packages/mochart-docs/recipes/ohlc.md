@@ -38,11 +38,15 @@ import * as ohlc from '../examples/ohlc'
   the line.
 - The category axis is ordinal, so non-trading days (weekends, holidays)
   simply don't exist on the axis instead of leaving gaps — `Jun 05` sits next
-  to `Jun 08` above.
+  to `Jun 08` above. With `axisType: 'date'` the labels are ISO date strings,
+  timestamps or `Date`s on an ordinal date axis, so the axis fragment can be
+  spread with a d3 time
+  [`tickLabel.format`](/reference/categoryAxis#categoryAxis.tickLabel.format)
+  and tooltip [`valueFormat`](/reference/categoryAxis#categoryAxis.valueFormat)
+  as above; without it every label is a string shown as given.
 - With months of daily bars the generated tick labels are truncated or
   skipped at arbitrary days; list the dates to label in
-  [`ticks`](/reference/categoryAxis#categoryAxis.ticks) instead, spread over the
-  helper's axis fragment. See
+  [`ticks`](/reference/categoryAxis#categoryAxis.ticks) instead. See
   [labelling chosen dates](/recipes/date-axis#labelling-chosen-dates).
 - The default direction colors are teal-green/red rather than a pure
   green/red: green↔red is the classic red-green-blindness collision, and

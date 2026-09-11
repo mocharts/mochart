@@ -22,7 +22,7 @@
 import seedrandom from 'seedrandom';
 
 import { NONE, createHistogram, createWaterfall, createHeatmap, createCandlestick, createOhlc, createPie } from '@mochart/core';
-import type { CandlestickItem, MochartConfig, PieItem } from '@mochart/core';
+import type { CandlestickItem, CategoryAxisConfig, DeepPartial, MochartConfig, PieItem } from '@mochart/core';
 
 import { generateChartDataProvider } from './randomGenerator';
 
@@ -337,16 +337,27 @@ function buildHeatmapSnapshot(): ChartTypeDemoSnapshot {
 
 // --- Candlestick -------------------------------------------------------------
 
-// Twenty June 2026 trading days (weekends skipped — the helper's ordinal axis
-// keeps the candles evenly spaced across the gaps). The fixed pool keeps most
-// labels shared between random steps, so candles animate in place while the
-// tail enters and exits.
+// Twenty June 2026 trading days as ISO dates (weekends skipped — the helper's
+// ordinal date axis keeps the candles evenly spaced across the gaps). The fixed
+// pool keeps most labels shared between random steps, so candles animate in
+// place while the tail enters and exits.
 const CANDLESTICK_DAYS = [
-  'Jun 01', 'Jun 02', 'Jun 03', 'Jun 04', 'Jun 05',
-  'Jun 08', 'Jun 09', 'Jun 10', 'Jun 11', 'Jun 12',
-  'Jun 15', 'Jun 16', 'Jun 17', 'Jun 18', 'Jun 19',
-  'Jun 22', 'Jun 23', 'Jun 24', 'Jun 25', 'Jun 26'
+  '2026-06-01', '2026-06-02', '2026-06-03', '2026-06-04', '2026-06-05',
+  '2026-06-08', '2026-06-09', '2026-06-10', '2026-06-11', '2026-06-12',
+  '2026-06-15', '2026-06-16', '2026-06-17', '2026-06-18', '2026-06-19',
+  '2026-06-22', '2026-06-23', '2026-06-24', '2026-06-25', '2026-06-26'
 ];
+const CANDLESTICK_MONDAYS = ['2026-06-01', '2026-06-08', '2026-06-15', '2026-06-22'];
+
+// The helpers' ordinal date axis with the demos' day formats and a tick at each Monday only.
+function candlestickCategoryAxis(categoryAxis: Partial<CategoryAxisConfig>): DeepPartial<CategoryAxisConfig> {
+  return {
+    ...categoryAxis,
+    tickLabel: { format: '%b %d' },
+    valueFormat: '%a %b %d',
+    ticks: CANDLESTICK_MONDAYS.map(value => ({ value }))
+  };
+}
 const CANDLESTICK_START_PRICE = 100;
 
 function round2(value: number): number {
@@ -424,20 +435,20 @@ function roundCandlestickChanges(rows: DataObject[]): DataObject[] {
 }
 
 function candlestickRows(random: WalkRandomConfig, randomId: number): DataObject[] {
-  return roundCandlestickChanges(createCandlestick(walkVolumes('candlestick', randomId, walkItems('candlestick', random, randomId)), { volume: true }).data);
+  return roundCandlestickChanges(createCandlestick(walkVolumes('candlestick', randomId, walkItems('candlestick', random, randomId)), { volume: true, axisType: 'date' }).data);
 }
 
 function buildCandlestickSnapshot(): ChartTypeDemoSnapshot {
   const baselineRng = seedrandom('candlestick:baseline');
   const items = withVolumes(candlestickItems(baselineRng, CANDLESTICK_DAYS.length), baselineRng);
-  const { data, categoryAxis, series, valueAxes } = createCandlestick(items, { volume: true });
+  const { data, categoryAxis, series, valueAxes } = createCandlestick(items, { volume: true, axisType: 'date' });
   roundCandlestickChanges(data);
   return {
     id: 'candlestick',
     config: {
       version: '1.0.0',
       title: { text: 'Daily Share Price (fictional, $)' },
-      categoryAxis,
+      categoryAxis: candlestickCategoryAxis(categoryAxis),
       // the helper's price/volume pane axes, with the demo's title on price
       valueAxes: valueAxes!.map(axisConfig =>
         axisConfig.id === 'price' ? { ...axisConfig, title: { text: '$ per share' } } : axisConfig),
@@ -455,19 +466,19 @@ function buildCandlestickSnapshot(): ChartTypeDemoSnapshot {
 // split into segments around them.
 
 function candlestickHollowRows(random: WalkRandomConfig, randomId: number): DataObject[] {
-  return roundCandlestickChanges(createCandlestick(walkItems('candlestick-hollow', random, randomId), { hollow: true }).data);
+  return roundCandlestickChanges(createCandlestick(walkItems('candlestick-hollow', random, randomId), { hollow: true, axisType: 'date' }).data);
 }
 
 function buildCandlestickHollowSnapshot(): ChartTypeDemoSnapshot {
   const items = candlestickItems(seedrandom('candlestick-hollow:baseline'), CANDLESTICK_DAYS.length);
-  const { data, categoryAxis, series } = createCandlestick(items, { hollow: true });
+  const { data, categoryAxis, series } = createCandlestick(items, { hollow: true, axisType: 'date' });
   roundCandlestickChanges(data);
   return {
     id: 'candlestick-hollow',
     config: {
       version: '1.0.0',
       title: { text: 'Daily Share Price (fictional, $)' },
-      categoryAxis,
+      categoryAxis: candlestickCategoryAxis(categoryAxis),
       valueAxes: [{ title: { text: '$ per share' } }],
       series: series.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.2f' }))
     },
@@ -482,19 +493,19 @@ function buildCandlestickHollowSnapshot(): ChartTypeDemoSnapshot {
 // wick-and-body candles.
 
 function ohlcRows(random: WalkRandomConfig, randomId: number): DataObject[] {
-  return roundCandlestickChanges(createOhlc(walkItems('ohlc', random, randomId)).data);
+  return roundCandlestickChanges(createOhlc(walkItems('ohlc', random, randomId), { axisType: 'date' }).data);
 }
 
 function buildOhlcSnapshot(): ChartTypeDemoSnapshot {
   const items = candlestickItems(seedrandom('ohlc:baseline'), CANDLESTICK_DAYS.length);
-  const { data, categoryAxis, series } = createOhlc(items);
+  const { data, categoryAxis, series } = createOhlc(items, { axisType: 'date' });
   roundCandlestickChanges(data);
   return {
     id: 'ohlc',
     config: {
       version: '1.0.0',
       title: { text: 'Daily Share Price (fictional, $)' },
-      categoryAxis,
+      categoryAxis: candlestickCategoryAxis(categoryAxis),
       valueAxes: [{ title: { text: '$ per share' } }],
       series: series.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.2f' }))
     },

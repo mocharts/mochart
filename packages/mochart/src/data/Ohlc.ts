@@ -2,10 +2,21 @@ import {
   computeCandlesticksFor, DIRECTIONS, DEFAULT_TITLES, DEFAULT_COLORS, CATEGORY_PROPERTY, DEFAULT_RANGE_TITLE,
   PRICE_AXIS_ID, getVolumeOptions, buildVolumeValueAxisConfigs, buildVolumeSeriesConfigs, buildDirectionRows
 } from './Candlestick';
-import type { Candlestick, CandlestickDirection, CandlestickItem, CandlestickVolumeOptions } from './Candlestick';
+import type { Candlestick, CandlestickAxisType, CandlestickDirection, CandlestickItem, CandlestickVolumeOptions } from './Candlestick';
 import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } from '../types/config';
 
 export interface CreateOhlcOptions {
+  /**
+   * The category axis type the labels are charted on. `string` keeps each
+   * label as given, so it must be a string. `date` parses the labels as dates
+   * (ISO strings, millisecond timestamps or Date objects, two of the same
+   * instant counting as duplicates), so the axis `tickLabel.format` and
+   * `valueFormat` take d3 time formats and `ticks` can name dates. Either way
+   * the scale stays ordinal, so trading-day gaps keep even spacing.
+   *
+   * @default "string"
+   */
+  axisType?: CandlestickAxisType;
   /** The per-direction series titles, e.g. shown in the legend. */
   seriesTitles?: Partial<Record<CandlestickDirection, string>>;
   /**
@@ -75,7 +86,7 @@ export interface OhlcData {
    * `down`, the high under `upHigh`/`downHigh` and the open under `upOpen`/
    * `downOpen`.
    */
-  data: Record<string, number | string | undefined>[];
+  data: Record<string, number | string | Date | undefined>[];
   /** Fragment to spread into the chart config's `categoryAxis`. */
   categoryAxis: Partial<CategoryAxisConfig>;
   /**
@@ -102,7 +113,8 @@ const DEFAULT_OPEN_TITLE = 'Open';
 const DEFAULT_CLOSE_TITLE = 'Close';
 
 export function createOhlc(items: readonly CandlestickItem[], options: CreateOhlcOptions = {}): OhlcData {
-  const candles = computeCandlesticksFor('createOhlc', items);
+  const axisType = options.axisType ?? 'string';
+  const candles = computeCandlesticksFor('createOhlc', items, axisType);
   const lineWidthFraction = options.lineWidthFraction ?? DEFAULT_LINE_WIDTH_FRACTION;
   const tickWidthFraction = options.tickWidthFraction ?? DEFAULT_TICK_WIDTH_FRACTION;
   const tickExtent = options.tickExtent ?? DEFAULT_TICK_EXTENT;
@@ -117,7 +129,7 @@ export function createOhlc(items: readonly CandlestickItem[], options: CreateOhl
   // gaps (weekends, holidays) — a linear/time scale would leave holes.
   const categoryAxis: Partial<CategoryAxisConfig> = {
     property: CATEGORY_PROPERTY,
-    type: 'string',
+    type: axisType,
     scale: 'ordinal'
   };
 

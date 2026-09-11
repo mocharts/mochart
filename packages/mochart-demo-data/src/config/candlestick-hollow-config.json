@@ -5,8 +5,26 @@
   },
   "categoryAxis": {
     "property": "label",
-    "type": "string",
-    "scale": "ordinal"
+    "type": "date",
+    "scale": "ordinal",
+    "tickLabel": {
+      "format": "%b %d"
+    },
+    "valueFormat": "%a %b %d",
+    "ticks": [
+      {
+        "value": "2026-06-01"
+      },
+      {
+        "value": "2026-06-08"
+      },
+      {
+        "value": "2026-06-15"
+      },
+      {
+        "value": "2026-06-22"
+      }
+    ]
   },
   "valueAxes": [
     {

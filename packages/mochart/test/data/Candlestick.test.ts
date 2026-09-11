@@ -269,6 +269,35 @@ describe('createCandlestick', () => {
   });
 
   // duplicates used to reach getDataErrors, which blanks the whole chart
+  it('emits a date axis for the date axisType, accepting ISO, timestamp and Date labels', () => {
+    const items = [
+      { label: '2026-06-01', open: 1, high: 3, low: 0, close: 2 },
+      { label: Date.UTC(2026, 5, 2), open: 2, high: 4, low: 1, close: 3 },
+      { label: new Date(Date.UTC(2026, 5, 3)), open: 3, high: 5, low: 2, close: 4 }
+    ];
+    const { categoryAxis: categoryAxisConfig, data, candles } = createCandlestick(items, { axisType: 'date' });
+    expect(categoryAxisConfig).toEqual({ property: 'label', type: 'date', scale: 'ordinal' });
+    expect(data.map((row) => row['label'])).toEqual(items.map((item) => item.label));
+    expect(candles.map((candle) => candle.label)).toEqual(items.map((item) => item.label));
+    const mochartConfig = enhanceConfig({ version: '1.0.0', categoryAxis: categoryAxisConfig, series: createCandlestick(items, { axisType: 'date' }).series });
+    expect(mochartConfig.validation.valid).toBe(true);
+    expect(getDataErrors(mochartConfig, new ArrayOfObjectsDataProvider(data))).toEqual([]);
+  });
+
+  it('throws for a date axisType label that is not a date, and for two labels of the same instant', () => {
+    expect(() => createCandlestick([{ label: 'Mon', open: 1, high: 3, low: 0, close: 2 }], { axisType: 'date' }))
+      .toThrow(/^createCandlestick: label Mon is not a valid date/);
+    expect(() => createCandlestick([
+      { label: '2026-06-01', open: 1, high: 3, low: 0, close: 2 },
+      { label: new Date(Date.UTC(2026, 5, 1)), open: 2, high: 4, low: 1, close: 1.5 }
+    ], { axisType: 'date' })).toThrow(/^createCandlestick: labels must be unique, duplicates: 2026-06-01T00:00:00.000Z/);
+  });
+
+  it('throws for a non-string label on the default string axis', () => {
+    expect(() => createCandlestick([{ label: new Date(Date.UTC(2026, 5, 1)), open: 1, high: 3, low: 0, close: 2 }]))
+      .toThrow(/^createCandlestick: label 2026-06-01T00:00:00.000Z is not a string; pass axisType 'date'/);
+  });
+
   it('throws when two candles share a label', () => {
     expect(() => createCandlestick([
       { label: 'Mon', open: 1, high: 3, low: 0, close: 2 },

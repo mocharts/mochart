@@ -266,12 +266,13 @@ createSparklineConfig(config, options?)    // → config with the sparkline pres
 - `createCandlestick` turns OHLC items into candles: direction-colored
   open/close bodies over thin low/high wicks, or outlined up bodies with
   the `hollow` option. The `volume` option adds a volume pane on a second
-  axis (the result gains a `valueAxes` fragment).
-  `computeCandlesticks` is the math alone. See
+  axis (the result gains a `valueAxes` fragment), and the `axisType`
+  option charts date labels on an ordinal date axis instead of a string
+  one. `computeCandlesticks` is the math alone. See
   [Candlestick](/recipes/candlestick).
 - `createOhlc` turns the same OHLC items into tick bars: thin low/high
   lines with a left open tick and a right close tick, with the same
-  `volume` option. See [OHLC bars](/recipes/ohlc).
+  `volume` and `axisType` options. See [OHLC bars](/recipes/ohlc).
 - `createPie` turns labelled values into pie or donut slices — one series
   per slice, sized by its share of the total. Its `chart` fragment is
   what switches the chart into pie mode (`type: 'pie'`); the `donut` option
@@ -289,9 +290,10 @@ exported as named types — histogram: `BinValuesOptions`, `HistogramBin`,
 `WaterfallDirection`, `WaterfallStep`, `CreateWaterfallOptions`,
 `WaterfallData`; heatmap: `HeatmapRow`, `CreateHeatmapOptions`,
 `CreateHeatmapColorScaleOptions`, `HeatmapData`; candlestick:
-`CandlestickItem`, `CandlestickDirection`, `Candlestick`,
-`CreateCandlestickOptions`, `CandlestickVolumeOptions`, `CandlestickData`;
-OHLC: `CreateOhlcOptions`, `OhlcData` (OHLC items are `CandlestickItem`s);
+`CandlestickItem`, `CandlestickLabel`, `CandlestickAxisType`,
+`CandlestickDirection`, `Candlestick`, `CreateCandlestickOptions`,
+`CandlestickVolumeOptions`, `CandlestickData`; OHLC: `CreateOhlcOptions`,
+`OhlcData` (OHLC items are `CandlestickItem`s);
 pie: `PieItem`, `CreatePieOptions`, `PieData`; sparkline:
 `CreateSparklineConfigOptions`. The shipped `.d.ts` documents every field —
 hover the type in your editor. Option members typed as a config union —

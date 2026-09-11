@@ -115,6 +115,13 @@ describe('createOhlc', () => {
   });
 
   // createOhlc shares the candlestick guards, and its errors name createOhlc
+  it('emits a date axis for the date axisType and rejects labels that are not dates', () => {
+    const { categoryAxis: categoryAxisConfig } = createOhlc([{ label: '2026-06-01', open: 1, high: 3, low: 0, close: 2 }], { axisType: 'date' });
+    expect(categoryAxisConfig).toEqual({ property: 'label', type: 'date', scale: 'ordinal' });
+    expect(() => createOhlc([{ label: 'Mon', open: 1, high: 3, low: 0, close: 2 }], { axisType: 'date' }))
+      .toThrow(/^createOhlc: label Mon is not a valid date/);
+  });
+
   it('throws when two bars share a label', () => {
     expect(() => createOhlc([
       { label: 'Mon', open: 1, high: 3, low: 0, close: 2 },
