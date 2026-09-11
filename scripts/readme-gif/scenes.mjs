@@ -2,6 +2,8 @@
 // through a scripted sequence of data and config updates; the page waits on the
 // durations below, so keep them in sync with the animation config of each scene.
 //
+// scripts/og-image/card.html renders the stacked scene as a still for the social card.
+//
 // A scene calls begin() once its mount animation has settled; recording starts
 // there, and every scene ends on the data it started with, so the GIF loops
 // without a jump. Scenes take the theme so the dark recording can brighten the
@@ -44,14 +46,14 @@ function rows(properties, values) {
 
 // --- stacked: values grow past the axis, a category joins, then everything settles back ---
 
-const stackedProperties = ['north', 'south', 'west'];
+const stackedProperties = ['north', 'south', 'west', 'target'];
 const stackedStart = rows(stackedProperties, [
-  [12, 8, 6], [14, 9, 7], [11, 12, 8], [16, 10, 9], [13, 11, 12], [15, 13, 10]
+  [12, 8, 6, 18], [14, 9, 7, 20], [11, 12, 8, 22], [16, 10, 9, 24], [13, 11, 12, 26], [15, 13, 10, 28]
 ]);
 const stackedGrown = rows(stackedProperties, [
-  [22, 14, 9], [26, 15, 12], [20, 21, 14], [30, 17, 15], [24, 19, 22], [28, 23, 18]
+  [22, 14, 9, 30], [26, 15, 12, 36], [20, 21, 14, 38], [30, 17, 15, 44], [24, 19, 22, 46], [28, 23, 18, 50]
 ]);
-const stackedExtended = [...stackedGrown, { month: 'Jul', north: 32, south: 24, west: 20 }];
+const stackedExtended = [...stackedGrown, { month: 'Jul', north: 32, south: 24, west: 20, target: 56 }];
 
 const stacked = {
   ...size,
@@ -63,15 +65,20 @@ const stacked = {
     legend: { visible: true },
     categoryAxis: { property: 'month', type: 'string', scale: 'ordinal', valueLabel: 'Month' },
     valueAxes: [{ id: 'va', min: 0 }],
-    seriesStacks: [{ id: 'stack', axis: 'va' }],
+    seriesStacks: [{ id: 'stack', axis: 'va', outerCap: { type: 'round' } }],
     seriesDefaults: { renderer: 'bar', axis: 'va', stack: 'stack', marker: { shape: null } },
     series: [
       { property: 'north', title: 'North' },
       { property: 'south', title: 'South' },
-      { property: 'west', title: 'West' }
+      { property: 'west', title: 'West' },
+      {
+        property: 'target', title: 'Target', renderer: 'line', stack: null,
+        marker: { shape: 'circle', size: 10 }, shapeStyle: { normal: { strokeWidth: 5 } }
+      }
     ]
   }),
   data: stackedStart,
+  settledData: stackedExtended,
   async run({ wait, begin, setData }) {
     await wait(PHASE);                 // mount animation, not recorded
     begin();

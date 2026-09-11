@@ -16,8 +16,7 @@
     .mark { width: 72px; height: 72px; display: block; }
     .name { margin: 28px 0 0; font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
     .text { margin: 20px 0 0; font-size: 30px; font-weight: 600; line-height: 1.25; color: #3e63dd; }
-    .tagline { margin: 20px 0 0; font-size: 21px; line-height: 1.45; color: #57606a; }
-    .site { margin: 36px 0 0; font-size: 20px; font-weight: 500; color: #1f2328; }
+    .site { margin: 36px 0 0; font-size: 28px; font-weight: 500; color: #1f2328; }
     .panel {
       flex: 1; height: 470px;
       background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 16px;
@@ -36,7 +35,6 @@
     </svg>
     <h1 class="name">mochart</h1>
     <p class="text">Animated interactive SVG charts</p>
-    <p class="tagline">Zero framework dependencies, staged animations, and bindings for Angular, Lit, React, Svelte, and Vue.</p>
     <p class="site">mochart.org</p>
   </div>
   <div class="panel"><div id="chart"></div></div>
@@ -44,11 +42,9 @@
     import { createChart, enhanceConfig, ArrayOfObjectsDataProvider } from '/packages/mochart/dist/mochart.js';
     import { scenes } from '../readme-gif/scenes.mjs';
 
-    // The stacked README scene's colours and axes, settled on its seven-category data.
+    // The stacked README scene, held still on the state its recording settles at.
     const { title: _title, ...config } = scenes.stacked.config('light');
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
-    const values = [[22, 14, 9], [26, 15, 12], [20, 21, 14], [30, 17, 15], [24, 19, 22], [28, 23, 18], [32, 24, 20]];
-    const data = values.map(([north, south, west], index) => ({ month: months[index], north, south, west }));
+    const data = scenes.stacked.settledData;
 
     const element = document.getElementById('chart');
     await document.fonts.ready;
