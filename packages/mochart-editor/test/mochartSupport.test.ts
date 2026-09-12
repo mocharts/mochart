@@ -181,6 +181,24 @@ describe('Mochart support completions', () => {
     }
   });
 
+  // Regression: followSeries offered the entry's own id and the ids of series that themselves follow
+  // another, both of which core rejects
+  it('omits the entry itself and other followers from followSeries ids', async () => {
+    const options = await completionOptions(`{
+      "version": "1.0.0",
+      "categoryAxis": { "property": "m" },
+      "series": [
+        { "id": "s1", "property": "r", "followSeries": "|" },
+        { "id": "s2", "property": "q" },
+        { "id": "s3", "property": "p", "followSeries": "s2" },
+        { "id": "s4", "property": "o", "followSeries": null }
+      ]
+    }`);
+    expect(labels(options)).toEqual(expect.arrayContaining(['null', '"s2"', '"s4"']));
+    expect(labels(options)).not.toContain('"s1"');
+    expect(labels(options)).not.toContain('"s3"');
+  });
+
   it('suggests configured ids and filters common references', async () => {
     const options = await completionOptions(`{
       "version": "1.0.0",

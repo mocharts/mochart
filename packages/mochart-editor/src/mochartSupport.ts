@@ -225,11 +225,15 @@ function referencedValues(document: unknown, property: EditorPropertyModel, path
   for (const sectionKey of property.reference.sections) {
     const raw = config[sectionKey];
     const entries = Array.isArray(raw) ? raw : raw && typeof raw === 'object' ? [raw] : [];
-    for (const entry of entries) {
+    const ownSection = sectionKey === path[0];
+    const ownIndex = typeof path[1] === 'number' ? path[1] : 0;
+    for (const [index, entry] of entries.entries()) {
       if (entry && typeof entry === 'object') {
         const record = entry as Record<string, unknown>;
         if (property.reference.commonKey && commonValue !== undefined &&
             record[property.reference.commonKey] !== commonValue) continue;
+        // within its own section an entry cannot name itself, and core rejects a followSeries target that itself follows
+        if (ownSection && (index === ownIndex || (record[property.key] !== undefined && record[property.key] !== null))) continue;
         const value = record[property.reference.key];
         if (value !== undefined) values.push(value);
       }
