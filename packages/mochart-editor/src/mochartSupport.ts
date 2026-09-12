@@ -97,8 +97,13 @@ function propertiesForObject(path: JsonPath): EditorPropertyModel[] {
   return nestedProperties(property);
 }
 
+function structural(value: EditorValueModel): boolean {
+  return value.types.some(type => type === 'object' || type === 'array');
+}
+
 function placeholder(value: EditorValueModel): string {
-  const allowed = value.enum?.filter(candidate => candidate !== undefined);
+  // a structural value's null option is not a placeholder to fill in, so its brackets stand in instead
+  const allowed = value.enum?.filter(candidate => candidate !== undefined && (candidate !== null || !structural(value)));
   if (allowed && allowed.length > 0) return JSON.stringify(allowed[0]);
   if (value.types.includes('boolean')) return 'false';
   if (value.types.includes('number')) return '0';
@@ -160,9 +165,7 @@ function resolvedDefaultText(defaults: Record<string, unknown> | null, path: Jso
   return typeof value === 'object' && value !== null && text.length > maxInsertedTreeLength ? null : text;
 }
 
-function defaultText(property: EditorPropertyModel, defaults: Record<string, unknown> | null, path: JsonPath): string {
-  const resolved = resolvedDefaultText(defaults, path);
-  if (resolved !== null) return resolved;
+function modelDefaultText(property: EditorPropertyModel): string | null {
   if (property.default?.kind === 'literal' && property.default.text) {
     try {
       return JSON.stringify(JSON.parse(property.default.text));
@@ -173,7 +176,13 @@ function defaultText(property: EditorPropertyModel, defaults: Record<string, unk
     }
   }
   if (property.default?.kind === 'color' && property.default.color) return JSON.stringify(property.default.color);
-  return placeholder(property.editor);
+  return null;
+}
+
+function defaultText(property: EditorPropertyModel, defaults: Record<string, unknown> | null, path: JsonPath): string {
+  const text = resolvedDefaultText(defaults, path) ?? modelDefaultText(property);
+  // a null default on a structural property leaves the placeholder, since completing the key means filling it in
+  return text === null || (text === 'null' && structural(property.editor)) ? placeholder(property.editor) : text;
 }
 
 // null for kind 'none', the one kind with nothing to show

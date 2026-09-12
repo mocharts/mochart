@@ -321,6 +321,12 @@ describe('inserted default values', () => {
       .toBe('{"series":{"bar": {"widthFraction":1,"alignFraction":0.5,"minExtent":0}}}');
   });
 
+  it('keeps the placeholder for a structural property whose default is null', async () => {
+    expect(await acceptAfterTyping('{"series":[{|}]}', 'colorScale')).toBe('{"series":[{"colorScale": {}}]}');
+    expect(await acceptAfterTyping('{"categoryAxis":{|}}', 'ticks')).toBe('{"categoryAxis":{"ticks": []}}');
+    expect(await acceptAfterTyping('{"title":{|}}', 'text')).toBe('{"title":{"text": null}}');
+  });
+
   it('keeps the placeholder inside a defaults section', async () => {
     expect(await acceptAfterTyping('{"seriesDefaults":{|}}', 'bar')).toBe('{"seriesDefaults":{"bar": {}}}');
   });
