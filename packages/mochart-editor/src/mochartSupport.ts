@@ -5,7 +5,7 @@ import { getDefaults, getVersionString, validateConfigDetailed } from '@mochart/
 import type { Diagnostic } from '@codemirror/lint';
 import model from './mochartConfigModel.generated.js';
 import type { EditorDefaultValue, EditorPropertyModel, EditorSectionModel, EditorValueModel } from './model.js';
-import { afterClosingPropertyQuote, containingObject, existingObjectKeys, inArraySlot, isPropertyPosition, keyRangeForPath, memberIndentation, objectPath, pathAt, propertyNameAt, rangeForPath } from './jsonTree.js';
+import { afterClosingPropertyQuote, containingObject, existingObjectKeys, inArraySlot, isPropertyPosition, keyRangeForPath, memberIndentation, objectPath, pathAt, pathResolves, propertyNameAt, rangeForPath } from './jsonTree.js';
 import { defineSupport } from './support.js';
 import type { JsonPath } from './types.js';
 
@@ -380,10 +380,10 @@ function hoverSource(view: import('@codemirror/view').EditorView, position: numb
 }
 
 // core's detail message omits the key, and an absent property's range cannot show it
-function diagnosticMessage(path: JsonPath, message: string): string {
+function diagnosticMessage(path: JsonPath, message: string, absent: boolean): string {
   const key = path[path.length - 1];
   if (typeof key !== 'string') return message;
-  const required = propertyForPath(path)?.required ? 'required, ' : '';
+  const required = absent && propertyForPath(path)?.required ? 'required, ' : '';
   return key + ': ' + required + message;
 }
 
@@ -411,7 +411,7 @@ function semanticDiagnostics(view: import('@codemirror/view').EditorView): Diagn
       return [{
         ...rangeForPath(view.state, diagnostic.path),
         severity: diagnostic.severity,
-        message: diagnosticMessage(diagnostic.path, diagnostic.message),
+        message: diagnosticMessage(diagnostic.path, diagnostic.message, !pathResolves(view.state, diagnostic.path)),
         source: 'mochart',
         path: diagnostic.path
       } as Diagnostic];

@@ -158,6 +158,11 @@ function nodeForPath(state: EditorState, path: JsonPath): { node: SyntaxNode | n
   return { node, resolved: true };
 }
 
+/** True when every segment of `path` is present in the document. */
+export function pathResolves(state: EditorState, path: JsonPath): boolean {
+  return nodeForPath(state, path).resolved;
+}
+
 /** The range of the value at `path`, or the opening bracket of the container an absent segment belongs in. */
 export function rangeForPath(state: EditorState, path: JsonPath): { from: number; to: number } {
   const { node, resolved } = nodeForPath(state, path);

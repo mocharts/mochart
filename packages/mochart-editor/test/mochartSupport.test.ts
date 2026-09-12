@@ -406,6 +406,14 @@ describe('Mochart support diagnostics', () => {
     expect(diagnostic!.to).toBe(source.indexOf('{ "axis"') + 1);
   });
 
+  // Regression: the label came from the model alone, so a present but invalid value read as absent
+  it('does not label a present but invalid required property', () => {
+    const source = '{"version":"1.0.0","categoryAxis":{"property":"m"},"series":[{"property":5}]}';
+    const diagnostic = mochartSupportTesting.semanticDiagnostics(viewFor(source)).find(item => item.message.includes('data property'));
+    expect(diagnostic!.message).toBe('property: should be a string naming a data property: 5');
+    expect(source.slice(diagnostic!.from, diagnostic!.to)).toBe('5');
+  });
+
   it('labels only required properties as required', () => {
     const source = `{
       "version": "1.0.0",
