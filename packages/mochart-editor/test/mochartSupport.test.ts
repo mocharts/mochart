@@ -196,6 +196,15 @@ describe('property insertion layout', () => {
     expect(doc).toBe('{\n  "version": "1.0.0",\n  "title": {},\n  "chart": {}\n}');
   });
 
+  // Regression: a typed key with a member after it and no comma yet parsed as one member with the
+  // neighbour's colon, so accepting a completion renamed the key and inserted no value and no comma
+  it('inserts the value and comma when a typed key precedes another member', async () => {
+    expect(await acceptCompletion('{"version": "1.0.0", "leg|" "chart": {}}', 'legend'))
+      .toBe('{"version": "1.0.0", "legend": {}, "chart": {}}');
+    expect(await acceptCompletion('{\n  "version": "1.0.0",\n  "leg|"\n  "chart": {}\n}', 'legend'))
+      .toBe('{\n  "version": "1.0.0",\n  "legend": {},\n  "chart": {}\n}');
+  });
+
   it('moves a member that follows on the same line onto its own line', async () => {
     const doc = await acceptCompletion('{\n  |"version": "1.0.0"\n}', 'title');
     expect(doc).toBe('{\n  "title": {},\n  "version": "1.0.0"\n}');

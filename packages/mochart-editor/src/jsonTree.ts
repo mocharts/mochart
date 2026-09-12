@@ -76,7 +76,8 @@ export function existingObjectKeys(state: EditorState, object: SyntaxNode): stri
 export function propertyNameAt(state: EditorState, position: number): { from: number; to: number; hasColon: boolean } | null {
   const node = syntaxTree(state).resolveInner(position, -1);
   if (node.name !== 'PropertyName' || !node.parent) return null;
-  const hasColon = children(node.parent).some(child => child.name === ':');
+  // a colon further along belongs to a following member the parser folded in while the comma is still missing
+  const hasColon = node.nextSibling?.name === ':';
   return { from: node.from, to: node.to, hasColon };
 }
 
