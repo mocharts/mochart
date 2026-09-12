@@ -27,7 +27,7 @@ export interface LocatedValidationMessage {
   invalidProperties?: string[];
 }
 
-function messagePath(prefix: string, i: number | undefined, ...properties: string[]): (string | number)[] {
+function messagePath(prefix: string, i: number | undefined, ...properties: (string | number)[]): (string | number)[] {
   const section = prefix.startsWith(DEFAULT) ? prefix.slice(DEFAULT.length) : prefix;
   const path: (string | number)[] = section === 'config' || section === '' ? [] : [section];
   if (i !== undefined) path.push(i);
@@ -37,9 +37,15 @@ function messagePath(prefix: string, i: number | undefined, ...properties: strin
   return path;
 }
 
-/** The property part of a message for a nested key: `backgroundStyle.fillColor`. */
-function joinProperties(properties: string[]): string {
-  return properties.join('.');
+/** The property part of a message for a nested key: `backgroundStyle.fillColor`, or `thresholds[1].title` through a list. */
+function joinProperties(properties: (string | number)[]): string {
+  return properties.map((property, index) => typeof property === 'number' ? '[' + property + ']' : (index === 0 ? '' : '.') + property).join('');
+}
+
+/** The element validator a list validator publishes as `itemValidator`; null for every other validator. */
+function itemValidatorOf(validator: unknown): Validator | null {
+  const item = (validator as Validator | undefined)?.itemValidator;
+  return item !== undefined && item !== null ? item : null;
 }
 
 /** The member validators an object validator publishes as `nestedValues`; null for every other validator. */
@@ -68,11 +74,22 @@ export function getMessage(prefix: string, message: string): string {
   return prefixMessage(prefix) + message;
 }
 
-// Report one (possibly nested) failed config value, drilling into the failing members so a path reaches
-// e.g. ['axisConfig', 'backgroundStyle', 'fillColor']; the aggregate message is the no-single-member fallback.
-function addErrorMessageForKey(prefix: string, properties: string[], value: unknown, validator: Validator, errorMessages: string[], errorDetails: LocatedValidationMessage[], i: number | undefined): void {
+// Report one (possibly nested) failed config value, drilling into the failing members and list elements so a
+// path reaches e.g. ['axisConfig', 'backgroundStyle', 'fillColor'] or ['valueAxes', 0, 'thresholds', 1, 'title'];
+// the aggregate message is the no-single-member fallback.
+function addErrorMessageForKey(prefix: string, properties: (string | number)[], value: unknown, validator: Validator, errorMessages: string[], errorDetails: LocatedValidationMessage[], i: number | undefined): void {
   if (validator(value)) {
     return;
+  }
+  const item = itemValidatorOf(validator);
+  if (item !== null && Array.isArray(value)) {
+    const failedIndices = value.map((element, index) => item(element) ? -1 : index).filter(index => index >= 0);
+    if (failedIndices.length > 0) {
+      for (const index of failedIndices) {
+        addErrorMessageForKey(prefix, [...properties, index], value[index], item, errorMessages, errorDetails, i);
+      }
+      return;
+    }
   }
   const nested = nestedValidators(validator);
   if (nested !== null && isPlainObject(value)) {

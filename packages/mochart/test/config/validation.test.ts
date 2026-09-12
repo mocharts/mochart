@@ -630,6 +630,34 @@ describe('list-section validation with ignored entries', () => {
 });
 
 // Regression: movalid's object() accepts arrays, so a list-section array with
+// A failing element of a list-valued member is reported at its own index and member, as a diagnostic path the
+// editor can place on that value, rather than as the whole list with every rule of the entry shape.
+describe('list member element paths', () => {
+  it('names the failing element and member of a nested list', () => {
+    const config = {
+      version: V,
+      categoryAxis: { property: 'p', ticks: [{ value: 'a' }, { value: 'b', label: 3 }] },
+      valueAxes: [{ id: 'A', thresholds: [{ value: 1 }, { value: 2, title: { side: 'sideways' } }] }],
+      linearGradients: [{ id: 'G', stops: [{ offset: 0, color: 'red', opacity: 1 }, { offset: 2, color: 'red', opacity: 1 }] }]
+    };
+    expect(errorsFor(config)).toEqual([
+      'categoryAxis - ticks[1].label - should be a string or be equal to undefined: 3',
+      'linearGradients[0] - stops[1].offset - should be a number >= to 0 and <= 1: 2',
+      'valueAxes[0] - thresholds[1].title.side - should be one of [ "low", "high", "inside" ] or be equal to undefined: "sideways"'
+    ]);
+    expect(detailedFor(config).diagnostics.filter(diagnostic => diagnostic.severity === 'error').map(diagnostic => diagnostic.path)).toEqual([
+      ['categoryAxis', 'ticks', 1, 'label'],
+      ['linearGradients', 0, 'stops', 1, 'offset'],
+      ['valueAxes', 0, 'thresholds', 1, 'title', 'side']
+    ]);
+  });
+
+  it('reports a list element that is not an object at its index', () => {
+    const errors = errorsFor({ version: V, categoryAxis: { property: 'p' }, valueAxes: [{ id: 'A', thresholds: [{ value: 1 }, 'garbage'] }] });
+    expect(errors).toContainEqual(expect.stringContaining('valueAxes[0] - thresholds[1] - should be an object'));
+  });
+});
+
 // invalid entries slipped past both halves of the shape guard unreported.
 describe('list-section shape validation', () => {
   it('flags a list-section array containing a non-object entry', () => {

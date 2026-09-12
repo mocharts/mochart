@@ -50,10 +50,7 @@ describe('font validation', () => {
   it('rejects an unknown style keyword', () => {
     expect(errorsFor(withFont({ chart: { font: { style: 'slanted' } } })))
       .toContainEqual(expect.stringContaining('chart - font.style - should be one of'));
-    // a thresholds entry is reported as a whole, with the entry shape the font rule is part of
-    const thresholdErrors = errorsFor(withFont({ valueAxes: [{ id: 'A', thresholds: [{ value: 1, title: { text: 'T', font: { style: 'upright' } } }] }] }));
-    expect(thresholdErrors).toHaveLength(1);
-    expect(thresholdErrors[0]).toContain('valueAxes[0] - thresholds - should be an array');
-    expect(thresholdErrors[0]).toContain('style: should be one of [ "normal", "italic", "oblique" ] or be equal to null');
+    expect(errorsFor(withFont({ valueAxes: [{ id: 'A', thresholds: [{ value: 1 }, { value: 2, title: { text: 'T', font: { style: 'upright' } } }] }] })))
+      .toContainEqual(expect.stringContaining('valueAxes[0] - thresholds[1].title.font.style - should be one of'));
   });
 });

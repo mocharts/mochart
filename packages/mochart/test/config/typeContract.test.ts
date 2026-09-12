@@ -186,8 +186,8 @@ describe('DeepPartial', () => {
       linearGradients: [{ id: 'G', stops: [{ offset: 0 }] }]
     };
     expect(errorsFor(config)).toEqual([
-      'linearGradients[0] - stops - should be a non-empty array with elements that should be an object with exact properties'
-      + ' { offset: should be a number >= to 0 and <= 1, color: should be a valid color, opacity: should be a number >= to 0 and <= 1 }: [ { offset: 0 } ]'
+      'linearGradients[0] - stops[0] - should be an object with exact properties'
+      + ' { offset: should be a number >= to 0 and <= 1, color: should be a valid color, opacity: should be a number >= to 0 and <= 1 }: { offset: 0 }'
     ]);
   });
 
