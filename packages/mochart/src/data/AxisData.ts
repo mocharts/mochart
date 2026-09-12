@@ -82,7 +82,7 @@ function getCategoryAxisData(categoryAxisConfig: CategoryAxisConfig, axisLayoutI
     const positions = getCategoryValuePositions(categoryAxisConfig, axisScale, categoryData.values);
     // a collapsed domain (one category, or explicit min === max) draws its single tick at the value, not at the widened render bounds
     const tickDomain = isCollapsedDomain(categoryData.axisDomain) ? categoryData.axisDomain : categoryData.renderAxisDomain;
-    const axisTickData = getCategoryAxisTickData(categoryAxisConfig, axisLayoutInfo, axisScale, tickDomain, categoryData.values.parsed, positions);
+    const axisTickData = getCategoryAxisTickData(categoryAxisConfig, axisLayoutInfo, axisScale, tickDomain, categoryData.values.parsed, categoryData.values.key, positions);
     const maxTickLabelLength = getMaxTickLabelLength(categoryAxisConfig, categoryData.values.parsed, axisTickData, spacingInfo);
 
     categoryAxisData = {
@@ -193,9 +193,9 @@ function createOrdinalTickObject(scaleTickValue: number, categoryValues: readonl
   return { ...tickObjectWithoutHidden, hidden: isHidden(tickObjectWithoutHidden) };
 }
 
-export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
+export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
   if (axisConfig.ticks !== NONE) {
-    return getExplicitCategoryAxisTickData(axisConfig, axisConfig.ticks, axisScale, categoryValues, categoryPositions);
+    return getExplicitCategoryAxisTickData(axisConfig, axisConfig.ticks, axisScale, categoryValues, categoryKeys, categoryPositions);
   }
   let ticks: AxisTick[] = [];
   // magnitude: a reversed axis has a descending range, and tick counting needs a positive extent
@@ -344,13 +344,12 @@ function getOrdinalTickSkipper(axisConfig: CategoryAxisConfig, categoryValues: r
   return (index) => !visibleIndexes.has(index);
 }
 
-function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, explicitTicks: readonly CategoryAxisTick[], axisScale: AxisScale, categoryValues: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
+function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, explicitTicks: readonly CategoryAxisTick[], axisScale: AxisScale, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
   if (axisConfig.scale === SCALE_ORDINAL) {
-    // by value, not by keyProperty: a tick names a category value, and every category sharing it gets the tick
-    const keyAxisConfig = { type: axisConfig.type, keyProperty: NONE };
+    // a tick names a category the way the rest of the chart identifies it: by its keyProperty value when the axis has one, else by its value
     const indexesByKey = new Map<string, number[]>();
-    categoryValues.forEach((categoryValue, index) => {
-      const key = getCategoryValueKey(keyAxisConfig, categoryValue);
+    categoryKeys.forEach((categoryKey, index) => {
+      const key = getCategoryValueKey(axisConfig, categoryKey);
       const indexes = indexesByKey.get(key);
       if (indexes === undefined) {
         indexesByKey.set(key, [index]);
@@ -362,7 +361,7 @@ function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, explici
     const tickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, axisScale, explicitTicks.length, categoryValues);
     const ticks: AxisTick[] = [];
     explicitTicks.forEach(({ value, label }) => {
-      const indexes = indexesByKey.get(getCategoryValueKey(keyAxisConfig, value));
+      const indexes = indexesByKey.get(getCategoryValueKey(axisConfig, value));
       if (indexes === undefined) {
         ticks.push({ label: label ?? '', position: NaN, value, hidden: true });
       }

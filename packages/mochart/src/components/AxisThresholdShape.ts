@@ -17,12 +17,15 @@ type ThresholdTitleEl = El & { backgroundHandle: El; textHandle: El; valueHandle
 export type ThresholdAxisConfig = AxisConfigBase & {
   scale: Scale;
   type: DataType;
+  keyProperty?: string | null;
   useSeriesFocus?: boolean;
 };
 
 /** The ordinal category positions a category axis threshold is placed by; null on a value axis or a linear category axis. */
 export interface ThresholdCategoryPositions {
   values: readonly CategoryValue[];
+  /** What identifies each category: its keyProperty value when the axis has one, else its value. */
+  keys: readonly CategoryValue[];
   /** Pixel offsets along the axis from the plot origin, one per category. */
   positions: number[];
   /** The full slot each category owns along the axis, edge to edge. */
@@ -67,10 +70,10 @@ function getThresholdOffset(props: AxisThresholdShapeProps, rawValue: number | s
     if (categoryPositions === null) {
       return null;
     }
-    // by value, not by keyProperty: a threshold names a category value, like an explicit tick does
-    const keyAxisConfig = { type, keyProperty: NONE };
+    // a threshold names a category the way an explicit tick does: by its keyProperty value when the axis has one, else by its value
+    const keyAxisConfig = { type, keyProperty: axisConfig.keyProperty ?? NONE };
     const key = getCategoryValueKey(keyAxisConfig, rawValue);
-    const index = categoryPositions.values.findIndex(categoryValue => getCategoryValueKey(keyAxisConfig, categoryValue) === key);
+    const index = categoryPositions.keys.findIndex(categoryKey => getCategoryValueKey(keyAxisConfig, categoryKey) === key);
     return index === -1 ? null : categoryPositions.positions[index]!;
   }
   const thresholdValue = type === TYPE_DATE ? new Date(rawValue) : (typeof rawValue === 'number' ? rawValue : Number(rawValue));

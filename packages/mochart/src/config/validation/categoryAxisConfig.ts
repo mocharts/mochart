@@ -6,7 +6,7 @@ import getAxisValidators, { getTickLabelValidators, getThresholdStepValidators, 
 import getTruncationValidators from './truncationConfig';
 import type { CategoryAxisConfig } from '../../types/config';
 
-type CategoryAxisCondition = Pick<CategoryAxisConfig, 'type' | 'scale'>;
+type CategoryAxisCondition = Pick<CategoryAxisConfig, 'type' | 'scale'> & { keyProperty?: string | null };
 
 const typeStringSuffix = 'when type is ' + TYPE_STRING;
 const typeDateSuffix = 'when type is ' + TYPE_DATE;
@@ -20,6 +20,8 @@ const typeStringRule = { condition: ({ type }: CategoryAxisCondition) => type ==
 const typeDateRule = { condition: ({ type }: CategoryAxisCondition) => type === TYPE_DATE, suffix: typeDateSuffix };
 const typeNumberRule = { condition: ({ type }: CategoryAxisCondition) => type === TYPE_NUMBER, suffix: typeNumberSuffix };
 const scaleOrdinalRule = { condition: ({ scale }: CategoryAxisCondition) => scale === SCALE_ORDINAL, suffix: scaleOrdinalSuffix };
+// a keyed ordinal axis names its categories by key, so ticks and thresholds take the key's forms there
+const keyedOrdinalRule = { condition: ({ scale, keyProperty }: CategoryAxisCondition) => scale === SCALE_ORDINAL && keyProperty !== undefined && keyProperty !== null, suffix: scaleOrdinalSuffix + ' and keyProperty is set' };
 const scaleLinearRule = { condition: ({ scale }: CategoryAxisCondition) => scale === SCALE_LINEAR, suffix: scaleLinearSuffix };
 const linearDateRule = { condition: ({ scale, type }: CategoryAxisCondition) => scale === SCALE_LINEAR && type === TYPE_DATE, suffix: linearDateSuffix };
 const linearNumberRule = { condition: ({ scale, type }: CategoryAxisCondition) => scale === SCALE_LINEAR && type === TYPE_NUMBER, suffix: linearNumberSuffix };
@@ -28,6 +30,7 @@ const defaultRule = { condition: () => true };
 export default function getValidators(config: Partial<CategoryAxisConfig>, pieMode = false) {
   return {
     ...getAxisValidators(validators.conditional([
+      { ...keyedOrdinalRule, validator: validators.string().or(validators.number()) },
       { ...typeDateRule, validator: validators.datePrimitive() },
       { ...typeStringRule, validator: validators.string() },
       { ...defaultRule, validator: validators.number() }
@@ -100,6 +103,7 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
 
     ticks: validators.arrayOf(validators.objectWithShape({
       value: validators.conditional([
+        { ...keyedOrdinalRule, validator: validators.string().or(validators.number()) },
         { ...typeStringRule, validator: validators.string() },
         { ...typeDateRule, validator: validators.datePrimitive() },
         { ...typeNumberRule, validator: validators.number() },

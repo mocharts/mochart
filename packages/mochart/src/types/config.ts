@@ -1793,8 +1793,9 @@ export interface CategoryAxisThresholdStepConfig extends AxisThresholdStepConfig
 
 export interface ThresholdConfig {
   /**
-   * The axis value of the threshold: a category value on an ordinal axis, a
-   * timestamp or ISO date string on a date axis.
+   * The axis value of the threshold: a category value (or its key, on an
+   * ordinal axis with a keyProperty), a timestamp or ISO date string on a date
+   * axis.
    */
   value: number | string;
   /**
@@ -2421,20 +2422,21 @@ export interface AxisConfigBase {
    * timestamp or an ISO date string when `type` is `date`. On an ordinal axis a
    * value names a category, matched the way explicit `ticks` are (a date by
    * instant, so the ISO and timestamp forms both find a `Date` category; the
-   * category string on a `string` axis): a line sits at the category's centre,
-   * and a range covers whole slots from the first named category's outer edge
-   * to the second's, so ranges over consecutive weeks tile without gaps. An
-   * entry naming no category is not drawn. A `rangeValue` turns an entry into a
-   * range: the band between the two values (in either order) is filled with the
-   * `style` fill members, or with the `pattern` or `gradient` named by id, and
-   * its two edges are drawn with the stroke members like lines (a stroke
-   * opacity of 0 leaves the fill alone); a line entry uses only the stroke
-   * members and ignores the fill members. Thresholds never extend the axis
-   * domain: a line outside it is not drawn, a range partly outside is clipped
-   * to it, and one wholly outside is not drawn. The title follows `side`: low
-   * or high of the whole range, or `inside` centred within it. A pattern's
-   * `"series"` colour keyword resolves to the range's `style.normal.fillColor`,
-   * the colour of whatever the pattern fills.
+   * category string on a `string` axis; the key when the axis has a
+   * `keyProperty`): a line sits at the category's centre, and a range covers
+   * whole slots from the first named category's outer edge to the second's, so
+   * ranges over consecutive weeks tile without gaps. An entry naming no
+   * category is not drawn. A `rangeValue` turns an entry into a range: the band
+   * between the two values (in either order) is filled with the `style` fill
+   * members, or with the `pattern` or `gradient` named by id, and its two edges
+   * are drawn with the stroke members like lines (a stroke opacity of 0 leaves
+   * the fill alone); a line entry uses only the stroke members and ignores the
+   * fill members. Thresholds never extend the axis domain: a line outside it is
+   * not drawn, a range partly outside is clipped to it, and one wholly outside
+   * is not drawn. The title follows `side`: low or high of the whole range, or
+   * `inside` centred within it. A pattern's `"series"` colour keyword resolves
+   * to the range's `style.normal.fillColor`, the colour of whatever the pattern
+   * fills.
    *
    * @default []
    */
@@ -2583,11 +2585,13 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * and either a millisecond timestamp or an ISO date string when `type` is
    * `date`; on a `string` axis it is the category string. On an ordinal axis a
    * tick shows at the category whose value matches (a date matches by instant,
-   * so the ISO and timestamp forms both find a `Date` category), and a tick
-   * matching no category is hidden; on a linear axis it is placed on the scale,
-   * and a tick outside the current axis domain is hidden. Useful for labelling
-   * only some of many categories, e.g. every Monday of a daily date axis, where
-   * the generated ticks would be truncated or skipped at arbitrary categories.
+   * so the ISO and timestamp forms both find a `Date` category), or on an axis
+   * with a `keyProperty` at the category whose key matches, since a key is what
+   * makes a repeated value unique; a tick matching no category is hidden; on a
+   * linear axis it is placed on the scale, and a tick outside the current axis
+   * domain is hidden. Useful for labelling only some of many categories, e.g.
+   * every Monday of a daily date axis, where the generated ticks would be
+   * truncated or skipped at arbitrary categories.
    *
    * @default null
    */
@@ -2714,9 +2718,10 @@ export interface CategoryAxisTickStepConfig {
 
 export interface CategoryAxisTick {
   /**
-   * The category value to place the tick at: the category string on a string
-   * axis, a number on a number axis, and a millisecond timestamp or ISO date
-   * string on a date axis.
+   * The category to place the tick at, named by its value (the category string
+   * on a string axis, a number on a number axis, a millisecond timestamp or ISO
+   * date string on a date axis) or, on an ordinal axis with a keyProperty, by
+   * its key.
    */
   value: number | string;
   /**

@@ -75,7 +75,7 @@ export default class AxisThresholdContainer extends Renderer<AxisThresholdContai
     if (categoryAxisConfig.scale === SCALE_ORDINAL) {
       const { positions } = axisData.category.valueData;
       const axisExtent = inverted ? seriesLayoutInfo.height : seriesLayoutInfo.width;
-      categoryPositions = { values: categoryData.values.parsed, positions,
+      categoryPositions = { values: categoryData.values.parsed, keys: categoryData.values.key, positions,
         slotExtent: positions.length > 1 ? Math.abs(positions[1]! - positions[0]!) : axisExtent };
     }
     // ascending: a category axis renders ascending, a value axis only when horizontal (inverted); reversed flips either

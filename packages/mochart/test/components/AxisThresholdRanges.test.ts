@@ -151,6 +151,14 @@ describe('threshold ranges on a category axis', () => {
     expect(band.x + band.width).toBeCloseTo(feb + slot / 2, 5);
   });
 
+  it('names a category by its key on an axis with a keyProperty', () => {
+    const keyedRows = [{ month: 'Jan', id: 'a', sales: 1 }, { month: 'Jan', id: 'b', sales: 2 }, { month: 'Feb', id: 'c', sales: 3 }];
+    const byKey = mount({ categoryAxis: { property: 'month', type: 'string', scale: 'ordinal', keyProperty: 'id', thresholds: [{ value: 'b' }] } }, keyedRows);
+    expect(lineTranslations(byKey)).toHaveLength(1);
+    const byValue = mount({ categoryAxis: { property: 'month', type: 'string', scale: 'ordinal', keyProperty: 'id', thresholds: [{ value: 'Jan' }] } }, keyedRows);
+    expect(lineTranslations(byValue)).toHaveLength(0);
+  });
+
   it('matches ordinal date categories by instant, and draws nothing for an unmatched category', () => {
     const dateRows = [{ day: '2026-06-01', sales: 1 }, { day: '2026-06-02', sales: 2 }, { day: '2026-06-03', sales: 3 }];
     const matched = mount({ categoryAxis: { property: 'day', type: 'date', scale: 'ordinal', thresholds: [{ value: '2026-06-01', rangeValue: Date.UTC(2026, 5, 2) }] } }, dateRows);

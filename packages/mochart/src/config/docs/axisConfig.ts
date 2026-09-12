@@ -137,7 +137,7 @@ export default function getDescriptions() {
     thresholds: {
       description: 'the thresholds to draw across the plot: a line at an axis value, or a range between two',
       properties: {
-        value: 'the axis value of the threshold: a category value on an ordinal axis, a timestamp or ISO date string on a date axis',
+        value: 'the axis value of the threshold: a category value (or its key, on an ordinal axis with a keyProperty), a timestamp or ISO date string on a date axis',
         rangeValue: 'the second value of a threshold range (use null for a line)',
         front: 'whether the threshold is drawn in front of (true) or behind (false) the series shapes',
         style: styleStates('the style of the threshold: the stroke members draw a line or the edges of a range, the fill members fill a range and are ignored on a line', fillLineMembers),

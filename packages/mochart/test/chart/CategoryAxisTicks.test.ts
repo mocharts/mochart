@@ -85,6 +85,22 @@ describe('category axis explicit ticks', () => {
     chart.destroy();
   });
 
+  it('names a category by its key on an axis with a keyProperty, so a repeated value can be told apart', () => {
+    // the clocks go back: 01:30 shows twice, keyed by the real instant
+    const rows = [
+      { shown: '01:00', at: '2017-11-05T01:00:00-04:00', value: 1 },
+      { shown: '01:30', at: '2017-11-05T01:30:00-04:00', value: 2 },
+      { shown: '01:30', at: '2017-11-05T01:30:00-05:00', value: 3 },
+      { shown: '02:00', at: '2017-11-05T02:00:00-05:00', value: 1 }
+    ];
+    const byKey = renderChart({ type: 'string', scale: 'ordinal', keyProperty: 'at', ticks: [{ value: '2017-11-05T01:30:00-05:00' }] }, rows.map(({ shown, at, value }) => ({ label: shown, at, value })));
+    expect(getAxisLabels(byKey.container)).toEqual(['01:30']);
+    byKey.chart.destroy();
+    const byValue = renderChart({ type: 'string', scale: 'ordinal', keyProperty: 'at', ticks: [{ value: '01:30' }] }, rows.map(({ shown, at, value }) => ({ label: shown, at, value })));
+    expect(getAxisLabels(byValue.container)).toEqual([]);
+    byValue.chart.destroy();
+  });
+
   it('rejects a tick value of the wrong form for the axis type', () => {
     const { enhanceConfig } = mochart;
     const mochartConfig = enhanceConfig({

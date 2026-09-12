@@ -64,7 +64,7 @@ describe('getCategoryAxisTickData', () => {
     const config = makeConfig({ categoryAxis: { property: 'when', type: 'date', scale: 'linear' } });
     const date = new Date('2026-08-07T00:00:00Z');
     const axisScale = scaleTime().domain([date, date]).range([0, 200]) as unknown as AxisScale;
-    const ticks = getCategoryAxisTickData(config.categoryAxis, layout, axisScale, [date, date] as CategoryAxisDomain, [date], [100]);
+    const ticks = getCategoryAxisTickData(config.categoryAxis, layout, axisScale, [date, date] as CategoryAxisDomain, [date], [date], [100]);
     expect(ticks).toHaveLength(1);
   });
 
@@ -76,7 +76,7 @@ describe('getCategoryAxisTickData', () => {
     const labelsFor = (values: number[]) => {
       const axisScale = scaleLinear().domain([0, values.length - 1]).range([0, 400]) as unknown as AxisScale;
       const positions = values.map((_, i) => 400 * i / (values.length - 1));
-      return getCategoryAxisTickData(config.categoryAxis, ordinalLayout, axisScale, [0, values.length - 1] as CategoryAxisDomain, values, positions)
+      return getCategoryAxisTickData(config.categoryAxis, ordinalLayout, axisScale, [0, values.length - 1] as CategoryAxisDomain, values, values, positions)
         .map(tick => tick.label);
     };
     expect(labelsFor([1, 10, 100, 1000, 10000])).toEqual(['1', '10', '100', '1k', '10k']);
@@ -87,7 +87,7 @@ describe('getCategoryAxisTickData', () => {
   it('draws a single tick for a single-category linear number axis', () => {
     const config = makeConfig({ categoryAxis: { property: 'x', type: 'number', scale: 'linear' } });
     const axisScale = scaleLinear().domain([5, 5]).range([0, 200]) as unknown as AxisScale;
-    const ticks = getCategoryAxisTickData(config.categoryAxis, layout, axisScale, [5, 5] as CategoryAxisDomain, [5], [100]);
+    const ticks = getCategoryAxisTickData(config.categoryAxis, layout, axisScale, [5, 5] as CategoryAxisDomain, [5], [5], [100]);
     expect(ticks).toHaveLength(1);
   });
 });
