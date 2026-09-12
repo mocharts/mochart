@@ -161,6 +161,26 @@ describe('JSON editor', () => {
     host.remove();
   });
 
+  // Regression: setValue kept the previous document's validity and aria-invalid until the lint delay passed
+  it('resets validity to pending on a controlled update until the new document is linted', async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const editor = createJsonEditor(host, { value: '{', ariaLabel: 'Configuration' });
+    const content = () => editor.element.querySelector<HTMLElement>('.cm-content')!;
+
+    await vi.waitFor(() => expect(editor.element.dataset.validity).toBe('invalid'));
+    editor.setValue('{"a": 1}');
+    expect(editor.element.dataset.validity).toBe('pending');
+    expect(content().getAttribute('aria-invalid')).toBe('false');
+    await vi.waitFor(() => expect(editor.element.dataset.validity).toBe('valid'));
+
+    editor.setValue('{');
+    expect(editor.element.dataset.validity).toBe('pending');
+    await vi.waitFor(() => expect(content().getAttribute('aria-invalid')).toBe('true'));
+    editor.destroy();
+    host.remove();
+  });
+
   it('leaves invalid JSON unchanged when formatting', () => {
     const host = document.createElement('div');
     const editor = createJsonEditor(host, { value: '{', ariaLabel: 'Configuration' });
