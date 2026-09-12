@@ -222,6 +222,85 @@ describe('property insertion layout', () => {
   });
 });
 
+/** Type `typed` (cursor before its last character) into a parseable document the support's state field has seen, then accept `label`. */
+async function acceptAfterTyping(markedSource: string, label: string, typed = '""'): Promise<string> {
+  const { source, position: marker } = markedState(markedSource);
+  const position = marker + typed.length - 2;
+  const host = document.createElement('div');
+  document.body.appendChild(host);
+  const view = new EditorView({
+    parent: host,
+    state: EditorState.create({ doc: source, extensions: [json(), mochartSupportTesting.parsedDocument] })
+  });
+  views.push(view);
+  view.dispatch({ changes: { from: marker, insert: typed }, selection: { anchor: position + 1 } });
+  const result = await Promise.resolve(
+    mochartSupportTesting.completionSource(new CompletionContext(view.state, position + 1, true))
+  ) as CompletionResult | null;
+  expect(result).not.toBeNull();
+  const option = result!.options.find(candidate => candidate.label === label);
+  expect(option).toBeDefined();
+  (option!.apply as (view: EditorView, completion: Completion, from: number, to: number) => void)(
+    view, option!, result!.from, position + 1);
+  return view.state.doc.toString();
+}
+
+// Regression: the inserted value came from the model's literal text or a type placeholder, so a
+// conditional default inserted the opposite boolean, a palette inserted [] and JavaScript object
+// notation inserted {}; the value now resolves against core's defaults for the document
+describe('inserted default values', () => {
+  it('resolves conditional defaults against the document', async () => {
+    expect(await acceptAfterTyping('{"series":[{},{}],"legend":{|}}', 'visible'))
+      .toBe('{"series":[{},{}],"legend":{"visible": true}}');
+    expect(await acceptAfterTyping('{"series":[{}],"legend":{|}}', 'visible'))
+      .toBe('{"series":[{}],"legend":{"visible": false}}');
+    expect(await acceptAfterTyping('{"chart":{"type":"xy"},"clipIndicator":{|}}', 'visible'))
+      .toBe('{"chart":{"type":"xy"},"clipIndicator":{"visible": true}}');
+    expect(await acceptAfterTyping('{"chart":{"type":"pie"},"clipIndicator":{|}}', 'visible'))
+      .toBe('{"chart":{"type":"pie"},"clipIndicator":{"visible": false}}');
+    expect(await acceptAfterTyping('{"categoryAxis":{"scale":"linear"|}}', 'maxTickCount', ', ""'))
+      .toBe('{"categoryAxis":{"scale":"linear", "maxTickCount": 10}}');
+  });
+
+  it('inserts palettes, small object defaults and computed values as JSON', async () => {
+    expect(await acceptAfterTyping('{"colorPalette":{"shape":{"normal":{|}}}}', 'fillColors'))
+      .toBe('{"colorPalette":{"shape":{"normal":{"fillColors": ["#4477aa","#ee6677","#228833","#ccbb44","#66ccee","#aa3377","#bbbbbb"]}}}}');
+    expect(await acceptAfterTyping('{"chart":{|}}', 'margin'))
+      .toBe('{"chart":{"margin": {"top":2,"right":2,"bottom":2,"left":2}}}');
+    expect(await acceptAfterTyping('{"series":[{},{|}]}', 'id'))
+      .toBe('{"series":[{},{"id": "S1"}]}');
+  });
+
+  it('keeps the placeholder for a large default tree', async () => {
+    expect(await acceptAfterTyping('{"series":[{|}]}', 'label')).toBe('{"series":[{"label": {}}]}');
+  });
+
+  it('resolves a section written as one object as its first entry', async () => {
+    expect(await acceptAfterTyping('{"series":{|}}', 'bar'))
+      .toBe('{"series":{"bar": {"widthFraction":1,"alignFraction":0.5,"minExtent":0}}}');
+  });
+
+  it('keeps the placeholder inside a defaults section', async () => {
+    expect(await acceptAfterTyping('{"seriesDefaults":{|}}', 'bar')).toBe('{"seriesDefaults":{"bar": {}}}');
+  });
+
+  it('falls back to the placeholder when nothing has parsed', async () => {
+    expect(await acceptCompletion('{"series":[{},{}],"legend":{"|"}}', 'visible'))
+      .toBe('{"series":[{},{}],"legend":{"visible": false}}');
+  });
+
+  it('resolves against the last parsed document while an edit is mid-way', async () => {
+    const source = '{"series":[{},{}],"legend":{}}';
+    const state = EditorState.create({ doc: source, extensions: [json(), mochartSupportTesting.parsedDocument] });
+    const position = source.indexOf('{}') + 1;
+    const edited = state.update({ changes: { from: position, insert: '"' } }).state;
+    expect(() => JSON.parse(edited.doc.toString())).toThrow();
+    expect(edited.field(mochartSupportTesting.parsedDocument)).toEqual(JSON.parse(source));
+    expect(await acceptAfterTyping('{"series":[{},{}],"legend":{|}}', 'visible'))
+      .toBe('{"series":[{},{}],"legend":{"visible": true}}');
+  });
+});
+
 describe('Mochart support hover documentation', () => {
   it('shows property documentation, rules, and defaults', () => {
     const source = '{"chart":{"type":"xy"}}';
@@ -235,7 +314,8 @@ describe('Mochart support hover documentation', () => {
     expect(text).toContain('Default: "xy"');
   });
 
-  // Regression: only text defaults were shown, so color, color-list and conditional-only defaults had no Default line
+  // Regression: only text defaults were shown, so color, color-list and conditional-only defaults had no Default
+  // line, and a conditional entry whose value is a color was dropped from the list
   it('shows color, color list and conditional defaults', () => {
     const hover = (source: string, key: string) => {
       const tooltip = mochartSupportTesting.hoverSource(viewFor(source), source.indexOf('"' + key + '"') + 2);
@@ -247,6 +327,24 @@ describe('Mochart support hover documentation', () => {
     const conditional = hover('{"categoryAxis":{"maxTickCount":3}}', 'maxTickCount');
     expect(conditional).toContain('Default when scale is linear: 10');
     expect(conditional).toContain('Default when scale is ordinal: 0');
+    const conditionalColor = hover('{"series":[{"colorScale":{"min":"#000"}}]}', 'min');
+    expect(conditionalColor).toContain('Default when colorProperty is null: null');
+    expect(conditionalColor).toContain('Default when colorProperty is not null and colorScale.base.value is null: "#8f8fff"');
+  });
+});
+
+describe('required properties', () => {
+  it('says a property is required in hover text and completion detail', async () => {
+    const source = '{"series":[{"property":"revenue","axis":"A"}]}';
+    const hover = (key: string) => mochartSupportTesting.hoverSource(viewFor(source), source.indexOf('"' + key + '"') + 2)!.create().dom.textContent ?? '';
+    expect(hover('property')).toContain('Required');
+    expect(hover('axis')).not.toContain('Required');
+
+    const options = await completionOptions('{"series":[{"|": null}]}');
+    expect(options.find(option => option.label === 'property')?.detail).toBe('string, required');
+    expect(options.find(option => option.label === 'axis')?.detail).not.toContain('required');
+    const nested = await completionOptions('{"linearGradients":[{"stops":[{"|": null}]}]}');
+    expect(nested.find(option => option.label === 'offset')?.detail).toBe('number, required');
   });
 });
 
@@ -267,6 +365,32 @@ describe('Mochart support diagnostics', () => {
     expect(source.slice(diagnostic.from, diagnostic.to)).toBe('"missing"');
     expect(diagnostic.severity).toBe('error');
     expect(diagnostic.source).toBe('mochart');
+  });
+
+  // Regression: an absent required property read "should be a string naming a data property:
+  // undefined" over the whole series entry, with nothing naming the property
+  it('names an absent property and ranges the opening brace of its entry', () => {
+    const source = `{
+      "version": "1.0.0",
+      "categoryAxis": { "property": "month" },
+      "series": [{ "axis": "VA0" }]
+    }`;
+    const view = viewFor(source);
+    const diagnostic = mochartSupportTesting.semanticDiagnostics(view).find(item => item.message.includes('data property'));
+    expect(diagnostic).toBeDefined();
+    expect(diagnostic!.message).toBe('property: required, should be a string naming a data property');
+    expect(diagnostic!.from).toBe(source.indexOf('{ "axis"'));
+    expect(diagnostic!.to).toBe(source.indexOf('{ "axis"') + 1);
+  });
+
+  it('labels only required properties as required', () => {
+    const source = `{
+      "version": "1.0.0",
+      "categoryAxis": { "property": "month" },
+      "series": [{ "property": "revenue", "axis": "missing" }]
+    }`;
+    const diagnostic = mochartSupportTesting.semanticDiagnostics(viewFor(source)).find(item => item.message.includes('valueAxes'));
+    expect(diagnostic!.message).toBe('axis: should equal the id property of one of the valueAxes: "missing"');
   });
 
   it('ranges invalid-property warnings on the offending key names', () => {

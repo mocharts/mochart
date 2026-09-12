@@ -36,7 +36,7 @@ describe('Mochart config editor model', () => {
 
       expect(iconSize?.editor.types).toEqual(expect.arrayContaining(['number', 'string']));
       expect(iconSize?.editor.enum).toContain('auto');
-      expect(iconSize?.default?.text).toBe('"auto"');
+      expect(iconSize?.default).toEqual({ kind: 'literal', text: '"auto"' });
     }
   });
 });

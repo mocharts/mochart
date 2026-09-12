@@ -90,7 +90,8 @@ function addErrorMessageForKey(prefix: string, properties: string[], value: unkn
   }
   const message = validator.getErrorMessage(value);
   errorMessages.push(prefixPropertyErrorMessage(prefix, joinProperties(properties), message, i));
-  errorDetails.push({ path: messagePath(prefix, i, ...properties), message });
+  // the detail's path already locates an absent value, so it carries no appended ": undefined"
+  errorDetails.push({ path: messagePath(prefix, i, ...properties), message: value === undefined ? validator.errorMessage : message });
 }
 
 function addErrorMessagesInternal(prefix: string, config: unknown, validatorMap: ValidatorMap, errorMessages: string[], errorDetails: LocatedValidationMessage[], i: number | undefined = undefined, all = false): void {

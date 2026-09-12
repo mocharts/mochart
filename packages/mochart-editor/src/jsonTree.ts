@@ -130,30 +130,37 @@ export function memberIndentation(state: EditorState, object: SyntaxNode): strin
   return columns === null ? '' : indentString(state, columns);
 }
 
-function nodeForPath(state: EditorState, path: JsonPath): SyntaxNode | null {
+/** The deepest node the path reaches; `resolved` is false when a segment is missing from its container. */
+function nodeForPath(state: EditorState, path: JsonPath): { node: SyntaxNode | null; resolved: boolean } {
   let node: SyntaxNode | null = syntaxTree(state).topNode.firstChild;
   for (const segment of path) {
     if (!node) break;
     if (typeof segment === 'number' && node.name === 'Array') {
-      node = arrayValues(node)[segment] ?? node;
+      const value = arrayValues(node)[segment];
+      if (!value) return { node, resolved: false };
+      node = value;
     }
     else if (typeof segment === 'string' && node.name === 'Object') {
       const property = children(node).find(child => child.name === 'Property' && propertyKey(state, child) === segment);
-      node = property ? propertyValue(property) ?? property : node;
+      if (!property) return { node, resolved: false };
+      node = propertyValue(property) ?? property;
     }
+    // an index against an object stays put: core reads a single-object section as its entry 0
   }
-  return node;
+  return { node, resolved: true };
 }
 
+/** The range of the value at `path`, or the opening bracket of the container an absent segment belongs in. */
 export function rangeForPath(state: EditorState, path: JsonPath): { from: number; to: number } {
-  const node = nodeForPath(state, path);
-  return node ? { from: node.from, to: Math.max(node.from + 1, node.to) } : { from: 0, to: Math.min(1, state.doc.length) };
+  const { node, resolved } = nodeForPath(state, path);
+  if (!node) return { from: 0, to: Math.min(1, state.doc.length) };
+  return { from: node.from, to: resolved ? Math.max(node.from + 1, node.to) : node.from + 1 };
 }
 
 /** The range of `key`'s name token inside the object at `path`; falls back to that object's range. */
 export function keyRangeForPath(state: EditorState, path: JsonPath, key: string): { from: number; to: number } {
-  const object = nodeForPath(state, path);
-  if (object?.name === 'Object') {
+  const { node: object, resolved } = nodeForPath(state, path);
+  if (resolved && object?.name === 'Object') {
     const property = children(object).find(child => child.name === 'Property' && propertyKey(state, child) === key);
     const name = property ? children(property).find(child => child.name === 'PropertyName') : undefined;
     if (name) return { from: name.from, to: Math.max(name.from + 1, name.to) };

@@ -23,4 +23,19 @@ describe('JSON tree paths', () => {
     const range = rangeForPath(state(), ['series', 0, 'axis']);
     expect(source.slice(range.from, range.to)).toBe('"money"');
   });
+
+  // Regression: a segment missing from the document kept the last resolved node, so an absent
+  // property was ranged over its whole containing entry
+  it('ranges an absent property on the opening brace of its container', () => {
+    const range = rangeForPath(state(), ['series', 0, 'missing']);
+    expect(range).toEqual({ from: source.indexOf('{ "property"'), to: source.indexOf('{ "property"') + 1 });
+    const entry = rangeForPath(state(), ['series', 1]);
+    expect(source.slice(entry.from, entry.to)).toBe('[');
+  });
+
+  it('reads an index against a single-object section as that object', () => {
+    const single = EditorState.create({ doc: '{"series": {"axis": "money"}}', extensions: [json()] });
+    const range = rangeForPath(single, ['series', 0, 'axis']);
+    expect(single.doc.sliceString(range.from, range.to)).toBe('"money"');
+  });
 });

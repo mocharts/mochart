@@ -16,17 +16,31 @@ export interface EditorReferenceModel {
   commonKey?: string;
 }
 
+export type EditorDefaultValue =
+  | { kind: 'color'; color: string }
+  | { kind: 'colors'; colors: string[] }
+  | { kind: 'literal'; text: string }
+  | { kind: 'none' };
+
+export interface EditorConditionalDefault {
+  value: EditorDefaultValue;
+  /** Human-readable condition under which this default applies. */
+  condition: string;
+}
+
 export interface EditorPropertyModel {
   key: string;
   description: string;
   details?: string;
   rules: string[];
-  default?: { kind: string; text?: string; color?: string; colors?: string[] };
-  conditionalDefaults?: { value: { kind: string; text?: string }; condition: string }[];
+  default?: EditorDefaultValue;
+  conditionalDefaults?: EditorConditionalDefault[];
   editor: EditorValueModel;
   reference?: EditorReferenceModel;
   /** The documented members of a nested object property. */
   properties?: EditorPropertyModel[];
+  /** True when the property has no default and a value must be supplied. */
+  required?: boolean;
 }
 
 export interface EditorSectionModel {

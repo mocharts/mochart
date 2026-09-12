@@ -429,6 +429,16 @@ describe('detailed validation', () => {
     }));
   });
 
+  it('carries no appended value in the detail for an absent required property', () => {
+    const config = { version: V, categoryAxis: { property: 'p' }, series: [{ axis: 'VA0' }] };
+    const result = detailedFor(config);
+    expect(result.errors).toContain('series[0] - property - should be a string naming a data property: undefined');
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({
+      path: ['series', 0, 'property'],
+      message: 'should be a string naming a data property'
+    }));
+  });
+
   it('reports unknown top-level properties as a root warning', () => {
     const config = { version: V, categoryAxis: { property: 'p' }, unknownExtra: true };
     expect(detailedFor(config).diagnostics).toContainEqual(expect.objectContaining({

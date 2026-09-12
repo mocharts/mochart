@@ -1,9 +1,10 @@
 import { acceptCompletion, autocompletion, pickedCompletion, type Completion, type CompletionContext } from '@codemirror/autocomplete';
+import { StateField, type EditorState } from '@codemirror/state';
 import { hoverTooltip, keymap, type EditorView } from '@codemirror/view';
 import { getDefaults, getVersionString, validateConfigDetailed } from '@mochart/core';
 import type { Diagnostic } from '@codemirror/lint';
 import model from './mochartConfigModel.generated.js';
-import type { EditorPropertyModel, EditorSectionModel, EditorValueModel } from './model.js';
+import type { EditorDefaultValue, EditorPropertyModel, EditorSectionModel, EditorValueModel } from './model.js';
 import { afterClosingPropertyQuote, containingObject, existingObjectKeys, isPropertyPosition, keyRangeForPath, memberIndentation, objectPath, pathAt, propertyNameAt, rangeForPath } from './jsonTree.js';
 import { defineSupport } from './support.js';
 import type { JsonPath } from './types.js';
@@ -35,7 +36,7 @@ function topLevelProperties(): EditorPropertyModel[] {
         description: property.allDescription ?? property.description,
         editor: { types: ['object'] },
         rules: property.allRules ?? [],
-        default: { kind: 'literal', text: property.allDefaultText }
+        default: { kind: 'literal', text: property.allDefaultText ?? '{}' }
       } satisfies EditorPropertyModel
     ];
   });
@@ -106,7 +107,62 @@ function placeholder(value: EditorValueModel): string {
   return '""';
 }
 
-function defaultText(property: EditorPropertyModel): string {
+function parseDocument(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  }
+  catch {
+    return undefined;
+  }
+}
+
+// The last document that parsed, so a mid-edit document still resolves defaults and references.
+const parsedDocument = StateField.define<unknown>({
+  create: state => parseDocument(state.doc.toString()),
+  update(value, transaction) {
+    if (!transaction.docChanged) return value;
+    const parsed = parseDocument(transaction.newDoc.toString());
+    return parsed === undefined ? value : parsed;
+  }
+});
+
+function documentFor(state: EditorState): unknown {
+  return state.field(parsedDocument, false) ?? parseDocument(state.doc.toString());
+}
+
+function documentDefaults(state: EditorState): Record<string, unknown> | null {
+  const document = documentFor(state);
+  if (document === undefined) return null;
+  try {
+    return getDefaults(document);
+  }
+  catch {
+    return null;
+  }
+}
+
+// core defaults a section written as one object as entry 0 of a list
+function defaultsPath(defaults: Record<string, unknown>, path: JsonPath): JsonPath {
+  const [section, next] = path;
+  return typeof section === 'string' && typeof next === 'string' && Array.isArray(defaults[section])
+    ? [section, 0, ...path.slice(1)]
+    : path;
+}
+
+// objects and arrays insert only up to 80 characters of JSON: a whole style tree belongs in the hover, not the document
+const maxInsertedTreeLength = 80;
+
+function resolvedDefaultText(defaults: Record<string, unknown> | null, path: JsonPath): string | null {
+  if (!defaults) return null;
+  const value = valueAtPath(defaults, defaultsPath(defaults, path));
+  if (value === undefined || typeof value === 'function') return null;
+  const text = JSON.stringify(value);
+  return typeof value === 'object' && value !== null && text.length > maxInsertedTreeLength ? null : text;
+}
+
+function defaultText(property: EditorPropertyModel, defaults: Record<string, unknown> | null, path: JsonPath): string {
+  const resolved = resolvedDefaultText(defaults, path);
+  if (resolved !== null) return resolved;
   if (property.default?.kind === 'literal' && property.default.text) {
     try {
       return JSON.stringify(JSON.parse(property.default.text));
@@ -120,22 +176,31 @@ function defaultText(property: EditorPropertyModel): string {
   return placeholder(property.editor);
 }
 
-// the model stores a default as text, a single color, a color list, or only per-condition values
-function defaultLines(property: EditorPropertyModel): string[] {
-  const { default: value, conditionalDefaults } = property;
-  if (value?.text) return ['Default: ' + value.text];
-  if (value?.color) return ['Default: ' + JSON.stringify(value.color)];
-  if (value?.colors) return ['Default: ' + JSON.stringify(value.colors)];
-  if (conditionalDefaults && conditionalDefaults.length > 0) {
-    return conditionalDefaults.filter(entry => entry.value.text).map(entry => 'Default ' + entry.condition + ': ' + entry.value.text);
+// null for kind 'none', the one kind with nothing to show
+function defaultValueText(value: EditorDefaultValue | undefined): string | null {
+  if (!value) return null;
+  switch (value.kind) {
+    case 'literal': return value.text;
+    case 'color': return JSON.stringify(value.color);
+    case 'colors': return JSON.stringify(value.colors);
+    case 'none': return null;
   }
-  return [];
+}
+
+function defaultLines(property: EditorPropertyModel): string[] {
+  const text = defaultValueText(property.default);
+  if (text !== null) return ['Default: ' + text];
+  return (property.conditionalDefaults ?? []).flatMap(entry => {
+    const entryText = defaultValueText(entry.value);
+    return entryText === null ? [] : ['Default ' + entry.condition + ': ' + entryText];
+  });
 }
 
 function propertyInfo(property: EditorPropertyModel): string {
   const lines = [property.description];
   if (property.details) lines.push(property.details);
   if (property.rules.length > 0) lines.push('Rules: ' + property.rules.join('; '));
+  if (property.required) lines.push('Required');
   lines.push(...defaultLines(property));
   return lines.join('\n\n');
 }
@@ -272,13 +337,14 @@ function completionSource(context: CompletionContext) {
   if (isPropertyPosition(context.state, context.pos, object)) {
     const existing = new Set(existingObjectKeys(context.state, object));
     const properties = propertiesForObject(containerPath);
+    const defaults = documentDefaults(context.state);
     return {
       from,
       options: properties.filter(property => !existing.has(property.key)).map(property => ({
         label: property.key,
-        apply: applyProperty(property.key, defaultText(property)),
+        apply: applyProperty(property.key, defaultText(property, defaults, [...containerPath, property.key])),
         type: 'property',
-        detail: property.editor.types.join(' | '),
+        detail: property.editor.types.join(' | ') + (property.required ? ', required' : ''),
         info: propertyInfo(property)
       })),
       validFor: /^[\w-]*$/
@@ -288,14 +354,7 @@ function completionSource(context: CompletionContext) {
   const path = pathAt(context.state, context.pos);
   const property = propertyForPath(path);
   if (!property) return null;
-  let document: unknown;
-  try {
-    document = JSON.parse(context.state.doc.toString());
-  }
-  catch {
-    document = null;
-  }
-  const options = valueOptions(property, document, path);
+  const options = valueOptions(property, documentFor(context.state), path);
   return options.length > 0 ? { from, options } : null;
 }
 
@@ -316,6 +375,14 @@ function hoverSource(view: import('@codemirror/view').EditorView, position: numb
       return { dom };
     }
   };
+}
+
+// core's detail message omits the key, and an absent property's range cannot show it
+function diagnosticMessage(path: JsonPath, message: string): string {
+  const key = path[path.length - 1];
+  if (typeof key !== 'string') return message;
+  const required = propertyForPath(path)?.required ? 'required, ' : '';
+  return key + ': ' + required + message;
 }
 
 function semanticDiagnostics(view: import('@codemirror/view').EditorView): Diagnostic[] {
@@ -342,7 +409,7 @@ function semanticDiagnostics(view: import('@codemirror/view').EditorView): Diagn
       return [{
         ...rangeForPath(view.state, diagnostic.path),
         severity: diagnostic.severity,
-        message: diagnostic.message,
+        message: diagnosticMessage(diagnostic.path, diagnostic.message),
         source: 'mochart',
         path: diagnostic.path
       } as Diagnostic];
@@ -387,6 +454,7 @@ function warnOnModelSkew(modelVersion: string, coreVersion: string) {
  * implementation details do not become part of @mochart/editor's public API.
  */
 export const mochartSupportTesting = {
+  parsedDocument,
   completionSource,
   hoverSource,
   semanticDiagnostics,
@@ -401,6 +469,7 @@ export function createMochartConfigSupport() {
   warnOnModelSkew(model.coreVersion, getVersionString());
   return defineSupport('mochart-config', {
     extensions: [
+      parsedDocument,
       autocompletion({ override: [completionSource] }),
       keymap.of([{ key: 'Tab', run: acceptCompletion }]),
       hoverTooltip(hoverSource, { hoverTime: 300 })
