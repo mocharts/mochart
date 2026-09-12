@@ -82,6 +82,8 @@ export interface CategoryAxisLayoutInfo extends AxisLayoutInfo {
   before: number;
   after: number;
   minTickSize: number;
+  /** The extent along the axis of the widest minor tick label, the room one category slot must give it. */
+  minorTickLabelSpace: number;
 }
 
 export interface TitleLayoutResult {
@@ -121,6 +123,7 @@ export interface ChartTextBoundsData {
   titlePrefixBounds: TextBounds;
   titleSuffixBounds: TextBounds;
   categoryAxisTickBounds: TextBounds;
+  categoryAxisMinorTickBounds: TextBounds;
   categoryAxisSizeTickBounds: TextBounds;
   categoryAxisTitleBounds: TextBounds;
   categoryAxisThresholdTitleBounds: Record<number, TextBounds>;

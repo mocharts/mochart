@@ -22,6 +22,7 @@ export function getChartTextBoundsData(mochartConfig: EnhancedMochartConfig, dom
   const titlePrefixBounds = getTitlePrefixBounds(mochartConfig, domAccessors);
   const titleSuffixBounds = getTitleSuffixBounds(mochartConfig, domAccessors);
   const categoryAxisTickBounds = getCategoryAxisTickLabelBounds(mochartConfig, domAccessors);
+  const categoryAxisMinorTickBounds = getCategoryAxisMinorTickLabelBounds(mochartConfig, domAccessors);
   const categoryAxisSizeTickBounds = getCategoryAxisSizeTickLabelBounds(mochartConfig, domAccessors);
   const categoryAxisTitleBounds = getCategoryAxisTitleBounds(mochartConfig, domAccessors);
   const categoryAxisThresholdTitleBounds = getCategoryAxisThresholdTitleBounds(mochartConfig, domAccessors);
@@ -39,6 +40,7 @@ export function getChartTextBoundsData(mochartConfig: EnhancedMochartConfig, dom
     titlePrefixBounds,
     titleSuffixBounds,
     categoryAxisTickBounds,
+    categoryAxisMinorTickBounds,
     categoryAxisSizeTickBounds,
     categoryAxisTitleBounds,
     categoryAxisThresholdTitleBounds,
@@ -289,12 +291,38 @@ export function getTitleSuffixBounds(mochartConfig: EnhancedMochartConfig, domAc
   return titleSuffixBounds;
 }
 
+// Only a minorFormat gives the minor ticks a label of their own to measure; without one they carry
+// the major format and measure with the major ticks, as they did before the format existed.
+function hasMinorTickLabels(mochartConfig: EnhancedMochartConfig): boolean {
+  const { categoryAxis } = mochartConfig;
+  return categoryAxis.visible && categoryAxis.scale === SCALE_ORDINAL && categoryAxis.tickStep.minorFormat !== NONE;
+}
+
 export function getCategoryAxisTickLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
   let categoryAxisTickBounds: TextBounds = emptyBounds;
   if (mochartConfig.categoryAxis.visible) {
-    categoryAxisTickBounds = getSvgMaxBounds(domAccessors, 'getCategoryAxisTicksDomElements', defaultBounds);
+    categoryAxisTickBounds = getSvgMaxBounds(domAccessors, hasMinorTickLabels(mochartConfig) ? 'getCategoryAxisMajorTicksDomElements' : 'getCategoryAxisTicksDomElements', defaultBounds);
   }
   return categoryAxisTickBounds;
+}
+
+function getCategoryAxisMinorTickLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
+  let categoryAxisMinorTickBounds: TextBounds = emptyBounds;
+  if (hasMinorTickLabels(mochartConfig)) {
+    categoryAxisMinorTickBounds = defaultBounds;
+    if (domAccessors) {
+      const minorElements = domAccessors.getCategoryAxisMinorTicksDomElements();
+      if (minorElements.length > 0) {
+        const bounds = getSvgMaxWidthAndHeight(minorElements);
+        categoryAxisMinorTickBounds = isMeasured(bounds) ? bounds : defaultBounds;
+      }
+      else if (domAccessors.getCategoryAxisTicksDomElements().length > 0) {
+        // ticks with no minor among them (a single category) are a measured nothing, not a default to retry
+        categoryAxisMinorTickBounds = emptyBounds;
+      }
+    }
+  }
+  return categoryAxisMinorTickBounds;
 }
 
 export function getCategoryAxisSizeTickLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {

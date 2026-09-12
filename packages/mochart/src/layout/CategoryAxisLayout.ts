@@ -40,7 +40,7 @@ export function getCategoryAxisRotatedTickBounds(mochartConfig: EnhancedMochartC
 
 export function createCategoryAxisLayoutInfo(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, categoryAxisRotatedTickBounds: Bounds, axisTickInfos: AxisTickInfos, categoryY: number, valueY: number, categoryInnerExtent: number, valueInnerExtent: number, categoryAxesOffset: BeforeAfter, categoryAxisSize: number): CategoryAxisLayoutInfo {
   const { plot: plotConfig, categoryAxis: categoryAxisConfig } = mochartConfig;
-  const { categoryAxisTitleBounds, categoryAxisTickBounds, categoryAxisSizeTickBounds, categoryAxisThresholdTitleBounds } = chartTextBoundsData;
+  const { categoryAxisTitleBounds, categoryAxisTickBounds, categoryAxisMinorTickBounds, categoryAxisSizeTickBounds, categoryAxisThresholdTitleBounds } = chartTextBoundsData;
   const { categoryAxisTickInfo } = axisTickInfos;
   const { inverted } = plotConfig;
   const vertical = inverted;
@@ -62,5 +62,6 @@ export function createCategoryAxisLayoutInfo(mochartConfig: EnhancedMochartConfi
   categoryAxisLayoutInfo.before = categoryAxesOffset.before;
   categoryAxisLayoutInfo.after = categoryAxesOffset.after;
   categoryAxisLayoutInfo.minTickSize = categoryAxisSizeTickBounds.width;
+  categoryAxisLayoutInfo.minorTickLabelSpace = categoryAxisTickInfo.tickLabelParallel ? categoryAxisMinorTickBounds.width : categoryAxisMinorTickBounds.height;
   return categoryAxisLayoutInfo;
 }

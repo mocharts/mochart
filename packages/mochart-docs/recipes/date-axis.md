@@ -66,6 +66,13 @@ and that holds through holidays and as the data window slides:
   `includeFirst` always keeps the first category.
 - When more ticks survive than fit, every k-th survivor is kept from the
   first, so a thinned weekly rule still lands on Mondays.
+- The categories between the rule's ticks are minor ticks. A `minorFormat`
+  labels them in its own d3 format, `%a` for the weekday, and the labels show
+  only while the widest of them fits inside one category slot; when they do
+  not fit they all hide together, and the rule's ticks are unchanged either
+  way. Their tick marks, grid lines and labels carry
+  `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and
+  `mochart-axis-minor-tick-label` classes for styling.
 - On a linear date axis only `period` applies, and the ticks sit on the period
   boundaries themselves rather than on categories.
 

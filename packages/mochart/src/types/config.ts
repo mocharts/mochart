@@ -2612,11 +2612,21 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * fourth category and every fifth after it. When more ticks survive the rule
    * than fit, every k-th survivor is kept starting from the first, so thinned
    * Mondays stay Mondays; `tickLabel.truncation` still decides whether crowded
-   * labels truncate or skip. On a linear date scale only `period` applies,
-   * placing the ticks at the period boundaries themselves; a linear number
-   * scale accepts only the defaults.
+   * labels truncate or skip. On an ordinal scale the categories between the
+   * rule's ticks are minor ticks: their tick marks, grid lines and labels carry
+   * the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and
+   * `mochart-axis-minor-tick-label` classes, and with a `minorFormat` (a d3
+   * time format on a date axis, a number format on a number axis; a string axis
+   * takes only `null`) they are labelled in that format, so a weekly rule can
+   * show `Jun 08` at each Monday and `Tue` to `Fri` between, while the rule's
+   * own ticks keep `tickLabel.format`. The minor labels show only when the
+   * widest of them, plus `minTickSpacing`, fits inside one category slot, and
+   * when they do not fit they all hide together, leaving the rule's ticks as
+   * they were; they never affect which of the rule's ticks are shown. On a
+   * linear date scale only `period` applies, placing the ticks at the period
+   * boundaries themselves; a linear number scale accepts only the defaults.
    *
-   * @default { count: "auto", offset: 0, period: null, includeFirst: false }
+   * @default { count: "auto", offset: 0, period: null, includeFirst: false, minorFormat: null }
    */
   tickStep: CategoryAxisTickStepConfig;
   /**
@@ -2714,6 +2724,15 @@ export interface CategoryAxisTickStepConfig {
    * @default false
    */
   includeFirst: boolean;
+  /**
+   * The d3 format string (d3-format for number, d3-time-format for date)
+   * applied to the categories between the step's ticks on an ordinal axis,
+   * labelling them as minor ticks when the labels fit a category slot (use null
+   * for none).
+   *
+   * @default null
+   */
+  minorFormat: string | null;
 }
 
 export interface CategoryAxisTick {

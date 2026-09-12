@@ -82,6 +82,8 @@ export interface AxisTick {
   position: number;
   value: CategoryValue;
   hidden: boolean;
+  /** Set on the categories between a tick step's ticks on an ordinal axis. */
+  minor?: boolean;
 }
 
 export interface CategorySpacingInfo {

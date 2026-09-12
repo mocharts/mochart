@@ -23,7 +23,7 @@ export const config: MochartInputConfig = {
     ...candlestick.categoryAxis,
     tickLabel: { format: '%b %d' },
     valueFormat: '%a %b %d',
-    tickStep: { period: 'week' }
+    tickStep: { period: 'week', minorFormat: '%a' }
   },
   valueAxes: [{ title: { text: '$ per share' } }],
   series: candlestick.series

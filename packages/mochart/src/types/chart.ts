@@ -49,6 +49,8 @@ export interface ChartDomAccessors {
   getTitlePrefixDomElement(): SVGGraphicsElement | null;
   getTitleSuffixDomElement(): SVGGraphicsElement | null;
   getCategoryAxisTicksDomElements(): NodeListOf<SVGGraphicsElement>;
+  getCategoryAxisMajorTicksDomElements(): NodeListOf<SVGGraphicsElement>;
+  getCategoryAxisMinorTicksDomElements(): NodeListOf<SVGGraphicsElement>;
   getCategoryAxisSizeTickDomElement(): SVGGraphicsElement | null;
   getCategoryAxisTitleDomElement(): SVGGraphicsElement | null;
   getCategoryAxisThresholdTitleDomElements(): NodeListOf<SVGGraphicsElement>;

@@ -15,6 +15,8 @@ const scaleOrdinalSuffix = 'when scale is ' + SCALE_ORDINAL;
 const scaleLinearSuffix = 'when scale is ' + SCALE_LINEAR;
 const linearDateSuffix = 'when scale is ' + SCALE_LINEAR + ' and type is ' + TYPE_DATE;
 const linearNumberSuffix = 'when scale is ' + SCALE_LINEAR + ' and type is ' + TYPE_NUMBER;
+const ordinalDateSuffix = 'when scale is ' + SCALE_ORDINAL + ' and type is ' + TYPE_DATE;
+const ordinalNumberSuffix = 'when scale is ' + SCALE_ORDINAL + ' and type is ' + TYPE_NUMBER;
 
 const typeStringRule = { condition: ({ type }: CategoryAxisCondition) => type === TYPE_STRING, suffix: typeStringSuffix };
 const typeDateRule = { condition: ({ type }: CategoryAxisCondition) => type === TYPE_DATE, suffix: typeDateSuffix };
@@ -25,6 +27,8 @@ const keyedOrdinalRule = { condition: ({ scale, keyProperty }: CategoryAxisCondi
 const scaleLinearRule = { condition: ({ scale }: CategoryAxisCondition) => scale === SCALE_LINEAR, suffix: scaleLinearSuffix };
 const linearDateRule = { condition: ({ scale, type }: CategoryAxisCondition) => scale === SCALE_LINEAR && type === TYPE_DATE, suffix: linearDateSuffix };
 const linearNumberRule = { condition: ({ scale, type }: CategoryAxisCondition) => scale === SCALE_LINEAR && type === TYPE_NUMBER, suffix: linearNumberSuffix };
+const ordinalDateRule = { condition: ({ scale, type }: CategoryAxisCondition) => scale === SCALE_ORDINAL && type === TYPE_DATE, suffix: ordinalDateSuffix };
+const ordinalNumberRule = { condition: ({ scale, type }: CategoryAxisCondition) => scale === SCALE_ORDINAL && type === TYPE_NUMBER, suffix: ordinalNumberSuffix };
 const defaultRule = { condition: () => true };
 
 export default function getValidators(config: Partial<CategoryAxisConfig>, pieMode = false) {
@@ -131,6 +135,11 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
         { ...scaleOrdinalRule, validator: validators.boolean() },
         { ...scaleLinearRule, validator: validators.equal(false) },
         { ...defaultRule, validator: validators.any() }
+      ], config),
+      minorFormat: validators.conditional([
+        { ...ordinalDateRule, validator: validators.dateFormat().orEqual(NONE) },
+        { ...ordinalNumberRule, validator: validators.numberFormat().orEqual(NONE) },
+        { ...defaultRule, validator: validators.equal(NONE) }
       ], config)
     }, true),
 

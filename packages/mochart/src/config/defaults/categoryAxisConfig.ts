@@ -29,7 +29,7 @@ export function getRegularDefaults() {
     scale: SCALE_ORDINAL,
 
     ticks: NONE,
-    tickStep: { count: AUTO, offset: 0, period: NONE, includeFirst: false },
+    tickStep: { count: AUTO, offset: 0, period: NONE, includeFirst: false, minorFormat: NONE },
     thresholdStep: { ...axisDefaults.thresholdStep, period: NONE },
 
     tickLabel: {

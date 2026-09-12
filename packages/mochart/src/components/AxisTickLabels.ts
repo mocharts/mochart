@@ -186,7 +186,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
         else {
           tickX = tick.position;
         }
-        handle.root.set({ className: mochartCssClasses['axisTickLabel'] + i,
+        handle.root.set({ className: tick.minor === true ? mochartCssClasses['axisTickLabel'] + i + ' ' + mochartCssClasses['axisMinorTickLabel'] : mochartCssClasses['axisTickLabel'] + i,
           transform: translate(tickX + tickTextX, tickY + tickTextY), clipPath });
         // an overlap-suppressed label is not read, and an ellipsised one is read in full
         const fullLabel = this.tickLabelStrings[i];

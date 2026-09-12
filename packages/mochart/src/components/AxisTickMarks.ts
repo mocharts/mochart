@@ -42,6 +42,8 @@ export default class AxisTickMarks extends Renderer<AxisTickMarksProps> {
         vertical,
         offset: (tick) => tick.position,
         hidden: (tick) => tick.hidden,
+        minor: (tick) => tick.minor === true,
+        minorClassName: mochartCssClasses['axisMinorTickMark'],
         x1: tickMarkX1,
         y1: tickMarkY1,
         x2: tickMarkX2,

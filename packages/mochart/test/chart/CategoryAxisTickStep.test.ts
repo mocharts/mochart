@@ -1,11 +1,13 @@
 /**
- * Category axis `tickStep`: which ticks an ordinal axis shows by rule — every count-th category from an
- * offset, or under a period the first category of each calendar period — thinned to what fits, with a
- * linear date axis placing its ticks on the period boundaries instead.
+ * Category axis `tickStep`: which ticks an ordinal axis shows by rule, every count-th category from an
+ * offset, or under a period the first category of each calendar period, thinned to what fits, with a
+ * linear date axis placing its ticks on the period boundaries instead. The categories between the rule's
+ * ticks are minor: `minorFormat` labels them where a slot fits the widest label, and they carry a class.
  */
 import { describe, it, beforeAll, expect } from 'vitest';
 import { installSvgMeasurementShims } from '../components/svgShims';
 import { installFakeFrameClock, runFrames, mountContainer } from '../components/helpers';
+import { getCssSelector, getDescendantCssSelector } from '../../src/utils/ChartDom';
 
 let mochart: typeof import('../../src');
 
@@ -124,6 +126,86 @@ describe('category axis tick step on an ordinal axis', () => {
     const { container, chart } = renderChart({ type: 'string', scale: 'ordinal', tickStep: {} }, letterRows);
     expect(getAxisLabels(container)).toEqual(letters);
     chart.destroy();
+  });
+});
+
+describe('category axis tick step minor format', () => {
+  // Wednesday June 3 2026 start with Monday June 8 a holiday: Jun 03, Jun 09 and Jun 15 are the rule's ticks
+  const dates = weekdays('2026-06-03', 19, ['2026-06-08']);
+  const weeklyAxis = { type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { period: 'week', minorFormat: '%a' } };
+
+  it('labels the categories between the weekly ticks with the minor format', () => {
+    const { container, chart } = renderChart(weeklyAxis, dateRows(dates));
+    expect(getAxisLabels(container)).toEqual(['Jun 03', 'Thu', 'Fri', 'Jun 09', 'Wed', 'Thu', 'Fri', 'Jun 15', 'Tue', 'Wed', 'Thu', 'Fri']);
+    chart.destroy();
+  });
+
+  it('hides every minor label together where a category slot cannot fit the widest one, leaving the weekly ticks alone', () => {
+    // jsdom measures every label at the 20px default, so a 200px chart's 12 slots are too narrow for any minor
+    const narrow = renderChart(weeklyAxis, dateRows(dates), 200);
+    const narrowWithoutMinors = renderChart({ ...weeklyAxis, tickStep: { period: 'week' } }, dateRows(dates), 200);
+    const labels = getAxisLabels(narrow.container);
+    expect(labels.length).toBeGreaterThan(1);
+    expect(labels.every((label) => label.startsWith('Jun '))).toBe(true);
+    expect(labels).toEqual(getAxisLabels(narrowWithoutMinors.container));
+    narrow.chart.destroy();
+    narrowWithoutMinors.chart.destroy();
+  });
+
+  it('keeps the weekly ticks the same with and without a minor format', () => {
+    const withMinors = renderChart(weeklyAxis, dateRows(dates));
+    const withoutMinors = renderChart({ ...weeklyAxis, tickStep: { period: 'week' } }, dateRows(dates));
+    const majors = (container: HTMLElement) => getAxisLabels(container).filter((label) => label.includes(' '));
+    expect(majors(withMinors.container)).toEqual(majors(withoutMinors.container));
+    expect(getAxisLabels(withoutMinors.container)).toEqual(['Jun 03', 'Jun 09', 'Jun 15']);
+    withMinors.chart.destroy();
+    withoutMinors.chart.destroy();
+  });
+
+  it('formats a number axis\'s minor ticks with a number format', () => {
+    const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((label) => ({ label, value: 1 + (label % 3) }));
+    const { container, chart } = renderChart({ type: 'number', scale: 'ordinal', tickStep: { count: 5, minorFormat: '.1f' } }, rows);
+    expect(getAxisLabels(container)).toEqual(['1', '2.0', '3.0', '4.0', '5.0', '6', '7.0', '8.0', '9.0', '10.0']);
+    chart.destroy();
+  });
+
+  it('marks the minor tick labels, tick marks and grid lines with the minor classes', () => {
+    const { container, chart } = renderChart({ ...weeklyAxis, tickMark: { visible: true }, gridLine: { visible: true } }, dateRows(dates));
+    const count = (selector: string) => container.querySelectorAll(selector).length;
+    const tickLabels = getDescendantCssSelector('categoryAxis', 'axisTickLabels', 'axisTickLabel');
+    const tickMarks = getDescendantCssSelector('categoryAxis', 'axisTickMarks', 'axisTickMark');
+    const gridLines = getDescendantCssSelector('categoryAxisGrid', 'axisGridLine');
+    // 12 categories, 3 of them the rule's ticks, plus the hidden single-tick fallback the axis keeps
+    expect(count(tickLabels + getCssSelector('axisMinorTickLabel'))).toBe(9);
+    expect(count(tickLabels)).toBe(13);
+    expect(count(tickMarks + getCssSelector('axisMinorTickMark'))).toBe(9);
+    expect(count(tickMarks)).toBe(13);
+    expect(count(gridLines + getCssSelector('axisMinorGridLine'))).toBe(9);
+    expect(count(gridLines)).toBe(13);
+    chart.destroy();
+  });
+
+  it('adds no minor class without a tick step', () => {
+    const { container, chart } = renderChart({ type: 'string', scale: 'ordinal', tickMark: { visible: true } }, letterRows);
+    expect(container.querySelectorAll(getCssSelector('axisMinorTickLabel')).length).toBe(0);
+    expect(container.querySelectorAll(getCssSelector('axisMinorTickMark')).length).toBe(0);
+    chart.destroy();
+  });
+
+  it('rejects a minor format on a string axis and on a linear axis', () => {
+    const { enhanceConfig } = mochart;
+    const stringAxis = enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { count: 2, minorFormat: '%a' } },
+      series: [{ property: 'value' }]
+    });
+    expect(stringAxis.validation.errors.join('\n')).toMatch(/tickStep\.minorFormat/);
+    const linearAxis = enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', type: 'date', scale: 'linear', tickStep: { period: 'week', minorFormat: '%a' } },
+      series: [{ property: 'value' }]
+    });
+    expect(linearAxis.validation.errors.join('\n')).toMatch(/tickStep\.minorFormat/);
   });
 });
 

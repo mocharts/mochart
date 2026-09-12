@@ -12,7 +12,8 @@
     },
     "valueFormat": "%a %b %d",
     "tickStep": {
-      "period": "week"
+      "period": "week",
+      "minorFormat": "%a"
     }
   },
   "valueAxes": [

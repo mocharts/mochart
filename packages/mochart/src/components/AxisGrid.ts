@@ -41,6 +41,8 @@ export default class AxisGrid extends Renderer<AxisGridProps> {
         vertical,
         offset: (tick) => tick.position,
         hidden: (tick) => tick.hidden,
+        minor: (tick) => tick.minor === true,
+        minorClassName: mochartCssClasses['axisMinorGridLine'],
         x1: seriesLayoutInfo.x,
         y1: seriesLayoutInfo.y,
         x2: vertical ? seriesLayoutInfo.x + seriesLayoutInfo.width : seriesLayoutInfo.x,

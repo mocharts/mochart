@@ -184,12 +184,15 @@ function createLinearTickObject(scaleTickValue: AxisValue, axisScale: AxisScale,
   return { ...tickObjectWithoutHidden, hidden: isHidden(tickObjectWithoutHidden) };
 }
 
-function createOrdinalTickObject(scaleTickValue: number, categoryValues: readonly CategoryValue[], categoryPositions: number[], tickLabelFormatter: TickLabelFormatter, isHidden: (tick: Omit<AxisTick, 'hidden'>) => boolean): AxisTick {
+function createOrdinalTickObject(scaleTickValue: number, categoryValues: readonly CategoryValue[], categoryPositions: number[], tickLabelFormatter: TickLabelFormatter, isHidden: (tick: Omit<AxisTick, 'hidden'>) => boolean, minor = false): AxisTick {
   const tickObjectWithoutHidden: Omit<AxisTick, 'hidden'> = {
     label: tickLabelFormatter(categoryValues[scaleTickValue]),
     position: categoryPositions[scaleTickValue],
     value: categoryValues[scaleTickValue]
   };
+  if (minor) {
+    tickObjectWithoutHidden.minor = true;
+  }
   return { ...tickObjectWithoutHidden, hidden: isHidden(tickObjectWithoutHidden) };
 }
 
@@ -264,9 +267,13 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
       tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisScale, scaleTicks.length);
     }
     if (axisConfig.scale === SCALE_ORDINAL) {
-      const isSkipped = getOrdinalTickSkipper(axisConfig, categoryValues, tickCount);
+      const { isSkipped, isMinor, minorFormatter } = getOrdinalTickRule(axisConfig, axisLayoutInfo, categoryValues, categoryPositions, tickCount);
+      const createTick = (index: number, isHidden: (tick: Omit<AxisTick, 'hidden'>) => boolean) => {
+        const minor = isMinor(index);
+        return createOrdinalTickObject(index, categoryValues, categoryPositions, minor && minorFormatter !== null ? minorFormatter : tickLabelFormatter, isHidden, minor);
+      };
       if (axisConfig.tickLabel.truncation.enabled && axisLayoutInfo.tickLabelParallel) {
-        ticks = scaleTicks.map((scaleTick, i) => createOrdinalTickObject(scaleTick as number, categoryValues, categoryPositions, tickLabelFormatter, () => isSkipped(i)));
+        ticks = scaleTicks.map((scaleTick, i) => createTick(scaleTick as number, () => isSkipped(i)));
       }
       else {
         if (axisLayoutInfo.tickLabelParallel) {
@@ -278,14 +285,14 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
           const minPosition = beforeOffset - before;
           const maxPosition = categoryExtent + after - afterOffset;
 
-          ticks = scaleTicks.map((scaleTick, i) => createOrdinalTickObject(scaleTick as number, categoryValues, categoryPositions, tickLabelFormatter, ({ position }) => isSkipped(i) || position < minPosition || position > maxPosition ));
+          ticks = scaleTicks.map((scaleTick, i) => createTick(scaleTick as number, ({ position }) => isSkipped(i) || position < minPosition || position > maxPosition ));
           if (categoryValues.length > 0) {
             const singleIndex = tickLabelAnchor === ANCHOR_START ? 0 : (tickLabelAnchor === ANCHOR_END ? categoryValues.length-1 : Math.floor(categoryValues.length / 2));
             ticks.push(createOrdinalTickObject(singleIndex, categoryValues, categoryPositions, tickLabelFormatter, () => ticks.some(tick => tick.hidden === false)));
           }
         }
         else {
-          ticks = scaleTicks.map((scaleTick, i) => createOrdinalTickObject(scaleTick as number, categoryValues, categoryPositions, tickLabelFormatter, () => isSkipped(i)));
+          ticks = scaleTicks.map((scaleTick, i) => createTick(scaleTick as number, () => isSkipped(i)));
         }
       }
     }
@@ -331,17 +338,57 @@ function hasTickStep(axisConfig: CategoryAxisConfig): boolean {
   return count !== AUTO || offset !== 0 || period !== NONE || includeFirst;
 }
 
+interface OrdinalTickRule {
+  /** Whether the category's tick is hidden by the tick budget or the step rule, before the axis end checks. */
+  isSkipped: (index: number) => boolean;
+  /** Whether the category lies between a step rule's ticks. */
+  isMinor: (index: number) => boolean;
+  /** The minor ticks' own label format, or null when they carry the major one. */
+  minorFormatter: TickLabelFormatter | null;
+}
+
 // Which ordinal category indexes lose their tick: without a step rule every tickInterval-th category keeps
 // one; with a rule its survivors thin to every k-th from the first, so a thinned weekly rule stays on Mondays.
-function getOrdinalTickSkipper(axisConfig: CategoryAxisConfig, categoryValues: readonly CategoryValue[], tickCount: number): (index: number) => boolean {
+// The categories between the rule's ticks are minor: with a minorFormat they show when the widest minor label
+// fits inside a category slot, and all hide together when it does not.
+function getOrdinalTickRule(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, categoryValues: readonly CategoryValue[], categoryPositions: number[], tickCount: number): OrdinalTickRule {
   if (!hasTickStep(axisConfig)) {
     const tickInterval = Math.ceil(categoryValues.length / tickCount);
-    return (index) => index % tickInterval !== 0;
+    return { isSkipped: (index) => index % tickInterval !== 0, isMinor: () => false, minorFormatter: null };
   }
   const stepIndexes = getStepCandidates(axisConfig.tickStep, categoryValues, axisConfig.type, axisConfig.dateUTC).selected;
   const thinning = Math.max(1, Math.ceil(stepIndexes.length / tickCount));
   const visibleIndexes = new Set(stepIndexes.filter((_index, position) => position % thinning === 0));
-  return (index) => !visibleIndexes.has(index);
+  const majorIndexes = new Set(stepIndexes);
+  const isMinor = (index: number) => !majorIndexes.has(index);
+  const minorFormatter = getMinorTickLabelFormatter(axisConfig);
+  const categoryPitch = categoryPositions.length > 1 ? Math.abs(categoryPositions[1] - categoryPositions[0]) : 0;
+  const minorsVisible = minorFormatter !== null && categoryPitch >= axisLayoutInfo.minorTickLabelSpace + axisConfig.minTickSpacing;
+  return {
+    isSkipped: (index) => isMinor(index) ? !minorsVisible : !visibleIndexes.has(index),
+    isMinor,
+    minorFormatter
+  };
+}
+
+function getMinorTickLabelFormatter(axisConfig: CategoryAxisConfig): TickLabelFormatter | null {
+  const { minorFormat } = axisConfig.tickStep;
+  let tickLabelFormatter: TickLabelFormatter;
+  if (minorFormat === NONE) {
+    return null;
+  }
+  else if (axisConfig.type === TYPE_DATE) {
+    const formatter = (axisConfig.dateUTC ? utcFormat : timeFormat)(minorFormat);
+    tickLabelFormatter = tick => formatter(tick as Date);
+  }
+  else if (axisConfig.type === TYPE_NUMBER) {
+    const formatter = format(minorFormat);
+    tickLabelFormatter = tick => formatter(tick as number);
+  }
+  else {
+    return null;
+  }
+  return getTickLabelFormatterForPrefixAndSuffix(axisConfig, tickLabelFormatter);
 }
 
 function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, explicitTicks: readonly CategoryAxisTick[], axisScale: AxisScale, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
@@ -391,8 +438,9 @@ function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, explici
 }
 
 function getMaxTickLabelLength(_categoryAxisConfig: CategoryAxisConfig, categoryValues: readonly CategoryValue[], axisTickData: AxisTick[], spacingInfo: CategorySpacingInfo): number {
-  // at least one: explicit ticks can all be hidden, and the clip width must stay finite
-  const visibleTickCount = Math.max(1, axisTickData.reduce((count, tick) => count + (tick.hidden ? 0 : 1), 0));
+  // at least one: explicit ticks can all be hidden, and the clip width must stay finite; a shown minor
+  // label already fits its slot, so only the major ticks share the axis out
+  const visibleTickCount = Math.max(1, axisTickData.reduce((count, tick) => count + (tick.hidden || tick.minor ? 0 : 1), 0));
   return categoryValues.length / visibleTickCount * spacingInfo.categoryValueExtent;
 }
 
