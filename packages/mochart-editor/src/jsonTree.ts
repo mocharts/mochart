@@ -61,6 +61,13 @@ export function containingObject(state: EditorState, position: number): SyntaxNo
   return node;
 }
 
+/** True when the nearest container around `position` is an array, so the slot holds an entry rather than a member value. */
+export function inArraySlot(state: EditorState, position: number): boolean {
+  let node: SyntaxNode | null = syntaxTree(state).resolveInner(position, -1);
+  while (node && node.name !== 'Object' && node.name !== 'Array') node = node.parent;
+  return node?.name === 'Array';
+}
+
 export function objectPath(state: EditorState, object: SyntaxNode): JsonPath {
   return pathAt(state, Math.min(object.to - 1, object.from + 1));
 }

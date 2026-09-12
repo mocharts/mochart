@@ -167,6 +167,20 @@ describe('Mochart support completions', () => {
     }
   });
 
+  // Regression: a slot inside an array resolved to the array property itself, so ticks offered its
+  // own null enum as an entry value and accepting it corrupted the JSON or inserted [null]
+  it('offers no value completions inside an array of entries', async () => {
+    const fixtures = [
+      '{"categoryAxis":{"property":"m","ticks":[n|]}}',
+      '{"categoryAxis":{"property":"m","ticks":[n|{"value":"Jan"}]}}',
+      '{"categoryAxis":{"ticks":[{"value":"Jan","label":"January" "|"}]}}'
+    ];
+    for (const marked of fixtures) {
+      const { state, position } = markedState(marked);
+      expect(mochartSupportTesting.completionSource(new CompletionContext(state, position, true))).toBeNull();
+    }
+  });
+
   it('suggests configured ids and filters common references', async () => {
     const options = await completionOptions(`{
       "version": "1.0.0",

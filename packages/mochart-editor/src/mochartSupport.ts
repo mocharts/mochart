@@ -5,7 +5,7 @@ import { getDefaults, getVersionString, validateConfigDetailed } from '@mochart/
 import type { Diagnostic } from '@codemirror/lint';
 import model from './mochartConfigModel.generated.js';
 import type { EditorDefaultValue, EditorPropertyModel, EditorSectionModel, EditorValueModel } from './model.js';
-import { afterClosingPropertyQuote, containingObject, existingObjectKeys, isPropertyPosition, keyRangeForPath, memberIndentation, objectPath, pathAt, propertyNameAt, rangeForPath } from './jsonTree.js';
+import { afterClosingPropertyQuote, containingObject, existingObjectKeys, inArraySlot, isPropertyPosition, keyRangeForPath, memberIndentation, objectPath, pathAt, propertyNameAt, rangeForPath } from './jsonTree.js';
 import { defineSupport } from './support.js';
 import type { JsonPath } from './types.js';
 
@@ -352,6 +352,8 @@ function completionSource(context: CompletionContext) {
   }
 
   const path = pathAt(context.state, context.pos);
+  // an array slot holds an entry, not the array property's own value, so its enum does not apply there
+  if (inArraySlot(context.state, context.pos) || typeof path[path.length - 1] === 'number') return null;
   const property = propertyForPath(path);
   if (!property) return null;
   const options = valueOptions(property, documentFor(context.state), path);
