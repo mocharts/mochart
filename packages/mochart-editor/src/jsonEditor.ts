@@ -33,6 +33,17 @@ function publicDiagnostic(diagnostic: Diagnostic): JsonEditorDiagnostic {
   };
 }
 
+// formatting changes whitespace outside strings only, so the caret keeps its place by counting the other characters
+function formattedOffset(before: string, offset: number, after: string): number {
+  let remaining = 0;
+  for (let i = 0; i < offset; i++) if (!/\s/.test(before[i]!)) remaining++;
+  for (let i = 0; i < after.length; i++) {
+    if (remaining === 0) return i;
+    if (!/\s/.test(after[i]!)) remaining--;
+  }
+  return after.length;
+}
+
 const darkHighlightStyle = HighlightStyle.define([
   { tag: tags.propertyName, color: '#79c0ff' },
   { tag: tags.string, color: '#a5d6ff' },
@@ -186,10 +197,14 @@ export function createJsonEditor(host: HTMLElement, options: JsonEditorOptions):
       // the read-only flag blocks user input only, not a dispatch from the handle
       if (view.state.readOnly) return false;
       try {
-        const parsed = parseJson(view.state.doc.toString());
-        const formatted = JSON.stringify(parsed, null, indentation);
+        const text = view.state.doc.toString();
+        const formatted = JSON.stringify(parseJson(text), null, indentation);
+        if (formatted === text) return true;
         externalUpdate = true;
-        view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: formatted } });
+        view.dispatch({
+          changes: { from: 0, to: text.length, insert: formatted },
+          selection: { anchor: formattedOffset(text, view.state.selection.main.head, formatted) }
+        });
         externalUpdate = false;
         options.onChange?.(formatted);
         return true;

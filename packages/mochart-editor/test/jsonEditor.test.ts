@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { EditorView } from '@codemirror/view';
 import { createJsonEditor } from '../src';
 import { defineSupport } from '../src/support';
 
@@ -134,6 +135,28 @@ describe('JSON editor', () => {
     editor.setReadOnly(false);
     expect(editor.format()).toBe(true);
     expect(editor.getValue()).toBe('{\n  "a": 1\n}');
+    editor.destroy();
+    host.remove();
+  });
+
+  // Regression: format() replaced the whole document with no selection, sending the caret to the start,
+  // and did so even when the text was already formatted, adding an undo step and an onChange
+  it('keeps the caret in place when formatting and leaves formatted text alone', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const onChange = vi.fn();
+    const editor = createJsonEditor(host, { value: '{"aaa":1,"bbb":2}', ariaLabel: 'Configuration', onChange });
+    const view = EditorView.findFromDOM(editor.element)!;
+
+    editor.showFocusRange('{"aaa":1,"b'.length);
+    expect(editor.format()).toBe(true);
+    const formatted = '{\n  "aaa": 1,\n  "bbb": 2\n}';
+    expect(editor.getValue()).toBe(formatted);
+    expect(view.state.selection.main.head).toBe(formatted.indexOf('"bbb"') + 2);
+
+    onChange.mockClear();
+    expect(editor.format()).toBe(true);
+    expect(onChange).not.toHaveBeenCalled();
     editor.destroy();
     host.remove();
   });
