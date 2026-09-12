@@ -16,7 +16,7 @@
   "legend": {
     "item": {
       "font": {
-        "size": 11
+        "size": "0.9em"
       }
     }
   },

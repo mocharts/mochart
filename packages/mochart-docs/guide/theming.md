@@ -172,7 +172,8 @@ the config instead, every text part has a `font` with four members, each
 `null` by default:
 
 - `family`, written as `font-family`
-- `size`, in pixels, written as `font-size`
+- `size`, a number of pixels or any css `font-size` string such as `'0.85em'`,
+  `'120%'` or `'large'`, written as `font-size`
 - `weight`, a hundred from 100 to 900 or one of `normal`, `bold`, `lighter`
   and `bolder`, written as `font-weight`
 - `style`, one of `normal`, `italic` and `oblique`, written as `font-style`
@@ -188,11 +189,15 @@ part:
 ```js
 chart: { font: { family: 'Georgia, serif', size: 12 } },
 title: { text: 'Support Tickets by Month', font: { size: 18, weight: 'bold' } },
-valueAxes: [{ title: { text: 'tickets', font: { style: 'italic' } } }]
+valueAxes: [{ title: { text: 'tickets', font: { style: 'italic' } } }],
+legend: { item: { font: { size: '0.85em' } } }
 ```
 
 This chart renders in Georgia while the rest of this page keeps the site
-font, with a larger bold title and an italic value axis title:
+font, with a larger bold title, an italic value axis title and legend items
+at `0.85em`. A relative size is written on the element as given, so it
+resolves the way css does, against the font size the element inherits from
+the page, not against `chart.font`:
 
 <LiveChart :config="typography.config" :data="typography.data" />
 

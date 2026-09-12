@@ -20,11 +20,24 @@ describe('font validation', () => {
     expect(errorsFor(withFont({ title: { text: 'T', font: { weight: 'bolder' } }, tooltip: { font: { style: 'oblique' } } }))).toEqual([]);
   });
 
+  it('accepts every css font-size form as a string', () => {
+    for (const size of ['0.85em', '1.25rem', '120%', '14px', '11pt', '2vw', 'large', 'smaller', 'calc(1em + 2px)', 'var(--chart-size)']) {
+      expect(errorsFor(withFont({ chart: { font: { size } } })), size).toEqual([]);
+    }
+  });
+
+  it('rejects a string that is not a css font-size', () => {
+    for (const size of ['0em', '-1rem', '12', 'big', 'px', '']) {
+      expect(errorsFor(withFont({ chart: { font: { size } } })), size)
+        .toContainEqual(expect.stringContaining('chart - font.size - should be a number of pixels greater than 0, or a css font-size string'));
+    }
+  });
+
   it('rejects a font size that is not above 0', () => {
     expect(errorsFor(withFont({ chart: { font: { size: 0 } } })))
-      .toContainEqual(expect.stringContaining('chart - font.size - should be a number greater than 0'));
+      .toContainEqual(expect.stringContaining('chart - font.size - should be a number of pixels greater than 0'));
     expect(errorsFor(withFont({ legend: { item: { font: { size: -12 } } } })))
-      .toContainEqual(expect.stringContaining('legend - item.font.size - should be a number greater than 0'));
+      .toContainEqual(expect.stringContaining('legend - item.font.size - should be a number of pixels greater than 0'));
   });
 
   it('rejects a weight outside the hundreds and the keywords', () => {

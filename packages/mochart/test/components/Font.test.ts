@@ -121,6 +121,12 @@ describe('font resolution', () => {
     expect(style.getPropertyValue('font-style')).toBe('oblique');
   });
 
+  it('writes a string size as given, so relative sizes resolve in the browser', () => {
+    const container = mountChart(makeConfig({ chart: { font: { size: '0.85em' } }, title: { text: 'Revenue', font: { size: 'larger' } } }));
+    expect(element(container, legendItemText).style.fontSize).toBe('0.85em');
+    expect(element(container, titleText).style.fontSize).toBe('larger');
+  });
+
   it('styles the tooltip div the same way', () => {
     const container = mountChart(makeConfig({
       chart: { font: { family: 'Georgia' } },
@@ -155,6 +161,18 @@ describe('font measurement', () => {
     // wider value tick labels narrow the plot; taller category tick labels shorten it
     expect(Number(larger.getAttribute('width'))).toBeLessThan(Number(plain.getAttribute('width')));
     expect(Number(larger.getAttribute('height'))).toBeLessThan(Number(plain.getAttribute('height')));
+  });
+
+  it('measures an em size against the nearest inline size above it', () => {
+    const withTickFont = (size: number | string | null) => makeConfig({
+      valueAxes: [{ id: 'VA0', title: { text: 'Amount' }, tickLabel: { font: { size } } }]
+    });
+    // the text elements have no inline size above them, so 2em resolves against the nominal 16px, the same as 32px
+    const inEm = plotClipRect(mountChart(withTickFont('2em')));
+    const inPx = plotClipRect(mountChart(withTickFont(32)));
+    const plain = plotClipRect(mountChart(withTickFont(null)));
+    expect(inEm.getAttribute('width')).toBe(inPx.getAttribute('width'));
+    expect(Number(inEm.getAttribute('width'))).toBeLessThan(Number(plain.getAttribute('width')));
   });
 
   it('gives every hidden measuring twin the font of the element it measures for', () => {

@@ -64,7 +64,7 @@ export const styleStateDescriptions: DescriptionMap = {
 /** The `FontConfig` members: each is written to the text as inline css, and `null` leaves that member to the host page's css. */
 export const fontDescriptions: DescriptionMap = {
   family: 'the css font-family of the text, or null to leave the font family to css',
-  size: 'the font size (in pixels) of the text, or null to leave the font size to css',
+  size: 'the font size of the text, as a number of pixels or any css font-size string (a length with a unit, a percentage, a size keyword, or a calc/clamp/min/max/var function), or null to leave the font size to css',
   weight: 'the css font-weight of the text (100 to 900 in hundreds, or "normal", "bold", "lighter", "bolder"), or null to leave the font weight to css',
   style: 'the css font-style of the text ("normal", "italic", "oblique"), or null to leave the font style to css'
 };

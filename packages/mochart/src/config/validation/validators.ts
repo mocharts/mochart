@@ -53,9 +53,23 @@ const cssStyleKeyMap = {
   strokeWidth: strokeWidthValidator
 };
 
-// a font size is written as a css length, where 0 hides the text and a negative value is dropped
-const fontSizeValidator = validators.custom((value: unknown) => typeof value === 'number' && Number.isFinite(value) && value > 0)
-  .withCustomName('fontSize').withMessage('should be a number greater than 0');
+// a number is written in px; a string is any css font-size: a length above 0 in any unit, a
+// percentage, a size keyword, or a function the browser resolves
+const fontSizeLengthRegexp = /^(?:\d*\.\d+|\d+)(?:px|em|rem|%|pt|pc|in|cm|mm|q|ch|ex|cap|ic|lh|rlh|[sld]?v(?:w|h|min|max|i|b))$/i;
+const fontSizeKeywords = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large', 'xxx-large', 'smaller', 'larger'];
+const fontSizeFunctionRegexp = /^(?:calc|clamp|min|max|var)\(.*\)$/i;
+const fontSize: CustomValidator = value => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value > 0;
+  }
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const trimmed = value.trim();
+  return (fontSizeLengthRegexp.test(trimmed) && parseFloat(trimmed) > 0) || fontSizeKeywords.includes(trimmed.toLowerCase()) || fontSizeFunctionRegexp.test(trimmed);
+};
+const fontSizeValidator = validators.custom(fontSize).withCustomName('fontSize')
+  .withMessage('should be a number of pixels greater than 0, or a css font-size string (a length above 0 with a unit, a percentage, a size keyword, or a calc/clamp/min/max/var function)');
 
 const fontKeyMap = {
   family: validators.string().orEqual(NONE),

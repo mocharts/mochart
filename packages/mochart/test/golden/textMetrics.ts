@@ -54,16 +54,23 @@ export function getTextHeight(fontSize = EM_PX): number {
 /**
  * The font size an element renders at: its own inline font-size, else the nearest ancestor's, else
  * the nominal em. Only inline styles count, which is how the chart writes a configured font; the
- * weight, family and style are not modelled, so they never change a width.
+ * weight, family and style are not modelled, so they never change a width. Of the css forms a size
+ * accepts, px, rem, em and % are resolved (em and % against the ancestor's size); every other unit,
+ * keyword and function falls back to the nominal em, since jsdom has no viewport or glyphs to size by.
  */
 export function getElementFontSize(element: Element): number {
-  for (let node: Element | null = element; node !== null; node = node.parentElement) {
-    const match = /^(\d*\.?\d+)px$/.exec((node as HTMLElement).style?.fontSize ?? '');
-    if (match !== null && Number(match[1]) > 0) {
-      return Number(match[1]);
-    }
+  const match = /^(\d*\.?\d+)(px|rem|em|%)$/i.exec((element as HTMLElement).style?.fontSize ?? '');
+  const parent = element.parentElement;
+  if (match === null || Number(match[1]) <= 0) {
+    return parent === null ? EM_PX : getElementFontSize(parent);
   }
-  return EM_PX;
+  const value = Number(match[1]);
+  switch (match[2].toLowerCase()) {
+    case 'px': return value;
+    case 'rem': return value * EM_PX;
+    case 'em': return value * (parent === null ? EM_PX : getElementFontSize(parent));
+    default: return value / 100 * (parent === null ? EM_PX : getElementFontSize(parent));
+  }
 }
 
 /** The text a browser measures: the element's own text, never a <title> child (the truncation tooltip holds the full text of an ellipsised label). */

@@ -145,10 +145,11 @@ export interface FontConfig {
   /** The css font-family of the text, or null to leave the font family to css. */
   family: string | null;
   /**
-   * The font size (in pixels) of the text, or null to leave the font size to
-   * css.
+   * The font size of the text, as a number of pixels or any css font-size
+   * string (a length with a unit, a percentage, a size keyword, or a
+   * calc/clamp/min/max/var function), or null to leave the font size to css.
    */
-  size: number | null;
+  size: number | string | null;
   /**
    * The css font-weight of the text (100 to 900 in hundreds, or "normal",
    * "bold", "lighter", "bolder"), or null to leave the font weight to css.
@@ -514,7 +515,10 @@ export interface ChartConfig {
    * (`font-family`, `font-size`, `font-weight`, `font-style`), so a configured
    * value wins over any host page css rule; a member left `null` in both places
    * writes nothing and stays with css. Text is measured after the font is
-   * written, so a larger size reserves more space in the layout.
+   * written, so a larger size reserves more space in the layout. A `size`
+   * number is written in pixels; a string is written as given, so relative
+   * sizes (`'0.85em'`, `'120%'`, `'larger'`) resolve against the text's css
+   * font size as the browser sees it.
    *
    * @default { family: null, size: null, weight: null, style: null }
    */

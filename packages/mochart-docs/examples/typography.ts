@@ -1,12 +1,14 @@
 import type { MochartInputConfig } from '@mochart/core';
 
-// chart.font sets the family and size for every text; the title singles itself out with its own size and weight
+// chart.font sets the family and size for every text; the title singles itself out with its own size and weight,
+// and the legend items take a relative size, which resolves against the page's font size like any css em
 export const config: MochartInputConfig = {
   version: '1.0.0',
   chart: { font: { family: 'Georgia, serif', size: 12 } },
   title: { text: 'Support Tickets by Month', font: { size: 18, weight: 'bold' } },
   categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
   valueAxes: [{ title: { text: 'tickets', font: { style: 'italic' } }, gridLine: { visible: true } }],
+  legend: { item: { font: { size: '0.85em' } } },
   series: [
     { property: 'opened', title: 'Opened', renderer: 'bar' },
     { property: 'resolved', title: 'Resolved', renderer: 'line' }
