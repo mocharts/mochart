@@ -31,7 +31,7 @@ describe('svg text width measurement', () => {
 
   it('reserves the max advance width over a list, not the max box width', () => {
     const elements = strings.map(geckoTextElement);
-    const widest = Math.max(...strings.map(measureTextWidth));
+    const widest = Math.max(...strings.map(text => measureTextWidth(text)));
     expect(getSvgMaxWidthAndHeight(elements).width).toBe(Math.ceil(widest));
   });
 
