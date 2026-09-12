@@ -7,10 +7,12 @@ import { NONE } from '../config/core/constants';
 import { onClickDisabled, centerTextY, translate, translateObject } from '../utils/utils';
 import { getClipPathReference } from '../utils/svgUtils';
 import { styleToAttributes } from '../utils/style';
+import { resolveFontStyle } from '../utils/font';
 import { getSpacingWidth } from '../layout/SpacingLayoutInfo';
 import Background from './Background';
 import type { El, TextEl } from '../render';
 import type { Style } from '../types/config';
+import type { FontInlineStyle } from '../utils/font';
 import type { EnhancedMochartConfig } from '../types/enhanced';
 import type { SpacingLayoutInfo } from '../types/layout';
 import type { TruncationState } from '../utils/TextTruncation';
@@ -107,7 +109,7 @@ export default class Title extends Renderer<TitleProps, TitleState> {
     return section;
   }
 
-  syncSection(wrapperEl: El, titleKey: TitleSectionKey, titleBackgroundKey: TitleBackgroundKey, titleValue: string | null, titleSectionLayoutInfo: SpacingLayoutInfo, backgroundStyle: Style, textStyle: Style, visible: boolean, clipPath: string | null = null, ariaHidden = false): void {
+  syncSection(wrapperEl: El, titleKey: TitleSectionKey, titleBackgroundKey: TitleBackgroundKey, titleValue: string | null, titleSectionLayoutInfo: SpacingLayoutInfo, backgroundStyle: Style, textStyle: Style, font: FontInlineStyle | null, visible: boolean, clipPath: string | null = null, ariaHidden = false): void {
     if (titleValue) {
       const section = this.getSection(titleKey);
       const { paddingBounds } = titleSectionLayoutInfo;
@@ -124,7 +126,7 @@ export default class Title extends Renderer<TitleProps, TitleState> {
       }
       section.clipGroup.set({ clipPath });
       section.text.set({ ...styleToAttributes(textStyle), className: mochartCssClasses[titleKey], dy, transform,
-        ariaHidden: ariaHidden ? 'true' : null });
+        ariaHidden: ariaHidden ? 'true' : null, style: font });
       section.value.set(titleValue);
       wrapperEl.node.appendChild(section.root.node);
     }
@@ -147,6 +149,10 @@ export default class Title extends Renderer<TitleProps, TitleState> {
       const { enabled: truncationEnabled, text: truncationText, tooltipEnabled: truncationTooltipEnabled } = truncation;
       const { text: titlePrefix, backgroundStyle: prefixBackgroundStyle, textStyle: prefixTextStyle } = prefix;
       const { text: titleSuffix, backgroundStyle: suffixBackgroundStyle, textStyle: suffixTextStyle } = suffix;
+      const chartFont = mochartConfig.chart.font;
+      const titleFont = resolveFontStyle(titleConfig.font, chartFont);
+      const prefixFont = resolveFontStyle(prefix.font, chartFont);
+      const suffixFont = resolveFontStyle(suffix.font, chartFont);
 
       const { truncationData } = this.state;
       const titleText = getTruncatedText(truncationEnabled, truncationText, title, truncationData);
@@ -184,15 +190,15 @@ export default class Title extends Renderer<TitleProps, TitleState> {
 
       // (re-)append in order; appendChild moves already-attached nodes
       this.syncSection(wrapperEl, 'titlePrefix', 'titlePrefixBackground',
-        titlePrefix, titlePrefixLayoutInfo, prefixBackgroundStyle, prefixTextStyle, true);
+        titlePrefix, titlePrefixLayoutInfo, prefixBackgroundStyle, prefixTextStyle, prefixFont, true);
       // the svg is already named from the full title text, so the drawn copy would read twice in a row;
       // a linked title keeps its text readable because that text is the link's name
       this.syncSection(wrapperEl, 'titleText', 'titleTextBackground',
-        titleText, titleTextLayoutInfo, titleBackgroundStyle, titleTextStyle, true, clipPath, accessibility && !link);
+        titleText, titleTextLayoutInfo, titleBackgroundStyle, titleTextStyle, titleFont, true, clipPath, accessibility && !link);
       this.syncSection(wrapperEl, 'titleTextRaw', 'titleTextBackground',
-        title, titleTextRawLayoutInfo, titleBackgroundStyle, titleTextStyle, false);
+        title, titleTextRawLayoutInfo, titleBackgroundStyle, titleTextStyle, titleFont, false);
       this.syncSection(wrapperEl, 'titleSuffix', 'titleSuffixBackground',
-        titleSuffix, titleSuffixLayoutInfo, suffixBackgroundStyle, suffixTextStyle, true);
+        titleSuffix, titleSuffixLayoutInfo, suffixBackgroundStyle, suffixTextStyle, suffixFont, true);
       const textSection = this.sections.titleText;
       if (textSection !== undefined) {
         this.tooltip.sync(textSection.text, truncationTooltipEnabled, title, titleText);

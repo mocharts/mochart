@@ -8,6 +8,7 @@ export default function getValidators() {
     labelPadding: validators.numberMin(0),
     label: validators.string().orEqual(NONE),
     textStyle: validators.style(),
+    font: validators.font(),
     style: validators.style(),
     hatch: validators.partialObjectWith(['spacing', 'lineWidth'], validators.numberMin(0)).orEqual(NONE),
     front: validators.boolean()

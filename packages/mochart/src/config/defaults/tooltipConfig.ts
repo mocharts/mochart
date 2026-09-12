@@ -1,6 +1,7 @@
 import { NONE, ALIGN_RIGHT } from '../core/constants';
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
 import { getRegularDefaults as getSeriesIconRegularDefaults } from './seriesIconConfig';
+import { getFontDefaults } from './fontConfig';
 
 import type { DeepPartial, TooltipConfig } from '../../types/config';
 
@@ -28,6 +29,7 @@ export function getRegularDefaults() {
     valueAlign: ALIGN_RIGHT,
     // Html, not svg: a null opacity leaves the color's own alpha alone, a named one is composited into it (utils/style cssStyleColor).
     backgroundStyle: { strokeColor: 'rgba(0,0,0,0.3)', strokeOpacity: NONE, strokeWidth: 2, fillColor: 'rgba(255,255,255,0.9)', fillOpacity: NONE },
+    font: getFontDefaults(),
     cornerRadius: 4,
     dropShadow: {
       color: 'rgba(0,0,0,0.3)',

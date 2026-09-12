@@ -1,4 +1,4 @@
-import { style } from './shared';
+import { style, font } from './shared';
 
 export default function getDescriptions() {
   return {
@@ -32,7 +32,8 @@ export default function getDescriptions() {
       description: 'the text label shown at the center of the pie (most useful for donut and gauge charts)',
       properties: {
         text: 'the text to show at the center of the pie (use null for none)',
-        textStyle: style('the styles to apply to the center label text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)')
+        textStyle: style('the styles to apply to the center label text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)'),
+        font: font('the font of the center label text (family, size, weight, style), each member falling back to chart.font when null')
       }
     },
     centerTotal: {
@@ -41,6 +42,7 @@ export default function getDescriptions() {
         visible: 'whether the total of the slice values should be shown at the center of the pie',
         format: 'the d3 format specifier used to format the center total (use auto to derive a format)',
         textStyle: style('the styles to apply to the center total text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)'),
+        font: font('the font of the center total text (family, size, weight, style), each member falling back to chart.font when null'),
         adjustForFiltering: 'whether the center total counts only the unfiltered slices (true) or always shows the full total (false)'
       }
     },

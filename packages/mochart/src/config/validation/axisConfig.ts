@@ -33,7 +33,8 @@ export function getTickLabelValidators(): Record<string, Validator> {
     suffix: validators.string().orEqual(NONE),
     rotation: validators.numberMinMax(-90, 90),
     anchor: validators.oneOf(ANCHORS.concat([AUTO])),
-    textStyle: styleStates(styleMembers)
+    textStyle: styleStates(styleMembers),
+    font: validators.font()
   };
 }
 
@@ -124,6 +125,7 @@ export default function getValidators(thresholdValue = validators.number(), tick
         margin: validators.margin().orEqual(undefined),
         padding: validators.padding().orEqual(undefined),
         textStyle: styleStates(styleMembers).orEqual(undefined),
+        font: validators.font().orEqual(undefined),
         backgroundStyle: validators.style().orEqual(undefined)
       }, true).orEqual(undefined)
     }), true),
@@ -152,7 +154,8 @@ export default function getValidators(thresholdValue = validators.number(), tick
       marginOuter: validators.numberMin(0),
       paddingInner: validators.numberMin(0),
       paddingOuter: validators.numberMin(0),
-      textStyle: styleStates(styleMembers)
+      textStyle: styleStates(styleMembers),
+      font: validators.font()
     }),
 
     visible: validators.conditional([

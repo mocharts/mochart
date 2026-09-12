@@ -1,4 +1,4 @@
-import { style, spacing, styleStateDescriptions } from './shared';
+import { style, spacing, font, styleStateDescriptions } from './shared';
 import type { DescriptionMap, NestedDescription } from './shared';
 
 const strokeMembers = ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray'];
@@ -49,7 +49,8 @@ export function getTickLabelDescriptions(): DescriptionMap {
     suffix: 'the string to append to the text of each axis tick label (use null for none)',
     rotation: 'the rotation (in degrees, -90 to 90) to apply to each axis tick label',
     anchor: 'the anchor to use for all axis tick labels (start, end, middle) (use "auto" to determine automatically)',
-    textStyle: styleStates('the style of the axis tick label text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity'])
+    textStyle: styleStates('the style of the axis tick label text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity']),
+    font: font('the font of the axis tick label text (family, size, weight, style), each member falling back to chart.font when null')
   };
 }
 
@@ -165,6 +166,7 @@ export default function getDescriptions() {
             margin: spacing('the margin (in pixels) of the threshold title, relative to its orientation'),
             padding: spacing('the padding (in pixels) of the threshold title, relative to its orientation'),
             textStyle: styleStates('the style of the threshold title text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity']),
+            font: font('the font of the threshold title text (family, size, weight, style), each member falling back to chart.font when null'),
             backgroundStyle: style('the styles to apply to the threshold title background')
           }
         }
@@ -211,7 +213,8 @@ export default function getDescriptions() {
         marginOuter: 'the margin (in pixels) to show between the axis title and the outside of the axis',
         paddingInner: 'the padding (in pixels) to show between the axis title and the inside of the axis',
         paddingOuter: 'the padding (in pixels) to show between the axis title and the outside of the axis',
-        textStyle: styleStates('the style of the axis title text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity'])
+        textStyle: styleStates('the style of the axis title text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity']),
+        font: font('the font of the axis title text (family, size, weight, style), each member falling back to chart.font when null')
       }
     },
 

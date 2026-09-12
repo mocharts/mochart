@@ -25,6 +25,7 @@ export default function getValidators() {
     valueAlign: validators.oneOf(TOOLTIP_VALUE_ALIGNS),
     // cssStyle / cssColor, not style / color: the tooltip is html, so 'none' is not a valid color here.
     backgroundStyle: validators.cssStyle(),
+    font: validators.font(),
     cornerRadius: validators.numberMin(0),
     dropShadow: validators.partialObjectWithShape({
       color: validators.cssColor(),

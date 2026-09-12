@@ -472,7 +472,8 @@ export function getSections(): ShowcaseSection[] {
           config: currentColorConfig,
           data: currentColorData,
           random: currentColorRandom
-        })
+        }),
+        reuse('font')
       ]
     },
     {

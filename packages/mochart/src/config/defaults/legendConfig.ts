@@ -2,6 +2,7 @@ import { NONE, POSITION_BOTTOM, ALIGN_CENTER, COLOR_CURRENT } from '../core/cons
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
 import { getRegularDefaults as getSeriesIconRegularDefaults } from './seriesIconConfig';
 import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
+import { getFontDefaults } from './fontConfig';
 import type { DeepPartial, LegendConfig } from '../../types/config';
 
 export default function getDefaults(config: DeepPartial<LegendConfig> = {}, seriesCount: number): Partial<LegendConfig> {
@@ -22,7 +23,8 @@ export function getRegularDefaults() {
       padding: { top: 1, right: 1, bottom: 1, left: 1 },
       backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 },
       // 'none' rather than null: stroke="none" firewalls a host-css stroke inheriting onto the text.
-      textStyle: { strokeColor: 'none', strokeOpacity: NONE, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: NONE }
+      textStyle: { strokeColor: 'none', strokeOpacity: NONE, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: NONE },
+      font: getFontDefaults()
     },
     icon: getSeriesIconRegularDefaults(),
     strikeThroughFiltered: false,

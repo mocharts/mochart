@@ -7,6 +7,7 @@ import type {
   Auto, Align, VerticalAlign, Anchor, Position, MissingValueMode, AxisSide, ThresholdTitleSide,
   ChartType, PieLabelType, PieTooltipValueType, Scale, DataType, RendererType, CurveType,
   PatternType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, DomainChange,
+  FontWeight, FontStyle,
   ChartEventPayload, ChartFocus, ChartSeriesFilter, ChartSliceClickPayload, ChartSeriesClickPayload,
   ChartCallbacks, ChartFactories, ChartFactoryContext, ChartFactoryContent, ChartContentFactory,
   BaseChartProps, ManagedChartProps, DefaultChartProps, ChartHandle,
@@ -27,7 +28,7 @@ interface EveryUnion {
   patternType: PatternType;
   capType: CapType; labelPosition: LabelPosition; colorMode: ColorMode;
   colorInterpolation: ColorInterpolation; markerShape: MarkerShape; markerSizeScale: MarkerSizeScale;
-  stepPeriod: StepPeriod; domainChange: DomainChange;
+  stepPeriod: StepPeriod; domainChange: DomainChange; fontWeight: FontWeight; fontStyle: FontStyle;
 }
 
 describe('public config type surface', () => {
@@ -39,9 +40,10 @@ describe('public config type surface', () => {
       scale: 'linear', dataType: 'number', rendererType: 'bar', curveType: 'stepAfter',
       patternType: 'crosshatch',
       capType: 'round', labelPosition: 'inside', colorMode: 'seriesIndex',
-      colorInterpolation: 'hcl', markerShape: 'star', markerSizeScale: 'sqrt', stepPeriod: 'week', domainChange: 'staged'
+      colorInterpolation: 'hcl', markerShape: 'star', markerSizeScale: 'sqrt', stepPeriod: 'week', domainChange: 'staged',
+      fontWeight: 'bold', fontStyle: 'italic'
     };
-    expect(Object.keys(values)).toHaveLength(24);
+    expect(Object.keys(values)).toHaveLength(26);
     expect(describeSeries(values.rendererType, values.curveType, values.markerShape)).toBe('bar/stepAfter/star');
   });
 

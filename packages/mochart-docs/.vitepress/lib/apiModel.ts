@@ -44,7 +44,7 @@ export interface EnumerationUse {
 export interface EnumerationDoc {
   name: string;
   description: string;
-  values: string[];
+  values: (string | number)[];
   usedBy: EnumerationUse[];
 }
 

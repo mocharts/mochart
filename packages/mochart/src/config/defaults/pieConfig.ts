@@ -1,5 +1,6 @@
 import { AUTO, NONE, PIE_LABEL_TYPE_PERCENT, PIE_TOOLTIP_VALUE_TYPE_VALUE, COLOR_CURRENT } from '../core/constants';
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
+import { getFontDefaults } from './fontConfig';
 
 import type { DeepPartial, PieConfig } from '../../types/config';
 
@@ -30,11 +31,13 @@ export function getRegularDefaults() {
     },
     centerLabel: {
       text: NONE,
-      textStyle: { strokeColor: NONE, strokeOpacity: NONE, strokeWidth: NONE, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: NONE }
+      textStyle: { strokeColor: NONE, strokeOpacity: NONE, strokeWidth: NONE, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: NONE },
+      font: getFontDefaults()
     },
     centerTotal: {
       visible: false,
       textStyle: { strokeColor: NONE, strokeOpacity: NONE, strokeWidth: NONE, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: NONE },
+      font: getFontDefaults(),
       format: AUTO,
       adjustForFiltering: true
     },

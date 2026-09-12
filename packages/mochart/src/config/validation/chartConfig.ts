@@ -6,6 +6,7 @@ export default function getValidators() {
     type: validators.oneOf(CHART_TYPES),
     margin: validators.margin(),
     padding: validators.padding(),
-    backgroundStyle: validators.style()
+    backgroundStyle: validators.style(),
+    font: validators.font()
   };
 }

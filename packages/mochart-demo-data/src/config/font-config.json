@@ -1,0 +1,88 @@
+{
+  "version": "1.0.0",
+  "chart": {
+    "font": {
+      "family": "Georgia, serif",
+      "size": 12
+    }
+  },
+  "title": {
+    "text": "Monthly Amounts in Georgia",
+    "font": {
+      "size": 18,
+      "weight": "bold"
+    }
+  },
+  "legend": {
+    "item": {
+      "font": {
+        "size": 11
+      }
+    }
+  },
+  "categoryAxis": {
+    "title": {
+      "text": "Month",
+      "font": {
+        "style": "italic"
+      }
+    },
+    "gridLine": {
+      "visible": true
+    },
+    "tickLabel": {
+      "format": "%b"
+    },
+    "tickCount": 12,
+    "type": "date",
+    "scale": "ordinal",
+    "dateUTC": true,
+    "valueLabel": "Category",
+    "valueFormat": "%B",
+    "property": "date"
+  },
+  "valueAxes": {
+    "gridLine": {
+      "visible": true
+    },
+    "tickLabel": {
+      "format": "$s",
+      "font": {
+        "size": 10
+      }
+    },
+    "title": {
+      "text": "Monthly Amount",
+      "font": {
+        "style": "italic"
+      }
+    },
+    "min": 0
+  },
+  "tooltip": {
+    "font": {
+      "size": 11
+    }
+  },
+  "series": [
+    {
+      "title": "Bars",
+      "property": "value1",
+      "renderer": "bar",
+      "labelProperty": "value1",
+      "label": {
+        "format": "$s",
+        "position": "outside",
+        "font": {
+          "size": 9,
+          "weight": "bold"
+        }
+      }
+    },
+    {
+      "title": "Line",
+      "property": "value2",
+      "renderer": "line"
+    }
+  ]
+}

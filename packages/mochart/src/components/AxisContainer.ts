@@ -52,7 +52,7 @@ export default class AxisContainer extends Renderer<AxisContainerProps> {
       focusPercentages: categoryFocusDomainPercentages, categoryAxisData,
       titleClipPathUniqueId: categoryAxisTitleClipPathUniqueId,
       tickLabelClipPathUniqueId: categoryAxisTickLabelClipPathUniqueId,
-      plotLayoutInfo, accessibility,
+      plotLayoutInfo, accessibility, chartFont: mochartConfig.chart.font,
       accessibleLabel: getAxisAccessibleLabel(categoryAxisConfig.title.text, accessibilityConfig.categoryAxisLabel) });
 
     this.valueAxes.sync(getValueAxisFocusContexts(valueAxisConfigs, focusData).map(({ axisConfig, id, key, axisFocusPercentage, seriesFocusPercentage }) => {
@@ -65,7 +65,7 @@ export default class AxisContainer extends Renderer<AxisContainerProps> {
           axisFocusPercentage, seriesFocusPercentage,
           titleClipPathUniqueId: valueAxisTitleClipPathUniqueIds[id],
           focusedValueAxisId: focusData.focusedValueAxisId,
-          plotLayoutInfo, onFocus, accessibility,
+          plotLayoutInfo, onFocus, accessibility, chartFont: mochartConfig.chart.font,
           accessibleLabel: getAxisAccessibleLabel(axisConfig.title.text, accessibilityConfig.valueAxisLabel) }
       };
     }));

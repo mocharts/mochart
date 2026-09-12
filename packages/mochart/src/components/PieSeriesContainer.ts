@@ -131,7 +131,7 @@ export default class PieSeriesContainer extends Renderer<PieSeriesContainerProps
           ? sliceAngles[seriesConfig.id]?.fraction ?? 0
           : rawSliceAngles![seriesConfig.id]?.fraction ?? 0,
         focusData, gradientIdMap, patternIdMap, hideLabels: sweeping, onFocus, onSliceClick,
-        accessibility, tabStop: seriesConfig.id === effectiveRovingId }
+        accessibility, tabStop: seriesConfig.id === effectiveRovingId, chartFont: mochartConfig.chart.font }
     })));
 
     // a filtered-out focused slice hands focus to the one that inherited the tab stop
@@ -144,6 +144,6 @@ export default class PieSeriesContainer extends Renderer<PieSeriesContainerProps
     for (const id of Object.keys(totalAngles)) {
       total += totalAngles[id].value;
     }
-    this.center.set(PieCenter, { pieConfig, seriesLayoutInfo, radialLayoutInfo, total, accessibility });
+    this.center.set(PieCenter, { pieConfig, seriesLayoutInfo, radialLayoutInfo, total, accessibility, chartFont: mochartConfig.chart.font });
   }
 }

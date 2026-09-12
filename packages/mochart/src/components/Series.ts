@@ -17,7 +17,7 @@ import SeriesErrorBars from './SeriesErrorBars';
 import SeriesMarkers from './SeriesMarkers';
 import SeriesLabels from './SeriesLabels';
 import type { El, ElListAdapter } from '../render';
-import type { ColorPaletteConfig, CategoryAxisConfig } from '../types/config';
+import type { ColorPaletteConfig, CategoryAxisConfig, FontConfig } from '../types/config';
 import type { EnhancedSeriesConfig } from '../types/enhanced';
 import type { FocusData } from '../types/animation';
 import type { AxisScale, CategoryAxisData, NullableDomain, SeriesDomainObject, SeriesPositionData, SeriesValueObject, StackData } from '../types/data';
@@ -36,6 +36,7 @@ interface SeriesFocusUpdate {
 interface SeriesProps {
   categoryAxisConfig: CategoryAxisConfig;
   colorPaletteConfig: ColorPaletteConfig;
+  chartFont: FontConfig;
   seriesConfig: EnhancedSeriesConfig;
   seriesIndex: number;
   stackData: StackData;
@@ -375,7 +376,7 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
       this.labels.set(SeriesLabels, { colorPaletteConfig, seriesConfig, valueAxisScale,
         rawValueAxisDomain, seriesPositionData, filteredValues, inverted,
         focusData, onCategoryEnter, onCategoryLeave, onCategoryClick, seriesIndex,
-        accessibility: this.props.accessibility });
+        accessibility: this.props.accessibility, chartFont: this.props.chartFont });
     }
     else {
       this.setPresent(false);

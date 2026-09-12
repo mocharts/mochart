@@ -114,7 +114,7 @@ export default class SeriesContainer extends Renderer<SeriesContainerProps, Seri
       return {
         key: 'series-' + id,
         ctor: Series,
-        props: { categoryAxisConfig, colorPaletteConfig,
+        props: { categoryAxisConfig, colorPaletteConfig, chartFont: mochartConfig.chart.font,
           seriesConfig, seriesIndex: index, stackData,
           seriesLayoutInfo, focusData, categoryValueData,
           valueAxisScale: valueAxisData.axisScales[axis!],

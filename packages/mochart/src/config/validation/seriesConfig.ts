@@ -113,6 +113,7 @@ const staticMembers = {
     prefix: validators.string().orEqual(NONE),
     suffix: validators.string().orEqual(NONE),
     textStyle: seriesStyle.styleStates(styleMembers),
+    font: validators.font(),
     minPositionFraction: validators.numberMinMax(0, 1).orEqual(NONE),
     maxPositionFraction: validators.numberMinMax(0, 1).orEqual(NONE),
     minRangeFraction: validators.numberMinMax(0, 1).orEqual(NONE),

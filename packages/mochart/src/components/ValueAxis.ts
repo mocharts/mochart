@@ -5,6 +5,7 @@ import { isHoverPointer } from '../utils/utils';
 
 import Axis from './Axis';
 import type { EnhancedValueAxisConfig } from '../types/enhanced';
+import type { FontConfig } from '../types/config';
 import type { AxisTick, ValueAxisData } from '../types/data';
 import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
 
@@ -24,6 +25,7 @@ interface ValueAxisProps {
   onFocus: (focus: ValueAxisFocus) => void;
   accessibility: boolean;
   accessibleLabel: string;
+  chartFont: FontConfig;
 }
 interface ValueAxisState {
   onValueAxisEnter: (event: Event) => void;
@@ -81,7 +83,7 @@ export default class ValueAxis extends Renderer<ValueAxisProps, ValueAxisState> 
 
   sync() {
     const { front, valueAxisConfig, valueAxisLayoutInfo, plotLayoutInfo, focusPercentages, axisFocusPercentage, seriesFocusPercentage,
-      seriesCount, valueAxisData, titleClipPathUniqueId, accessibility, accessibleLabel } = this.props;
+      seriesCount, valueAxisData, titleClipPathUniqueId, accessibility, accessibleLabel, chartFont } = this.props;
     const { onValueAxisEnter, onValueAxisLeave, onValueAxisClick } = this.state;
     if (valueAxisConfig.visibleWhenAllFiltered || seriesCount > 0) {
       const axisId = valueAxisConfig.id;
@@ -90,7 +92,7 @@ export default class ValueAxis extends Renderer<ValueAxisProps, ValueAxisState> 
         focusPercentages, axisTicks: valueAxisData.axisTickData[axisId],
         axisFocusPercentage, seriesFocusPercentage,
         titleClipPathUniqueId, onPointerEnter: onValueAxisEnter,
-        onPointerLeave: onValueAxisLeave, onClick: onValueAxisClick, accessibility, accessibleLabel });
+        onPointerLeave: onValueAxisLeave, onClick: onValueAxisClick, accessibility, accessibleLabel, chartFont });
     }
     else {
       this.axis!.set(null);

@@ -8,9 +8,11 @@ import { translate } from '../utils/utils';
 import { getClipPathReference } from '../utils/svgUtils';
 import { getAxisFocusStyle } from '../utils/FocusValue';
 import { styleToAttributes } from '../utils/style';
+import { resolveFontStyle } from '../utils/font';
 import Background from './Background';
 import type { El, TextEl } from '../render';
-import type { AxisConfigBase, AxisTickLabelConfig, CategoryAxisConfig, CategoryAxisTickLabelConfig } from '../types/config';
+import type { AxisConfigBase, AxisTickLabelConfig, CategoryAxisConfig, CategoryAxisTickLabelConfig, FontConfig } from '../types/config';
+import type { FontInlineStyle } from '../utils/font';
 import type { EnhancedValueAxisConfig } from '../types/enhanced';
 import type { AxisTick } from '../types/data';
 import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
@@ -36,6 +38,7 @@ interface AxisTickLabelsProps {
   axisFocusPercentage: FocusPercentage;
   seriesFocusPercentage: FocusPercentage;
   accessibility: boolean;
+  chartFont: FontConfig;
 }
 type AxisTickLabelsState = TruncationState;
 type SizeLabelEl = El & { textHandle: El; valueHandle: TextEl };
@@ -76,8 +79,10 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
   tickLabelStrings = emptyArray;
   truncatedLabels = emptyArray;
   truncatedLabelsSource: { labels: string[]; value: string; data: TruncationDataValue } | null = null;
-  tickTextStyle: { textAnchor: Anchor } | null = null;
-  hiddenTickTextStyle: { textAnchor: Anchor; visibility: string } | null = null;
+  tickTextStyle: Record<string, unknown> | null = null;
+  hiddenTickTextStyle: Record<string, unknown> | null = null;
+  sizeTickTextStyle: Record<string, unknown> | null = null;
+  tickTextFontStyle: FontInlineStyle | null | undefined = undefined;
 
   constructor() {
     super();
@@ -125,10 +130,12 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
   }
 
   // stable style objects let El.set skip the style diff for every unchanged tick
-  updateTickTextStyles(tickLabelAnchor: Anchor): void {
-    if (this.tickTextStyle === null || this.tickTextStyle.textAnchor !== tickLabelAnchor) {
-      this.tickTextStyle = { textAnchor: tickLabelAnchor };
-      this.hiddenTickTextStyle = { textAnchor: tickLabelAnchor, visibility: hiddenStyle.visibility };
+  updateTickTextStyles(tickLabelAnchor: Anchor, fontStyle: FontInlineStyle | null): void {
+    if (this.tickTextStyle === null || this.tickTextStyle.textAnchor !== tickLabelAnchor || this.tickTextFontStyle !== fontStyle) {
+      this.tickTextFontStyle = fontStyle;
+      this.tickTextStyle = { textAnchor: tickLabelAnchor, ...fontStyle };
+      this.hiddenTickTextStyle = { textAnchor: tickLabelAnchor, visibility: hiddenStyle.visibility, ...fontStyle };
+      this.sizeTickTextStyle = { ...hiddenStyle, ...fontStyle };
     }
   }
 
@@ -138,12 +145,12 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
   }
 
   sync() {
-    const { axisConfig, axisLayoutInfo, axisTicks, tickLabelClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, accessibility } = this.props;
+    const { axisConfig, axisLayoutInfo, axisTicks, tickLabelClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, accessibility, chartFont } = this.props;
     const { truncationData } = this.state;
     const { vertical, tickLabelAnchor, tickTextX, tickTextY } = axisLayoutInfo;
     const { rotation: tickLabelRotation } = axisConfig.tickLabel;
 
-    this.updateTickTextStyles(tickLabelAnchor);
+    this.updateTickTextStyles(tickLabelAnchor, resolveFontStyle(axisConfig.tickLabel.font, chartFont));
     const tickTextStyle = this.tickTextStyle!;
     const hiddenTickTextStyle = this.hiddenTickTextStyle!;
 
@@ -214,7 +221,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
       // a width probe, not a label: its text is nonsense to read out
       typedSizeLabel.set({ className: mochartCssClasses['axisSizeTickLabel'],
         ariaHidden: accessibility ? 'true' : null });
-      typedSizeLabel.textHandle.set({ style: hiddenStyle });
+      typedSizeLabel.textHandle.set({ style: this.sizeTickTextStyle });
       typedSizeLabel.valueHandle.set('W' + truncationText);
     }
     else {

@@ -7,8 +7,9 @@ import { translate, isMissingValue } from '../utils/utils';
 import { getSeriesLabelFillColor, getSeriesLabelStrokeColor } from '../utils/SeriesColors';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
 import { getFocusStyle, getCategoryFocusPercentage } from '../utils/FocusValue';
+import { resolveFontStyle } from '../utils/font';
 import type { El, ElListAdapter, TextEl } from '../render';
-import type { ColorPaletteConfig } from '../types/config';
+import type { ColorPaletteConfig, FontConfig } from '../types/config';
 import type { EnhancedSeriesConfig } from '../types/enhanced';
 import type { FocusData } from '../types/animation';
 import type { AxisScale, NullableDomain, SeriesPositionData, SeriesValueObject } from '../types/data';
@@ -68,6 +69,7 @@ interface SeriesLabelsProps {
   inverted: boolean;
   focusData: FocusData;
   accessibility: boolean;
+  chartFont: FontConfig;
   onCategoryEnter: (categoryIndex: number) => void;
   onCategoryLeave: (categoryIndex: number) => void;
   onCategoryClick: (categoryIndex: number, event: Event) => void;
@@ -235,6 +237,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
         const { length, getDefined, getSeriesPosition, getCategoryPosition, getOffsetCategoryPosition, categoryValueExtent, skipped, skipCategoryIndexMap } = seriesPositionData;
         // a bar label centers on the bar's own slot (group sub-slot, barWidthFraction), not the category slot
         const isBar = seriesConfig.renderer === RENDERER_BAR;
+        const labelFontStyle = resolveFontStyle(seriesConfig.label.font, this.props.chartFont);
 
         for (let i = 0; i < length; i++) {
           const skipI = skipped ? skipCategoryIndexMap[i] : i;
@@ -256,7 +259,8 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
             const label = this.labelShapes.get(skipI);
             label.attrs = { className: label.className, transform: translate(x, y),
               textAnchor, dy, stroke: labelStrokeColor, fill: labelFillColor, fillOpacity: labelFillOpacity, strokeOpacity: labelStrokeOpacity,
-              strokeWidth: labelStrokeWidth, onPointerEnter: label.onPointerEnter, onPointerLeave: label.onPointerLeave, onClick: label.onClick };
+              strokeWidth: labelStrokeWidth, onPointerEnter: label.onPointerEnter, onPointerLeave: label.onPointerLeave, onClick: label.onClick,
+              style: labelFontStyle };
             label.text = String(valueFormat(labelValues[skipI]!));
             labels.push(label);
           }

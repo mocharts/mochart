@@ -104,6 +104,15 @@ bounds (`colorScale.min`, `colorScale.max`, `colorScale.missing`,
 interpolates those itself, so they must be concrete colors — no keywords, no
 `var()`.
 
+Text is styled by a `textStyle` like any other shape, and its font is a
+separate `font` object beside it, with `family`, `size`, `weight` and `style`
+members. Each member falls back to the same member of
+[`chart.font`](/reference/chart#chart.font) and then, when both are `null`, to
+the host page's CSS. The font is a sibling of `textStyle` rather than a member
+of its states because a style state is shared with shapes, where a font means
+nothing, and because a font that changed with focus would move the layout
+whenever the focus moved; see [Typography](/guide/theming#typography).
+
 Reference pages link to nested members with dotted anchors, so
 [`shapeStyle.normal.fillColor`](/reference/series#series.shapeStyle.normal.fillColor)
 is addressable in its own right.

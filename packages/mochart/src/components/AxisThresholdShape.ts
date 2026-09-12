@@ -7,6 +7,7 @@ import { getCategoryValueKey } from '../data/CategoryValue';
 import { ANCHOR_MIDDLE, ANCHOR_START, AUTO, NONE, SCALE_LINEAR, SCALE_ORDINAL, SIDE_START, TITLE_SIDE_INSIDE, TITLE_SIDE_LOW, TYPE_DATE } from '../config/core/constants';
 import type { El, TextEl } from '../render';
 import type { AxisConfigBase } from '../types/config';
+import type { FontInlineStyle } from '../utils/font';
 import type { CategoryValue } from '../types/data';
 import type { ResolvedThreshold } from '../config/defaults/axisConfig';
 import type { DataType, Scale } from '../config/core/constants';
@@ -59,6 +60,7 @@ export interface AxisThresholdShapeProps {
   titleStrokeWidth: number | null;
   titleFill: string | null;
   titleFillOpacity: number | null;
+  titleFontStyle: FontInlineStyle | null;
 }
 
 /** A threshold value's pixel offset along the axis from the plot origin, or null when it has no place on the axis. */
@@ -203,7 +205,7 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
     const start = axisConfig.side === SIDE_START;
     const titleLow = threshold.title.side === TITLE_SIDE_LOW;
     const { snapToValue: titleSnapToValue, align } = threshold.title;
-    const { axisLayoutInfo, thresholdIndex, titleStroke, titleStrokeOpacity, titleStrokeWidth, titleFill, titleFillOpacity } = this.props;
+    const { axisLayoutInfo, thresholdIndex, titleStroke, titleStrokeOpacity, titleStrokeWidth, titleFill, titleFillOpacity, titleFontStyle } = this.props;
     const thresholdTitleLayoutInfo = axisLayoutInfo.thresholdTitleLayoutInfos[thresholdIndex] ?? { x: 0, y: 0, width: 0, height: 0 };
     let titleX = thresholdX;
     let titleY = thresholdY;
@@ -325,7 +327,7 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
       ...styleToAttributes(threshold.title.backgroundStyle) });
     titleGroup.textHandle.set({ transform: translateRotate(paddingX, paddingY, vertical ? 0 : 90),
       fill: titleFill, fillOpacity: titleFillOpacity,
-      stroke: titleStroke, strokeOpacity: titleStrokeOpacity, strokeWidth: titleStrokeWidth, dy: '0.35em' });
+      stroke: titleStroke, strokeOpacity: titleStrokeOpacity, strokeWidth: titleStrokeWidth, dy: '0.35em', style: titleFontStyle });
     titleGroup.valueHandle.set(threshold.title.text);
   }
 }

@@ -4,6 +4,7 @@ import AxisThresholdShape from './AxisThresholdShape';
 import { mochartCssClasses } from '../utils/ChartDom';
 import { getAxisFocusStyle } from '../utils/FocusValue';
 import { styleToAttributes } from '../utils/style';
+import { resolveFontStyle } from '../utils/font';
 import { resolveThresholds } from '../config/defaults/axisConfig';
 import { getSteppedThresholds } from '../data/ThresholdSteps';
 import { getGradientReference, getPatternReference } from '../utils/svgUtils';
@@ -12,7 +13,7 @@ import type { CategoryValue } from '../types/data';
 import { NONE } from '../config/core/constants';
 import type { AxisThresholdShapeProps, ThresholdAxisConfig, ThresholdCategoryPositions } from './AxisThresholdShape';
 import type { AxisLayoutInfo, LayoutInfo } from '../types/layout';
-import type { PlotConfig } from '../types/config';
+import type { FontConfig, PlotConfig } from '../types/config';
 
 interface AxisThresholdProps {
   hidden: boolean;
@@ -33,6 +34,7 @@ interface AxisThresholdProps {
   categoryPositions: ThresholdCategoryPositions | null;
   gradientIdMap: Record<string, string>;
   patternIdMap: Record<string, string>;
+  chartFont: FontConfig;
 }
 
 /** The patternIdMap key of one threshold's pattern definition: an axis key plus the entry index, or 'step' for the axis's thresholdStep. */
@@ -65,7 +67,7 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
     const { hidden } = this.props;
     if (!hidden) {
       const { axisConfig, axisLayoutInfo, seriesLayoutInfo, axisDomain, vertical, ascending, positionRange, axisFocusPercentage, seriesFocusPercentage, axisThresholdClass, front,
-        axisKey, categoryPositions, gradientIdMap, patternIdMap } = this.props;
+        axisKey, categoryPositions, gradientIdMap, patternIdMap, chartFont } = this.props;
       const { useSeriesFocus = false } = axisConfig;
       const configured = resolveThresholds(axisConfig.thresholds);
       // the stepped thresholds follow the configured entries, so title layout indexes stay those of the config
@@ -98,7 +100,8 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
             strokeWidth: line.strokeWidth ?? null, strokeDashArray: line.strokeDasharray ?? null,
             fill: line.fill ?? null, fillOpacity: line.fillOpacity ?? null, fillReference,
             titleStroke: title.stroke ?? null, titleStrokeOpacity: title.strokeOpacity ?? null, titleStrokeWidth: title.strokeWidth ?? null,
-            titleFill: title.fill ?? null, titleFillOpacity: title.fillOpacity ?? null }
+            titleFill: title.fill ?? null, titleFillOpacity: title.fillOpacity ?? null,
+            titleFontStyle: resolveFontStyle(threshold.title.font, chartFont) }
         });
       });
       this.lines.sync(items);

@@ -5,9 +5,10 @@ import { Renderer, svgEl, textEl } from '../render';
 import { mochartCssClasses } from '../utils/ChartDom';
 import { translate, textDY } from '../utils/utils';
 import { styleToAttributes } from '../utils/style';
+import { resolveFontStyle } from '../utils/font';
 import { NONE, AUTO } from '../config/core/constants';
 
-import type { PieConfig } from '../types/config';
+import type { FontConfig, PieConfig } from '../types/config';
 import type { LayoutInfo } from '../types/layout';
 import type { RadialLayoutInfo } from '../layout/RadialLayout';
 
@@ -22,6 +23,7 @@ interface PieCenterProps {
   total: number;
   /** When true, the decorative center is hidden from assistive tech. */
   accessibility: boolean;
+  chartFont: FontConfig;
 }
 
 /** The pie center content: an optional text label and/or the live total of the unfiltered slice
@@ -38,7 +40,7 @@ export default class PieCenter extends Renderer<PieCenterProps> {
   }
 
   sync() {
-    const { pieConfig, seriesLayoutInfo, radialLayoutInfo, total, accessibility } = this.props;
+    const { pieConfig, seriesLayoutInfo, radialLayoutInfo, total, accessibility, chartFont } = this.props;
     const { text: centerLabel, textStyle: centerLabelTextStyle } = pieConfig.centerLabel;
     const { visible: showCenterTotal, textStyle: centerTotalTextStyle } = pieConfig.centerTotal;
     const showLabel = centerLabel !== NONE;
@@ -61,7 +63,7 @@ export default class PieCenter extends Renderer<PieCenterProps> {
         return el;
       });
       labelEl!.set({ ...styleToAttributes(centerLabelTextStyle), className: mochartCssClasses['pieCenterLabel'],
-        textAnchor: 'middle', dy: showCenterTotal ? '-0.35em' : textDY });
+        textAnchor: 'middle', dy: showCenterTotal ? '-0.35em' : textDY, style: resolveFontStyle(pieConfig.centerLabel.font, chartFont) });
       this.labelText.set(centerLabel!);
     }
     else {
@@ -76,7 +78,7 @@ export default class PieCenter extends Renderer<PieCenterProps> {
         return el;
       });
       totalEl!.set({ ...styleToAttributes(centerTotalTextStyle), className: mochartCssClasses['pieCenterTotal'],
-        textAnchor: 'middle', dy: showLabel ? '1.0em' : textDY });
+        textAnchor: 'middle', dy: showLabel ? '1.0em' : textDY, style: resolveFontStyle(pieConfig.centerTotal.font, chartFont) });
       this.totalText.set(format(specifier)(total));
     }
     else {

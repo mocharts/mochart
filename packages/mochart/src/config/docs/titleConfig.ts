@@ -1,4 +1,4 @@
-import { style, spacing } from './shared';
+import { style, spacing, font } from './shared';
 
 export default function getDescriptions() {
   return {
@@ -25,6 +25,7 @@ export default function getDescriptions() {
     backgroundStyle: style('the styles to apply to the title background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
     textBackgroundStyle: style('the styles to apply to the title text background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
     textStyle: style('the styles to apply to the title text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)'),
+    font: font('the font of the title text (family, size, weight, style), each member falling back to chart.font when null'),
     prefix: {
       description: 'the prefix box shown at the start of the title',
       properties: {
@@ -32,7 +33,8 @@ export default function getDescriptions() {
         margin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the box'),
         padding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the box'),
         backgroundStyle: style('the styles to apply to the box background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
-        textStyle: style('the styles to apply to the box text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)')
+        textStyle: style('the styles to apply to the box text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)'),
+        font: font('the font of the box text (family, size, weight, style), each member falling back to chart.font when null')
       }
     },
     suffix: {
@@ -42,7 +44,8 @@ export default function getDescriptions() {
         margin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the box'),
         padding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the box'),
         backgroundStyle: style('the styles to apply to the box background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
-        textStyle: style('the styles to apply to the box text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)')
+        textStyle: style('the styles to apply to the box text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)'),
+        font: font('the font of the box text (family, size, weight, style), each member falling back to chart.font when null')
       }
     }
   };

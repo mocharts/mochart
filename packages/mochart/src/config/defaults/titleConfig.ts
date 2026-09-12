@@ -1,5 +1,6 @@
 import { NONE, POSITION_TOP, ALIGN_CENTER, VERTICAL_ALIGN_MIDDLE, COLOR_CURRENT } from '../core/constants';
 import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
+import { getFontDefaults } from './fontConfig';
 
 export default function getDefaults() {
   return {
@@ -20,19 +21,22 @@ export default function getDefaults() {
     backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 },
     textBackgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 },
     textStyle: { strokeColor: 'none', strokeOpacity: NONE, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: NONE },
+    font: getFontDefaults(),
     prefix: {
       text: NONE,
       margin: { top: 0, right: 5, bottom: 0, left: 0 },
       padding: { top: 0, right: 5, bottom: 0, left: 0 },
       backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 },
-      textStyle: { strokeColor: 'none', strokeOpacity: NONE, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: NONE }
+      textStyle: { strokeColor: 'none', strokeOpacity: NONE, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: NONE },
+      font: getFontDefaults()
     },
     suffix: {
       text: NONE,
       margin: { top: 0, right: 0, bottom: 0, left: 5 },
       padding: { top: 0, right: 0, bottom: 0, left: 5 },
       backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 },
-      textStyle: { strokeColor: 'none', strokeOpacity: NONE, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: NONE }
+      textStyle: { strokeColor: 'none', strokeOpacity: NONE, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: NONE },
+      font: getFontDefaults()
     }
   };
 }

@@ -1,7 +1,7 @@
 import type {
   Auto, Align, TooltipValueAlign, AxisSide, MissingValueMode, VerticalAlign, Anchor, Position, Scale, DataType, RendererType, ThresholdTitleSide,
   CurveType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, PatternType,
-  ChartType, PieLabelType, PieTooltipValueType, DomainChange, AnimationEasing
+  ChartType, PieLabelType, PieTooltipValueType, DomainChange, AnimationEasing, FontWeight, FontStyle
 } from '../config/core/constants';
 import type { MarginPadding, InnerOuter } from './geometry';
 
@@ -133,6 +133,32 @@ export interface StyleStates<C = string> {
   normal: StyleState<C>;
   focused: StyleState<C | 'same', 'same'>;
   defocused: StyleState<C | 'same', 'same'>;
+}
+
+/**
+ * The font of a text element, written as inline css on the element itself so
+ * a configured member wins over the host page's css. A part's own font is
+ * consulted first, then `chart.font`; a member that is null in both is left
+ * to css. Not part of the style states: a font is layout, not focus.
+ */
+export interface FontConfig {
+  /** The css font-family of the text, or null to leave the font family to css. */
+  family: string | null;
+  /**
+   * The font size (in pixels) of the text, or null to leave the font size to
+   * css.
+   */
+  size: number | null;
+  /**
+   * The css font-weight of the text (100 to 900 in hundreds, or "normal",
+   * "bold", "lighter", "bolder"), or null to leave the font weight to css.
+   */
+  weight: FontWeight | null;
+  /**
+   * The css font-style of the text ("normal", "italic", "oblique"), or null to
+   * leave the font style to css.
+   */
+  style: FontStyle | null;
 }
 
 export interface AccessibilityConfig {
@@ -474,6 +500,25 @@ export interface ChartConfig {
    * @default { strokeColor: "currentColor", strokeOpacity: 0, strokeWidth: null, strokeDashArray: null, fillColor: null, fillOpacity: 0 }
    */
   backgroundStyle: Style;
+  /**
+   * The font of every text the chart draws, used for each member a part's own
+   * font leaves null (family, size, weight, style (use null to leave a member
+   * to css)).
+   *
+   * Each text part (the title, legend items, tick labels, axis titles,
+   * threshold titles, series labels, the pie center, the clip indicator label
+   * and the tooltip) has a `font` of its own with the same four members. A
+   * member is resolved per text element: the part's own value when it is not
+   * `null`, otherwise this chart-wide value, otherwise nothing. Resolved
+   * members are written as an inline style on the text element itself
+   * (`font-family`, `font-size`, `font-weight`, `font-style`), so a configured
+   * value wins over any host page css rule; a member left `null` in both places
+   * writes nothing and stays with css. Text is measured after the font is
+   * written, so a larger size reserves more space in the layout.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font: FontConfig;
 }
 
 export interface PlotConfig {
@@ -563,6 +608,13 @@ export interface ClipIndicatorConfig {
    * @default { strokeColor: null, strokeOpacity: 0, strokeWidth: null, strokeDashArray: null, fillColor: "currentColor", fillOpacity: 0.7 }
    */
   textStyle: Style;
+  /**
+   * The font of the clip indicator label (family, size, weight, style), each
+   * member falling back to chart.font when null.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font: FontConfig;
   /**
    * The styles to apply to the clip indicator band, whose fillColor draws the
    * hatch when one is set (strokeColor, strokeOpacity, strokeWidth, fillColor,
@@ -687,6 +739,13 @@ export interface PieCenterLabelConfig {
    * @default { strokeColor: null, strokeOpacity: null, strokeWidth: null, strokeDashArray: null, fillColor: "currentColor", fillOpacity: null }
    */
   textStyle: Style;
+  /**
+   * The font of the center label text (family, size, weight, style), each
+   * member falling back to chart.font when null.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font: FontConfig;
 }
 
 /** The total of the slice values shown at the center of the pie. */
@@ -713,6 +772,13 @@ export interface PieCenterTotalConfig {
    * @default { strokeColor: null, strokeOpacity: null, strokeWidth: null, strokeDashArray: null, fillColor: "currentColor", fillOpacity: null }
    */
   textStyle: Style;
+  /**
+   * The font of the center total text (family, size, weight, style), each
+   * member falling back to chart.font when null.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font: FontConfig;
   /**
    * Whether the center total counts only the unfiltered slices (true) or always
    * shows the full total (false).
@@ -788,13 +854,13 @@ export interface PieConfig {
    * The text label shown at the center of the pie (most useful for donut and
    * gauge charts).
    *
-   * @default { text: null, textStyle: { … } }
+   * @default { text: null, textStyle: { … }, font: { … } }
    */
   centerLabel: PieCenterLabelConfig;
   /**
    * The total of the slice values shown at the center of the pie.
    *
-   * @default { visible: false, textStyle: { … }, format: "auto", adjustForFiltering: true }
+   * @default { visible: false, textStyle: { … }, font: { … }, format: "auto", adjustForFiltering: true }
    */
   centerTotal: PieCenterTotalConfig;
   /**
@@ -993,6 +1059,11 @@ export interface TitleAffixConfig {
    * to follow the host page's css color and theme).
    */
   textStyle: Style;
+  /**
+   * The font of the box text (family, size, weight, style), each member falling
+   * back to chart.font when null.
+   */
+  font: FontConfig;
 }
 
 export interface TitleConfig {
@@ -1011,13 +1082,13 @@ export interface TitleConfig {
   /**
    * The prefix box shown at the start of the title.
    *
-   * @default { text: null, margin: { … }, padding: { … }, backgroundStyle: { … }, textStyle: { … } }
+   * @default { text: null, margin: { … }, padding: { … }, backgroundStyle: { … }, textStyle: { … }, font: { … } }
    */
   prefix: TitleAffixConfig;
   /**
    * The suffix box shown at the end of the title.
    *
-   * @default { text: null, margin: { … }, padding: { … }, backgroundStyle: { … }, textStyle: { … } }
+   * @default { text: null, margin: { … }, padding: { … }, backgroundStyle: { … }, textStyle: { … }, font: { … } }
    */
   suffix: TitleAffixConfig;
   /**
@@ -1116,6 +1187,13 @@ export interface TitleConfig {
    * @default { strokeColor: "none", strokeOpacity: null, strokeWidth: 0, strokeDashArray: null, fillColor: "currentColor", fillOpacity: null }
    */
   textStyle: Style;
+  /**
+   * The font of the title text (family, size, weight, style), each member
+   * falling back to chart.font when null.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font: FontConfig;
 }
 
 /** The border drawn around a series icon: always written, so no member is null. */
@@ -1249,6 +1327,13 @@ export interface LegendItemConfig {
    * @default { strokeColor: "none", strokeOpacity: null, strokeWidth: 0, strokeDashArray: null, fillColor: "currentColor", fillOpacity: null }
    */
   textStyle: Style;
+  /**
+   * The font of the legend item text (family, size, weight, style), each member
+   * falling back to chart.font when null.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font: FontConfig;
 }
 
 /** The legend truncation, adding the limit on the width a single item may take. */
@@ -1335,7 +1420,7 @@ export interface LegendConfig {
   /**
    * The legend items, each a series icon and title in its own box.
    *
-   * @default { margin: { … }, padding: { … }, backgroundStyle: { … }, textStyle: { … } }
+   * @default { margin: { … }, padding: { … }, backgroundStyle: { … }, textStyle: { … }, font: { … } }
    */
   item: LegendItemConfig;
   /**
@@ -1570,6 +1655,13 @@ export interface TooltipConfig {
    */
   backgroundStyle: CssStyle;
   /**
+   * The font of the tooltip text (family, size, weight, style), each member
+   * falling back to chart.font when null.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font: FontConfig;
+  /**
    * The radius (in pixels) of the corners of the tooltip.
    *
    * @default 4
@@ -1708,6 +1800,13 @@ export interface ThresholdTitleConfig {
    * @default { normal: { … }, focused: { … }, defocused: { … } }
    */
   textStyle?: DeepPartial<StyleStates>;
+  /**
+   * The font of the threshold title text (family, size, weight, style), each
+   * member falling back to chart.font when null.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font?: Partial<FontConfig>;
   /**
    * The styles to apply to the threshold title background.
    *
@@ -1859,7 +1958,7 @@ export interface ThresholdConfig {
   /**
    * The title label shown beside the threshold.
    *
-   * @default { text: null, side: "high", align: "auto", snapToValue: true, margin: { … }, padding: { … }, textStyle: { … }, backgroundStyle: { … } }
+   * @default { text: null, side: "high", align: "auto", snapToValue: true, margin: { … }, padding: { … }, textStyle: { … }, font: { … }, backgroundStyle: { … } }
    */
   title?: ThresholdTitleConfig;
 }
@@ -2115,6 +2214,13 @@ export interface AxisTickLabelConfig {
    * @default { normal: { … }, focused: { … }, defocused: { … } }
    */
   textStyle: StyleStates;
+  /**
+   * The font of the axis tick label text (family, size, weight, style), each
+   * member falling back to chart.font when null.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font: FontConfig;
 }
 
 /** The axis tick label truncation, adding the limits on the space a label may take. */
@@ -2227,6 +2333,13 @@ export interface AxisTitleConfig {
    * @default { normal: { … }, focused: { … }, defocused: { … } }
    */
   textStyle: StyleStates;
+  /**
+   * The font of the axis title text (family, size, weight, style), each member
+   * falling back to chart.font when null.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font: FontConfig;
 }
 
 /** The line a value axis draws along its base value. */
@@ -2480,11 +2593,11 @@ export interface AxisConfigBase {
    * Category axis default: `{ front: false, anchor: "auto", backgroundStyle: {
    * … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5,
    * paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0,
-   * textStyle: { … }, truncation: { … } }`.
+   * textStyle: { … }, font: { … }, truncation: { … } }`.
    * Value axis default: `{ front: false, anchor: "auto", backgroundStyle: { …
    * }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5,
    * paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0,
-   * textStyle: { … }, adjustSizeForFiltering: false }`.
+   * textStyle: { … }, font: { … }, adjustSizeForFiltering: false }`.
    */
   tickLabel: AxisTickLabelConfig;
   /**
@@ -2496,7 +2609,7 @@ export interface AxisConfigBase {
   /**
    * The title shown alongside the axis.
    *
-   * @default { text: null, front: false, backgroundStyle: { … }, truncation: { … }, size: "auto", marginInner: 2, marginOuter: 2, paddingInner: 3, paddingOuter: 3, textStyle: { … } }
+   * @default { text: null, front: false, backgroundStyle: { … }, truncation: { … }, size: "auto", marginInner: 2, marginOuter: 2, paddingInner: 3, paddingOuter: 3, textStyle: { … }, font: { … } }
    */
   title: AxisTitleConfig;
   /**
@@ -2607,7 +2720,7 @@ export interface CategoryAxisConfig extends AxisConfigBase {
   /**
    * The labels shown at each tick along the axis.
    *
-   * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, truncation: { … } }
+   * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, truncation: { … } }
    */
   tickLabel: CategoryAxisTickLabelConfig;
   /**
@@ -2801,7 +2914,7 @@ export interface ValueAxisConfig extends AxisConfigBase {
   /**
    * The labels shown at each tick along the axis.
    *
-   * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, adjustSizeForFiltering: false }
+   * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, adjustSizeForFiltering: false }
    */
   tickLabel: ValueAxisTickLabelConfig;
   /**
@@ -3210,6 +3323,13 @@ export interface SeriesLabelConfig {
    * @default { normal: { … }, focused: { … }, defocused: { … } }
    */
   textStyle: StyleStates<SeriesColor>;
+  /**
+   * The font of the series label text (family, size, weight, style), each
+   * member falling back to chart.font when null.
+   *
+   * @default { family: null, size: null, weight: null, style: null }
+   */
+  font: FontConfig;
   /**
    * Where to place the series labels relative to the value end of the series
    * shape (inside, center, outside).
@@ -3647,7 +3767,7 @@ export interface SeriesConfig {
   /**
    * The labels drawn next to the series shapes from the labelProperty values.
    *
-   * @default { format: "auto", prefix: null, suffix: null, textStyle: { … }, minPositionFraction: null, maxPositionFraction: null, minRangeFraction: null, offset: 0, position: "center", aboveBase: { … }, belowBase: { … } }
+   * @default { format: "auto", prefix: null, suffix: null, textStyle: { … }, font: { … }, minPositionFraction: null, maxPositionFraction: null, minRangeFraction: null, offset: 0, position: "center", aboveBase: { … }, belowBase: { … } }
    */
   label: SeriesLabelConfig;
   /**

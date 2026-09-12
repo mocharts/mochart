@@ -1,4 +1,4 @@
-import { style } from './shared';
+import { style, font } from './shared';
 
 export default function getDescriptions() {
   return {
@@ -7,6 +7,7 @@ export default function getDescriptions() {
     labelPadding: 'the space (in pixels) between the clip indicator label and the edges of its band, which also determines the band depth when size is "auto"',
     label: 'the text shown in the clip indicator band, and the band\'s accessible name (use null for no label; the band is still shown)',
     textStyle: style('the styles to apply to the clip indicator label (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
+    font: font('the font of the clip indicator label (family, size, weight, style), each member falling back to chart.font when null'),
     style: style('the styles to apply to the clip indicator band, whose fillColor draws the hatch when one is set (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
     hatch: {
       description: 'the diagonal hatch filling the clip indicator band (use null for a flat fill instead)',

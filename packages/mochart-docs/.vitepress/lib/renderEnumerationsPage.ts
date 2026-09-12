@@ -10,7 +10,8 @@ function renderEntry(entry: EnumerationDoc): string {
   lines.push('');
   lines.push(entry.description);
   lines.push('');
-  lines.push('- **Values:** ' + entry.values.map(value => '`\'' + value + '\'`').join(', '));
+  // a numeric member is a number literal, not a string
+  lines.push('- **Values:** ' + entry.values.map(value => typeof value === 'number' ? '`' + value + '`' : '`\'' + value + '\'`').join(', '));
   lines.push('- **Used by:** ' + entry.usedBy.map(use => '[`' + use.label + '`](' + use.link + ')').join(', '));
   lines.push('');
   return lines.join('\n');

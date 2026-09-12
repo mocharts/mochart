@@ -1,6 +1,6 @@
 // A synthetic proportional font for the golden suite: jsdom has no font engine, and the old zero stubs made every measurement fall to the 20x20 defaultBounds fallback, so truncation, tick pruning and layout fitting never ran; widths are per-code-point advance fractions of a fixed em — a pure function of the string, identical on every machine, deliberately not any real font
 
-/** Nominal font size, in pixels, for every text element the chart renders. */
+/** Nominal font size, in pixels, for every text element that sets no font size of its own. */
 export const EM_PX = 16;
 
 /** Measured text height as a fraction of the em box (real browsers report 1.15-1.25em). */
@@ -36,19 +36,34 @@ function getAdvanceFraction(character: string): number {
   return (character.codePointAt(0) ?? 0) >= FULL_WIDTH_MIN_CODE_POINT ? 1 : DEFAULT_ADVANCE_FRACTION;
 }
 
-/** Width in pixels of `text` in the synthetic font. */
-export function measureTextWidth(text: string): number {
+/** Width in pixels of `text` in the synthetic font at `fontSize`. */
+export function measureTextWidth(text: string, fontSize = EM_PX): number {
   let fraction = 0;
   // by code point, so an astral character is one advance and not two
   for (const character of text) {
     fraction += getAdvanceFraction(character);
   }
-  return fraction * EM_PX;
+  return fraction * fontSize;
 }
 
-/** Height in pixels of a non-empty line of text in the synthetic font. */
-export function getTextHeight(): number {
-  return EM_PX * LINE_HEIGHT_FRACTION;
+/** Height in pixels of a non-empty line of text in the synthetic font at `fontSize`. */
+export function getTextHeight(fontSize = EM_PX): number {
+  return fontSize * LINE_HEIGHT_FRACTION;
+}
+
+/**
+ * The font size an element renders at: its own inline font-size, else the nearest ancestor's, else
+ * the nominal em. Only inline styles count, which is how the chart writes a configured font; the
+ * weight, family and style are not modelled, so they never change a width.
+ */
+export function getElementFontSize(element: Element): number {
+  for (let node: Element | null = element; node !== null; node = node.parentElement) {
+    const match = /^(\d*\.?\d+)px$/.exec((node as HTMLElement).style?.fontSize ?? '');
+    if (match !== null && Number(match[1]) > 0) {
+      return Number(match[1]);
+    }
+  }
+  return EM_PX;
 }
 
 /** The text a browser measures: the element's own text, never a <title> child (the truncation tooltip holds the full text of an ellipsised label). */
@@ -80,7 +95,7 @@ export function installTextMetrics(): void {
   const svgProto = globalThis.SVGElement.prototype as any;
 
   svgProto.getComputedTextLength = function (this: SVGTextContentElement): number {
-    return measureTextWidth(getTextContent(this));
+    return measureTextWidth(getTextContent(this), getElementFontSize(this));
   };
 
   // Only text carries metrics here: the library measures bounds of <text> nodes
@@ -90,16 +105,18 @@ export function installTextMetrics(): void {
     if (text.length === 0) {
       return { x: 0, y: 0, width: 0, height: 0 };
     }
-    return { x: 0, y: 0, width: measureTextWidth(text), height: getTextHeight() };
+    const fontSize = getElementFontSize(this);
+    return { x: 0, y: 0, width: measureTextWidth(text, fontSize), height: getTextHeight(fontSize) };
   };
 
   // jsdom resolves font-size to the keyword `medium`, which the library reads as
-  // NaN and discards; report the em the widths above are built from.
+  // NaN and discards; report the size the widths above are built from.
   const nativeGetComputedStyle = globalThis.getComputedStyle;
   globalThis.getComputedStyle = function (element: Element, pseudoElement?: string | null) {
     const style = nativeGetComputedStyle.call(globalThis, element, pseudoElement ?? undefined);
-    if (style.fontSize !== EM_PX + 'px') {
-      style.fontSize = EM_PX + 'px';
+    const fontSize = getElementFontSize(element) + 'px';
+    if (style.fontSize !== fontSize) {
+      style.fontSize = fontSize;
     }
     return style;
   } as typeof globalThis.getComputedStyle;

@@ -17,6 +17,7 @@ page; they stay whatever the palette or your config says.
 <script setup>
 import * as theming from '../examples/theming'
 import * as palette from '../examples/palette'
+import * as typography from '../examples/typography'
 </script>
 
 The page color doesn't have to be a theme. This chart's host element sets
@@ -161,6 +162,50 @@ The places it is rejected are the series color-scale bounds
 `colorScale.base.*`), `colorPalette` entries, and gradient stop colors: those
 are interpolated by d3 scales, which need concrete colors, so validation turns a
 keyword away rather than letting it produce `NaN` colors.
+
+## Typography
+
+Text takes its font from the host page by default: the chart writes no font
+of its own, so every label renders in whatever `font-family`, `font-size`,
+`font-weight` and `font-style` the container inherits. To set typography from
+the config instead, every text part has a `font` with four members, each
+`null` by default:
+
+- `family`, written as `font-family`
+- `size`, in pixels, written as `font-size`
+- `weight`, a hundred from 100 to 900 or one of `normal`, `bold`, `lighter`
+  and `bolder`, written as `font-weight`
+- `style`, one of `normal`, `italic` and `oblique`, written as `font-style`
+
+[`chart.font`](/reference/chart#chart.font) is the chart-wide default. The
+title and its prefix and suffix, legend items, axis tick labels, axis titles,
+threshold titles, series labels, the pie center label and total, the clip
+indicator label and the tooltip each have a `font` of their own, a sibling of
+their `textStyle`. A part's member is used when it is set, otherwise the
+`chart.font` member, so a config can size everything once and single out one
+part:
+
+```js
+chart: { font: { family: 'Georgia, serif', size: 12 } },
+title: { text: 'Support Tickets by Month', font: { size: 18, weight: 'bold' } },
+valueAxes: [{ title: { text: 'tickets', font: { style: 'italic' } } }]
+```
+
+This chart renders in Georgia while the rest of this page keeps the site
+font, with a larger bold title and an italic value axis title:
+
+<LiveChart :config="typography.config" :data="typography.data" />
+
+A member that is `null` in both places is left to CSS, so the page keeps
+deciding it. A member that is set is written as an inline style on the text
+element itself (on the tooltip's box for the HTML tooltip), which is why a
+configured value wins over any host page CSS rule that matches the element,
+including a reset. The chart measures its text after writing the font, so a
+larger `size` reserves more room for the labels it applies to.
+
+The font is not part of the style states: `normal`, `focused` and `defocused`
+change colors and opacities, never the font, so the layout does not move when
+the focus does.
 
 ## Exports
 

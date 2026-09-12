@@ -25,11 +25,13 @@ export default function getValidators() {
     }, true),
     centerLabel: validators.partialObjectWithShape({
       text: validators.string().orEqual(NONE),
-      textStyle: validators.style()
+      textStyle: validators.style(),
+      font: validators.font()
     }, true),
     centerTotal: validators.partialObjectWithShape({
       visible: validators.boolean(),
       textStyle: validators.style(),
+      font: validators.font(),
       format: validators.numberFormat().orEqual(AUTO),
       adjustForFiltering: validators.boolean()
     }, true),

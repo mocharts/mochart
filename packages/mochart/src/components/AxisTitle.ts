@@ -6,9 +6,10 @@ import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils
 import { getClipPathReference } from '../utils/svgUtils';
 import { getAxisFocusStyle } from '../utils/FocusValue';
 import { styleToAttributes } from '../utils/style';
+import { resolveFontStyle } from '../utils/font';
 import { NONE } from '../config/core/constants';
 import Background from './Background';
-import type { AxisConfigBase } from '../types/config';
+import type { AxisConfigBase, FontConfig } from '../types/config';
 import type { EnhancedValueAxisConfig } from '../types/enhanced';
 import type { AxisLayoutInfo } from '../types/layout';
 import type { FocusPercentage } from '../types/animation';
@@ -23,6 +24,7 @@ interface AxisTitleProps {
   axisFocusPercentage: FocusPercentage;
   seriesFocusPercentage: FocusPercentage;
   ariaHidden: boolean;
+  chartFont: FontConfig;
 }
 type AxisTitleState = TruncationState;
 
@@ -58,7 +60,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
   sync() {
     const { axisConfig } = this.props;
     if (axisConfig.title.text !== NONE) {
-      const { axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage } = this.props;
+      const { axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, chartFont } = this.props;
       const { truncationData } = this.state;
       const title = getTruncatedText(axisConfig.title.truncation.enabled, axisConfig.title.truncation.text, axisConfig.title.text!, truncationData);
 
@@ -81,7 +83,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
       this.background.set(Background, { config: axisConfig.title, classKey: 'axisTitleBackground', spacingRelative: false, spacingLayoutInfo: axisLayoutInfo.titleLayoutInfo });
       this.text.set({ transform: titleTextTransform, textAnchor: titleTextAnchor, dy: titleTextDY,
         stroke, strokeOpacity,
-        fill, fillOpacity, strokeWidth });
+        fill, fillOpacity, strokeWidth, style: resolveFontStyle(axisConfig.title.font, chartFont) });
       this.textValue.set(title);
       this.tooltip.sync(this.text, axisConfig.title.truncation.tooltipEnabled, axisConfig.title.text!, title);
     }

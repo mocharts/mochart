@@ -61,6 +61,14 @@ export const styleStateDescriptions: DescriptionMap = {
   fillOpacity: 'the opacity (0 - 1) of the fill'
 };
 
+/** The `FontConfig` members: each is written to the text as inline css, and `null` leaves that member to the host page's css. */
+export const fontDescriptions: DescriptionMap = {
+  family: 'the css font-family of the text, or null to leave the font family to css',
+  size: 'the font size (in pixels) of the text, or null to leave the font size to css',
+  weight: 'the css font-weight of the text (100 to 900 in hundreds, or "normal", "bold", "lighter", "bolder"), or null to leave the font weight to css',
+  style: 'the css font-style of the text ("normal", "italic", "oblique"), or null to leave the font style to css'
+};
+
 /** A property holding a `Style` (or the stroke-only `StrokeStyle`). */
 export function style(description: string): NestedDescription {
   return { description, properties: styleDescriptions };
@@ -73,6 +81,11 @@ export function partialStyle(description: string, members: string[]): NestedDesc
     properties[member] = styleDescriptions[member] as string;
   }
   return { description, properties };
+}
+
+/** A property holding a `FontConfig`. */
+export function font(description: string): NestedDescription {
+  return { description, properties: fontDescriptions };
 }
 
 /** A property holding a `MarginPadding` spacing box. */

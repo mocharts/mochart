@@ -9,6 +9,7 @@ import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
 import { getSeriesTitle } from '../utils/SeriesTitle';
 import { sliceIsInteractive } from '../utils/RovingFocus';
 import { getFocusStyle } from '../utils/FocusValue';
+import { resolveFontStyle } from '../utils/font';
 import { getGradientReference, getPatternReference } from '../utils/svgUtils';
 import { mochartCssClasses } from '../utils/ChartDom';
 import { translate, textDY, isHoverPointer } from '../utils/utils';
@@ -16,7 +17,7 @@ import { NONE } from '../config/core/constants';
 import { formatPieLabelType, getPieLabelFormats } from '../data/PieLabel';
 import type { PieLabelFormats } from '../data/PieLabel';
 
-import type { ColorPaletteConfig, PieConfig } from '../types/config';
+import type { ColorPaletteConfig, FontConfig, PieConfig } from '../types/config';
 import type { EnhancedSeriesConfig } from '../types/enhanced';
 import type { FocusData } from '../types/animation';
 import type { LayoutInfo } from '../types/layout';
@@ -62,6 +63,7 @@ interface PieSeriesProps {
   accessibility: boolean;
   /** The roving tab stop: one slice is Tab-reachable, arrows move between slices. */
   tabStop: boolean;
+  chartFont: FontConfig;
 }
 
 interface PieSeriesState {
@@ -215,7 +217,8 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
         transform: translate(labelRadius * Math.sin(midAngle), -labelRadius * Math.cos(midAngle)),
         textAnchor: 'middle', dy: textDY,
         stroke: labelStrokeColor, strokeWidth: labelStrokeWidth, strokeOpacity: labelStrokeOpacity,
-        fill: labelFillColor, fillOpacity: labelFillOpacity });
+        fill: labelFillColor, fillOpacity: labelFillOpacity,
+        style: resolveFontStyle(seriesConfig.label.font, this.props.chartFont) });
       this.labelText.set(getPieLabelText(pieConfig, labelFormats, seriesConfig, sliceAngles, labelFraction));
     }
     else {

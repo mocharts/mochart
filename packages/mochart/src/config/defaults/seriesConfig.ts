@@ -5,6 +5,7 @@ import {
 } from '../core/constants';
 
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
+import { getFontDefaults } from './fontConfig';
 import type { DeepPartial, SeriesConfig } from '../../types/config';
 
 const colorPropertySuffix = 'when colorProperty is not ' + NONE;
@@ -69,6 +70,7 @@ export function getRegularDefaults() {
         focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 1, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
         defocused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 1, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 }
       },
+      font: getFontDefaults(),
       minPositionFraction: NONE,
       maxPositionFraction: NONE,
       minRangeFraction: NONE,

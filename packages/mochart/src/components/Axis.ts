@@ -9,7 +9,7 @@ import AxisFocusTickMarks from './AxisFocusTickMarks';
 import AxisFocusRange from './AxisFocusRange';
 
 import { translateObject } from '../utils/utils';
-import type { CategoryAxisConfig } from '../types/config';
+import type { CategoryAxisConfig, FontConfig } from '../types/config';
 import type { EnhancedValueAxisConfig } from '../types/enhanced';
 import type { AxisTick } from '../types/data';
 import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
@@ -32,6 +32,7 @@ interface AxisProps {
   onClick?: (() => void) | null;
   accessibility: boolean;
   accessibleLabel: string;
+  chartFont: FontConfig;
 }
 
 export default class Axis extends Renderer<AxisProps> {
@@ -53,7 +54,7 @@ export default class Axis extends Renderer<AxisProps> {
   sync() {
     const { front, axisConfig, axisLayoutInfo, plotLayoutInfo, axisClass, axisTicks, axisFocusPercentage, seriesFocusPercentage,
       focusPercentages, tickSpacing, titleClipPathUniqueId, tickLabelClipPathUniqueId,
-      onPointerEnter, onPointerLeave, onClick, accessibility, accessibleLabel } = this.props;
+      onPointerEnter, onPointerLeave, onClick, accessibility, accessibleLabel, chartFont } = this.props;
     if (axisConfig.visible) {
       const { backgroundFront } = axisConfig;
       const axisLineFront = axisConfig.axisLine.front, focusRangeFront = axisConfig.focusRange.front, focusTickMarkFront = axisConfig.focusTickMark.front,
@@ -103,7 +104,7 @@ export default class Axis extends Renderer<AxisProps> {
         this.tickLabelsSlot.set(AxisTickLabels, { axisLayoutInfo, plotLayoutInfo,
           axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null,
           axisConfig, axisTicks,
-          tickSpacing: tickSpacing ?? null, tickLabelClipPathUniqueId, accessibility });
+          tickSpacing: tickSpacing ?? null, tickLabelClipPathUniqueId, accessibility, chartFont });
       }
 
       if (front !== titleFront) {
@@ -111,7 +112,7 @@ export default class Axis extends Renderer<AxisProps> {
       }
       else {
         // the named group (in whichever half) already reads the title, so the drawn title stays hidden even when it draws in the other half
-        this.titleSlot.set(AxisTitle, { axisConfig, axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null, ariaHidden: accessibility && axisTicks.length > 0 });
+        this.titleSlot.set(AxisTitle, { axisConfig, axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null, ariaHidden: accessibility && axisTicks.length > 0, chartFont });
       }
 
       if (front !== focusTickMarkFront) {

@@ -3,7 +3,7 @@ import { Renderer, Slot } from '../render';
 import { mochartCssClasses } from '../utils/ChartDom';
 
 import Axis from './Axis';
-import type { CategoryAxisConfig } from '../types/config';
+import type { CategoryAxisConfig, FontConfig } from '../types/config';
 import type { CategoryAxisData } from '../types/data';
 import type { CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
 
@@ -18,6 +18,7 @@ interface CategoryAxisProps {
   tickLabelClipPathUniqueId: string;
   accessibility: boolean;
   accessibleLabel: string;
+  chartFont: FontConfig;
 }
 
 export default class CategoryAxis extends Renderer<CategoryAxisProps> {
@@ -30,11 +31,11 @@ export default class CategoryAxis extends Renderer<CategoryAxisProps> {
 
   sync() {
     const { front, categoryAxisConfig, categoryAxisLayoutInfo, plotLayoutInfo, focusPercentages,
-      categoryAxisData, titleClipPathUniqueId, tickLabelClipPathUniqueId, accessibility, accessibleLabel } = this.props;
+      categoryAxisData, titleClipPathUniqueId, tickLabelClipPathUniqueId, accessibility, accessibleLabel, chartFont } = this.props;
 
     this.axis!.set(Axis, { front, axisClass: mochartCssClasses['categoryAxis'], axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
       plotLayoutInfo, axisTicks: categoryAxisData.axisTickData,
       focusPercentages, tickSpacing: categoryAxisData.maxTickLabelLength,
-      titleClipPathUniqueId, tickLabelClipPathUniqueId, accessibility, accessibleLabel });
+      titleClipPathUniqueId, tickLabelClipPathUniqueId, accessibility, accessibleLabel, chartFont });
   }
 }

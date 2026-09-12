@@ -1,4 +1,4 @@
-import { style, spacing } from './shared';
+import { style, spacing, font } from './shared';
 import { getDescriptions as getSeriesIconDescriptions } from './seriesIconConfig';
 
 export default function getDescriptions() {
@@ -25,7 +25,8 @@ export default function getDescriptions() {
         margin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the legend items'),
         padding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the legend items'),
         backgroundStyle: style('the styles to apply to the legend item backgrounds (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
-        textStyle: style('the styles to apply to the legend item text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)')
+        textStyle: style('the styles to apply to the legend item text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)'),
+        font: font('the font of the legend item text (family, size, weight, style), each member falling back to chart.font when null')
       }
     },
     icon: {

@@ -1,7 +1,8 @@
 import { AUTO, NONE, COLOR_CURRENT, STYLE_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants';
 import { deepMerge } from '../core/deepMerge';
 import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
-import type { Style, StyleStates, ThresholdConfig } from '../../types/config';
+import { getFontDefaults } from './fontConfig';
+import type { FontConfig, Style, StyleStates, ThresholdConfig } from '../../types/config';
 import type { MarginPadding } from '../../types/geometry';
 import type { Anchor, Auto, ThresholdTitleSide } from '../core/constants';
 
@@ -107,7 +108,8 @@ export default function getDefaults() {
         normal: { strokeColor: 'none', strokeOpacity: 1, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: 1 },
         focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
         defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.5, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 0.5 }
-      }
+      },
+      font: getFontDefaults()
     },
 
     tickMark: {
@@ -136,7 +138,8 @@ export default function getDefaults() {
         normal: { strokeColor: 'none', strokeOpacity: 1, strokeWidth: 0, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: 1 },
         focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
         defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.5, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 0.5 }
-      }
+      },
+      font: getFontDefaults()
     },
     visible: true
   };
@@ -167,6 +170,7 @@ export function getThresholdEntryDefaults() {
         focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: NONE, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
         defocused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: NONE, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 }
       },
+      font: getFontDefaults(),
       backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 }
     }
   };
@@ -181,6 +185,7 @@ export interface ResolvedThresholdTitle {
   margin: MarginPadding;
   padding: MarginPadding;
   textStyle: StyleStates;
+  font: FontConfig;
   backgroundStyle: Style;
 }
 

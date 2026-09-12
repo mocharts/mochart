@@ -2,7 +2,7 @@ import { color as parseColor } from 'd3-color';
 
 import validators from '@mochart/movalid';
 import type { CustomValidator, Validator } from '@mochart/movalid';
-import { NONE, TOP_RIGHT_BOTTOM_LEFT, COLOR_CURRENT } from '../core/constants';
+import { NONE, TOP_RIGHT_BOTTOM_LEFT, COLOR_CURRENT, FONT_WEIGHTS, FONT_STYLES } from '../core/constants';
 
 // an id is woven into dom ids and their url(#...) references, which have no escaping, so it is restricted to characters that need none
 const idRegexp = /^[A-Za-z0-9_-]+$/;
@@ -53,6 +53,17 @@ const cssStyleKeyMap = {
   strokeWidth: strokeWidthValidator
 };
 
+// a font size is written as a css length, where 0 hides the text and a negative value is dropped
+const fontSizeValidator = validators.custom((value: unknown) => typeof value === 'number' && Number.isFinite(value) && value > 0)
+  .withCustomName('fontSize').withMessage('should be a number greater than 0');
+
+const fontKeyMap = {
+  family: validators.string().orEqual(NONE),
+  size: fontSizeValidator.orEqual(NONE),
+  weight: validators.oneOf(FONT_WEIGHTS).orEqual(NONE),
+  style: validators.oneOf(FONT_STYLES).orEqual(NONE)
+};
+
 const id = () => validators.stringRegexp(idRegexp).withCustomName('id').withMessage('should be a string of letters, digits, dashes and underscores');
 const dashArray = () => validators.regexp(dashArrayRegexp).withCustomName('dashArray').withMessage('should be a valid dash array');
 const numberFormat = () => validators.regexp(numberFormatRegexp).withCustomName('numberFormat').withMessage('should be a valid number format');
@@ -79,6 +90,8 @@ const strokeStyle = () => validators.partialObjectWithShape({
   strokeWidth: styleKeyMap.strokeWidth,
   strokeDashArray: styleKeyMap.strokeDashArray
 }, true);
+// Partial like a style: every member is nullable, and null hands that member back to css.
+const font = () => validators.partialObjectWithShape(fontKeyMap, true);
 const opacity = () => validators.numberMinMax(0, 1);
 const svgColor = () => svgColorValidator;
 const cssColor = () => cssColorValidator;
@@ -99,6 +112,7 @@ const configValidators = Object.assign({}, validators, {
   style,
   cssStyle,
   strokeStyle,
+  font,
   opacity,
   svgColor,
   cssColor

@@ -12,9 +12,11 @@ import { getSeriesTitle } from '../utils/SeriesTitle';
 import { getSeriesFocusPercentage, leaderSeriesId } from '../utils/SeriesFocus';
 import { CHART_TYPE_PIE } from '../config/core/constants';
 import { styleToAttributes } from '../utils/style';
+import { resolveFontStyle } from '../utils/font';
 import Background from './Background';
 import SeriesColorIcon from './SeriesColorIcon';
 import type { ColorPaletteConfig, LegendConfig } from '../types/config';
+import type { FontInlineStyle } from '../utils/font';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced';
 import type { SpacingLayoutInfo } from '../types/layout';
 import type { TruncationState } from '../utils/TextTruncation';
@@ -53,6 +55,7 @@ interface LegendItemProps {
   legendItemTextLayoutInfo: SpacingLayoutInfo;
   uniqueIds: LegendItemUniqueIds;
   clipPath: string | null;
+  fontStyle: FontInlineStyle | null;
   colorPaletteConfig: ColorPaletteConfig;
   seriesIndex: number;
   seriesIsFiltered: boolean;
@@ -147,6 +150,7 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
       const transform = translateObject(legendLayoutInfo);
 
       const clipPath = truncationEnabled ? getClipPathReference(legendClipPathUniqueId) : null;
+      const itemFontStyle = resolveFontStyle(legendConfig.item.font, mochartConfig.chart.font);
 
       const accessibility = accessibilityActive(mochartConfig.accessibility);
       const { legendLabel } = mochartConfig.accessibility;
@@ -186,7 +190,7 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
               legendItemRawLayoutInfo: legendItemRawLayoutInfos[i], legendItemTextLayoutInfo,
               uniqueIds, colorPaletteConfig, seriesIndex,
               seriesIsFiltered,
-              seriesFocusPercentage, clipPath,
+              seriesFocusPercentage, clipPath, fontStyle: itemFontStyle,
               clickable: legendItemClickable(mochartConfig, seriesConfig),
               interactive: itemIsInteractive(seriesConfig),
               tabStop: id === effectiveRovingId,
@@ -312,7 +316,7 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
 
   sync() {
     const { legendConfig, seriesConfig, legendItemLayoutInfo, legendItemTextLayoutInfo, uniqueIds, clipPath, colorPaletteConfig,
-      seriesIndex, seriesIsFiltered, seriesFocusPercentage } = this.props;
+      seriesIndex, seriesIsFiltered, seriesFocusPercentage, fontStyle } = this.props;
     const { strikeThroughFiltered } = legendConfig;
     const { enabled: truncationEnabled, text: truncationText, tooltipEnabled: truncationTooltipEnabled } = legendConfig.truncation;
     const { spacing: iconSpacing } = legendConfig.icon;
@@ -357,12 +361,12 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
       seriesShowColorProperty: 'showColorInLegend', uniqueIds,
       seriesIsFiltered, renderHTML: false, resolvedIconSize: iconSize });
     this.textGroup.set({ className: mochartCssClasses['legendItemText'], clipPath });
-    this.text.set({ ...itemTextAttributes, textDecoration, transform: textTransform, dy });
+    this.text.set({ ...itemTextAttributes, textDecoration, transform: textTransform, dy, style: fontStyle });
     this.textValue.set(seriesLabelText);
     this.tooltip.sync(this.text, truncationTooltipEnabled, seriesLabel, seriesLabelText);
     this.textRawGroup.set({ className: mochartCssClasses['legendItemTextRaw'], style: hiddenStyle });
-    // the hidden measurement text carries the same style so its metrics match the visible text
-    this.textRaw.set({ ...itemTextAttributes, textDecoration, transform: textTransform, dy });
+    // the hidden measurement text carries the same style and font so its metrics match the visible text
+    this.textRaw.set({ ...itemTextAttributes, textDecoration, transform: textTransform, dy, style: fontStyle });
     this.textRawValue.set(seriesLabel);
   }
 

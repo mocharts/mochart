@@ -47,7 +47,8 @@ export default class PlotEmpty extends Renderer<PlotEmptyProps> {
       focusPercentages: emptyFocusPercentages,
       tickSpacing: null,
       axisTicks: emptyTicks,
-      accessibility: accessibilityActive(accessibilityConfig)
+      accessibility: accessibilityActive(accessibilityConfig),
+      chartFont: mochartConfig.chart.font
     };
 
     this.root.set({ className: mochartCssClasses['plot'] });

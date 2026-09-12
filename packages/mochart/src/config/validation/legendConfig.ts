@@ -20,7 +20,8 @@ export default function getValidators() {
       margin: validators.margin(),
       padding: validators.padding(),
       backgroundStyle: validators.style(),
-      textStyle: validators.style()
+      textStyle: validators.style(),
+      font: validators.font()
     }, true),
     icon: validators.partialObjectWithShape(getSeriesIconValidators(), true),
     strikeThroughFiltered: validators.boolean(),

@@ -9,7 +9,8 @@ const affix = () => validators.partialObjectWithShape({
   margin: validators.margin(),
   padding: validators.padding(),
   backgroundStyle: validators.style(),
-  textStyle: validators.style()
+  textStyle: validators.style(),
+  font: validators.font()
 }, true);
 
 export default function getValidators() {
@@ -30,6 +31,7 @@ export default function getValidators() {
     backgroundStyle: validators.style(),
     textBackgroundStyle: validators.style(),
     textStyle: validators.style(),
+    font: validators.font(),
     prefix: affix(),
     suffix: affix()
   };

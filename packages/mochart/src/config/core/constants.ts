@@ -26,6 +26,25 @@ export const TOOLTIP_VALUE_ALIGNS = [
   ALIGN_LEFT, ALIGN_RIGHT
 ];
 
+export const FONT_WEIGHT_NORMAL = 'normal';
+export const FONT_WEIGHT_BOLD = 'bold';
+export const FONT_WEIGHT_LIGHTER = 'lighter';
+export const FONT_WEIGHT_BOLDER = 'bolder';
+
+// the css font-weight values a font accepts: the nine hundreds, or a keyword
+export const FONT_WEIGHTS = [
+  100, 200, 300, 400, 500, 600, 700, 800, 900,
+  FONT_WEIGHT_NORMAL, FONT_WEIGHT_BOLD, FONT_WEIGHT_LIGHTER, FONT_WEIGHT_BOLDER
+];
+
+export const FONT_STYLE_NORMAL = 'normal';
+export const FONT_STYLE_ITALIC = 'italic';
+export const FONT_STYLE_OBLIQUE = 'oblique';
+
+export const FONT_STYLES = [
+  FONT_STYLE_NORMAL, FONT_STYLE_ITALIC, FONT_STYLE_OBLIQUE
+];
+
 export const VERTICAL_ALIGN_TOP = 'top';
 export const VERTICAL_ALIGN_MIDDLE = 'middle';
 export const VERTICAL_ALIGN_BOTTOM = 'bottom';
@@ -249,6 +268,10 @@ export type Auto = typeof AUTO;
 
 export type Align = typeof ALIGN_LEFT | typeof ALIGN_CENTER | typeof ALIGN_RIGHT;
 export type TooltipValueAlign = typeof ALIGN_LEFT | typeof ALIGN_RIGHT;
+export type FontWeight =
+  100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 |
+  typeof FONT_WEIGHT_NORMAL | typeof FONT_WEIGHT_BOLD | typeof FONT_WEIGHT_LIGHTER | typeof FONT_WEIGHT_BOLDER;
+export type FontStyle = typeof FONT_STYLE_NORMAL | typeof FONT_STYLE_ITALIC | typeof FONT_STYLE_OBLIQUE;
 export type VerticalAlign = typeof VERTICAL_ALIGN_TOP | typeof VERTICAL_ALIGN_MIDDLE | typeof VERTICAL_ALIGN_BOTTOM;
 export type Anchor = typeof ANCHOR_START | typeof ANCHOR_END | typeof ANCHOR_MIDDLE;
 export type Position = typeof POSITION_TOP | typeof POSITION_BOTTOM;

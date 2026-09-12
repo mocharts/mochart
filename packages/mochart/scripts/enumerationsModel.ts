@@ -26,7 +26,7 @@ export interface EnumerationUse {
 export interface EnumerationDoc {
   name: string;
   description: string;
-  values: string[];
+  values: (string | number)[];
   usedBy: EnumerationUse[];
 }
 
@@ -70,6 +70,8 @@ const descriptions: Record<string, string> = {
   PieLabelType: 'What a pie slice label shows.',
   PieTooltipValueType: 'What a pie tooltip row shows: the slice value, its percent or both, without the series title the row already carries.',
   DomainChange: 'How an axis domain change animates relative to the value change.',
+  FontWeight: 'The css font-weight a font member accepts: a hundred from 100 to 900, or one of the css keywords.',
+  FontStyle: 'The css font-style a font member accepts.',
   AnimationEasing: 'How an animation\'s progress is paced over its duration.',
   Auto: 'The `\'auto\'` keyword, accepted by members that otherwise take a number, a format string, or another enumeration.'
 };
@@ -96,9 +98,12 @@ function parseUnionTypes(): Map<string, ts.TypeNode> {
 }
 
 /** The literal values a union type covers, resolving `typeof CONST` through the constants module and other unions by name. */
-function resolveValues(node: ts.TypeNode, unions: Map<string, ts.TypeNode>, errors: string[], owner: string): string[] {
+function resolveValues(node: ts.TypeNode, unions: Map<string, ts.TypeNode>, errors: string[], owner: string): (string | number)[] {
   if (ts.isUnionTypeNode(node)) {
     return node.types.flatMap(member => resolveValues(member, unions, errors, owner));
+  }
+  if (ts.isLiteralTypeNode(node) && ts.isNumericLiteral(node.literal)) {
+    return [Number(node.literal.text)];
   }
   if (ts.isTypeQueryNode(node) && ts.isIdentifier(node.exprName)) {
     const value = (constants as Record<string, unknown>)[node.exprName.text];

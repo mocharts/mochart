@@ -4,6 +4,7 @@ import { Renderer, svgEl, textEl } from '../render';
 
 import { mochartCssClasses } from '../utils/ChartDom';
 import { styleToAttributes } from '../utils/style';
+import { resolveFontStyle } from '../utils/font';
 import { getSvgWidthAndHeight } from '../utils/TextMeasurement';
 import { AUTO, NONE } from '../config/core/constants';
 import type { El, TextEl } from '../render';
@@ -143,7 +144,8 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     // the label is not a hit target: the pointer falls through to the band behind it, which still
     // triggers the <title>, and the text never shows an I-beam or takes a selection
     band.text.set({ transform, textAnchor: 'middle', dy: textDY, pointerEvents: 'none',
-      visibility: fits ? null : 'hidden', ...styleToAttributes(this.props.mochartConfig.clipIndicator.textStyle) });
+      visibility: fits ? null : 'hidden', ...styleToAttributes(this.props.mochartConfig.clipIndicator.textStyle),
+      style: resolveFontStyle(this.props.mochartConfig.clipIndicator.font, this.props.mochartConfig.chart.font) });
   }
 
   private getBand(edge: EdgeKey): Band {

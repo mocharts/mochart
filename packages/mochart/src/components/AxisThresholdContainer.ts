@@ -82,7 +82,7 @@ export default class AxisThresholdContainer extends Renderer<AxisThresholdContai
     this.categoryThreshold.set(AxisThreshold, { front, plotConfig, axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
       hidden: false, seriesLayoutInfo, axisDomain: categoryAxisDomain, vertical: inverted, ascending: !categoryAxisConfig.reversed, positionRange: categoryPositionRange,
       axisFocusPercentage: null, seriesFocusPercentage: null, axisThresholdClass: mochartCssClasses['categoryAxisThreshold'],
-      axisKey: CATEGORY_AXIS_THRESHOLD_KEY, categoryPositions, gradientIdMap, patternIdMap });
+      axisKey: CATEGORY_AXIS_THRESHOLD_KEY, categoryPositions, gradientIdMap, patternIdMap, chartFont: mochartConfig.chart.font });
 
     this.seriesThresholds.sync(getValueAxisFocusContexts(valueAxisConfigs, focusData).map(({ axisConfig, id, key, axisFocusPercentage, seriesFocusPercentage }) => {
       const valueAxisDomain = axisConfig.adjustForFiltering ? valueAxisFilteredDomains[id] : valueAxisRawDomains[id];
@@ -92,7 +92,7 @@ export default class AxisThresholdContainer extends Renderer<AxisThresholdContai
         props: { front, plotConfig, axisConfig, axisLayoutInfo: valueAxisLayoutInfos[id],
           hidden: !axisConfig.visibleWhenAllFiltered && axisSeriesCounts[id] === 0, seriesLayoutInfo, axisDomain: valueAxisDomain, vertical: !inverted, ascending: inverted !== axisConfig.reversed, positionRange: fullPositionRange,
           axisFocusPercentage, seriesFocusPercentage, axisThresholdClass: mochartCssClasses['valueAxisThreshold'] + id,
-          axisKey: getValueAxisThresholdKey(id), categoryPositions: null, gradientIdMap, patternIdMap }
+          axisKey: getValueAxisThresholdKey(id), categoryPositions: null, gradientIdMap, patternIdMap, chartFont: mochartConfig.chart.font }
       };
     }));
   }

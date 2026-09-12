@@ -1,4 +1,4 @@
-import { spacing } from './shared';
+import { spacing, font } from './shared';
 import type { NestedDescription } from './shared';
 import { getDescriptions as getSeriesIconDescriptions } from './seriesIconConfig';
 
@@ -36,6 +36,7 @@ export default function getDescriptions() {
     lineSpacing: 'the space (in pixels) between each line of the tooltip',
     valueAlign: 'the horizontal alignment of the values shown in the tooltip (left, right): left runs the label and value together as one piece of text, right floats the values to the far edge',
     backgroundStyle,
+    font: font('the font of the tooltip text (family, size, weight, style), each member falling back to chart.font when null'),
     cornerRadius: 'the radius (in pixels) of the corners of the tooltip',
     dropShadow: {
       description: 'the drop shadow effect cast by the tooltip',

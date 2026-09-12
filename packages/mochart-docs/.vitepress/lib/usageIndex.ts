@@ -55,6 +55,7 @@ import * as posNeg from '../../examples/posNeg.ts';
 import * as posNegStacked from '../../examples/posNegStacked.ts';
 import * as scatterBubble from '../../examples/scatterBubble.ts';
 import * as theming from '../../examples/theming.ts';
+import * as typography from '../../examples/typography.ts';
 import * as tickLabels from '../../examples/tickLabels.ts';
 import * as tickLabelsDense from '../../examples/tickLabelsDense.ts';
 import * as legend from '../../examples/legend.ts';
@@ -107,6 +108,7 @@ const docsExamples: { config: object; page: UsageLink }[] = [
   { config: accessibility.config, page: { text: 'Accessibility', link: '/guide/accessibility' } },
   { config: chartStates.config, page: { text: 'Chart states', link: '/guide/chart-states' } },
   { config: theming.config, page: { text: 'Colors and theming', link: '/guide/theming' } },
+  { config: typography.config, page: { text: 'Typography', link: '/guide/theming#typography' } },
   { config: animationCategoryDomain.config, page: { text: 'Staged animation', link: '/guide/staged-animation' } },
   { config: animationValueDomain.config, page: { text: 'Staged animation', link: '/guide/staged-animation' } },
   { config: axisBounds.config, page: { text: 'Axis bounds', link: '/recipes/axis-bounds' } },

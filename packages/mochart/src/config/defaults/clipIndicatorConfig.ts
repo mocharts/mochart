@@ -1,5 +1,6 @@
 import { NONE, AUTO, COLOR_CURRENT } from '../core/constants';
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
+import { getFontDefaults } from './fontConfig';
 import type { DeepPartial, ClipIndicatorConfig } from '../../types/config';
 
 export default function getDefaults(config: DeepPartial<ClipIndicatorConfig> = {}, pieMode = false): Partial<ClipIndicatorConfig> {
@@ -13,6 +14,7 @@ export function getRegularDefaults() {
     labelPadding: 2,
     label: 'Clipped',
     textStyle: { strokeColor: NONE, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: 0.7 },
+    font: getFontDefaults(),
     hatch: { spacing: 6, lineWidth: 2 },
     front: true
   };

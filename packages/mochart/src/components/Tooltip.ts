@@ -6,6 +6,7 @@ import type { TooltipMode } from './TooltipControls';
 
 import { mochartCssClasses } from '../utils/ChartDom';
 import { cssBorderWidth, cssStyleColor } from '../utils/style';
+import { resolveFontStyle } from '../utils/font';
 import type { EnhancedMochartConfig } from '../types/enhanced';
 import type { FocusPercentageMap } from '../types/animation';
 import type { SpacingLayoutInfo } from '../types/layout';
@@ -67,13 +68,16 @@ export default class Tooltip extends Renderer<TooltipProps, TooltipState> {
       const { x, y } = tooltipLayoutInfo;
 
       const { dropShadow } = tooltipConfig;
+      // on the box itself, where the rows inherit it; the sizer takes it too so the measured width matches
+      const fontStyle = resolveFontStyle(tooltipConfig.font, mochartConfig.chart.font);
       const boxShadowStyle = dropShadow.offsetX + 'px ' + dropShadow.offsetY + 'px ' + dropShadow.blurRadius + 'px ' + dropShadow.color;
 
       const tooltipSizerStyle = {
         position: 'absolute',
         left: 0,
         top: 0,
-        visibility: 'hidden'
+        visibility: 'hidden',
+        ...fontStyle
       };
 
       // the tooltip is html: the fill is the box's background and the stroke its border, and css has
@@ -95,7 +99,8 @@ export default class Tooltip extends Renderer<TooltipProps, TooltipState> {
         borderColor: cssStyleColor(backgroundStyle.strokeColor, backgroundStyle.strokeOpacity),
         borderRadius: tooltipConfig.cornerRadius,
         boxShadow: boxShadowStyle,
-        visibility: tooltipBounds !== null ? 'visible' : 'hidden'
+        visibility: tooltipBounds !== null ? 'visible' : 'hidden',
+        ...fontStyle
       };
 
       const sizeForFiltering = tooltipConfig.adjustSizeForFiltering;
