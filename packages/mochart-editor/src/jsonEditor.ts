@@ -89,8 +89,15 @@ export function createJsonEditor(host: HTMLElement, options: JsonEditorOptions):
     const diagnostics = syntaxLinter(view);
     if (diagnostics.length === 0) {
       diagnostics.push(...duplicateKeyDiagnostics(view.state.doc.toString()));
-      for (const implementation of implementations) {
-        if (implementation.diagnostics) diagnostics.push(...implementation.diagnostics(view));
+      for (const [index, implementation] of implementations.entries()) {
+        if (!implementation.diagnostics) continue;
+        try {
+          diagnostics.push(...implementation.diagnostics(view));
+        }
+        catch {
+          // a throw would escape the linter and silently freeze every diagnostic on the previous pass
+          diagnostics.push({ from: 0, to: view.state.doc.length, severity: 'error', message: supports[index]!.name + ' diagnostics failed', source: 'mochart' });
+        }
       }
     }
     const publicDiagnostics = diagnostics.map(publicDiagnostic);

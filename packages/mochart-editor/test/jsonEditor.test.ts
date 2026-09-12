@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createJsonEditor } from '../src';
+import { defineSupport } from '../src/support';
 
 describe('JSON editor', () => {
   it('exposes an accessible multiline editing surface', () => {
@@ -126,6 +127,24 @@ describe('JSON editor', () => {
     expect(editor.format()).toBe(false);
     expect(editor.getValue()).toBe('{');
     editor.destroy();
+  });
+
+  // Regression: a support's diagnostics call was unguarded, so one throw escaped the linter and left
+  // every diagnostic, validity state and aria-invalid frozen on the previous pass
+  it('reports a support whose diagnostics throw instead of freezing diagnostics', async () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const onDiagnostics = vi.fn();
+    const broken = defineSupport('broken', { extensions: [], diagnostics: () => { throw new Error('boom'); } });
+    const editor = createJsonEditor(host, { value: '{"a": 1}', ariaLabel: 'Configuration', support: broken, onDiagnostics });
+    const content = editor.element.querySelector<HTMLElement>('.cm-content')!;
+
+    await vi.waitFor(() => expect(content.getAttribute('aria-invalid')).toBe('true'));
+    expect(editor.element.dataset.validity).toBe('invalid');
+    const diagnostics = onDiagnostics.mock.lastCall![0] as { message: string; severity: string }[];
+    expect(diagnostics).toEqual([expect.objectContaining({ severity: 'error', source: 'mochart', message: 'broken diagnostics failed' })]);
+    editor.destroy();
+    host.remove();
   });
 
   it('reports repeated keys as errors on the later key and refuses to format them away', async () => {
