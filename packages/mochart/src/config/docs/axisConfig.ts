@@ -72,6 +72,18 @@ export function getThresholdStepDescriptions(): DescriptionMap {
   };
 }
 
+export const thresholdStyleDetails = 'A line entry uses only the `style` stroke members; the fill members, `pattern` and `gradient` apply to ranges.';
+export const thresholdDomainDetails = 'Thresholds never extend the axis domain: a line outside it is not drawn, a range partly outside is clipped to it, and one wholly outside is not drawn.';
+
+/** The details of the threshold members both axes share; each axis adds the value forms its scale takes. */
+export function getThresholdMemberDetails(): DescriptionMap {
+  return {
+    rangeValue: 'Turns the entry into a range: the band between the two values (in either order) is filled with the `style` fill members, or with the `pattern` or `gradient` named by id, and its two edges are drawn with the stroke members like lines (a stroke opacity of 0 leaves the fill alone).',
+    pattern: 'The pattern\'s `"series"` colour keyword resolves to the range\'s `style.normal.fillColor`, the colour of whatever the pattern fills.',
+    title: { properties: { side: 'On a line, the side of the line the title sits on, by axis value. On a range, low or high of the whole band, or `inside` centred within it; `inside` is an error on a line.' } }
+  };
+}
+
 export default function getDescriptions() {
   return {
     axisLine: {
