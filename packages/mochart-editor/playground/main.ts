@@ -1,5 +1,5 @@
 import { createDefaultChart, getDefaults, validateConfigDetailed, type MochartInputConfig } from '@mochart/core';
-import { createJsonEditor, createMochartConfigSupport, type JsonEditorDiagnostic } from '../src';
+import { createJsonEditor, createMochartConfigSupport, parseJson, type JsonEditorDiagnostic } from '../src';
 import '@mochart/core/mochart.css';
 import '@mochart/editor/editor.css';
 import '../../mochart-demo-common/css/chart-dark.css';
@@ -143,7 +143,8 @@ document.querySelector<HTMLButtonElement>('#format')!.addEventListener('click', 
 });
 document.querySelector<HTMLButtonElement>('#apply')!.addEventListener('click', () => {
   try {
-    const nextConfig: unknown = JSON.parse(editor.getValue());
+    // JSON.parse keeps the last of repeated keys, which the editor marks as errors
+    const nextConfig: unknown = parseJson(editor.getValue());
     const validation = validateConfigDetailed(nextConfig, getDefaults(nextConfig));
     if (!validation.valid) {
       status.textContent = 'Fix the highlighted problems first';
