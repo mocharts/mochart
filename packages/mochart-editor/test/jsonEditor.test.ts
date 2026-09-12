@@ -121,6 +121,23 @@ describe('JSON editor', () => {
     host.remove();
   });
 
+  // Regression: the read-only flag blocks user input only, so format() still rewrote a read-only document
+  it('refuses to format a read-only document', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const onChange = vi.fn();
+    const editor = createJsonEditor(host, { value: '{"a":1}', ariaLabel: 'Configuration', readOnly: true, onChange });
+
+    expect(editor.format()).toBe(false);
+    expect(editor.getValue()).toBe('{"a":1}');
+    expect(onChange).not.toHaveBeenCalled();
+    editor.setReadOnly(false);
+    expect(editor.format()).toBe(true);
+    expect(editor.getValue()).toBe('{\n  "a": 1\n}');
+    editor.destroy();
+    host.remove();
+  });
+
   it('leaves invalid JSON unchanged when formatting', () => {
     const host = document.createElement('div');
     const editor = createJsonEditor(host, { value: '{', ariaLabel: 'Configuration' });

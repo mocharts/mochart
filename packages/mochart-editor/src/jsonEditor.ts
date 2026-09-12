@@ -183,6 +183,8 @@ export function createJsonEditor(host: HTMLElement, options: JsonEditorOptions):
       view.focus();
     },
     format() {
+      // the read-only flag blocks user input only, not a dispatch from the handle
+      if (view.state.readOnly) return false;
       try {
         const parsed = parseJson(view.state.doc.toString());
         const formatted = JSON.stringify(parsed, null, indentation);
