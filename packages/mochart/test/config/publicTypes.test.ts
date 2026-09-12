@@ -6,7 +6,7 @@ import type {
   CssStyle, MochartInputConfig, MochartConfig,
   Auto, Align, VerticalAlign, Anchor, Position, MissingValueMode, AxisSide, ThresholdTitleSide,
   ChartType, PieLabelType, PieTooltipValueType, Scale, DataType, RendererType, CurveType,
-  PatternType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, TickStepUnit, DomainChange,
+  PatternType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, DomainChange,
   ChartEventPayload, ChartFocus, ChartSeriesFilter, ChartSliceClickPayload, ChartSeriesClickPayload,
   ChartCallbacks, ChartFactories, ChartFactoryContext, ChartFactoryContent, ChartContentFactory,
   BaseChartProps, ManagedChartProps, DefaultChartProps, ChartHandle,
@@ -27,7 +27,7 @@ interface EveryUnion {
   patternType: PatternType;
   capType: CapType; labelPosition: LabelPosition; colorMode: ColorMode;
   colorInterpolation: ColorInterpolation; markerShape: MarkerShape; markerSizeScale: MarkerSizeScale;
-  tickStepUnit: TickStepUnit; domainChange: DomainChange;
+  stepPeriod: StepPeriod; domainChange: DomainChange;
 }
 
 describe('public config type surface', () => {
@@ -39,7 +39,7 @@ describe('public config type surface', () => {
       scale: 'linear', dataType: 'number', rendererType: 'bar', curveType: 'stepAfter',
       patternType: 'crosshatch',
       capType: 'round', labelPosition: 'inside', colorMode: 'seriesIndex',
-      colorInterpolation: 'hcl', markerShape: 'star', markerSizeScale: 'sqrt', tickStepUnit: 'week', domainChange: 'staged'
+      colorInterpolation: 'hcl', markerShape: 'star', markerSizeScale: 'sqrt', stepPeriod: 'week', domainChange: 'staged'
     };
     expect(Object.keys(values)).toHaveLength(24);
     expect(describeSeries(values.rendererType, values.curveType, values.markerShape)).toBe('bar/stepAfter/star');

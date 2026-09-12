@@ -23,7 +23,7 @@ export type { EasingFunction } from './animation/Easing';
 export type {
   Auto, Align, TooltipValueAlign, VerticalAlign, Anchor, Position, MissingValueMode, AxisSide, ThresholdTitleSide,
   ChartType, PieLabelType, PieTooltipValueType, Scale, DataType, RendererType, PatternType, CurveType,
-  CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, TickStepUnit, DomainChange, AnimationEasing
+  CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, DomainChange, AnimationEasing
 } from './config/core/constants';
 export { getDataErrors } from './data/DataValidator';
 export { binValues, createHistogram } from './data/Histogram';

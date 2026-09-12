@@ -12,7 +12,7 @@
     },
     "valueFormat": "%a %b %d",
     "tickStep": {
-      "unit": "week"
+      "period": "week"
     }
   },
   "valueAxes": [

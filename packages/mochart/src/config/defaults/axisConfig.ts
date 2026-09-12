@@ -35,6 +35,18 @@ export default function getDefaults() {
       style: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.2, strokeWidth: 1, strokeDashArray: NONE, fillColor: COLOR_CURRENT, fillOpacity: 0.12 }
     },
 
+    thresholdStep: {
+      visible: false,
+      interval: NONE,
+      count: 1,
+      offset: 0,
+      range: true,
+      front: false,
+      style: getThresholdEntryDefaults().style,
+      pattern: NONE,
+      gradient: NONE
+    },
+
     focusTickMark: {
       visible: false,
       front: false,

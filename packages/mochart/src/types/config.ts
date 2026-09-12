@@ -1,6 +1,6 @@
 import type {
   Auto, Align, TooltipValueAlign, AxisSide, MissingValueMode, VerticalAlign, Anchor, Position, Scale, DataType, RendererType, ThresholdTitleSide,
-  CurveType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, TickStepUnit, PatternType,
+  CurveType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, PatternType,
   ChartType, PieLabelType, PieTooltipValueType, DomainChange, AnimationEasing
 } from '../config/core/constants';
 import type { MarginPadding, InnerOuter } from './geometry';
@@ -1665,15 +1665,15 @@ export interface ThresholdTitleConfig {
    */
   text?: string | null;
   /**
-   * Which value side of the threshold the title sits on ("low" for smaller
-   * values, "high" for larger, or "inside" to centre it within a range).
+   * The value side of the threshold the title sits on ("low", "high", or
+   * "inside" a range).
    *
    * @default "high"
    */
   side?: ThresholdTitleSide;
   /**
-   * Where the title sits along the threshold ("start", "middle" or "end" of the
-   * plot, or "auto" for the end at the axis side).
+   * Where the title sits along the threshold ("start", "middle", "end", or
+   * "auto" for the axis side).
    *
    * @default "auto"
    */
@@ -1718,18 +1718,87 @@ export interface ThresholdTitleConfig {
  * `thresholds` array replaces its default wholesale); members left out fall
  * back to the documented defaults.
  */
+export interface AxisThresholdStepConfig {
+  /**
+   * Whether to draw the stepped thresholds.
+   *
+   * @default false
+   */
+  visible: boolean;
+  /**
+   * The axis value distance the thresholds step by on a linear number axis (use
+   * null for none).
+   *
+   * @default null
+   */
+  interval: number | null;
+  /**
+   * Every count-th step gets a threshold (2 draws every other one).
+   *
+   * @default 1
+   */
+  count: number;
+  /**
+   * The number of steps skipped before the first threshold.
+   *
+   * @default 0
+   */
+  offset: number;
+  /**
+   * Whether each threshold is a range spanning its step (true) or a line at its
+   * start (false).
+   *
+   * @default true
+   */
+  range: boolean;
+  /**
+   * Whether the stepped thresholds are drawn in front of (true) or behind
+   * (false) the series shapes.
+   *
+   * @default false
+   */
+  front: boolean;
+  /**
+   * The style of the stepped thresholds: the stroke members draw a line or the
+   * edges of a range, the fill members fill a range and are ignored on a line.
+   *
+   * @default { normal: { … }, focused: { … }, defocused: { … } }
+   */
+  style: StyleStates;
+  /**
+   * The unique id of the pattern config filling the stepped ranges (use null
+   * for none; cannot be combined with gradient).
+   *
+   * @default null
+   */
+  pattern: string | null;
+  /**
+   * The unique id of the gradient config filling the stepped ranges (use null
+   * for none; cannot be combined with pattern).
+   *
+   * @default null
+   */
+  gradient: string | null;
+}
+
+export interface CategoryAxisThresholdStepConfig extends AxisThresholdStepConfig {
+  /**
+   * The calendar period the thresholds step by on a date axis (day, week,
+   * month, year; use null for none).
+   *
+   * @default null
+   */
+  period: StepPeriod | null;
+}
+
 export interface ThresholdConfig {
   /**
-   * The axis value to draw the threshold at (on a date category axis, a
-   * millisecond timestamp or ISO date string; on an ordinal axis, a category
-   * value); thresholds never extend the axis domain, and a line outside it is
-   * not drawn.
+   * The axis value of the threshold: a category value on an ordinal axis, a
+   * timestamp or ISO date string on a date axis.
    */
   value: number | string;
   /**
-   * The second axis value of a threshold range, in the same forms as value:
-   * with one set the entry fills the band between the two values instead of
-   * drawing a line (use null for a line).
+   * The second value of a threshold range (use null for a line).
    *
    * @default null
    */
@@ -1742,8 +1811,8 @@ export interface ThresholdConfig {
    */
   front?: boolean;
   /**
-   * The style of the threshold: the stroke members draw the line, or the two
-   * edge lines of a range, and the fill members fill a range.
+   * The style of the threshold: the stroke members draw a line or the edges of
+   * a range, the fill members fill a range and are ignored on a line.
    *
    * @default { normal: { … }, focused: { … }, defocused: { … } }
    */
@@ -2344,9 +2413,8 @@ export interface AxisConfigBase {
    */
   softMax: number | string | null;
   /**
-   * The thresholds to draw on the axis, each an object drawing a reference line
-   * across the plot at an axis value, or a range filling the band between two
-   * values (the array replaces the default wholesale).
+   * The thresholds to draw across the plot: a line at an axis value, or a range
+   * between two.
    *
    * On a linear axis each entry's `value` (and `rangeValue`) takes the same
    * forms as `min`: a number when `type` is `number`, and either a millisecond
@@ -2356,11 +2424,44 @@ export interface AxisConfigBase {
    * category string on a `string` axis): a line sits at the category's centre,
    * and a range covers whole slots from the first named category's outer edge
    * to the second's, so ranges over consecutive weeks tile without gaps. An
-   * entry naming no category is not drawn.
+   * entry naming no category is not drawn. A `rangeValue` turns an entry into a
+   * range: the band between the two values (in either order) is filled with the
+   * `style` fill members, or with the `pattern` or `gradient` named by id, and
+   * its two edges are drawn with the stroke members like lines (a stroke
+   * opacity of 0 leaves the fill alone); a line entry uses only the stroke
+   * members and ignores the fill members. Thresholds never extend the axis
+   * domain: a line outside it is not drawn, a range partly outside is clipped
+   * to it, and one wholly outside is not drawn. The title follows `side`: low
+   * or high of the whole range, or `inside` centred within it. A pattern's
+   * `"series"` colour keyword resolves to the range's `style.normal.fillColor`,
+   * the colour of whatever the pattern fills.
    *
    * @default []
    */
   thresholds: ThresholdConfig[];
+  /**
+   * Threshold lines or ranges repeated along the axis by rule.
+   *
+   * The steps follow the scale. On an ordinal axis they are the categories in
+   * order, or under a `period` on a date axis the first category of each one
+   * (weeks start on Monday, boundaries follow `dateUTC`), so `period: "week"`
+   * with `count: 2` bands every other week whatever the holidays, and no period
+   * with `count: 2` stripes alternate categories; a range covers whole slots
+   * from its candidate to the category before the next candidate. On a linear
+   * date axis the candidates are the period boundaries, a line sitting on the
+   * boundary and a range spanning to the next one; on a linear number axis they
+   * are the multiples of `interval`, anchored at 0, and with neither a period
+   * nor an interval a linear axis draws nothing. The stepped thresholds draw
+   * after the `thresholds` entries, carry no title, and a rule that would draw
+   * more than 500 shapes stops there.
+   *
+   * Category axis default: `{ visible: false, interval: null, count: 1, offset:
+   * 0, range: true, front: false, style: { … }, pattern: null, gradient: null,
+   * period: null }`.
+   * Value axis default: `{ visible: false, interval: null, count: 1, offset: 0,
+   * range: true, front: false, style: { … }, pattern: null, gradient: null }`.
+   */
+  thresholdStep: AxisThresholdStepConfig;
   /**
    * The number of ticks to show along the length of the axis (use "auto" to
    * derive the tick count from the data).
@@ -2492,27 +2593,26 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    */
   ticks: CategoryAxisTick[] | null;
   /**
-   * The step between the ticks shown along the axis: every count-th candidate
-   * from an offset, the candidates being the categories or, with a unit on a
-   * date axis, the first category of each period.
+   * The step between the ticks shown along the axis: every count-th category,
+   * or the first category of each period on a date axis.
    *
    * Chooses which ticks an axis shows by rule rather than by a list, so it
    * keeps working as the data changes; explicit `ticks` take precedence over
    * it. On an ordinal scale the candidates are the categories in order, or with
-   * a `unit` on a date axis the first category of each period (a week starts on
-   * Monday; boundaries follow `dateUTC`), so a daily series with `unit: "week"`
-   * gets a tick at each Monday whatever the holidays (a partial first week is a
-   * period of its own, so its first day gets one too; `offset: 1` skips it),
-   * and `count: 2` on top of that gives every second week. `count` and `offset`
-   * step through the candidates: `count: 5, offset: 3` shows the fourth
-   * category and every fifth after it. When more ticks survive the rule than
-   * fit, every k-th survivor is kept starting from the first, so thinned
+   * a `period` on a date axis the first category of each period (a week starts
+   * on Monday; boundaries follow `dateUTC`), so a daily series with `period:
+   * "week"` gets a tick at each Monday whatever the holidays (a partial first
+   * week is a period of its own, so its first day gets one too; `offset: 1`
+   * skips it), and `count: 2` on top of that gives every second week. `count`
+   * and `offset` step through the candidates: `count: 5, offset: 3` shows the
+   * fourth category and every fifth after it. When more ticks survive the rule
+   * than fit, every k-th survivor is kept starting from the first, so thinned
    * Mondays stay Mondays; `tickLabel.truncation` still decides whether crowded
-   * labels truncate or skip. On a linear date scale only `unit` applies,
+   * labels truncate or skip. On a linear date scale only `period` applies,
    * placing the ticks at the period boundaries themselves; a linear number
    * scale accepts only the defaults.
    *
-   * @default { count: "auto", offset: 0, unit: null, includeFirst: false }
+   * @default { count: "auto", offset: 0, period: null, includeFirst: false }
    */
   tickStep: CategoryAxisTickStepConfig;
   /**
@@ -2521,6 +2621,25 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, truncation: { … } }
    */
   tickLabel: CategoryAxisTickLabelConfig;
+  /**
+   * Threshold lines or ranges repeated along the axis by rule.
+   *
+   * The steps follow the scale. On an ordinal axis they are the categories in
+   * order, or under a `period` on a date axis the first category of each one
+   * (weeks start on Monday, boundaries follow `dateUTC`), so `period: "week"`
+   * with `count: 2` bands every other week whatever the holidays, and no period
+   * with `count: 2` stripes alternate categories; a range covers whole slots
+   * from its candidate to the category before the next candidate. On a linear
+   * date axis the candidates are the period boundaries, a line sitting on the
+   * boundary and a range spanning to the next one; on a linear number axis they
+   * are the multiples of `interval`, anchored at 0, and with neither a period
+   * nor an interval a linear axis draws nothing. The stepped thresholds draw
+   * after the `thresholds` entries, carry no title, and a rule that would draw
+   * more than 500 shapes stops there.
+   *
+   * @default { visible: false, interval: null, count: 1, offset: 0, range: true, front: false, style: { … }, pattern: null, gradient: null, period: null }
+   */
+  thresholdStep: CategoryAxisThresholdStepConfig;
   /**
    * The type of the category values (number, date, string).
    *
@@ -2565,33 +2684,28 @@ export interface CategoryAxisConfig extends AxisConfigBase {
 
 export interface CategoryAxisTickStepConfig {
   /**
-   * Every count-th candidate gets a tick ("auto" keeps as many as fit without
-   * overlapping); applies on an ordinal scale, a linear scale accepts only
-   * "auto".
+   * Every count-th category gets a tick ("auto" keeps as many as fit without
+   * overlapping).
    *
    * @default "auto"
    */
   count: number | Auto;
   /**
-   * The position among the candidates of the first one shown (0 for the first
-   * candidate); applies on an ordinal scale, a linear scale accepts only 0.
+   * The number of categories skipped before the first tick.
    *
    * @default 0
    */
   offset: number;
   /**
-   * The calendar period the ticks step by on a date axis (day, week starting
-   * Monday, month, year; use null for none): on an ordinal scale the first
-   * category of each period is a candidate, on a linear scale the period
-   * boundaries are the ticks.
+   * The calendar period the ticks step by on a date axis (day, week, month,
+   * year; use null for none).
    *
    * @default null
    */
-  unit: TickStepUnit | null;
+  period: StepPeriod | null;
   /**
    * Whether the first category always gets a tick, even when count and offset
-   * would skip it; applies on an ordinal scale, a linear scale accepts only
-   * false.
+   * would skip it.
    *
    * @default false
    */

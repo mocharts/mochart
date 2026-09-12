@@ -238,12 +238,12 @@ export const MARKER_SIZE_SCALE_LINEAR = 'linear';
 
 export const MARKER_SIZE_SCALES = [MARKER_SIZE_SCALE_SQRT, MARKER_SIZE_SCALE_LINEAR];
 
-export const TICK_STEP_UNIT_DAY = 'day';
-export const TICK_STEP_UNIT_WEEK = 'week';
-export const TICK_STEP_UNIT_MONTH = 'month';
-export const TICK_STEP_UNIT_YEAR = 'year';
+export const STEP_PERIOD_DAY = 'day';
+export const STEP_PERIOD_WEEK = 'week';
+export const STEP_PERIOD_MONTH = 'month';
+export const STEP_PERIOD_YEAR = 'year';
 
-export const TICK_STEP_UNITS = [TICK_STEP_UNIT_DAY, TICK_STEP_UNIT_WEEK, TICK_STEP_UNIT_MONTH, TICK_STEP_UNIT_YEAR];
+export const STEP_PERIODS = [STEP_PERIOD_DAY, STEP_PERIOD_WEEK, STEP_PERIOD_MONTH, STEP_PERIOD_YEAR];
 // Literal union types derived from the constant values above.
 export type Auto = typeof AUTO;
 
@@ -288,4 +288,4 @@ export type MarkerShape =
   typeof MARKER_SHAPE_CIRCLE | typeof MARKER_SHAPE_CROSS | typeof MARKER_SHAPE_DIAMOND | typeof MARKER_SHAPE_SQUARE |
   typeof MARKER_SHAPE_STAR | typeof MARKER_SHAPE_TRIANGLE | typeof MARKER_SHAPE_WYE;
 export type MarkerSizeScale = typeof MARKER_SIZE_SCALE_SQRT | typeof MARKER_SIZE_SCALE_LINEAR;
-export type TickStepUnit = typeof TICK_STEP_UNIT_DAY | typeof TICK_STEP_UNIT_WEEK | typeof TICK_STEP_UNIT_MONTH | typeof TICK_STEP_UNIT_YEAR;
+export type StepPeriod = typeof STEP_PERIOD_DAY | typeof STEP_PERIOD_WEEK | typeof STEP_PERIOD_MONTH | typeof STEP_PERIOD_YEAR;

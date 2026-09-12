@@ -6,8 +6,8 @@ import { getWithMutations } from '../utils/WithMutations';
 import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData';
 import { getCategoryValueKey } from './CategoryValue';
 import { areArraysAndEqual, arrayToMap, idAccessor } from '../utils/utils';
-import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE, TICK_STEP_UNIT_YEAR, TICK_STEP_UNIT_MONTH, TICK_STEP_UNIT_WEEK } from '../config/core/constants';
-import type { TickStepUnit } from '../config/core/constants';
+import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants';
+import { getPeriodBoundaries, getStepCandidates } from './Steps';
 import type { AxisConfigBase, CategoryAxisConfig, CategoryAxisTick, PlotConfig } from '../types/config';
 import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced';
 import type { AxisData, AxisScale, AxisTick, AxisValue, ChartData, CategoryAxisData, CategoryAxisDomain, CategorySpacingInfo, CategoryValue, CategoryValues, NullableDomain, ValueAxisData, TickLabelFormatter } from '../types/data';
@@ -248,8 +248,8 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
         if (axisConfig.scale === SCALE_ORDINAL) {
           scaleTicks = categoryValues.map((_v, i) => i);
         }
-        else if (axisConfig.type === TYPE_DATE && axisConfig.tickStep.unit !== NONE) {
-          scaleTicks = getPeriodBoundaries(axisConfig.tickStep.unit, axisConfig.dateUTC, axisScale.domain() as [Date, Date]);
+        else if (axisConfig.type === TYPE_DATE && axisConfig.tickStep.period !== NONE) {
+          scaleTicks = getPeriodBoundaries(axisConfig.tickStep.period, axisConfig.dateUTC, axisScale.domain() as [Date, Date]);
         }
         else {
           scaleTicks = axisScale.ticks(tickCount);
@@ -292,7 +292,7 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
     else {
       const { preTicks, postTicks } = getLinearAxisExtraTicks(axisDomain, axisScale, scaleTicks);
       // period boundaries can far outnumber the fitting ticks, so they thin to every k-th; generated ticks at most halve
-      const tickInterval = axisConfig.tickStep.unit !== NONE ? Math.max(1, Math.ceil(scaleTicks.length / tickCount)) : (scaleTicks.length > tickCount ? 2 : 1);
+      const tickInterval = axisConfig.tickStep.period !== NONE ? Math.max(1, Math.ceil(scaleTicks.length / tickCount)) : (scaleTicks.length > tickCount ? 2 : 1);
 
       if (axisLayoutInfo.tickLabelParallel) {
         const { before, after, categoryExtent, tickLabelSpace, tickLabelAnchor } = axisLayoutInfo;
@@ -327,79 +327,8 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
 }
 
 function hasTickStep(axisConfig: CategoryAxisConfig): boolean {
-  const { count, offset, unit, includeFirst } = axisConfig.tickStep;
-  return count !== AUTO || offset !== 0 || unit !== NONE || includeFirst;
-}
-
-// The start of the calendar period holding the date; a week starts on Monday, and the boundary
-// follows dateUTC like the tick label formatting does.
-function getPeriodStart(unit: TickStepUnit, dateUTC: boolean, date: Date): Date {
-  const year = dateUTC ? date.getUTCFullYear() : date.getFullYear();
-  const month = unit === TICK_STEP_UNIT_YEAR ? 0 : (dateUTC ? date.getUTCMonth() : date.getMonth());
-  let day = 1;
-  if (unit !== TICK_STEP_UNIT_YEAR && unit !== TICK_STEP_UNIT_MONTH) {
-    day = dateUTC ? date.getUTCDate() : date.getDate();
-    if (unit === TICK_STEP_UNIT_WEEK) {
-      day -= ((dateUTC ? date.getUTCDay() : date.getDay()) + 6) % 7;
-    }
-  }
-  return dateUTC ? new Date(Date.UTC(year, month, day)) : new Date(year, month, day);
-}
-
-function getNextPeriodStart(unit: TickStepUnit, dateUTC: boolean, periodStart: Date): Date {
-  let year = dateUTC ? periodStart.getUTCFullYear() : periodStart.getFullYear();
-  let month = dateUTC ? periodStart.getUTCMonth() : periodStart.getMonth();
-  let day = dateUTC ? periodStart.getUTCDate() : periodStart.getDate();
-  if (unit === TICK_STEP_UNIT_YEAR) {
-    year += 1;
-  }
-  else if (unit === TICK_STEP_UNIT_MONTH) {
-    month += 1;
-  }
-  else {
-    day += unit === TICK_STEP_UNIT_WEEK ? 7 : 1;
-  }
-  return dateUTC ? new Date(Date.UTC(year, month, day)) : new Date(year, month, day);
-}
-
-/** The period boundaries inside a linear date domain, the linear axis's ticks under a unit step. */
-function getPeriodBoundaries(unit: TickStepUnit, dateUTC: boolean, [domainStart, domainEnd]: [Date, Date]): Date[] {
-  const boundaries: Date[] = [];
-  let boundary = getPeriodStart(unit, dateUTC, domainStart);
-  if (boundary.getTime() < domainStart.getTime()) {
-    boundary = getNextPeriodStart(unit, dateUTC, boundary);
-  }
-  while (boundary.getTime() <= domainEnd.getTime()) {
-    boundaries.push(boundary);
-    boundary = getNextPeriodStart(unit, dateUTC, boundary);
-  }
-  return boundaries;
-}
-
-// The category indexes the ordinal step rule keeps: the candidates are every category, or under a unit the
-// first category of each period, and count/offset step through them; includeFirst adds the first category back.
-function getOrdinalTickStepIndexes(axisConfig: CategoryAxisConfig, categoryValues: readonly CategoryValue[]): number[] {
-  const { count, offset, unit, includeFirst } = axisConfig.tickStep;
-  let candidates: number[];
-  if (unit !== NONE && axisConfig.type === TYPE_DATE) {
-    candidates = [];
-    let previousPeriodStart = NaN;
-    categoryValues.forEach((categoryValue, index) => {
-      const periodStart = getPeriodStart(unit, axisConfig.dateUTC, categoryValue as Date).getTime();
-      if (periodStart !== previousPeriodStart) {
-        candidates.push(index);
-        previousPeriodStart = periodStart;
-      }
-    });
-  }
-  else {
-    candidates = categoryValues.map((_v, index) => index);
-  }
-  const indexes = candidates.filter((_index, position) => position >= offset && (count === AUTO || (position - offset) % count === 0));
-  if (includeFirst && categoryValues.length > 0 && indexes[0] !== 0) {
-    indexes.unshift(0);
-  }
-  return indexes;
+  const { count, offset, period, includeFirst } = axisConfig.tickStep;
+  return count !== AUTO || offset !== 0 || period !== NONE || includeFirst;
 }
 
 // Which ordinal category indexes lose their tick: without a step rule every tickInterval-th category keeps
@@ -409,7 +338,7 @@ function getOrdinalTickSkipper(axisConfig: CategoryAxisConfig, categoryValues: r
     const tickInterval = Math.ceil(categoryValues.length / tickCount);
     return (index) => index % tickInterval !== 0;
   }
-  const stepIndexes = getOrdinalTickStepIndexes(axisConfig, categoryValues);
+  const stepIndexes = getStepCandidates(axisConfig.tickStep, categoryValues, axisConfig.type, axisConfig.dateUTC).selected;
   const thinning = Math.max(1, Math.ceil(stepIndexes.length / tickCount));
   const visibleIndexes = new Set(stepIndexes.filter((_index, position) => position % thinning === 0));
   return (index) => !visibleIndexes.has(index);

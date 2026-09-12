@@ -48,7 +48,7 @@ import * as tickStep from '../examples/tickStep'
 A daily ordinal axis has more categories than fit as labels, and the
 generated ticks are thinned by skipping every Nth category, which lands on
 arbitrary days. [`tickStep`](/reference/categoryAxis#categoryAxis.tickStep)
-chooses the ticks by rule instead. With a `unit` on a date axis the first
+chooses the ticks by rule instead. With a `period` on a date axis the first
 category of each period gets the tick, here each week's first trading day,
 and that holds through holidays and as the data window slides:
 
@@ -56,17 +56,17 @@ and that holds through holidays and as the data window slides:
 
 <<< @/examples/tickStep.ts{14-17}
 
-- `unit` is `day`, `week`, `month` or `year`; weeks start on Monday and the
+- `period` is `day`, `week`, `month` or `year`; weeks start on Monday and the
   boundaries follow [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC).
   A partial first week is a period of its own, so its first day gets a tick;
   `offset: 1` skips it.
-- `count` and `offset` step through the candidates: `unit: 'week'` with
+- `count` and `offset` step through the candidates: `period: 'week'` with
   `count: 2` labels every second week, and on a string axis
   `count: 5, offset: 3` shows the fourth category and every fifth after it.
   `includeFirst` always keeps the first category.
 - When more ticks survive than fit, every k-th survivor is kept from the
   first, so a thinned weekly rule still lands on Mondays.
-- On a linear date axis only `unit` applies, and the ticks sit on the period
+- On a linear date axis only `period` applies, and the ticks sit on the period
   boundaries themselves rather than on categories.
 
 To name the dates outright instead,

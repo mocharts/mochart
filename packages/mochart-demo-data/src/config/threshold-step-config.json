@@ -1,48 +1,29 @@
 {
   "version": "1.0.0",
   "title": {
-    "text": "Category Ticks"
+    "text": "Threshold Step"
   },
   "categoryAxis": {
     "property": "date",
     "type": "date",
     "scale": "ordinal",
-    "gridLine": {
-      "visible": true
-    },
     "tickLabel": {
       "format": "%b %d"
     },
     "valueFormat": "%a %b %d",
-    "ticks": [
-      {
-        "value": "2026-06-01"
-      },
-      {
-        "value": "2026-06-08"
-      },
-      {
-        "value": "2026-06-15"
-      },
-      {
-        "value": "2026-06-22"
-      },
-      {
-        "value": "2026-06-29"
-      },
-      {
-        "value": "2026-07-06"
-      }
-    ],
+    "tickStep": {
+      "period": "week"
+    },
     "thresholdStep": {
       "visible": true,
       "period": "week",
       "count": 2,
+      "range": true,
       "front": false,
       "style": {
         "normal": {
           "strokeOpacity": 0,
-          "fillOpacity": 0.06
+          "fillOpacity": 0.08
         }
       }
     }
@@ -50,20 +31,35 @@
   "valueAxes": [
     {
       "id": "VA0",
-      "tickLabel": {
-        "format": "$.0f"
-      },
+      "min": 0,
       "gridLine": {
         "visible": true
+      },
+      "title": {
+        "text": "Sessions"
+      }
+    },
+    {
+      "id": "VA1",
+      "min": 0,
+      "side": "end",
+      "title": {
+        "text": "Conversions"
       }
     }
   ],
   "series": [
     {
       "axis": "VA0",
-      "property": "close",
+      "property": "sessions",
       "renderer": "line",
-      "title": "Close"
+      "title": "Sessions"
+    },
+    {
+      "axis": "VA1",
+      "property": "conversions",
+      "renderer": "line",
+      "title": "Conversions"
     }
   ]
 }

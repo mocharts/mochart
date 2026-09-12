@@ -37,11 +37,10 @@ import { accessibilityActive, focusRestored, translateObject } from '../utils/ut
 import { getSeriesFillColor, getSeriesSwatchGradient } from '../utils/SeriesColors';
 import { getTooltipAnnouncement } from '../utils/TooltipFormat';
 import type { ChartFactoryContent, ChartFactoryContext, ChartContentFactory, ChartEventPayload, ChartSeriesClickPayload, ChartSliceClickPayload, InternalFocus } from '../types/chart';
-import type { LinearGradientConfig, PatternConfig, RadialGradientConfig, ThresholdConfig } from '../types/config';
+import type { AxisThresholdStepConfig, LinearGradientConfig, PatternConfig, RadialGradientConfig, ThresholdConfig } from '../types/config';
 import { resolveThresholds } from '../config/defaults/axisConfig';
 import { getThresholdPatternKey } from './AxisThreshold';
 import { CATEGORY_AXIS_THRESHOLD_KEY, getValueAxisThresholdKey } from './AxisThresholdContainer';
-import type { ResolvedThreshold } from '../config/defaults/axisConfig';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
 import type { AxisData, ChartData, ClippedEdges, DataProvider, StackData } from '../types/data';
 import type { FocusData } from '../types/animation';
@@ -373,19 +372,22 @@ const liveRegionStyle = {
 // long enough to swallow a key repeat, short enough that a deliberate step still speaks promptly
 const announceSettleDelay = 150;
 
-/** Every threshold entry filled by a pattern, with the patternIdMap key its definition lives under. */
-function getThresholdPatterns(mochartConfig: EnhancedMochartConfig): { key: string; threshold: ResolvedThreshold }[] {
-  const thresholdPatterns: { key: string; threshold: ResolvedThreshold }[] = [];
-  const collect = (axisKey: string, thresholds: readonly ThresholdConfig[] | undefined) => {
+/** Every threshold entry or thresholdStep filled by a pattern, with the patternIdMap key its definition lives under and the fill colour the pattern's series colour resolves to. */
+function getThresholdPatterns(mochartConfig: EnhancedMochartConfig): { key: string; pattern: string; fillColor: string | null }[] {
+  const thresholdPatterns: { key: string; pattern: string; fillColor: string | null }[] = [];
+  const collect = (axisKey: string, thresholds: readonly ThresholdConfig[] | undefined, thresholdStep: AxisThresholdStepConfig) => {
     resolveThresholds(thresholds).forEach((threshold, thresholdIndex) => {
       if (threshold.pattern !== NONE) {
-        thresholdPatterns.push({ key: getThresholdPatternKey(axisKey, thresholdIndex), threshold });
+        thresholdPatterns.push({ key: getThresholdPatternKey(axisKey, thresholdIndex), pattern: threshold.pattern, fillColor: threshold.style.normal.fillColor ?? null });
       }
     });
+    if (thresholdStep.visible && thresholdStep.pattern !== NONE) {
+      thresholdPatterns.push({ key: getThresholdPatternKey(axisKey, 'step'), pattern: thresholdStep.pattern, fillColor: thresholdStep.style.normal.fillColor ?? null });
+    }
   };
-  collect(CATEGORY_AXIS_THRESHOLD_KEY, mochartConfig.categoryAxis.thresholds);
+  collect(CATEGORY_AXIS_THRESHOLD_KEY, mochartConfig.categoryAxis.thresholds, mochartConfig.categoryAxis.thresholdStep);
   for (const valueAxisConfig of mochartConfig.valueAxes) {
-    collect(getValueAxisThresholdKey(valueAxisConfig.id), valueAxisConfig.thresholds);
+    collect(getValueAxisThresholdKey(valueAxisConfig.id), valueAxisConfig.thresholds, valueAxisConfig.thresholdStep);
   }
   return thresholdPatterns;
 }
@@ -1417,10 +1419,10 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     for (const patternConfig of mochartConfig.patterns as PatternConfig[]) {
       patternConfigsById[patternConfig.id] = patternConfig;
     }
-    for (const { key, threshold } of getThresholdPatterns(mochartConfig)) {
-      const patternConfig = patternConfigsById[threshold.pattern!];
+    for (const { key, pattern, fillColor } of getThresholdPatterns(mochartConfig)) {
+      const patternConfig = patternConfigsById[pattern];
       if (patternConfig !== undefined) {
-        patterns.push({ key, ctor: Pattern, props: { uniqueId: patternIdMap[key], patternConfig, seriesColor: threshold.style.normal.fillColor ?? null } });
+        patterns.push({ key, ctor: Pattern, props: { uniqueId: patternIdMap[key], patternConfig, seriesColor: fillColor } });
       }
     }
 

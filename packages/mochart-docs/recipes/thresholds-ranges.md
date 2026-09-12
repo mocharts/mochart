@@ -77,7 +77,15 @@ fills the band between its two values instead of drawing a line:
   is not drawn.
 - Ordinal category axes take thresholds too: a value names a category, so a
   line sits at that category's centre and a range covers whole slots from the
-  first named category to the second. Pairing each Monday with its Friday
-  bands alternate weeks on a daily trading axis, as the category ticks demo
-  in the gallery does.
+  first named category to the second.
+- [`thresholdStep`](/reference/categoryAxis#categoryAxis.thresholdStep)
+  repeats a line or range by rule instead of listing values: every `count`-th
+  candidate from an `offset`, where the candidates are an ordinal axis's
+  categories, the periods of a date axis under a `period`, or the multiples of
+  an `interval` on a number scale. `period: 'week'` with `count: 2` bands every
+  other week of a daily trading axis, holidays included, as the category ticks
+  demo in the gallery does, and on a value axis `interval: 10` with `count: 2`
+  bands 0 to 10, 20 to 30 and so on. `range: false` draws lines at the
+  candidates instead. The stepped shapes share one `style`, `pattern` or
+  `gradient`, carry no title, and stop at 500 shapes.
 \n

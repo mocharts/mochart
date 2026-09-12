@@ -76,7 +76,19 @@
             }
           }
         }
-      ]
+      ],
+      "thresholdStep": {
+        "visible": true,
+        "interval": 5,
+        "count": 2,
+        "range": false,
+        "style": {
+          "normal": {
+            "strokeDashArray": "2 4",
+            "strokeOpacity": 0.4
+          }
+        }
+      }
     }
   ],
   "seriesStacks": {

@@ -5,7 +5,10 @@ import { mochartCssClasses } from '../utils/ChartDom';
 import { getAxisFocusStyle } from '../utils/FocusValue';
 import { styleToAttributes } from '../utils/style';
 import { resolveThresholds } from '../config/defaults/axisConfig';
+import { getSteppedThresholds } from '../data/ThresholdSteps';
 import { getGradientReference, getPatternReference } from '../utils/svgUtils';
+import type { ResolvedThreshold } from '../config/defaults/axisConfig';
+import type { CategoryValue } from '../types/data';
 import { NONE } from '../config/core/constants';
 import type { AxisThresholdShapeProps, ThresholdAxisConfig, ThresholdCategoryPositions } from './AxisThresholdShape';
 import type { AxisLayoutInfo, LayoutInfo } from '../types/layout';
@@ -32,14 +35,27 @@ interface AxisThresholdProps {
   patternIdMap: Record<string, string>;
 }
 
-/** The patternIdMap key of one threshold's pattern definition: an axis key plus the entry index. */
-export function getThresholdPatternKey(axisKey: string, thresholdIndex: number): string {
+/** The patternIdMap key of one threshold's pattern definition: an axis key plus the entry index, or 'step' for the axis's thresholdStep. */
+export function getThresholdPatternKey(axisKey: string, thresholdIndex: number | 'step'): string {
   return 'threshold__' + axisKey + '__' + thresholdIndex;
 }
 
 export default class AxisThreshold extends Renderer<AxisThresholdProps> {
   root = svgEl('g');
   lines = this.rendererList(this.root);
+
+  /** the last expansion, kept while its inputs hold so the shape renderers' shallow-equal skips see stable thresholds */
+  private stepped: { step: unknown; domainMin: unknown; domainMax: unknown; categoryValues: unknown; thresholds: ResolvedThreshold[] } | null = null;
+
+  private getSteppedThresholds(axisConfig: ThresholdAxisConfig, axisDomain: AxisThresholdProps['axisDomain'], categoryValues: readonly CategoryValue[] | null): ResolvedThreshold[] {
+    const domainMin = axisDomain[0]?.valueOf();
+    const domainMax = axisDomain[1]?.valueOf();
+    const cached = this.stepped;
+    if (cached === null || cached.step !== axisConfig.thresholdStep || cached.domainMin !== domainMin || cached.domainMax !== domainMax || cached.categoryValues !== categoryValues) {
+      this.stepped = { step: axisConfig.thresholdStep, domainMin, domainMax, categoryValues, thresholds: getSteppedThresholds(axisConfig, axisDomain, categoryValues) };
+    }
+    return this.stepped!.thresholds;
+  }
 
   create() {
     return this.root.node;
@@ -51,7 +67,9 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
       const { axisConfig, axisLayoutInfo, seriesLayoutInfo, axisDomain, vertical, ascending, positionRange, axisFocusPercentage, seriesFocusPercentage, axisThresholdClass, front,
         axisKey, categoryPositions, gradientIdMap, patternIdMap } = this.props;
       const { useSeriesFocus = false } = axisConfig;
-      const thresholds = resolveThresholds(axisConfig.thresholds);
+      const configured = resolveThresholds(axisConfig.thresholds);
+      // the stepped thresholds follow the configured entries, so title layout indexes stay those of the config
+      const thresholds = configured.concat(this.getSteppedThresholds(axisConfig, axisDomain, categoryPositions?.values ?? null));
 
       this.setPresent(true);
       this.root.set({ className: axisThresholdClass });
@@ -66,7 +84,7 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
         const title = styleToAttributes(getAxisFocusStyle(axisFocusPercentage, seriesFocusPercentage, useSeriesFocus, threshold.title.textStyle));
         let fillReference: string | null = null;
         if (threshold.pattern !== NONE) {
-          fillReference = getPatternReference(patternIdMap[getThresholdPatternKey(axisKey, thresholdIndex)]!);
+          fillReference = getPatternReference(patternIdMap[getThresholdPatternKey(axisKey, thresholdIndex < configured.length ? thresholdIndex : 'step')]!);
         }
         else if (threshold.gradient !== NONE) {
           fillReference = getGradientReference(gradientIdMap[threshold.gradient]!);

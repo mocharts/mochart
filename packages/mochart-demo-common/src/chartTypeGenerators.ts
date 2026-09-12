@@ -355,7 +355,7 @@ function candlestickCategoryAxis(categoryAxis: Partial<CategoryAxisConfig>): Dee
     ...categoryAxis,
     tickLabel: { format: '%b %d' },
     valueFormat: '%a %b %d',
-    tickStep: { unit: 'week' }
+    tickStep: { period: 'week' }
   };
 }
 const CANDLESTICK_START_PRICE = 100;

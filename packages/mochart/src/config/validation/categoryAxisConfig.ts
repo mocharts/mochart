@@ -1,8 +1,8 @@
 import validators from './validators';
 
-import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_STRING, TYPE_NUMBER, TYPE_DATE, TICK_STEP_UNITS } from '../core/constants';
+import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_STRING, TYPE_NUMBER, TYPE_DATE, STEP_PERIODS } from '../core/constants';
 
-import getAxisValidators, { getTickLabelValidators } from './axisConfig';
+import getAxisValidators, { getTickLabelValidators, getThresholdStepValidators, thresholdStepIntervalValidator } from './axisConfig';
 import getTruncationValidators from './truncationConfig';
 import type { CategoryAxisConfig } from '../../types/config';
 
@@ -47,7 +47,17 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
         maxFraction: validators.numberMinMax(0, 1),
         minLength: validators.numberMin(0)
       }, true)
-    }, pieMode),
+    }, pieMode, {
+      ...getThresholdStepValidators(),
+      period: validators.conditional([
+        { ...typeDateRule, validator: validators.oneOf(STEP_PERIODS).orEqual(NONE) },
+        { ...defaultRule, validator: validators.equal(NONE) }
+      ], config),
+      interval: validators.conditional([
+        { ...linearNumberRule, validator: thresholdStepIntervalValidator },
+        { ...defaultRule, validator: validators.equal(NONE) }
+      ], config)
+    }),
 
     dateUTC: validators.boolean(),
 
@@ -109,8 +119,8 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
         { ...scaleLinearRule, validator: validators.equal(0) },
         { ...defaultRule, validator: validators.any() }
       ], config),
-      unit: validators.conditional([
-        { ...typeDateRule, validator: validators.oneOf(TICK_STEP_UNITS).orEqual(NONE) },
+      period: validators.conditional([
+        { ...typeDateRule, validator: validators.oneOf(STEP_PERIODS).orEqual(NONE) },
         { ...defaultRule, validator: validators.equal(NONE) }
       ], config),
       includeFirst: validators.conditional([

@@ -38,7 +38,28 @@ export function getTickLabelValidators(): Record<string, Validator> {
 }
 
 // a threshold sits on the axis's value scale, so its value takes the axis's own primitive: number by default, date on a date category axis
-export default function getValidators(thresholdValue = validators.number(), tickLabelValidators: Record<string, Validator> = getTickLabelValidators(), pieMode = false) {
+const positiveNumber = validators.custom((value: unknown) => typeof value === 'number' && Number.isFinite(value) && value > 0)
+  .withCustomName('positiveNumber').withMessage('should be a number greater than 0');
+
+/** The thresholdStep interval: an axis value distance above 0, or null. */
+export const thresholdStepIntervalValidator = positiveNumber.orEqual(NONE);
+
+/** The thresholdStep members both axes share; the category axis adds period and narrows interval to its number scale. */
+export function getThresholdStepValidators(): Record<string, Validator> {
+  return {
+    visible: validators.boolean(),
+    interval: thresholdStepIntervalValidator,
+    count: validators.integerMin(1),
+    offset: validators.integerMin(0),
+    range: validators.boolean(),
+    front: validators.boolean(),
+    style: styleStates(styleMembers),
+    pattern: validators.string().orEqual(NONE),
+    gradient: validators.string().orEqual(NONE)
+  };
+}
+
+export default function getValidators(thresholdValue = validators.number(), tickLabelValidators: Record<string, Validator> = getTickLabelValidators(), pieMode = false, thresholdStepValidators: Record<string, Validator> = getThresholdStepValidators()) {
   return {
     axisLine: group({
       visible: validators.boolean(),
@@ -106,6 +127,8 @@ export default function getValidators(thresholdValue = validators.number(), tick
         backgroundStyle: validators.style().orEqual(undefined)
       }, true).orEqual(undefined)
     }), true),
+
+    thresholdStep: group(thresholdStepValidators),
 
     tickCount: validators.integerMin(0).orEqual(AUTO),
 
@@ -217,7 +240,26 @@ export function validateThresholdEntries(config: ConfigObject, errors: string[],
     valueAxes.forEach((axis, index) => axes.push({ prefix: 'valueAxes[' + index + ']', path: ['valueAxes', index], axis }));
   }
   for (const { prefix, path, axis } of axes) {
-    if (!isConfigObject(axis) || !Array.isArray(axis['thresholds'])) {
+    if (!isConfigObject(axis)) {
+      continue;
+    }
+    const step = axis['thresholdStep'];
+    if (isConfigObject(step)) {
+      const reportStep = (member: string, message: string) => {
+        errors.push(getPropertyMessage(prefix, 'thresholdStep.' + member, message));
+        errorDetails.push({ path: [...path, 'thresholdStep', member], message });
+      };
+      if (typeof step['pattern'] === 'string' && !patternIds.has(step['pattern'])) {
+        reportStep('pattern', thresholdPatternMessage);
+      }
+      if (typeof step['gradient'] === 'string' && !gradientIds.has(step['gradient'])) {
+        reportStep('gradient', thresholdGradientMessage);
+      }
+      if (typeof step['pattern'] === 'string' && typeof step['gradient'] === 'string') {
+        reportStep('pattern', thresholdPatternGradientMessage);
+      }
+    }
+    if (!Array.isArray(axis['thresholds'])) {
       continue;
     }
     axis['thresholds'].forEach((threshold, index) => {

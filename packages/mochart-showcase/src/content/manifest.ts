@@ -404,6 +404,7 @@ export function getSections(): ShowcaseSection[] {
         }),
         multipleAxesEntry(),
         thresholdLineEntry(),
+        reuse('threshold-step'),
         rotatedTicksEntry(),
         rotationEntry(),
         truncatedTextEntry(),

@@ -120,6 +120,7 @@ interface SharedAxisInterface {
 const sharedAxisInterfaces: SharedAxisInterface[] = [
   { interfaceName: 'AxisLineConfig', propertyKey: 'axisLine' },
   { interfaceName: 'AxisFocusRangeConfig', propertyKey: 'focusRange' },
+  { interfaceName: 'AxisThresholdStepConfig', propertyKey: 'thresholdStep', categoryInterfaceName: 'CategoryAxisThresholdStepConfig' },
   { interfaceName: 'AxisFocusTickMarkConfig', propertyKey: 'focusTickMark' },
   { interfaceName: 'AxisGridLineConfig', propertyKey: 'gridLine' },
   { interfaceName: 'AxisTickMarkConfig', propertyKey: 'tickMark' },
