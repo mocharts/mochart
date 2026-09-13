@@ -23,8 +23,8 @@ import * as thresholdBand from '../examples/thresholdBand'
   the line — color, width and dash array in `normal`, `focused` and
   `defocused` states; `front` puts the line in front of or behind the series. A linear
   category axis takes the same `thresholds` for vertical reference lines (a
-  date axis value is an ISO string or timestamp); an ordinal one has no value
-  scale to place them on.
+  date axis value is an ISO string or timestamp); an ordinal one places them
+  by category, described below.
 - The data band is an ordinary `area` series with
   [`rangeProperty`](/reference/series#series.rangeProperty):
   the shape spans from the `rangeProperty` value (here `p5`) to the
