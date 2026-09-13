@@ -122,6 +122,23 @@ describe('category axis tick step on an ordinal axis', () => {
     chart.destroy();
   });
 
+  it('hides a week tick that would collide with the one before it when a week holds a single category', () => {
+    // Jun 1 alone, Jun 8 to 12, Jun 15 alone, Jun 22 to 26, Jun 29 alone, Jul 6 to 10: three ticks sit one slot after another
+    const dates = ['2026-06-01', ...weekdays('2026-06-08', 5), '2026-06-15', ...weekdays('2026-06-22', 5), '2026-06-29', ...weekdays('2026-07-06', 5)];
+    // the shims measure no label width, so the spacing alone is the room a tick needs: 80px against 33px slots at 600px wide
+    const weekly = { type: 'date', scale: 'ordinal', minTickSpacing: 80, tickLabel: { format: '%b %d' }, tickStep: { period: 'week' } };
+    const roomy = renderChart(weekly, dateRows(dates), 2400);
+    expect(getAxisLabels(roomy.container)).toEqual(['Jun 01', 'Jun 08', 'Jun 15', 'Jun 22', 'Jun 29', 'Jul 06']);
+    roomy.chart.destroy();
+    const crowded = renderChart(weekly, dateRows(dates), 600);
+    const labels = getAxisLabels(crowded.container);
+    // the tick one slot after a lone-category week is the one that goes, and every survivor is still a Monday
+    expect(labels).not.toContain('Jun 22');
+    expect(labels).toContain('Jun 15');
+    expect(labels.every((label) => ['Jun 01', 'Jun 08', 'Jun 15', 'Jun 29', 'Jul 06'].includes(label))).toBe(true);
+    crowded.chart.destroy();
+  });
+
   it('leaves the automatic ticks alone at the defaults', () => {
     const { container, chart } = renderChart({ type: 'string', scale: 'ordinal', tickStep: {} }, letterRows);
     expect(getAxisLabels(container)).toEqual(letters);

@@ -208,6 +208,8 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
   if (categoryValues.length > 0) {
     let scaleTicks: AxisValue[];
     let tickCount: number;
+    // the axis room one ordinal tick label needs, the widest label plus the spacing, for the step rule's collision pass
+    let ordinalTickSpace = 0;
 
     if (categoryValues.length === 1) {
       if (axisConfig.scale === SCALE_ORDINAL) {
@@ -232,6 +234,7 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
         tickLabelSpace = axisLayoutInfo.minTickSize;
       }
       tickCount = Math.max(1, getTickCount(axisConfig, categoryAxisRangeExtent, categoryAxisDomainExtent, tickLabelSpace));
+      ordinalTickSpace = tickLabelSpace + axisConfig.minTickSpacing;
 
       if (axisConfig.scale === SCALE_ORDINAL && tickCount > categoryValues.length) {
         tickCount = categoryValues.length;
@@ -267,23 +270,27 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
       tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisScale, scaleTicks.length);
     }
     if (axisConfig.scale === SCALE_ORDINAL) {
-      const { isSkipped, isMinor, minorFormatter } = getOrdinalTickRule(axisConfig, axisLayoutInfo, categoryValues, categoryPositions, tickCount);
+      // a parallel untruncated label that would spill past either axis end is hidden; the step rule's collision pass needs to know
+      const truncatedParallel = axisConfig.tickLabel.truncation.enabled && axisLayoutInfo.tickLabelParallel;
+      let edgeRange: [number, number] | null = null;
+      if (!truncatedParallel && axisLayoutInfo.tickLabelParallel) {
+        const { before, after, categoryExtent, tickLabelSpace, tickLabelAnchor } = axisLayoutInfo;
+        const beforeOffset = tickLabelAnchor === ANCHOR_START ? 0 : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : tickLabelSpace);
+        const afterOffset = tickLabelAnchor === ANCHOR_START ? tickLabelSpace : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : 0);
+        edgeRange = [beforeOffset - before, categoryExtent + after - afterOffset];
+      }
+      const { isSkipped, isMinor, minorFormatter } = getOrdinalTickRule(axisConfig, axisLayoutInfo, categoryValues, categoryPositions, tickCount, ordinalTickSpace, edgeRange);
       const createTick = (index: number, isHidden: (tick: Omit<AxisTick, 'hidden'>) => boolean) => {
         const minor = isMinor(index);
         return createOrdinalTickObject(index, categoryValues, categoryPositions, minor && minorFormatter !== null ? minorFormatter : tickLabelFormatter, isHidden, minor);
       };
-      if (axisConfig.tickLabel.truncation.enabled && axisLayoutInfo.tickLabelParallel) {
+      if (truncatedParallel) {
         ticks = scaleTicks.map((scaleTick, i) => createTick(scaleTick as number, () => isSkipped(i)));
       }
       else {
-        if (axisLayoutInfo.tickLabelParallel) {
-          const { before, after, categoryExtent, tickLabelSpace, tickLabelAnchor } = axisLayoutInfo;
-
-          const beforeOffset = tickLabelAnchor === ANCHOR_START ? 0 : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : tickLabelSpace);
-          const afterOffset = tickLabelAnchor === ANCHOR_START ? tickLabelSpace : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : 0);
-
-          const minPosition = beforeOffset - before;
-          const maxPosition = categoryExtent + after - afterOffset;
+        if (edgeRange !== null) {
+          const [minPosition, maxPosition] = edgeRange;
+          const { tickLabelAnchor } = axisLayoutInfo;
 
           ticks = scaleTicks.map((scaleTick, i) => createTick(scaleTick as number, ({ position }) => isSkipped(i) || position < minPosition || position > maxPosition ));
           if (categoryValues.length > 0) {
@@ -351,14 +358,26 @@ interface OrdinalTickRule {
 // one; with a rule its survivors thin to every k-th from the first, so a thinned weekly rule stays on Mondays.
 // The categories between the rule's ticks are minor: with a minorFormat they show when the widest minor label
 // fits inside a category slot, and all hide together when it does not.
-function getOrdinalTickRule(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, categoryValues: readonly CategoryValue[], categoryPositions: number[], tickCount: number): OrdinalTickRule {
+function getOrdinalTickRule(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, categoryValues: readonly CategoryValue[], categoryPositions: number[], tickCount: number, tickSpace: number, edgeRange: [number, number] | null): OrdinalTickRule {
   if (!hasTickStep(axisConfig)) {
     const tickInterval = Math.ceil(categoryValues.length / tickCount);
     return { isSkipped: (index) => index % tickInterval !== 0, isMinor: () => false, minorFormatter: null };
   }
   const stepIndexes = getStepCandidates(axisConfig.tickStep, categoryValues, axisConfig.type, axisConfig.dateUTC).selected;
   const thinning = Math.max(1, Math.ceil(stepIndexes.length / tickCount));
-  const visibleIndexes = new Set(stepIndexes.filter((_index, position) => position % thinning === 0));
+  // the survivors are evenly strided, which assumes equal periods; a period holding a single category puts its
+  // tick one slot from the next, so a survivor closer to the last kept one than a label needs is hidden too,
+  // and one the axis ends hide anyway does not count as kept
+  const visibleIndexes = new Set<number>();
+  let lastKept: number | null = null;
+  stepIndexes.forEach((index, position) => {
+    const categoryPosition = categoryPositions[index]!;
+    const insideEnds = edgeRange === null || (categoryPosition >= edgeRange[0] && categoryPosition <= edgeRange[1]);
+    if (position % thinning === 0 && insideEnds && (lastKept === null || Math.abs(categoryPosition - categoryPositions[lastKept]!) >= tickSpace)) {
+      visibleIndexes.add(index);
+      lastKept = index;
+    }
+  });
   const majorIndexes = new Set(stepIndexes);
   const isMinor = (index: number) => !majorIndexes.has(index);
   const minorFormatter = getMinorTickLabelFormatter(axisConfig);
