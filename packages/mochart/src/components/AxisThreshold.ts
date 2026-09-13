@@ -49,12 +49,12 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
   /** the last expansion, kept while its inputs hold so the shape renderers' shallow-equal skips see stable thresholds */
   private stepped: { step: unknown; domainMin: unknown; domainMax: unknown; categoryValues: unknown; thresholds: ResolvedThreshold[] } | null = null;
 
-  private getSteppedThresholds(axisConfig: ThresholdAxisConfig, axisDomain: AxisThresholdProps['axisDomain'], categoryValues: readonly CategoryValue[] | null): ResolvedThreshold[] {
+  private getSteppedThresholds(axisConfig: ThresholdAxisConfig, axisDomain: AxisThresholdProps['axisDomain'], categoryValues: readonly CategoryValue[] | null, categoryKeys: readonly CategoryValue[] | null): ResolvedThreshold[] {
     const domainMin = axisDomain[0]?.valueOf();
     const domainMax = axisDomain[1]?.valueOf();
     const cached = this.stepped;
     if (cached === null || cached.step !== axisConfig.thresholdStep || cached.domainMin !== domainMin || cached.domainMax !== domainMax || cached.categoryValues !== categoryValues) {
-      this.stepped = { step: axisConfig.thresholdStep, domainMin, domainMax, categoryValues, thresholds: getSteppedThresholds(axisConfig, axisDomain, categoryValues) };
+      this.stepped = { step: axisConfig.thresholdStep, domainMin, domainMax, categoryValues, thresholds: getSteppedThresholds(axisConfig, axisDomain, categoryValues, categoryKeys) };
     }
     return this.stepped!.thresholds;
   }
@@ -71,7 +71,7 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
       const { useSeriesFocus = false } = axisConfig;
       const configured = resolveThresholds(axisConfig.thresholds);
       // the stepped thresholds follow the configured entries, so title layout indexes stay those of the config
-      const thresholds = configured.concat(this.getSteppedThresholds(axisConfig, axisDomain, categoryPositions?.values ?? null));
+      const thresholds = configured.concat(this.getSteppedThresholds(axisConfig, axisDomain, categoryPositions?.values ?? null, categoryPositions?.keys ?? null));
 
       this.setPresent(true);
       this.root.set({ className: axisThresholdClass });

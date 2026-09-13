@@ -25,9 +25,11 @@ function toThresholdValue(categoryValue: CategoryValue): number | string {
 /**
  * The thresholds a thresholdStep rule expands to: one line or range per selected candidate, sharing the
  * rule's style and fill. The candidates are the ordinal categories (or the first of each period), the period
- * boundaries of a linear date axis, or the multiples of the interval on a number scale.
+ * boundaries of a linear date axis, or the multiples of the interval on a number scale. An ordinal threshold
+ * names its category the way an explicit entry does, by the category's key, so the keys are given alongside
+ * the values the candidates are found from; they are the values themselves without a keyProperty.
  */
-export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDomain: [number | Date | null, number | Date | null], categoryValues: readonly CategoryValue[] | null): ResolvedThreshold[] {
+export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDomain: [number | Date | null, number | Date | null], categoryValues: readonly CategoryValue[] | null, categoryKeys: readonly CategoryValue[] | null = categoryValues): ResolvedThreshold[] {
   const step = axisConfig.thresholdStep;
   if (!step.visible) {
     return [];
@@ -45,12 +47,13 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
     if (categoryValues === null || categoryValues.length === 0) {
       return thresholds;
     }
+    const keys = categoryKeys ?? categoryValues;
     const { candidates, selected } = getStepCandidates({ period: step.period ?? NONE, count: step.count, offset: step.offset }, categoryValues, axisConfig.type, dateUTC);
     for (const index of selected) {
       // a range runs to the category before the next candidate, the last of its period
       const next = candidates.find(candidate => candidate > index);
       const endIndex = next === undefined ? categoryValues.length - 1 : next - 1;
-      add(toThresholdValue(categoryValues[index]!), toThresholdValue(categoryValues[endIndex]!));
+      add(toThresholdValue(keys[index]!), toThresholdValue(keys[endIndex]!));
     }
     return thresholds;
   }

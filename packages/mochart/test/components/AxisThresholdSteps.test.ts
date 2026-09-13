@@ -80,6 +80,18 @@ describe('threshold steps on an ordinal axis', () => {
     expect(lineCount(container)).toBe(8);
   });
 
+  it('places the stepped ranges by category key on an axis with a keyProperty', () => {
+    // the keys differ from the values, so a stepped threshold naming the display value would find no category
+    const keyed = letters.map((row, index) => ({ ...row, k: 'k' + index }));
+    const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', keyProperty: 'k', thresholdStep: { visible: true, count: 2, style: stepStyle } } }, keyed);
+    const bands = rects(container);
+    expect(bands).toHaveLength(4);
+    const slot = bands[1]!.x - bands[0]!.x;
+    for (const band of bands) {
+      expect(band.width).toBeCloseTo(slot / 2, 5);
+    }
+  });
+
   it('draws lines instead with range false, honouring the offset', () => {
     const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', thresholdStep: { visible: true, count: 3, offset: 1, range: false } } }, letters);
     expect(rects(container)).toHaveLength(0);
