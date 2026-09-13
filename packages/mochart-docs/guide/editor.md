@@ -58,7 +58,7 @@ The returned `JsonEditorHandle` drives the editor imperatively:
 - `element` — the `.mochart-editor` element the editor was mounted into.
 - `getValue()` / `setValue(value)` — read and replace the document.
   Controlled `setValue` updates do not fire `onChange`; only user edits and
-  `format()` do.
+  a `format()` that changes the text do.
 - `format()` — pretty-print the current JSON; returns `false` (leaving the
   text alone) when it does not parse or repeats a key, since a round-trip
   through `JSON.parse` would silently drop the earlier copy.
@@ -82,8 +82,9 @@ generated from the same model as this site's
 [config reference](/reference/), exported as `mochartConfigEditorModel`
 for tooling that wants the raw model.
 
-Completions and hover text come from that build-time model, while validation
-diagnostics come from the installed `@mochart/core`. If their major or minor
+Completions and hover text come from that build-time model, while the default
+values they insert and show, and the validation diagnostics, come from the
+installed `@mochart/core`. If their major or minor
 versions differ, the editor logs a console warning once: properties added or
 removed since the model was generated have no completions or hover text, but
 validation still reflects the installed core. A patch difference is not

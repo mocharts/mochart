@@ -734,7 +734,7 @@ describe('tooltip drop-shadow validation', () => {
   });
 });
 
-// An ordinal axis has no value scale to place a threshold on.
+// An ordinal axis places a threshold by category, so its value takes the category's form.
 describe('threshold entry validation', () => {
   const base = { version: V, series: [{ property: 'v' }] };
 

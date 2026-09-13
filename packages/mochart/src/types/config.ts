@@ -506,12 +506,12 @@ export interface ChartConfig {
    * font leaves null (family, size, weight, style (use null to leave a member
    * to css)).
    *
-   * Each text part (the title, legend items, tick labels, axis titles,
-   * threshold titles, series labels, the pie center, the clip indicator label
-   * and the tooltip) has a `font` of its own with the same four members. A
-   * member is resolved per text element: the part's own value when it is not
-   * `null`, otherwise this chart-wide value, otherwise nothing. Resolved
-   * members are written as an inline style on the text element itself
+   * Each text part (the title with its prefix and suffix, legend items, tick
+   * labels, axis titles, threshold titles, series labels, the pie center, the
+   * clip indicator label and the tooltip) has a `font` of its own with the same
+   * four members. A member is resolved per text element: the part's own value
+   * when it is not `null`, otherwise this chart-wide value, otherwise nothing.
+   * Resolved members are written as an inline style on the text element itself
    * (`font-family`, `font-size`, `font-weight`, `font-style`), so a configured
    * value wins over any host page css rule; a member left `null` in both places
    * writes nothing and stays with css. Text is measured after the font is
@@ -1750,8 +1750,8 @@ export interface TooltipConfig {
 }
 
 /**
- * The title label beside a threshold line. Members left out fall back to the
- * documented defaults.
+ * The title label beside a threshold, or inside a threshold range. Members
+ * left out fall back to the documented defaults.
  */
 export interface ThresholdTitleConfig {
   /**
@@ -1779,8 +1779,8 @@ export interface ThresholdTitleConfig {
    */
   align?: Anchor | Auto;
   /**
-   * Whether the title flips to the other side of the line when its own side has
-   * no room, instead of being clamped inside the plot over the line.
+   * Whether the title flips to the other side of the threshold when its own
+   * side has no room, instead of being clamped inside the plot over it.
    *
    * @default true
    */
@@ -1820,10 +1820,8 @@ export interface ThresholdTitleConfig {
 }
 
 /**
- * One threshold line on an axis: a reference value drawn as a line across the
- * plot, with an optional title label beside it. Entries are whole objects (the
- * `thresholds` array replaces its default wholesale); members left out fall
- * back to the documented defaults.
+ * A rule repeating a threshold line or range along an axis by step. Members
+ * left out fall back to the documented defaults.
  */
 export interface AxisThresholdStepConfig {
   /**
@@ -1833,8 +1831,8 @@ export interface AxisThresholdStepConfig {
    */
   visible: boolean;
   /**
-   * The axis value distance the thresholds step by on a linear number axis (use
-   * null for none).
+   * The axis value distance the thresholds step by on a number scale (use null
+   * for none).
    *
    * @default null
    */
@@ -1859,8 +1857,8 @@ export interface AxisThresholdStepConfig {
    * start (false).
    *
    * On an ordinal axis a range covers whole slots from its step to the category
-   * before the next step; on a linear axis it spans from the step to the next
-   * one. A line sits at the step itself.
+   * before the next candidate step; on a linear axis it spans from the step to
+   * the next one. A line sits at the step itself.
    *
    * @default true
    */
@@ -1910,12 +1908,14 @@ export interface CategoryAxisThresholdStepConfig extends AxisThresholdStepConfig
   period: StepPeriod | null;
 }
 
+/**
+ * One threshold on an axis: a line at an axis value, or with a `rangeValue` a
+ * range between two, with an optional title label. Entries are whole objects
+ * (the `thresholds` array replaces its default wholesale); members left out
+ * fall back to the documented defaults.
+ */
 export interface ThresholdConfig {
-  /**
-   * The axis value of the threshold: a category value (or its key, on an
-   * ordinal axis with a keyProperty), a timestamp or ISO date string on a date
-   * axis.
-   */
+  /** The axis value the threshold sits at. */
   value: number | string;
   /**
    * The second value of a threshold range (use null for a line).

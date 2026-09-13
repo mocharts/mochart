@@ -54,7 +54,7 @@ and that holds through holidays and as the data window slides:
 
 <LiveChart :config="tickStep.config" :data="tickStep.data" demo="candlestick" />
 
-<<< @/examples/tickStep.ts{14-17}
+<<< @/examples/tickStep.ts{15}
 
 - `period` is `day`, `week`, `month` or `year`; weeks start on Monday and the
   boundaries follow [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC).
@@ -83,7 +83,7 @@ grid line and label:
 
 <LiveChart :config="categoryTicks.config" :data="categoryTicks.data" demo="category-ticks" />
 
-<<< @/examples/categoryTicks.ts{14-19}
+<<< @/examples/categoryTicks.ts{15-20}
 
 - Each entry names a category by value: an ISO date string or timestamp on a
   date axis (matched by instant, so either form finds the category), a number

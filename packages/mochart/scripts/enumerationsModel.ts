@@ -51,7 +51,7 @@ const descriptions: Record<string, string> = {
   Scale: 'How the category axis spaces its categories.',
   AxisSide: 'Which side of the plot an axis is drawn on: the start (left or bottom) or the end.',
   Anchor: 'Where a tick label is anchored relative to its tick.',
-  ThresholdTitleSide: 'Which side of a threshold line its title sits on.',
+  ThresholdTitleSide: 'Which side of a threshold its title sits on, or `inside` a threshold range.',
   Position: 'Whether the title or legend sits above or below the plot.',
   Align: 'Horizontal alignment.',
   TooltipValueAlign: 'Which edge of the tooltip its values are aligned to: left puts the label and value in one run of text, right floats the values to the far edge.',

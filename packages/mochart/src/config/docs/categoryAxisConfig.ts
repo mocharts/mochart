@@ -1,4 +1,4 @@
-import getAxisDescriptions, { getTickLabelDescriptions, tickLabelDescription, getThresholdStepDescriptions, thresholdStepDescription, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails } from './axisConfig';
+import getAxisDescriptions, { getTickLabelDescriptions, tickLabelDescription, getThresholdStepDescriptions, thresholdStepDescription, getThresholdDescriptions, thresholdsDescription, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails } from './axisConfig';
 
 export default function getDescriptions() {
   return {
@@ -32,8 +32,14 @@ export default function getDescriptions() {
       description: thresholdStepDescription,
       properties: {
         ...getThresholdStepDescriptions(),
-        period: 'the calendar period the thresholds step by on a date axis (day, week, month, year; use null for none)',
-        interval: 'the axis value distance the thresholds step by on a linear number axis (use null for none)'
+        period: 'the calendar period the thresholds step by on a date axis (day, week, month, year; use null for none)'
+      }
+    },
+    thresholds: {
+      description: thresholdsDescription,
+      properties: {
+        ...getThresholdDescriptions(),
+        value: 'the axis value the threshold sits at: on an ordinal axis a category (or its key, with a keyProperty), on a linear axis a number, or a millisecond timestamp or ISO date string when type is date'
       }
     },
     tickStep: {
@@ -97,7 +103,7 @@ export function getDetails() {
       properties: {
         period: 'Weeks start on Monday and the boundaries follow `dateUTC`. On an ordinal axis the steps are the first category of each period, so `"week"` with `count: 2` bands every other week whatever the holidays; on a linear date axis they are the period boundaries themselves.',
         count: 'With no period every category of an ordinal axis is a step, so `count: 2` stripes alternate categories.',
-        range: 'On an ordinal axis a range covers whole slots from its step to the category before the next step; on a linear axis it spans from the step to the next one. A line sits at the step itself.'
+        range: 'On an ordinal axis a range covers whole slots from its step to the category before the next candidate step; on a linear axis it spans from the step to the next one. A line sits at the step itself.'
       }
     },
     thresholds: {

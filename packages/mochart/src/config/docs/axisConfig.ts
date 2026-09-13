@@ -56,6 +56,34 @@ export function getTickLabelDescriptions(): DescriptionMap {
 
 export const tickLabelDescription = 'the labels shown at each tick along the axis';
 
+export const thresholdsDescription = 'the thresholds to draw across the plot: a line at an axis value, or a range between two';
+
+/** The thresholds entry members both axes share; the category axis adds the value forms its scale takes. */
+export function getThresholdDescriptions(): DescriptionMap {
+  return {
+    value: 'the axis value the threshold sits at',
+    rangeValue: 'the second value of a threshold range (use null for a line)',
+    front: 'whether the threshold is drawn in front of (true) or behind (false) the series shapes',
+    style: styleStates('the style of the threshold: the stroke members draw a line or the edges of a range, the fill members fill a range and are ignored on a line', fillLineMembers),
+    pattern: 'the unique id of the pattern config filling a threshold range (use null for none; cannot be combined with gradient)',
+    gradient: 'the unique id of the gradient config filling a threshold range (use null for none; cannot be combined with pattern)',
+    title: {
+      description: 'the title label shown beside the threshold',
+      properties: {
+        text: 'the title text shown beside the threshold (use null for none)',
+        side: 'the value side of the threshold the title sits on ("low", "high", or "inside" a range)',
+        align: 'where the title sits along the threshold ("start", "middle", "end", or "auto" for the axis side)',
+        snapToValue: 'whether the title flips to the other side of the threshold when its own side has no room, instead of being clamped inside the plot over it',
+        margin: spacing('the margin (in pixels) of the threshold title, relative to its orientation'),
+        padding: spacing('the padding (in pixels) of the threshold title, relative to its orientation'),
+        textStyle: styleStates('the style of the threshold title text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity']),
+        font: font('the font of the threshold title text (family, size, weight, style), each member falling back to chart.font when null'),
+        backgroundStyle: style('the styles to apply to the threshold title background')
+      }
+    }
+  };
+}
+
 export const thresholdStepDescription = 'threshold lines or ranges repeated along the axis by rule';
 
 /** The thresholdStep members both axes share; each axis adds the members that place its steps. */
@@ -148,29 +176,8 @@ export default function getDescriptions() {
 
 
     thresholds: {
-      description: 'the thresholds to draw across the plot: a line at an axis value, or a range between two',
-      properties: {
-        value: 'the axis value of the threshold: a category value (or its key, on an ordinal axis with a keyProperty), a timestamp or ISO date string on a date axis',
-        rangeValue: 'the second value of a threshold range (use null for a line)',
-        front: 'whether the threshold is drawn in front of (true) or behind (false) the series shapes',
-        style: styleStates('the style of the threshold: the stroke members draw a line or the edges of a range, the fill members fill a range and are ignored on a line', fillLineMembers),
-        pattern: 'the unique id of the pattern config filling a threshold range (use null for none; cannot be combined with gradient)',
-        gradient: 'the unique id of the gradient config filling a threshold range (use null for none; cannot be combined with pattern)',
-        title: {
-          description: 'the title label shown beside the threshold',
-          properties: {
-            text: 'the title text shown beside the threshold (use null for none)',
-            side: 'the value side of the threshold the title sits on ("low", "high", or "inside" a range)',
-            align: 'where the title sits along the threshold ("start", "middle", "end", or "auto" for the axis side)',
-            snapToValue: 'whether the title flips to the other side of the line when its own side has no room, instead of being clamped inside the plot over the line',
-            margin: spacing('the margin (in pixels) of the threshold title, relative to its orientation'),
-            padding: spacing('the padding (in pixels) of the threshold title, relative to its orientation'),
-            textStyle: styleStates('the style of the threshold title text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity']),
-            font: font('the font of the threshold title text (family, size, weight, style), each member falling back to chart.font when null'),
-            backgroundStyle: style('the styles to apply to the threshold title background')
-          }
-        }
-      }
+      description: thresholdsDescription,
+      properties: getThresholdDescriptions()
     },
     thresholdStep: {
       description: thresholdStepDescription,
