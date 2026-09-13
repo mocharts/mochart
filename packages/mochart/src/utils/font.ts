@@ -4,7 +4,7 @@ import type { FontWeight, FontStyle } from '../config/core/constants';
 /** The inline css a resolved font writes on a text element; a member is absent when nothing sets it. */
 export interface FontInlineStyle {
   fontFamily?: string;
-  fontSize?: number;
+  fontSize?: number | string;
   fontWeight?: FontWeight;
   fontStyle?: FontStyle;
 }
