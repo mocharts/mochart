@@ -772,6 +772,23 @@ describe('threshold entry validation', () => {
     expect(implicit.diagnostics.map((diagnostic) => diagnostic.path)).toContainEqual(['valueAxisDefaults', 'thresholds', 0, 'title', 'side']);
   });
 
+  it('reports a threshold member inherited from valueAxisDefaults there once, and an axis\'s own on the axis', () => {
+    const inherited = detailedFor({ ...base, categoryAxis: { property: 'p' }, series: [{ property: 'v', axis: 'A' }],
+      valueAxes: [{ id: 'A' }, { id: 'B' }], valueAxisDefaults: { thresholds: [{ value: 1, pattern: 'nope' }], thresholdStep: { gradient: 'nope' } } });
+    expect(inherited.errors.sort()).toEqual([
+      'valueAxisDefaults - thresholdStep.gradient - should be the id of a linearGradients or radialGradients entry',
+      'valueAxisDefaults - thresholds[0].pattern - should be the id of a patterns entry'
+    ]);
+    expect(inherited.diagnostics.map((diagnostic) => diagnostic.path)).toEqual(expect.arrayContaining([['valueAxisDefaults', 'thresholds', 0, 'pattern'], ['valueAxisDefaults', 'thresholdStep', 'gradient']]));
+    expect(inherited.diagnostics).toHaveLength(2);
+    const own = detailedFor({ ...base, categoryAxis: { property: 'p' }, series: [{ property: 'v', axis: 'A' }],
+      valueAxes: [{ id: 'A' }, { id: 'B', thresholds: [{ value: 1, pattern: 'nope' }] }], valueAxisDefaults: { thresholds: [{ value: 1, pattern: 'nope' }] } });
+    expect(own.errors.sort()).toEqual([
+      'valueAxes[1] - thresholds[0].pattern - should be the id of a patterns entry',
+      'valueAxisDefaults - thresholds[0].pattern - should be the id of a patterns entry'
+    ]);
+  });
+
   it('accepts thresholds on a linear category axis', () => {
     expect(errorsFor({ ...base, categoryAxis: { property: 'p', type: 'number', scale: 'linear', thresholds: [{ value: 5 }] } }))
       .toEqual([]);

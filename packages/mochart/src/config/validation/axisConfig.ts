@@ -237,7 +237,8 @@ function getSectionIds(config: ConfigObject, sectionKeys: string[]): Set<string>
 export function validateThresholdEntries(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
   const patternIds = getSectionIds(config, ['patterns']);
   const gradientIds = getSectionIds(config, ['linearGradients', 'radialGradients']);
-  const axes: { prefix: string; path: (string | number)[]; axis: unknown }[] = [{ prefix: 'categoryAxis', path: ['categoryAxis'], axis: config['categoryAxis'] }];
+  // raw is the axis as authored, or null when every member of the axis is its own (the category axis, the implicit axis)
+  const axes: { prefix: string; path: (string | number)[]; axis: unknown; raw: ConfigObject | null }[] = [{ prefix: 'categoryAxis', path: ['categoryAxis'], axis: config['categoryAxis'], raw: null }];
   const valueAxes = config['valueAxes'];
   if (Array.isArray(valueAxes)) {
     // the built axes drop ignored entries, so an error is reported at the authored index like the other cross-section passes;
@@ -245,25 +246,49 @@ export function validateThresholdEntries(config: ConfigObject, configWithoutDefa
     const rawValueAxes = configWithoutDefaults['valueAxes'];
     const rawIndices = getRawIndices(rawValueAxes);
     if (rawIndices === null ? !filterConfig(rawValueAxes) : rawIndices.length === 0) {
-      axes.push({ prefix: 'valueAxisDefaults', path: ['valueAxisDefaults'], axis: valueAxes[0] });
+      axes.push({ prefix: 'valueAxisDefaults', path: ['valueAxisDefaults'], axis: valueAxes[0], raw: null });
     }
     else {
       valueAxes.forEach((axis, index) => {
         const rawIndex = rawIndices?.[index] ?? index;
-        axes.push({ prefix: 'valueAxes[' + rawIndex + ']', path: ['valueAxes', rawIndex], axis });
+        const rawAxis = rawIndices === null ? rawValueAxes : (rawValueAxes as unknown[])[rawIndex];
+        axes.push({ prefix: 'valueAxes[' + rawIndex + ']', path: ['valueAxes', rawIndex], axis, raw: isConfigObject(rawAxis) ? rawAxis : null });
       });
     }
   }
-  for (const { prefix, path, axis } of axes) {
+  // a member the axis did not author came from valueAxisDefaults: it is reported there, and once, not on every axis that inherits it
+  const authored = (raw: ConfigObject | null, memberPath: (string | number)[]): boolean => {
+    if (raw === null) {
+      return true;
+    }
+    const [section, member] = memberPath;
+    if (section === 'thresholds') {
+      return Array.isArray(raw['thresholds']);
+    }
+    const step = raw['thresholdStep'];
+    return isConfigObject(step) && typeof member === 'string' && step[member] !== undefined;
+  };
+  const reportedDefaults = new Set<string>();
+  for (const { prefix, path, axis, raw } of axes) {
     if (!isConfigObject(axis)) {
       continue;
     }
+    const report = (memberPath: (string | number)[], memberText: string, message: string) => {
+      if (authored(raw, memberPath)) {
+        errors.push(getPropertyMessage(prefix, memberText, message));
+        errorDetails.push({ path: [...path, ...memberPath], message });
+        return;
+      }
+      const key = memberText + ' ' + message;
+      if (!reportedDefaults.has(key)) {
+        reportedDefaults.add(key);
+        errors.push(getPropertyMessage('valueAxisDefaults', memberText, message));
+        errorDetails.push({ path: ['valueAxisDefaults', ...memberPath], message });
+      }
+    };
     const step = axis['thresholdStep'];
     if (isConfigObject(step)) {
-      const reportStep = (member: string, message: string) => {
-        errors.push(getPropertyMessage(prefix, 'thresholdStep.' + member, message));
-        errorDetails.push({ path: [...path, 'thresholdStep', member], message });
-      };
+      const reportStep = (member: string, message: string) => report(['thresholdStep', member], 'thresholdStep.' + member, message);
       if (typeof step['pattern'] === 'string' && !patternIds.has(step['pattern'])) {
         reportStep('pattern', thresholdPatternMessage);
       }
@@ -281,24 +306,21 @@ export function validateThresholdEntries(config: ConfigObject, configWithoutDefa
       if (!isConfigObject(threshold)) {
         return;
       }
-      const report = (member: string, message: string, memberPath: (string | number)[]) => {
-        errors.push(getPropertyMessage(prefix, 'thresholds[' + index + '].' + member, message));
-        errorDetails.push({ path: [...path, 'thresholds', index, ...memberPath], message });
-      };
+      const reportEntry = (member: string, message: string, memberPath: (string | number)[]) => report(['thresholds', index, ...memberPath], 'thresholds[' + index + '].' + member, message);
       const pattern = threshold['pattern'];
       const gradient = threshold['gradient'];
       if (typeof pattern === 'string' && !patternIds.has(pattern)) {
-        report('pattern', thresholdPatternMessage, ['pattern']);
+        reportEntry('pattern', thresholdPatternMessage, ['pattern']);
       }
       if (typeof gradient === 'string' && !gradientIds.has(gradient)) {
-        report('gradient', thresholdGradientMessage, ['gradient']);
+        reportEntry('gradient', thresholdGradientMessage, ['gradient']);
       }
       if (typeof pattern === 'string' && typeof gradient === 'string') {
-        report('pattern', thresholdPatternGradientMessage, ['pattern']);
+        reportEntry('pattern', thresholdPatternGradientMessage, ['pattern']);
       }
       const title = threshold['title'];
       if (isConfigObject(title) && title['side'] === TITLE_SIDE_INSIDE && (threshold['rangeValue'] === undefined || threshold['rangeValue'] === null)) {
-        report('title.side', thresholdInsideMessage, ['title', 'side']);
+        reportEntry('title.side', thresholdInsideMessage, ['title', 'side']);
       }
     });
   }
