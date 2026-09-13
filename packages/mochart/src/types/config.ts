@@ -1765,7 +1765,7 @@ export interface ThresholdTitleConfig {
    * "inside" a range).
    *
    * On a line, the side of the line the title sits on, by axis value. On a
-   * range, low or high of the whole band, or `inside` centred within it;
+   * range, `low` or `high` of the whole band, or `inside` centered within it;
    * `inside` is an error on a line.
    *
    * @default "high"
@@ -1946,8 +1946,8 @@ export interface ThresholdConfig {
    * The unique id of the pattern config filling a threshold range (use null for
    * none; cannot be combined with gradient).
    *
-   * The pattern's `"series"` colour keyword resolves to the range's
-   * `style.normal.fillColor`, the colour of whatever the pattern fills.
+   * The pattern's `"series"` color keyword resolves to the range's
+   * `style.normal.fillColor`, the color of whatever the pattern fills.
    *
    * @default null
    */
@@ -2700,7 +2700,7 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    *
    * Replaces the automatic tick generation entirely: tick counts, intervals and
    * the tick skipping that keeps labels apart are ignored, so the configured
-   * ticks show even where they overlap. Useful for labelling only some of many
+   * ticks show even where they overlap. Useful for labeling only some of many
    * categories, e.g. every Monday of a daily date axis, where the generated
    * ticks would be truncated or skipped at arbitrary categories.
    *
@@ -2828,7 +2828,7 @@ export interface CategoryAxisTickStepConfig {
   /**
    * The d3 format string (d3-format for number, d3-time-format for date)
    * applied to the categories between the step's ticks on an ordinal axis,
-   * labelling them as minor ticks when the labels fit a category slot (use null
+   * labeling them as minor ticks when the labels fit a category slot (use null
    * for none).
    *
    * The categories between the rule's ticks are minor ticks, and their tick

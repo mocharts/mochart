@@ -43,7 +43,7 @@ export default function getDescriptions() {
         offset: 'the number of categories skipped before the first tick',
         period: 'the calendar period the ticks step by on a date axis (day, week, month, year; use null for none)',
         includeFirst: 'whether the first category always gets a tick, even when count and offset would skip it',
-        minorFormat: 'the d3 format string (d3-format for number, d3-time-format for date) applied to the categories between the step\'s ticks on an ordinal axis, labelling them as minor ticks when the labels fit a category slot (use null for none)'
+        minorFormat: 'the d3 format string (d3-format for number, d3-time-format for date) applied to the categories between the step\'s ticks on an ordinal axis, labeling them as minor ticks when the labels fit a category slot (use null for none)'
       }
     },
     tickLabel: {
@@ -87,7 +87,7 @@ export function getDetails() {
       }
     },
     ticks: {
-      description: 'Replaces the automatic tick generation entirely: tick counts, intervals and the tick skipping that keeps labels apart are ignored, so the configured ticks show even where they overlap. Useful for labelling only some of many categories, e.g. every Monday of a daily date axis, where the generated ticks would be truncated or skipped at arbitrary categories.',
+      description: 'Replaces the automatic tick generation entirely: tick counts, intervals and the tick skipping that keeps labels apart are ignored, so the configured ticks show even where they overlap. Useful for labeling only some of many categories, e.g. every Monday of a daily date axis, where the generated ticks would be truncated or skipped at arbitrary categories.',
       properties: {
         value: 'Takes the same forms as `min` on a linear axis: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string when `type` is `date`; on a `string` axis it is the category string. On an ordinal axis the tick shows at the category whose value matches (a date matches by instant, so the ISO and timestamp forms both find a `Date` category), or with a `keyProperty` at the category whose key matches, since the key is what makes a repeated value unique; a tick matching no category is hidden. On a linear axis the tick is placed on the scale, and one outside the current axis domain is hidden.'
       }
@@ -104,7 +104,7 @@ export function getDetails() {
       description: 'A line at a category or axis value, or with a `rangeValue` a band between two. ' + thresholdStyleDetails + ' ' + thresholdDomainDetails,
       properties: {
         ...getThresholdMemberDetails(),
-        value: 'On a linear axis it takes the same forms as `min`: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string when `type` is `date`. On an ordinal axis it names a category, matched the way explicit `ticks` are (a date by instant, so the ISO and timestamp forms both find a `Date` category; the category string on a `string` axis; the key when the axis has a `keyProperty`), and a line sits at the category\'s centre. An entry naming no category is not drawn.',
+        value: 'On a linear axis it takes the same forms as `min`: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string when `type` is `date`. On an ordinal axis it names a category, matched the way explicit `ticks` are (a date by instant, so the ISO and timestamp forms both find a `Date` category; the category string on a `string` axis; the key when the axis has a `keyProperty`), and a line sits at the category\'s center. An entry naming no category is not drawn.',
         rangeValue: getThresholdMemberDetails().rangeValue + ' On an ordinal axis the band covers whole slots from the first named category\'s outer edge to the second\'s, so ranges over consecutive weeks tile without gaps.'
       }
     }

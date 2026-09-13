@@ -172,7 +172,7 @@ the config instead, every text part has a `font` with four members, each
 `null` by default:
 
 - `family`, written as `font-family`
-- `size`, a number of pixels or any css `font-size` string such as `'0.85em'`,
+- `size`, a number of pixels or any CSS `font-size` string such as `'0.85em'`,
   `'120%'` or `'large'`, written as `font-size`
 - `weight`, a hundred from 100 to 900 or one of `normal`, `bold`, `lighter`
   and `bolder`, written as `font-weight`
@@ -196,7 +196,7 @@ legend: { item: { font: { size: '0.85em' } } }
 This chart renders in Georgia while the rest of this page keeps the site
 font, with a larger bold title, an italic value axis title and legend items
 at `0.85em`. A relative size is written on the element as given, so it
-resolves the way css does, against the font size the element inherits from
+resolves the way CSS does, against the font size the element inherits from
 the page, not against `chart.font`:
 
 <LiveChart :config="typography.config" :data="typography.data" />

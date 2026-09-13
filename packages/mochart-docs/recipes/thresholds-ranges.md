@@ -67,16 +67,16 @@ fills the band between its two values instead of drawing a line:
   stroke opacity of 0 leaves just the fill. A
   [`pattern`](/reference/valueAxes#valueAxes.thresholds.pattern) or
   [`gradient`](/reference/valueAxes#valueAxes.thresholds.gradient) id fills
-  the band with that definition instead, and a pattern's `series` colour
-  resolves to the band's fill colour. `front: false` keeps the band behind
+  the band with that definition instead, and a pattern's `series` color
+  resolves to the band's fill color. `front: false` keeps the band behind
   the series.
 - The title's `side` is `low` or `high` of the whole band, or `inside` to
-  centre it within the band; `align` places any threshold title at the
+  center it within the band; `align` places any threshold title at the
   `start`, `middle` or `end` of the plot instead of the axis side.
 - A band partly outside the axis domain is clipped to it; one wholly outside
   is not drawn.
 - Ordinal category axes take thresholds too: a value names a category, so a
-  line sits at that category's centre, as the `Midweek` line at `Wed` above,
+  line sits at that category's center, as the `Midweek` line at `Wed` above,
   and a range covers whole slots from the first named category to the second.
 - [`thresholdStep`](/reference/categoryAxis#categoryAxis.thresholdStep)
   repeats a line or range by rule instead of listing values: every `count`-th
@@ -88,4 +88,3 @@ fills the band between its two values instead of drawing a line:
   bands 0 to 10, 20 to 30 and so on. `range: false` draws lines at the
   candidates instead. The stepped shapes share one `style`, `pattern` or
   `gradient`, carry no title, and stop at 500 shapes.
-\n
