@@ -199,7 +199,8 @@ function defaultText(property: EditorPropertyModel, defaults: Record<string, unk
 function defaultValueText(value: EditorDefaultValue | undefined): string | null {
   if (!value) return null;
   switch (value.kind) {
-    case 'literal': return value.text;
+    // the model writes an empty text for a property with no default, such as the top-level version and id
+    case 'literal': return value.text === '' ? null : value.text;
     case 'color': return JSON.stringify(value.color);
     case 'colors': return JSON.stringify(value.colors);
     case 'none': return null;

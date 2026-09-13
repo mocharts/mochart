@@ -397,6 +397,16 @@ describe('Mochart support hover documentation', () => {
     expect(text).toContain('Default: "xy"');
   });
 
+  // Regression: the model writes an empty default text for version and id, which have no default, and the
+  // rewrite showed it as a bare "Default: " line
+  it('shows no Default line for a property with no default', () => {
+    const source = '{"version":"1.0.0","id":"x","chart":{"type":"xy"}}';
+    const hover = (key: string) => mochartSupportTesting.hoverSource(viewFor(source), source.indexOf('"' + key + '"') + 2)!.create().dom.textContent ?? '';
+    expect(hover('version')).not.toMatch(/Default:\s*$/);
+    expect(hover('id')).not.toMatch(/Default:\s*$/);
+    expect(hover('type')).toContain('Default: "xy"');
+  });
+
   // Regression: only text defaults were shown, so color, color-list and conditional-only defaults had no Default
   // line, and a conditional entry whose value is a color was dropped from the list
   it('shows color, color list and conditional defaults', () => {
