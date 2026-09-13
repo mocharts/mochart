@@ -26,6 +26,16 @@ describe('font validation', () => {
     }
   });
 
+  it('rejects an empty or blank family, and accepts a family list', () => {
+    for (const family of ['', '   ']) {
+      expect(errorsFor(withFont({ chart: { font: { family } } })), JSON.stringify(family))
+        .toContainEqual(expect.stringContaining('chart - font.family - should be a css font-family string with at least one character other than whitespace'));
+      expect(errorsFor(withFont({ title: { text: 'T', font: { family } } })), JSON.stringify(family))
+        .toContainEqual(expect.stringContaining('title - font.family - should be a css font-family string'));
+    }
+    expect(errorsFor(withFont({ chart: { font: { family: 'Georgia, serif' } }, title: { text: 'T', font: { family: null } } }))).toEqual([]);
+  });
+
   it('rejects a string that is not a css font-size', () => {
     for (const size of ['0em', '-1rem', '12', 'big', 'px', '']) {
       expect(errorsFor(withFont({ chart: { font: { size } } })), size)

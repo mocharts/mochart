@@ -71,8 +71,12 @@ const fontSize: CustomValidator = value => {
 const fontSizeValidator = validators.custom(fontSize).withCustomName('fontSize')
   .withMessage('should be a number of pixels greater than 0, or a css font-size string (a length above 0 with a unit, a percentage, a size keyword, or a calc/clamp/min/max/var function)');
 
+// an empty or blank family is not a css font-family, and would win over chart.font only to remove the declaration
+const fontFamilyValidator = validators.stringRegexp(/\S/).withCustomName('fontFamily')
+  .withMessage('should be a css font-family string with at least one character other than whitespace');
+
 const fontKeyMap = {
-  family: validators.string().orEqual(NONE),
+  family: fontFamilyValidator.orEqual(NONE),
   size: fontSizeValidator.orEqual(NONE),
   weight: validators.oneOf(FONT_WEIGHTS).orEqual(NONE),
   style: validators.oneOf(FONT_STYLES).orEqual(NONE)
