@@ -1,4 +1,4 @@
-import { getIndentation, indentString, syntaxTree } from '@codemirror/language';
+import { ensureSyntaxTree, getIndentation, indentString, syntaxTree } from '@codemirror/language';
 import type { EditorState } from '@codemirror/state';
 import type { SyntaxNode } from '@lezer/common';
 import type { JsonPath } from './types.js';
@@ -179,4 +179,91 @@ export function keyRangeForPath(state: EditorState, path: JsonPath, key: string)
     if (name) return { from: name.from, to: Math.max(name.from + 1, name.to) };
   }
   return rangeForPath(state, path);
+}
+
+export interface FormattedDocument {
+  text: string;
+  /** Where an offset in the source lands in the formatted text: the same place in the same token, or right after the token before it. */
+  mapOffset: (offset: number) => number;
+}
+
+/**
+ * The document laid out the way JSON.stringify(value, null, indentation) lays it out, with every string, number,
+ * true, false and null copied from the source as written, so formatting changes whitespace outside strings only
+ * and no literal is reserialised. Null when the document does not parse into a single value.
+ */
+export function formatDocument(state: EditorState, indentation: number | string): FormattedDocument | null {
+  const length = state.doc.length;
+  const tree = ensureSyntaxTree(state, length, 5000) ?? syntaxTree(state);
+  const root = children(tree.topNode).find(child => valueNames.has(child.name));
+  if (!root || tree.topNode.to < length) return null;
+  let hasError = false;
+  tree.iterate({ enter: node => { if (node.type.isError) hasError = true; } });
+  if (hasError) return null;
+  const source = state.doc.toString();
+  const unit = typeof indentation === 'number' ? ' '.repeat(indentation) : indentation;
+  const parts: string[] = [];
+  const tokens: { from: number; to: number; newFrom: number }[] = [];
+  let newLength = 0;
+  const emit = (text: string, from: number | null) => {
+    if (from !== null) tokens.push({ from, to: from + text.length, newFrom: newLength });
+    parts.push(text);
+    newLength += text.length;
+  };
+  const punctuation = (char: string, from: number) => emit(char, source[from] === char ? from : null);
+  const commaBefore = (node: SyntaxNode) => {
+    let at = node.from - 1;
+    while (at >= 0 && /\s/.test(source[at]!)) at--;
+    punctuation(',', at);
+  };
+  const emitValue = (node: SyntaxNode, level: number) => {
+    if (node.name === 'Object' || node.name === 'Array') {
+      const open = node.name === 'Object' ? '{' : '[';
+      const close = node.name === 'Object' ? '}' : ']';
+      const members = node.name === 'Object' ? children(node).filter(child => child.name === 'Property') : arrayValues(node);
+      punctuation(open, node.from);
+      if (members.length === 0) {
+        punctuation(close, node.to - 1);
+        return;
+      }
+      members.forEach((member, index) => {
+        if (index > 0) commaBefore(member);
+        emit('\n' + unit.repeat(level + 1), null);
+        if (member.name === 'Property') {
+          const name = children(member).find(child => child.name === 'PropertyName');
+          const colon = children(member).find(child => child.name === ':');
+          const value = propertyValue(member);
+          if (!name || !value) throw new Error('property without a name or value');
+          emit(source.slice(name.from, name.to), name.from);
+          emit(':', colon ? colon.from : null);
+          emit(' ', null);
+          emitValue(value, level + 1);
+        }
+        else {
+          emitValue(member, level + 1);
+        }
+      });
+      emit('\n' + unit.repeat(level), null);
+      punctuation(close, node.to - 1);
+      return;
+    }
+    emit(source.slice(node.from, node.to), node.from);
+  };
+  try {
+    emitValue(root, 0);
+  }
+  catch {
+    return null;
+  }
+  const text = parts.join('');
+  const mapOffset = (offset: number) => {
+    let previous: { from: number; to: number; newFrom: number } | null = null;
+    for (const token of tokens) {
+      if (offset >= token.from && offset <= token.to) return token.newFrom + (offset - token.from);
+      if (token.to <= offset) previous = token;
+      else break;
+    }
+    return previous === null ? 0 : previous.newFrom + (previous.to - previous.from);
+  };
+  return { text, mapOffset };
 }

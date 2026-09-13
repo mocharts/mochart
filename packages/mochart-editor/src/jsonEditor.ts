@@ -8,6 +8,7 @@ import { tags } from '@lezer/highlight';
 import type { JsonEditorDiagnostic, JsonEditorHandle, JsonEditorOptions } from './types.js';
 import { supportImplementation } from './support.js';
 import { duplicateJsonKeyMessage, findDuplicateJsonKeys, parseJson } from './jsonDuplicateKeys.js';
+import { formatDocument } from './jsonTree.js';
 
 // JSON.parse keeps the last of repeated keys silently, so the syntax layer flags the later ones as errors
 function duplicateKeyDiagnostics(text: string): Diagnostic[] {
@@ -31,17 +32,6 @@ function publicDiagnostic(diagnostic: Diagnostic): JsonEditorDiagnostic {
     source,
     ...(('path' in diagnostic && Array.isArray(diagnostic.path)) ? { path: diagnostic.path } : {})
   };
-}
-
-// formatting changes whitespace outside strings only, so the caret keeps its place by counting the other characters
-function formattedOffset(before: string, offset: number, after: string): number {
-  let remaining = 0;
-  for (let i = 0; i < offset; i++) if (!/\s/.test(before[i]!)) remaining++;
-  for (let i = 0; i < after.length; i++) {
-    if (remaining === 0) return i;
-    if (!/\s/.test(after[i]!)) remaining--;
-  }
-  return after.length;
 }
 
 const darkHighlightStyle = HighlightStyle.define([
@@ -201,15 +191,19 @@ export function createJsonEditor(host: HTMLElement, options: JsonEditorOptions):
       if (view.state.readOnly) return false;
       try {
         const text = view.state.doc.toString();
-        const formatted = JSON.stringify(parseJson(text), null, indentation);
-        if (formatted === text) return true;
+        // parsing first refuses a document that does not parse or repeats a key; the layout itself comes from the
+        // syntax tree with every literal kept as written, so only whitespace outside strings changes
+        parseJson(text);
+        const formatted = formatDocument(view.state, indentation);
+        if (formatted === null) return false;
+        if (formatted.text === text) return true;
         externalUpdate = true;
         view.dispatch({
-          changes: { from: 0, to: text.length, insert: formatted },
-          selection: { anchor: formattedOffset(text, view.state.selection.main.head, formatted) }
+          changes: { from: 0, to: text.length, insert: formatted.text },
+          selection: { anchor: formatted.mapOffset(view.state.selection.main.head) }
         });
         externalUpdate = false;
-        options.onChange?.(formatted);
+        options.onChange?.(formatted.text);
         return true;
       }
       catch {

@@ -181,6 +181,32 @@ describe('JSON editor', () => {
     host.remove();
   });
 
+  // Regression: format() re-serialised through JSON.stringify, so 1e3 became 1000, 1e400 became null, long
+  // integers lost precision, escapes were rewritten, and the caret, restored by counting non-whitespace
+  // characters, landed inside the next string or past the end whenever a literal changed length
+  it('keeps every literal as written when formatting, and the caret in its token', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const source = '{"a": 1e3, "b": "x   y", "c": 1e400, "d": 12345678901234567890, "e": 1.0, "f": "\\u00e9", "g": -0}';
+    const editor = createJsonEditor(host, { value: source, ariaLabel: 'Configuration' });
+    const view = EditorView.findFromDOM(editor.element)!;
+
+    // caret between the spaces inside "x   y"
+    const inString = source.indexOf('x  ') + 2;
+    editor.showFocusRange(inString);
+    expect(editor.format()).toBe(true);
+    const formatted = '{\n  "a": 1e3,\n  "b": "x   y",\n  "c": 1e400,\n  "d": 12345678901234567890,\n  "e": 1.0,\n  "f": "\\u00e9",\n  "g": -0\n}';
+    expect(editor.getValue()).toBe(formatted);
+    expect(view.state.selection.main.head).toBe(formatted.indexOf('x  ') + 2);
+
+    // caret in the whitespace before the closing brace lands right after the last token
+    editor.setValue(source);
+    editor.showFocusRange(source.length - 1);
+    expect(editor.format()).toBe(true);
+    expect(view.state.selection.main.head).toBe(formatted.lastIndexOf('-0') + 2);
+    editor.destroy();
+  });
+
   it('leaves invalid JSON unchanged when formatting', () => {
     const host = document.createElement('div');
     const editor = createJsonEditor(host, { value: '{', ariaLabel: 'Configuration' });
