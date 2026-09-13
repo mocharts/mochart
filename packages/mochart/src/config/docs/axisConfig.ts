@@ -92,7 +92,7 @@ export function getThresholdStepDescriptions(): DescriptionMap {
     visible: 'whether to draw the stepped thresholds',
     interval: 'the axis value distance the thresholds step by on a number scale (use null for none)',
     count: 'every count-th step gets a threshold (2 draws every other one)',
-    offset: 'the number of steps skipped before the first threshold',
+    offset: 'the number of steps skipped before the first threshold; on a linear scale it shifts which multiples or periods are kept, counted from 0 or the calendar origin',
     range: 'whether each threshold is a range spanning its step (true) or a line at its start (false)',
     front: 'whether the stepped thresholds are drawn in front of (true) or behind (false) the series shapes',
     style: styleStates('the style of the stepped thresholds: the stroke members draw a line or the edges of a range, the fill members fill a range and are ignored on a line', fillLineMembers),

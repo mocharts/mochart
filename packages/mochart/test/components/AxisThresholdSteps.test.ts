@@ -115,14 +115,24 @@ describe('threshold steps on an ordinal axis', () => {
 });
 
 describe('threshold steps on linear scales', () => {
-  it('bands alternate weeks between period boundaries on a linear date axis, starting from the period under way', () => {
+  it('bands alternate weeks between period boundaries on a linear date axis, the same weeks whatever the domain', () => {
     const rows = [{ day: '2026-06-03', value: 1 }, { day: '2026-06-10', value: 2 }, { day: '2026-06-24', value: 3 }];
-    const stepped = getSteppedThresholds({ scale: 'linear', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, period: 'week', count: 2 }) },
-      [new Date('2026-06-03'), new Date('2026-06-24')], null);
-    expect(stepped.map((threshold) => [new Date(threshold.value).toISOString().slice(0, 10), new Date(threshold.rangeValue!).toISOString().slice(0, 10)]))
-      .toEqual([['2026-06-01', '2026-06-08'], ['2026-06-15', '2026-06-22']]);
+    const weeks = (domain: [Date, Date]) => getSteppedThresholds({ scale: 'linear', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, period: 'week', count: 2 }) }, domain, null)
+      .map((threshold) => [new Date(threshold.value).toISOString().slice(0, 10), new Date(threshold.rangeValue!).toISOString().slice(0, 10)]);
+    // the weeks are numbered from a fixed Monday, so the week of June 8 2026 is the even one; the week under way at the domain start still counts
+    expect(weeks([new Date('2026-06-03'), new Date('2026-06-24')])).toEqual([['2026-06-08', '2026-06-15'], ['2026-06-22', '2026-06-29']]);
+    expect(weeks([new Date('2026-06-10'), new Date('2026-06-24')])).toEqual([['2026-06-08', '2026-06-15'], ['2026-06-22', '2026-06-29']]);
     const container = mount({ categoryAxis: { property: 'day', type: 'date', scale: 'linear', thresholdStep: { visible: true, period: 'week', count: 2, style: stepStyle } } }, rows);
     expect(rects(container)).toHaveLength(2);
+  });
+
+  it('keeps the same multiples of the interval whatever the domain, with the offset shifting them', () => {
+    const multiples = (domain: [number, number], offset = 0) => getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 10, count: 2, offset }) }, domain, null)
+      .map((threshold) => [threshold.value, threshold.rangeValue]);
+    expect(multiples([0, 50])).toEqual([[0, 10], [20, 30], [40, 50]]);
+    expect(multiples([15, 50])).toEqual([[20, 30], [40, 50]]);
+    expect(multiples([-15, 30])).toEqual([[-20, -10], [0, 10], [20, 30]]);
+    expect(multiples([15, 50], 1)).toEqual([[10, 20], [30, 40]]);
   });
 
   it('bands multiples of the interval on a value axis and follows a domain that lets a band be clipped', () => {

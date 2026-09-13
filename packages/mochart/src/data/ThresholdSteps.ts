@@ -1,6 +1,6 @@
 import { deepMerge } from '../config/core/deepMerge';
 import { getThresholdEntryDefaults } from '../config/defaults/axisConfig';
-import { getNextPeriodStart, getPeriodStart, getStepCandidates } from './Steps';
+import { getNextPeriodStart, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps';
 import { NONE, SCALE_ORDINAL, TYPE_DATE } from '../config/core/constants';
 import type { ResolvedThreshold } from '../config/defaults/axisConfig';
 import type { AxisThresholdStepConfig, CategoryAxisThresholdStepConfig } from '../types/config';
@@ -63,22 +63,22 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
   if (typeof domainMin !== 'number' || typeof domainMax !== 'number' || !(domainMax > domainMin)) {
     return thresholds;
   }
-  const keep = (position: number) => position >= step.offset && (position - step.offset) % step.count === 0;
+  // a linear scale phases the rule on the step's own index (the multiple, or the period from a fixed calendar
+  // origin), not on where the domain starts, so the same steps keep their shapes as the data moves the domain
+  const keep = (index: number) => ((index - step.offset) % step.count + step.count) % step.count === 0;
 
   if (axisConfig.type === TYPE_DATE) {
     if (step.period === undefined || step.period === NONE) {
       return thresholds;
     }
-    // the period holding the domain start counts too, so a band already under way is drawn clipped
+    // the period holding the domain start counts too, so a range already under way is drawn clipped
     let boundary = getPeriodStart(step.period, dateUTC, new Date(domainMin));
-    let position = 0;
     while (boundary.getTime() <= domainMax && thresholds.length < THRESHOLD_STEP_SHAPE_CAP) {
       const nextBoundary = getNextPeriodStart(step.period, dateUTC, boundary);
-      if (keep(position)) {
+      if (keep(getPeriodIndex(step.period, dateUTC, boundary))) {
         add(boundary.getTime(), nextBoundary.getTime());
       }
       boundary = nextBoundary;
-      position += 1;
     }
     return thresholds;
   }
@@ -89,8 +89,8 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
   }
   const firstMultiple = Math.floor(domainMin / interval);
   const lastMultiple = Math.ceil(domainMax / interval);
-  for (let multiple = firstMultiple, position = 0; multiple < lastMultiple && thresholds.length < THRESHOLD_STEP_SHAPE_CAP; multiple++, position++) {
-    if (keep(position)) {
+  for (let multiple = firstMultiple; multiple < lastMultiple && thresholds.length < THRESHOLD_STEP_SHAPE_CAP; multiple++) {
+    if (keep(multiple)) {
       add(multiple * interval, (multiple + 1) * interval);
     }
   }

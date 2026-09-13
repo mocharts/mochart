@@ -1847,7 +1847,9 @@ export interface AxisThresholdStepConfig {
    */
   count: number;
   /**
-   * The number of steps skipped before the first threshold.
+   * The number of steps skipped before the first threshold; on a linear scale
+   * it shifts which multiples or periods are kept, counted from 0 or the
+   * calendar origin.
    *
    * @default 0
    */
@@ -2577,9 +2579,11 @@ export interface AxisConfigBase {
    * The steps follow the scale: the categories or period starts on an ordinal
    * axis, the period boundaries on a linear date axis, the multiples of
    * `interval` on a linear number axis, and with neither a period nor an
-   * interval a linear axis draws nothing. The stepped thresholds draw after the
-   * `thresholds` entries, carry no title, and a rule that would draw more than
-   * 500 shapes stops there.
+   * interval a linear axis draws nothing. A linear scale counts its periods
+   * from a fixed calendar origin and its multiples from 0, so the same steps
+   * keep their shapes as the data moves the domain. The stepped thresholds draw
+   * after the `thresholds` entries, carry no title, and a rule that would draw
+   * more than 500 shapes stops there.
    *
    * Category axis default: `{ visible: false, interval: null, count: 1, offset:
    * 0, range: true, front: false, style: { … }, pattern: null, gradient: null,
@@ -2737,9 +2741,11 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * The steps follow the scale: the categories or period starts on an ordinal
    * axis, the period boundaries on a linear date axis, the multiples of
    * `interval` on a linear number axis, and with neither a period nor an
-   * interval a linear axis draws nothing. The stepped thresholds draw after the
-   * `thresholds` entries, carry no title, and a rule that would draw more than
-   * 500 shapes stops there.
+   * interval a linear axis draws nothing. A linear scale counts its periods
+   * from a fixed calendar origin and its multiples from 0, so the same steps
+   * keep their shapes as the data moves the domain. The stepped thresholds draw
+   * after the `thresholds` entries, carry no title, and a rule that would draw
+   * more than 500 shapes stops there.
    *
    * @default { visible: false, interval: null, count: 1, offset: 0, range: true, front: false, style: { … }, pattern: null, gradient: null, period: null }
    */

@@ -99,7 +99,7 @@ export function getDetails() {
       }
     },
     thresholdStep: {
-      description: 'The steps follow the scale: the categories or period starts on an ordinal axis, the period boundaries on a linear date axis, the multiples of `interval` on a linear number axis, and with neither a period nor an interval a linear axis draws nothing. The stepped thresholds draw after the `thresholds` entries, carry no title, and a rule that would draw more than 500 shapes stops there.',
+      description: 'The steps follow the scale: the categories or period starts on an ordinal axis, the period boundaries on a linear date axis, the multiples of `interval` on a linear number axis, and with neither a period nor an interval a linear axis draws nothing. A linear scale counts its periods from a fixed calendar origin and its multiples from 0, so the same steps keep their shapes as the data moves the domain. The stepped thresholds draw after the `thresholds` entries, carry no title, and a rule that would draw more than 500 shapes stops there.',
       properties: {
         period: 'Weeks start on Monday and the boundaries follow `dateUTC`. On an ordinal axis the steps are the first category of each period, so `"week"` with `count: 2` bands every other week whatever the holidays; on a linear date axis they are the period boundaries themselves.',
         count: 'With no period every category of an ordinal axis is a step, so `count: 2` stripes alternate categories.',

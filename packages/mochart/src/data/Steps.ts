@@ -41,6 +41,27 @@ export function getNextPeriodStart(period: StepPeriod, dateUTC: boolean, periodS
   return dateUTC ? new Date(Date.UTC(year, month, day)) : new Date(year, month, day);
 }
 
+const DAY_MILLIS = 86400000;
+
+/**
+ * The period's index from a fixed calendar origin: days from the epoch, weeks from Monday January 5 1970,
+ * months from January 1970, or the year itself, read in UTC or local time per dateUTC. A count and offset
+ * phased on it keep the same periods whatever the domain.
+ */
+export function getPeriodIndex(period: StepPeriod, dateUTC: boolean, periodStart: Date): number {
+  const year = dateUTC ? periodStart.getUTCFullYear() : periodStart.getFullYear();
+  const month = dateUTC ? periodStart.getUTCMonth() : periodStart.getMonth();
+  if (period === STEP_PERIOD_YEAR) {
+    return year;
+  }
+  if (period === STEP_PERIOD_MONTH) {
+    return year * 12 + month;
+  }
+  const day = dateUTC ? periodStart.getUTCDate() : periodStart.getDate();
+  const days = Math.round(Date.UTC(year, month, day) / DAY_MILLIS);
+  return period === STEP_PERIOD_WEEK ? Math.floor((days - 4) / 7) : days;
+}
+
 /** The period boundaries inside a linear date domain, the linear axis's ticks under a period step. */
 export function getPeriodBoundaries(period: StepPeriod, dateUTC: boolean, [domainStart, domainEnd]: [Date, Date]): Date[] {
   const boundaries: Date[] = [];
