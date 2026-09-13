@@ -20,6 +20,8 @@ export interface RandomConfig {
       max: string;
       interval: number;
       intervalUnit: 'second' | 'minute' | 'hour' | 'day' | string;
+      /** Draw only Monday to Friday days; needs an interval of one day. */
+      weekdays?: boolean;
     };
   };
   series: {

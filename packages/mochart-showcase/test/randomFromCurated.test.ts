@@ -64,6 +64,22 @@ describe('randomFromCurated', () => {
     expect(spec.category.count).toBeLessThanOrEqual(Math.floor((max - min) / interval) + 1);
   });
 
+  it('keeps a weekdays-only demo drawing weekdays while the derived spacing is one day', () => {
+    // 2026-06-01 is a Monday: two trading weeks with the weekend gap between them
+    const days = ['01', '02', '03', '04', '05', '08', '09', '10', '11', '12'].map(day => ({ c: '2026-06-' + day, v: 1 }));
+    const random = makeGenericRandom();
+    random.category.date.weekdays = true;
+    const spec = randomFromCurated(config('date'), days, random);
+    expect(spec.category.date).toMatchObject({ interval: 1, intervalUnit: 'day', weekdays: true });
+    expect(validateRandomConfig(spec)).toBe(true);
+
+    // rows a week apart derive a week spacing, which the member does not allow, so it is dropped
+    const weeks = ['01', '08', '15', '22', '29'].map(day => ({ c: '2026-06-' + day, v: 1 }));
+    const weekly = randomFromCurated(config('date'), weeks, random);
+    expect(weekly.category.date.weekdays).toBeUndefined();
+    expect(validateRandomConfig(weekly)).toBe(true);
+  });
+
   it('leaves the rows and the demo spec untouched', () => {
     const rows = [{ c: 1, v: 1 }, { c: 2, v: 2 }];
     const random = makeGenericRandom();

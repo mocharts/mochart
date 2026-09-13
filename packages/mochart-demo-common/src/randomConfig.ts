@@ -53,7 +53,8 @@ const genericValidator = {
       min: validators.datePrimitive(),
       max: validators.datePrimitive(),
       interval: validators.integerMin(1),
-      intervalUnit: validators.oneOf(['second', 'minute', 'hour', 'day'])
+      intervalUnit: validators.oneOf(['second', 'minute', 'hour', 'day']),
+      weekdays: booleanValidator.orEqual(undefined)
     },
     string: {
       rangeValidator: (o: any) => o.minLength <= o.maxLength,
@@ -199,7 +200,20 @@ function addGenericErrorMessages(errorMessages: string[], randomConfig: any): vo
       dateRange = Math.floor(dateRange / dateInterval);
 
       // the generator draws 0 to the interval count inclusive, so both ends of the range are values of their own
-      if (dateRange + 1 < requiredDistinct) {
+      let distinctDates = dateRange + 1;
+      if (date.weekdays === true) {
+        if (date.intervalUnit !== 'day' || date.interval !== 1) {
+          errorMessages.push(datePrefix + 'weekdays requires an interval of one day');
+        }
+        distinctDates = 0;
+        for (let day = minDate; day <= maxDate; day += 86400000) {
+          const weekday = new Date(day).getUTCDay();
+          if (weekday !== 0 && weekday !== 6) {
+            distinctDates++;
+          }
+        }
+      }
+      if (distinctDates < requiredDistinct) {
         errorMessages.push(datePrefix + 'range insufficient to fulfill category count');
       }
 

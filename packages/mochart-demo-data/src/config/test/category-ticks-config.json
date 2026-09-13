@@ -38,7 +38,6 @@
       "visible": true,
       "period": "week",
       "count": 2,
-      "front": false,
       "style": {
         "normal": {
           "strokeOpacity": 0,

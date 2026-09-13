@@ -47,11 +47,13 @@ function createValue(generator: Rng, range: number): number {
   return Math.round(generator() * range);
 }
 
+const DAY_MILLIS = 86400000;
+
 const intervalUnitToDateUnit: Record<string, number> = {
   second: 1000,
   minute: 60000,
   hour: 3600000,
-  day: 86400000
+  day: DAY_MILLIS
 };
 
 const categoryTypeToGenerator: Record<string, (categoryConfig: RandomCategoryConfig, randomGenerator: Rng) => ValueGenerator> = {
@@ -84,11 +86,27 @@ function numberToString(number: number): string {
   return result.join('');
 }
 
+/** Every Monday to Friday day from min to max as UTC midnights, the pool a weekdays-only date category draws from. */
+function weekdayMillis(min: number, max: number): number[] {
+  const days: number[] = [];
+  for (let day = min; day <= max; day += DAY_MILLIS) {
+    const weekday = new Date(day).getUTCDay();
+    if (weekday !== 0 && weekday !== 6) {
+      days.push(day);
+    }
+  }
+  return days;
+}
+
 function categoryDateGenerator({ date }: RandomCategoryConfig, randomGenerator: Rng): ValueGenerator {
   let { interval } = date;
   const { intervalUnit } = date;
   const min = toMillis(date.min);
   const max = toMillis(date.max);
+  if (date.weekdays === true) {
+    const weekdays = weekdayMillis(min, max);
+    return () => weekdays[createValue(randomGenerator, weekdays.length - 1)]!;
+  }
   let range = max - min;
   let dateUnit = 1;
   if (intervalUnitToDateUnit[intervalUnit] !== undefined) {

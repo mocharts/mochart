@@ -107,6 +107,22 @@ describe('validateRandomConfig', () => {
         series: { ...genericConfig.series, reuse: { global: false, step: 'always' } } })).toBe(false);
     });
 
+    // 2014-01-01 is a Wednesday, so Jan 1 to Jan 14 holds ten weekdays among fourteen days
+    it('counts only Monday to Friday days when weekdays is set', () => {
+      const noReuse = { reuse: { globalFraction: 0, stepFraction: 0 } };
+      const window = { min: '2014-01-01', max: '2014-01-14', interval: 1, intervalUnit: 'day', weekdays: true };
+      expect(validateRandomConfig(withCategory({ ...noReuse, count: 10, date: window }))).toBe(true);
+      expect(validateRandomConfig(withCategory({ ...noReuse, count: 11, date: window }))).toBe(false);
+      expect(validateRandomConfig(withCategory({ ...noReuse, count: 11, date: { ...window, weekdays: false } }))).toBe(true);
+    });
+
+    it('rejects weekdays with an interval other than one day', () => {
+      const wide = { min: '2014-01-01', max: '2018-01-01', weekdays: true };
+      expect(validateRandomConfig(withCategory({ date: { ...wide, interval: 30, intervalUnit: 'day' } }))).toBe(false);
+      expect(validateRandomConfig(withCategory({ date: { ...wide, interval: 1, intervalUnit: 'hour' } }))).toBe(false);
+      expect(validateRandomConfig(withCategory({ date: { ...wide, interval: 1, intervalUnit: 'day' } }))).toBe(true);
+    });
+
     // Regression: the checks compared the interval count, not the values it lands on, one of which is the min.
     it('accepts a range with exactly enough values, and rejects one value short', () => {
       const single = { count: 1, reuse: { globalFraction: 0, stepFraction: 0 } };

@@ -22,9 +22,10 @@
     },
     "date": {
       "min": "2026-06-01",
-      "max": "2026-07-24",
+      "max": "2026-08-14",
       "interval": 1,
-      "intervalUnit": "day"
+      "intervalUnit": "day",
+      "weekdays": true
     }
   },
   "series": {
