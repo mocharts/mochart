@@ -5,6 +5,7 @@ import { installSvgMeasurementShims } from './svgShims';
 import { mountContainer, trackHandle, mockBoundingClientRect } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
 import { getSteppedThresholds, THRESHOLD_STEP_SHAPE_CAP } from '../../src/data/ThresholdSteps';
+import { getStepCandidates } from '../../src/data/Steps';
 import { getThresholdEntryDefaults } from '../../src/config/defaults/axisConfig';
 import { enhanceConfig } from '../../src';
 import type { CategoryAxisThresholdStepConfig } from '../../src/types/config';
@@ -106,6 +107,12 @@ describe('threshold steps on an ordinal axis', () => {
       .toEqual([['2026-06-03', '2026-06-05'], ['2026-06-16', '2026-06-19']]);
     const container = mount({ categoryAxis: { property: 'day', type: 'date', scale: 'ordinal', thresholdStep: { visible: true, period: 'week', count: 2, style: stepStyle } } }, rows);
     expect(rects(container)).toHaveLength(2);
+  });
+
+  it('starts one step per period however the categories are ordered', () => {
+    // two weeks interleaved: the second category of each week is no new period
+    const dates = ['2026-06-03', '2026-06-10', '2026-06-04', '2026-06-11'].map((day) => new Date(day));
+    expect(getStepCandidates({ period: 'week', count: 1, offset: 0 }, dates, 'date', true)).toEqual({ candidates: [0, 1], selected: [0, 1] });
   });
 
   it('draws nothing while not visible', () => {

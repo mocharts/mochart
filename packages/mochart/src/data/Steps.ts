@@ -87,12 +87,13 @@ export function getStepCandidates(rule: StepRule, categoryValues: readonly Categ
   let candidates: number[];
   if (period !== NONE && type === TYPE_DATE) {
     candidates = [];
-    let previousPeriodStart = NaN;
+    // every period start seen so far, so a category of a period met earlier starts no second step when the categories are not in order
+    const periodStarts = new Set<number>();
     categoryValues.forEach((categoryValue, index) => {
       const periodStart = getPeriodStart(period, dateUTC, categoryValue as Date).getTime();
-      if (periodStart !== previousPeriodStart) {
+      if (!periodStarts.has(periodStart)) {
         candidates.push(index);
-        previousPeriodStart = periodStart;
+        periodStarts.add(periodStart);
       }
     });
   }
