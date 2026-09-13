@@ -146,20 +146,30 @@ function documentDefaults(state: EditorState): Record<string, unknown> | null {
   }
 }
 
-// core defaults a section written as one object as entry 0 of a list
-function defaultsPath(defaults: Record<string, unknown>, path: JsonPath): JsonPath {
+// core defaults a section written as one object as entry 0 of a list, and builds a list section without its
+// ignored and non-object entries, so a written index maps to the index among the entries core kept; an entry
+// core dropped has no defaults of its own
+function defaultsPath(defaults: Record<string, unknown>, document: unknown, path: JsonPath): JsonPath | null {
   const [section, next] = path;
-  return typeof section === 'string' && typeof next === 'string' && Array.isArray(defaults[section])
-    ? [section, 0, ...path.slice(1)]
-    : path;
+  if (typeof section !== 'string' || !Array.isArray(defaults[section])) return path;
+  if (typeof next === 'string') return [section, 0, ...path.slice(1)];
+  if (typeof next !== 'number') return path;
+  const written = document !== null && typeof document === 'object' ? (document as Record<string, unknown>)[section] : undefined;
+  if (!Array.isArray(written)) return path;
+  const kept = (entry: unknown) => entry !== null && typeof entry === 'object' && !Array.isArray(entry) && (entry as Record<string, unknown>)['ignore'] !== true;
+  if (!kept(written[next])) return null;
+  const builtIndex = written.slice(0, next).filter(kept).length;
+  return [section, builtIndex, ...path.slice(2)];
 }
 
 // objects and arrays insert only up to 80 characters of JSON: a whole style tree belongs in the hover, not the document
 const maxInsertedTreeLength = 80;
 
-function resolvedDefaultText(defaults: Record<string, unknown> | null, path: JsonPath): string | null {
+function resolvedDefaultText(defaults: Record<string, unknown> | null, document: unknown, path: JsonPath): string | null {
   if (!defaults) return null;
-  const value = valueAtPath(defaults, defaultsPath(defaults, path));
+  const resolvedPath = defaultsPath(defaults, document, path);
+  if (resolvedPath === null) return null;
+  const value = valueAtPath(defaults, resolvedPath);
   if (value === undefined || typeof value === 'function') return null;
   const text = JSON.stringify(value);
   return typeof value === 'object' && value !== null && text.length > maxInsertedTreeLength ? null : text;
@@ -179,8 +189,8 @@ function modelDefaultText(property: EditorPropertyModel): string | null {
   return null;
 }
 
-function defaultText(property: EditorPropertyModel, defaults: Record<string, unknown> | null, path: JsonPath): string {
-  const text = resolvedDefaultText(defaults, path) ?? modelDefaultText(property);
+function defaultText(property: EditorPropertyModel, defaults: Record<string, unknown> | null, document: unknown, path: JsonPath): string {
+  const text = resolvedDefaultText(defaults, document, path) ?? modelDefaultText(property);
   // a null default on a structural property leaves the placeholder, since completing the key means filling it in
   return text === null || (text === 'null' && structural(property.editor)) ? placeholder(property.editor) : text;
 }
@@ -353,11 +363,12 @@ function completionSource(context: CompletionContext) {
     const existing = new Set(existingObjectKeys(context.state, object));
     const properties = propertiesForObject(containerPath);
     const defaults = documentDefaults(context.state);
+    const document = documentFor(context.state);
     return {
       from,
       options: properties.filter(property => !existing.has(property.key)).map(property => ({
         label: property.key,
-        apply: applyProperty(property.key, defaultText(property, defaults, [...containerPath, property.key])),
+        apply: applyProperty(property.key, defaultText(property, defaults, document, [...containerPath, property.key])),
         type: 'property',
         detail: property.editor.types.join(' | ') + (property.required ? ', required' : ''),
         info: propertyInfo(property)

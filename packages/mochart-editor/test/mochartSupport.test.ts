@@ -345,6 +345,18 @@ describe('inserted default values', () => {
       .toBe('{"series":{"bar": {"widthFraction":1,"alignFraction":0.5,"minExtent":0}}}');
   });
 
+  // Regression: defaults were read at the written index, so an ignored entry earlier in the list handed
+  // the next entry's default to this one
+  it('resolves a written entry against the defaults of the entries core keeps', async () => {
+    expect(await acceptAfterTyping('{"series":[{"property":"a","ignore":true},{"property":"b"|},{"property":"c"}]}', 'id', ', ""'))
+      .toBe('{"series":[{"property":"a","ignore":true},{"property":"b", "id": "S0"},{"property":"c"}]}');
+    expect(await acceptAfterTyping('{"series":[{"property":"a","ignore":true},{"property":"b"},{"property":"c"|}]}', 'id', ', ""'))
+      .toBe('{"series":[{"property":"a","ignore":true},{"property":"b"},{"property":"c", "id": "S1"}]}');
+    // the ignored entry has no defaults of its own, so it keeps the placeholder
+    expect(await acceptAfterTyping('{"series":[{"property":"a","ignore":true|},{"property":"b"}]}', 'id', ', ""'))
+      .toBe('{"series":[{"property":"a","ignore":true, "id": ""},{"property":"b"}]}');
+  });
+
   it('keeps the placeholder for a structural property whose default is null', async () => {
     expect(await acceptAfterTyping('{"series":[{|}]}', 'colorScale')).toBe('{"series":[{"colorScale": {}}]}');
     expect(await acceptAfterTyping('{"categoryAxis":{|}}', 'ticks')).toBe('{"categoryAxis":{"ticks": []}}');
