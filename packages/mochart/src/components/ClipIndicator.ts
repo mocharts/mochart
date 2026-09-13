@@ -71,7 +71,8 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     }
 
     this.setPresent(true);
-    this.root.set({ className: mochartCssClasses['clipIndicator'] });
+    // the resolved font sits on the root as well as on each label, so a band with no label still measures its depth from the configured size
+    this.root.set({ className: mochartCssClasses['clipIndicator'], style: resolveFontStyle(this.props.mochartConfig.clipIndicator.font, this.props.mochartConfig.chart.font) });
 
     // The library's only <title>: one string serves as both the accessible name and the hidden
     // label's fallback text — aria-label would win for AT and let the two drift apart.
@@ -174,7 +175,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
       this.setState({ textBounds });
       return;
     }
-    // no label to measure: fall back to the computed font size, which is all an empty band needs
+    // no label to measure: the root carries the resolved font, so its computed size is the configured one, which is all an empty band needs
     if (textBounds === null && typeof getComputedStyle === 'function') {
       const fontSize = parseFloat(getComputedStyle(this.root.node as Element).fontSize);
       if (isFinite(fontSize) && fontSize > 0 && fontSize !== this.state.fontSize) {
