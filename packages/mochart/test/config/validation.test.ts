@@ -762,6 +762,16 @@ describe('threshold entry validation', () => {
     expect(errors).toContainEqual(expect.stringContaining('categoryAxis - thresholds[0].title.side - should be "inside" only on a threshold range'));
   });
 
+  it('reports a threshold entry rule at the authored axis index past an ignored axis, and under valueAxisDefaults with no authored axes', () => {
+    const detailed = detailedFor({ ...base, categoryAxis: { property: 'p' }, series: [{ property: 'v', axis: 'B' }],
+      valueAxes: [{ id: 'A', ignore: true }, { id: 'B', thresholds: [{ value: 1, title: { text: 'T', side: 'inside' } }] }] });
+    expect(detailed.errors).toContainEqual(expect.stringContaining('valueAxes[1] - thresholds[0].title.side - should be "inside" only on a threshold range'));
+    expect(detailed.diagnostics.map((diagnostic) => diagnostic.path)).toContainEqual(['valueAxes', 1, 'thresholds', 0, 'title', 'side']);
+    const implicit = detailedFor({ ...base, categoryAxis: { property: 'p' }, valueAxisDefaults: { thresholds: [{ value: 1, title: { text: 'T', side: 'inside' } }] } });
+    expect(implicit.errors).toContainEqual(expect.stringContaining('valueAxisDefaults - thresholds[0].title.side - should be "inside" only on a threshold range'));
+    expect(implicit.diagnostics.map((diagnostic) => diagnostic.path)).toContainEqual(['valueAxisDefaults', 'thresholds', 0, 'title', 'side']);
+  });
+
   it('accepts thresholds on a linear category axis', () => {
     expect(errorsFor({ ...base, categoryAxis: { property: 'p', type: 'number', scale: 'linear', thresholds: [{ value: 5 }] } }))
       .toEqual([]);

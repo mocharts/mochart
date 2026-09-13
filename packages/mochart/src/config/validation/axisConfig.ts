@@ -234,13 +234,25 @@ function getSectionIds(config: ConfigObject, sectionKeys: string[]): Set<string>
 }
 
 /** The threshold entry rules that cross sections or members: pattern and gradient ids, their exclusivity, and the inside title side. */
-export function validateThresholdEntries(config: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
+export function validateThresholdEntries(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
   const patternIds = getSectionIds(config, ['patterns']);
   const gradientIds = getSectionIds(config, ['linearGradients', 'radialGradients']);
   const axes: { prefix: string; path: (string | number)[]; axis: unknown }[] = [{ prefix: 'categoryAxis', path: ['categoryAxis'], axis: config['categoryAxis'] }];
   const valueAxes = config['valueAxes'];
   if (Array.isArray(valueAxes)) {
-    valueAxes.forEach((axis, index) => axes.push({ prefix: 'valueAxes[' + index + ']', path: ['valueAxes', index], axis }));
+    // the built axes drop ignored entries, so an error is reported at the authored index like the other cross-section passes;
+    // with no authored entries the implicit axis is the valueAxisDefaults, so its thresholds are reported there
+    const rawValueAxes = configWithoutDefaults['valueAxes'];
+    const rawIndices = getRawIndices(rawValueAxes);
+    if (rawIndices === null ? !filterConfig(rawValueAxes) : rawIndices.length === 0) {
+      axes.push({ prefix: 'valueAxisDefaults', path: ['valueAxisDefaults'], axis: valueAxes[0] });
+    }
+    else {
+      valueAxes.forEach((axis, index) => {
+        const rawIndex = rawIndices?.[index] ?? index;
+        axes.push({ prefix: 'valueAxes[' + rawIndex + ']', path: ['valueAxes', rawIndex], axis });
+      });
+    }
   }
   for (const { prefix, path, axis } of axes) {
     if (!isConfigObject(axis)) {

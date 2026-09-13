@@ -343,7 +343,7 @@ function validateConfigInternal(configWithoutDefaults: unknown, configDefaults: 
     validateStackGroups(config, configWithoutDefaults, errors, errorDetails);
     validateGradientIds(config, configWithoutDefaults, errors, errorDetails);
     validateAxisBounds(config, configWithoutDefaults, errors, errorDetails);
-    validateThresholdEntries(config, errors, errorDetails);
+    validateThresholdEntries(config, configWithoutDefaults, errors, errorDetails);
   }
   else {
     const message = objectValidator.getErrorMessage(configWithoutDefaults);
