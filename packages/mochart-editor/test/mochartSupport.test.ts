@@ -199,6 +199,30 @@ describe('Mochart support completions', () => {
     expect(labels(options)).not.toContain('"s3"');
   });
 
+  // Regression: an entry with "ignore": true is dropped when core builds its sections, so its id was
+  // offered and then rejected
+  it('omits ignored entries from reference ids', async () => {
+    const axisOptions = await completionOptions(`{
+      "version": "1.0.0",
+      "categoryAxis": { "property": "m" },
+      "valueAxes": [{ "id": "left", "ignore": true }, { "id": "right" }],
+      "series": [{ "property": "a", "axis": "|" }]
+    }`);
+    expect(labels(axisOptions)).toContain('"right"');
+    expect(labels(axisOptions)).not.toContain('"left"');
+    const followOptions = await completionOptions(`{
+      "version": "1.0.0",
+      "categoryAxis": { "property": "m" },
+      "series": [
+        { "id": "a", "property": "p", "ignore": true },
+        { "id": "b", "property": "q" },
+        { "id": "c", "property": "r", "followSeries": "|" }
+      ]
+    }`);
+    expect(labels(followOptions)).toContain('"b"');
+    expect(labels(followOptions)).not.toContain('"a"');
+  });
+
   it('suggests configured ids and filters common references', async () => {
     const options = await completionOptions(`{
       "version": "1.0.0",

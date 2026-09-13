@@ -239,6 +239,8 @@ function referencedValues(document: unknown, property: EditorPropertyModel, path
     for (const [index, entry] of entries.entries()) {
       if (entry && typeof entry === 'object') {
         const record = entry as Record<string, unknown>;
+        // core builds its sections without ignored entries, so their ids match nothing
+        if (record['ignore'] === true) continue;
         if (property.reference.commonKey && commonValue !== undefined &&
             record[property.reference.commonKey] !== commonValue) continue;
         // within its own section an entry cannot name itself, and core rejects a followSeries target that itself follows
