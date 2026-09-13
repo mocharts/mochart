@@ -14,16 +14,23 @@
     "tickStep": {
       "period": "week"
     },
+    "thresholds": [
+      {
+        "value": "2026-07-01",
+        "title": {
+          "text": "Q3",
+          "align": "start"
+        }
+      }
+    ],
     "thresholdStep": {
       "visible": true,
       "period": "week",
       "count": 2,
-      "range": true,
-      "front": false,
+      "pattern": "hatch",
       "style": {
         "normal": {
-          "strokeOpacity": 0,
-          "fillOpacity": 0.08
+          "strokeOpacity": 0
         }
       }
     }
@@ -60,6 +67,13 @@
       "property": "conversions",
       "renderer": "line",
       "title": "Conversions"
+    }
+  ],
+  "patterns": [
+    {
+      "id": "hatch",
+      "type": "lines",
+      "foregroundOpacity": 0.2
     }
   ]
 }

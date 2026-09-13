@@ -23,7 +23,15 @@
       "id": "VA0",
       "adjustForFiltering": true,
       "side": "start",
+      "softMax": 38,
       "thresholds": [
+        {
+          "value": 0,
+          "rangeValue": 5,
+          "title": {
+            "text": "Floor"
+          }
+        },
         {
           "value": 10,
           "rangeValue": 25,
@@ -36,7 +44,7 @@
             }
           },
           "title": {
-            "text": "Target band",
+            "text": "Target",
             "side": "inside",
             "align": "middle",
             "padding": {
@@ -46,17 +54,10 @@
               "left": 6
             }
           }
-        }
-      ]
-    },
-    {
-      "id": "VA1",
-      "adjustForFiltering": false,
-      "side": "end",
-      "thresholds": [
+        },
         {
-          "value": -10,
-          "rangeValue": -5,
+          "value": 28,
+          "rangeValue": 32,
           "pattern": "hatch",
           "style": {
             "normal": {
@@ -66,8 +67,9 @@
             }
           },
           "title": {
-            "text": "Danger zone",
+            "text": "Stretch",
             "side": "high",
+            "align": "end",
             "padding": {
               "top": 5,
               "right": 5,
@@ -76,23 +78,14 @@
             }
           }
         }
-      ],
-      "thresholdStep": {
-        "visible": true,
-        "interval": 5,
-        "count": 2,
-        "range": false,
-        "style": {
-          "normal": {
-            "strokeDashArray": "2 4",
-            "strokeOpacity": 0.4
-          }
-        }
-      }
+      ]
     }
   ],
   "seriesStacks": {
     "axis": "VA0"
+  },
+  "seriesDefaults": {
+    "pattern": null
   },
   "series": [
     {
@@ -112,27 +105,13 @@
       "property": "value3",
       "title": "Stacked Bar 3",
       "renderer": "bar"
-    },
-    {
-      "axis": "VA1",
-      "stack": null,
-      "property": "value5",
-      "title": "Line 1",
-      "renderer": "line"
-    },
-    {
-      "axis": "VA1",
-      "stack": null,
-      "property": "value6",
-      "title": "Line 2",
-      "renderer": "line"
     }
   ],
   "patterns": [
     {
       "id": "hatch",
       "type": "lines",
-      "rotation": 45
+      "foregroundOpacity": 0.5
     }
   ]
 }

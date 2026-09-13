@@ -172,6 +172,23 @@ function thresholdLineEntry(): ShowcaseEntry {
   return entry;
 }
 
+/** Two of the three stacked bars and every other row, so the three ranges read on a phone. */
+function thresholdRangeEntry(): ShowcaseEntry {
+  const demo = getDemo('threshold-range');
+  const config = clone(demo.config);
+  const kept = new Set(['value1', 'value2']);
+  config.series = (config.series as { property: string }[]).filter(series => kept.has(series.property));
+  return reuse('threshold-range', {
+    config,
+    // the card's 170px box has no room above the Stretch range for its high-side title, so the thumbnail takes more headroom
+    thumbnail(thumbConfig) {
+      forEachValueAxis(thumbConfig, axis => { axis.softMax = 46; });
+    },
+    notes: 'Two stacked bars on one value axis, with a thresholds entry per range: each entry has a value and a rangeValue, so it draws a range between the two instead of a line, the stroke members of style drawing its two edge lines and the fill members filling it. The ranges read bottom to top. "Floor" spans 0 to 5 with no style at all, so it shows a range\'s defaults: a faint currentColor wash drawn in front of the bars, titled on the low side. "Target" spans 10 to 25 with a translucent green fill, its title side "inside" centring the title within the range and align "middle" centring it along the plot. "Stretch" spans 28 to 32 and names the hatch entry of patterns, whose "series" colour resolves to the range\'s red fillColor at the pattern\'s foregroundOpacity 0.5, with the title on the high side and align "end" putting it at the far end of the plot, and the axis\'s softMax of 38 keeps room above the range for that title however short the chart is; seriesDefaults sets pattern null so the sole pattern does not also become the bars\' default fill. The axis adjusts for filtering, so hiding a stacked series from the legend rescales the axis and the ranges ride along. All four animation durations are stretched to 2000ms, so the rescaling is easy to follow.',
+    data: clone(demo.data.filter((_, index) => index % 2 === 0))
+  });
+}
+
 /** Full ISO dates rotated 90 degrees take most of a card's height. */
 function rotatedTicksEntry(): ShowcaseEntry {
   return reuse('ticks-rotated', {
@@ -411,6 +428,7 @@ export function getSections(): ShowcaseSection[] {
         }),
         multipleAxesEntry(),
         thresholdLineEntry(),
+        thresholdRangeEntry(),
         reuse('threshold-step'),
         rotatedTicksEntry(),
         rotationEntry(),
