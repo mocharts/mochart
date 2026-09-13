@@ -261,6 +261,15 @@ describe('property insertion layout', () => {
       .toBe('{\n  "version": "1.0.0",\n  "legend": {},\n  "chart": {}\n}');
   });
 
+  // Regression: the folded neighbour's key was not counted as present, so it was offered again and
+  // accepting it wrote the member twice
+  it('does not offer the key of the member folded in after a typed key', async () => {
+    const options = labels(await completionOptions('{"version": "1.0.0", "|" "chart": {}}'));
+    expect(options).toContain('legend');
+    expect(options).not.toContain('chart');
+    expect(options).not.toContain('version');
+  });
+
   it('moves a member that follows on the same line onto its own line', async () => {
     const doc = await acceptCompletion('{\n  |"version": "1.0.0"\n}', 'title');
     expect(doc).toBe('{\n  "title": {},\n  "version": "1.0.0"\n}');

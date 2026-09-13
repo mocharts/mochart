@@ -72,10 +72,27 @@ export function objectPath(state: EditorState, object: SyntaxNode): JsonPath {
   return pathAt(state, Math.min(object.to - 1, object.from + 1));
 }
 
+// A key parsed into a member's error node: while a member lacks its comma the parser folds the next
+// member's name in as an error, and that key is still one the object has.
+function foldedKeys(state: EditorState, property: SyntaxNode): string[] {
+  const keys: string[] = [];
+  for (const child of children(property)) {
+    if (!child.type.isError) continue;
+    try {
+      const value = JSON.parse(state.sliceDoc(child.from, child.to)) as unknown;
+      if (typeof value === 'string') keys.push(value);
+    }
+    catch {
+      // not a quoted key
+    }
+  }
+  return keys;
+}
+
 export function existingObjectKeys(state: EditorState, object: SyntaxNode): string[] {
   return children(object)
     .filter(child => child.name === 'Property')
-    .map(child => propertyKey(state, child))
+    .flatMap(child => [propertyKey(state, child), ...foldedKeys(state, child)])
     .filter((key): key is string => key !== null);
 }
 
