@@ -132,6 +132,16 @@ describe('threshold lines', () => {
     expect(container.querySelector(getCssSelector('axisThreshold'))).toBeNull();
     expect(container.textContent).not.toContain('Far');
   });
+
+  it('draws no line for a threshold in the half-slot padding outside a linear category axis domain, and one at the domain end', () => {
+    // the category scale insets its range by half a slot, so a value just outside the domain still has a pixel inside the plot
+    const padded = categoryThreshold({ value: -0.4, title: { text: 'Edge' } });
+    expect(padded.querySelector(getCssSelector('axisThreshold'))).toBeNull();
+    expect(padded.textContent).not.toContain('Edge');
+    const atEnd = categoryThreshold({ value: 100, title: { text: 'End' } });
+    expect(atEnd.querySelector(getCssSelector('axisThreshold'))).not.toBeNull();
+    expect(atEnd.textContent).toContain('End');
+  });
 });
 
 describe('threshold title placement', () => {

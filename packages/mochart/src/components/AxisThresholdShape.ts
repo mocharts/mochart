@@ -90,6 +90,9 @@ function getThresholdOffset(props: AxisThresholdShapeProps, rawValue: number | s
   return (ascending ? thresholdPercentage : 1 - thresholdPercentage) * axisExtent;
 }
 
+/** Slack for the floating point error between a domain end's own offset and a threshold placed at that value. */
+const OFFSET_EPSILON = 1e-6;
+
 export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps> {
   root = svgEl('g');
   // document order is paint order: a range's fill rect goes in front of the line group, so it paints behind the edge lines
@@ -105,25 +108,45 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
     return this.root.node;
   }
 
+  /** The pixel span thresholds may occupy: the domain's own offsets on a linear axis, the whole plot on an ordinal one. */
+  private getDomainBounds(axisExtent: number): [number, number] {
+    const { axisConfig, axisDomain } = this.props;
+    if (axisConfig.scale === SCALE_ORDINAL) {
+      return [0, axisExtent];
+    }
+    const minValue = axisDomain[0]?.valueOf();
+    const maxValue = axisDomain[1]?.valueOf();
+    const minOffset = typeof minValue === 'number' ? getThresholdOffset(this.props, minValue) : null;
+    const maxOffset = typeof maxValue === 'number' ? getThresholdOffset(this.props, maxValue) : null;
+    if (minOffset === null || maxOffset === null) {
+      return [0, axisExtent];
+    }
+    return [Math.min(minOffset, maxOffset), Math.max(minOffset, maxOffset)];
+  }
+
   sync() {
     const { axisConfig, threshold, seriesLayoutInfo, vertical } = this.props;
     const axisExtent = vertical ? seriesLayoutInfo.height : seriesLayoutInfo.width;
     const isRange = threshold.rangeValue !== NONE;
     const valueOffset = getThresholdOffset(this.props, threshold.value);
     const rangeOffset = isRange ? getThresholdOffset(this.props, threshold.rangeValue!) : null;
-    const inPlot = (offset: number | null): offset is number => offset !== null && offset >= 0 && offset <= axisExtent;
+    // thresholds never extend the axis domain: a linear axis bounds them by the domain's own offsets, which a
+    // category axis insets from the plot by half a slot, so a value in that padding has no place; an ordinal
+    // axis places by category and its slots fill the plot
+    const [boundStart, boundEnd] = this.getDomainBounds(axisExtent);
+    const inPlot = (offset: number | null): offset is number => offset !== null && offset >= boundStart - OFFSET_EPSILON && offset <= boundEnd + OFFSET_EPSILON;
 
     let present: boolean;
-    // the pixel span the range fills, clipped to the plot; an ordinal range covers whole category slots
+    // the pixel span the range fills, clipped to the domain; an ordinal range covers whole category slots
     let rangeStart = 0;
     let rangeEnd = 0;
     if (isRange) {
       present = valueOffset !== null && rangeOffset !== null;
       if (present) {
         const halfSlot = axisConfig.scale === SCALE_ORDINAL ? this.props.categoryPositions!.slotExtent / 2 : 0;
-        rangeStart = Math.max(0, Math.min(valueOffset!, rangeOffset!) - halfSlot);
-        rangeEnd = Math.min(axisExtent, Math.max(valueOffset!, rangeOffset!) + halfSlot);
-        present = rangeEnd > rangeStart;
+        rangeStart = Math.max(boundStart, Math.min(valueOffset!, rangeOffset!) - halfSlot);
+        rangeEnd = Math.min(boundEnd, Math.max(valueOffset!, rangeOffset!) + halfSlot);
+        present = rangeEnd > rangeStart + OFFSET_EPSILON;
       }
     }
     else {
