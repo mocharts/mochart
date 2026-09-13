@@ -429,7 +429,9 @@ function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, explici
     explicitTicks.forEach(({ value, label }) => {
       const indexes = indexesByKey.get(getCategoryValueKey(axisConfig, value));
       if (indexes === undefined) {
-        ticks.push({ label: label ?? '', position: NaN, value, hidden: true });
+        // a tick naming no category is hidden at the axis start with no label: a finite position keeps the markup valid
+        // svg, and the axis measures every label, hidden ones included, so one that can never show reserves no room
+        ticks.push({ label: '', position: 0, value, hidden: true });
       }
       else {
         indexes.forEach(index => {

@@ -71,6 +71,8 @@ describe('category axis explicit ticks', () => {
     const labels = getAxisLabels(container);
     expect(labels).toContain('In');
     expect(labels).not.toContain('Out');
+    // the hidden tick sits at a finite position, so no transform carries a NaN
+    expect(container.querySelector('[transform*="NaN"]')).toBeNull();
     chart.destroy();
   });
 
