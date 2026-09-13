@@ -1879,14 +1879,16 @@ export interface AxisThresholdStepConfig {
   style: StyleStates;
   /**
    * The unique id of the pattern config filling the stepped ranges (use null
-   * for none; cannot be combined with gradient).
+   * for none; an unknown id is a validation error; cannot be combined with
+   * gradient).
    *
    * @default null
    */
   pattern: string | null;
   /**
    * The unique id of the gradient config filling the stepped ranges (use null
-   * for none; cannot be combined with pattern).
+   * for none; an unknown id is a validation error; cannot be combined with
+   * pattern).
    *
    * @default null
    */
@@ -1944,7 +1946,8 @@ export interface ThresholdConfig {
   style?: DeepPartial<StyleStates>;
   /**
    * The unique id of the pattern config filling a threshold range (use null for
-   * none; cannot be combined with gradient).
+   * none; an unknown id is a validation error; cannot be combined with
+   * gradient).
    *
    * The pattern's `"series"` color keyword resolves to the range's
    * `style.normal.fillColor`, the color of whatever the pattern fills.
@@ -1954,7 +1957,8 @@ export interface ThresholdConfig {
   pattern?: string | null;
   /**
    * The unique id of the gradient config filling a threshold range (use null
-   * for none; cannot be combined with pattern).
+   * for none; an unknown id is a validation error; cannot be combined with
+   * pattern).
    *
    * @default null
    */
@@ -2834,14 +2838,15 @@ export interface CategoryAxisTickStepConfig {
    * The categories between the rule's ticks are minor ticks, and their tick
    * marks, grid lines and labels carry the `mochart-axis-minor-tick-mark`,
    * `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes
-   * whether or not they are labelled. With a format (a d3 time format on a date
-   * axis, a number format on a number axis; a string axis takes only `null`)
-   * they are labelled in it while the rule's own ticks keep `tickLabel.format`,
-   * so a weekly rule can show `Jun 08` at each Monday and `Tue` to `Fri`
-   * between. The minor labels show only when the widest of them, plus
-   * `minTickSpacing`, fits inside one category slot; when they do not fit they
-   * all hide together, and whether they show never changes which of the rule's
-   * ticks are shown.
+   * whether or not they are labeled. Minor ticks exist only while a rule is set
+   * (a `count`, `offset`, `period` or `includeFirst`), so a `minorFormat` on
+   * its own changes nothing. With a format (a d3 time format on a date axis, a
+   * number format on a number axis; a string axis takes only `null`) they are
+   * labeled in it while the rule's own ticks keep `tickLabel.format`, so a
+   * weekly rule can show `Jun 08` at each Monday and `Tue` to `Fri` between.
+   * The minor labels show only when the widest of them, plus `minTickSpacing`,
+   * fits inside one category slot; when they do not fit they all hide together,
+   * and whether they show never changes which of the rule's ticks are shown.
    *
    * @default null
    */

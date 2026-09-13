@@ -60,8 +60,9 @@ The returned `JsonEditorHandle` drives the editor imperatively:
   Controlled `setValue` updates do not fire `onChange`; only user edits and
   a `format()` that changes the text do.
 - `format()` — pretty-print the current JSON; returns `false` (leaving the
-  text alone) when it does not parse or repeats a key, since a round-trip
-  through `JSON.parse` would silently drop the earlier copy.
+  text alone) while the editor is read-only, and when the text does not parse
+  or repeats a key, since a round-trip through `JSON.parse` would silently
+  drop the earlier copy.
 - `setTheme('light' | 'dark')` — switch the color treatment without
   replacing the document or its undo history.
 - `setReadOnly(readOnly)` — toggle editing.

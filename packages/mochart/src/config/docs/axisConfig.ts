@@ -65,8 +65,8 @@ export function getThresholdDescriptions(): DescriptionMap {
     rangeValue: 'the second value of a threshold range (use null for a line)',
     front: 'whether the threshold is drawn in front of (true) or behind (false) the series shapes',
     style: styleStates('the style of the threshold: the stroke members draw a line or the edges of a range, the fill members fill a range and are ignored on a line', fillLineMembers),
-    pattern: 'the unique id of the pattern config filling a threshold range (use null for none; cannot be combined with gradient)',
-    gradient: 'the unique id of the gradient config filling a threshold range (use null for none; cannot be combined with pattern)',
+    pattern: 'the unique id of the pattern config filling a threshold range (use null for none; an unknown id is a validation error; cannot be combined with gradient)',
+    gradient: 'the unique id of the gradient config filling a threshold range (use null for none; an unknown id is a validation error; cannot be combined with pattern)',
     title: {
       description: 'the title label shown beside the threshold',
       properties: {
@@ -96,8 +96,8 @@ export function getThresholdStepDescriptions(): DescriptionMap {
     range: 'whether each threshold is a range spanning its step (true) or a line at its start (false)',
     front: 'whether the stepped thresholds are drawn in front of (true) or behind (false) the series shapes',
     style: styleStates('the style of the stepped thresholds: the stroke members draw a line or the edges of a range, the fill members fill a range and are ignored on a line', fillLineMembers),
-    pattern: 'the unique id of the pattern config filling the stepped ranges (use null for none; cannot be combined with gradient)',
-    gradient: 'the unique id of the gradient config filling the stepped ranges (use null for none; cannot be combined with pattern)'
+    pattern: 'the unique id of the pattern config filling the stepped ranges (use null for none; an unknown id is a validation error; cannot be combined with gradient)',
+    gradient: 'the unique id of the gradient config filling the stepped ranges (use null for none; an unknown id is a validation error; cannot be combined with pattern)'
   };
 }
 
