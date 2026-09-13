@@ -165,13 +165,17 @@ describe('JSON editor', () => {
   it('resets validity to pending on a controlled update until the new document is linted', async () => {
     const host = document.createElement('div');
     document.body.appendChild(host);
-    const editor = createJsonEditor(host, { value: '{', ariaLabel: 'Configuration' });
+    const onDiagnostics = vi.fn();
+    const editor = createJsonEditor(host, { value: '{', ariaLabel: 'Configuration', onDiagnostics });
     const content = () => editor.element.querySelector<HTMLElement>('.cm-content')!;
 
     await vi.waitFor(() => expect(editor.element.dataset.validity).toBe('invalid'));
+    expect(onDiagnostics.mock.lastCall![0]).not.toHaveLength(0);
     editor.setValue('{"a": 1}');
     expect(editor.element.dataset.validity).toBe('pending');
     expect(content().getAttribute('aria-invalid')).toBe('false');
+    // the host's list is cleared with the validity, not left holding the replaced document's problems
+    expect(onDiagnostics.mock.lastCall![0]).toEqual([]);
     await vi.waitFor(() => expect(editor.element.dataset.validity).toBe('valid'));
 
     editor.setValue('{');

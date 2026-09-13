@@ -159,9 +159,10 @@ export function createJsonEditor(host: HTMLElement, options: JsonEditorOptions):
       externalUpdate = true;
       view.setState(EditorState.create({ doc: value, extensions: makeExtensions() }));
       externalUpdate = false;
-      // the previous document's validity must not show while the new one waits for its lint pass
+      // the previous document's validity and problems must not show while the new one waits for its lint pass
       element.dataset.validity = 'pending';
       view.contentDOM.setAttribute('aria-invalid', 'false');
+      options.onDiagnostics?.([]);
     },
     setReadOnly(value: boolean) {
       currentReadOnly = value;
