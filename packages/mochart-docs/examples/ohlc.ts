@@ -19,7 +19,12 @@ const ohlc = createOhlc([
 export const config: MochartInputConfig = {
   version: '1.0.0',
   title: { text: 'Daily Share Price (fictional, $)' },
-  categoryAxis: { ...ohlc.categoryAxis, tickLabel: { format: '%b %d' }, valueFormat: '%a %b %d' },
+  categoryAxis: {
+    ...ohlc.categoryAxis,
+    tickLabel: { format: '%b %d' },
+    valueFormat: '%a %b %d',
+    tickStep: { period: 'week', minorFormat: '%a' }
+  },
   valueAxes: [{ title: { text: '$ per share' } }],
   series: ohlc.series
 };

@@ -36,8 +36,9 @@ import * as candlestickVolume from '../examples/candlestickVolume'
   bodies set [`bar.minExtent`](/reference/series#series.bar.minExtent) to 2px
   and stay visible as a line.
 - The category axis is ordinal, so non-trading days (weekends, holidays)
-  simply don't exist on the axis instead of leaving gaps — `Jun 05` sits next
-  to `Jun 08` above. With `axisType: 'date'` the labels are ISO date strings,
+  simply don't exist on the axis instead of leaving gaps: above, the Friday
+  before `Jun 08` sits right next to it, with no weekend between. With
+  `axisType: 'date'` the labels are ISO date strings,
   timestamps or `Date`s on an ordinal date axis, so the axis fragment can be
   spread with a d3 time
   [`tickLabel.format`](/reference/categoryAxis#categoryAxis.tickLabel.format)

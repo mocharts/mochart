@@ -20,7 +20,12 @@ const candlestick = createCandlestick([
 export const config: MochartInputConfig = {
   version: '1.0.0',
   title: { text: 'Daily Share Price (fictional, $)' },
-  categoryAxis: { ...candlestick.categoryAxis, tickLabel: { format: '%b %d' }, valueFormat: '%a %b %d' },
+  categoryAxis: {
+    ...candlestick.categoryAxis,
+    tickLabel: { format: '%b %d' },
+    valueFormat: '%a %b %d',
+    tickStep: { period: 'week', minorFormat: '%a' }
+  },
   valueAxes: [{ title: { text: '$ per share' } }],
   series: candlestick.series
 };

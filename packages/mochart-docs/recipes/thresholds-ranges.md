@@ -60,7 +60,7 @@ fills the band between its two values instead of drawing a line:
 
 <LiveChart :config="thresholdBand.config" :data="thresholdBand.data" demo="threshold-range" />
 
-<<< @/examples/thresholdBand.ts{12-18}
+<<< @/examples/thresholdBand.ts{18-24}
 
 - The stroke members of [`style`](/reference/valueAxes#valueAxes.thresholds.style)
   draw the band's two edge lines and its fill members fill the interior; a
@@ -76,14 +76,14 @@ fills the band between its two values instead of drawing a line:
 - A band partly outside the axis domain is clipped to it; one wholly outside
   is not drawn.
 - Ordinal category axes take thresholds too: a value names a category, so a
-  line sits at that category's centre and a range covers whole slots from the
-  first named category to the second.
+  line sits at that category's centre, as the `Midweek` line at `Wed` above,
+  and a range covers whole slots from the first named category to the second.
 - [`thresholdStep`](/reference/categoryAxis#categoryAxis.thresholdStep)
   repeats a line or range by rule instead of listing values: every `count`-th
   candidate from an `offset`, where the candidates are an ordinal axis's
   categories, the periods of a date axis under a `period`, or the multiples of
   an `interval` on a number scale. `period: 'week'` with `count: 2` bands every
-  other week of a daily trading axis, holidays included, as the category ticks
+  other week of a daily trading axis, holidays included, as the threshold step
   demo in the gallery does, and on a value axis `interval: 10` with `count: 2`
   bands 0 to 10, 20 to 30 and so on. `range: false` draws lines at the
   candidates instead. The stepped shapes share one `style`, `pattern` or

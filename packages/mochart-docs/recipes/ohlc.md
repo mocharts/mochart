@@ -37,8 +37,9 @@ import * as ohlc from '../examples/ohlc'
   tick spans slot-start→center and the close tick center→slot-end, meeting at
   the line.
 - The category axis is ordinal, so non-trading days (weekends, holidays)
-  simply don't exist on the axis instead of leaving gaps — `Jun 05` sits next
-  to `Jun 08` above. With `axisType: 'date'` the labels are ISO date strings,
+  simply don't exist on the axis instead of leaving gaps: above, the Friday
+  before `Jun 08` sits right next to it, with no weekend between. With
+  `axisType: 'date'` the labels are ISO date strings,
   timestamps or `Date`s on an ordinal date axis, so the axis fragment can be
   spread with a d3 time
   [`tickLabel.format`](/reference/categoryAxis#categoryAxis.tickLabel.format)

@@ -6,7 +6,12 @@ import type { MochartInputConfig } from '@mochart/core';
 export const config: MochartInputConfig = {
   version: '1.0.0',
   title: { text: 'Response Time' },
-  categoryAxis: { property: 'day', type: 'string', scale: 'ordinal' },
+  categoryAxis: {
+    property: 'day',
+    type: 'string',
+    scale: 'ordinal',
+    thresholds: [{ value: 'Wed', title: { text: 'Midweek' } }]
+  },
   valueAxes: [
     {
       thresholds: [
