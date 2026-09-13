@@ -24,6 +24,7 @@
     "title": {
       "text": "Month",
       "font": {
+        "size": "110%",
         "style": "italic"
       }
     },
@@ -31,7 +32,10 @@
       "visible": true
     },
     "tickLabel": {
-      "format": "%b"
+      "format": "%b",
+      "font": {
+        "weight": 600
+      }
     },
     "type": "date",
     "scale": "ordinal",
@@ -73,6 +77,7 @@
         "format": "$.3s",
         "position": "outside",
         "font": {
+          "family": "monospace",
           "size": 9,
           "weight": "bold"
         }
