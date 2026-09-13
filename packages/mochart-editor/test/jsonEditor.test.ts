@@ -225,14 +225,19 @@ describe('JSON editor', () => {
     const host = document.createElement('div');
     document.body.appendChild(host);
     const onDiagnostics = vi.fn();
-    const broken = defineSupport('broken', { extensions: [], diagnostics: () => { throw new Error('boom'); } });
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const failure = new Error('boom');
+    const broken = defineSupport('broken', { extensions: [], diagnostics: () => { throw failure; } });
     const editor = createJsonEditor(host, { value: '{"a": 1}', ariaLabel: 'Configuration', support: broken, onDiagnostics });
     const content = editor.element.querySelector<HTMLElement>('.cm-content')!;
 
     await vi.waitFor(() => expect(content.getAttribute('aria-invalid')).toBe('true'));
     expect(editor.element.dataset.validity).toBe('invalid');
     const diagnostics = onDiagnostics.mock.lastCall![0] as { message: string; severity: string }[];
-    expect(diagnostics).toEqual([expect.objectContaining({ severity: 'error', source: 'mochart', message: 'broken diagnostics failed' })]);
+    expect(diagnostics).toEqual([expect.objectContaining({ severity: 'error', source: 'mochart', message: 'broken diagnostics failed: boom' })]);
+    // the cause is not discarded: CodeMirror's exception logging reaches the console when no sink is configured
+    expect(consoleError).toHaveBeenCalledWith(expect.stringContaining('broken diagnostics'), failure);
+    consoleError.mockRestore();
     editor.destroy();
     host.remove();
   });

@@ -1,6 +1,6 @@
 import { basicSetup } from 'codemirror';
 import { Compartment, EditorState } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import { EditorView, logException } from '@codemirror/view';
 import { json, jsonParseLinter } from '@codemirror/lang-json';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { linter, type Diagnostic } from '@codemirror/lint';
@@ -95,9 +95,13 @@ export function createJsonEditor(host: HTMLElement, options: JsonEditorOptions):
         try {
           diagnostics.push(...implementation.diagnostics(view));
         }
-        catch {
-          // a throw would escape the linter and silently freeze every diagnostic on the previous pass
-          diagnostics.push({ from: 0, to: view.state.doc.length, severity: 'error', message: supports[index]!.name + ' diagnostics failed', source: 'mochart' });
+        catch (error) {
+          // a throw would escape the linter and silently freeze every diagnostic on the previous pass; the cause
+          // goes to the state's exception sink (console.error by default) and its message into the diagnostic
+          const name = supports[index]!.name;
+          logException(view.state, error, name + ' diagnostics');
+          const cause = error instanceof Error && error.message !== '' ? ': ' + error.message : '';
+          diagnostics.push({ from: 0, to: view.state.doc.length, severity: 'error', message: name + ' diagnostics failed' + cause, source: 'mochart' });
         }
       }
     }
