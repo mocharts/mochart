@@ -212,9 +212,8 @@ export function randomFromCurated(config: DemoConfig, rows: DataObject[], random
   const seriesNumber = deriveSeriesNumber(rows, seriesProperties(config));
 
   // a weekdays-only demo keeps drawing weekdays while the derived spacing is still one day, the only spacing the member allows
-  const derivedDate = category?.date;
-  if (derivedDate !== undefined && random.category.date.weekdays === true && derivedDate.intervalUnit === 'day' && derivedDate.interval === 1) {
-    category.date = { ...derivedDate, weekdays: true };
+  if (category !== null && category.date !== undefined && random.category.date.weekdays === true && category.date.intervalUnit === 'day' && category.date.interval === 1) {
+    category.date = { ...category.date, weekdays: true };
   }
 
   return {
