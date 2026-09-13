@@ -33,7 +33,6 @@
     "tickLabel": {
       "format": "%b"
     },
-    "tickCount": 12,
     "type": "date",
     "scale": "ordinal",
     "dateUTC": true,
@@ -71,7 +70,7 @@
       "renderer": "bar",
       "labelProperty": "value1",
       "label": {
-        "format": "$s",
+        "format": "$.3s",
         "position": "outside",
         "font": {
           "size": 9,

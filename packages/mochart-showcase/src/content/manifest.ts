@@ -195,6 +195,13 @@ function truncatedTextEntry(): ShowcaseEntry {
   return entry;
 }
 
+/** Six months instead of twelve: a phone-width bar has no room for the label above it, and the outside labels at each end need to overflow the plot. */
+function fontEntry(): ShowcaseEntry {
+  const entry = reuse('font', { data: clone(getDemo('font').data.slice(0, 6)) });
+  entry.config.plot = { clipOverflow: { top: 10, left: 12, right: 12 } };
+  return entry;
+}
+
 /** Eight categories instead of 27, so the labels on every segment stay legible. */
 function stackedLabelsEntry(): ShowcaseEntry {
   const entry = reuse('label-property-stacked', {
@@ -473,7 +480,7 @@ export function getSections(): ShowcaseSection[] {
           data: currentColorData,
           random: currentColorRandom
         }),
-        reuse('font')
+        fontEntry()
       ]
     },
     {
