@@ -1,6 +1,6 @@
 import validators from './validators';
 
-import { NONE, STYLE_SAME } from '../core/constants';
+import { NONE, STYLE_SAME, MAJOR } from '../core/constants';
 
 import type { Validator } from '@mochart/movalid';
 
@@ -30,19 +30,21 @@ export function createStyleValidators(color: StyleColorValidator) {
   }
 
   // Partial, and extra members pass: an unknown member is reported once by the unknown-key walk.
-  function styleShape(members: StyleMember[], allowSame: boolean) {
+  // A minor tick style (allowMajor) also takes "major" in any member, the matching non-minor member's value.
+  function styleShape(members: StyleMember[], allowSame: boolean, allowMajor = false) {
     const shape: Record<string, Validator> = {};
     for (const member of members) {
-      shape[member] = memberValidator(member, allowSame);
+      const validator = memberValidator(member, allowSame);
+      shape[member] = allowMajor ? validator.orEqual(MAJOR) : validator;
     }
     return validators.partialObjectWithShape(shape, true);
   }
 
-  function styleStates(members: StyleMember[]) {
+  function styleStates(members: StyleMember[], allowMajor = false) {
     return validators.partialObjectWithShape({
-      normal: styleShape(members, false),
-      focused: styleShape(members, true),
-      defocused: styleShape(members, true)
+      normal: styleShape(members, false, allowMajor),
+      focused: styleShape(members, true, allowMajor),
+      defocused: styleShape(members, true, allowMajor)
     }, true);
   }
 

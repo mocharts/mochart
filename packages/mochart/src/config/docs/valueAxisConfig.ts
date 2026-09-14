@@ -1,4 +1,4 @@
-import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, tickLabelDescription, stepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails } from './axisConfig';
+import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, getTickLabelDetails, tickLabelDescription, minorTickLabelIntro, majorNote, tickStepMinorDetails, stepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails } from './axisConfig';
 
 export default function getDescriptions() {
   return {
@@ -24,14 +24,16 @@ export default function getDescriptions() {
       properties: {
         ...getTickLabelDescriptions(),
         format: 'the d3 format string to be applied to the series values when displayed in axis tick labels (use null for none, use "auto" to derive from data)',
-        adjustSizeForFiltering: 'whether to adjust the size of the axis tick label bounds as series belonging to it are filtered'
+        minorFormat: 'the d3 format string to be applied to the series values when displayed in minor tick labels (use null for none, use "auto" to derive from data)' + majorNote('tickLabel.format'),
+        adjustSizeForFiltering: 'whether to adjust the size of the axis tick label bounds as series belonging to it are filtered (applies to the minor tick labels too)'
       }
     },
     ticks: {
       description: 'the explicit ticks to show on the axis in place of the generated ones, each placing label text at an axis value (use null for none)',
       properties: {
         value: 'the axis value to place the tick at',
-        label: 'the text of the tick label (leave it out to format the value with tickLabel.format)'
+        label: 'the text of the tick label (leave it out to format the value with tickLabel.format)',
+        minor: 'whether the tick is a minor tick, drawn and labeled with the minor tick settings (leave it out for a regular tick)'
       }
     },
     maxMarginFraction: 'the margin, as a fraction (0 or greater) of the domain of the axis, to use at the maximum extent of the axis (only applied if max is "auto" and max value is not equal base)',
@@ -50,6 +52,20 @@ export function getDetails() {
     softMin: 'A lower bound that only applies while no data value is below it — the axis covers at least this value, but real data smaller than it still expands the domain. Unlike `min`, it never clips data.',
     softMax: 'An upper bound that only applies while no data value is above it — the axis covers at least this value, but real data larger than it still expands the domain. Unlike `max`, it never clips data.',
     base: 'The value shapes are measured from: bars and areas grow from it, `missingValueMode: \'base\'` puts missing values on it, and shapes animate from it when series enter or leave. With mixed positive/negative data it separates the two directions. When left unspecified, un-ranged bar and area series use the minimum end of the axis, and other series use `min` when it is set, otherwise the smallest value in the data.',
+    tickStep: {
+      description: 'Chooses the ticks by rule rather than by a list, so the choice holds as the data changes; explicit `ticks` take precedence. An `interval` places the ticks on its multiples, `count` and `offset` keep every count-th of them counted from 0, and `minorSteps` places minor ticks between them; without an interval the axis keeps the ticks it picks. The minor tick marks, grid lines and labels carry the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes, and the `tickLabel`, `tickMark` and `gridLine` minor settings say how they are drawn.',
+      properties: {
+        interval: tickStepMinorDetails.interval,
+        count: 'When more ticks survive the rule than fit, every k-th survivor is kept starting from the first. ' + tickStepMinorDetails.count,
+        offset: tickStepMinorDetails.offset,
+        minorSteps: tickStepMinorDetails.minorSteps,
+        minSpacing: tickStepMinorDetails.minSpacing
+      }
+    },
+    tickLabel: {
+      description: minorTickLabelIntro,
+      properties: getTickLabelDetails()
+    },
     thresholdStep: {
       description: 'The steps are the multiples of `interval` inside the axis domain, anchored at 0, and with no interval nothing is drawn. The bands follow the domain as it changes, draw after the `thresholds` entries and carry no title; `minSpacing` keeps a rule from flooding the axis.',
       properties: {
@@ -63,7 +79,12 @@ export function getDetails() {
       description: 'A line at an axis value, or with a `rangeValue` a band between two. ' + thresholdStyleDetails + ' ' + thresholdDomainDetails,
       properties: getThresholdMemberDetails()
     },
-    ticks: 'Replaces the automatic tick generation entirely: tick counts, intervals and domain-edge ticks are ignored. Useful for naming fixed positions, e.g. heatmap row bands or threshold levels. Ticks outside the current axis domain are hidden.',
+    ticks: {
+      description: 'Replaces the automatic tick generation entirely: tick counts, intervals and domain-edge ticks are ignored, except that the entries marked `minor` follow the minor label fit rule. Useful for naming fixed positions, e.g. heatmap row bands or threshold levels. Ticks outside the current axis domain are hidden, and two entries with the same value are a validation error.',
+      properties: {
+        minor: 'A minor entry is drawn with the `tickLabel`, `tickMark` and `gridLine` minor settings, and its label shows only when every minor label fits beside its neighbours; an entry with a `label` keeps it whatever `minorFormat` says.'
+      }
+    },
     maxMarginFraction: 'The margin is relative to the pre-margin domain, so values above 1 are allowed and confine the data to a band of the plot: a margin of 4 leaves the data in the bottom fifth — how the candlestick/OHLC volume pane reserves the upper plot for the price axis.',
     minMarginFraction: 'The margin is relative to the pre-margin domain, so values above 1 are allowed and confine the data to a band of the plot: a price axis with margin 1/3 keeps its data in the top three quarters, leaving the bottom for a volume pane.'
   };

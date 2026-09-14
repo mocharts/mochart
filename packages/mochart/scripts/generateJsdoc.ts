@@ -104,7 +104,8 @@ const sharedInterfaceSources: SharedInterfaceSource[] = [
   { interfaceName: 'AxisBaseLineConfig', sectionId: 'valueAxes', propertyKey: 'baseLine', includeDefaults: true },
   { interfaceName: 'ValueAxisTick', sectionId: 'valueAxes', propertyKey: 'ticks', includeDefaults: true },
   { interfaceName: 'CategoryAxisTick', sectionId: 'categoryAxis', propertyKey: 'ticks', includeDefaults: true },
-  { interfaceName: 'CategoryAxisTickStepConfig', sectionId: 'categoryAxis', propertyKey: 'tickStep', includeDefaults: true },
+  { interfaceName: 'MinorTickLabelTruncationConfig', sectionId: 'categoryAxis', propertyKey: 'tickLabel.minorTruncation', includeDefaults: true },
+  { interfaceName: 'MinorFontConfig', sectionId: 'categoryAxis', propertyKey: 'tickLabel.minorFont' },
   { interfaceName: 'GradientStop', sectionId: 'linearGradients', propertyKey: 'stops', includeDefaults: true }
 ];
 
@@ -126,6 +127,7 @@ const sharedAxisInterfaces: SharedAxisInterface[] = [
   { interfaceName: 'AxisGridLineConfig', propertyKey: 'gridLine' },
   { interfaceName: 'AxisTickMarkConfig', propertyKey: 'tickMark' },
   { interfaceName: 'AxisTickLabelConfig', propertyKey: 'tickLabel', categoryInterfaceName: 'CategoryAxisTickLabelConfig', valueInterfaceName: 'ValueAxisTickLabelConfig' },
+  { interfaceName: 'AxisTickStepConfig', propertyKey: 'tickStep', categoryInterfaceName: 'CategoryAxisTickStepConfig' },
   { interfaceName: 'AxisTitleConfig', propertyKey: 'title' }
 ];
 

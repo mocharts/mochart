@@ -197,7 +197,10 @@ This chart renders in Georgia while the rest of this page keeps the site
 font, with a larger bold title, an italic value axis title and legend items
 at `0.85em`. A relative size is written on the element as given, so it
 resolves the way CSS does, against the font size the element inherits from
-the page, not against `chart.font`:
+the page, not against `chart.font`. The same holds for the minor tick labels
+of an axis: `tickLabel.minorFont.size` of `'0.85em'` resolves against the
+page font, not against `tickLabel.font.size`, so with `tickLabel.font.size`
+set to 16 on a page with a 12px font the minor labels are 10.2px, not 13.6px:
 
 <LiveChart :config="typography.config" :data="typography.data" />
 

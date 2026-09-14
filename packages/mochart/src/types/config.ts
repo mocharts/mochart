@@ -1,7 +1,7 @@
 import type {
   Auto, Align, TooltipValueAlign, AxisSide, MissingValueMode, VerticalAlign, Anchor, Position, Scale, DataType, RendererType, ThresholdTitleSide,
   CurveType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, PatternType,
-  ChartType, PieLabelType, PieTooltipValueType, DomainChange, AnimationEasing, FontWeight, FontStyle
+  ChartType, PieLabelType, PieTooltipValueType, DomainChange, AnimationEasing, FontWeight, FontStyle, Major
 } from '../config/core/constants';
 import type { MarginPadding, InnerOuter } from './geometry';
 
@@ -2098,6 +2098,111 @@ export interface AxisFocusTickMarkConfig {
 }
 
 /** The grid lines an axis draws across the plot at each tick. */
+/**
+ * A style for the minor ticks: any member may be `'major'`, meaning the value
+ * of the matching member of the non-minor style.
+ */
+export type MinorStyle = Style<string | Major, Major>;
+
+/**
+ * A line style for the minor ticks in each focus state: any member may be
+ * `'major'`, the value of the matching member of the non-minor style as
+ * written, so a `'same'` copied from it resolves against the minor style's own
+ * normal state.
+ */
+export interface MinorStrokeStyleStates {
+  normal: StrokeStyleState<string | Major, Major>;
+  focused: StrokeStyleState<string | 'same' | Major, 'same' | Major>;
+  defocused: StrokeStyleState<string | 'same' | Major, 'same' | Major>;
+}
+
+/** A full style for the minor ticks in each focus state; see MinorStrokeStyleStates for `'major'`. */
+export interface MinorStyleStates {
+  normal: StyleState<string | Major, Major>;
+  focused: StyleState<string | 'same' | Major, 'same' | Major>;
+  defocused: StyleState<string | 'same' | Major, 'same' | Major>;
+}
+
+/** The font of the minor tick labels: any member may be `'major'`, the value of the matching `tickLabel.font` member. */
+export interface MinorFontConfig {
+  /**
+   * The css font-family of the text, or null to leave the font family to css
+   * ("major" uses the value of tickLabel.font.family).
+   */
+  family: string | null | Major;
+  /**
+   * The font size of the text, as a number of pixels or any css font-size
+   * string (a length with a unit, a percentage, a size keyword, or a
+   * calc/clamp/min/max/var function), or null to leave the font size to css
+   * ("major" uses the value of tickLabel.font.size).
+   *
+   * A relative size such as `"0.85em"` resolves against the font size the label
+   * inherits from the host page, as every font size in mochart does, not
+   * against `tickLabel.font.size` or `chart.font.size`: with
+   * `tickLabel.font.size` 16 on a page with a 12px font, `"0.85em"` gives minor
+   * labels 10.2px, not 13.6px.
+   */
+  size: number | string | null | Major;
+  /**
+   * The css font-weight of the text (100 to 900 in hundreds, or "normal",
+   * "bold", "lighter", "bolder"), or null to leave the font weight to css
+   * ("major" uses the value of tickLabel.font.weight).
+   */
+  weight: FontWeight | null | Major;
+  /**
+   * The css font-style of the text ("normal", "italic", "oblique"), or null to
+   * leave the font style to css ("major" uses the value of
+   * tickLabel.font.style).
+   */
+  style: FontStyle | null | Major;
+}
+
+/** The truncation of the category axis minor tick labels; every member but `text` may be `'major'`. */
+export interface MinorTickLabelTruncationConfig {
+  /**
+   * Whether or not to use text truncation (true) when the minor tick labels
+   * would overlap each other instead of hiding them (false) ("major" uses the
+   * value of tickLabel.truncation.enabled).
+   *
+   * @default "major"
+   */
+  enabled: boolean | Major;
+  /**
+   * The truncation text to append when minor tick label text is truncated.
+   *
+   * @default "…"
+   */
+  text: string;
+  /**
+   * Whether truncated minor tick label text shows its full string as the
+   * browser’s native tooltip while a pointer rests on it ("major" uses the
+   * value of tickLabel.truncation.tooltipEnabled).
+   *
+   * When `true`, a truncated minor tick label carries an svg `<title>` holding
+   * the full text, which browsers show as their native tooltip (not the chart
+   * `tooltip`) while a mouse or pen rests on it.
+   *
+   * @default "major"
+   */
+  tooltipEnabled: boolean | Major;
+  /**
+   * The minimum length (in pixels) to allow minor tick label text perpendicular
+   * to the axis, applied when maxFraction would allow less ("major" uses the
+   * value of tickLabel.truncation.minLength).
+   *
+   * @default "major"
+   */
+  minLength: number | Major;
+  /**
+   * The maximum fraction (0 - 1) of the plot bounds to allow any minor tick
+   * label text to occupy when they are perpendicular to the axis ("major" uses
+   * the value of tickLabel.truncation.maxFraction).
+   *
+   * @default "major"
+   */
+  maxFraction: number | Major;
+}
+
 export interface AxisGridLineConfig {
   /**
    * Whether to show grid lines perpendicular to each tick on the axis.
@@ -2118,6 +2223,31 @@ export interface AxisGridLineConfig {
    * @default { normal: { … }, focused: { … }, defocused: { … } }
    */
   style: StrokeStyleStates;
+  /**
+   * Whether to show grid lines perpendicular to each minor tick on the axis
+   * ("major" uses the value of gridLine.visible).
+   *
+   * Category axis defaults:
+   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   * Value axis defaults:
+   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   */
+  minorVisible: boolean | Major;
+  /**
+   * Whether the minor grid lines should be shown in front (true) or behind
+   * (false) the series shapes ("major" uses the value of gridLine.front).
+   *
+   * @default "major"
+   */
+  minorFront: boolean | Major;
+  /**
+   * The style of the minor grid lines.
+   *
+   * @default { normal: { … }, focused: { … }, defocused: { … } }
+   */
+  minorStyle: MinorStrokeStyleStates;
 }
 
 /** The tick marks an axis draws at each tick value. */
@@ -2154,6 +2284,45 @@ export interface AxisTickMarkConfig {
    * @default { normal: { … }, focused: { … }, defocused: { … } }
    */
   style: StrokeStyleStates;
+  /**
+   * Whether to show lines perpendicular to each minor tick value along the axis
+   * ("major" uses the value of tickMark.visible).
+   *
+   * Category axis defaults:
+   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   * Value axis defaults:
+   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   */
+  minorVisible: boolean | Major;
+  /**
+   * Whether the minor tick marks should be shown in front (true) or behind
+   * (false) the series shapes ("major" uses the value of tickMark.front).
+   *
+   * @default "major"
+   */
+  minorFront: boolean | Major;
+  /**
+   * The length (in pixels) of the minor tick mark lines ("major" uses the value
+   * of tickMark.size).
+   *
+   * @default "major"
+   */
+  minorSize: number | Major;
+  /**
+   * The margin (in pixels) to show between the inside of the axis and the minor
+   * tick mark lines ("major" uses the value of tickMark.marginInner).
+   *
+   * @default "major"
+   */
+  minorMarginInner: number | Major;
+  /**
+   * The style of the minor tick mark lines.
+   *
+   * @default { normal: { … }, focused: { … }, defocused: { … } }
+   */
+  minorStyle: MinorStrokeStyleStates;
 }
 
 /** The tick labels of an axis, shared by the category axis and the value axes. */
@@ -2255,6 +2424,153 @@ export interface AxisTickLabelConfig {
    * @default { family: null, size: null, weight: null, style: null }
    */
   font: FontConfig;
+  /**
+   * Whether to show the axis tick labels (the minor tick labels follow
+   * minorVisible).
+   *
+   * A label hidden here is not drawn and takes no room in the layout, and its
+   * ticks are no longer thinned to make the labels fit: their tick marks and
+   * grid lines are limited only by `tickStep.minSpacing`. To keep hidden labels
+   * in the layout, leave them visible and set the opacities of every state of
+   * `textStyle` to 0 instead.
+   *
+   * @default true
+   */
+  visible: boolean;
+  /**
+   * Whether to show the minor tick labels, the labels of the minor ticks a
+   * tickStep places between its ticks and of the ticks entries marked minor
+   * ("major" uses the value of tickLabel.visible).
+   *
+   * The default is `false` while `minorFormat` is `"major"` and `ticks` is
+   * unset, so a `tickStep` alone labels only its own ticks; setting a
+   * `minorFormat` or listing `ticks` turns it to `"major"`. Minor labels never
+   * change which non-minor labels show. A minor label shows only when every
+   * minor label fits beside its neighbours, minor or not, measured from the
+   * widest minor and non-minor labels plus `minTickSpacing`; when one does not
+   * fit they all hide, unless the category axis `minorTruncation` truncates
+   * them instead. Hidden minor labels (not fitting, or `false` here) hide their
+   * tick marks and grid lines with them, and `false` here also takes them out
+   * of the layout.
+   *
+   * Category axis defaults:
+   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   * Value axis defaults:
+   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   */
+  minorVisible: boolean | Major;
+  /**
+   * Whether the minor tick labels should be shown in front (true) or behind
+   * (false) the series shapes ("major" uses the value of tickLabel.front).
+   *
+   * @default "major"
+   */
+  minorFront: boolean | Major;
+  /**
+   * The anchor to use for all minor tick labels (start, end, middle) (use
+   * "auto" to determine automatically) ("major" uses the value of
+   * tickLabel.anchor).
+   *
+   * @default "major"
+   */
+  minorAnchor: Anchor | Auto | Major;
+  /**
+   * The styles to apply to the minor tick label background (strokeColor,
+   * strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none)).
+   *
+   * @default { strokeColor: "major", strokeOpacity: "major", strokeWidth: "major", strokeDashArray: "major", fillColor: "major", fillOpacity: "major" }
+   */
+  minorBackgroundStyle: MinorStyle;
+  /**
+   * The space (in pixels) perpendicular to the axis direction to allocate for
+   * the minor tick labels (use "auto" to derive from the font size) ("major"
+   * uses the value of tickLabel.size).
+   *
+   * The minor labels have a layout of their own: they are measured and placed
+   * from the minor settings, the axis reserves the larger of the two label
+   * totals (size, margins and paddings), the title sits after the larger one,
+   * and the minor labels get their own background box.
+   *
+   * @default "major"
+   */
+  minorSize: number | Auto | Major;
+  /**
+   * The margin (in pixels) to show between the minor tick labels and the inside
+   * of the axis ("major" uses the value of tickLabel.marginInner).
+   *
+   * @default "major"
+   */
+  minorMarginInner: number | Major;
+  /**
+   * The margin (in pixels) to show between the minor tick labels and the
+   * outside of the axis ("major" uses the value of tickLabel.marginOuter).
+   *
+   * @default "major"
+   */
+  minorMarginOuter: number | Major;
+  /**
+   * The padding (in pixels) to show between the minor tick labels and the
+   * inside of the axis ("major" uses the value of tickLabel.paddingInner).
+   *
+   * @default "major"
+   */
+  minorPaddingInner: number | Major;
+  /**
+   * The padding (in pixels) to show between the minor tick labels and the
+   * outside of the axis ("major" uses the value of tickLabel.paddingOuter).
+   *
+   * @default "major"
+   */
+  minorPaddingOuter: number | Major;
+  /**
+   * The d3 format string (d3-format for number, d3-time-format for date) to be
+   * applied to the category values when displayed in minor tick labels (use
+   * null for none, use "auto" to derive from data) ("major" uses the value of
+   * tickLabel.format).
+   *
+   * `"major"` is replaced with the value of `format` before any formatter is
+   * built, so it never reaches d3.
+   *
+   * @default "major"
+   */
+  minorFormat: string | Auto | Major | null;
+  /**
+   * The string to prefix to the text of each minor tick label (use null for
+   * none).
+   *
+   * @default null
+   */
+  minorPrefix: string | null;
+  /**
+   * The string to append to the text of each minor tick label (use null for
+   * none).
+   *
+   * @default null
+   */
+  minorSuffix: string | null;
+  /**
+   * The rotation (in degrees, -90 to 90) to apply to each minor tick label
+   * ("major" uses the value of tickLabel.rotation).
+   *
+   * @default "major"
+   */
+  minorRotation: number | Major;
+  /**
+   * The style of the minor tick label text.
+   *
+   * @default { normal: { … }, focused: { … }, defocused: { … } }
+   */
+  minorTextStyle: MinorStyleStates;
+  /**
+   * The font of the minor tick label text (family, size, weight, style), each
+   * member taking the matching tickLabel.font member when "major" and falling
+   * back to chart.font when null.
+   *
+   * @default { family: "major", size: "major", weight: "major", style: "major" }
+   */
+  minorFont: MinorFontConfig;
 }
 
 /** The axis tick label truncation, adding the limits on the space a label may take. */
@@ -2284,13 +2600,23 @@ export interface CategoryAxisTickLabelConfig extends AxisTickLabelConfig {
    * @default { text: "…", tooltipEnabled: true, minLength: 0, maxFraction: 0.2 }
    */
   truncation: TickLabelTruncationConfig;
+  /**
+   * The truncation applied to the minor tick labels when they would overlap
+   * each other.
+   *
+   * Truncating the minor labels never shortens the non-minor labels, whose
+   * truncation counts only their own ticks.
+   *
+   * @default { enabled: "major", text: "…", tooltipEnabled: "major", minLength: "major", maxFraction: "major" }
+   */
+  minorTruncation: MinorTickLabelTruncationConfig;
 }
 
 /** The value axis tick labels, adding the filtering adjustment of their bounds. */
 export interface ValueAxisTickLabelConfig extends AxisTickLabelConfig {
   /**
    * Whether to adjust the size of the axis tick label bounds as series
-   * belonging to it are filtered.
+   * belonging to it are filtered (applies to the minor tick labels too).
    *
    * @default false
    */
@@ -2468,7 +2794,7 @@ export interface AxisConfigBase {
   /**
    * The grid lines drawn across the plot at each tick on the axis.
    *
-   * @default { visible: false, front: false, style: { … } }
+   * @default { visible: false, front: false, style: { … }, minorFront: "major", minorStyle: { … } }
    */
   gridLine: AxisGridLineConfig;
   /**
@@ -2625,22 +2951,64 @@ export interface AxisConfigBase {
    */
   tickCount: number | Auto;
   /**
+   * The step between the ticks shown along the axis, with minor ticks between
+   * them.
+   *
+   * Chooses the ticks by rule rather than by a list, so the choice holds as the
+   * data changes; explicit `ticks` take precedence. On an ordinal axis the
+   * candidates are the categories in order, or under a `period` the first
+   * category of each period, `count` and `offset` step through them, and the
+   * categories between the ticks are minor ticks. On a linear axis a `period`
+   * (date) or `interval` (number) places the ticks on the period boundaries or
+   * the multiples of the interval, `count` and `offset` keep every count-th of
+   * them counted from a fixed starting point, and `minorPeriod` or `minorSteps`
+   * places minor ticks between them; without a period or interval the axis
+   * keeps the ticks it picks. The minor tick marks, grid lines and labels carry
+   * the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and
+   * `mochart-axis-minor-tick-label` classes, and the `tickLabel`, `tickMark`
+   * and `gridLine` minor settings say how they are drawn.
+   *
+   * Category axis default: `{ interval: null, count: "auto", offset: 0,
+   * minorSteps: null, minSpacing: 2, period: null, minorPeriod: null,
+   * includeFirst: false }`.
+   * Value axis default: `{ interval: null, count: "auto", offset: 0,
+   * minorSteps: null, minSpacing: 2 }`.
+   */
+  tickStep: AxisTickStepConfig;
+  /**
    * The labels shown at each tick along the axis.
    *
-   * Category axis default: `{ front: false, anchor: "auto", backgroundStyle: {
-   * … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5,
-   * paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0,
-   * textStyle: { … }, font: { … }, truncation: { … } }`.
-   * Value axis default: `{ front: false, anchor: "auto", backgroundStyle: { …
-   * }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5,
-   * paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0,
-   * textStyle: { … }, font: { … }, adjustSizeForFiltering: false }`.
+   * A minor tick is one a `tickStep` places between its own ticks (the
+   * categories between an ordinal step's ticks, the `minorSteps` or
+   * `minorPeriod` ticks of a linear step) or a `ticks` entry marked `minor`.
+   * Every tick label setting has a minor version named "minor" followed by the
+   * setting name, and each defaults to `"major"`, which uses the value of the
+   * matching non-minor setting.
+   *
+   * Category axis default: `{ visible: true, front: false, anchor: "auto",
+   * backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1,
+   * paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix:
+   * null, rotation: 0, textStyle: { … }, font: { … }, minorFront: "major",
+   * minorAnchor: "major", minorBackgroundStyle: { … }, minorSize: "major",
+   * minorMarginInner: "major", minorMarginOuter: "major", minorPaddingInner:
+   * "major", minorPaddingOuter: "major", minorFormat: "major", minorPrefix:
+   * null, minorSuffix: null, minorRotation: "major", minorTextStyle: { … },
+   * minorFont: { … }, truncation: { … }, minorTruncation: { … } }`.
+   * Value axis default: `{ visible: true, front: false, anchor: "auto",
+   * backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1,
+   * paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix:
+   * null, rotation: 0, textStyle: { … }, font: { … }, minorFront: "major",
+   * minorAnchor: "major", minorBackgroundStyle: { … }, minorSize: "major",
+   * minorMarginInner: "major", minorMarginOuter: "major", minorPaddingInner:
+   * "major", minorPaddingOuter: "major", minorFormat: "major", minorPrefix:
+   * null, minorSuffix: null, minorRotation: "major", minorTextStyle: { … },
+   * minorFont: { … }, adjustSizeForFiltering: false }`.
    */
   tickLabel: AxisTickLabelConfig;
   /**
    * The tick marks drawn perpendicular to the axis at each tick value.
    *
-   * @default { visible: true, front: false, size: 3, marginInner: 0, style: { … } }
+   * @default { visible: true, front: false, size: 3, marginInner: 0, style: { … }, minorFront: "major", minorSize: "major", minorMarginInner: "major", minorStyle: { … } }
    */
   tickMark: AxisTickMarkConfig;
   /**
@@ -2733,31 +3101,49 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    *
    * Replaces the automatic tick generation entirely: tick counts, intervals and
    * the tick skipping that keeps labels apart are ignored, so the configured
-   * ticks show even where they overlap. Useful for labeling only some of many
+   * ticks show even where they overlap, except that the entries marked `minor`
+   * follow the minor label fit rule. Useful for labeling only some of many
    * categories, e.g. every Monday of a daily date axis, where the generated
-   * ticks would be truncated or skipped at arbitrary categories.
+   * ticks would be truncated or skipped at arbitrary categories. Two entries
+   * naming the same category (compared the way a tick finds its category: by
+   * instant on a date axis, by key with a `keyProperty`, otherwise by value)
+   * are a validation error.
    *
    * @default null
    */
   ticks: CategoryAxisTick[] | null;
   /**
-   * The step between the ticks shown along the axis: every count-th category,
-   * or the first category of each period on a date axis.
+   * The step between the ticks shown along the axis, with minor ticks between
+   * them.
    *
    * Chooses the ticks by rule rather than by a list, so the choice holds as the
-   * data changes; explicit `ticks` take precedence. The candidates are the
-   * categories in order, or under a `period` the first category of each period,
-   * and `count` and `offset` step through them. On a linear date scale only
-   * `period` applies, placing the ticks at the period boundaries themselves; a
-   * linear number scale accepts only the defaults.
+   * data changes; explicit `ticks` take precedence. On an ordinal axis the
+   * candidates are the categories in order, or under a `period` the first
+   * category of each period, `count` and `offset` step through them, and the
+   * categories between the ticks are minor ticks. On a linear axis a `period`
+   * (date) or `interval` (number) places the ticks on the period boundaries or
+   * the multiples of the interval, `count` and `offset` keep every count-th of
+   * them counted from a fixed starting point, and `minorPeriod` or `minorSteps`
+   * places minor ticks between them; without a period or interval the axis
+   * keeps the ticks it picks. The minor tick marks, grid lines and labels carry
+   * the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and
+   * `mochart-axis-minor-tick-label` classes, and the `tickLabel`, `tickMark`
+   * and `gridLine` minor settings say how they are drawn.
    *
-   * @default { count: "auto", offset: 0, period: null, includeFirst: false, minorFormat: null }
+   * @default { interval: null, count: "auto", offset: 0, minorSteps: null, minSpacing: 2, period: null, minorPeriod: null, includeFirst: false }
    */
   tickStep: CategoryAxisTickStepConfig;
   /**
    * The labels shown at each tick along the axis.
    *
-   * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, truncation: { … } }
+   * A minor tick is one a `tickStep` places between its own ticks (the
+   * categories between an ordinal step's ticks, the `minorSteps` or
+   * `minorPeriod` ticks of a linear step) or a `ticks` entry marked `minor`.
+   * Every tick label setting has a minor version named "minor" followed by the
+   * setting name, and each defaults to `"major"`, which uses the value of the
+   * matching non-minor setting.
+   *
+   * @default { visible: true, front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, minorFront: "major", minorAnchor: "major", minorBackgroundStyle: { … }, minorSize: "major", minorMarginInner: "major", minorMarginOuter: "major", minorPaddingInner: "major", minorPaddingOuter: "major", minorFormat: "major", minorPrefix: null, minorSuffix: null, minorRotation: "major", minorTextStyle: { … }, minorFont: { … }, truncation: { … }, minorTruncation: { … } }
    */
   tickLabel: CategoryAxisTickLabelConfig;
   /**
@@ -2817,30 +3203,85 @@ export interface CategoryAxisConfig extends AxisConfigBase {
   valueSuffix: string | null;
 }
 
-export interface CategoryAxisTickStepConfig {
+export interface AxisTickStepConfig {
   /**
-   * Every count-th category gets a tick ("auto" keeps as many as fit without
-   * overlapping).
+   * The axis value distance between the ticks on a linear number scale (use
+   * null to keep the ticks the axis picks).
+   *
+   * Places a tick at every multiple of the interval inside the axis domain,
+   * counted from 0, so the ticks stay put as the data moves the domain. Setting
+   * it never changes the automatic min and max of the axis, it only chooses
+   * where the ticks go. When more ticks survive than fit, every k-th survivor
+   * is kept from the first, and a tick thinned away stays a hidden tick: its
+   * minor ticks are kept, and it never becomes one.
+   *
+   * @default null
+   */
+  interval: number | null;
+  /**
+   * Every count-th step is kept (2 keeps every other one) ("auto" keeps as many
+   * as fit without overlapping).
    *
    * Counts through the candidates, the categories or the period starts: `count:
    * 5, offset: 3` shows the fourth category and every fifth after it, and
    * `period: "week"` with `count: 2` gives every second week. When more ticks
    * survive the rule than fit, every k-th survivor is kept starting from the
    * first, so thinned Mondays stay Mondays; `tickLabel.truncation` still
-   * decides whether crowded labels truncate or skip.
+   * decides whether crowded labels truncate or skip. A number means the same in
+   * `tickStep` and `thresholdStep`: every count-th step. On a linear axis it
+   * needs a `period` or `interval` to count, and is counted from a fixed
+   * starting point, so setting it without one is a validation error.
    *
    * @default "auto"
    */
   count: number | Auto;
   /**
-   * The number of categories skipped before the first tick.
+   * The number of steps skipped before the first tick; on a linear scale it
+   * shifts which multiples or periods are kept, counted from 0 or the calendar
+   * origin.
    *
    * Counted in candidates, so under a `period` an offset of 1 skips the first
-   * period rather than the first category.
+   * period rather than the first category. On a linear axis it needs a `period`
+   * or `interval` to count, so setting it without one is a validation error.
    *
    * @default 0
    */
   offset: number;
+  /**
+   * The number of even steps each interval is split into on a linear number
+   * scale, with a minor tick at each step between the ticks (use null for
+   * none).
+   *
+   * Splits `interval` itself, not the gap between the ticks that `count` keeps,
+   * and needs an `interval` to split. `{ interval: 10, count: 2, minorSteps: 5
+   * }` gives ticks at 0, 20 and 40 and minor ticks every 2, including at 10 and
+   * 30: the steps `count` skips get a minor tick only where one of the even
+   * steps falls. A minor tick at a tick's position is dropped.
+   *
+   * @default null
+   */
+  minorSteps: number | null;
+  /**
+   * The least distance (in pixels, at least 2) to allow between the ticks the
+   * step creates on a linear axis; minor ticks that would be closer are not
+   * created, and ticks that would be closer leave the axis to the ticks it
+   * picks (an ordinal axis accepts only 2).
+   *
+   * The ticks are counted before any is created, from the axis length and the
+   * number the step would create, so a step that would create thousands of
+   * ticks never builds them. When the minor ticks would be closer together than
+   * this, none are created; when the ticks themselves would be, the step
+   * creates none either and the axis uses the ticks it picks, as if `period`
+   * and `interval` were null. Both cases log a console warning naming the axis.
+   * Explicit `ticks` are never limited, and an ordinal axis cannot create more
+   * ticks than it has categories, so it accepts only the default.
+   *
+   * @default 2
+   */
+  minSpacing: number;
+}
+
+export interface CategoryAxisTickStepConfig extends AxisTickStepConfig {
   /**
    * The calendar period the ticks step by on a date axis (day, week, month,
    * year; use null for none).
@@ -2848,11 +3289,26 @@ export interface CategoryAxisTickStepConfig {
    * A week starts on Monday and the boundaries follow `dateUTC`, so a daily
    * series with `"week"` gets a tick at each week's first trading day whatever
    * the holidays. A partial first week is a period of its own, so its first
-   * category gets a tick too; `offset: 1` skips it.
+   * category gets a tick too; `offset: 1` skips it. On a linear date axis the
+   * ticks sit on the period boundaries themselves.
    *
    * @default null
    */
   period: StepPeriod | null;
+  /**
+   * The calendar period of the minor ticks placed between the period ticks on a
+   * linear date axis (day, week, month, year, shorter than period; use null for
+   * none).
+   *
+   * Needs a `period`, and must be a shorter period than it: a week inside a
+   * month, or a day inside a week. A minor tick on a period boundary is
+   * dropped, and one closer to a period boundary than a whole minor period,
+   * such as a Monday the day after the 1st of a month, is hidden with its tick
+   * mark and grid line.
+   *
+   * @default null
+   */
+  minorPeriod: StepPeriod | null;
   /**
    * Whether the first category always gets a tick, even when count and offset
    * would skip it.
@@ -2860,28 +3316,6 @@ export interface CategoryAxisTickStepConfig {
    * @default false
    */
   includeFirst: boolean;
-  /**
-   * The d3 format string (d3-format for number, d3-time-format for date)
-   * applied to the categories between the step's ticks on an ordinal axis,
-   * labeling them as minor ticks when the labels fit a category slot (use null
-   * for none).
-   *
-   * The categories between the rule's ticks are minor ticks, and their tick
-   * marks, grid lines and labels carry the `mochart-axis-minor-tick-mark`,
-   * `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes
-   * whether or not they are labeled. Minor ticks exist only while a rule is set
-   * (a `count`, `offset`, `period` or `includeFirst`), so a `minorFormat` on
-   * its own changes nothing. With a format (a d3 time format on a date axis, a
-   * number format on a number axis; a string axis takes only `null`) they are
-   * labeled in it while the rule's own ticks keep `tickLabel.format`, so a
-   * weekly rule can show `Jun 08` at each Monday and `Tue` to `Fri` between.
-   * The minor labels show only when the widest of them, plus `minTickSpacing`,
-   * fits inside one category slot; when they do not fit they all hide together,
-   * and whether they show never changes which of the rule's ticks are shown.
-   *
-   * @default null
-   */
-  minorFormat: string | null;
 }
 
 export interface CategoryAxisTick {
@@ -2907,6 +3341,16 @@ export interface CategoryAxisTick {
    * tickLabel.format).
    */
   label?: string;
+  /**
+   * Whether the tick is a minor tick, drawn and labeled with the minor tick
+   * settings (leave it out for a regular tick).
+   *
+   * A minor entry is drawn with the `tickLabel`, `tickMark` and `gridLine`
+   * minor settings, and its label shows only when every minor label fits beside
+   * its neighbours; an entry with a `label` keeps it whatever `minorFormat`
+   * says.
+   */
+  minor?: boolean;
 }
 
 export interface ValueAxisTick {
@@ -2917,6 +3361,16 @@ export interface ValueAxisTick {
    * tickLabel.format).
    */
   label?: string;
+  /**
+   * Whether the tick is a minor tick, drawn and labeled with the minor tick
+   * settings (leave it out for a regular tick).
+   *
+   * A minor entry is drawn with the `tickLabel`, `tickMark` and `gridLine`
+   * minor settings, and its label shows only when every minor label fits beside
+   * its neighbours; an entry with a `label` keeps it whatever `minorFormat`
+   * says.
+   */
+  minor?: boolean;
 }
 
 export interface ValueAxisConfig extends AxisConfigBase {
@@ -2954,7 +3408,14 @@ export interface ValueAxisConfig extends AxisConfigBase {
   /**
    * The labels shown at each tick along the axis.
    *
-   * @default { front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, adjustSizeForFiltering: false }
+   * A minor tick is one a `tickStep` places between its own ticks (the
+   * categories between an ordinal step's ticks, the `minorSteps` or
+   * `minorPeriod` ticks of a linear step) or a `ticks` entry marked `minor`.
+   * Every tick label setting has a minor version named "minor" followed by the
+   * setting name, and each defaults to `"major"`, which uses the value of the
+   * matching non-minor setting.
+   *
+   * @default { visible: true, front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, minorFront: "major", minorAnchor: "major", minorBackgroundStyle: { … }, minorSize: "major", minorMarginInner: "major", minorMarginOuter: "major", minorPaddingInner: "major", minorPaddingOuter: "major", minorFormat: "major", minorPrefix: null, minorSuffix: null, minorRotation: "major", minorTextStyle: { … }, minorFont: { … }, adjustSizeForFiltering: false }
    */
   tickLabel: ValueAxisTickLabelConfig;
   /**
@@ -3089,9 +3550,11 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * placing label text at an axis value (use null for none).
    *
    * Replaces the automatic tick generation entirely: tick counts, intervals and
-   * domain-edge ticks are ignored. Useful for naming fixed positions, e.g.
+   * domain-edge ticks are ignored, except that the entries marked `minor`
+   * follow the minor label fit rule. Useful for naming fixed positions, e.g.
    * heatmap row bands or threshold levels. Ticks outside the current axis
-   * domain are hidden.
+   * domain are hidden, and two entries with the same value are a validation
+   * error.
    *
    * @default null
    */

@@ -221,6 +221,9 @@ export const STYLE_STATES = [
 
 export const STYLE_SAME = 'same';
 
+// A minor tick setting's value meaning "use the value of the matching non-minor setting".
+export const MAJOR = 'major';
+
 export const COLOR_SERIES = 'series'
 export const COLOR_SERIES_INDEX = 'seriesIndex';
 export const COLOR_CATEGORY_INDEX ='categoryIndex';
@@ -305,6 +308,7 @@ export type CurveType =
 export type CapType = typeof CAP_TYPE_POINT | typeof CAP_TYPE_CURVE | typeof CAP_TYPE_ROUND;
 export type LabelPosition = typeof LABEL_POSITION_INSIDE | typeof LABEL_POSITION_CENTER | typeof LABEL_POSITION_OUTSIDE;
 export type ColorMode = typeof COLOR_SERIES | typeof STYLE_SAME | typeof COLOR_SERIES_INDEX | typeof COLOR_CATEGORY_INDEX;
+export type Major = typeof MAJOR;
 export type ColorInterpolation =
   typeof COLOR_INTERPOLATION_RGB | typeof COLOR_INTERPOLATION_HSL | typeof COLOR_INTERPOLATION_LAB | typeof COLOR_INTERPOLATION_HCL;
 export type MarkerShape =

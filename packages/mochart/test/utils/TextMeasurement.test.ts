@@ -134,7 +134,7 @@ describe('empty rendered text', () => {
     const domAccessors = {
       getTitleTextDomElement: () => textElement('', 0, 0),
       getTitleTextRawDomElement: () => textElement('', 0, 0),
-      getValueAxisTicksDomElementsForId: () => [textElement('1', 8, 10)],
+      getValueAxisMajorTicksDomElementsForId: () => [textElement('1', 8, 10)],
       getValueAxisThresholdTitleDomElementsForId: () => []
     } as unknown as ChartDomAccessors;
     expect(getTitleTextBounds(mochartConfig, domAccessors)).toEqual({ width: 0, height: 0, empty: true });
@@ -152,7 +152,7 @@ describe('empty rendered text', () => {
       series: [{ property: 'p0', axis: 'v1' }, { property: 'p1', axis: 'v2' }]
     } as never) as EnhancedMochartConfig;
     const domAccessors = {
-      getValueAxisTicksDomElementsForId: (id: string) => id === 'v1' ? [textElement('1', 8, 10)] : [],
+      getValueAxisMajorTicksDomElementsForId: (id: string) => id === 'v1' ? [textElement('1', 8, 10)] : [],
       getValueAxisTitleDomElementForId: () => null,
       getValueAxisThresholdTitleDomElementsForId: () => []
     } as unknown as ChartDomAccessors;
@@ -174,7 +174,7 @@ describe('empty rendered text', () => {
     const domAccessors = {
       getTitleTextDomElement: () => textElement('Title', 0, 0),
       getTitleTextRawDomElement: () => textElement('Title', 0, 0),
-      getValueAxisTicksDomElementsForId: () => [textElement('1', 8, 10)],
+      getValueAxisMajorTicksDomElementsForId: () => [textElement('1', 8, 10)],
       getValueAxisThresholdTitleDomElementsForId: () => []
     } as unknown as ChartDomAccessors;
     expect(getTitleTextBounds(mochartConfig, domAccessors)).toEqual({ width: 20, height: 20, default: true });

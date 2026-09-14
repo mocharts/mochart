@@ -1,4 +1,4 @@
-import { style, spacing, font, styleStateDescriptions } from './shared';
+import { style, spacing, font, styleStateDescriptions, styleDescriptions, fontDescriptions } from './shared';
 import type { DescriptionMap, NestedDescription } from './shared';
 
 const strokeMembers = ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray'];
@@ -24,6 +24,47 @@ function partialStyle(description: string, members: string[]): NestedDescription
   return { description, properties: styleMembers(members, false) };
 }
 
+/** What "major" means in a minor tick setting, named after the non-minor setting it takes its value from. */
+export function majorNote(majorPath: string): string {
+  return ' ("major" uses the value of ' + majorPath + ')';
+}
+
+// The members of a minor tick style, each also taking "major" for the matching non-minor member
+function minorStyleMembers(members: string[], allowSame: boolean, majorPath: string): DescriptionMap {
+  const descriptions = styleMembers(members, allowSame);
+  for (const member of members) {
+    descriptions[member] = descriptions[member] + majorNote(majorPath + '.' + member);
+  }
+  return descriptions;
+}
+
+function minorStyleStates(description: string, members: string[], majorPath: string): NestedDescription {
+  return {
+    description,
+    properties: {
+      normal: { description: description + ', while the axis is neither focused nor defocused', properties: minorStyleMembers(members, false, majorPath + '.normal') },
+      focused: { description: description + ', while the axis is focused', properties: minorStyleMembers(members, true, majorPath + '.focused') },
+      defocused: { description: description + ', while the axis is defocused', properties: minorStyleMembers(members, true, majorPath + '.defocused') }
+    }
+  };
+}
+
+function minorStyle(description: string, majorPath: string): NestedDescription {
+  const properties: DescriptionMap = {};
+  for (const member of Object.keys(styleDescriptions)) {
+    properties[member] = styleDescriptions[member] + majorNote(majorPath + '.' + member);
+  }
+  return { description, properties };
+}
+
+function minorFont(description: string, majorPath: string): NestedDescription {
+  const properties: DescriptionMap = {};
+  for (const member of Object.keys(fontDescriptions)) {
+    properties[member] = fontDescriptions[member] + majorNote(majorPath + '.' + member);
+  }
+  return { description, properties };
+}
+
 function styleStates(description: string, members: string[]): NestedDescription {
   return {
     description,
@@ -38,6 +79,7 @@ function styleStates(description: string, members: string[]): NestedDescription 
 /** The tick label members shared by both axes; each axis adds its own (format, truncation, filtering). */
 export function getTickLabelDescriptions(): DescriptionMap {
   return {
+    visible: 'whether to show the axis tick labels (the minor tick labels follow minorVisible)',
     front: 'whether the axis tick labels should be shown in front (true) or behind (false) the series shapes',
     backgroundStyle: style('the styles to apply to the axis tick label background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
     size: 'the space (in pixels) perpendicular to the axis direction to allocate for the tick labels (use "auto" to derive from the font size)',
@@ -50,11 +92,38 @@ export function getTickLabelDescriptions(): DescriptionMap {
     rotation: 'the rotation (in degrees, -90 to 90) to apply to each axis tick label',
     anchor: 'the anchor to use for all axis tick labels (start, end, middle) (use "auto" to determine automatically)',
     textStyle: styleStates('the style of the axis tick label text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity']),
-    font: font('the font of the axis tick label text (family, size, weight, style), each member falling back to chart.font when null')
+    font: font('the font of the axis tick label text (family, size, weight, style), each member falling back to chart.font when null'),
+    minorVisible: 'whether to show the minor tick labels, the labels of the minor ticks a tickStep places between its ticks and of the ticks entries marked minor' + majorNote('tickLabel.visible'),
+    minorFront: 'whether the minor tick labels should be shown in front (true) or behind (false) the series shapes' + majorNote('tickLabel.front'),
+    minorBackgroundStyle: minorStyle('the styles to apply to the minor tick label background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))', 'tickLabel.backgroundStyle'),
+    minorSize: 'the space (in pixels) perpendicular to the axis direction to allocate for the minor tick labels (use "auto" to derive from the font size)' + majorNote('tickLabel.size'),
+    minorMarginInner: 'the margin (in pixels) to show between the minor tick labels and the inside of the axis' + majorNote('tickLabel.marginInner'),
+    minorMarginOuter: 'the margin (in pixels) to show between the minor tick labels and the outside of the axis' + majorNote('tickLabel.marginOuter'),
+    minorPaddingInner: 'the padding (in pixels) to show between the minor tick labels and the inside of the axis' + majorNote('tickLabel.paddingInner'),
+    minorPaddingOuter: 'the padding (in pixels) to show between the minor tick labels and the outside of the axis' + majorNote('tickLabel.paddingOuter'),
+    minorPrefix: 'the string to prefix to the text of each minor tick label (use null for none)',
+    minorSuffix: 'the string to append to the text of each minor tick label (use null for none)',
+    minorRotation: 'the rotation (in degrees, -90 to 90) to apply to each minor tick label' + majorNote('tickLabel.rotation'),
+    minorAnchor: 'the anchor to use for all minor tick labels (start, end, middle) (use "auto" to determine automatically)' + majorNote('tickLabel.anchor'),
+    minorTextStyle: minorStyleStates('the style of the minor tick label text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity'], 'tickLabel.textStyle'),
+    minorFont: minorFont('the font of the minor tick label text (family, size, weight, style), each member taking the matching tickLabel.font member when "major" and falling back to chart.font when null', 'tickLabel.font')
   };
 }
 
 export const tickLabelDescription = 'the labels shown at each tick along the axis';
+
+export const minorTickLabelIntro = 'A minor tick is one a `tickStep` places between its own ticks (the categories between an ordinal step\'s ticks, the `minorSteps` or `minorPeriod` ticks of a linear step) or a `ticks` entry marked `minor`. Every tick label setting has a minor version named "minor" followed by the setting name, and each defaults to `"major"`, which uses the value of the matching non-minor setting.';
+
+/** The tick label details shared by both axes: what a minor tick is, how its labels fit, and the font size note. */
+export function getTickLabelDetails(): DescriptionMap {
+  return {
+    visible: 'A label hidden here is not drawn and takes no room in the layout, and its ticks are no longer thinned to make the labels fit: their tick marks and grid lines are limited only by `tickStep.minSpacing`. To keep hidden labels in the layout, leave them visible and set the opacities of every state of `textStyle` to 0 instead.',
+    minorVisible: 'The default is `false` while `minorFormat` is `"major"` and `ticks` is unset, so a `tickStep` alone labels only its own ticks; setting a `minorFormat` or listing `ticks` turns it to `"major"`. Minor labels never change which non-minor labels show. A minor label shows only when every minor label fits beside its neighbours, minor or not, measured from the widest minor and non-minor labels plus `minTickSpacing`; when one does not fit they all hide, unless the category axis `minorTruncation` truncates them instead. Hidden minor labels (not fitting, or `false` here) hide their tick marks and grid lines with them, and `false` here also takes them out of the layout.',
+    minorFormat: '`"major"` is replaced with the value of `format` before any formatter is built, so it never reaches d3.',
+    minorSize: 'The minor labels have a layout of their own: they are measured and placed from the minor settings, the axis reserves the larger of the two label totals (size, margins and paddings), the title sits after the larger one, and the minor labels get their own background box.',
+    minorFont: { properties: { size: 'A relative size such as `"0.85em"` resolves against the font size the label inherits from the host page, as every font size in mochart does, not against `tickLabel.font.size` or `chart.font.size`: with `tickLabel.font.size` 16 on a page with a 12px font, `"0.85em"` gives minor labels 10.2px, not 13.6px.' } }
+  };
+}
 
 export const thresholdsDescription = 'the thresholds to draw across the plot: a line at an axis value, or a range between two';
 
@@ -86,7 +155,28 @@ export function getThresholdDescriptions(): DescriptionMap {
 
 export const thresholdStepDescription = 'threshold lines or ranges repeated along the axis by rule';
 
+export const tickStepDescription = 'the step between the ticks shown along the axis, with minor ticks between them';
+
 export const stepCountDescription = 'every count-th step is kept (2 keeps every other one)';
+
+/** The tickStep members both axes share; the category axis adds the members that place its steps on its scales. */
+export function getTickStepDescriptions(): DescriptionMap {
+  return {
+    interval: 'the axis value distance between the ticks on a linear number scale (use null to keep the ticks the axis picks)',
+    count: stepCountDescription + ' ("auto" keeps as many as fit without overlapping)',
+    offset: 'the number of steps skipped before the first tick; on a linear scale it shifts which multiples or periods are kept, counted from 0 or the calendar origin',
+    minorSteps: 'the number of even steps each interval is split into on a linear number scale, with a minor tick at each step between the ticks (use null for none)',
+    minSpacing: 'the least distance (in pixels, at least 2) to allow between the ticks the step creates on a linear axis; minor ticks that would be closer are not created, and ticks that would be closer leave the axis to the ticks it picks (an ordinal axis accepts only 2)'
+  };
+}
+
+export const tickStepMinorDetails = {
+  interval: 'Places a tick at every multiple of the interval inside the axis domain, counted from 0, so the ticks stay put as the data moves the domain. Setting it never changes the automatic min and max of the axis, it only chooses where the ticks go. When more ticks survive than fit, every k-th survivor is kept from the first, and a tick thinned away stays a hidden tick: its minor ticks are kept, and it never becomes one.',
+  count: 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. On a linear axis it needs a `period` or `interval` to count, and is counted from a fixed starting point, so setting it without one is a validation error.',
+  offset: 'On a linear axis it needs a `period` or `interval` to count, so setting it without one is a validation error.',
+  minorSteps: 'Splits `interval` itself, not the gap between the ticks that `count` keeps, and needs an `interval` to split. `{ interval: 10, count: 2, minorSteps: 5 }` gives ticks at 0, 20 and 40 and minor ticks every 2, including at 10 and 30: the steps `count` skips get a minor tick only where one of the even steps falls. A minor tick at a tick\'s position is dropped.',
+  minSpacing: 'The ticks are counted before any is created, from the axis length and the number the step would create, so a step that would create thousands of ticks never builds them. When the minor ticks would be closer together than this, none are created; when the ticks themselves would be, the step creates none either and the axis uses the ticks it picks, as if `period` and `interval` were null. Both cases log a console warning naming the axis. Explicit `ticks` are never limited, and an ordinal axis cannot create more ticks than it has categories, so it accepts only the default.'
+};
 
 /** The thresholdStep members both axes share; each axis adds the members that place its steps. */
 export function getThresholdStepDescriptions(): DescriptionMap {
@@ -166,7 +256,10 @@ export default function getDescriptions() {
       properties: {
         visible: 'whether to show grid lines perpendicular to each tick on the axis',
         front: 'whether the axis grid lines should be shown in front (true) or behind (false) the series shapes',
-        style: styleStates('the style of the axis grid lines', strokeMembers)
+        style: styleStates('the style of the axis grid lines', strokeMembers),
+        minorVisible: 'whether to show grid lines perpendicular to each minor tick on the axis' + majorNote('gridLine.visible'),
+        minorFront: 'whether the minor grid lines should be shown in front (true) or behind (false) the series shapes' + majorNote('gridLine.front'),
+        minorStyle: minorStyleStates('the style of the minor grid lines', strokeMembers, 'gridLine.style')
       }
     },
 
@@ -204,8 +297,18 @@ export default function getDescriptions() {
         front: 'whether the axis tick marks should be shown in front (true) or behind (false) the series shapes',
         size: 'the length (in pixels) of the axis tick mark lines',
         marginInner: 'the margin (in pixels) to show between the inside of the axis and the axis tick mark lines',
-        style: styleStates('the style of the axis tick mark lines', strokeMembers)
+        style: styleStates('the style of the axis tick mark lines', strokeMembers),
+        minorVisible: 'whether to show lines perpendicular to each minor tick value along the axis' + majorNote('tickMark.visible'),
+        minorFront: 'whether the minor tick marks should be shown in front (true) or behind (false) the series shapes' + majorNote('tickMark.front'),
+        minorSize: 'the length (in pixels) of the minor tick mark lines' + majorNote('tickMark.size'),
+        minorMarginInner: 'the margin (in pixels) to show between the inside of the axis and the minor tick mark lines' + majorNote('tickMark.marginInner'),
+        minorStyle: minorStyleStates('the style of the minor tick mark lines', strokeMembers, 'tickMark.style')
       }
+    },
+
+    tickStep: {
+      description: tickStepDescription,
+      properties: getTickStepDescriptions()
     },
 
     title: {

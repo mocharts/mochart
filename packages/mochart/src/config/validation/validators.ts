@@ -2,7 +2,7 @@ import { color as parseColor } from 'd3-color';
 
 import validators from '@mochart/movalid';
 import type { CustomValidator, Validator } from '@mochart/movalid';
-import { NONE, TOP_RIGHT_BOTTOM_LEFT, COLOR_CURRENT, FONT_WEIGHTS, FONT_STYLES } from '../core/constants';
+import { NONE, MAJOR, TOP_RIGHT_BOTTOM_LEFT, COLOR_CURRENT, FONT_WEIGHTS, FONT_STYLES } from '../core/constants';
 
 // an id is woven into dom ids and their url(#...) references, which have no escaping, so it is restricted to characters that need none
 const idRegexp = /^[A-Za-z0-9_-]+$/;
@@ -110,6 +110,16 @@ const strokeStyle = () => validators.partialObjectWithShape({
 }, true);
 // Partial like a style: every member is nullable, and null hands that member back to css.
 const font = () => validators.partialObjectWithShape(fontKeyMap, true);
+// The minor tick versions: every member also accepts "major", the value of the matching non-minor member.
+const orMajor = (keyMap: Record<string, Validator>): Validator => {
+  const shape: Record<string, Validator> = {};
+  for (const key of Object.keys(keyMap)) {
+    shape[key] = keyMap[key]!.orEqual(MAJOR);
+  }
+  return validators.partialObjectWithShape(shape, true);
+};
+const styleOrMajor = () => orMajor(styleKeyMap);
+const fontOrMajor = () => orMajor(fontKeyMap);
 const opacity = () => validators.numberMinMax(0, 1);
 const svgColor = () => svgColorValidator;
 const cssColor = () => cssColorValidator;
@@ -131,6 +141,8 @@ const configValidators = Object.assign({}, validators, {
   cssStyle,
   strokeStyle,
   font,
+  styleOrMajor,
+  fontOrMajor,
   opacity,
   svgColor,
   cssColor

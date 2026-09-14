@@ -22,9 +22,9 @@ export function getCategoryAxisBeforeAfter(axisConfig: CategoryAxisConfig, axisS
   }
 }
 
-export function getCategoryAxisSize(axisConfig: CategoryAxisConfig, rotatedTickBounds: Bounds, titleBounds: TextBounds, vertical: boolean): number {
+export function getCategoryAxisSize(axisConfig: CategoryAxisConfig, rotatedTickBounds: Bounds, minorTickBounds: TextBounds, minorRotatedTickBounds: Bounds, titleBounds: TextBounds, vertical: boolean): number {
   if (axisConfig.visible) {
-    return getAxisSize(axisConfig, rotatedTickBounds, titleBounds, vertical);
+    return getAxisSize(axisConfig, rotatedTickBounds, minorTickBounds, minorRotatedTickBounds, titleBounds, vertical);
   }
   else {
     return 0;
@@ -35,13 +35,13 @@ export function getCategoryAxisRotatedTickBounds(mochartConfig: EnhancedMochartC
   const { categoryAxis: categoryAxisConfig } = mochartConfig;
   const { categoryAxisTickBounds } = chartTextBoundsData;
   const { categoryAxisTickInfo } = axisTickInfos;
-  return getRotatedTickBounds(categoryAxisConfig, categoryAxisTickBounds, categoryAxisTickInfo);
+  return getRotatedTickBounds(categoryAxisConfig.tickLabel, categoryAxisTickBounds, categoryAxisTickInfo);
 }
 
-export function createCategoryAxisLayoutInfo(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, categoryAxisRotatedTickBounds: Bounds, axisTickInfos: AxisTickInfos, categoryY: number, valueY: number, categoryInnerExtent: number, valueInnerExtent: number, categoryAxesOffset: BeforeAfter, categoryAxisSize: number): CategoryAxisLayoutInfo {
+export function createCategoryAxisLayoutInfo(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, categoryAxisRotatedTickBounds: Bounds, categoryAxisMinorRotatedTickBounds: Bounds, axisTickInfos: AxisTickInfos, categoryY: number, valueY: number, categoryInnerExtent: number, valueInnerExtent: number, categoryAxesOffset: BeforeAfter, categoryAxisSize: number): CategoryAxisLayoutInfo {
   const { plot: plotConfig, categoryAxis: categoryAxisConfig } = mochartConfig;
-  const { categoryAxisTitleBounds, categoryAxisTickBounds, categoryAxisMinorTickBounds, categoryAxisSizeTickBounds, categoryAxisThresholdTitleBounds } = chartTextBoundsData;
-  const { categoryAxisTickInfo } = axisTickInfos;
+  const { categoryAxisTitleBounds, categoryAxisTickBounds, categoryAxisMinorTickBounds, categoryAxisSizeTickBounds, categoryAxisMinorSizeTickBounds, categoryAxisThresholdTitleBounds } = chartTextBoundsData;
+  const { categoryAxisTickInfo, categoryAxisMinorTickInfo } = axisTickInfos;
   const { inverted } = plotConfig;
   const vertical = inverted;
   const { side, collapsed, marginInner, marginOuter, paddingInner, paddingOuter } = categoryAxisConfig;
@@ -57,11 +57,11 @@ export function createCategoryAxisLayoutInfo(mochartConfig: EnhancedMochartConfi
       height: inverted ? categoryInnerExtent : categoryAxisSize
     },
     vertical, inverted, notAfter, marginInner, marginOuter, paddingInner, paddingOuter) as CategoryAxisLayoutInfo;
-  setExtraAxisInfo(categoryAxisLayoutInfo, categoryAxisConfig, categoryAxisTickInfo, categoryAxisTickBounds, categoryAxisRotatedTickBounds, categoryAxisTitleBounds, categoryAxisThresholdTitleBounds, vertical, inverted);
+  setExtraAxisInfo(categoryAxisLayoutInfo, categoryAxisConfig, categoryAxisTickInfo, categoryAxisMinorTickInfo, categoryAxisTickBounds, categoryAxisRotatedTickBounds, categoryAxisMinorTickBounds, categoryAxisMinorRotatedTickBounds, categoryAxisTitleBounds, categoryAxisThresholdTitleBounds, vertical, inverted);
   categoryAxisLayoutInfo.position = categoryY;
   categoryAxisLayoutInfo.before = categoryAxesOffset.before;
   categoryAxisLayoutInfo.after = categoryAxesOffset.after;
   categoryAxisLayoutInfo.minTickSize = categoryAxisSizeTickBounds.width;
-  categoryAxisLayoutInfo.minorTickLabelSpace = categoryAxisTickInfo.tickLabelParallel ? categoryAxisMinorTickBounds.width : categoryAxisMinorTickBounds.height;
+  categoryAxisLayoutInfo.minorMinTickSize = categoryAxisMinorSizeTickBounds.width;
   return categoryAxisLayoutInfo;
 }

@@ -9,6 +9,7 @@ import type { ValueAxisData } from '../types/data';
 import type { LayoutInfo } from '../types/layout';
 
 interface ValueAxisGridProps {
+  front: boolean;
   plotConfig: PlotConfig;
   valueAxisConfig: EnhancedValueAxisConfig;
   seriesLayoutInfo: LayoutInfo;
@@ -27,10 +28,10 @@ export default class ValueAxisGrid extends Renderer<ValueAxisGridProps> {
   }
 
   sync() {
-    const { plotConfig, valueAxisConfig, seriesLayoutInfo, axisFocusPercentage, seriesFocusPercentage, seriesCount, valueAxisData } = this.props;
+    const { front, plotConfig, valueAxisConfig, seriesLayoutInfo, axisFocusPercentage, seriesFocusPercentage, seriesCount, valueAxisData } = this.props;
     if (valueAxisConfig.visibleWhenAllFiltered || seriesCount > 0) {
       const axisId = valueAxisConfig.id;
-      this.grid!.set(AxisGrid, { vertical: !plotConfig.inverted, axisConfig: valueAxisConfig, seriesLayoutInfo,
+      this.grid!.set(AxisGrid, { front, vertical: !plotConfig.inverted, axisConfig: valueAxisConfig, seriesLayoutInfo,
         axisGridClass: mochartCssClasses['valueAxisGrid'] + axisId,
         axisFocusPercentage, seriesFocusPercentage,
         axisTicks: valueAxisData.axisTickData[axisId] });

@@ -37,6 +37,9 @@ export interface AxisTickInfo {
 export interface AxisTickInfos {
   categoryAxisTickInfo: AxisTickInfo;
   valueAxisTickInfos: Record<string, AxisTickInfo>;
+  /** The same for the minor tick labels, from their own rotation and anchor. */
+  categoryAxisMinorTickInfo: AxisTickInfo;
+  valueAxisMinorTickInfos: Record<string, AxisTickInfo>;
 }
 
 /** SpacingLayoutInfo extended in place by setExtraAxisInfo (PlotLayout.ts). */
@@ -63,6 +66,20 @@ export interface AxisLayoutInfo extends SpacingLayoutInfo, LayoutInfo {
   tickMarkY1: number;
   tickMarkX2: number;
   tickMarkY2: number;
+  /** The minor tick labels' own layout: measured and placed from the minor settings, with their own box. */
+  minorTickLabelParallel: boolean;
+  minorTickLabelSize: number;
+  minorTickLabelSpace: number;
+  totalMinorTickLabelSize: number;
+  minorTickHeight: number;
+  minorTickLabelAnchor: Anchor;
+  minorTickTextX: number;
+  minorTickTextY: number;
+  minorTickLabelLayoutInfo: SpacingLayoutInfo;
+  minorTickMarkX1: number;
+  minorTickMarkY1: number;
+  minorTickMarkX2: number;
+  minorTickMarkY2: number;
   focusTickMarkX1: number;
   focusTickMarkY1: number;
   focusTickMarkX2: number;
@@ -81,9 +98,9 @@ export interface CategoryAxisLayoutInfo extends AxisLayoutInfo {
   position: number;
   before: number;
   after: number;
+  /** The width of the shortest truncated label, the room a truncated tick label needs. */
   minTickSize: number;
-  /** The extent along the axis of the widest minor tick label, the room one category slot must give it. */
-  minorTickLabelSpace: number;
+  minorMinTickSize: number;
 }
 
 export interface TitleLayoutResult {
@@ -125,9 +142,11 @@ export interface ChartTextBoundsData {
   categoryAxisTickBounds: TextBounds;
   categoryAxisMinorTickBounds: TextBounds;
   categoryAxisSizeTickBounds: TextBounds;
+  categoryAxisMinorSizeTickBounds: TextBounds;
   categoryAxisTitleBounds: TextBounds;
   categoryAxisThresholdTitleBounds: Record<number, TextBounds>;
   valueAxisTickBounds: Record<string, TextBounds>;
+  valueAxisMinorTickBounds: Record<string, TextBounds>;
   valueAxisTitleBounds: Record<string, TextBounds>;
   valueAxisThresholdTitleBounds: Record<string, Record<number, TextBounds>>;
   legendBounds: TextBounds;

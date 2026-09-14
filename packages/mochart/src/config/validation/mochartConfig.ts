@@ -13,7 +13,7 @@ import colorPaletteValidators from './colorPaletteConfig';
 import clipIndicatorValidators from './clipIndicatorConfig';
 import crosshairValidators from './crosshairConfig';
 import categoryAxisValidators from './categoryAxisConfig';
-import { validateAxisBounds, validateThresholdEntries, validateStepRules } from './axisConfig';
+import { validateAxisBounds, validateThresholdEntries, validateStepRules, validateTickEntries } from './axisConfig';
 import legendValidators from './legendConfig';
 import linearGradientValidators from './linearGradientConfig';
 import patternValidators from './patternConfig';
@@ -345,6 +345,7 @@ function validateConfigInternal(configWithoutDefaults: unknown, configDefaults: 
     validateAxisBounds(config, configWithoutDefaults, errors, errorDetails);
     validateThresholdEntries(config, configWithoutDefaults, errors, errorDetails);
     validateStepRules(config, configWithoutDefaults, errors, errorDetails);
+    validateTickEntries(config, configWithoutDefaults, errors, errorDetails);
   }
   else {
     const message = objectValidator.getErrorMessage(configWithoutDefaults);

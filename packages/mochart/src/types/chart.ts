@@ -52,9 +52,12 @@ export interface ChartDomAccessors {
   getCategoryAxisMajorTicksDomElements(): NodeListOf<SVGGraphicsElement>;
   getCategoryAxisMinorTicksDomElements(): NodeListOf<SVGGraphicsElement>;
   getCategoryAxisSizeTickDomElement(): SVGGraphicsElement | null;
+  getCategoryAxisMinorSizeTickDomElement(): SVGGraphicsElement | null;
   getCategoryAxisTitleDomElement(): SVGGraphicsElement | null;
   getCategoryAxisThresholdTitleDomElements(): NodeListOf<SVGGraphicsElement>;
   getValueAxisTicksDomElementsForId(axisId: string): NodeListOf<SVGGraphicsElement>;
+  getValueAxisMajorTicksDomElementsForId(axisId: string): NodeListOf<SVGGraphicsElement>;
+  getValueAxisMinorTicksDomElementsForId(axisId: string): NodeListOf<SVGGraphicsElement>;
   getValueAxisTitleDomElementForId(axisId: string): SVGGraphicsElement | null;
   getValueAxisThresholdTitleDomElementsForId(axisId: string): NodeListOf<SVGGraphicsElement>;
   getLegendDomElement(): HTMLElement | null;

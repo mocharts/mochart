@@ -1,6 +1,6 @@
 import validators from './validators';
 
-import { AUTO, NONE, TYPE_NUMBER, SCALE_LINEAR } from '../core/constants';
+import { AUTO, NONE, MAJOR, TYPE_NUMBER, SCALE_LINEAR } from '../core/constants';
 
 import getAxisValidators, { axisStyleValidators, getTickLabelValidators } from './axisConfig';
 
@@ -9,7 +9,8 @@ export default function getValidators(pieMode = false) {
     ...getAxisValidators(validators.number(), {
       ...getTickLabelValidators(),
       format: validators.numberFormat().orOneOf([NONE, AUTO]),
-      adjustSizeForFiltering: validators.boolean()
+      adjustSizeForFiltering: validators.boolean(),
+      minorFormat: validators.numberFormat().orOneOf([NONE, AUTO, MAJOR])
     }, pieMode),
 
     adjustForFiltering: validators.boolean(),
@@ -43,7 +44,8 @@ export default function getValidators(pieMode = false) {
 
     ticks: validators.arrayOf(validators.objectWithShape({
       value: validators.number(),
-      label: validators.string().orEqual(undefined)
+      label: validators.string().orEqual(undefined),
+      minor: validators.boolean().orEqual(undefined)
     }), true).orEqual(NONE),
 
     softMax: validators.number().orEqual(NONE),

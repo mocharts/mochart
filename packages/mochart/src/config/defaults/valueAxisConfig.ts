@@ -1,7 +1,7 @@
 import { NONE, TYPE_NUMBER, SCALE_LINEAR, COLOR_CURRENT, STYLE_SAME } from '../core/constants';
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
 
-import getAxisDefaults from './axisConfig';
+import getAxisDefaults, { getMinorVisibleDefault } from './axisConfig';
 import type { DeepPartial, ValueAxisConfig } from '../../types/config';
 
 export default function getDefaults(config: DeepPartial<ValueAxisConfig> = {}, index: number, hasStack: boolean, pieMode = false): Partial<ValueAxisConfig> {
@@ -65,6 +65,9 @@ export function getConditionalDefaults(configWithRegularDefaults: ValueAxisConfi
     ], configWithRegularDefaults, index),
     order: conditionalDefault([
       { ...defaultRule, default: index, defaultText: '${index}' }
-    ], configWithRegularDefaults, index)
+    ], configWithRegularDefaults, index),
+    tickLabel: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, index) },
+    tickMark: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, index) },
+    gridLine: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, index) }
   };
 }

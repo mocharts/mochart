@@ -73,7 +73,8 @@ const descriptions: Record<string, string> = {
   FontWeight: 'The css font-weight a font member accepts: a hundred from 100 to 900, or one of the css keywords.',
   FontStyle: 'The css font-style a font member accepts.',
   AnimationEasing: 'How an animation\'s progress is paced over its duration.',
-  Auto: 'The `\'auto\'` keyword, accepted by members that otherwise take a number, a format string, or another enumeration.'
+  Auto: 'The `\'auto\'` keyword, accepted by members that otherwise take a number, a format string, or another enumeration.',
+  Major: 'The `\'major\'` keyword, accepted by every minor tick setting to use the value of the matching non-minor setting.'
 };
 
 const lead =

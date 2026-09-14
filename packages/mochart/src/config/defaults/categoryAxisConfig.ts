@@ -1,7 +1,7 @@
-import { AUTO, NONE, TYPE_STRING, SCALE_LINEAR, SCALE_ORDINAL, SIDE_START, SIDE_END } from '../core/constants';
+import { AUTO, NONE, MAJOR, TYPE_STRING, SCALE_LINEAR, SCALE_ORDINAL, SIDE_START, SIDE_END } from '../core/constants';
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
 
-import getAxisDefaults from './axisConfig';
+import getAxisDefaults, { getMinorVisibleDefault } from './axisConfig';
 import { getDefaultsWithoutEnabled as getTruncationDefaultsWithoutEnabled } from './truncationConfig';
 import type { DeepPartial, CategoryAxisConfig } from '../../types/config';
 
@@ -29,12 +29,13 @@ export function getRegularDefaults() {
     scale: SCALE_ORDINAL,
 
     ticks: NONE,
-    tickStep: { count: AUTO, offset: 0, period: NONE, includeFirst: false, minorFormat: NONE },
+    tickStep: { ...axisDefaults.tickStep, period: NONE, minorPeriod: NONE, includeFirst: false },
     thresholdStep: { ...axisDefaults.thresholdStep, period: NONE },
 
     tickLabel: {
       ...axisDefaults.tickLabel,
-      truncation: { ...getTruncationDefaultsWithoutEnabled(), minLength: 0, maxFraction: 0.2 }
+      truncation: { ...getTruncationDefaultsWithoutEnabled(), minLength: 0, maxFraction: 0.2 },
+      minorTruncation: { enabled: MAJOR, text: getTruncationDefaultsWithoutEnabled().text, tooltipEnabled: MAJOR, minLength: MAJOR, maxFraction: MAJOR }
     },
 
     type: TYPE_STRING,
@@ -75,7 +76,10 @@ export function getConditionalDefaults(configWithRegularDefaults: CategoryAxisCo
           { condition: ({ type }, _inverted) => type !== TYPE_STRING, suffix: "when type is not string", default: false },
           { ...defaultRule, default: false }
         ], configWithRegularDefaults, inverted)
-      }
-    }
+      },
+      minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted)
+    },
+    tickMark: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted) },
+    gridLine: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted) }
   };
 }

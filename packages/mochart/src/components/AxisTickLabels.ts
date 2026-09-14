@@ -4,14 +4,18 @@ import { mochartCssClasses } from '../utils/ChartDom';
 import { layoutInfoExtentChanged } from '../layout/LayoutInfo';
 import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation';
 import { SCALE_ORDINAL } from '../config/core/constants';
+import { getMinorTickLabel } from '../config/core/minorConfig';
 import { translate } from '../utils/utils';
 import { getClipPathReference } from '../utils/svgUtils';
 import { getAxisFocusStyle } from '../utils/FocusValue';
 import { styleToAttributes } from '../utils/style';
 import { resolveFontStyle } from '../utils/font';
 import Background from './Background';
+import { getPassTicks } from './AxisLines';
+import type { PassTick } from './AxisLines';
 import type { El, TextEl } from '../render';
-import type { AxisConfigBase, AxisTickLabelConfig, CategoryAxisConfig, CategoryAxisTickLabelConfig, FontConfig } from '../types/config';
+import type { MinorTickLabel } from '../config/core/minorConfig';
+import type { AxisConfigBase, AxisTickLabelConfig, CategoryAxisConfig, CategoryAxisTickLabelConfig, FontConfig, TickLabelTruncationConfig } from '../types/config';
 import type { FontInlineStyle } from '../utils/font';
 import type { EnhancedValueAxisConfig } from '../types/enhanced';
 import type { AxisTick } from '../types/data';
@@ -21,19 +25,23 @@ import type { TruncationDataValue, TruncationState } from '../utils/TextTruncati
 import type { Anchor } from '../config/core/constants';
 
 const emptyArray: string[] = [];
+const emptyNumbers: number[] = [];
+const emptyPassTicks: PassTick[] = [];
 const hiddenStyle = { visibility: 'hidden' };
 
 type AxisDisplayConfig = Omit<AxisConfigBase, 'tickLabel'> &
   Pick<CategoryAxisConfig, 'scale'> &
-  { tickLabel: AxisTickLabelConfig & Partial<Pick<CategoryAxisTickLabelConfig, 'truncation'>> } &
+  { tickLabel: AxisTickLabelConfig & Partial<Pick<CategoryAxisTickLabelConfig, 'truncation' | 'minorTruncation'>> } &
   Partial<Pick<EnhancedValueAxisConfig, 'useSeriesFocus'>>;
 
 interface AxisTickLabelsProps {
+  front: boolean;
   axisConfig: AxisDisplayConfig;
   axisLayoutInfo: AxisLayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
   axisTicks: AxisTick[];
   tickSpacing: number | null;
+  minorTickSpacing: number | null;
   tickLabelClipPathUniqueId?: string;
   axisFocusPercentage: FocusPercentage;
   seriesFocusPercentage: FocusPercentage;
@@ -44,45 +52,64 @@ type AxisTickLabelsState = TruncationState;
 type SizeLabelEl = El & { textHandle: El; valueHandle: TextEl };
 interface TickLabelHandle { root: El; text: El; value: TextEl; tooltip: TruncationTooltip }
 
-function getTruncationChanged(sizeChanged: boolean, ticksChanged: boolean, oldProps: AxisTickLabelsProps, newProps: AxisTickLabelsProps): boolean {
-  if (sizeChanged) {
+/** The kinds of label a pass draws: those visible in the config and drawn in front or behind like the pass. */
+function getPasses(props: AxisTickLabelsProps): { majorPass: boolean; minorPass: boolean; minorTickLabel: MinorTickLabel } {
+  const { front, axisConfig } = props;
+  const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
+  return {
+    majorPass: front === axisConfig.tickLabel.front && axisConfig.tickLabel.visible,
+    minorPass: front === minorTickLabel.front && minorTickLabel.visible,
+    minorTickLabel
+  };
+}
+
+function labelsChanged(oldLabels: string[], newLabels: string[]): boolean {
+  if (oldLabels.length !== newLabels.length) {
     return true;
   }
-  else if (ticksChanged) {
-    const { axisTicks: oldTicks } = oldProps;
-    const { axisTicks: newTicks } = newProps;
-    if (oldTicks.length === newTicks.length) {
-      const tickLength = oldTicks.length;
-      let i;
-      for (i = 0; i < tickLength; i++) {
-        if (oldTicks[i].label !== newTicks[i].label) {
-          return true;
-        }
-      }
-      return false;
+  for (let i = 0; i < newLabels.length; i++) {
+    if (oldLabels[i] !== newLabels[i]) {
+      return true;
     }
-    return true;
   }
-  else {
-    return false;
+  return false;
+}
+
+/** The room a kind of label truncates to: its share of the axis when parallel, else a fraction of the plot. */
+function getTruncationLength(truncation: TickLabelTruncationConfig | undefined, parallel: boolean, tickSpacing: number | null, vertical: boolean, plotLayoutInfo: SpacingLayoutInfo): number {
+  if (truncation === undefined || !truncation.enabled) {
+    return Infinity;
   }
+  if (parallel) {
+    return tickSpacing ?? 0;
+  }
+  return Math.max(truncation.minLength, truncation.maxFraction * (vertical ? plotLayoutInfo.width : plotLayoutInfo.height));
 }
 
 export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTickLabelsState> {
   root = svgEl('g');
   background = this.slot(this.root);
+  minorBackground = this.slot(this.root);
   tickLabelsGroup = svgEl('g');
-  tickLabels = this.elList<AxisTick, TickLabelHandle>(this.tickLabelsGroup);
+  tickLabels = this.elList<PassTick, TickLabelHandle>(this.tickLabelsGroup);
   sizeTickLabel = this.elSlot(this.tickLabelsGroup);
+  minorSizeTickLabel = this.elSlot(this.tickLabelsGroup);
   truncation = new TruncationTracker();
-  // rebuilt only when the ticks array changes; sync runs every focus-tween frame
+  // rebuilt only when the ticks or the pass change; sync runs every focus-tween frame
+  passTicks = emptyPassTicks;
   tickLabelStrings = emptyArray;
+  truncationTexts: string | string[] = emptyArray;
+  truncationLengths: number | number[] = emptyNumbers;
   truncatedLabels = emptyArray;
-  truncatedLabelsSource: { labels: string[]; value: string; data: TruncationDataValue } | null = null;
+  truncatedLabelsSource: { labels: string[]; texts: string | string[]; data: TruncationDataValue } | null = null;
   tickTextStyle: Record<string, unknown> | null = null;
   hiddenTickTextStyle: Record<string, unknown> | null = null;
   sizeTickTextStyle: Record<string, unknown> | null = null;
   tickTextFontStyle: FontInlineStyle | null | undefined = undefined;
+  minorTickTextStyle: Record<string, unknown> | null = null;
+  hiddenMinorTickTextStyle: Record<string, unknown> | null = null;
+  minorSizeTickTextStyle: Record<string, unknown> | null = null;
+  minorTickTextFontStyle: FontInlineStyle | null | undefined = undefined;
 
   constructor() {
     super();
@@ -90,52 +117,73 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
   }
 
   derive(props: AxisTickLabelsProps, _state: AxisTickLabelsState, prevProps: AxisTickLabelsProps | null): Partial<AxisTickLabelsState> | null {
-    if (prevProps === null || props.axisTicks !== prevProps.axisTicks) {
-      this.tickLabelStrings = props.axisTicks.map(tick => String(tick.label));
+    const { majorPass, minorPass, minorTickLabel } = getPasses(props);
+    const { axisConfig, axisLayoutInfo, plotLayoutInfo, axisTicks, tickSpacing, minorTickSpacing } = props;
+    const majorTruncation = majorPass ? axisConfig.tickLabel.truncation : undefined;
+    const minorTruncation = minorPass ? minorTickLabel.truncation : undefined;
+    const truncationEnabled = majorTruncation?.enabled === true || minorTruncation?.enabled === true;
+    const previousLabels = this.tickLabelStrings;
+    if (prevProps === null || axisTicks !== prevProps.axisTicks || axisConfig !== prevProps.axisConfig || props.front !== prevProps.front) {
+      this.passTicks = getPassTicks(axisTicks, majorPass, minorPass);
+      this.tickLabelStrings = this.passTicks.map(({ tick }) => String(tick.label));
+      // each kind truncates with its own text; one text serves when only one kind is drawn
+      this.truncationTexts = majorPass && minorPass && this.passTicks.some(({ tick }) => tick.minor === true)
+        ? this.passTicks.map(({ tick }) => (tick.minor === true ? minorTruncation?.text : majorTruncation?.text) ?? '')
+        : (minorPass && !majorPass ? minorTruncation?.text : majorTruncation?.text) ?? '';
+    }
+    if (truncationEnabled) {
+      const { vertical } = axisLayoutInfo;
+      const majorLength = getTruncationLength(majorTruncation, axisLayoutInfo.tickLabelParallel, tickSpacing, vertical, plotLayoutInfo);
+      const minorLength = getTruncationLength(minorTruncation, axisLayoutInfo.minorTickLabelParallel, minorTickSpacing, vertical, plotLayoutInfo);
+      this.truncationLengths = majorLength === minorLength ? majorLength : this.passTicks.map(({ tick }) => tick.minor === true ? minorLength : majorLength);
     }
     if (prevProps === null) {
-      return this.truncation.mount(props.axisConfig.tickLabel.truncation?.enabled ?? false);
+      return this.truncation.mount(truncationEnabled);
     }
-    const { axisConfig, axisLayoutInfo, plotLayoutInfo, axisTicks, tickSpacing } = props;
 
-    const truncationEnabled = axisConfig.tickLabel.truncation?.enabled ?? false;
     let truncationChanged = false;
     let dataIntact = true;
     if (truncationEnabled) {
       const sizeChanged = layoutInfoExtentChanged(prevProps.axisLayoutInfo, axisLayoutInfo) ||
         layoutInfoExtentChanged(prevProps.plotLayoutInfo, plotLayoutInfo) ||
         axisLayoutInfo.totalTitleSize !== prevProps.axisLayoutInfo.totalTitleSize || axisLayoutInfo.totalTickLabelSize !== prevProps.axisLayoutInfo.totalTickLabelSize ||
-        axisLayoutInfo.tickLabelParallel !== prevProps.axisLayoutInfo.tickLabelParallel ||
-        tickSpacing !== prevProps.tickSpacing;
-      const ticksChanged = axisTicks !== prevProps.axisTicks;
-      truncationChanged = getTruncationChanged(sizeChanged, ticksChanged, prevProps, props);
-      const axisTickCount = axisTicks !== null ? axisTicks.length : 0;
-      dataIntact = Array.isArray(this.truncation.data) && axisTickCount === this.truncation.data.length;
+        axisLayoutInfo.totalMinorTickLabelSize !== prevProps.axisLayoutInfo.totalMinorTickLabelSize ||
+        axisLayoutInfo.tickLabelParallel !== prevProps.axisLayoutInfo.tickLabelParallel || axisLayoutInfo.minorTickLabelParallel !== prevProps.axisLayoutInfo.minorTickLabelParallel ||
+        tickSpacing !== prevProps.tickSpacing || minorTickSpacing !== prevProps.minorTickSpacing;
+      truncationChanged = sizeChanged || (previousLabels !== this.tickLabelStrings && labelsChanged(previousLabels, this.tickLabelStrings));
+      dataIntact = Array.isArray(this.truncation.data) && this.passTicks.length === this.truncation.data.length;
     }
     return this.truncation.prepare(truncationEnabled, truncationChanged, false, dataIntact,
       truncationChanged ? this.tickLabelStrings : undefined);
   }
 
-  getTruncatedLabels(truncationEnabled: boolean, truncationText: string, truncationData: TruncationDataValue): string[] {
+  getTruncatedLabels(truncationEnabled: boolean, truncationData: TruncationDataValue): string[] {
     const labels = this.tickLabelStrings;
     if (!truncationEnabled || truncationData === null) {
       return labels;
     }
     const source = this.truncatedLabelsSource;
-    if (source === null || source.labels !== labels || source.value !== truncationText || source.data !== truncationData) {
-      this.truncatedLabels = getTruncatedText(true, truncationText, labels, truncationData);
-      this.truncatedLabelsSource = { labels, value: truncationText, data: truncationData };
+    const texts = this.truncationTexts;
+    if (source === null || source.labels !== labels || source.texts !== texts || source.data !== truncationData) {
+      this.truncatedLabels = getTruncatedText(true, texts, labels, truncationData);
+      this.truncatedLabelsSource = { labels, texts, data: truncationData };
     }
     return this.truncatedLabels;
   }
 
   // stable style objects let El.set skip the style diff for every unchanged tick
-  updateTickTextStyles(tickLabelAnchor: Anchor, fontStyle: FontInlineStyle | null): void {
+  updateTickTextStyles(tickLabelAnchor: Anchor, fontStyle: FontInlineStyle | null, minorTickLabelAnchor: Anchor, minorFontStyle: FontInlineStyle | null): void {
     if (this.tickTextStyle === null || this.tickTextStyle.textAnchor !== tickLabelAnchor || this.tickTextFontStyle !== fontStyle) {
       this.tickTextFontStyle = fontStyle;
       this.tickTextStyle = { textAnchor: tickLabelAnchor, ...fontStyle };
       this.hiddenTickTextStyle = { textAnchor: tickLabelAnchor, visibility: hiddenStyle.visibility, ...fontStyle };
       this.sizeTickTextStyle = { ...hiddenStyle, ...fontStyle };
+    }
+    if (this.minorTickTextStyle === null || this.minorTickTextStyle.textAnchor !== minorTickLabelAnchor || this.minorTickTextFontStyle !== minorFontStyle) {
+      this.minorTickTextFontStyle = minorFontStyle;
+      this.minorTickTextStyle = { textAnchor: minorTickLabelAnchor, ...minorFontStyle };
+      this.hiddenMinorTickTextStyle = { textAnchor: minorTickLabelAnchor, visibility: hiddenStyle.visibility, ...minorFontStyle };
+      this.minorSizeTickTextStyle = { ...hiddenStyle, ...minorFontStyle };
     }
   }
 
@@ -144,40 +192,69 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
     return this.root.node;
   }
 
-  sync() {
-    const { axisConfig, axisLayoutInfo, axisTicks, tickLabelClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, accessibility, chartFont } = this.props;
-    const { truncationData } = this.state;
-    const { vertical, tickLabelAnchor, tickTextX, tickTextY } = axisLayoutInfo;
-    const { rotation: tickLabelRotation } = axisConfig.tickLabel;
+  syncSizeLabel(slot: typeof this.sizeTickLabel, present: boolean, className: string, style: Record<string, unknown> | null, truncationText: string, accessibility: boolean): void {
+    if (!present) {
+      slot.set(null);
+      return;
+    }
+    const sizeLabel = slot.set('size-label', () => {
+      const group = svgEl('g') as SizeLabelEl;
+      const text = svgEl('text');
+      const value = textEl();
+      text.append(value);
+      group.append(text);
+      group.textHandle = text;
+      group.valueHandle = value;
+      return group;
+    }) as SizeLabelEl;
+    // a width probe, not a label: its text is nonsense to read out
+    sizeLabel.set({ className, ariaHidden: accessibility ? 'true' : null });
+    sizeLabel.textHandle.set({ style });
+    sizeLabel.valueHandle.set('W' + truncationText);
+  }
 
-    this.updateTickTextStyles(tickLabelAnchor, resolveFontStyle(axisConfig.tickLabel.font, chartFont));
+  sync() {
+    const { axisConfig, axisLayoutInfo, tickLabelClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, accessibility, chartFont } = this.props;
+    const { truncationData } = this.state;
+    const { majorPass, minorPass, minorTickLabel } = getPasses(this.props);
+    const { vertical, tickLabelAnchor, tickTextX, tickTextY, minorTickLabelAnchor, minorTickTextX, minorTickTextY } = axisLayoutInfo;
+
+    this.updateTickTextStyles(tickLabelAnchor, resolveFontStyle(axisConfig.tickLabel.font, chartFont), minorTickLabelAnchor, resolveFontStyle(minorTickLabel.font, chartFont));
     const tickTextStyle = this.tickTextStyle!;
     const hiddenTickTextStyle = this.hiddenTickTextStyle!;
+    const minorTickTextStyle = this.minorTickTextStyle!;
+    const hiddenMinorTickTextStyle = this.hiddenMinorTickTextStyle!;
 
     const tickTextDY = '0.35em';
 
     let tickX = 0;
     let tickY = 0;
 
+    const { rotation: tickLabelRotation } = axisConfig.tickLabel;
     const tickRotationTransform = tickLabelRotation === 0 ? null : 'rotate(' + tickLabelRotation + ')';
+    const minorTickRotationTransform = minorTickLabel.rotation === 0 ? null : 'rotate(' + minorTickLabel.rotation + ')';
 
-    const truncationEnabled = axisConfig.tickLabel.truncation?.enabled ?? false;
-    const truncationText = axisConfig.tickLabel.truncation?.text ?? '';
-    const truncationTooltipEnabled = axisConfig.tickLabel.truncation?.tooltipEnabled ?? false;
+    const majorTruncation = majorPass ? axisConfig.tickLabel.truncation : undefined;
+    const minorTruncation = minorPass ? minorTickLabel.truncation : undefined;
+    const truncationEnabled = majorTruncation?.enabled === true || minorTruncation?.enabled === true;
     const useSeriesFocus = axisConfig.useSeriesFocus ?? false;
-    const tickLabels = this.getTruncatedLabels(truncationEnabled, truncationText, truncationData);
+    const tickLabels = this.getTruncatedLabels(truncationEnabled, truncationData);
 
     const clipPath = truncationEnabled && tickLabelClipPathUniqueId ? getClipPathReference(tickLabelClipPathUniqueId) : null;
 
     // destructured rather than spread whole: this attribute order is what the golden snapshots record
     const { stroke, strokeOpacity, strokeWidth, fill, fillOpacity } = styleToAttributes(
       getAxisFocusStyle(axisFocusPercentage, seriesFocusPercentage, useSeriesFocus, axisConfig.tickLabel.textStyle));
+    const minorAttributes = styleToAttributes(getAxisFocusStyle(axisFocusPercentage, seriesFocusPercentage, useSeriesFocus, minorTickLabel.textStyle));
 
     this.root.set({ className: mochartCssClasses['axisTickLabels'] });
-    this.background.set(Background, { config: axisConfig.tickLabel, classKey: 'axisTickLabelBackground', spacingRelative: false, spacingLayoutInfo: axisLayoutInfo.tickLabelLayoutInfo });
+    this.background.set(majorPass ? Background : null, { config: axisConfig.tickLabel, classKey: 'axisTickLabelBackground', spacingRelative: false, spacingLayoutInfo: axisLayoutInfo.tickLabelLayoutInfo });
+    // the minor labels' own box, only once there is a minor label to put in it
+    const minorPresent = minorPass && this.passTicks.some(({ tick }) => tick.minor === true);
+    this.minorBackground.set(minorPresent ? Background : null, { config: minorTickLabel, classKey: 'axisMinorTickLabelBackground', spacingRelative: false, spacingLayoutInfo: axisLayoutInfo.minorTickLabelLayoutInfo });
 
-    this.tickLabels.sync(axisTicks, {
-      key: (_tick, i) => 'tick-label-' + i,
+    this.tickLabels.sync(this.passTicks, {
+      key: (passTick) => 'tick-label-' + passTick.index,
       create: () => {
         const root = svgEl('g');
         const text = svgEl('text');
@@ -186,47 +263,33 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
         root.append(text);
         return { root, text, value, tooltip: new TruncationTooltip() };
       },
-      update: (handle, tick, i) => {
+      update: (handle, { tick, index }, i) => {
+        const minor = tick.minor === true;
         if (vertical) {
           tickY = tick.position;
         }
         else {
           tickX = tick.position;
         }
-        handle.root.set({ className: tick.minor === true ? mochartCssClasses['axisTickLabel'] + i + ' ' + mochartCssClasses['axisMinorTickLabel'] : mochartCssClasses['axisTickLabel'] + i,
-          transform: translate(tickX + tickTextX, tickY + tickTextY), clipPath });
+        handle.root.set({ className: minor ? mochartCssClasses['axisTickLabel'] + index + ' ' + mochartCssClasses['axisMinorTickLabel'] : mochartCssClasses['axisTickLabel'] + index,
+          transform: translate(tickX + (minor ? minorTickTextX : tickTextX), tickY + (minor ? minorTickTextY : tickTextY)), clipPath });
         // an overlap-suppressed label is not read, and an ellipsised one is read in full
         const fullLabel = this.tickLabelStrings[i];
-        handle.text.set({ style: tick.hidden ? hiddenTickTextStyle : tickTextStyle, dy: tickTextDY, transform: tickRotationTransform,
-          stroke, strokeOpacity, fill, fillOpacity, strokeWidth,
+        const attributes = minor ? minorAttributes : { stroke, strokeOpacity, fill, fillOpacity, strokeWidth };
+        handle.text.set({ style: tick.hidden ? (minor ? hiddenMinorTickTextStyle : hiddenTickTextStyle) : (minor ? minorTickTextStyle : tickTextStyle), dy: tickTextDY,
+          transform: minor ? minorTickRotationTransform : tickRotationTransform,
+          stroke: attributes.stroke, strokeOpacity: attributes.strokeOpacity, fill: attributes.fill, fillOpacity: attributes.fillOpacity, strokeWidth: attributes.strokeWidth,
           ariaHidden: accessibility && tick.hidden ? 'true' : null,
           ariaLabel: accessibility && !tick.hidden && tickLabels[i] !== fullLabel ? fullLabel : null });
         handle.value.set(tickLabels[i]);
-        handle.tooltip.sync(handle.text, truncationTooltipEnabled && !tick.hidden, fullLabel, tickLabels[i]);
+        const tooltipEnabled = (minor ? minorTruncation : majorTruncation)?.tooltipEnabled ?? false;
+        handle.tooltip.sync(handle.text, tooltipEnabled && !tick.hidden, fullLabel, tickLabels[i]);
       }
     });
 
-    if (axisConfig.scale === SCALE_ORDINAL && truncationEnabled) {
-      const sizeLabel = this.sizeTickLabel.set('size-label', () => {
-        const group = svgEl('g') as SizeLabelEl;
-        const text = svgEl('text');
-        const value = textEl();
-        text.append(value);
-        group.append(text);
-        group.textHandle = text;
-        group.valueHandle = value;
-        return group;
-      });
-      const typedSizeLabel = sizeLabel as SizeLabelEl;
-      // a width probe, not a label: its text is nonsense to read out
-      typedSizeLabel.set({ className: mochartCssClasses['axisSizeTickLabel'],
-        ariaHidden: accessibility ? 'true' : null });
-      typedSizeLabel.textHandle.set({ style: this.sizeTickTextStyle });
-      typedSizeLabel.valueHandle.set('W' + truncationText);
-    }
-    else {
-      this.sizeTickLabel.set(null);
-    }
+    const ordinal = axisConfig.scale === SCALE_ORDINAL;
+    this.syncSizeLabel(this.sizeTickLabel, ordinal && majorTruncation?.enabled === true, mochartCssClasses['axisSizeTickLabel'], this.sizeTickTextStyle, majorTruncation?.text ?? '', accessibility);
+    this.syncSizeLabel(this.minorSizeTickLabel, ordinal && minorPresent && minorTruncation?.enabled === true, mochartCssClasses['axisMinorSizeTickLabel'], this.minorSizeTickTextStyle, minorTruncation?.text ?? '', accessibility);
   }
 
   measure(prevProps: AxisTickLabelsProps | null) {
@@ -236,19 +299,9 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
     }
     if (this.truncation.check) {
       const domElements = this.tickLabelsGroup.node.querySelectorAll<SVGTextContentElement>(getAxisTickLabelsCssSelector());
-
-      const { axisLayoutInfo, tickSpacing, axisConfig, plotLayoutInfo } = this.props;
-      const { vertical } = axisLayoutInfo;
-      const tickLabelTruncationText = axisConfig.tickLabel.truncation?.text ?? '';
       // the labels only seed fresh truncation data; an existing entry set is refined in place
       const axisTickLabels = this.state.truncationData === null ? this.tickLabelStrings : emptyArray;
-      let maxLength = tickSpacing ?? 0;
-      if (!axisLayoutInfo.tickLabelParallel) {
-        maxLength = Math.max(axisConfig.tickLabel.truncation?.minLength ?? 0,
-          (axisConfig.tickLabel.truncation?.maxFraction ?? 0) * (vertical ? plotLayoutInfo.width : plotLayoutInfo.height));
-      }
-
-      this.truncation.update(this, tickLabelTruncationText, axisTickLabels, maxLength, domElements);
+      this.truncation.update(this, this.truncationTexts, axisTickLabels, this.truncationLengths, domElements);
     }
   }
 }

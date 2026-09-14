@@ -9,6 +9,7 @@ import AxisFocusTickMarks from './AxisFocusTickMarks';
 import AxisFocusRange from './AxisFocusRange';
 
 import { translateObject } from '../utils/utils';
+import { getMinorTickLabel, getMinorTickMark } from '../config/core/minorConfig';
 import type { CategoryAxisConfig, FontConfig } from '../types/config';
 import type { EnhancedValueAxisConfig } from '../types/enhanced';
 import type { AxisTick } from '../types/data';
@@ -25,6 +26,7 @@ interface AxisProps {
   seriesFocusPercentage?: number | null;
   focusPercentages: number[];
   tickSpacing?: number | null;
+  minorTickSpacing?: number | null;
   titleClipPathUniqueId: string;
   tickLabelClipPathUniqueId?: string;
   onPointerEnter?: ((event: Event) => void) | null;
@@ -53,12 +55,17 @@ export default class Axis extends Renderer<AxisProps> {
 
   sync() {
     const { front, axisConfig, axisLayoutInfo, plotLayoutInfo, axisClass, axisTicks, axisFocusPercentage, seriesFocusPercentage,
-      focusPercentages, tickSpacing, titleClipPathUniqueId, tickLabelClipPathUniqueId,
+      focusPercentages, tickSpacing, minorTickSpacing, titleClipPathUniqueId, tickLabelClipPathUniqueId,
       onPointerEnter, onPointerLeave, onClick, accessibility, accessibleLabel, chartFont } = this.props;
     if (axisConfig.visible) {
       const { backgroundFront } = axisConfig;
       const axisLineFront = axisConfig.axisLine.front, focusRangeFront = axisConfig.focusRange.front, focusTickMarkFront = axisConfig.focusTickMark.front,
         tickLabelFront = axisConfig.tickLabel.front, tickMarkFront = axisConfig.tickMark.front, titleFront = axisConfig.title.front;
+      const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
+      const minorTickMark = getMinorTickMark(axisConfig.tickMark);
+      // a pass draws the labels or marks of either kind that are visible and drawn in it
+      const tickLabelsInPass = (front === tickLabelFront && axisConfig.tickLabel.visible) || (front === minorTickLabel.front && minorTickLabel.visible);
+      const tickMarksInPass = (front === tickMarkFront && axisConfig.tickMark.visible) || (front === minorTickMark.front && minorTickMark.visible);
 
       // the front and back passes split one axis in two; only the half that draws tick labels is a named group
       const namedGroup = front === tickLabelFront && axisTicks.length > 0;
@@ -90,21 +97,21 @@ export default class Axis extends Renderer<AxisProps> {
         this.focusRangeSlot.set(AxisFocusRange, { axisConfig, axisLayoutInfo, focusPercentages });
       }
 
-      if (front !== tickMarkFront) {
+      if (!tickMarksInPass) {
         this.tickMarksSlot.set(null);
       }
       else {
-        this.tickMarksSlot.set(AxisTickMarks, { axisConfig, axisLayoutInfo, axisTicks, axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null });
+        this.tickMarksSlot.set(AxisTickMarks, { front, axisConfig, axisLayoutInfo, axisTicks, axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null });
       }
 
-      if (front !== tickLabelFront) {
+      if (!tickLabelsInPass) {
         this.tickLabelsSlot.set(null);
       }
       else {
-        this.tickLabelsSlot.set(AxisTickLabels, { axisLayoutInfo, plotLayoutInfo,
+        this.tickLabelsSlot.set(AxisTickLabels, { front, axisLayoutInfo, plotLayoutInfo,
           axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null,
           axisConfig, axisTicks,
-          tickSpacing: tickSpacing ?? null, tickLabelClipPathUniqueId, accessibility, chartFont });
+          tickSpacing: tickSpacing ?? null, minorTickSpacing: minorTickSpacing ?? null, tickLabelClipPathUniqueId, accessibility, chartFont });
       }
 
       if (front !== titleFront) {

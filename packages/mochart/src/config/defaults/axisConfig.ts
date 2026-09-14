@@ -1,10 +1,23 @@
-import { AUTO, NONE, COLOR_CURRENT, STYLE_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants';
+import { AUTO, NONE, MAJOR, COLOR_CURRENT, STYLE_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants';
 import { deepMerge } from '../core/deepMerge';
+import { conditionalDefault, defaultRule } from './conditionalDefault';
 import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
 import { getFontDefaults } from './fontConfig';
 import type { FontConfig, Style, StyleStates, ThresholdConfig } from '../../types/config';
 import type { MarginPadding } from '../../types/geometry';
 import type { Anchor, Auto, ThresholdTitleSide } from '../core/constants';
+
+const majorStyle = { strokeColor: MAJOR, strokeOpacity: MAJOR, strokeWidth: MAJOR, strokeDashArray: MAJOR, fillColor: MAJOR, fillOpacity: MAJOR };
+const majorLineStyle = { strokeColor: MAJOR, strokeOpacity: MAJOR, strokeWidth: MAJOR, strokeDashArray: MAJOR };
+
+/** A minor tick style with every member of every state set to "major". */
+export function getMajorStyleStates() {
+  return { normal: { ...majorStyle }, focused: { ...majorStyle }, defocused: { ...majorStyle } };
+}
+
+export function getMajorLineStyleStates() {
+  return { normal: { ...majorLineStyle }, focused: { ...majorLineStyle }, defocused: { ...majorLineStyle } };
+}
 
 export default function getDefaults() {
   return {
@@ -65,7 +78,9 @@ export default function getDefaults() {
         normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.13, strokeWidth: 1, strokeDashArray: '5, 5' },
         focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.17, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME },
         defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.09, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME }
-      }
+      },
+      minorFront: MAJOR,
+      minorStyle: getMajorLineStyleStates()
     },
 
     marginInner: 0,
@@ -92,7 +107,10 @@ export default function getDefaults() {
 
     tickCount: AUTO,
 
+    tickStep: { interval: NONE, count: AUTO, offset: 0, minorSteps: NONE, minSpacing: 2 },
+
     tickLabel: {
+      visible: true,
       front: false,
       anchor: AUTO,
       backgroundStyle: { strokeColor: COLOR_CURRENT, strokeOpacity: 0, strokeWidth: NONE, strokeDashArray: NONE, fillColor: NONE, fillOpacity: 0 },
@@ -110,7 +128,21 @@ export default function getDefaults() {
         focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
         defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.5, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 0.5 }
       },
-      font: getFontDefaults()
+      font: getFontDefaults(),
+      minorFront: MAJOR,
+      minorAnchor: MAJOR,
+      minorBackgroundStyle: { ...majorStyle },
+      minorSize: MAJOR,
+      minorMarginInner: MAJOR,
+      minorMarginOuter: MAJOR,
+      minorPaddingInner: MAJOR,
+      minorPaddingOuter: MAJOR,
+      minorFormat: MAJOR,
+      minorPrefix: NONE,
+      minorSuffix: NONE,
+      minorRotation: MAJOR,
+      minorTextStyle: getMajorStyleStates(),
+      minorFont: { family: MAJOR, size: MAJOR, weight: MAJOR, style: MAJOR }
     },
 
     tickMark: {
@@ -122,7 +154,11 @@ export default function getDefaults() {
         normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.65, strokeWidth: 1, strokeDashArray: NONE },
         focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.65, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME },
         defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.325, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME }
-      }
+      },
+      minorFront: MAJOR,
+      minorSize: MAJOR,
+      minorMarginInner: MAJOR,
+      minorStyle: getMajorLineStyleStates()
     },
 
     title: {
@@ -144,6 +180,19 @@ export default function getDefaults() {
     },
     visible: true
   };
+}
+
+/**
+ * The minorVisible default shared by the tick labels, tick marks and grid lines of both axes: off while
+ * nothing asks for minor ticks, so a step alone looks as it did before minor ticks could be shown.
+ */
+export function getMinorVisibleDefault<E>(configWithRegularDefaults: { tickLabel: { minorFormat: unknown }; ticks: unknown }, extraArg: E) {
+  const unset = ({ tickLabel, ticks }: { tickLabel: { minorFormat: unknown }; ticks: unknown }) => tickLabel.minorFormat === MAJOR && ticks === NONE;
+  return conditionalDefault<{ tickLabel: { minorFormat: unknown }; ticks: unknown }, E, boolean | typeof MAJOR>([
+    { condition: config => unset(config), suffix: 'when tickLabel.minorFormat is "major" and ticks is null', default: false },
+    { condition: config => !unset(config), suffix: 'when tickLabel.minorFormat is set or ticks is set', default: MAJOR },
+    { ...defaultRule, default: false }
+  ], configWithRegularDefaults, extraArg);
 }
 
 /** The defaults merged under each `thresholds` entry (the array itself replaces wholesale). */

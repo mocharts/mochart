@@ -324,8 +324,9 @@ const missingDefaultWhitelist: Record<string, Record<string, MissingDefault>> = 
     property: 'required',
     'thresholds[].value': 'required',
     'ticks[].value': 'required',
-    // A tick with no label falls back to the value formatted with tickLabel.format.
-    'ticks[].label': 'optional'
+    // A tick with no label falls back to the value formatted with tickLabel.format, and one without minor is a regular tick.
+    'ticks[].label': 'optional',
+    'ticks[].minor': 'optional'
   },
   linearGradients: {
     stops: 'required',
@@ -350,8 +351,9 @@ const missingDefaultWhitelist: Record<string, Record<string, MissingDefault>> = 
   valueAxes: {
     'thresholds[].value': 'required',
     'ticks[].value': 'required',
-    // A tick with no label falls back to the value formatted with tickLabel.format.
-    'ticks[].label': 'optional'
+    // A tick with no label falls back to the value formatted with tickLabel.format, and one without minor is a regular tick.
+    'ticks[].label': 'optional',
+    'ticks[].minor': 'optional'
   }
 };
 

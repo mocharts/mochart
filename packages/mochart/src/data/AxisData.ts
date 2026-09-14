@@ -6,9 +6,12 @@ import { getWithMutations } from '../utils/WithMutations';
 import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData';
 import { getCategoryValueKey } from './CategoryValue';
 import { areArraysAndEqual, arrayToMap, idAccessor } from '../utils/utils';
-import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants';
-import { getPeriodBoundaries, getStepCandidates } from './Steps';
-import type { AxisConfigBase, CategoryAxisConfig, CategoryAxisTick, PlotConfig } from '../types/config';
+import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE, STEP_PERIOD_DAY, STEP_PERIOD_WEEK, STEP_PERIOD_MONTH } from '../config/core/constants';
+import { getMinorTickLabel } from '../config/core/minorConfig';
+import { getPeriodBoundaries, getPeriodIndex, getStepCandidates } from './Steps';
+import type { Auto, DataType, StepPeriod } from '../config/core/constants';
+import type { MinorTickLabel } from '../config/core/minorConfig';
+import type { AxisConfigBase, AxisTickStepConfig, CategoryAxisConfig, CategoryAxisTick, CategoryAxisTickStepConfig, PlotConfig, ValueAxisTick } from '../types/config';
 import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced';
 import type { AxisData, AxisScale, AxisTick, AxisValue, ChartData, CategoryAxisData, CategoryAxisDomain, CategorySpacingInfo, CategoryValue, CategoryValues, NullableDomain, ValueAxisData, TickLabelFormatter } from '../types/data';
 import type { AxisLayoutInfo, ChartLayoutInfo, CategoryAxisLayoutInfo } from '../types/layout';
@@ -82,11 +85,11 @@ function getCategoryAxisData(categoryAxisConfig: CategoryAxisConfig, axisLayoutI
     const positions = getCategoryValuePositions(categoryAxisConfig, axisScale, categoryData.values);
     // a collapsed domain (one category, or explicit min === max) draws its single tick at the value, not at the widened render bounds
     const tickDomain = isCollapsedDomain(categoryData.axisDomain) ? categoryData.axisDomain : categoryData.renderAxisDomain;
-    const axisTickData = getCategoryAxisTickData(categoryAxisConfig, axisLayoutInfo, axisScale, tickDomain, categoryData.values.parsed, categoryData.values.key, positions);
+    const { ticks: axisTickData, minorTickLabelLength } = buildCategoryAxisTickData(categoryAxisConfig, axisLayoutInfo, axisScale, tickDomain, categoryData.values.parsed, categoryData.values.key, positions);
     const maxTickLabelLength = getMaxTickLabelLength(categoryAxisConfig, categoryData.values.parsed, axisTickData, spacingInfo);
 
     categoryAxisData = {
-      axisScale, axisTickData, maxTickLabelLength, valueData: { spacingInfo, positions }
+      axisScale, axisTickData, maxTickLabelLength, maxMinorTickLabelLength: minorTickLabelLength, valueData: { spacingInfo, positions }
     };
   }
   return categoryAxisData;
@@ -175,12 +178,15 @@ function getValueAxisScaleForDomain(axisConfig: EnhancedValueAxisConfig, axisLay
   return axisScale;
 }
 
-function createLinearTickObject(scaleTickValue: AxisValue, axisScale: AxisScale, tickLabelFormatter: TickLabelFormatter, isHidden: (tick: Omit<AxisTick, 'hidden'>) => boolean): AxisTick {
+function createLinearTickObject(scaleTickValue: AxisValue, axisScale: AxisScale, tickLabelFormatter: TickLabelFormatter, isHidden: (tick: Omit<AxisTick, 'hidden'>) => boolean, minor = false): AxisTick {
   const tickObjectWithoutHidden: Omit<AxisTick, 'hidden'> = {
     label: tickLabelFormatter(scaleTickValue),
     position: axisScale(scaleTickValue),
     value: scaleTickValue
   };
+  if (minor) {
+    tickObjectWithoutHidden.minor = true;
+  }
   return { ...tickObjectWithoutHidden, hidden: isHidden(tickObjectWithoutHidden) };
 }
 
@@ -196,9 +202,222 @@ function createOrdinalTickObject(scaleTickValue: number, categoryValues: readonl
   return { ...tickObjectWithoutHidden, hidden: isHidden(tickObjectWithoutHidden) };
 }
 
+/** The format, prefix and suffix a label formatter is built from: the tick label settings, or the minor ones resolved. */
+export interface TickLabelSettings {
+  format: string | Auto | null;
+  prefix: string | null;
+  suffix: string | null;
+}
+
+/** How much room along the axis one kind of label needs, the widest of them, and whether the kind is drawn at all. */
+interface TickLabelFit {
+  visible: boolean;
+  space: number;
+}
+
+/** The label fits of an axis: the labels a config hides take no part in fitting. */
+function getTickLabelFits(axisConfig: AxisConfigBase & Pick<CategoryAxisConfig, 'scale'>, axisLayoutInfo: AxisLayoutInfo & Partial<Pick<CategoryAxisLayoutInfo, 'minTickSize' | 'minorMinTickSize'>>, minorTickLabel: MinorTickLabel): { major: TickLabelFit; minor: TickLabelFit; minorTruncated: boolean } {
+  const ordinal = axisConfig.scale === SCALE_ORDINAL;
+  const majorTruncated = ordinal && (axisConfig.tickLabel as CategoryAxisConfig['tickLabel']).truncation?.enabled === true && axisLayoutInfo.tickLabelParallel === true;
+  const minorTruncated = ordinal && minorTickLabel.truncation?.enabled === true && axisLayoutInfo.minorTickLabelParallel === true;
+  return {
+    major: { visible: axisConfig.tickLabel.visible, space: axisConfig.tickLabel.visible ? (majorTruncated ? axisLayoutInfo.minTickSize ?? 0 : axisLayoutInfo.tickLabelSpace ?? 0) : 0 },
+    minor: { visible: minorTickLabel.visible, space: minorTickLabel.visible ? (minorTruncated ? axisLayoutInfo.minorMinTickSize ?? 0 : axisLayoutInfo.minorTickLabelSpace ?? 0) : 0 },
+    minorTruncated
+  };
+}
+
+/**
+ * The minor labels show only when every one fits beside its labeled neighbours, minor or not, measured from the
+ * widest label of each kind plus minTickSpacing; when one does not fit they all hide. Returns the room the
+ * narrowest-placed minor label has, the length a truncated minor label may take (Infinity with nothing to fit).
+ */
+function fitMinorLabels(ticks: AxisTick[], majorFit: TickLabelFit, minorFit: TickLabelFit, minTickSpacing: number): number {
+  const minors = ticks.filter(tick => tick.minor === true);
+  if (minors.length === 0 || !minorFit.visible) {
+    return Infinity;
+  }
+  const labeled = ticks
+    .filter(tick => !tick.hidden && (tick.minor === true || majorFit.visible))
+    .sort((a, b) => a.position - b.position);
+  let room = Infinity;
+  let fits = true;
+  labeled.forEach((tick, index) => {
+    if (tick.minor !== true) {
+      return;
+    }
+    for (const neighbour of [labeled[index - 1], labeled[index + 1]]) {
+      if (neighbour === undefined) {
+        continue;
+      }
+      const neighbourSpace = neighbour.minor === true ? minorFit.space : majorFit.space;
+      const gap = Math.abs(neighbour.position - tick.position);
+      if (gap < (minorFit.space + neighbourSpace) / 2 + minTickSpacing) {
+        fits = false;
+      }
+      // the width this label could take with the neighbour's half and the spacing kept clear on this side
+      room = Math.min(room, 2 * (gap - minTickSpacing - neighbourSpace / 2));
+    }
+  });
+  if (!fits) {
+    for (const tick of minors) {
+      tick.hidden = true;
+    }
+  }
+  return Math.max(0, room);
+}
+
+const DAY_MILLIS = 86400000;
+
+// the regular spacing of a minor period: a minor tick closer than this to a tick is hidden
+function getPeriodMillis(period: StepPeriod): number {
+  switch (period) {
+    case STEP_PERIOD_DAY: return DAY_MILLIS;
+    case STEP_PERIOD_WEEK: return 7 * DAY_MILLIS;
+    case STEP_PERIOD_MONTH: return 28 * DAY_MILLIS;
+    default: return 365 * DAY_MILLIS;
+  }
+}
+
+// float noise from a multiple of a decimal step (3 * 0.1) would leak into labels and lookups
+function multiple(count: number, step: number): number {
+  return Number((count * step).toPrecision(12));
+}
+
+interface LinearStepAxisConfig {
+  type: DataType;
+  dateUTC?: boolean;
+  tickStep: AxisTickStepConfig & Partial<Pick<CategoryAxisTickStepConfig, 'period' | 'minorPeriod'>>;
+}
+
+interface LinearStepTicks {
+  /** The ticks the step places, kept by count and offset and in value order, or null when it places none. */
+  majors: AxisValue[] | null;
+  /** The minor ticks between them; one closer to a tick than the regular minor spacing is hidden. */
+  minors: { value: AxisValue; hidden: boolean }[];
+}
+
+const noStepTicks: LinearStepTicks = { majors: null, minors: [] };
+
+// which of a step's warnings are standing, per tickStep config: a warning repeats only after the step fits again
+const warnedSteps = new WeakMap<object, { majors: boolean; minors: boolean }>();
+
+function warnStep(step: object, kind: 'majors' | 'minors', tooDense: boolean, message: string): void {
+  let state = warnedSteps.get(step);
+  if (state === undefined) {
+    state = { majors: false, minors: false };
+    warnedSteps.set(step, state);
+  }
+  if (tooDense && !state[kind]) {
+    console.warn(message);
+  }
+  state[kind] = tooDense;
+}
+
+/**
+ * The ticks a linear axis's tickStep creates: the multiples of its interval or the boundaries of its period,
+ * kept by count and offset counted from a fixed origin, with minor ticks from minorSteps or minorPeriod between
+ * them. The ticks are counted before any is created: a step whose ticks would sit closer than minSpacing along
+ * the axis creates none, and its minor ticks alone are dropped when only they would.
+ */
+function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue, AxisValue], axisLength: number, axisName: string): LinearStepTicks {
+  const step = axisConfig.tickStep;
+  const domainMin = +domain[0];
+  const domainMax = +domain[1];
+  if (!(domainMax > domainMin)) {
+    return noStepTicks;
+  }
+  const countN = step.count === AUTO ? 1 : step.count;
+  const keep = (index: number) => step.count === AUTO || ((index - step.offset) % step.count + step.count) % step.count === 0;
+  const tooDense = (spacing: number) => spacing < step.minSpacing;
+  const warn = (kind: 'majors' | 'minors', dense: boolean) => warnStep(step, kind, dense, 'mochart ' + axisName + ' tickStep creates no ' + (kind === 'majors' ? 'ticks' : 'minor ticks') + ': they would be closer together than minSpacing (' + step.minSpacing + 'px)');
+
+  if (axisConfig.type === TYPE_DATE) {
+    const period = step.period ?? NONE;
+    if (period === NONE) {
+      return noStepTicks;
+    }
+    const dateUTC = axisConfig.dateUTC ?? true;
+    const periods = getPeriodIndex(period, dateUTC, new Date(domainMax)) - getPeriodIndex(period, dateUTC, new Date(domainMin)) + 1;
+    const majorsDense = tooDense(axisLength * countN / periods);
+    warn('majors', majorsDense);
+    if (majorsDense) {
+      return noStepTicks;
+    }
+    const majors = getPeriodBoundaries(period, dateUTC, [new Date(domainMin), new Date(domainMax)]).filter(boundary => keep(getPeriodIndex(period, dateUTC, boundary)));
+    const minorPeriod = step.minorPeriod ?? NONE;
+    let minors: LinearStepTicks['minors'] = [];
+    if (minorPeriod !== NONE) {
+      const minorPeriods = getPeriodIndex(minorPeriod, dateUTC, new Date(domainMax)) - getPeriodIndex(minorPeriod, dateUTC, new Date(domainMin)) + 1;
+      const minorsDense = tooDense(axisLength / minorPeriods);
+      warn('minors', minorsDense);
+      if (!minorsDense) {
+        const majorTimes = majors.map(major => major.getTime());
+        const spacing = getPeriodMillis(minorPeriod);
+        minors = getPeriodBoundaries(minorPeriod, dateUTC, [new Date(domainMin), new Date(domainMax)])
+          .filter(boundary => !majorTimes.includes(boundary.getTime()))
+          .map(boundary => ({ value: boundary, hidden: majorTimes.some(time => Math.abs(time - boundary.getTime()) < spacing) }));
+      }
+    }
+    return { majors, minors };
+  }
+
+  const { interval, minorSteps } = step;
+  if (interval === NONE) {
+    return noStepTicks;
+  }
+  const span = domainMax - domainMin;
+  const majorsDense = tooDense(axisLength * interval * countN / span);
+  warn('majors', majorsDense);
+  if (majorsDense) {
+    return noStepTicks;
+  }
+  const majors: AxisValue[] = [];
+  for (let index = Math.ceil(domainMin / interval - 1e-9); index <= Math.floor(domainMax / interval + 1e-9); index++) {
+    if (keep(index)) {
+      majors.push(multiple(index, interval));
+    }
+  }
+  const minors: LinearStepTicks['minors'] = [];
+  if (minorSteps !== NONE) {
+    const minorStep = interval / minorSteps;
+    const minorsDense = tooDense(axisLength * minorStep / span);
+    warn('minors', minorsDense);
+    if (!minorsDense) {
+      for (let index = Math.ceil(domainMin / minorStep - 1e-9); index <= Math.floor(domainMax / minorStep + 1e-9); index++) {
+        // a minor step on a kept tick is that tick; on a tick count skipped it is a minor tick
+        if (index % minorSteps !== 0 || !keep(index / minorSteps)) {
+          minors.push({ value: multiple(index, minorStep), hidden: false });
+        }
+      }
+    }
+  }
+  return { majors, minors };
+}
+
+/** The linear ticks of an axis in value order: the step's ticks (or the scale's) with the minor ticks between them. */
+function createLinearTicks(majors: AxisValue[], minors: LinearStepTicks['minors'], axisScale: AxisScale, majorFormatter: TickLabelFormatter, minorFormatter: TickLabelFormatter, isMajorHidden: (index: number, tick: Omit<AxisTick, 'hidden'>) => boolean, isMinorHidden: (tick: Omit<AxisTick, 'hidden'>) => boolean): AxisTick[] {
+  const ticks = majors.map((major, index) => createLinearTickObject(major, axisScale, majorFormatter, tick => isMajorHidden(index, tick)));
+  if (minors.length === 0) {
+    return ticks;
+  }
+  for (const minor of minors) {
+    ticks.push(createLinearTickObject(minor.value, axisScale, minorFormatter, tick => minor.hidden || isMinorHidden(tick), true));
+  }
+  return ticks.sort((a, b) => +a.value - +b.value);
+}
+
+/** The ticks of the category axis; see buildCategoryAxisTickData for the minor label room. */
 export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
+  return buildCategoryAxisTickData(axisConfig, axisLayoutInfo, axisScale, axisDomain, categoryValues, categoryKeys, categoryPositions).ticks;
+}
+
+function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[]): { ticks: AxisTick[]; minorTickLabelLength: number } {
+  const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
+  const fits = getTickLabelFits(axisConfig, axisLayoutInfo, minorTickLabel);
   if (axisConfig.ticks !== NONE) {
-    return getExplicitCategoryAxisTickData(axisConfig, axisConfig.ticks, axisScale, categoryValues, categoryKeys, categoryPositions);
+    const ticks = getExplicitCategoryAxisTickData(axisConfig, minorTickLabel, axisConfig.ticks, axisScale, categoryValues, categoryKeys, categoryPositions);
+    return { ticks, minorTickLabelLength: fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing) };
   }
   let ticks: AxisTick[] = [];
   // magnitude: a reversed axis has a descending range, and tick counting needs a positive extent
@@ -210,6 +429,7 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
     let tickCount: number;
     // the axis room one ordinal tick label needs, the widest label plus the spacing, for the step rule's collision pass
     let ordinalTickSpace = 0;
+    let stepTicks = noStepTicks;
 
     if (categoryValues.length === 1) {
       if (axisConfig.scale === SCALE_ORDINAL) {
@@ -229,12 +449,8 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
       tickCount = scaleTicks.length;
     }
     else {
-      let tickLabelSpace = axisLayoutInfo.tickLabelSpace;
-      if (axisConfig.scale === SCALE_ORDINAL && axisConfig.tickLabel.truncation.enabled && axisLayoutInfo.tickLabelParallel) {
-        tickLabelSpace = axisLayoutInfo.minTickSize;
-      }
-      tickCount = Math.max(1, getTickCount(axisConfig, categoryAxisRangeExtent, categoryAxisDomainExtent, tickLabelSpace));
-      ordinalTickSpace = tickLabelSpace + axisConfig.minTickSpacing;
+      tickCount = Math.max(1, getTickCount(axisConfig, categoryAxisRangeExtent, categoryAxisDomainExtent, fits.major.space));
+      ordinalTickSpace = fits.major.space + axisConfig.minTickSpacing;
 
       if (axisConfig.scale === SCALE_ORDINAL && tickCount > categoryValues.length) {
         tickCount = categoryValues.length;
@@ -250,24 +466,23 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
           scaleTicks = [categoryValues[0] as AxisValue];
         }
       }
+      else if (axisConfig.scale === SCALE_ORDINAL) {
+        scaleTicks = categoryValues.map((_v, i) => i);
+      }
       else {
-        if (axisConfig.scale === SCALE_ORDINAL) {
-          scaleTicks = categoryValues.map((_v, i) => i);
-        }
-        else if (axisConfig.type === TYPE_DATE && axisConfig.tickStep.period !== NONE) {
-          scaleTicks = getPeriodBoundaries(axisConfig.tickStep.period, axisConfig.dateUTC, axisScale.domain() as [Date, Date]);
-        }
-        else {
-          scaleTicks = axisScale.ticks(tickCount);
-        }
+        stepTicks = getLinearStepTicks(axisConfig, axisScale.domain() as [AxisValue, AxisValue], categoryAxisRangeExtent, 'categoryAxis');
+        scaleTicks = stepTicks.majors ?? axisScale.ticks(tickCount);
       }
     }
     let tickLabelFormatter: TickLabelFormatter;
+    let minorTickLabelFormatter: TickLabelFormatter;
     if (axisConfig.scale === SCALE_ORDINAL) {
-      tickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, axisScale, scaleTicks.length, categoryValues);
+      tickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length, categoryValues);
+      minorTickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, scaleTicks.length, categoryValues);
     }
     else {
-      tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisScale, scaleTicks.length);
+      tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length);
+      minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, Math.max(scaleTicks.length, stepTicks.minors.length));
     }
     if (axisConfig.scale === SCALE_ORDINAL) {
       // a parallel untruncated label that would spill past either axis end is hidden; the step rule's collision pass needs to know
@@ -279,10 +494,10 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
         const afterOffset = tickLabelAnchor === ANCHOR_START ? tickLabelSpace : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : 0);
         edgeRange = [beforeOffset - before, categoryExtent + after - afterOffset];
       }
-      const { isSkipped, isMinor, minorFormatter } = getOrdinalTickRule(axisConfig, axisLayoutInfo, categoryValues, categoryPositions, tickCount, ordinalTickSpace, edgeRange);
+      const { isSkipped, isMinor } = getOrdinalTickRule(axisConfig, categoryValues, categoryPositions, tickCount, ordinalTickSpace, edgeRange, fits.major.visible);
       const createTick = (index: number, isHidden: (tick: Omit<AxisTick, 'hidden'>) => boolean) => {
         const minor = isMinor(index);
-        return createOrdinalTickObject(index, categoryValues, categoryPositions, minor && minorFormatter !== null ? minorFormatter : tickLabelFormatter, isHidden, minor);
+        return createOrdinalTickObject(index, categoryValues, categoryPositions, minor ? minorTickLabelFormatter : tickLabelFormatter, isHidden, minor);
       };
       if (truncatedParallel) {
         ticks = scaleTicks.map((scaleTick, i) => createTick(scaleTick as number, () => isSkipped(i)));
@@ -305,8 +520,8 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
     }
     else {
       const { preTicks, postTicks } = getLinearAxisExtraTicks(axisDomain, axisScale, scaleTicks);
-      // period boundaries can far outnumber the fitting ticks, so they thin to every k-th; generated ticks at most halve
-      const tickInterval = axisConfig.tickStep.period !== NONE ? Math.max(1, Math.ceil(scaleTicks.length / tickCount)) : (scaleTicks.length > tickCount ? 2 : 1);
+      // a step's ticks can far outnumber the fitting ticks, so they thin to every k-th while their labels are drawn; generated ticks at most halve
+      const tickInterval = stepTicks.majors !== null ? (fits.major.visible ? Math.max(1, Math.ceil(scaleTicks.length / tickCount)) : 1) : (scaleTicks.length > tickCount ? 2 : 1);
 
       if (axisLayoutInfo.tickLabelParallel) {
         const { before, after, categoryExtent, tickLabelSpace, tickLabelAnchor } = axisLayoutInfo;
@@ -316,8 +531,9 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
 
         const minPosition = beforeOffset - before;
         const maxPosition = categoryExtent + after - afterOffset;
+        const outside = ({ position }: Omit<AxisTick, 'hidden'>) => position < minPosition || position > maxPosition;
 
-        ticks = scaleTicks.map((scaleTick, i) => createLinearTickObject(scaleTick, axisScale, tickLabelFormatter, ({ position }) => i % tickInterval !== 0 || position < minPosition || position > maxPosition));
+        ticks = createLinearTicks(scaleTicks, stepTicks.minors, axisScale, tickLabelFormatter, minorTickLabelFormatter, (i, tick) => i % tickInterval !== 0 || outside(tick), outside);
         if (categoryValues.length > 0) {
           const singleValue = tickLabelAnchor === ANCHOR_START ? axisDomain[0]! : (tickLabelAnchor === ANCHOR_END ? axisDomain[1]! : +axisDomain[0]! + (+axisDomain[1]! - +axisDomain[0]!) / 2);
           const singleTickValue = axisConfig.type === TYPE_DATE ? new Date(singleValue) : singleValue;
@@ -325,7 +541,7 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
         }
       }
       else {
-        ticks = scaleTicks.map((scaleTick, i) => createLinearTickObject(scaleTick, axisScale, tickLabelFormatter, () => i % tickInterval !== 0));
+        ticks = createLinearTicks(scaleTicks, stepTicks.minors, axisScale, tickLabelFormatter, minorTickLabelFormatter, i => i % tickInterval !== 0, () => false);
       }
 
       if (preTicks.length > 0) {
@@ -337,12 +553,12 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
     }
   }
 
-  return ticks;
+  return { ticks, minorTickLabelLength: fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing) };
 }
 
 function hasTickStep(axisConfig: CategoryAxisConfig): boolean {
-  const { count, offset, period, includeFirst } = axisConfig.tickStep;
-  return count !== AUTO || offset !== 0 || period !== NONE || includeFirst;
+  const { count, offset, period, interval, includeFirst } = axisConfig.tickStep;
+  return count !== AUTO || offset !== 0 || period !== NONE || interval !== NONE || includeFirst;
 }
 
 interface OrdinalTickRule {
@@ -350,21 +566,19 @@ interface OrdinalTickRule {
   isSkipped: (index: number) => boolean;
   /** Whether the category lies between a step rule's ticks. */
   isMinor: (index: number) => boolean;
-  /** The minor ticks' own label format, or null when they carry the major one. */
-  minorFormatter: TickLabelFormatter | null;
 }
 
 // Which ordinal category indexes lose their tick: without a step rule every tickInterval-th category keeps
 // one; with a rule its survivors thin to every k-th from the first, so a thinned weekly rule stays on Mondays.
-// The categories between the rule's ticks are minor: with a minorFormat they show when the widest minor label
-// fits inside a category slot, and all hide together when it does not.
-function getOrdinalTickRule(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, categoryValues: readonly CategoryValue[], categoryPositions: number[], tickCount: number, tickSpace: number, edgeRange: [number, number] | null): OrdinalTickRule {
+// The categories between the rule's ticks are minor, and whether their labels fit is decided afterwards.
+function getOrdinalTickRule(axisConfig: CategoryAxisConfig, categoryValues: readonly CategoryValue[], categoryPositions: number[], tickCount: number, tickSpace: number, edgeRange: [number, number] | null, labelsVisible: boolean): OrdinalTickRule {
   if (!hasTickStep(axisConfig)) {
     const tickInterval = Math.ceil(categoryValues.length / tickCount);
-    return { isSkipped: (index) => index % tickInterval !== 0, isMinor: () => false, minorFormatter: null };
+    return { isSkipped: (index) => index % tickInterval !== 0, isMinor: () => false };
   }
   const stepIndexes = getStepCandidates(axisConfig.tickStep, categoryValues, axisConfig.type, axisConfig.dateUTC).selected;
-  const thinning = Math.max(1, Math.ceil(stepIndexes.length / tickCount));
+  // labels a config hides take no part in fitting, so nothing is thinned to make room for them
+  const thinning = labelsVisible ? Math.max(1, Math.ceil(stepIndexes.length / tickCount)) : 1;
   // the survivors are evenly strided, which assumes equal periods; a period holding a single category puts its
   // tick one slot from the next, so a survivor closer to the last kept one than a label needs is hidden too,
   // and one the axis ends hide anyway does not count as kept
@@ -373,44 +587,20 @@ function getOrdinalTickRule(axisConfig: CategoryAxisConfig, axisLayoutInfo: Cate
   stepIndexes.forEach((index, position) => {
     const categoryPosition = categoryPositions[index]!;
     const insideEnds = edgeRange === null || (categoryPosition >= edgeRange[0] && categoryPosition <= edgeRange[1]);
-    if (position % thinning === 0 && insideEnds && (lastKept === null || Math.abs(categoryPosition - categoryPositions[lastKept]!) >= tickSpace)) {
+    if (position % thinning === 0 && insideEnds && (!labelsVisible || lastKept === null || Math.abs(categoryPosition - categoryPositions[lastKept]!) >= tickSpace)) {
       visibleIndexes.add(index);
       lastKept = index;
     }
   });
   const majorIndexes = new Set(stepIndexes);
   const isMinor = (index: number) => !majorIndexes.has(index);
-  const minorFormatter = getMinorTickLabelFormatter(axisConfig);
-  const categoryPitch = categoryPositions.length > 1 ? Math.abs(categoryPositions[1] - categoryPositions[0]) : 0;
-  const minorsVisible = minorFormatter !== null && categoryPitch >= axisLayoutInfo.minorTickLabelSpace + axisConfig.minTickSpacing;
   return {
-    isSkipped: (index) => isMinor(index) ? !minorsVisible : !visibleIndexes.has(index),
-    isMinor,
-    minorFormatter
+    isSkipped: (index) => isMinor(index) ? false : !visibleIndexes.has(index),
+    isMinor
   };
 }
 
-function getMinorTickLabelFormatter(axisConfig: CategoryAxisConfig): TickLabelFormatter | null {
-  const { minorFormat } = axisConfig.tickStep;
-  let tickLabelFormatter: TickLabelFormatter;
-  if (minorFormat === NONE) {
-    return null;
-  }
-  else if (axisConfig.type === TYPE_DATE) {
-    const formatter = (axisConfig.dateUTC ? utcFormat : timeFormat)(minorFormat);
-    tickLabelFormatter = tick => formatter(tick as Date);
-  }
-  else if (axisConfig.type === TYPE_NUMBER) {
-    const formatter = format(minorFormat);
-    tickLabelFormatter = tick => formatter(tick as number);
-  }
-  else {
-    return null;
-  }
-  return getTickLabelFormatterForPrefixAndSuffix(axisConfig, tickLabelFormatter);
-}
-
-function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, explicitTicks: readonly CategoryAxisTick[], axisScale: AxisScale, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
+function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, minorTickLabel: MinorTickLabel, explicitTicks: readonly CategoryAxisTick[], axisScale: AxisScale, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
   if (axisConfig.scale === SCALE_ORDINAL) {
     // a tick names a category the way the rest of the chart identifies it: by its keyProperty value when the axis has one, else by its value
     const indexesByKey = new Map<string, number[]>();
@@ -424,43 +614,54 @@ function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, explici
         indexes.push(index);
       }
     });
-    const tickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, axisScale, explicitTicks.length, categoryValues);
+    const tickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, explicitTicks.length, categoryValues);
+    const minorTickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, explicitTicks.length, categoryValues);
     const ticks: AxisTick[] = [];
-    explicitTicks.forEach(({ value, label }) => {
+    explicitTicks.forEach(({ value, label, minor }) => {
       const indexes = indexesByKey.get(getCategoryValueKey(axisConfig, value));
       if (indexes === undefined) {
         // a tick naming no category is hidden at the axis start with no label: a finite position keeps the markup valid
         // svg, and the axis measures every label, hidden ones included, so one that can never show reserves no room
-        ticks.push({ label: '', position: 0, value, hidden: true });
+        ticks.push(minor === true ? { label: '', position: 0, value, hidden: true, minor: true } : { label: '', position: 0, value, hidden: true });
       }
       else {
         indexes.forEach(index => {
-          const tick = createOrdinalTickObject(index, categoryValues, categoryPositions, tickLabelFormatter, () => false);
+          const tick = createOrdinalTickObject(index, categoryValues, categoryPositions, minor === true ? minorTickLabelFormatter : tickLabelFormatter, () => false, minor === true);
           ticks.push(label === undefined ? tick : { ...tick, label });
         });
       }
     });
     return ticks;
   }
-  const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisScale, explicitTicks.length);
+  const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, explicitTicks.length);
+  const minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, explicitTicks.length);
+  return createExplicitLinearTicks(axisConfig, explicitTicks, axisScale, tickLabelFormatter, minorTickLabelFormatter);
+}
+
+/** Explicit linear ticks are placed by value; one outside the range is hidden, and a minor one waits on the minor label fit. */
+function createExplicitLinearTicks(axisConfig: Pick<CategoryAxisConfig, 'type'>, explicitTicks: readonly (CategoryAxisTick | ValueAxisTick)[], axisScale: AxisScale, tickLabelFormatter: TickLabelFormatter, minorTickLabelFormatter: TickLabelFormatter): AxisTick[] {
   const [rangeStart, rangeEnd] = axisScale.range();
   const rangeMin = Math.min(rangeStart, rangeEnd);
   const rangeMax = Math.max(rangeStart, rangeEnd);
-  return explicitTicks.map(({ value, label }) => {
+  return explicitTicks.map(({ value, label, minor }) => {
     const axisValue: AxisValue = axisConfig.type === TYPE_DATE ? new Date(value) : value as number;
     const position = axisScale(axisValue);
-    return {
-      label: label ?? tickLabelFormatter(axisValue),
+    const tick: AxisTick = {
+      label: label ?? (minor === true ? minorTickLabelFormatter : tickLabelFormatter)(axisValue),
       position,
       value: axisValue,
       hidden: !Number.isFinite(position) || position < rangeMin || position > rangeMax
     };
+    if (minor === true) {
+      tick.minor = true;
+    }
+    return tick;
   });
 }
 
 function getMaxTickLabelLength(_categoryAxisConfig: CategoryAxisConfig, categoryValues: readonly CategoryValue[], axisTickData: AxisTick[], spacingInfo: CategorySpacingInfo): number {
   // at least one: explicit ticks can all be hidden, and the clip width must stay finite; a shown minor
-  // label already fits its slot, so only the major ticks share the axis out
+  // label already fits beside its neighbours, so only the major ticks share the axis out
   const visibleTickCount = Math.max(1, axisTickData.reduce((count, tick) => count + (tick.hidden || tick.minor ? 0 : 1), 0));
   return categoryValues.length / visibleTickCount * spacingInfo.categoryValueExtent;
 }
@@ -478,27 +679,21 @@ function getValueAxisTickData(axisConfigArray: EnhancedValueAxisConfig[], axisLa
 
 function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLayoutInfo: AxisLayoutInfo, rawValueAxisDomain: NullableDomain, filteredValueAxisDomain: NullableDomain, rawRenderValueAxisDomain: NullableDomain, visibleSeriesCount: number, axisScale: AxisScale, vertical: boolean): AxisTick[] {
   let ticks: AxisTick[] = [];
+  const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
+  const fits = getTickLabelFits(axisConfig, axisLayoutInfo, minorTickLabel);
   if (axisConfig.ticks !== NONE) {
     if (axisConfig.visibleWhenAllFiltered || visibleSeriesCount > 0) {
-      const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisScale, axisConfig.ticks.length);
-      const [rangeStart, rangeEnd] = axisScale.range();
-      const rangeMin = Math.min(rangeStart, rangeEnd);
-      const rangeMax = Math.max(rangeStart, rangeEnd);
-      ticks = axisConfig.ticks.map(({ value, label }) => {
-        const position = axisScale(value);
-        return {
-          label: label ?? tickLabelFormatter(value),
-          position,
-          value,
-          hidden: !Number.isFinite(position) || position < rangeMin || position > rangeMax
-        };
-      });
+      const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, axisConfig.ticks.length);
+      const minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, axisConfig.ticks.length);
+      ticks = createExplicitLinearTicks(axisConfig, axisConfig.ticks, axisScale, tickLabelFormatter, minorTickLabelFormatter);
+      fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing);
     }
     return ticks;
   }
   if (axisConfig.visibleWhenAllFiltered || visibleSeriesCount > 0) {
     let tickCount = axisConfig.tickCount;
     let scaleTicks: AxisValue[];
+    let stepTicks = noStepTicks;
     const adjustForFiltering = axisConfig.adjustForFiltering;
     const adjustTickLabelsForFiltering = adjustForFiltering && axisConfig.tickLabel.adjustSizeForFiltering;
     const valueAxisDomain = adjustForFiltering ? filteredValueAxisDomain : rawValueAxisDomain;
@@ -515,8 +710,12 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
     }
     else {
       const valueAxisDomainExtent = valueAxisDomain[1]! - valueAxisDomain[0]!;
-      tickCount = getTickCount(axisConfig, axisLayoutInfo.valueExtent, valueAxisDomainExtent, axisLayoutInfo.tickLabelSpace);
-      if (tickCount === 1) {
+      tickCount = getTickCount(axisConfig, axisLayoutInfo.valueExtent, valueAxisDomainExtent, fits.major.space);
+      stepTicks = getLinearStepTicks(axisConfig, axisScale.domain() as [AxisValue, AxisValue], axisLayoutInfo.valueExtent, 'value axis ' + axisConfig.id);
+      if (stepTicks.majors !== null) {
+        scaleTicks = stepTicks.majors;
+      }
+      else if (tickCount === 1) {
         scaleTicks = [valueAxisDomain[0]!];
       }
       else {
@@ -524,20 +723,22 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
       }
     }
     // the visible ticks take their precision from the scale that generated them
-    const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisScale, scaleTicks.length);
+    const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length);
+    const minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, Math.max(scaleTicks.length, stepTicks.minors.length));
     // the hidden size ticks span the raw domain, so they keep its precision for stable label bounds
     // (always the render domain: a collapsed domain gives tickFormat a zero step and garbage precision)
     const sizeTickLabelFormatter = adjustTickLabelsForFiltering ? tickLabelFormatter
-      : getLinearScaleTickLabelFormatter(axisConfig, getValueAxisScaleForDomain(axisConfig, axisLayoutInfo, rawRenderValueAxisDomain, vertical), scaleTicks.length);
+      : getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, getValueAxisScaleForDomain(axisConfig, axisLayoutInfo, rawRenderValueAxisDomain, vertical), scaleTicks.length);
     const { preTicks, postTicks } = getLinearAxisExtraTicks(tickBoundsValueAxisDomain, axisScale, scaleTicks);
-    const tickInterval = scaleTicks.length > tickCount ? 2 : 1
-    ticks = scaleTicks.map((scaleTick, i) => createLinearTickObject(scaleTick, axisScale, tickLabelFormatter, () => i % tickInterval !== 0));
+    const tickInterval = stepTicks.majors !== null ? (fits.major.visible ? Math.max(1, Math.ceil(scaleTicks.length / Math.max(1, tickCount))) : 1) : (scaleTicks.length > tickCount ? 2 : 1);
+    ticks = createLinearTicks(scaleTicks, stepTicks.minors, axisScale, tickLabelFormatter, minorTickLabelFormatter, i => i % tickInterval !== 0, () => false);
     if (preTicks.length > 0) {
       ticks = preTicks.map(preTick => createLinearTickObject(preTick, axisScale, sizeTickLabelFormatter, () => true)).concat(ticks);
     }
     if (postTicks.length > 0) {
       ticks = ticks.concat(postTicks.map(postTick => createLinearTickObject(postTick, axisScale, sizeTickLabelFormatter, () => true)));
     }
+    fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing);
   }
   return ticks;
 }
@@ -616,36 +817,36 @@ function getTickCount(axisConfig: AxisConfigBase, axisRangeExtent: number, axisD
   return count;
 }
 
-function getLinearScaleTickLabelFormatter(axisConfig: CategoryAxisConfig | EnhancedValueAxisConfig, axisScale: AxisScale, tickCount: number): TickLabelFormatter {
+function getLinearScaleTickLabelFormatter(axisConfig: CategoryAxisConfig | EnhancedValueAxisConfig, tickLabel: TickLabelSettings, axisScale: AxisScale, tickCount: number): TickLabelFormatter {
   let tickLabelFormatter: TickLabelFormatter = tick => tick;
-  if (axisConfig.tickLabel.format !== NONE) {
+  if (tickLabel.format !== NONE) {
     if (axisConfig.type === TYPE_NUMBER) {
       tickCount = Math.max(1, tickCount); // axisScale.tickFormat expects > 0 ...
-      if (axisConfig.tickLabel.format === AUTO) {
+      if (tickLabel.format === AUTO) {
         tickLabelFormatter = axisScale.tickFormat(tickCount, autoTickLabelFormatNumber);
       }
       else {
-        tickLabelFormatter = axisScale.tickFormat(tickCount, axisConfig.tickLabel.format);
+        tickLabelFormatter = axisScale.tickFormat(tickCount, tickLabel.format);
       }
     }
     else if (axisConfig.type === TYPE_DATE) {
-      if (axisConfig.tickLabel.format === AUTO && tickCount > 1) {
+      if (tickLabel.format === AUTO && tickCount > 1) {
         tickLabelFormatter = axisScale.tickFormat();
       }
       else {
         const timeFormatter = 'dateUTC' in axisConfig && axisConfig.dateUTC ? utcFormat : timeFormat;
-        if (axisConfig.tickLabel.format === AUTO) {
+        if (tickLabel.format === AUTO) {
           const formatter = timeFormatter(autoTickLabelFormatDate);
           tickLabelFormatter = tick => formatter(tick as Date);
         }
         else {
-          const formatter = timeFormatter(axisConfig.tickLabel.format);
+          const formatter = timeFormatter(tickLabel.format);
           tickLabelFormatter = tick => formatter(tick as Date);
         }
       }
     }
   }
-  return getTickLabelFormatterForPrefixAndSuffix(axisConfig, tickLabelFormatter);
+  return getTickLabelFormatterForPrefixAndSuffix(tickLabel, tickLabelFormatter);
 }
 
 function getDomainForValues(values: readonly CategoryValue[]): [AxisValue, AxisValue] {
@@ -664,22 +865,22 @@ function getDomainForValues(values: readonly CategoryValue[]): [AxisValue, AxisV
   return [min!, max!];
 }
 
-function getOrdinalScaleTickLabelFormatter(axisConfig: CategoryAxisConfig, axisScale: AxisScale, tickCount: number, values: readonly CategoryValue[]): TickLabelFormatter {
+function getOrdinalScaleTickLabelFormatter(axisConfig: CategoryAxisConfig, tickLabel: TickLabelSettings, axisScale: AxisScale, tickCount: number, values: readonly CategoryValue[]): TickLabelFormatter {
   if (tickCount <= 1) {
-    return getLinearScaleTickLabelFormatter(axisConfig, axisScale, tickCount);
+    return getLinearScaleTickLabelFormatter(axisConfig, tickLabel, axisScale, tickCount);
   }
   else {
     let tickLabelFormatter: TickLabelFormatter = tick => tick;
-    if (axisConfig.tickLabel.format !== NONE) {
+    if (tickLabel.format !== NONE) {
       if (axisConfig.type === TYPE_NUMBER) {
-        const formatSpecifier = axisConfig.tickLabel.format === AUTO ? autoOrdinalTickLabelFormatNumber : axisConfig.tickLabel.format;
+        const formatSpecifier = tickLabel.format === AUTO ? autoOrdinalTickLabelFormatNumber : tickLabel.format;
         // per value, not a linear tickFormat: its precision comes from the tick step, which rounds small categories to 0
         const formatter = format(formatSpecifier);
         tickLabelFormatter = tick => formatter(tick as number);
       }
       else if (axisConfig.type === TYPE_DATE) {
         const timeFormatter = axisConfig.dateUTC ? utcFormat : timeFormat;
-        if (axisConfig.tickLabel.format === AUTO) {
+        if (tickLabel.format === AUTO) {
           // Experimental code to try to create a nice uniform tick format for ordinal date scales. needs work...
           if (enableOrdinalExperimentalMode) {
             tickLabelFormatter = (axisConfig.dateUTC ? scaleUtc() : scaleTime()).domain(getDomainForValues(values)).tickFormat();
@@ -690,29 +891,29 @@ function getOrdinalScaleTickLabelFormatter(axisConfig: CategoryAxisConfig, axisS
           }
         }
         else {
-          const formatter = timeFormatter(axisConfig.tickLabel.format);
+          const formatter = timeFormatter(tickLabel.format);
           tickLabelFormatter = tick => formatter(tick as Date);
         }
       }
     }
-    return getTickLabelFormatterForPrefixAndSuffix(axisConfig, tickLabelFormatter);
+    return getTickLabelFormatterForPrefixAndSuffix(tickLabel, tickLabelFormatter);
   }
 }
 
-function getTickLabelFormatterForPrefixAndSuffix(axisConfig: AxisConfigBase, tickLabelFormatter: TickLabelFormatter): TickLabelFormatter {
-  if (axisConfig.tickLabel.prefix !== NONE || axisConfig.tickLabel.suffix !== NONE) {
+function getTickLabelFormatterForPrefixAndSuffix(tickLabel: TickLabelSettings, tickLabelFormatter: TickLabelFormatter): TickLabelFormatter {
+  if (tickLabel.prefix !== NONE || tickLabel.suffix !== NONE) {
     const oldTickLabelFormatter = tickLabelFormatter;
-    if (axisConfig.tickLabel.prefix !== NONE && axisConfig.tickLabel.suffix !== NONE) {
-      const prefix = axisConfig.tickLabel.prefix!;
-      const suffix = axisConfig.tickLabel.suffix!;
+    if (tickLabel.prefix !== NONE && tickLabel.suffix !== NONE) {
+      const prefix = tickLabel.prefix!;
+      const suffix = tickLabel.suffix!;
       tickLabelFormatter = (tick: CategoryValue) => (prefix + oldTickLabelFormatter(tick) + suffix);
     }
-    else if (axisConfig.tickLabel.prefix !== NONE) {
-      const prefix = axisConfig.tickLabel.prefix!;
+    else if (tickLabel.prefix !== NONE) {
+      const prefix = tickLabel.prefix!;
       tickLabelFormatter = (tick: CategoryValue) => (prefix + oldTickLabelFormatter(tick));
     }
-    else if (axisConfig.tickLabel.suffix !== NONE) {
-      const suffix = axisConfig.tickLabel.suffix!;
+    else if (tickLabel.suffix !== NONE) {
+      const suffix = tickLabel.suffix!;
       tickLabelFormatter = (tick: CategoryValue) => (oldTickLabelFormatter(tick) + suffix);
     }
   }

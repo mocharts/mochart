@@ -5,6 +5,7 @@ import { getValueAxisFocusContexts } from '../utils/FocusValue';
 
 import CategoryAxisGrid from './CategoryAxisGrid';
 import ValueAxisGrid from './ValueAxisGrid';
+import { gridLinesInPass } from './AxisGrid';
 import type { EnhancedMochartConfig } from '../types/enhanced';
 import type { AxisData, CategoryAxisData, ValueAxisData, SeriesData } from '../types/data';
 import type { FocusData } from '../types/animation';
@@ -32,23 +33,22 @@ export default class AxisGridContainer extends Renderer<AxisGridContainerProps> 
     const { front, mochartConfig, seriesLayoutInfo, seriesData, focusData, axisData } = this.props;
     const { category: categoryAxisData, value: valueAxisData } = axisData;
     const { plot: plotConfig, categoryAxis: categoryAxisConfig, valueAxes: valueAxisConfigs } = mochartConfig;
-    const gridLineFront = categoryAxisConfig.gridLine.front;
 
     this.root.set({ className: mochartCssClasses['axisGridContainer'] });
 
-    if (gridLineFront !== front) {
+    if (!gridLinesInPass(categoryAxisConfig, front)) {
       this.categoryGrid.set(null);
     }
     else {
-      this.categoryGrid.set(CategoryAxisGrid, { plotConfig, categoryAxisConfig, seriesLayoutInfo, categoryAxisData });
+      this.categoryGrid.set(CategoryAxisGrid, { front, plotConfig, categoryAxisConfig, seriesLayoutInfo, categoryAxisData });
     }
 
     this.seriesGrids.sync(getValueAxisFocusContexts(valueAxisConfigs, focusData)
-      .filter(({ axisConfig }) => axisConfig.gridLine.front === front)
+      .filter(({ axisConfig }) => gridLinesInPass(axisConfig, front))
       .map(({ axisConfig, id, key, axisFocusPercentage, seriesFocusPercentage }) => ({
         key,
         ctor: ValueAxisGrid,
-        props: { plotConfig, valueAxisConfig: axisConfig,
+        props: { front, plotConfig, valueAxisConfig: axisConfig,
           seriesCount: seriesData.axisSeriesCounts[id],
           axisFocusPercentage, seriesFocusPercentage,
           seriesLayoutInfo, valueAxisData }

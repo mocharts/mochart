@@ -27,10 +27,10 @@ export function getValueAxisBeforeAfter(axisConfigs: EnhancedValueAxisConfig[], 
   };
 }
 
-export function getValueAxisSizes(axisConfigs: EnhancedValueAxisConfig[], axisDataCounts: Record<string, number>, rotatedTickBoundsMap: Record<string, Bounds>, titleBoundsMap: Record<string, TextBounds>, vertical: boolean): Record<string, number> {
+export function getValueAxisSizes(axisConfigs: EnhancedValueAxisConfig[], axisDataCounts: Record<string, number>, rotatedTickBoundsMap: Record<string, Bounds>, minorTickBoundsMap: Record<string, TextBounds>, minorRotatedTickBoundsMap: Record<string, Bounds>, titleBoundsMap: Record<string, TextBounds>, vertical: boolean): Record<string, number> {
   return arrayToMap(axisConfigs, idAccessor, axisConfig => {
     if (axisConfig.visible && (axisConfig.visibleWhenAllFiltered || axisDataCounts[axisConfig.id] > 0)) {
-      return getAxisSize(axisConfig, rotatedTickBoundsMap[axisConfig.id], titleBoundsMap[axisConfig.id], vertical);
+      return getAxisSize(axisConfig, rotatedTickBoundsMap[axisConfig.id], minorTickBoundsMap[axisConfig.id], minorRotatedTickBoundsMap[axisConfig.id], titleBoundsMap[axisConfig.id], vertical);
     }
     else {
       return 0;
@@ -38,10 +38,10 @@ export function getValueAxisSizes(axisConfigs: EnhancedValueAxisConfig[], axisDa
   });
 }
 
-export function createValueAxisLayoutInfos(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, _chartData: ChartDataForLayout | null, valueAxisRotatedTickBounds: Record<string, Bounds>, axisTickInfos: AxisTickInfos, categoryY: number, valueY: number, categoryInnerExtent: number, valueInnerExtent: number, categoryAxesOffset: BeforeAfter, valueAxesOffset: BeforeAfter, valueAxisSizes: Record<string, number>, _valueAxisVisibleSeriesCounts: Record<string, number>, valueAxesCollapsedAfter: number): Record<string, AxisLayoutInfo> {
+export function createValueAxisLayoutInfos(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, _chartData: ChartDataForLayout | null, valueAxisRotatedTickBounds: Record<string, Bounds>, valueAxisMinorRotatedTickBounds: Record<string, Bounds>, axisTickInfos: AxisTickInfos, categoryY: number, valueY: number, categoryInnerExtent: number, valueInnerExtent: number, categoryAxesOffset: BeforeAfter, valueAxesOffset: BeforeAfter, valueAxisSizes: Record<string, number>, _valueAxisVisibleSeriesCounts: Record<string, number>, valueAxesCollapsedAfter: number): Record<string, AxisLayoutInfo> {
   const { plot: plotConfig, valueAxes: valueAxisConfigs } = mochartConfig;
-  const { valueAxisTitleBounds, valueAxisTickBounds, valueAxisThresholdTitleBounds } = chartTextBoundsData;
-  const { valueAxisTickInfos } = axisTickInfos;
+  const { valueAxisTitleBounds, valueAxisTickBounds, valueAxisMinorTickBounds, valueAxisThresholdTitleBounds } = chartTextBoundsData;
+  const { valueAxisTickInfos, valueAxisMinorTickInfos } = axisTickInfos;
   const { inverted } = plotConfig;
   const vertical = !inverted;
   let currentSeriesOffsetBefore = 0;
@@ -70,7 +70,7 @@ export function createValueAxisLayoutInfos(mochartConfig: EnhancedMochartConfig,
       height: inverted ? valueAxisSize : valueInnerExtent
     },
       vertical, inverted, notAfter, marginInner, marginOuter, paddingInner, paddingOuter) as AxisLayoutInfo;
-    setExtraAxisInfo(valueAxisLayoutInfo, valueAxisConfig, valueAxisTickInfos[id], valueAxisTickBounds[id], valueAxisRotatedTickBounds[id], valueAxisTitleBounds[id], valueAxisThresholdTitleBounds[id], vertical, inverted);
+    setExtraAxisInfo(valueAxisLayoutInfo, valueAxisConfig, valueAxisTickInfos[id], valueAxisMinorTickInfos[id], valueAxisTickBounds[id], valueAxisRotatedTickBounds[id], valueAxisMinorTickBounds[id], valueAxisMinorRotatedTickBounds[id], valueAxisTitleBounds[id], valueAxisThresholdTitleBounds[id], vertical, inverted);
     if (collapsed) {
       currentSeriesCollapsedOffsetBefore += before === true ? valueAxisSize : 0;
       currentSeriesCollapsedOffsetAfter += before === false ? valueAxisSize : 0;
@@ -88,5 +88,5 @@ export function getValueAxisRotatedTickBounds(mochartConfig: EnhancedMochartConf
   const { valueAxisTickBounds } = chartTextBoundsData;
   const { valueAxisTickInfos } = axisTickInfos;
   return arrayToMap(valueAxisConfigs, idAccessor,
-    valueAxisConfig => getRotatedTickBounds(valueAxisConfig, valueAxisTickBounds[valueAxisConfig.id], valueAxisTickInfos[valueAxisConfig.id]));
+    valueAxisConfig => getRotatedTickBounds(valueAxisConfig.tickLabel, valueAxisTickBounds[valueAxisConfig.id], valueAxisTickInfos[valueAxisConfig.id]));
 }

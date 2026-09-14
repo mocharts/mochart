@@ -81,8 +81,9 @@ export interface AxisTick {
   label: TickLabel;
   position: number;
   value: CategoryValue;
+  /** Hidden ticks draw no label, tick mark or grid line; a hidden label still reserves its room in the layout. */
   hidden: boolean;
-  /** Set on the categories between a tick step's ticks on an ordinal axis. */
+  /** Set on a minor tick: one a tick step places between its ticks, or a ticks entry marked minor. */
   minor?: boolean;
 }
 
@@ -96,6 +97,8 @@ export interface CategoryAxisData {
   axisScale: AxisScale;
   axisTickData: AxisTick[];
   maxTickLabelLength: number;
+  /** The length a truncated minor tick label may take, the room the narrowest-placed one has. */
+  maxMinorTickLabelLength: number;
   valueData: {
     spacingInfo: CategorySpacingInfo;
     positions: number[];

@@ -8,6 +8,7 @@ import type { CategoryAxisData } from '../types/data';
 import type { LayoutInfo } from '../types/layout';
 
 interface CategoryAxisGridProps {
+  front: boolean;
   plotConfig: PlotConfig;
   categoryAxisConfig: CategoryAxisConfig;
   seriesLayoutInfo: LayoutInfo;
@@ -23,9 +24,9 @@ export default class CategoryAxisGrid extends Renderer<CategoryAxisGridProps> {
   }
 
   sync() {
-    const { plotConfig, categoryAxisConfig, seriesLayoutInfo, categoryAxisData } = this.props;
+    const { front, plotConfig, categoryAxisConfig, seriesLayoutInfo, categoryAxisData } = this.props;
 
-    this.grid!.set(AxisGrid, { vertical: plotConfig.inverted, axisConfig: categoryAxisConfig, seriesLayoutInfo,
+    this.grid!.set(AxisGrid, { front, vertical: plotConfig.inverted, axisConfig: categoryAxisConfig, seriesLayoutInfo,
       axisGridClass: mochartCssClasses['categoryAxisGrid'], axisTicks: categoryAxisData.axisTickData });
   }
 }

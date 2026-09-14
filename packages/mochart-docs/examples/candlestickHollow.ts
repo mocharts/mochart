@@ -22,9 +22,14 @@ export const config: MochartInputConfig = {
   title: { text: 'Daily Share Price (fictional, $)' },
   categoryAxis: {
     ...candlestick.categoryAxis,
-    tickLabel: { format: '%b %d' },
+    tickLabel: {
+      format: '%b %d',
+      minorFormat: '%a',
+      minorFont: { size: '0.85em' },
+      minorTextStyle: { normal: { fillOpacity: 0.6 }, focused: { fillOpacity: 0.6 }, defocused: { fillOpacity: 0.3 } }
+    },
     valueFormat: '%a %b %d',
-    tickStep: { period: 'week', minorFormat: '%a' }
+    tickStep: { period: 'week' }
   },
   valueAxes: [{ title: { text: '$ per share' } }],
   series: candlestick.series

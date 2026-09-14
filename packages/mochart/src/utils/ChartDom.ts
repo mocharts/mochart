@@ -37,7 +37,9 @@ export const mochartCssClasses = {
               axisTickLabel: 'mochart-axis-tick-label mochart-axis-tick-label-',
               axisMinorTickLabel: 'mochart-axis-minor-tick-label',
                 axisTickLabelBackground: 'mochart-axis-tick-label-background',
+                axisMinorTickLabelBackground: 'mochart-axis-minor-tick-label-background',
             axisSizeTickLabel: 'mochart-axis-size-tick-label',
+            axisMinorSizeTickLabel: 'mochart-axis-minor-size-tick-label',
             axisFocusRange: 'mochart-axis-focus-range',
             axisFocusTickMarks: 'mochart-axis-focus-tick-marks',
               axisFocusTickMark: 'mochart-axis-focus-tick-mark mochart-axis-focus-tick-mark-',
@@ -168,6 +170,10 @@ function getCategoryAxisSizeTickLabelCssSelector() {
   return getDescendantCssSelector('categoryAxis', 'axisSizeTickLabel') + ' text';
 }
 
+function getCategoryAxisMinorSizeTickLabelCssSelector() {
+  return getDescendantCssSelector('categoryAxis', 'axisMinorSizeTickLabel') + ' text';
+}
+
 function getCategoryAxisTitleCssSelector() {
   return getDescendantCssSelector('categoryAxis', 'axisTitle') + ' text';
 }
@@ -178,6 +184,14 @@ function getCategoryAxisThresholdTitleCssSelector() {
 
 function getValueAxisTickLabelsCssSelectorForId(axisId: string) {
   return getIdCssSelector('valueAxis', axisId) + ' ' + getCssSelector('axisTickLabels') + ' text';
+}
+
+function getValueAxisMajorTickLabelsCssSelectorForId(axisId: string) {
+  return getIdCssSelector('valueAxis', axisId) + ' ' + getDescendantCssSelector('axisTickLabels', 'axisTickLabel') + ':not(' + getCssSelector('axisMinorTickLabel') + ') text';
+}
+
+function getValueAxisMinorTickLabelsCssSelectorForId(axisId: string) {
+  return getIdCssSelector('valueAxis', axisId) + ' ' + getDescendantCssSelector('axisTickLabels', 'axisTickLabel') + getCssSelector('axisMinorTickLabel') + ' text';
 }
 
 function getValueAxisTitleCssSelectorForId(axisId: string) {
@@ -207,9 +221,12 @@ export function getDomAccessors(chartElement: Element): ChartDomAccessors {
     getCategoryAxisMajorTicksDomElements: () => chartElement.querySelectorAll<SVGGraphicsElement>(getCategoryAxisMajorTickLabelsCssSelector()),
     getCategoryAxisMinorTicksDomElements: () => chartElement.querySelectorAll<SVGGraphicsElement>(getCategoryAxisMinorTickLabelsCssSelector()),
     getCategoryAxisSizeTickDomElement: () => chartElement.querySelector<SVGGraphicsElement>(getCategoryAxisSizeTickLabelCssSelector()),
+    getCategoryAxisMinorSizeTickDomElement: () => chartElement.querySelector<SVGGraphicsElement>(getCategoryAxisMinorSizeTickLabelCssSelector()),
     getCategoryAxisTitleDomElement: () => chartElement.querySelector<SVGGraphicsElement>(getCategoryAxisTitleCssSelector()),
     getCategoryAxisThresholdTitleDomElements: () => chartElement.querySelectorAll<SVGGraphicsElement>(getCategoryAxisThresholdTitleCssSelector()),
     getValueAxisTicksDomElementsForId: (axisId: string) => chartElement.querySelectorAll<SVGGraphicsElement>(getValueAxisTickLabelsCssSelectorForId(axisId)),
+    getValueAxisMajorTicksDomElementsForId: (axisId: string) => chartElement.querySelectorAll<SVGGraphicsElement>(getValueAxisMajorTickLabelsCssSelectorForId(axisId)),
+    getValueAxisMinorTicksDomElementsForId: (axisId: string) => chartElement.querySelectorAll<SVGGraphicsElement>(getValueAxisMinorTickLabelsCssSelectorForId(axisId)),
     getValueAxisTitleDomElementForId: (axisId: string) => chartElement.querySelector<SVGGraphicsElement>(getValueAxisTitleCssSelectorForId(axisId)),
     getValueAxisThresholdTitleDomElementsForId: (axisId: string) => chartElement.querySelectorAll<SVGGraphicsElement>(getValueAxisThresholdTitleCssSelectorForId(axisId)),
     getLegendDomElement: () => chartElement.querySelector<HTMLElement>(getCssSelector('legend')),

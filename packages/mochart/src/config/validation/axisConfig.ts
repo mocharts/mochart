@@ -4,7 +4,7 @@ import { filterConfig, getRawIndices } from '../core/configUtils';
 import { getPropertyMessage, isConfigObject } from './messages';
 import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators';
 
-import { AUTO, NONE, ANCHORS, STYLE_SAME, SIDES, SCALE_ORDINAL, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants';
+import { AUTO, NONE, MAJOR, ANCHORS, STYLE_SAME, SIDES, SCALE_ORDINAL, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants';
 
 import type { ConfigObject, LocatedValidationMessage } from './messages';
 import type { Validator } from '@mochart/movalid';
@@ -22,6 +22,7 @@ const group = (shape: Record<string, Validator>) => validators.partialObjectWith
 /** The tick label members shared by both axes; each axis adds its own (format rules, truncation, filtering). */
 export function getTickLabelValidators(): Record<string, Validator> {
   return {
+    visible: validators.boolean(),
     front: validators.boolean(),
     backgroundStyle: validators.style(),
     size: validators.numberMin(0).orEqual(AUTO),
@@ -34,7 +35,32 @@ export function getTickLabelValidators(): Record<string, Validator> {
     rotation: validators.numberMinMax(-90, 90),
     anchor: validators.oneOf(ANCHORS.concat([AUTO])),
     textStyle: styleStates(styleMembers),
-    font: validators.font()
+    font: validators.font(),
+    minorVisible: validators.boolean().orEqual(MAJOR),
+    minorFront: validators.boolean().orEqual(MAJOR),
+    minorBackgroundStyle: validators.styleOrMajor(),
+    minorSize: validators.numberMin(0).orOneOf([AUTO, MAJOR]),
+    minorMarginInner: validators.numberMin(0).orEqual(MAJOR),
+    minorMarginOuter: validators.numberMin(0).orEqual(MAJOR),
+    minorPaddingInner: validators.numberMin(0).orEqual(MAJOR),
+    minorPaddingOuter: validators.numberMin(0).orEqual(MAJOR),
+    minorPrefix: validators.string().orEqual(NONE),
+    minorSuffix: validators.string().orEqual(NONE),
+    minorRotation: validators.numberMinMax(-90, 90).orEqual(MAJOR),
+    minorAnchor: validators.oneOf(ANCHORS.concat([AUTO, MAJOR])),
+    minorTextStyle: styleStates(styleMembers, true),
+    minorFont: validators.fontOrMajor()
+  };
+}
+
+/** The tickStep members shared by both axes; the category axis adds period, minorPeriod and includeFirst and narrows the rest to its scales. */
+export function getTickStepValidators(): Record<string, Validator> {
+  return {
+    interval: thresholdStepIntervalValidator,
+    count: validators.integerMin(1).orEqual(AUTO),
+    offset: validators.integerMin(0),
+    minorSteps: validators.integerMin(2).orEqual(NONE),
+    minSpacing: validators.numberMin(2)
   };
 }
 
@@ -61,7 +87,7 @@ export function getThresholdStepValidators(): Record<string, Validator> {
   };
 }
 
-export default function getValidators(thresholdValue = validators.number(), tickLabelValidators: Record<string, Validator> = getTickLabelValidators(), pieMode = false, thresholdStepValidators: Record<string, Validator> = getThresholdStepValidators()) {
+export default function getValidators(thresholdValue = validators.number(), tickLabelValidators: Record<string, Validator> = getTickLabelValidators(), pieMode = false, thresholdStepValidators: Record<string, Validator> = getThresholdStepValidators(), tickStepValidators: Record<string, Validator> = getTickStepValidators()) {
   return {
     axisLine: group({
       visible: validators.boolean(),
@@ -97,7 +123,10 @@ export default function getValidators(thresholdValue = validators.number(), tick
     gridLine: group({
       visible: validators.boolean(),
       front: validators.boolean(),
-      style: styleStates(lineMembers)
+      style: styleStates(lineMembers),
+      minorVisible: validators.boolean().orEqual(MAJOR),
+      minorFront: validators.boolean().orEqual(MAJOR),
+      minorStyle: styleStates(lineMembers, true)
     }),
 
     marginInner: validators.numberMin(0),
@@ -142,8 +171,15 @@ export default function getValidators(thresholdValue = validators.number(), tick
       front: validators.boolean(),
       size: validators.numberMin(0),
       marginInner: validators.numberMin(0),
-      style: styleStates(lineMembers)
+      style: styleStates(lineMembers),
+      minorVisible: validators.boolean().orEqual(MAJOR),
+      minorFront: validators.boolean().orEqual(MAJOR),
+      minorSize: validators.numberMin(0).orEqual(MAJOR),
+      minorMarginInner: validators.numberMin(0).orEqual(MAJOR),
+      minorStyle: styleStates(lineMembers, true)
     }),
+
+    tickStep: group(tickStepValidators),
 
     title: group({
       text: validators.string().orEqual(NONE),
@@ -271,7 +307,7 @@ function isAuthored(raw: ConfigObject | null, memberPath: (string | number)[]): 
     return true;
   }
   const [section, member] = memberPath;
-  if (section === 'thresholds') {
+  if (section === 'thresholds' || section === 'ticks') {
     return Array.isArray(raw[section]);
   }
   const group = raw[section as string];
@@ -296,9 +332,14 @@ function getAxisReporter({ prefix, path, raw }: ValidationAxis, reportedDefaults
   };
 }
 
+const PERIOD_ORDER = ['day', 'week', 'month', 'year'];
 const stepNeedsPlacementMessage = 'should be left at its default on a linear axis unless period or interval is set';
+const minorPeriodNeedsPeriodMessage = 'should be null unless period is set';
+const minorPeriodTooLongMessage = 'should be a shorter period than period';
+const minorStepsNeedsIntervalMessage = 'should be null unless interval is set';
+const duplicateTickMessage = 'should not repeat the value of another ticks entry';
 
-/** The thresholdStep rules that cross members: what count and offset count on a linear axis. */
+/** The step rules that cross members, in tickStep and thresholdStep alike: what count and offset count on a linear axis, and what the minor members need. */
 export function validateStepRules(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
   const reportedDefaults = new Set<string>();
   for (const validationAxis of getValidationAxes(config, configWithoutDefaults)) {
@@ -306,22 +347,66 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
     if (!isConfigObject(axis)) {
       continue;
     }
-    const step = axis['thresholdStep'];
+    const report = getAxisReporter(validationAxis, reportedDefaults, errors, errorDetails);
     // a value axis is always linear; the category axis says so itself
-    if (!isConfigObject(step) || axis['scale'] === SCALE_ORDINAL) {
+    const linear = axis['scale'] !== SCALE_ORDINAL;
+    for (const [groupKey, defaultCount] of [['tickStep', AUTO], ['thresholdStep', 1]] as const) {
+      const step = axis[groupKey];
+      if (!isConfigObject(step)) {
+        continue;
+      }
+      const reportStep = (member: string, message: string) => report([groupKey, member], groupKey + '.' + member, message);
+      const placed = (step['period'] !== undefined && step['period'] !== NONE) || (step['interval'] !== undefined && step['interval'] !== NONE);
+      if (linear && !placed) {
+        if (step['count'] !== defaultCount) {
+          reportStep('count', stepNeedsPlacementMessage);
+        }
+        if (step['offset'] !== 0) {
+          reportStep('offset', stepNeedsPlacementMessage);
+        }
+      }
+      if (groupKey === 'tickStep') {
+        const minorPeriod = step['minorPeriod'];
+        if (typeof minorPeriod === 'string') {
+          const period = step['period'];
+          if (typeof period !== 'string') {
+            reportStep('minorPeriod', minorPeriodNeedsPeriodMessage);
+          }
+          else if (PERIOD_ORDER.indexOf(minorPeriod) >= PERIOD_ORDER.indexOf(period)) {
+            reportStep('minorPeriod', minorPeriodTooLongMessage);
+          }
+        }
+        if (typeof step['minorSteps'] === 'number' && (step['interval'] === undefined || step['interval'] === NONE)) {
+          reportStep('minorSteps', minorStepsNeedsIntervalMessage);
+        }
+      }
+    }
+  }
+}
+
+/** Two explicit ticks at one position would put a tick and a minor tick together, so entries are matched the way a tick finds its category. */
+export function validateTickEntries(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
+  const reportedDefaults = new Set<string>();
+  for (const validationAxis of getValidationAxes(config, configWithoutDefaults)) {
+    const { axis } = validationAxis;
+    if (!isConfigObject(axis) || !Array.isArray(axis['ticks'])) {
       continue;
     }
     const report = getAxisReporter(validationAxis, reportedDefaults, errors, errorDetails);
-    const reportStep = (member: string, message: string) => report(['thresholdStep', member], 'thresholdStep.' + member, message);
-    const placed = (step['period'] !== undefined && step['period'] !== NONE) || (step['interval'] !== undefined && step['interval'] !== NONE);
-    if (!placed) {
-      if (step['count'] !== 1) {
-        reportStep('count', stepNeedsPlacementMessage);
+    const dateAxis = axis['type'] === TYPE_DATE && (axis['keyProperty'] === undefined || axis['keyProperty'] === NONE);
+    const seen = new Set<string>();
+    axis['ticks'].forEach((tick, index) => {
+      if (!isConfigObject(tick) || (typeof tick['value'] !== 'string' && typeof tick['value'] !== 'number')) {
+        return;
       }
-      if (step['offset'] !== 0) {
-        reportStep('offset', stepNeedsPlacementMessage);
+      // the same key the chart matches ticks to categories by: the instant on a date axis without a keyProperty, else the value
+      const dateValue = dateAxis ? boundValue(tick['value'], true) : null;
+      const key = dateValue !== null ? 'date:' + dateValue : typeof tick['value'] + ':' + String(tick['value']);
+      if (seen.has(key)) {
+        report(['ticks', index, 'value'], 'ticks[' + index + '].value', duplicateTickMessage);
       }
-    }
+      seen.add(key);
+    });
   }
 }
 

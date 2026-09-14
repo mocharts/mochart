@@ -350,13 +350,18 @@ const CANDLESTICK_DAYS = [
 
 // The helpers' ordinal date axis with the demos' day formats, stepping the ticks by week so only the
 // first trading day of each week gets one, whatever days the random walk keeps, with the days between
-// labelled by weekday where they fit.
+// labelled by weekday in a smaller, fainter minor label where they fit.
 function candlestickCategoryAxis(categoryAxis: Partial<CategoryAxisConfig>): DeepPartial<CategoryAxisConfig> {
   return {
     ...categoryAxis,
-    tickLabel: { format: '%b %d' },
+    tickLabel: {
+      format: '%b %d',
+      minorFormat: '%a',
+      minorFont: { size: '0.85em' },
+      minorTextStyle: { normal: { fillOpacity: 0.6 }, focused: { fillOpacity: 0.6 }, defocused: { fillOpacity: 0.3 } }
+    },
     valueFormat: '%a %b %d',
-    tickStep: { period: 'week', minorFormat: '%a' }
+    tickStep: { period: 'week' }
   };
 }
 const CANDLESTICK_START_PRICE = 100;
