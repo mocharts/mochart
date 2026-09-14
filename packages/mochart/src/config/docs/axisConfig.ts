@@ -7,7 +7,7 @@ const fillLineMembers = [...lineMembers, 'fillColor', 'fillOpacity'];
 
 const sameNote = ', or "same" to use the color of the normal state';
 const sameValueNote = ', or "same" to use the value of the normal state';
-const sameMembers = new Set(['strokeColor', 'fillColor', 'strokeWidth', 'strokeDashArray']);
+const sameMembers = new Set(['strokeColor', 'fillColor', 'strokeOpacity', 'fillOpacity', 'strokeWidth', 'strokeDashArray']);
 
 function styleMembers(members: string[], allowSame: boolean): DescriptionMap {
   const descriptions: DescriptionMap = {};

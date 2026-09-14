@@ -19,9 +19,10 @@ export type PatternColor = 'series' | (string & {});
 
 /**
  * The stroke half of a style: everything needed to draw an outline (or a bare
- * line, which has no fill). `S` widens the geometry members (width, dash) in
- * the focused/defocused states, where `'same'` means "inherit the normal
- * state's value"; it is `never` for a plain single-state style.
+ * line, which has no fill). `S` widens the opacity and geometry members
+ * (opacity, width, dash) in the focused/defocused states, where `'same'`
+ * means "inherit the normal state's value"; it is `never` for a plain
+ * single-state style.
  */
 export interface StrokeStyle<C = string, S = never> {
   /**
@@ -34,7 +35,7 @@ export interface StrokeStyle<C = string, S = never> {
    * The opacity (0 - 1) of the stroke, or null to leave the svg stroke-opacity
    * attribute unset.
    */
-  strokeOpacity: number | null;
+  strokeOpacity: number | null | S;
   /**
    * The width (in pixels) of the stroke, or null to leave the svg stroke-width
    * attribute unset.
@@ -68,7 +69,7 @@ export interface Style<C = string, S = never> extends StrokeStyle<C, S> {
    * The opacity (0 - 1) of the fill, or null to leave the svg fill-opacity
    * attribute unset.
    */
-  fillOpacity: number | null;
+  fillOpacity: number | null | S;
 }
 
 /**
@@ -76,7 +77,8 @@ export interface Style<C = string, S = never> extends StrokeStyle<C, S> {
  * state always writes its color and opacity attributes — so a host-css stroke
  * cannot bleed onto chart chrome and focus animation can interpolate — which
  * is why the colors and opacities are never null. Width and dash array stay
- * nullable.
+ * nullable. `S` widens the opacities, width and dash array in the focused and
+ * defocused states, where `'same'` means "inherit the normal state's value".
  */
 export interface StrokeStyleState<C = string, S = never> {
   /**
@@ -85,7 +87,7 @@ export interface StrokeStyleState<C = string, S = never> {
    */
   strokeColor: C;
   /** The opacity (0 - 1) of the stroke. */
-  strokeOpacity: number;
+  strokeOpacity: number | S;
   /**
    * The width (in pixels) of the stroke, or null to leave the svg stroke-width
    * attribute unset.
@@ -110,13 +112,13 @@ export interface StyleState<C = string, S = never> extends StrokeStyleState<C, S
    */
   fillColor: C;
   /** The opacity (0 - 1) of the fill. */
-  fillOpacity: number;
+  fillOpacity: number | S;
 }
 
 /**
  * A line style in each of its three focus states. `'same'` in the focused /
- * defocused states means "inherit the normal state's value" — for the colors
- * and also for the stroke width and dash array.
+ * defocused states means "inherit the normal state's value" — for the colors,
+ * the opacities, the stroke width and the dash array.
  */
 export interface StrokeStyleStates<C = string> {
   normal: StrokeStyleState<C>;
@@ -126,8 +128,8 @@ export interface StrokeStyleStates<C = string> {
 
 /**
  * A full style in each of its three focus states. `'same'` in the focused /
- * defocused states means "inherit the normal state's value" — for the colors
- * and also for the stroke width and dash array.
+ * defocused states means "inherit the normal state's value" — for the colors,
+ * the opacities, the stroke width and the dash array.
  */
 export interface StyleStates<C = string> {
   normal: StyleState<C>;

@@ -81,11 +81,13 @@ series: [{
 }]
 ```
 
-In the `focused` and `defocused` states a color — and likewise `strokeWidth`
-and `strokeDashArray` — may be the literal `'same'`, meaning "whatever the
-`normal` state resolved to". That is the default almost everywhere: elements
-change opacity or width on focus but keep their color. Opacities are the
-exception — they are always concrete numbers, never `'same'`.
+In the `focused` and `defocused` states a color, and likewise
+`strokeOpacity`, `fillOpacity`, `strokeWidth` and `strokeDashArray`, may be
+the literal `'same'`, meaning "whatever the `normal` state resolved to". That
+is the default for the colors, width and dash array almost everywhere:
+elements change opacity on focus but keep their color. The default opacities
+are numbers, so a style that only changes its `normal` opacity still takes the
+default `focused` and `defocused` opacities unless those are set too.
 
 Series styles additionally accept the palette modes `'seriesIndex'` and
 `'categoryIndex'` in place of a color, and — everywhere but `shapeStyle`,

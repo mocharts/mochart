@@ -8,7 +8,8 @@ import {
   getFocusPercentageColor,
   getAxisFocusColor,
   getAxisFocusOpacity,
-  getAxisFocusStyle
+  getAxisFocusStyle,
+  getFocusStyle
 } from '../../src/utils/FocusValue';
 
 
@@ -178,6 +179,16 @@ describe('getAxisFocusStyle', () => {
     expect(getAxisFocusStyle(-0.5, null, true, textStyle).fillOpacity).toBe(0.75);
   });
 
+  it('resolves a "same" opacity against the normal state', () => {
+    const style = {
+      normal: { fillOpacity: 0.6 },
+      focused: { fillOpacity: 'same' as const },
+      defocused: { fillOpacity: 0.3 }
+    };
+    expect(getAxisFocusStyle(1, null, true, style).fillOpacity).toBe(0.6);
+    expect(getAxisFocusStyle(-1, null, true, style).fillOpacity).toBe(0.3);
+  });
+
   it('resolves only the members the normal state has', () => {
     // a line's stroke width is a flat config property, so its style has none
     const lineStyle = {
@@ -196,5 +207,19 @@ describe('getAxisFocusStyle', () => {
       defocused: { strokeColor: 'same', strokeWidth: null }
     };
     expect(getAxisFocusStyle(1, null, true, style)).toEqual({ strokeColor: 'none', strokeWidth: null });
+  });
+});
+
+describe('getFocusStyle', () => {
+  const styleStates = {
+    normal: { strokeColor: 'red', strokeOpacity: 0.75, strokeWidth: 2, strokeDashArray: null, fillColor: 'red', fillOpacity: 0.5 },
+    focused: { strokeColor: 'same' as const, strokeOpacity: 'same' as const, strokeWidth: 'same' as const, strokeDashArray: 'same' as const, fillColor: 'same' as const, fillOpacity: 1 },
+    defocused: { strokeColor: 'same' as const, strokeOpacity: 0.25, strokeWidth: 'same' as const, strokeDashArray: 'same' as const, fillColor: 'same' as const, fillOpacity: 'same' as const }
+  };
+
+  it('resolves "same" opacities against the normal state and interpolates the rest', () => {
+    expect(getFocusStyle(1, styleStates)).toEqual({ strokeWidth: 2, strokeDashArray: null, strokeOpacity: 0.75, fillOpacity: 1 });
+    expect(getFocusStyle(-1, styleStates)).toEqual({ strokeWidth: 2, strokeDashArray: null, strokeOpacity: 0.25, fillOpacity: 0.5 });
+    expect(getFocusStyle(-0.5, styleStates).strokeOpacity).toBe(0.5);
   });
 });

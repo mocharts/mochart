@@ -93,28 +93,33 @@ function isFilledShape(seriesConfig: EnhancedSeriesConfig, pieMode: boolean): bo
   return pieMode || renderer === RENDERER_AREA || renderer === RENDERER_BAR;
 }
 
+// 'same' in a focus state takes the normal opacity
+function sameOpacity(opacity: number | 'same', normalOpacity: number): number {
+  return opacity === STYLE_SAME ? normalOpacity : opacity;
+}
+
 export function getSeriesOpacities(seriesConfig: EnhancedSeriesConfig, pieMode = false) {
   const { renderer } = seriesConfig;
   let opacity, focusedOpacity, defocusedOpacity;
   if (isFilledShape(seriesConfig, pieMode) && !isHollowShape(seriesConfig)) {
     const { normal, focused, defocused } = seriesConfig.shapeStyle;
     opacity = normal.fillOpacity!;
-    focusedOpacity = focused.fillOpacity!;
-    defocusedOpacity = defocused.fillOpacity!;
+    focusedOpacity = sameOpacity(focused.fillOpacity!, opacity);
+    defocusedOpacity = sameOpacity(defocused.fillOpacity!, opacity);
   }
   else if (pieMode || renderer === RENDERER_LINE || renderer === RENDERER_AREA || renderer === RENDERER_BAR) {
     // a line series, or a hollow fill shape falling back to its stroke
     const { normal, focused, defocused } = seriesConfig.shapeStyle;
     opacity = normal.strokeOpacity!;
-    focusedOpacity = focused.strokeOpacity!;
-    defocusedOpacity = defocused.strokeOpacity!;
+    focusedOpacity = sameOpacity(focused.strokeOpacity!, opacity);
+    defocusedOpacity = sameOpacity(defocused.strokeOpacity!, opacity);
   }
   else {
     const { shape: markerShape } = seriesConfig.marker;
     const { normal, focused, defocused } = markerShape !== NONE ? seriesConfig.marker.style : seriesConfig.label.textStyle;
     opacity = normal.fillOpacity!;
-    focusedOpacity = focused.fillOpacity!;
-    defocusedOpacity = defocused.fillOpacity!;
+    focusedOpacity = sameOpacity(focused.fillOpacity!, opacity);
+    defocusedOpacity = sameOpacity(defocused.fillOpacity!, opacity);
   }
   return {
     opacity,

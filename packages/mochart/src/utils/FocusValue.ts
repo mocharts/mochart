@@ -152,6 +152,13 @@ export function getFocusStrokeWidth(focusPercentage: FocusPercentage, normalValu
   return getFocusDiscreteValue(focusPercentage, normalValue, focused, defocused) ?? null;
 }
 
+/** Resolve a per-state opacity: 'same' or an absent member defers to normal, then numbers interpolate. */
+export function getFocusOpacity(focusPercentage: FocusPercentage, normalValue: number, focusedValue: number | 'same' | undefined, defocusedValue: number | 'same' | undefined): number {
+  const focused = focusedValue === undefined || focusedValue === STYLE_SAME ? normalValue : focusedValue;
+  const defocused = defocusedValue === undefined || defocusedValue === STYLE_SAME ? normalValue : defocusedValue;
+  return getFocusValue(focusPercentage, normalValue, focused, defocused);
+}
+
 /** Resolve a per-state dash array: 'same' or an absent member defers to normal, and states switch discretely. */
 export function getFocusStrokeDashArray(focusPercentage: FocusPercentage, normalValue: string | null | undefined, focusedValue: string | null | 'same' | undefined, defocusedValue: string | null | 'same' | undefined): string | null {
   const focused = focusedValue === undefined || focusedValue === STYLE_SAME ? normalValue : focusedValue;
@@ -174,7 +181,7 @@ export function getFocusStrokeStyle<C>(focusPercentage: FocusPercentage, { norma
   return {
     strokeWidth: getFocusStrokeWidth(focusPercentage, normal.strokeWidth, focused.strokeWidth, defocused.strokeWidth),
     strokeDashArray: getFocusStrokeDashArray(focusPercentage, normal.strokeDashArray, focused.strokeDashArray, defocused.strokeDashArray),
-    strokeOpacity: getFocusValue(focusPercentage, normal.strokeOpacity, focused.strokeOpacity, defocused.strokeOpacity)
+    strokeOpacity: getFocusOpacity(focusPercentage, normal.strokeOpacity, focused.strokeOpacity, defocused.strokeOpacity)
   };
 }
 
@@ -184,8 +191,8 @@ export function getFocusStyle<C>(focusPercentage: FocusPercentage, styleStates: 
   return {
     strokeWidth: getFocusStrokeWidth(focusPercentage, normal.strokeWidth, focused.strokeWidth, defocused.strokeWidth),
     strokeDashArray: getFocusStrokeDashArray(focusPercentage, normal.strokeDashArray, focused.strokeDashArray, defocused.strokeDashArray),
-    strokeOpacity: getFocusValue(focusPercentage, normal.strokeOpacity, focused.strokeOpacity, defocused.strokeOpacity),
-    fillOpacity: getFocusValue(focusPercentage, normal.fillOpacity, focused.fillOpacity, defocused.fillOpacity)
+    strokeOpacity: getFocusOpacity(focusPercentage, normal.strokeOpacity, focused.strokeOpacity, defocused.strokeOpacity),
+    fillOpacity: getFocusOpacity(focusPercentage, normal.fillOpacity, focused.fillOpacity, defocused.fillOpacity)
   };
 }
 

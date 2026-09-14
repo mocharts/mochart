@@ -6,6 +6,7 @@ const styleMembers = ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDash
 
 const seriesNote = ', or "series" to use the color of the series shape';
 const sameNote = ', or "same" to use the color of the normal state';
+const sameValueNote = ', or "same" to use the value of the normal state';
 const paletteNote = ', or "seriesIndex" / "categoryIndex" to take the matching colorPalette color by series or category index';
 
 function members(memberKeys: string[], element: string, allowSeries: boolean, allowSame: boolean): DescriptionMap {
@@ -14,7 +15,7 @@ function members(memberKeys: string[], element: string, allowSeries: boolean, al
     const description = styleStateDescriptions[member] as string;
     descriptions[member] = member.endsWith('Color')
       ? description + (allowSeries ? seriesNote : '') + (allowSame ? sameNote : '') + paletteNote.replace('colorPalette', 'colorPalette ' + element)
-      : description;
+      : description + (allowSame && member.endsWith('Opacity') ? sameValueNote : '');
   }
   return descriptions;
 }

@@ -1104,6 +1104,22 @@ describe('dash array validation', () => {
     });
     expect(invalid.some(error => error.includes('strokeWidth'))).toBe(true);
   });
+
+  it("accepts 'same' for focus-state opacities on axis and series styles but not on the normal state", () => {
+    const valid = errorsFor({
+      version: V,
+      categoryAxis: { property: 'p', tickLabel: { textStyle: { focused: { fillOpacity: 'same' }, defocused: { strokeOpacity: 'same', fillOpacity: 'same' } } } },
+      series: [{ property: 'a', shapeStyle: { defocused: { fillOpacity: 'same', strokeOpacity: 'same' } } }]
+    });
+    expect(valid).toEqual([]);
+    const invalid = errorsFor({
+      version: V,
+      categoryAxis: { property: 'p', tickLabel: { textStyle: { normal: { fillOpacity: 'same' } } } },
+      series: [{ property: 'a', shapeStyle: { normal: { strokeOpacity: 'same' } } }]
+    });
+    expect(invalid.some(error => error.includes('tickLabel.textStyle.normal.fillOpacity'))).toBe(true);
+    expect(invalid.some(error => error.includes('shapeStyle.normal.strokeOpacity'))).toBe(true);
+  });
 });
 
 // valueDomainChange/categoryDomainChange are closed enums: staged | combined | auto

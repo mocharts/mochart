@@ -36,6 +36,11 @@ describe('getSeriesOpacities', () => {
     expect(o).toEqual({ opacity: 0.5, focusedOpacity: 0.9, defocusedOpacity: 0.1 });
   });
 
+  it('resolves a "same" focus-state opacity to the normal opacity', () => {
+    const o = getSeriesOpacities(series({ renderer: 'bar', shapeStyle: { normal: { fillOpacity: 0.5 }, focused: { fillOpacity: 'same' }, defocused: { fillOpacity: 'same' } } }));
+    expect(o).toEqual({ opacity: 0.5, focusedOpacity: 0.5, defocusedOpacity: 0.5 });
+  });
+
   it('returns stroke opacities for the line renderer', () => {
     const o = getSeriesOpacities(series({ renderer: 'line', shapeStyle: { normal: { strokeOpacity: 0.6 }, focused: { strokeOpacity: 0.95 }, defocused: { strokeOpacity: 0.2 } } }));
     expect(o).toEqual({ opacity: 0.6, focusedOpacity: 0.95, defocusedOpacity: 0.2 });
