@@ -7,9 +7,6 @@ import type { AxisThresholdStepConfig, CategoryAxisThresholdStepConfig } from '.
 import type { DataType, Scale } from '../config/core/constants';
 import type { CategoryValue } from '../types/data';
 
-/** The most shapes one thresholdStep rule draws, so a tiny interval on a wide domain cannot flood the plot. */
-export const THRESHOLD_STEP_SHAPE_CAP = 500;
-
 export interface ThresholdStepAxisConfig {
   scale: Scale;
   type: DataType;
@@ -22,24 +19,53 @@ function toThresholdValue(categoryValue: CategoryValue): number | string {
   return categoryValue instanceof Date ? categoryValue.getTime() : categoryValue;
 }
 
+/** The pixel distance between the thresholds a linear rule would draw: the domain share of one kept step, scaled to the axis length. */
+function getSteppedThresholdSpacing(axisConfig: ThresholdStepAxisConfig, domainMin: number, domainMax: number, axisLength: number): number {
+  const step = axisConfig.thresholdStep;
+  const dateUTC = axisConfig.dateUTC ?? true;
+  if (axisConfig.type === TYPE_DATE) {
+    const period = step.period;
+    if (period === undefined || period === NONE) {
+      return Infinity;
+    }
+    // the periods touching the domain, including the one under way at its start
+    const periods = getPeriodIndex(period, dateUTC, new Date(domainMax)) - getPeriodIndex(period, dateUTC, new Date(domainMin)) + 1;
+    return axisLength * step.count / periods;
+  }
+  const { interval } = step;
+  if (interval === NONE || !(interval > 0)) {
+    return Infinity;
+  }
+  return axisLength * interval * step.count / (domainMax - domainMin);
+}
+
+/** Whether a linear rule draws at all: its thresholds must sit at least minSpacing apart, counted before any is built. */
+export function steppedThresholdsFit(axisConfig: ThresholdStepAxisConfig, axisDomain: [number | Date | null, number | Date | null], axisLength: number): boolean {
+  const domainMin = axisDomain[0]?.valueOf();
+  const domainMax = axisDomain[1]?.valueOf();
+  if (axisConfig.scale === SCALE_ORDINAL || typeof domainMin !== 'number' || typeof domainMax !== 'number' || !(domainMax > domainMin)) {
+    return true;
+  }
+  return getSteppedThresholdSpacing(axisConfig, domainMin, domainMax, axisLength) >= axisConfig.thresholdStep.minSpacing;
+}
+
 /**
  * The thresholds a thresholdStep rule expands to: one line or range per selected candidate, sharing the
  * rule's style and fill. The candidates are the ordinal categories (or the first of each period), the period
  * boundaries of a linear date axis, or the multiples of the interval on a number scale. An ordinal threshold
  * names its category the way an explicit entry does, by the category's key, so the keys are given alongside
- * the values the candidates are found from; they are the values themselves without a keyProperty.
+ * the values the candidates are found from; they are the values themselves without a keyProperty. On a linear
+ * axis the rule draws nothing when its thresholds would be closer than minSpacing along an axis of axisLength pixels.
  */
-export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDomain: [number | Date | null, number | Date | null], categoryValues: readonly CategoryValue[] | null, categoryKeys: readonly CategoryValue[] | null = categoryValues): ResolvedThreshold[] {
+export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDomain: [number | Date | null, number | Date | null], categoryValues: readonly CategoryValue[] | null, categoryKeys: readonly CategoryValue[] | null = categoryValues, axisLength = Infinity): ResolvedThreshold[] {
   const step = axisConfig.thresholdStep;
-  if (!step.visible) {
+  if (!step.visible || !steppedThresholdsFit(axisConfig, axisDomain, axisLength)) {
     return [];
   }
   const base = deepMerge(getThresholdEntryDefaults(), { front: step.front, style: step.style, pattern: step.pattern, gradient: step.gradient }) as unknown as ResolvedThreshold;
   const thresholds: ResolvedThreshold[] = [];
   const add = (value: number | string, rangeValue: number | string | null) => {
-    if (thresholds.length < THRESHOLD_STEP_SHAPE_CAP) {
-      thresholds.push({ ...base, value, rangeValue: step.range ? rangeValue : NONE });
-    }
+    thresholds.push({ ...base, value, rangeValue: step.range ? rangeValue : NONE });
   };
   const dateUTC = axisConfig.dateUTC ?? true;
 
@@ -73,7 +99,7 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
     }
     // the period holding the domain start counts too, so a range already under way is drawn clipped
     let boundary = getPeriodStart(step.period, dateUTC, new Date(domainMin));
-    while (boundary.getTime() <= domainMax && thresholds.length < THRESHOLD_STEP_SHAPE_CAP) {
+    while (boundary.getTime() <= domainMax) {
       const nextBoundary = getNextPeriodStart(step.period, dateUTC, boundary);
       if (keep(getPeriodIndex(step.period, dateUTC, boundary))) {
         add(boundary.getTime(), nextBoundary.getTime());
@@ -89,7 +115,7 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
   }
   const firstMultiple = Math.floor(domainMin / interval);
   const lastMultiple = Math.ceil(domainMax / interval);
-  for (let multiple = firstMultiple; multiple < lastMultiple && thresholds.length < THRESHOLD_STEP_SHAPE_CAP; multiple++) {
+  for (let multiple = firstMultiple; multiple < lastMultiple; multiple++) {
     if (keep(multiple)) {
       add(multiple * interval, (multiple + 1) * interval);
     }

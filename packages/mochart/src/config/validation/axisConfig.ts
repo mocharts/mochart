@@ -4,7 +4,7 @@ import { filterConfig, getRawIndices } from '../core/configUtils';
 import { getPropertyMessage, isConfigObject } from './messages';
 import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators';
 
-import { AUTO, NONE, ANCHORS, STYLE_SAME, SIDES, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants';
+import { AUTO, NONE, ANCHORS, STYLE_SAME, SIDES, SCALE_ORDINAL, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants';
 
 import type { ConfigObject, LocatedValidationMessage } from './messages';
 import type { Validator } from '@mochart/movalid';
@@ -52,6 +52,7 @@ export function getThresholdStepValidators(): Record<string, Validator> {
     interval: thresholdStepIntervalValidator,
     count: validators.integerMin(1),
     offset: validators.integerMin(0),
+    minSpacing: validators.numberMin(2),
     range: validators.boolean(),
     front: validators.boolean(),
     style: styleStates(styleMembers),
@@ -233,16 +234,21 @@ function getSectionIds(config: ConfigObject, sectionKeys: string[]): Set<string>
   return ids;
 }
 
-/** The threshold entry rules that cross sections or members: pattern and gradient ids, their exclusivity, and the inside title side. */
-export function validateThresholdEntries(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
-  const patternIds = getSectionIds(config, ['patterns']);
-  const gradientIds = getSectionIds(config, ['linearGradients', 'radialGradients']);
-  // raw is the axis as authored, or null when every member of the axis is its own (the category axis, the implicit axis)
-  const axes: { prefix: string; path: (string | number)[]; axis: unknown; raw: ConfigObject | null }[] = [{ prefix: 'categoryAxis', path: ['categoryAxis'], axis: config['categoryAxis'], raw: null }];
+interface ValidationAxis {
+  prefix: string;
+  path: (string | number)[];
+  axis: unknown;
+  /** The axis as authored, or null when every member of the axis is its own (the category axis, the implicit axis). */
+  raw: ConfigObject | null;
+}
+
+/** The axes a cross-member pass walks: the category axis, then the value axes at their authored indexes, or valueAxisDefaults for the implicit one. */
+function getValidationAxes(config: ConfigObject, configWithoutDefaults: ConfigObject): ValidationAxis[] {
+  const axes: ValidationAxis[] = [{ prefix: 'categoryAxis', path: ['categoryAxis'], axis: config['categoryAxis'], raw: null }];
   const valueAxes = config['valueAxes'];
   if (Array.isArray(valueAxes)) {
     // the built axes drop ignored entries, so an error is reported at the authored index like the other cross-section passes;
-    // with no authored entries the implicit axis is the valueAxisDefaults, so its thresholds are reported there
+    // with no authored entries the implicit axis is the valueAxisDefaults, so its members are reported there
     const rawValueAxes = configWithoutDefaults['valueAxes'];
     const rawIndices = getRawIndices(rawValueAxes);
     if (rawIndices === null ? !filterConfig(rawValueAxes) : rawIndices.length === 0) {
@@ -256,36 +262,80 @@ export function validateThresholdEntries(config: ConfigObject, configWithoutDefa
       });
     }
   }
-  // a member the axis did not author came from valueAxisDefaults: it is reported there, and once, not on every axis that inherits it
-  const authored = (raw: ConfigObject | null, memberPath: (string | number)[]): boolean => {
-    if (raw === null) {
-      return true;
+  return axes;
+}
+
+// a member the axis did not author came from valueAxisDefaults: it is reported there, and once, not on every axis that inherits it
+function isAuthored(raw: ConfigObject | null, memberPath: (string | number)[]): boolean {
+  if (raw === null) {
+    return true;
+  }
+  const [section, member] = memberPath;
+  if (section === 'thresholds') {
+    return Array.isArray(raw[section]);
+  }
+  const group = raw[section as string];
+  return isConfigObject(group) && typeof member === 'string' && group[member] !== undefined;
+}
+
+type AxisReporter = (memberPath: (string | number)[], memberText: string, message: string) => void;
+
+function getAxisReporter({ prefix, path, raw }: ValidationAxis, reportedDefaults: Set<string>, errors: string[], errorDetails: LocatedValidationMessage[]): AxisReporter {
+  return (memberPath, memberText, message) => {
+    if (isAuthored(raw, memberPath)) {
+      errors.push(getPropertyMessage(prefix, memberText, message));
+      errorDetails.push({ path: [...path, ...memberPath], message });
+      return;
     }
-    const [section, member] = memberPath;
-    if (section === 'thresholds') {
-      return Array.isArray(raw['thresholds']);
+    const key = memberText + ' ' + message;
+    if (!reportedDefaults.has(key)) {
+      reportedDefaults.add(key);
+      errors.push(getPropertyMessage('valueAxisDefaults', memberText, message));
+      errorDetails.push({ path: ['valueAxisDefaults', ...memberPath], message });
     }
-    const step = raw['thresholdStep'];
-    return isConfigObject(step) && typeof member === 'string' && step[member] !== undefined;
   };
+}
+
+const stepNeedsPlacementMessage = 'should be left at its default on a linear axis unless period or interval is set';
+
+/** The thresholdStep rules that cross members: what count and offset count on a linear axis. */
+export function validateStepRules(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
   const reportedDefaults = new Set<string>();
-  for (const { prefix, path, axis, raw } of axes) {
+  for (const validationAxis of getValidationAxes(config, configWithoutDefaults)) {
+    const { axis } = validationAxis;
     if (!isConfigObject(axis)) {
       continue;
     }
-    const report = (memberPath: (string | number)[], memberText: string, message: string) => {
-      if (authored(raw, memberPath)) {
-        errors.push(getPropertyMessage(prefix, memberText, message));
-        errorDetails.push({ path: [...path, ...memberPath], message });
-        return;
+    const step = axis['thresholdStep'];
+    // a value axis is always linear; the category axis says so itself
+    if (!isConfigObject(step) || axis['scale'] === SCALE_ORDINAL) {
+      continue;
+    }
+    const report = getAxisReporter(validationAxis, reportedDefaults, errors, errorDetails);
+    const reportStep = (member: string, message: string) => report(['thresholdStep', member], 'thresholdStep.' + member, message);
+    const placed = (step['period'] !== undefined && step['period'] !== NONE) || (step['interval'] !== undefined && step['interval'] !== NONE);
+    if (!placed) {
+      if (step['count'] !== 1) {
+        reportStep('count', stepNeedsPlacementMessage);
       }
-      const key = memberText + ' ' + message;
-      if (!reportedDefaults.has(key)) {
-        reportedDefaults.add(key);
-        errors.push(getPropertyMessage('valueAxisDefaults', memberText, message));
-        errorDetails.push({ path: ['valueAxisDefaults', ...memberPath], message });
+      if (step['offset'] !== 0) {
+        reportStep('offset', stepNeedsPlacementMessage);
       }
-    };
+    }
+  }
+}
+
+/** The threshold entry rules that cross sections or members: pattern and gradient ids, their exclusivity, and the inside title side. */
+export function validateThresholdEntries(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
+  const patternIds = getSectionIds(config, ['patterns']);
+  const gradientIds = getSectionIds(config, ['linearGradients', 'radialGradients']);
+  const reportedDefaults = new Set<string>();
+  for (const validationAxis of getValidationAxes(config, configWithoutDefaults)) {
+    const { axis } = validationAxis;
+    if (!isConfigObject(axis)) {
+      continue;
+    }
+    const report = getAxisReporter(validationAxis, reportedDefaults, errors, errorDetails);
     const step = axis['thresholdStep'];
     if (isConfigObject(step)) {
       const reportStep = (member: string, message: string) => report(['thresholdStep', member], 'thresholdStep.' + member, message);

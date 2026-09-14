@@ -6,7 +6,7 @@ import { getAxisFocusStyle } from '../utils/FocusValue';
 import { styleToAttributes } from '../utils/style';
 import { resolveFontStyle } from '../utils/font';
 import { resolveThresholds } from '../config/defaults/axisConfig';
-import { getSteppedThresholds } from '../data/ThresholdSteps';
+import { getSteppedThresholds, steppedThresholdsFit } from '../data/ThresholdSteps';
 import { getGradientReference, getPatternReference } from '../utils/svgUtils';
 import type { ResolvedThreshold } from '../config/defaults/axisConfig';
 import type { CategoryValue } from '../types/data';
@@ -31,6 +31,8 @@ interface AxisThresholdProps {
   axisThresholdClass: string;
   /** The key the axis's threshold pattern definitions are registered under in patternIdMap. */
   axisKey: string;
+  /** How the axis is named in a console warning. */
+  axisName: string;
   categoryPositions: ThresholdCategoryPositions | null;
   gradientIdMap: Record<string, string>;
   patternIdMap: Record<string, string>;
@@ -47,14 +49,19 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
   lines = this.rendererList(this.root);
 
   /** the last expansion, kept while its inputs hold so the shape renderers' shallow-equal skips see stable thresholds */
-  private stepped: { step: unknown; domainMin: unknown; domainMax: unknown; categoryValues: unknown; thresholds: ResolvedThreshold[] } | null = null;
+  private stepped: { step: unknown; domainMin: unknown; domainMax: unknown; categoryValues: unknown; axisLength: number; thresholds: ResolvedThreshold[] } | null = null;
 
-  private getSteppedThresholds(axisConfig: ThresholdAxisConfig, axisDomain: AxisThresholdProps['axisDomain'], categoryValues: readonly CategoryValue[] | null, categoryKeys: readonly CategoryValue[] | null): ResolvedThreshold[] {
+  private getSteppedThresholds(axisConfig: ThresholdAxisConfig, axisDomain: AxisThresholdProps['axisDomain'], categoryValues: readonly CategoryValue[] | null, categoryKeys: readonly CategoryValue[] | null, axisLength: number): ResolvedThreshold[] {
     const domainMin = axisDomain[0]?.valueOf();
     const domainMax = axisDomain[1]?.valueOf();
     const cached = this.stepped;
-    if (cached === null || cached.step !== axisConfig.thresholdStep || cached.domainMin !== domainMin || cached.domainMax !== domainMax || cached.categoryValues !== categoryValues) {
-      this.stepped = { step: axisConfig.thresholdStep, domainMin, domainMax, categoryValues, thresholds: getSteppedThresholds(axisConfig, axisDomain, categoryValues, categoryKeys) };
+    if (cached === null || cached.step !== axisConfig.thresholdStep || cached.domainMin !== domainMin || cached.domainMax !== domainMax || cached.categoryValues !== categoryValues || cached.axisLength !== axisLength) {
+      const { front, axisName } = this.props;
+      // the pass that would draw the step's shapes warns, so the front and back renderers do not both report it
+      if (front === axisConfig.thresholdStep.front && axisConfig.thresholdStep.visible && !steppedThresholdsFit(axisConfig, axisDomain, axisLength)) {
+        console.warn('mochart ' + axisName + ' thresholdStep draws nothing: its thresholds would be closer together than minSpacing (' + axisConfig.thresholdStep.minSpacing + 'px)');
+      }
+      this.stepped = { step: axisConfig.thresholdStep, domainMin, domainMax, categoryValues, axisLength, thresholds: getSteppedThresholds(axisConfig, axisDomain, categoryValues, categoryKeys, axisLength) };
     }
     return this.stepped!.thresholds;
   }
@@ -71,7 +78,8 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
       const { useSeriesFocus = false } = axisConfig;
       const configured = resolveThresholds(axisConfig.thresholds);
       // the stepped thresholds follow the configured entries, so title layout indexes stay those of the config
-      const thresholds = configured.concat(this.getSteppedThresholds(axisConfig, axisDomain, categoryPositions?.values ?? null, categoryPositions?.keys ?? null));
+      const axisLength = (vertical ? seriesLayoutInfo.height : seriesLayoutInfo.width) * Math.abs(positionRange[1] - positionRange[0]);
+      const thresholds = configured.concat(this.getSteppedThresholds(axisConfig, axisDomain, categoryPositions?.values ?? null, categoryPositions?.keys ?? null, axisLength));
 
       this.setPresent(true);
       this.root.set({ className: axisThresholdClass });

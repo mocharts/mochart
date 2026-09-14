@@ -1,10 +1,10 @@
 // thresholdStep: threshold lines or ranges repeated by rule, from ordinal categories, date periods or
-// value intervals, stepped by count and offset, clipped to the plot, and capped
-import { describe, it, expect, beforeAll } from 'vitest';
+// value intervals, stepped by count and offset, clipped to the plot, and kept minSpacing apart
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
 import { mountContainer, trackHandle, mockBoundingClientRect } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
-import { getSteppedThresholds, THRESHOLD_STEP_SHAPE_CAP } from '../../src/data/ThresholdSteps';
+import { getSteppedThresholds } from '../../src/data/ThresholdSteps';
 import { getStepCandidates } from '../../src/data/Steps';
 import { getThresholdEntryDefaults } from '../../src/config/defaults/axisConfig';
 import { enhanceConfig } from '../../src';
@@ -60,7 +60,7 @@ const stepStyle = { normal: { strokeOpacity: 0, fillOpacity: 0.1 } };
 
 /** A resolved thresholdStep with the given members over the defaults, for the expansion function alone. */
 function step(overrides: Partial<CategoryAxisThresholdStepConfig>): CategoryAxisThresholdStepConfig {
-  return { visible: false, period: null, interval: null, count: 1, offset: 0, range: true, front: false, style: getThresholdEntryDefaults().style as CategoryAxisThresholdStepConfig['style'], pattern: null, gradient: null, ...overrides };
+  return { visible: false, period: null, interval: null, count: 1, offset: 0, minSpacing: 2, range: true, front: false, style: getThresholdEntryDefaults().style as CategoryAxisThresholdStepConfig['style'], pattern: null, gradient: null, ...overrides };
 }
 
 beforeAll(() => {
@@ -155,9 +155,39 @@ describe('threshold steps on linear scales', () => {
     expect(lineCount(lines)).toBe(4);
   });
 
-  it('caps the shapes one rule draws', () => {
-    const stepped = getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1 }) }, [0, 10000], null);
-    expect(stepped).toHaveLength(THRESHOLD_STEP_SHAPE_CAP);
+  it('draws nothing when the thresholds would be closer together than minSpacing, counted before any is built', () => {
+    // 10000 steps of 1 along 800 pixels: 0.08 pixels apart
+    const flood = (minSpacing: number, axisLength: number, count = 1) => getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1, count, minSpacing }) }, [0, 10000], null, null, axisLength);
+    expect(flood(2, 800)).toHaveLength(0);
+    // 800 pixels for 100 steps is 8 pixels apart: at the default it draws, at a larger minSpacing it does not
+    expect(getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1 }) }, [0, 100], null, null, 800)).toHaveLength(100);
+    expect(getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1, minSpacing: 10 }) }, [0, 100], null, null, 800)).toHaveLength(0);
+    // the spacing is between the thresholds that are drawn, so count 2 doubles it
+    expect(getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1, count: 2, minSpacing: 10 }) }, [0, 100], null, null, 800)).toHaveLength(50);
+  });
+
+  it('counts the periods of a date rule the same way', () => {
+    // 365 days along 400 pixels is about 1.1 pixels apart; weeks are about 7.7 apart
+    const domain: [Date, Date] = [new Date('2026-01-01'), new Date('2027-01-01')];
+    expect(getSteppedThresholds({ scale: 'linear', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, period: 'day' }) }, domain, null, null, 400)).toHaveLength(0);
+    expect(getSteppedThresholds({ scale: 'linear', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, period: 'week' }) }, domain, null, null, 400).length).toBeGreaterThan(50);
+    expect(getSteppedThresholds({ scale: 'linear', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, period: 'week', minSpacing: 8 }) }, domain, null, null, 400)).toHaveLength(0);
+  });
+
+  it('warns once naming the axis when a mounted rule is too dense to draw', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const rows = [{ label: 'a', value: 5 }, { label: 'b', value: 33 }];
+      const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal' },
+        valueAxes: [{ min: 0, max: 100000, thresholdStep: { visible: true, interval: 1, style: stepStyle } }] }, rows);
+      expect(rects(container, 'valueAxisThreshold')).toHaveLength(0);
+      const messages = warn.mock.calls.map((call) => String(call[0])).filter((message) => message.includes('thresholdStep'));
+      expect(messages).toHaveLength(1);
+      expect(messages[0]).toMatch(/value axis VA0 thresholdStep draws nothing/);
+    }
+    finally {
+      warn.mockRestore();
+    }
   });
 });
 
@@ -174,5 +204,22 @@ describe('threshold step validation', () => {
     expect(errors).toMatch(/categoryAxis - thresholdStep\.pattern - should be the id of a patterns entry/);
     expect(errors).toMatch(/valueAxes\[0\] - thresholdStep\.interval - should be a number greater than 0/);
     expect(errors).toMatch(/valueAxes\[0\] - thresholdStep\.gradient/);
+  });
+
+  it('rejects a minSpacing below 2 on a linear axis and any but 2 on an ordinal axis', () => {
+    const errors = enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', thresholdStep: { minSpacing: 3 } },
+      valueAxes: [{ thresholdStep: { minSpacing: 1 } }],
+      series: [{ property: 'value' }]
+    }).validation.errors.join('\n');
+    expect(errors).toMatch(/categoryAxis - thresholdStep\.minSpacing - should be equal to 2 when scale is ordinal/);
+    expect(errors).toMatch(/valueAxes\[0\] - thresholdStep\.minSpacing/);
+    expect(enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'x', type: 'number', scale: 'linear', thresholdStep: { minSpacing: 3 } },
+      valueAxes: [{ thresholdStep: { minSpacing: 2.5 } }],
+      series: [{ property: 'value' }]
+    }).validation.errors).toEqual([]);
   });
 });

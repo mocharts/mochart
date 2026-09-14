@@ -86,13 +86,16 @@ export function getThresholdDescriptions(): DescriptionMap {
 
 export const thresholdStepDescription = 'threshold lines or ranges repeated along the axis by rule';
 
+export const stepCountDescription = 'every count-th step is kept (2 keeps every other one)';
+
 /** The thresholdStep members both axes share; each axis adds the members that place its steps. */
 export function getThresholdStepDescriptions(): DescriptionMap {
   return {
     visible: 'whether to draw the stepped thresholds',
     interval: 'the axis value distance the thresholds step by on a number scale (use null for none)',
-    count: 'every count-th step gets a threshold (2 draws every other one)',
+    count: stepCountDescription + ' as a threshold',
     offset: 'the number of steps skipped before the first threshold; on a linear scale it shifts which multiples or periods are kept, counted from 0 or the calendar origin',
+    minSpacing: 'the least distance (in pixels, at least 2) to allow between the thresholds the rule draws on a linear axis; when they would be closer, none are drawn (an ordinal axis accepts only 2)',
     range: 'whether each threshold is a range spanning its step (true) or a line at its start (false)',
     front: 'whether the stepped thresholds are drawn in front of (true) or behind (false) the series shapes',
     style: styleStates('the style of the stepped thresholds: the stroke members draw a line or the edges of a range, the fill members fill a range and are ignored on a line', fillLineMembers),
@@ -100,6 +103,10 @@ export function getThresholdStepDescriptions(): DescriptionMap {
     gradient: 'the unique id of the gradient config filling the stepped ranges (use null for none; an unknown id is a validation error; cannot be combined with pattern)'
   };
 }
+
+export const stepCountOffsetDetails = 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. On a linear axis `count` and `offset` need a `period` or `interval` to count, so setting either without one is a validation error.';
+
+export const thresholdStepMinSpacingDetails = 'The thresholds are counted before any is drawn, from the axis length and the number the rule would draw at its `count`, so a rule that would flood the axis never builds its shapes. When they would sit closer together than `minSpacing`, no stepped thresholds are drawn and a console warning names the axis. An ordinal axis never draws more thresholds than it has categories, so it accepts only the default.';
 
 export const thresholdStyleDetails = 'A line entry uses only the `style` stroke members; the fill members, `pattern` and `gradient` apply to ranges.';
 export const thresholdDomainDetails = 'Thresholds never extend the axis domain: a line outside it is not drawn, a range partly outside is clipped to it, and one wholly outside is not drawn.';

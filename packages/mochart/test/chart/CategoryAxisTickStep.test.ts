@@ -237,14 +237,22 @@ describe('category axis tick step on a linear date axis', () => {
 });
 
 describe('category axis tick step validation', () => {
-  it('rejects the ordinal-only members on a linear axis and a period on a non-date axis', () => {
+  it('rejects the ordinal-only members on a linear axis, a thresholdStep count or offset there without a period or interval, and a period on a non-date axis', () => {
     const { enhanceConfig } = mochart;
     const linear = enhanceConfig({
       version: '1.0.0',
-      categoryAxis: { property: 'label', type: 'number', scale: 'linear', tickStep: { count: 2, offset: 1, includeFirst: true } },
+      categoryAxis: { property: 'label', type: 'number', scale: 'linear', tickStep: { count: 2, offset: 1, includeFirst: true }, thresholdStep: { count: 2, offset: 1 } },
       series: [{ property: 'value' }]
     });
     expect(linear.validation.errors.filter((error) => error.includes('tickStep'))).toHaveLength(3);
+    expect(linear.validation.errors.filter((error) => error.includes('thresholdStep'))).toHaveLength(2);
+    expect(linear.validation.errors.join('\n')).toMatch(/thresholdStep\.count - should be left at its default on a linear axis unless period or interval is set/);
+    const placed = enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', type: 'number', scale: 'linear', thresholdStep: { interval: 10, count: 2, offset: 1 } },
+      series: [{ property: 'value' }]
+    });
+    expect(placed.validation.errors).toEqual([]);
     const stringUnit = enhanceConfig({
       version: '1.0.0',
       categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { period: 'week' } },

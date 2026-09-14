@@ -1840,10 +1840,13 @@ export interface AxisThresholdStepConfig {
    */
   interval: number | null;
   /**
-   * Every count-th step gets a threshold (2 draws every other one).
+   * Every count-th step is kept (2 keeps every other one) as a threshold.
    *
    * With no period every category of an ordinal axis is a step, so `count: 2`
-   * stripes alternate categories.
+   * stripes alternate categories. A number means the same in `tickStep` and
+   * `thresholdStep`: every count-th step. On a linear axis `count` and `offset`
+   * need a `period` or `interval` to count, so setting either without one is a
+   * validation error.
    *
    * @default 1
    */
@@ -1853,9 +1856,28 @@ export interface AxisThresholdStepConfig {
    * it shifts which multiples or periods are kept, counted from 0 or the
    * calendar origin.
    *
+   * A number means the same in `tickStep` and `thresholdStep`: every count-th
+   * step. On a linear axis `count` and `offset` need a `period` or `interval`
+   * to count, so setting either without one is a validation error.
+   *
    * @default 0
    */
   offset: number;
+  /**
+   * The least distance (in pixels, at least 2) to allow between the thresholds
+   * the rule draws on a linear axis; when they would be closer, none are drawn
+   * (an ordinal axis accepts only 2).
+   *
+   * The thresholds are counted before any is drawn, from the axis length and
+   * the number the rule would draw at its `count`, so a rule that would flood
+   * the axis never builds its shapes. When they would sit closer together than
+   * `minSpacing`, no stepped thresholds are drawn and a console warning names
+   * the axis. An ordinal axis never draws more thresholds than it has
+   * categories, so it accepts only the default.
+   *
+   * @default 2
+   */
+  minSpacing: number;
   /**
    * Whether each threshold is a range spanning its step (true) or a line at its
    * start (false).
@@ -2584,14 +2606,15 @@ export interface AxisConfigBase {
    * interval a linear axis draws nothing. A linear scale counts its periods
    * from a fixed calendar origin and its multiples from 0, so the same steps
    * keep their shapes as the data moves the domain. The stepped thresholds draw
-   * after the `thresholds` entries, carry no title, and a rule that would draw
-   * more than 500 shapes stops there.
+   * after the `thresholds` entries and carry no title; on a linear axis
+   * `minSpacing` keeps a rule from flooding the axis.
    *
    * Category axis default: `{ visible: false, interval: null, count: 1, offset:
-   * 0, range: true, front: false, style: { … }, pattern: null, gradient: null,
-   * period: null }`.
+   * 0, minSpacing: 2, range: true, front: false, style: { … }, pattern: null,
+   * gradient: null, period: null }`.
    * Value axis default: `{ visible: false, interval: null, count: 1, offset: 0,
-   * range: true, front: false, style: { … }, pattern: null, gradient: null }`.
+   * minSpacing: 2, range: true, front: false, style: { … }, pattern: null,
+   * gradient: null }`.
    */
   thresholdStep: AxisThresholdStepConfig;
   /**
@@ -2746,10 +2769,10 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * interval a linear axis draws nothing. A linear scale counts its periods
    * from a fixed calendar origin and its multiples from 0, so the same steps
    * keep their shapes as the data moves the domain. The stepped thresholds draw
-   * after the `thresholds` entries, carry no title, and a rule that would draw
-   * more than 500 shapes stops there.
+   * after the `thresholds` entries and carry no title; on a linear axis
+   * `minSpacing` keeps a rule from flooding the axis.
    *
-   * @default { visible: false, interval: null, count: 1, offset: 0, range: true, front: false, style: { … }, pattern: null, gradient: null, period: null }
+   * @default { visible: false, interval: null, count: 1, offset: 0, minSpacing: 2, range: true, front: false, style: { … }, pattern: null, gradient: null, period: null }
    */
   thresholdStep: CategoryAxisThresholdStepConfig;
   /**

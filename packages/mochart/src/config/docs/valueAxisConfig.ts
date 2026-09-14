@@ -1,4 +1,4 @@
-import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, tickLabelDescription, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails } from './axisConfig';
+import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, tickLabelDescription, stepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails } from './axisConfig';
 
 export default function getDescriptions() {
   return {
@@ -51,8 +51,11 @@ export function getDetails() {
     softMax: 'An upper bound that only applies while no data value is above it — the axis covers at least this value, but real data larger than it still expands the domain. Unlike `max`, it never clips data.',
     base: 'The value shapes are measured from: bars and areas grow from it, `missingValueMode: \'base\'` puts missing values on it, and shapes animate from it when series enter or leave. With mixed positive/negative data it separates the two directions. When left unspecified, un-ranged bar and area series use the minimum end of the axis, and other series use `min` when it is set, otherwise the smallest value in the data.',
     thresholdStep: {
-      description: 'The steps are the multiples of `interval` inside the axis domain, anchored at 0, and with no interval nothing is drawn. The bands follow the domain as it changes, draw after the `thresholds` entries, carry no title, and a rule that would draw more than 500 shapes stops there.',
+      description: 'The steps are the multiples of `interval` inside the axis domain, anchored at 0, and with no interval nothing is drawn. The bands follow the domain as it changes, draw after the `thresholds` entries and carry no title; `minSpacing` keeps a rule from flooding the axis.',
       properties: {
+        minSpacing: thresholdStepMinSpacingDetails,
+        count: stepCountOffsetDetails,
+        offset: stepCountOffsetDetails,
         range: '`interval: 10` with `count: 2` bands 0 to 10, 20 to 30 and so on; with `range: false` a line sits at each multiple instead.'
       }
     },

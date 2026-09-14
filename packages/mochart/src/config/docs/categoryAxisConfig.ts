@@ -1,4 +1,4 @@
-import getAxisDescriptions, { getTickLabelDescriptions, tickLabelDescription, getThresholdStepDescriptions, thresholdStepDescription, getThresholdDescriptions, thresholdsDescription, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails } from './axisConfig';
+import getAxisDescriptions, { getTickLabelDescriptions, tickLabelDescription, stepCountOffsetDetails, getThresholdStepDescriptions, thresholdStepDescription, getThresholdDescriptions, thresholdsDescription, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails } from './axisConfig';
 
 export default function getDescriptions() {
   return {
@@ -99,10 +99,12 @@ export function getDetails() {
       }
     },
     thresholdStep: {
-      description: 'The steps follow the scale: the categories or period starts on an ordinal axis, the period boundaries on a linear date axis, the multiples of `interval` on a linear number axis, and with neither a period nor an interval a linear axis draws nothing. A linear scale counts its periods from a fixed calendar origin and its multiples from 0, so the same steps keep their shapes as the data moves the domain. The stepped thresholds draw after the `thresholds` entries, carry no title, and a rule that would draw more than 500 shapes stops there.',
+      description: 'The steps follow the scale: the categories or period starts on an ordinal axis, the period boundaries on a linear date axis, the multiples of `interval` on a linear number axis, and with neither a period nor an interval a linear axis draws nothing. A linear scale counts its periods from a fixed calendar origin and its multiples from 0, so the same steps keep their shapes as the data moves the domain. The stepped thresholds draw after the `thresholds` entries and carry no title; on a linear axis `minSpacing` keeps a rule from flooding the axis.',
       properties: {
+        minSpacing: thresholdStepMinSpacingDetails,
         period: 'Weeks start on Monday and the boundaries follow `dateUTC`. On an ordinal axis the steps are the first category of each period, so `"week"` with `count: 2` bands every other week whatever the holidays; on a linear date axis they are the period boundaries themselves.',
-        count: 'With no period every category of an ordinal axis is a step, so `count: 2` stripes alternate categories.',
+        count: 'With no period every category of an ordinal axis is a step, so `count: 2` stripes alternate categories. ' + stepCountOffsetDetails,
+        offset: stepCountOffsetDetails,
         range: 'On an ordinal axis a range covers whole slots from its step to the category before the next candidate step; on a linear axis it spans from the step to the next one. A line sits at the step itself.'
       }
     },

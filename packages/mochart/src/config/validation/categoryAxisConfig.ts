@@ -63,6 +63,11 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
       interval: validators.conditional([
         { ...linearNumberRule, validator: thresholdStepIntervalValidator },
         { ...defaultRule, validator: validators.equal(NONE) }
+      ], config),
+      minSpacing: validators.conditional([
+        { ...scaleLinearRule, validator: validators.numberMin(2) },
+        { ...scaleOrdinalRule, validator: validators.equal(2) },
+        { ...defaultRule, validator: validators.any() }
       ], config)
     }),
 

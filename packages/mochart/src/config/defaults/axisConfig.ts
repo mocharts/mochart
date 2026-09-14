@@ -41,6 +41,7 @@ export default function getDefaults() {
       interval: NONE,
       count: 1,
       offset: 0,
+      minSpacing: 2,
       range: true,
       front: false,
       style: getThresholdEntryDefaults().style,
