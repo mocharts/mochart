@@ -2431,10 +2431,12 @@ export interface AxisTickLabelConfig {
    * too).
    *
    * A label hidden here is not drawn and takes no room in the layout, and its
-   * ticks are no longer thinned to make the labels fit: their tick marks and
-   * grid lines are limited only by `tickStep.minSpacing`. To keep hidden labels
-   * in the layout, leave them visible and set the opacities of every state of
-   * `textStyle` to 0 instead.
+   * ticks are no longer thinned to make the labels fit: under a `tickStep` rule
+   * the tick marks and grid lines are limited only by `tickStep.minSpacing`,
+   * and without one the axis still picks its tick count from `tickCount`,
+   * `maxTickCount`, `minTickSpacing` and `minTickInterval`. To keep hidden
+   * labels in the layout, leave them visible and set the opacities of every
+   * state of `textStyle` to 0 instead.
    *
    * @default true
    */
