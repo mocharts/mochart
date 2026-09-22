@@ -3258,9 +3258,9 @@ export interface AxisTickStepConfig {
    */
   offset: number;
   /**
-   * The number of even steps each interval is split into on a linear number
-   * scale, with a minor tick at each step between the ticks (use null for
-   * none).
+   * The number of even steps (at least 2) each interval is split into on a
+   * linear number scale, with a minor tick at each step between the ticks (use
+   * null for none).
    *
    * Splits `interval` itself, not the gap between the ticks that `count` keeps,
    * and needs an `interval` to split. `{ interval: 10, count: 2, minorSteps: 5

@@ -165,7 +165,7 @@ export function getTickStepDescriptions(): DescriptionMap {
     interval: 'the axis value distance between the ticks on a linear number scale (use null to keep the ticks the axis picks)',
     count: stepCountDescription + ' ("auto" keeps as many as fit without overlapping)',
     offset: 'the number of steps skipped before the first tick; on a linear scale it shifts which multiples or periods are kept, counted from 0 or the calendar origin',
-    minorSteps: 'the number of even steps each interval is split into on a linear number scale, with a minor tick at each step between the ticks (use null for none)',
+    minorSteps: 'the number of even steps (at least 2) each interval is split into on a linear number scale, with a minor tick at each step between the ticks (use null for none)',
     minSpacing: 'the least distance (in pixels, at least 2) to allow between the ticks the step creates on a linear axis; minor ticks that would be closer are not created, and ticks that would be closer leave the axis to the ticks it picks (an ordinal axis accepts only 2)'
   };
 }
