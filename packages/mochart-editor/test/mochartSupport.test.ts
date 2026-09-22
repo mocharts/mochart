@@ -130,6 +130,13 @@ describe('Mochart support completions', () => {
     expect(doc).toBe('{"chart":{"type":"pie"}}');
   });
 
+  // Regression: the closing quote matched as a typed opening quote, so the popup opened after a finished value
+  // and the Enter meant for a new line accepted a completion that wrote "xy"xy"
+  it('stays closed right after the closing quote of a finished value', async () => {
+    expect(await completionOptions('{"chart":{"type": "xy"|}}')).toEqual([]);
+    expect(await completionOptions('{"chart":{"type": "xy"|, "title": ""}}')).toEqual([]);
+  });
+
   // Regression: a property whose value was missing or still a parse error counted as a key
   // position, so typing an unquoted value offered property names and accepting one corrupted the JSON
   it('offers value completions, not property names, after the colon of an unparsed value', async () => {

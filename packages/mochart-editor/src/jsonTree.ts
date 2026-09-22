@@ -113,6 +113,14 @@ export function afterClosingPropertyQuote(state: EditorState, position: number):
   return text.length >= 2 && text.endsWith('"');
 }
 
+/** True when the cursor sits right after the closing quote of a complete string value. */
+export function afterClosingStringQuote(state: EditorState, position: number): boolean {
+  const node = syntaxTree(state).resolveInner(position, -1);
+  if (node.name !== 'String' || node.to !== position) return false;
+  const text = state.sliceDoc(node.from, node.to);
+  return text.length >= 2 && text.endsWith('"');
+}
+
 export function isPropertyPosition(state: EditorState, position: number, object: SyntaxNode): boolean {
   let node: SyntaxNode | null = syntaxTree(state).resolveInner(position, -1);
   if (node.name === 'PropertyName') return true;

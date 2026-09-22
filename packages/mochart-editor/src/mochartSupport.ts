@@ -5,7 +5,7 @@ import { getDefaults, getVersionString, validateConfigDetailed } from '@mochart/
 import type { Diagnostic } from '@codemirror/lint';
 import model from './mochartConfigModel.generated.js';
 import type { EditorDefaultValue, EditorPropertyModel, EditorSectionModel, EditorValueModel } from './model.js';
-import { afterClosingPropertyQuote, containingObject, existingObjectKeys, inArraySlot, isPropertyPosition, keyRangeForPath, memberIndentation, objectPath, pathAt, pathResolves, propertyNameAt, rangeForPath } from './jsonTree.js';
+import { afterClosingPropertyQuote, afterClosingStringQuote, containingObject, existingObjectKeys, inArraySlot, isPropertyPosition, keyRangeForPath, memberIndentation, objectPath, pathAt, pathResolves, propertyNameAt, rangeForPath } from './jsonTree.js';
 import { defineSupport } from './support.js';
 import type { JsonPath } from './types.js';
 
@@ -273,7 +273,8 @@ function referencedValues(document: unknown, property: EditorPropertyModel, path
 function applyJsonText(text: string) {
   return (view: EditorView, completion: Completion, from: number, to: number) => {
     const start = view.state.sliceDoc(from - 1, from) === '"' ? from - 1 : from;
-    const tail = /^[\w-]*"?/.exec(view.state.sliceDoc(to, to + 80))?.[0] ?? '';
+    // a closing quote is only swallowed when a typed opening quote pairs with it
+    const tail = (start < from ? /^[\w-]*"?/ : /^[\w-]*/).exec(view.state.sliceDoc(to, to + 80))?.[0] ?? '';
     view.dispatch({
       changes: { from: start, to: to + tail.length, insert: text },
       selection: { anchor: start + text.length },
@@ -381,6 +382,8 @@ function completionSource(context: CompletionContext) {
     };
   }
 
+  // the quote just stepped over closes a finished value; accepting a completion here would splice into it
+  if (afterClosingStringQuote(context.state, context.pos)) return null;
   const path = pathAt(context.state, context.pos);
   // an array slot holds an entry, not the array property's own value, so its enum does not apply there
   if (inArraySlot(context.state, context.pos) || typeof path[path.length - 1] === 'number') return null;
