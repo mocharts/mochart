@@ -1,6 +1,6 @@
 import { deepMerge } from '../config/core/deepMerge';
 import { getThresholdEntryDefaults } from '../config/defaults/axisConfig';
-import { getNextPeriodStart, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps';
+import { getFirstKeptStep, getNextPeriodStart, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps';
 import { NONE, SCALE_ORDINAL, TYPE_DATE } from '../config/core/constants';
 import type { ResolvedThreshold } from '../config/defaults/axisConfig';
 import type { AxisThresholdStepConfig, CategoryAxisThresholdStepConfig } from '../types/config';
@@ -116,10 +116,8 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
   const firstMultiple = Math.floor(domainMin / interval);
   // a line sits at each multiple up to the domain max; a range starting at the top multiple would lie wholly outside the domain
   const lastMultiple = step.range ? Math.ceil(domainMax / interval) - 1 : Math.floor(domainMax / interval + 1e-9);
-  for (let multiple = firstMultiple; multiple <= lastMultiple; multiple++) {
-    if (keep(multiple)) {
-      add(multiple * interval, (multiple + 1) * interval);
-    }
+  for (let multiple = getFirstKeptStep(firstMultiple, step.count, step.offset); multiple <= lastMultiple; multiple += step.count) {
+    add(multiple * interval, (multiple + 1) * interval);
   }
   return thresholds;
 }

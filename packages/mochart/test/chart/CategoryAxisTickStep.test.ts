@@ -335,6 +335,13 @@ describe('tick step on linear axes', () => {
     chart.destroy();
   });
 
+  // Regression: the loop visited every multiple of the interval, so a tiny interval with a large count walked tens of millions of steps
+  it('walks only the multiples count keeps, so a tiny interval with a large count costs no more than the ticks drawn', () => {
+    const { container, chart } = renderChart({ type: 'string', scale: 'ordinal' }, letterRows, 1200, { min: 0, max: 90, tickStep: { interval: 1e-6, count: 1e7 } }, 800);
+    expect(getKindLabels(container, valueTickLabels, false)).toEqual(['0', '10', '20', '30', '40', '50', '60', '70', '80', '90']);
+    chart.destroy();
+  });
+
   it('hides a minor period tick closer to a period tick than a whole minor period', () => {
     const rows = [{ label: '2026-06-01', value: 1 }, { label: '2026-08-31', value: 2 }];
     const { container, chart } = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%b', minorFormat: '%b %d' }, tickStep: { period: 'month', minorPeriod: 'week' } }, rows, 2400);

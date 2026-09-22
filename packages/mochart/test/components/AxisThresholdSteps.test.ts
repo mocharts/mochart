@@ -142,6 +142,15 @@ describe('threshold steps on linear scales', () => {
     expect(multiples([15, 50], 1)).toEqual([[10, 20], [30, 40]]);
   });
 
+  // Regression: the loop visited every multiple of the interval and tested each against count, so a tiny interval
+  // with a large count passed the spacing guard (the kept thresholds are far apart) yet walked tens of millions of steps
+  it('walks only the multiples count keeps, so a tiny interval with a large count costs no more than the thresholds drawn', () => {
+    const values = getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1e-7, count: 1e7, offset: 3, range: false }) }, [0, 100], null, null, 800)
+      .map((threshold) => threshold.value);
+    expect(values).toHaveLength(100);
+    expect(values.slice(0, 3).map((value) => Number(Number(value).toFixed(7)))).toEqual([0.0000003, 1.0000003, 2.0000003]);
+  });
+
   it('bands multiples of the interval on a value axis and follows a domain that lets a band be clipped', () => {
     const rows = [{ label: 'a', value: 5 }, { label: 'b', value: 33 }];
     const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal' },

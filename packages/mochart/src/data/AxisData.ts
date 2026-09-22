@@ -8,7 +8,7 @@ import { getCategoryValueKey } from './CategoryValue';
 import { areArraysAndEqual, arrayToMap, idAccessor } from '../utils/utils';
 import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE, STEP_PERIOD_DAY, STEP_PERIOD_WEEK, STEP_PERIOD_MONTH } from '../config/core/constants';
 import { getMinorTickLabel } from '../config/core/minorConfig';
-import { getPeriodBoundaries, getPeriodIndex, getStepCandidates } from './Steps';
+import { getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getStepCandidates } from './Steps';
 import type { Auto, DataType, StepPeriod } from '../config/core/constants';
 import type { MinorTickLabel } from '../config/core/minorConfig';
 import type { AxisConfigBase, AxisTickStepConfig, CategoryAxisConfig, CategoryAxisTick, CategoryAxisTickStepConfig, PlotConfig, ValueAxisTick } from '../types/config';
@@ -373,10 +373,9 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
     return noStepTicks;
   }
   const majors: AxisValue[] = [];
-  for (let index = Math.ceil(domainMin / interval - 1e-9); index <= Math.floor(domainMax / interval + 1e-9); index++) {
-    if (keep(index)) {
-      majors.push(multiple(index, interval));
-    }
+  const lastIndex = Math.floor(domainMax / interval + 1e-9);
+  for (let index = getFirstKeptStep(Math.ceil(domainMin / interval - 1e-9), step.count, step.offset); index <= lastIndex; index += countN) {
+    majors.push(multiple(index, interval));
   }
   const minors: LinearStepTicks['minors'] = [];
   if (minorSteps !== NONE) {

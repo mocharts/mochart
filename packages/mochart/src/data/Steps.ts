@@ -82,6 +82,18 @@ export function getPeriodBoundaries(period: StepPeriod, dateUTC: boolean, [domai
  * axis the first category of each period, and `selected` steps through them by count and offset, with
  * includeFirst adding the first category back.
  */
+/**
+ * The first step index at or after `first` that a linear rule keeps: every count-th index counted from the fixed
+ * origin, phased by offset. Walking from it in steps of count visits only the kept indexes, so the work is the
+ * number of steps drawn, not the number of multiples in the domain.
+ */
+export function getFirstKeptStep(first: number, count: number | Auto, offset: number): number {
+  if (count === AUTO) {
+    return first;
+  }
+  return first + (((offset - first) % count) + count) % count;
+}
+
 export function getStepCandidates(rule: StepRule, categoryValues: readonly CategoryValue[], type: DataType, dateUTC: boolean): { candidates: number[]; selected: number[] } {
   const { period, count, offset, includeFirst = false } = rule;
   let candidates: number[];
