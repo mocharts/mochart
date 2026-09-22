@@ -178,7 +178,9 @@ function nodeForPath(state: EditorState, path: JsonPath): { node: SyntaxNode | n
       if (!property) return { node, resolved: false };
       node = propertyValue(property) ?? property;
     }
-    // an index against an object stays put: core reads a single-object section as its entry 0
+    // a segment of the wrong kind for its node does not apply, except an index against an object, which stays
+    // put: core reads a single-object section as its entry 0
+    else if (typeof segment === 'string' || node.name !== 'Object') return { node, resolved: false };
   }
   return { node, resolved: true };
 }

@@ -1,7 +1,7 @@
 import { json } from '@codemirror/lang-json';
 import { EditorState } from '@codemirror/state';
 import { describe, expect, it } from 'vitest';
-import { pathAt, rangeForPath } from '../src/jsonTree';
+import { pathAt, pathResolves, rangeForPath } from '../src/jsonTree';
 
 const source = `{
   "series": [
@@ -37,5 +37,16 @@ describe('JSON tree paths', () => {
     const single = EditorState.create({ doc: '{"series": {"axis": "money"}}', extensions: [json()] });
     const range = rangeForPath(single, ['series', 0, 'axis']);
     expect(single.doc.sliceString(range.from, range.to)).toBe('"money"');
+    expect(pathResolves(single, ['series', 0, 'axis'])).toBe(true);
+  });
+
+  // Regression: a segment of the wrong kind for its node kept that node and reported the path resolved, so a
+  // property absent because its container is a scalar lost its required label and was ranged on the scalar
+  it('reports a segment that does not apply to its node as unresolved', () => {
+    const scalar = EditorState.create({ doc: '{"chart": 5, "series": [[1]]}', extensions: [json()] });
+    expect(pathResolves(scalar, ['chart', 'type'])).toBe(false);
+    expect(pathResolves(scalar, ['chart', 0])).toBe(false);
+    expect(pathResolves(scalar, ['series', 0, 0])).toBe(true);
+    expect(pathResolves(scalar, ['series', 0, 0, 'x'])).toBe(false);
   });
 });
