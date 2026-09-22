@@ -29,6 +29,7 @@ interface AxisProps {
   minorTickSpacing?: number | null;
   titleClipPathUniqueId: string;
   tickLabelClipPathUniqueId?: string;
+  minorTickLabelClipPathUniqueId?: string;
   onPointerEnter?: ((event: Event) => void) | null;
   onPointerLeave?: (() => void) | null;
   onClick?: (() => void) | null;
@@ -55,7 +56,7 @@ export default class Axis extends Renderer<AxisProps> {
 
   sync() {
     const { front, axisConfig, axisLayoutInfo, plotLayoutInfo, axisClass, axisTicks, axisFocusPercentage, seriesFocusPercentage,
-      focusPercentages, tickSpacing, minorTickSpacing, titleClipPathUniqueId, tickLabelClipPathUniqueId,
+      focusPercentages, tickSpacing, minorTickSpacing, titleClipPathUniqueId, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId,
       onPointerEnter, onPointerLeave, onClick, accessibility, accessibleLabel, chartFont } = this.props;
     if (axisConfig.visible) {
       const { backgroundFront } = axisConfig;
@@ -111,7 +112,7 @@ export default class Axis extends Renderer<AxisProps> {
         this.tickLabelsSlot.set(AxisTickLabels, { front, axisLayoutInfo, plotLayoutInfo,
           axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null,
           axisConfig, axisTicks,
-          tickSpacing: tickSpacing ?? null, minorTickSpacing: minorTickSpacing ?? null, tickLabelClipPathUniqueId, accessibility, chartFont });
+          tickSpacing: tickSpacing ?? null, minorTickSpacing: minorTickSpacing ?? null, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, accessibility, chartFont });
       }
 
       if (front !== titleFront) {

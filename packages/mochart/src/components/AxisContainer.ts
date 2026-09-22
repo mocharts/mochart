@@ -23,6 +23,7 @@ interface AxisContainerProps {
   axisData: AxisData & { category: CategoryAxisData; value: ValueAxisData };
   categoryAxisTitleClipPathUniqueId: string;
   categoryAxisTickLabelClipPathUniqueId: string;
+  categoryAxisMinorTickLabelClipPathUniqueId: string;
   valueAxisTitleClipPathUniqueIds: Record<string, string>;
   onFocus: (focus: { valueAxisId: string | null }) => void;
 }
@@ -39,7 +40,7 @@ export default class AxisContainer extends Renderer<AxisContainerProps> {
   sync() {
     const { front, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos, plotLayoutInfo,
       seriesData, focusData, axisData, categoryAxisTitleClipPathUniqueId,
-      categoryAxisTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, onFocus } = this.props;
+      categoryAxisTickLabelClipPathUniqueId, categoryAxisMinorTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, onFocus } = this.props;
     const { categoryFocusDomainPercentages = [], valueAxisComputedFocusDomainPercentages = {} } = focusData;
     const { category: categoryAxisData, value: valueAxisData } = axisData;
 
@@ -52,6 +53,7 @@ export default class AxisContainer extends Renderer<AxisContainerProps> {
       focusPercentages: categoryFocusDomainPercentages, categoryAxisData,
       titleClipPathUniqueId: categoryAxisTitleClipPathUniqueId,
       tickLabelClipPathUniqueId: categoryAxisTickLabelClipPathUniqueId,
+      minorTickLabelClipPathUniqueId: categoryAxisMinorTickLabelClipPathUniqueId,
       plotLayoutInfo, accessibility, chartFont: mochartConfig.chart.font,
       accessibleLabel: getAxisAccessibleLabel(categoryAxisConfig.title.text, accessibilityConfig.categoryAxisLabel) });
 

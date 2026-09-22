@@ -32,6 +32,7 @@ interface PlotFrontBackProps {
   axisData: CompleteAxisData;
   categoryAxisTitleClipPathUniqueId: string;
   categoryAxisTickLabelClipPathUniqueId: string;
+  categoryAxisMinorTickLabelClipPathUniqueId: string;
   valueAxisTitleClipPathUniqueIds: Record<string, string>;
   seriesClipPathUniqueId: string;
   clippedEdges: ClippedEdges;
@@ -66,7 +67,7 @@ class PlotFrontBack extends Renderer<PlotFrontBackProps> {
   sync() {
     const { front, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos, seriesLayoutInfo, plotLayoutInfo,
       chartData, focusData, axisData, categoryAxisTitleClipPathUniqueId,
-      categoryAxisTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, onFocus } = this.props;
+      categoryAxisTickLabelClipPathUniqueId, categoryAxisMinorTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, onFocus } = this.props;
     const { seriesData } = chartData;
 
     // not aria-hidden: the axis tick labels and titles under here are text a screen reader should read
@@ -80,7 +81,7 @@ class PlotFrontBack extends Renderer<PlotFrontBackProps> {
 
     this.axisContainer.set(AxisContainer, { front, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos,
       plotLayoutInfo, seriesData, focusData, axisData,
-      categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId,
+      categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId, categoryAxisMinorTickLabelClipPathUniqueId,
       valueAxisTitleClipPathUniqueIds, onFocus });
 
     const { gradientIdMap, patternIdMap } = this.props;
@@ -106,7 +107,7 @@ export default class Plot extends Renderer<PlotProps> {
   sync() {
     const { mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos, seriesLayoutInfo, plotLayoutInfo,
       chartData, focusData, axisData, stackData, categoryValueData, gradientIdMap, patternIdMap, categoryAxisTitleClipPathUniqueId,
-      categoryAxisTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, tooltipClipPathUniqueId, tooltipClipPresent, seriesClipPathUniqueId, clippedEdges, clipIndicatorPatternUniqueId, onFocus, onSeriesShapeClick, shapeRef, a11yProps } = this.props;
+      categoryAxisTickLabelClipPathUniqueId, categoryAxisMinorTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, tooltipClipPathUniqueId, tooltipClipPresent, seriesClipPathUniqueId, clippedEdges, clipIndicatorPatternUniqueId, onFocus, onSeriesShapeClick, shapeRef, a11yProps } = this.props;
     const { plot: plotConfig } = mochartConfig;
     const { categoryFocusDomainPercentages = [], seriesFocusDomainPercentages = [] } = focusData;
     const { value: valueAxisData } = axisData;
@@ -123,6 +124,7 @@ export default class Plot extends Renderer<PlotProps> {
       axisData,
       categoryAxisTitleClipPathUniqueId,
       categoryAxisTickLabelClipPathUniqueId,
+      categoryAxisMinorTickLabelClipPathUniqueId,
       valueAxisTitleClipPathUniqueIds,
       gradientIdMap,
       patternIdMap,

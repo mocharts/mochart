@@ -22,6 +22,7 @@ interface PlotEmptyProps {
   valueAxisSeriesCounts: Record<string, number>;
   categoryAxisTitleClipPathUniqueId: string;
   categoryAxisTickLabelClipPathUniqueId: string;
+  categoryAxisMinorTickLabelClipPathUniqueId: string;
   valueAxisTitleClipPathUniqueIds: Record<string, string>;
 }
 
@@ -39,7 +40,7 @@ export default class PlotEmpty extends Renderer<PlotEmptyProps> {
 
   sync() {
     const { mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos, plotLayoutInfo, valueAxisSeriesCounts,
-      categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds } = this.props;
+      categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId, categoryAxisMinorTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds } = this.props;
     const { categoryAxis: categoryAxisConfig, valueAxes: valueAxisConfigs, accessibility: accessibilityConfig } = mochartConfig;
 
     const commonProps = {
@@ -55,7 +56,7 @@ export default class PlotEmpty extends Renderer<PlotEmptyProps> {
 
     const syncAxes = (front: boolean, categoryAxis: Slot, valueAxes: RendererList) => {
       categoryAxis.set(Axis, { front, axisClass: mochartCssClasses['categoryAxis'], axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
-        titleClipPathUniqueId: categoryAxisTitleClipPathUniqueId, tickLabelClipPathUniqueId: categoryAxisTickLabelClipPathUniqueId,
+        titleClipPathUniqueId: categoryAxisTitleClipPathUniqueId, tickLabelClipPathUniqueId: categoryAxisTickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId: categoryAxisMinorTickLabelClipPathUniqueId,
         accessibleLabel: getAxisAccessibleLabel(categoryAxisConfig.title.text, accessibilityConfig.categoryAxisLabel),
         ...commonProps });
 

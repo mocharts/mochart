@@ -89,6 +89,7 @@ interface ChartUniqueIds {
   legendClipPathUniqueId: string;
   categoryAxisTitleClipPathUniqueId: string;
   categoryAxisTickLabelClipPathUniqueId: string;
+  categoryAxisMinorTickLabelClipPathUniqueId: string;
   valueAxisTitleClipPathUniqueIds: Record<string, string>;
   seriesClipPathUniqueId: string;
   clipIndicatorPatternUniqueId: string;
@@ -131,6 +132,7 @@ const titleClipPathIdPrefix = 'title__clippath__';
 const legendClipPathIdPrefix = 'legend__clippath__';
 const categoryAxisTitleClipPathIdPrefix = 'categoryaxistitle__clippath__';
 const categoryAxisTickLabelClipPathIdPrefix = 'categoryaxisticklabel__clippath__';
+const categoryAxisMinorTickLabelClipPathIdPrefix = 'categoryaxisminorticklabel__clippath__';
 const valueAxisTitleClipPathIdPrefix = 'valueaxistitle__clippath__';
 const seriesClipPathIdPrefix = 'series__clippath__';
 const clipIndicatorPatternIdPrefix = 'clipindicator__pattern__';
@@ -527,6 +529,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     const legendClipPathUniqueId = legendClipPathIdPrefix + uniqueId;
     const categoryAxisTitleClipPathUniqueId = categoryAxisTitleClipPathIdPrefix + uniqueId;
     const categoryAxisTickLabelClipPathUniqueId = categoryAxisTickLabelClipPathIdPrefix + uniqueId;
+    const categoryAxisMinorTickLabelClipPathUniqueId = categoryAxisMinorTickLabelClipPathIdPrefix + uniqueId;
     const seriesClipPathUniqueId = seriesClipPathIdPrefix + uniqueId;
     const clipIndicatorPatternUniqueId = clipIndicatorPatternIdPrefix + uniqueId;
     const valueAxisTitleClipPathUniqueIds: Record<string, string> = Object.create(null);
@@ -554,7 +557,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     const gradientIdMap = { ...linearGradientIdMap, ...radialGradientIdMap };
     const uniqueIds = {
       svgUniqueId, tooltipClipPathUniqueId, titleClipPathUniqueId, legendClipPathUniqueId,
-      categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds,
+      categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId, categoryAxisMinorTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds,
       seriesClipPathUniqueId, clipIndicatorPatternUniqueId,
       seriesColorGradientUniqueIds, gradientIdMap, linearGradientIdMap, radialGradientIdMap, patternIdMap
     };
@@ -1448,7 +1451,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
     const {
       svgUniqueId, tooltipClipPathUniqueId, titleClipPathUniqueId, legendClipPathUniqueId, categoryAxisTitleClipPathUniqueId,
-      categoryAxisTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, seriesClipPathUniqueId,
+      categoryAxisTickLabelClipPathUniqueId, categoryAxisMinorTickLabelClipPathUniqueId, valueAxisTitleClipPathUniqueIds, seriesClipPathUniqueId,
       clipIndicatorPatternUniqueId, gradientIdMap, patternIdMap
     } = uniqueIds!;
     const {
@@ -1468,6 +1471,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     const tooltipShown = hasChartData && tooltipBounds !== null && tooltipCategoryIndex >= 0;
     const filteredFlags = hasChartData ? chartData.seriesData.filteredFlags : emptyFilteredFlags;
     let maxTickLabelLength = seriesLayoutInfo.width;
+    let maxMinorTickLabelLength = seriesLayoutInfo.width;
 
     let clips: RendererItem[] = [
       { key: 'title-clip', ctor: TitleClip, props: { titleConfig: mochartConfig.title, chartContentLayoutInfo,
@@ -1478,6 +1482,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
     if (hasChartDataContent) {
       maxTickLabelLength = axisData!.category!.maxTickLabelLength;
+      maxMinorTickLabelLength = axisData!.category!.maxMinorTickLabelLength;
 
       // TooltipClip unmounts its node when the tooltip is not visible, so anything referencing the clip has to know
       clips.push({ key: 'tooltip-clip', ctor: TooltipClip, props: { mochartConfig, tooltipVisible, tooltipShown,
@@ -1494,9 +1499,13 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     clips.push(
       { key: 'category-axis-title-clip', ctor: AxisTitleClip, props: { axisConfig: mochartConfig.categoryAxis, chartContentLayoutInfo,
         axisLayoutInfo: categoryAxisLayoutInfo, axisTitleClipPathUniqueId: categoryAxisTitleClipPathUniqueId } },
-      { key: 'category-axis-tick-label-clip', ctor: CategoryAxisTickLabelClip, props: { mochartConfig, maxTickLabelLength,
+      { key: 'category-axis-tick-label-clip', ctor: CategoryAxisTickLabelClip, props: { mochartConfig, minor: false, maxTickLabelLength,
         plotLayoutInfo, categoryAxisLayoutInfo,
-        categoryAxisTickLabelClipPathUniqueId } }
+        categoryAxisTickLabelClipPathUniqueId } },
+      // the minor labels' own clip: their rotation, anchor and truncation room are their own
+      { key: 'category-axis-minor-tick-label-clip', ctor: CategoryAxisTickLabelClip, props: { mochartConfig, minor: true, maxTickLabelLength: maxMinorTickLabelLength,
+        plotLayoutInfo, categoryAxisLayoutInfo,
+        categoryAxisTickLabelClipPathUniqueId: categoryAxisMinorTickLabelClipPathUniqueId } }
     );
 
     clips = clips.concat(mochartConfig.valueAxes.map((valueAxisConfig: EnhancedValueAxisConfig) => ({
@@ -1562,6 +1571,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
           a11yProps: plotA11yProps,
           categoryAxisTitleClipPathUniqueId,
           categoryAxisTickLabelClipPathUniqueId,
+          categoryAxisMinorTickLabelClipPathUniqueId,
           seriesClipPathUniqueId,
           clippedEdges,
           clipIndicatorPatternUniqueId,
@@ -1611,6 +1621,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         valueAxisSeriesCounts: hasChartData ? chartData.seriesData.axisSeriesCounts : emptyAxisSeriesCounts,
         categoryAxisTitleClipPathUniqueId,
         categoryAxisTickLabelClipPathUniqueId,
+        categoryAxisMinorTickLabelClipPathUniqueId,
         valueAxisTitleClipPathUniqueIds });
 
       const { x, y, width, height } = seriesLayoutInfo;

@@ -43,6 +43,7 @@ interface AxisTickLabelsProps {
   tickSpacing: number | null;
   minorTickSpacing: number | null;
   tickLabelClipPathUniqueId?: string;
+  minorTickLabelClipPathUniqueId?: string;
   axisFocusPercentage: FocusPercentage;
   seriesFocusPercentage: FocusPercentage;
   accessibility: boolean;
@@ -214,7 +215,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
   }
 
   sync() {
-    const { axisConfig, axisLayoutInfo, tickLabelClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, accessibility, chartFont } = this.props;
+    const { axisConfig, axisLayoutInfo, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, accessibility, chartFont } = this.props;
     const { truncationData } = this.state;
     const { majorPass, minorPass, minorTickLabel } = getPasses(this.props);
     const { vertical, tickLabelAnchor, tickTextX, tickTextY, minorTickLabelAnchor, minorTickTextX, minorTickTextY } = axisLayoutInfo;
@@ -240,7 +241,9 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
     const useSeriesFocus = axisConfig.useSeriesFocus ?? false;
     const tickLabels = this.getTruncatedLabels(truncationEnabled, truncationData);
 
-    const clipPath = truncationEnabled && tickLabelClipPathUniqueId ? getClipPathReference(tickLabelClipPathUniqueId) : null;
+    // each kind clips to its own rect: the other kind's may not exist, and its rotation and anchor differ
+    const clipPath = majorTruncation?.enabled === true && tickLabelClipPathUniqueId ? getClipPathReference(tickLabelClipPathUniqueId) : null;
+    const minorClipPath = minorTruncation?.enabled === true && minorTickLabelClipPathUniqueId ? getClipPathReference(minorTickLabelClipPathUniqueId) : null;
 
     // destructured rather than spread whole: this attribute order is what the golden snapshots record
     const { stroke, strokeOpacity, strokeWidth, fill, fillOpacity } = styleToAttributes(
@@ -272,7 +275,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
           tickX = tick.position;
         }
         handle.root.set({ className: minor ? mochartCssClasses['axisTickLabel'] + index + ' ' + mochartCssClasses['axisMinorTickLabel'] : mochartCssClasses['axisTickLabel'] + index,
-          transform: translate(tickX + (minor ? minorTickTextX : tickTextX), tickY + (minor ? minorTickTextY : tickTextY)), clipPath });
+          transform: translate(tickX + (minor ? minorTickTextX : tickTextX), tickY + (minor ? minorTickTextY : tickTextY)), clipPath: minor ? minorClipPath : clipPath });
         // an overlap-suppressed label is not read, and an ellipsised one is read in full
         const fullLabel = this.tickLabelStrings[i];
         const attributes = minor ? minorAttributes : { stroke, strokeOpacity, fill, fillOpacity, strokeWidth };
