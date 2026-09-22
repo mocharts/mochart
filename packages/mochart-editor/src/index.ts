@@ -11,6 +11,8 @@ export type {
   JsonPath
 } from './types.js';
 export type {
+  EditorConditionalDefault,
+  EditorDefaultValue,
   EditorPropertyModel,
   EditorReferenceModel,
   EditorSectionModel,
