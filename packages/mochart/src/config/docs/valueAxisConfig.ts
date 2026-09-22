@@ -81,7 +81,7 @@ export function getDetails() {
       properties: getTickLabelDetails()
     },
     thresholdStep: {
-      description: 'The steps are the multiples of `interval` inside the axis domain, anchored at 0, and with no interval nothing is drawn. The ranges follow the domain as it changes, draw after the `thresholds` entries and carry no title; `minSpacing` keeps a rule from flooding the axis.',
+      description: 'The steps are the multiples of `interval`, anchored at 0, from the last one at or below the axis minimum, so a range already under way at the domain edge is drawn clipped rather than left out; with no interval nothing is drawn. The ranges follow the domain as it changes, draw after the `thresholds` entries and carry no title; `minSpacing` keeps a rule from flooding the axis.',
       properties: {
         minSpacing: thresholdStepMinSpacingDetails,
         count: valueStepCountOffsetDetails,
