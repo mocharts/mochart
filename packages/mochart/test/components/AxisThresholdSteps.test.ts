@@ -153,6 +153,10 @@ describe('threshold steps on linear scales', () => {
     const lines = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal' },
       valueAxes: [{ min: 0, max: 35, thresholdStep: { visible: true, interval: 10, range: false } }] }, rows);
     expect(lineCount(lines)).toBe(4);
+    // a line sits at the multiple on the domain max too, where a range would start outside the domain: 0, 10, 20, 30
+    const topLines = (range: boolean) => getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 10, range }) }, [0, 30], null).map((threshold) => threshold.value);
+    expect(topLines(false)).toEqual([0, 10, 20, 30]);
+    expect(topLines(true)).toEqual([0, 10, 20]);
   });
 
   it('draws nothing when the thresholds would be closer together than minSpacing, counted before any is built', () => {

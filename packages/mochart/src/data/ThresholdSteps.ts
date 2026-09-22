@@ -114,8 +114,9 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
     return thresholds;
   }
   const firstMultiple = Math.floor(domainMin / interval);
-  const lastMultiple = Math.ceil(domainMax / interval);
-  for (let multiple = firstMultiple; multiple < lastMultiple; multiple++) {
+  // a line sits at each multiple up to the domain max; a range starting at the top multiple would lie wholly outside the domain
+  const lastMultiple = step.range ? Math.ceil(domainMax / interval) - 1 : Math.floor(domainMax / interval + 1e-9);
+  for (let multiple = firstMultiple; multiple <= lastMultiple; multiple++) {
     if (keep(multiple)) {
       add(multiple * interval, (multiple + 1) * interval);
     }
