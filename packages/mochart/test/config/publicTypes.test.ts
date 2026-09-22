@@ -7,7 +7,7 @@ import type {
   Auto, Align, VerticalAlign, Anchor, Position, MissingValueMode, AxisSide, ThresholdTitleSide,
   ChartType, PieLabelType, PieTooltipValueType, Scale, DataType, RendererType, CurveType,
   PatternType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, DomainChange,
-  FontWeight, FontStyle,
+  FontWeight, FontStyle, Major,
   ChartEventPayload, ChartFocus, ChartSeriesFilter, ChartSliceClickPayload, ChartSeriesClickPayload,
   ChartCallbacks, ChartFactories, ChartFactoryContext, ChartFactoryContent, ChartContentFactory,
   BaseChartProps, ManagedChartProps, DefaultChartProps, ChartHandle,
@@ -28,7 +28,7 @@ interface EveryUnion {
   patternType: PatternType;
   capType: CapType; labelPosition: LabelPosition; colorMode: ColorMode;
   colorInterpolation: ColorInterpolation; markerShape: MarkerShape; markerSizeScale: MarkerSizeScale;
-  stepPeriod: StepPeriod; domainChange: DomainChange; fontWeight: FontWeight; fontStyle: FontStyle;
+  stepPeriod: StepPeriod; domainChange: DomainChange; fontWeight: FontWeight; fontStyle: FontStyle; major: Major;
 }
 
 describe('public config type surface', () => {
@@ -41,9 +41,9 @@ describe('public config type surface', () => {
       patternType: 'crosshatch',
       capType: 'round', labelPosition: 'inside', colorMode: 'seriesIndex',
       colorInterpolation: 'hcl', markerShape: 'star', markerSizeScale: 'sqrt', stepPeriod: 'week', domainChange: 'staged',
-      fontWeight: 'bold', fontStyle: 'italic'
+      fontWeight: 'bold', fontStyle: 'italic', major: 'major'
     };
-    expect(Object.keys(values)).toHaveLength(26);
+    expect(Object.keys(values)).toHaveLength(27);
     expect(describeSeries(values.rendererType, values.curveType, values.markerShape)).toBe('bar/stepAfter/star');
   });
 
