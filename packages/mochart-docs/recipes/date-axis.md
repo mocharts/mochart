@@ -43,7 +43,7 @@ import * as tickStep from '../examples/tickStep'
   minimum end of the axis. Swap in `line` or `bar` per series via
   [`renderer`](/reference/series#series.renderer).
 
-## Labelling chosen dates
+## Labeling chosen dates
 
 A daily ordinal axis has more categories than fit as labels, and the
 generated ticks are thinned by skipping every Nth category, which lands on

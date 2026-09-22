@@ -54,7 +54,7 @@ import * as candlestickVolume from '../examples/candlestickVolume'
   sets them at `0.85em` of the page font and `minorTextStyle` fades them to
   0.6 opacity (0.3 when defocused). Or list the dates to label in
   [`ticks`](/reference/categoryAxis#categoryAxis.ticks).
-  See [labelling chosen dates](/recipes/date-axis#labelling-chosen-dates).
+  See [labeling chosen dates](/recipes/date-axis#labeling-chosen-dates).
 - The default direction colors are teal-green/red rather than a pure
   green/red: green↔red is the classic red-green-blindness collision, and
   shifting the green toward teal keeps the pair distinguishable on light and

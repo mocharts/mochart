@@ -374,7 +374,7 @@ const liveRegionStyle = {
 // long enough to swallow a key repeat, short enough that a deliberate step still speaks promptly
 const announceSettleDelay = 150;
 
-/** Every threshold entry or thresholdStep filled by a pattern, with the patternIdMap key its definition lives under and the fill colour the pattern's series colour resolves to. */
+/** Every threshold entry or thresholdStep filled by a pattern, with the patternIdMap key its definition lives under and the fill color the pattern's series color resolves to. */
 function getThresholdPatterns(mochartConfig: EnhancedMochartConfig): { key: string; pattern: string; fillColor: string | null }[] {
   const thresholdPatterns: { key: string; pattern: string; fillColor: string | null }[] = [];
   const collect = (axisKey: string, thresholds: readonly ThresholdConfig[] | undefined, thresholdStep: AxisThresholdStepConfig) => {
@@ -550,7 +550,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       seriesColorGradientUniqueIds[id] = seriesColorGradientIdPrefix + uniqueId + '__' + id;
       patternIdMap[id] = seriesPatternIdPrefix + uniqueId + '__' + id;
     }
-    // a threshold range's pattern gets its own definition, coloured by the range's fill
+    // a threshold range's pattern gets its own definition, colored by the range's fill
     for (const { key } of getThresholdPatterns(mochartConfig)) {
       patternIdMap[key] = seriesPatternIdPrefix + uniqueId + '__' + key;
     }

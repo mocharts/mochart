@@ -49,7 +49,7 @@ import * as ohlc from '../examples/ohlc'
   skipped at arbitrary days; step the ticks by week with
   [`tickStep`](/reference/categoryAxis#categoryAxis.tickStep), or list the
   dates to label in [`ticks`](/reference/categoryAxis#categoryAxis.ticks). See
-  [labelling chosen dates](/recipes/date-axis#labelling-chosen-dates).
+  [labeling chosen dates](/recipes/date-axis#labeling-chosen-dates).
 - The default direction colors are teal-green/red rather than a pure
   green/red: green↔red is the classic red-green-blindness collision, and
   shifting the green toward teal keeps the pair distinguishable on light and

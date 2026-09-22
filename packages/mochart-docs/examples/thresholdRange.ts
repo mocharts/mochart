@@ -1,6 +1,6 @@
 // A threshold range: rangeValue turns a thresholds entry into a range between
 // two axis values, filled by the style fill members and edged by its stroke
-// members, with a title centred inside it.
+// members, with a title centered inside it.
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {
