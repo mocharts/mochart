@@ -148,7 +148,8 @@ function documentDefaults(state: EditorState): Record<string, unknown> | null {
 
 // core defaults a section written as one object as entry 0 of a list, and builds a list section without its
 // ignored and non-object entries, so a written index maps to the index among the entries core kept; an entry
-// core dropped has no defaults of its own
+// core dropped has no defaults of its own; kept mirrors core's filterConfig, whose object test is typeof, so an
+// array entry counts as kept
 function defaultsPath(defaults: Record<string, unknown>, document: unknown, path: JsonPath): JsonPath | null {
   const [section, next] = path;
   if (typeof section !== 'string' || !Array.isArray(defaults[section])) return path;
@@ -156,7 +157,7 @@ function defaultsPath(defaults: Record<string, unknown>, document: unknown, path
   if (typeof next !== 'number') return path;
   const written = document !== null && typeof document === 'object' ? (document as Record<string, unknown>)[section] : undefined;
   if (!Array.isArray(written)) return path;
-  const kept = (entry: unknown) => entry !== null && typeof entry === 'object' && !Array.isArray(entry) && (entry as Record<string, unknown>)['ignore'] !== true;
+  const kept = (entry: unknown) => entry !== null && typeof entry === 'object' && (entry as Record<string, unknown>)['ignore'] !== true;
   if (!kept(written[next])) return null;
   const builtIndex = written.slice(0, next).filter(kept).length;
   return [section, builtIndex, ...path.slice(2)];

@@ -364,6 +364,9 @@ describe('inserted default values', () => {
     // the ignored entry has no defaults of its own, so it keeps the placeholder
     expect(await acceptAfterTyping('{"series":[{"property":"a","ignore":true|},{"property":"b"}]}', 'id', ', ""'))
       .toBe('{"series":[{"property":"a","ignore":true, "id": ""},{"property":"b"}]}');
+    // core's filterConfig keeps an array entry, so the entry after one is still the second entry core built
+    expect(await acceptAfterTyping('{"series":[[],{"property":"b"|}]}', 'id', ', ""'))
+      .toBe('{"series":[[],{"property":"b", "id": "S1"}]}');
   });
 
   it('keeps the placeholder for a structural property whose default is null', async () => {
