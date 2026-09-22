@@ -20,8 +20,8 @@ import * as categoryTicks from '../../examples/categoryTicks.ts';
 import * as tickStep from '../../examples/tickStep.ts';
 import * as groupedSeries from '../../examples/groupedSeries.ts';
 import * as horizontal from '../../examples/horizontal.ts';
+import * as thresholdLine from '../../examples/thresholdLine.ts';
 import * as thresholdRange from '../../examples/thresholdRange.ts';
-import * as thresholdBand from '../../examples/thresholdBand.ts';
 import * as gradients from '../../examples/gradients.ts';
 import * as patterns from '../../examples/patterns.ts';
 import * as markersLabels from '../../examples/markersLabels.ts';
@@ -94,8 +94,8 @@ const docsExamples: { config: object; page: UsageLink }[] = [
   { config: tickStep.config, page: { text: 'Date axis', link: '/recipes/date-axis#labelling-chosen-dates' } },
   { config: groupedSeries.config, page: { text: 'Grouped series', link: '/recipes/grouped-series' } },
   { config: horizontal.config, page: { text: 'Horizontal charts', link: '/recipes/horizontal-bars' } },
-  { config: thresholdRange.config, page: { text: 'Thresholds and ranges', link: '/recipes/thresholds-ranges' } },
-  { config: thresholdBand.config, page: { text: 'Thresholds and ranges', link: '/recipes/thresholds-ranges#threshold-ranges' } },
+  { config: thresholdLine.config, page: { text: 'Thresholds and ranges', link: '/recipes/thresholds-ranges' } },
+  { config: thresholdRange.config, page: { text: 'Thresholds and ranges', link: '/recipes/thresholds-ranges#threshold-ranges' } },
   { config: gradients.config, page: { text: 'Gradients', link: '/recipes/gradients' } },
   { config: patterns.config, page: { text: 'Patterns', link: '/recipes/patterns' } },
   { config: markersLabels.config, page: { text: 'Markers and labels', link: '/recipes/markers-labels' } },

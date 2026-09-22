@@ -204,9 +204,9 @@ export const thresholdDomainDetails = 'Thresholds never extend the axis domain: 
 /** The details of the threshold members both axes share; each axis adds the value forms its scale takes. */
 export function getThresholdMemberDetails(): DescriptionMap {
   return {
-    rangeValue: 'Turns the entry into a range: the band between the two values (in either order) is filled with the `style` fill members, or with the `pattern` or `gradient` named by id, and its two edges are drawn with the stroke members like lines (a stroke opacity of 0 leaves the fill alone).',
+    rangeValue: 'Turns the entry into a range: the space between the two values (in either order) is filled with the `style` fill members, or with the `pattern` or `gradient` named by id, and its two edges are drawn with the stroke members like lines (a stroke opacity of 0 leaves the fill alone).',
     pattern: 'The pattern\'s `"series"` color keyword resolves to the range\'s `style.normal.fillColor`, the color of whatever the pattern fills.',
-    title: { properties: { side: 'On a line, the side of the line the title sits on, by axis value. On a range, `low` or `high` of the whole band, or `inside` centered within it; `inside` is an error on a line.' } }
+    title: { properties: { side: 'On a line, the side of the line the title sits on, by axis value. On a range, `low` or `high` of the whole range, or `inside` centered within it; `inside` is an error on a line.' } }
   };
 }
 

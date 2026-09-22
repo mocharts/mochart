@@ -124,18 +124,18 @@ export function getDetails() {
       description: 'The steps follow the scale: the categories or period starts on an ordinal axis, the period boundaries on a linear date axis, the multiples of `interval` on a linear number axis, and with neither a period nor an interval a linear axis draws nothing. A linear scale counts its periods from a fixed calendar origin and its multiples from 0, so the same steps keep their shapes as the data moves the domain. The stepped thresholds draw after the `thresholds` entries and carry no title; on a linear axis `minSpacing` keeps a rule from flooding the axis.',
       properties: {
         minSpacing: thresholdStepMinSpacingDetails,
-        period: 'Weeks start on Monday and the boundaries follow `dateUTC`. On an ordinal axis the steps are the first category of each period, so `"week"` with `count: 2` bands every other week whatever the holidays; on a linear date axis they are the period boundaries themselves.',
+        period: 'Weeks start on Monday and the boundaries follow `dateUTC`. On an ordinal axis the steps are the first category of each period, so `"week"` with `count: 2` draws a range over every other week whatever the holidays; on a linear date axis they are the period boundaries themselves.',
         count: 'With no period every category of an ordinal axis is a step, so `count: 2` stripes alternate categories. ' + stepCountOffsetDetails,
         offset: stepCountOffsetDetails,
         range: 'On an ordinal axis a range covers whole slots from its step to the category before the next candidate step; on a linear axis it spans from the step to the next one. A line sits at the step itself.'
       }
     },
     thresholds: {
-      description: 'A line at a category or axis value, or with a `rangeValue` a band between two. ' + thresholdStyleDetails + ' ' + thresholdDomainDetails,
+      description: 'A line at a category or axis value, or with a `rangeValue` a range between two. ' + thresholdStyleDetails + ' ' + thresholdDomainDetails,
       properties: {
         ...getThresholdMemberDetails(),
         value: 'On a linear axis it takes the same forms as `min`: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string when `type` is `date`. On an ordinal axis it names a category, matched the way explicit `ticks` are (a date by instant, so the ISO and timestamp forms both find a `Date` category; the category string on a `string` axis; the key when the axis has a `keyProperty`), and a line sits at the category\'s center. An entry naming no category is not drawn.',
-        rangeValue: getThresholdMemberDetails().rangeValue + ' On an ordinal axis the band covers whole slots from the first named category\'s outer edge to the second\'s, so ranges over consecutive weeks tile without gaps; a range with either end naming a category the data does not hold is not drawn, since an ordinal axis has no position to clip it to.'
+        rangeValue: getThresholdMemberDetails().rangeValue + ' On an ordinal axis the range covers whole slots from the first named category\'s outer edge to the second\'s, so ranges over consecutive weeks tile without gaps; a range with either end naming a category the data does not hold is not drawn, since an ordinal axis has no position to clip it to.'
       }
     }
   };

@@ -206,7 +206,7 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
     }
 
     if (threshold.title.text !== NONE) {
-      // a range title sits at the edge on its value side, or centred inside the band
+      // a range title sits at the edge on its value side, or centered inside the range
       const { ascending } = this.props;
       const titleInside = isRange && threshold.title.side === TITLE_SIDE_INSIDE;
       const titleLow = threshold.title.side === TITLE_SIDE_LOW;

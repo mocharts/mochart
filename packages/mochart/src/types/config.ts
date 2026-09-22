@@ -1767,7 +1767,7 @@ export interface ThresholdTitleConfig {
    * "inside" a range).
    *
    * On a line, the side of the line the title sits on, by axis value. On a
-   * range, `low` or `high` of the whole band, or `inside` centered within it;
+   * range, `low` or `high` of the whole range, or `inside` centered within it;
    * `inside` is an error on a line.
    *
    * @default "high"
@@ -1928,8 +1928,8 @@ export interface CategoryAxisThresholdStepConfig extends AxisThresholdStepConfig
    *
    * Weeks start on Monday and the boundaries follow `dateUTC`. On an ordinal
    * axis the steps are the first category of each period, so `"week"` with
-   * `count: 2` bands every other week whatever the holidays; on a linear date
-   * axis they are the period boundaries themselves.
+   * `count: 2` draws a range over every other week whatever the holidays; on a
+   * linear date axis they are the period boundaries themselves.
    *
    * @default null
    */
@@ -1948,7 +1948,7 @@ export interface ThresholdConfig {
   /**
    * The second value of a threshold range (use null for a line).
    *
-   * Turns the entry into a range: the band between the two values (in either
+   * Turns the entry into a range: the space between the two values (in either
    * order) is filled with the `style` fill members, or with the `pattern` or
    * `gradient` named by id, and its two edges are drawn with the stroke members
    * like lines (a stroke opacity of 0 leaves the fill alone).
@@ -2916,7 +2916,7 @@ export interface AxisConfigBase {
    * The thresholds to draw across the plot: a line at an axis value, or a range
    * between two.
    *
-   * A line at a category or axis value, or with a `rangeValue` a band between
+   * A line at a category or axis value, or with a `rangeValue` a range between
    * two. A line entry uses only the `style` stroke members; the fill members,
    * `pattern` and `gradient` apply to ranges. Thresholds never extend the axis
    * domain: a line outside it is not drawn, a range partly outside is clipped

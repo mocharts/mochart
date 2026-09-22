@@ -1,18 +1,18 @@
 # Thresholds and ranges
 
 Three ways to show reference context around your values: a **threshold line**
-drawn at a fixed value on an axis, a **threshold range** filling the band
+drawn at a fixed value on an axis, a **threshold range** filled
 between two fixed values, and a **range series** that fills the band between
 two data properties.
 
 <script setup>
+import * as thresholdLine from '../examples/thresholdLine'
 import * as thresholdRange from '../examples/thresholdRange'
-import * as thresholdBand from '../examples/thresholdBand'
 </script>
 
-<LiveChart :config="thresholdRange.config" :data="thresholdRange.data" demo="threshold-line" />
+<LiveChart :config="thresholdLine.config" :data="thresholdLine.data" demo="threshold-line" />
 
-<<< @/examples/thresholdRange.ts
+<<< @/examples/thresholdLine.ts
 
 ## How it works
 
@@ -56,24 +56,24 @@ import * as thresholdBand from '../examples/thresholdBand'
 
 Give a thresholds entry a
 [`rangeValue`](/reference/valueAxes#valueAxes.thresholds.rangeValue) and it
-fills the band between its two values instead of drawing a line:
+fills the range between its two values instead of drawing a line:
 
-<LiveChart :config="thresholdBand.config" :data="thresholdBand.data" demo="threshold-range" />
+<LiveChart :config="thresholdRange.config" :data="thresholdRange.data" demo="threshold-range" />
 
-<<< @/examples/thresholdBand.ts{18-24}
+<<< @/examples/thresholdRange.ts{18-24}
 
 - The stroke members of [`style`](/reference/valueAxes#valueAxes.thresholds.style)
-  draw the band's two edge lines and its fill members fill the interior; a
+  draw the range's two edge lines and its fill members fill the interior; a
   stroke opacity of 0 leaves just the fill. A
   [`pattern`](/reference/valueAxes#valueAxes.thresholds.pattern) or
   [`gradient`](/reference/valueAxes#valueAxes.thresholds.gradient) id fills
-  the band with that definition instead, and a pattern's `series` color
-  resolves to the band's fill color. `front: false` keeps the band behind
+  the range with that definition instead, and a pattern's `series` color
+  resolves to the range's fill color. `front: false` keeps the range behind
   the series.
-- The title's `side` is `low` or `high` of the whole band, or `inside` to
-  center it within the band; `align` places any threshold title at the
+- The title's `side` is `low` or `high` of the whole range, or `inside` to
+  center it within the range; `align` places any threshold title at the
   `start`, `middle` or `end` of the plot instead of the axis side.
-- A band partly outside the axis domain is clipped to it; one wholly outside
+- A range partly outside the axis domain is clipped to it; one wholly outside
   is not drawn.
 - Ordinal category axes take thresholds too: a value names a category, so a
   line sits at that category's center, as the `Midweek` line at `Wed` above,
@@ -83,10 +83,10 @@ fills the band between its two values instead of drawing a line:
   default, so set `visible: true` along with the rule: every `count`-th
   candidate from an `offset`, where the candidates are an ordinal axis's
   categories, the periods of a date axis under a `period`, or the multiples of
-  an `interval` on a number scale. `period: 'week'` with `count: 2` bands every
+  an `interval` on a number scale. `period: 'week'` with `count: 2` draws a range over every
   other week of a daily trading axis, holidays included, as the threshold step
   demo in the gallery does, and on a value axis `interval: 10` with `count: 2`
-  bands 0 to 10, 20 to 30 and so on. `range: false` draws lines at the
+  draws ranges over 0 to 10, 20 to 30 and so on. `range: false` draws lines at the
   candidates instead. The stepped shapes share one `style`, `pattern` or
   `gradient` and carry no title. On a linear axis
   [`minSpacing`](/reference/valueAxes#valueAxes.thresholdStep.minSpacing)

@@ -67,16 +67,16 @@ export function getDetails() {
       properties: getTickLabelDetails()
     },
     thresholdStep: {
-      description: 'The steps are the multiples of `interval` inside the axis domain, anchored at 0, and with no interval nothing is drawn. The bands follow the domain as it changes, draw after the `thresholds` entries and carry no title; `minSpacing` keeps a rule from flooding the axis.',
+      description: 'The steps are the multiples of `interval` inside the axis domain, anchored at 0, and with no interval nothing is drawn. The ranges follow the domain as it changes, draw after the `thresholds` entries and carry no title; `minSpacing` keeps a rule from flooding the axis.',
       properties: {
         minSpacing: thresholdStepMinSpacingDetails,
         count: stepCountOffsetDetails,
         offset: stepCountOffsetDetails,
-        range: '`interval: 10` with `count: 2` bands 0 to 10, 20 to 30 and so on; with `range: false` a line sits at each multiple instead.'
+        range: '`interval: 10` with `count: 2` draws ranges over 0 to 10, 20 to 30 and so on; with `range: false` a line sits at each multiple instead.'
       }
     },
     thresholds: {
-      description: 'A line at an axis value, or with a `rangeValue` a band between two. ' + thresholdStyleDetails + ' ' + thresholdDomainDetails,
+      description: 'A line at an axis value, or with a `rangeValue` a range between two. ' + thresholdStyleDetails + ' ' + thresholdDomainDetails,
       properties: getThresholdMemberDetails()
     },
     ticks: {
