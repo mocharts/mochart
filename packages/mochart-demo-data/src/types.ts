@@ -20,7 +20,7 @@ export interface RandomConfig {
       max: string;
       interval: number;
       intervalUnit: 'second' | 'minute' | 'hour' | 'day' | string;
-      /** Draw only Monday to Friday days; needs an interval of one day. */
+      /** Draw only Monday to Friday days; needs an interval of one day. The generator tells the days apart in UTC, so the chart's categoryAxis.dateUTC must stay true (the default). */
       weekdays?: boolean;
     };
   };
