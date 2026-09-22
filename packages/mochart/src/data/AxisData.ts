@@ -7,6 +7,7 @@ import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData';
 import { getCategoryValueKey } from './CategoryValue';
 import { areArraysAndEqual, arrayToMap, idAccessor } from '../utils/utils';
 import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants';
+import type { Anchor } from '../config/core/constants';
 import { getMinorTickLabel } from '../config/core/minorConfig';
 import { getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps';
 import type { Auto, DataType } from '../config/core/constants';
@@ -482,37 +483,26 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
       minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, Math.max(scaleTicks.length, stepTicks.minors.length));
     }
     if (axisConfig.scale === SCALE_ORDINAL) {
-      // a parallel untruncated label that would spill past either axis end is hidden; the step rule's collision pass needs to know
-      const truncatedParallel = axisConfig.tickLabel.truncation.enabled && axisLayoutInfo.tickLabelParallel;
-      let edgeRange: [number, number] | null = null;
-      if (!truncatedParallel && axisLayoutInfo.tickLabelParallel) {
-        const { before, after, categoryExtent, tickLabelSpace, tickLabelAnchor } = axisLayoutInfo;
-        const beforeOffset = tickLabelAnchor === ANCHOR_START ? 0 : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : tickLabelSpace);
-        const afterOffset = tickLabelAnchor === ANCHOR_START ? tickLabelSpace : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : 0);
-        edgeRange = [beforeOffset - before, categoryExtent + after - afterOffset];
-      }
+      // a parallel untruncated label that would spill past either axis end is hidden, each kind tested with its own
+      // width and anchor; the step rule's collision pass needs to know the major range
+      const edgeRange = !axisConfig.tickLabel.truncation.enabled && axisLayoutInfo.tickLabelParallel
+        ? getEdgeRange(axisLayoutInfo, axisLayoutInfo.tickLabelSpace, axisLayoutInfo.tickLabelAnchor) : null;
+      const minorEdgeRange = fits.minor.visible && !fits.minorTruncated && axisLayoutInfo.minorTickLabelParallel
+        ? getEdgeRange(axisLayoutInfo, axisLayoutInfo.minorTickLabelSpace, axisLayoutInfo.minorTickLabelAnchor) : null;
       const { isSkipped, isMinor } = getOrdinalTickRule(axisConfig, categoryValues, categoryPositions, tickCount, ordinalTickSpace, edgeRange, fits.major.visible);
-      const createTick = (index: number, isHidden: (tick: Omit<AxisTick, 'hidden'>) => boolean) => {
-        const minor = isMinor(index);
-        return createOrdinalTickObject(index, categoryValues, categoryPositions, minor ? minorTickLabelFormatter : tickLabelFormatter, isHidden, minor);
+      const outsideEnds = ({ position, minor }: Omit<AxisTick, 'hidden'>) => {
+        const range = minor === true ? minorEdgeRange : edgeRange;
+        return range !== null && (position < range[0] || position > range[1]);
       };
-      if (truncatedParallel) {
-        ticks = scaleTicks.map((scaleTick, i) => createTick(scaleTick as number, () => isSkipped(i)));
-      }
-      else {
-        if (edgeRange !== null) {
-          const [minPosition, maxPosition] = edgeRange;
-          const { tickLabelAnchor } = axisLayoutInfo;
-
-          ticks = scaleTicks.map((scaleTick, i) => createTick(scaleTick as number, ({ position }) => isSkipped(i) || position < minPosition || position > maxPosition ));
-          if (categoryValues.length > 0) {
-            const singleIndex = tickLabelAnchor === ANCHOR_START ? 0 : (tickLabelAnchor === ANCHOR_END ? categoryValues.length-1 : Math.floor(categoryValues.length / 2));
-            ticks.push(createOrdinalTickObject(singleIndex, categoryValues, categoryPositions, tickLabelFormatter, () => ticks.some(tick => tick.hidden === false)));
-          }
-        }
-        else {
-          ticks = scaleTicks.map((scaleTick, i) => createTick(scaleTick as number, () => isSkipped(i)));
-        }
+      ticks = scaleTicks.map((scaleTick, i) => {
+        const index = scaleTick as number;
+        const minor = isMinor(index);
+        return createOrdinalTickObject(index, categoryValues, categoryPositions, minor ? minorTickLabelFormatter : tickLabelFormatter, tick => isSkipped(i) || outsideEnds(tick), minor);
+      });
+      if (edgeRange !== null && categoryValues.length > 0) {
+        const { tickLabelAnchor } = axisLayoutInfo;
+        const singleIndex = tickLabelAnchor === ANCHOR_START ? 0 : (tickLabelAnchor === ANCHOR_END ? categoryValues.length-1 : Math.floor(categoryValues.length / 2));
+        ticks.push(createOrdinalTickObject(singleIndex, categoryValues, categoryPositions, tickLabelFormatter, () => ticks.some(tick => tick.hidden === false)));
       }
     }
     else {
@@ -521,13 +511,8 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
       const tickInterval = stepTicks.majors !== null ? (fits.major.visible ? Math.max(1, Math.ceil(scaleTicks.length / tickCount)) : 1) : (scaleTicks.length > tickCount ? 2 : 1);
 
       if (axisLayoutInfo.tickLabelParallel) {
-        const { before, after, categoryExtent, tickLabelSpace, tickLabelAnchor } = axisLayoutInfo;
-
-        const beforeOffset = tickLabelAnchor === ANCHOR_START ? 0 : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : tickLabelSpace);
-        const afterOffset = tickLabelAnchor === ANCHOR_START ? tickLabelSpace : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : 0);
-
-        const minPosition = beforeOffset - before;
-        const maxPosition = categoryExtent + after - afterOffset;
+        const { tickLabelAnchor } = axisLayoutInfo;
+        const [minPosition, maxPosition] = getEdgeRange(axisLayoutInfo, axisLayoutInfo.tickLabelSpace, tickLabelAnchor);
         const outside = ({ position }: Omit<AxisTick, 'hidden'>) => position < minPosition || position > maxPosition;
 
         ticks = createLinearTicks(scaleTicks, stepTicks.minors, axisScale, tickLabelFormatter, minorTickLabelFormatter, (i, tick) => i % tickInterval !== 0 || outside(tick), outside);
@@ -551,6 +536,14 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
   }
 
   return { ticks, minorTickLabelLength: fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing) };
+}
+
+/** The positions a parallel label of one kind may sit at without spilling past an axis end, from that kind's widest label and anchor. */
+function getEdgeRange(axisLayoutInfo: CategoryAxisLayoutInfo, tickLabelSpace: number, tickLabelAnchor: Anchor): [number, number] {
+  const { before, after, categoryExtent } = axisLayoutInfo;
+  const beforeOffset = tickLabelAnchor === ANCHOR_START ? 0 : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : tickLabelSpace);
+  const afterOffset = tickLabelAnchor === ANCHOR_START ? tickLabelSpace : (tickLabelAnchor === ANCHOR_MIDDLE ? Math.ceil(tickLabelSpace / 2.0) : 0);
+  return [beforeOffset - before, categoryExtent + after - afterOffset];
 }
 
 function hasTickStep(axisConfig: CategoryAxisConfig): boolean {
