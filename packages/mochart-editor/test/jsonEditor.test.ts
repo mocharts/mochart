@@ -185,6 +185,22 @@ describe('JSON editor', () => {
     host.remove();
   });
 
+  // Regression: format() restored the head only, so a selection collapsed to a caret
+  it('keeps a selection through formatting', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const editor = createJsonEditor(host, { value: '{"aaa":1,"bbb":2}', ariaLabel: 'Configuration' });
+    const view = EditorView.findFromDOM(editor.element)!;
+
+    editor.showFocusRange('{"aaa":1,"b'.length, '{"aaa":1,"bbb'.length);
+    expect(editor.format()).toBe(true);
+    const formatted = '{\n  "aaa": 1,\n  "bbb": 2\n}';
+    expect(view.state.selection.main.anchor).toBe(formatted.indexOf('"bbb"') + 2);
+    expect(view.state.selection.main.head).toBe(formatted.indexOf('"bbb"') + 4);
+    editor.destroy();
+    host.remove();
+  });
+
   // Regression: format() re-serialised through JSON.stringify, so 1e3 became 1000, 1e400 became null, long
   // integers lost precision, escapes were rewritten, and the caret, restored by counting non-whitespace
   // characters, landed inside the next string or past the end whenever a literal changed length

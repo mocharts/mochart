@@ -202,10 +202,11 @@ export function createJsonEditor(host: HTMLElement, options: JsonEditorOptions):
         const formatted = formatDocument(view.state, indentation);
         if (formatted === null) return false;
         if (formatted.text === text) return true;
+        const { anchor, head } = view.state.selection.main;
         externalUpdate = true;
         view.dispatch({
           changes: { from: 0, to: text.length, insert: formatted.text },
-          selection: { anchor: formatted.mapOffset(view.state.selection.main.head) }
+          selection: { anchor: formatted.mapOffset(anchor), head: formatted.mapOffset(head) }
         });
         externalUpdate = false;
         options.onChange?.(formatted.text);
