@@ -66,3 +66,17 @@ describe('minor tick labels at the axis ends', () => {
     chart.destroy();
   });
 });
+
+describe('the single-label fallback with a tick step', () => {
+  const labels = ['category-1', 'category-2', 'category-3', 'category-4', 'category-5', 'category-6'];
+
+  it('shows one label when the step leaves no label of either kind, as the same axis without a step does', () => {
+    const withStep = renderChart({ tickStep: { count: 6 }, tickLabel: { truncation: { enabled: false }, minorVisible: true } }, labels, 250);
+    const withoutStep = renderChart({ tickLabel: { truncation: { enabled: false } } }, labels, 250);
+    expect(getKindLabels(withoutStep.container, false).length).toBe(1);
+    expect(getKindLabels(withStep.container, true)).toEqual([]);
+    expect(getKindLabels(withStep.container, false)).toEqual(getKindLabels(withoutStep.container, false));
+    withStep.chart.destroy();
+    withoutStep.chart.destroy();
+  });
+});

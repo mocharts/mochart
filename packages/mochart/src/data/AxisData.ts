@@ -418,6 +418,8 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
     return { ticks, minorTickLabelLength: fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing) };
   }
   let ticks: AxisTick[] = [];
+  // the single-label fallback: shown once no other label of either kind is, decided after the minor fit
+  let singleTick: AxisTick | null = null;
   // magnitude: a reversed axis has a descending range, and tick counting needs a positive extent
   const categoryAxisRangeExtent = Math.abs(axisScale.range()[1] - axisScale.range()[0]);
   const categoryAxisDomainExtent = +axisScale.domain()[1] - +axisScale.domain()[0];
@@ -502,7 +504,8 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
       if (edgeRange !== null && categoryValues.length > 0) {
         const { tickLabelAnchor } = axisLayoutInfo;
         const singleIndex = tickLabelAnchor === ANCHOR_START ? 0 : (tickLabelAnchor === ANCHOR_END ? categoryValues.length-1 : Math.floor(categoryValues.length / 2));
-        ticks.push(createOrdinalTickObject(singleIndex, categoryValues, categoryPositions, tickLabelFormatter, () => ticks.some(tick => tick.hidden === false)));
+        singleTick = createOrdinalTickObject(singleIndex, categoryValues, categoryPositions, tickLabelFormatter, () => true);
+        ticks.push(singleTick);
       }
     }
     else {
@@ -519,7 +522,8 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
         if (categoryValues.length > 0) {
           const singleValue = tickLabelAnchor === ANCHOR_START ? axisDomain[0]! : (tickLabelAnchor === ANCHOR_END ? axisDomain[1]! : +axisDomain[0]! + (+axisDomain[1]! - +axisDomain[0]!) / 2);
           const singleTickValue = axisConfig.type === TYPE_DATE ? new Date(singleValue) : singleValue;
-          ticks.push(createLinearTickObject(singleTickValue, axisScale, tickLabelFormatter, () => ticks.some(tick => tick.hidden === false)));
+          singleTick = createLinearTickObject(singleTickValue, axisScale, tickLabelFormatter, () => true);
+          ticks.push(singleTick);
         }
       }
       else {
@@ -535,7 +539,12 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
     }
   }
 
-  return { ticks, minorTickLabelLength: fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing) };
+  const minorTickLabelLength = fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing);
+  if (singleTick !== null) {
+    const single = singleTick;
+    single.hidden = ticks.some(tick => tick !== single && tick.hidden === false);
+  }
+  return { ticks, minorTickLabelLength };
 }
 
 /** The positions a parallel label of one kind may sit at without spilling past an axis end, from that kind's widest label and anchor. */
