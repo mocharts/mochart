@@ -157,7 +157,7 @@ function thresholdLineEntry(): ShowcaseEntry {
   const entry = reuse('threshold-line', {
     config,
     blurb: 'Two value axes, each drawing its own threshold line and title across the plot.',
-    notes: 'The left axis carries two stacked bars with a thresholds entry at 20; the right axis carries one unstacked line with a thresholds entry at -8, and because the bars and the line read different scales the two threshold lines sit at unrelated heights. Each threshold\'s title.text labels it, title.side puts one label on the low side and the other on the high side, and snapToValue flips a label that has no room left. The axes also differ in adjustForFiltering: hiding a stacked series from the legend rescales the left axis and its threshold line rides along, while the right axis keeps its domain. All four animation durations are stretched to 2000ms, so the rescaling is easy to follow.',
+    notes: 'The left axis carries two stacked bars with a thresholds entry at 20; the right axis carries one unstacked line with a thresholds entry at -8, and because the bars and the line read different scales the two threshold lines sit at unrelated heights. Each threshold\'s title.text labels it, title.side puts one label on the low side and the other on the high side, and title.snapToValue flips a label that has no room left. The axes also differ in adjustForFiltering: hiding a stacked series from the legend rescales the left axis and its threshold line rides along, while the right axis keeps its domain. All four animation durations are stretched to 2000ms, so the rescaling is easy to follow.',
     data: clone(demo.data.filter((_, index) => index % 2 === 0))
   });
   forEachValueAxis(entry.config, axis => {
