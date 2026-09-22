@@ -1,4 +1,4 @@
-import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, getTickLabelDetails, tickLabelDescription, minorTickLabelIntro, majorNote, tickStepMinorDetails, stepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails } from './axisConfig';
+import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, getTickLabelDetails, tickLabelDescription, minorTickLabelIntro, majorNote, tickStepDescription, getTickStepDescriptions, thresholdStepDescription, getThresholdStepDescriptions, tickStepMinorDetails, valueTickStepDetails, valueStepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails } from './axisConfig';
 
 export default function getDescriptions() {
   return {
@@ -18,6 +18,20 @@ export default function getDescriptions() {
       }
     },
     adjustForFiltering: 'whether to adjust the domain of the axis as series belonging to it are filtered',
+    thresholdStep: {
+      description: thresholdStepDescription,
+      properties: {
+        ...getThresholdStepDescriptions(),
+        offset: 'the number of steps skipped before the first threshold; it shifts which multiples are kept, counted from 0'
+      }
+    },
+    tickStep: {
+      description: tickStepDescription,
+      properties: {
+        ...getTickStepDescriptions(),
+        offset: 'the number of steps skipped before the first tick; it shifts which multiples are kept, counted from 0'
+      }
+    },
     visibleWhenAllFiltered: 'whether the axis should be visible when all series belonging to it are filtered',
     tickLabel: {
       description: tickLabelDescription,
@@ -56,8 +70,8 @@ export function getDetails() {
       description: 'Chooses the ticks by rule rather than by a list, so the choice holds as the data changes; explicit `ticks` take precedence. An `interval` places the ticks on its multiples, `count` and `offset` keep every count-th of them counted from 0, and `minorSteps` places minor ticks between them; without an interval the axis keeps the ticks it picks. The minor tick marks, grid lines and labels carry the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes, and the `tickLabel`, `tickMark` and `gridLine` minor settings say how they are drawn.',
       properties: {
         interval: tickStepMinorDetails.interval,
-        count: 'When more ticks survive the rule than fit, every k-th survivor is kept starting from the first. ' + tickStepMinorDetails.count,
-        offset: tickStepMinorDetails.offset,
+        count: 'When more ticks survive the rule than fit, every k-th survivor is kept starting from the first. ' + valueTickStepDetails.count,
+        offset: valueTickStepDetails.offset,
         minorSteps: tickStepMinorDetails.minorSteps,
         minSpacing: tickStepMinorDetails.minSpacing
       }
@@ -70,8 +84,8 @@ export function getDetails() {
       description: 'The steps are the multiples of `interval` inside the axis domain, anchored at 0, and with no interval nothing is drawn. The ranges follow the domain as it changes, draw after the `thresholds` entries and carry no title; `minSpacing` keeps a rule from flooding the axis.',
       properties: {
         minSpacing: thresholdStepMinSpacingDetails,
-        count: stepCountOffsetDetails,
-        offset: stepCountOffsetDetails,
+        count: valueStepCountOffsetDetails,
+        offset: valueStepCountOffsetDetails,
         range: '`interval: 10` with `count: 2` draws ranges over 0 to 10, 20 to 30 and so on; with `range: false` a line sits at each multiple instead.'
       }
     },

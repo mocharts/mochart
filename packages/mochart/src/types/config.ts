@@ -1842,11 +1842,9 @@ export interface AxisThresholdStepConfig {
   /**
    * Every count-th step is kept (2 keeps every other one) as a threshold.
    *
-   * With no period every category of an ordinal axis is a step, so `count: 2`
-   * stripes alternate categories. A number means the same in `tickStep` and
-   * `thresholdStep`: every count-th step. On a linear axis `count` and `offset`
-   * need a `period` or `interval` to count, so setting either without one is a
-   * validation error.
+   * A number means the same in `tickStep` and `thresholdStep`: every count-th
+   * step. On a linear axis `count` and `offset` need a `period` or `interval`
+   * to count, so setting either without one is a validation error.
    *
    * @default 1
    */
@@ -2930,9 +2928,10 @@ export interface AxisConfigBase {
   /**
    * Threshold lines or ranges repeated along the axis by rule.
    *
-   * The steps follow the scale: the categories or period starts on an ordinal
-   * axis, the period boundaries on a linear date axis, the multiples of
-   * `interval` on a linear number axis, and with neither a period nor an
+   * The steps follow the scale: on an ordinal axis the categories, so `count:
+   * 2` stripes alternate categories, or under a `period` the first category of
+   * each period; on a linear date axis the period boundaries; on a linear
+   * number axis the multiples of `interval`; and with neither a period nor an
    * interval a linear axis draws nothing. A linear scale counts its periods
    * from a fixed calendar origin and its multiples from 0, so the same steps
    * keep their shapes as the data moves the domain. The stepped thresholds draw
@@ -3157,9 +3156,10 @@ export interface CategoryAxisConfig extends AxisConfigBase {
   /**
    * Threshold lines or ranges repeated along the axis by rule.
    *
-   * The steps follow the scale: the categories or period starts on an ordinal
-   * axis, the period boundaries on a linear date axis, the multiples of
-   * `interval` on a linear number axis, and with neither a period nor an
+   * The steps follow the scale: on an ordinal axis the categories, so `count:
+   * 2` stripes alternate categories, or under a `period` the first category of
+   * each period; on a linear date axis the period boundaries; on a linear
+   * number axis the multiples of `interval`; and with neither a period nor an
    * interval a linear axis draws nothing. A linear scale counts its periods
    * from a fixed calendar origin and its multiples from 0, so the same steps
    * keep their shapes as the data moves the domain. The stepped thresholds draw

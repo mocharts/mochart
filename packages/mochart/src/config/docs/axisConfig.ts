@@ -170,6 +170,12 @@ export function getTickStepDescriptions(): DescriptionMap {
   };
 }
 
+/** The value axis versions of the count and offset details, naming only the interval since the axis has no period. */
+export const valueTickStepDetails = {
+  count: 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. It needs an `interval` to count, and is counted from 0, so setting it without one is a validation error.',
+  offset: 'It needs an `interval` to count, so setting it without one is a validation error, and it shifts which count-th multiple is kept, so setting it while `count` is `"auto"` (every multiple kept) is one too.'
+};
+
 export const tickStepMinorDetails = {
   interval: 'Places a tick at every multiple of the interval inside the axis domain, counted from 0, so the ticks stay put as the data moves the domain. Setting it never changes the automatic min and max of the axis, it only chooses where the ticks go. When more ticks survive than fit, every k-th survivor is kept from the first, and a tick thinned away stays a hidden tick: its minor ticks are kept, and it never becomes one.',
   count: 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. On a linear axis it needs a `period` or `interval` to count, and is counted from a fixed starting point, so setting it without one is a validation error.',
@@ -195,6 +201,9 @@ export function getThresholdStepDescriptions(): DescriptionMap {
 }
 
 export const stepCountOffsetDetails = 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. On a linear axis `count` and `offset` need a `period` or `interval` to count, so setting either without one is a validation error.';
+
+/** The value axis has no period, so its count and offset details name only the interval. */
+export const valueStepCountOffsetDetails = 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. `count` and `offset` need an `interval` to count, so setting either without one is a validation error.';
 
 export const thresholdStepMinSpacingDetails = 'The thresholds are counted before any is drawn, from the axis length and the number the rule would draw at its `count`, so a rule that would flood the axis never builds its shapes. When they would sit closer together than `minSpacing`, no stepped thresholds are drawn and a console warning names the axis. An ordinal axis never draws more thresholds than it has categories, so it accepts only the default.';
 
