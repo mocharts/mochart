@@ -199,6 +199,22 @@ describe('Mochart support completions', () => {
     expect(labels(options)).not.toContain('"s3"');
   });
 
+  // Regression: the own-section test compared the reference's section key with the written top-level key,
+  // so inside seriesDefaults every series counted as another section and a follower's id was offered
+  it('omits other followers from followSeries ids inside seriesDefaults', async () => {
+    const options = await completionOptions(`{
+      "version": "1.0.0",
+      "categoryAxis": { "property": "m" },
+      "seriesDefaults": { "followSeries": "|" },
+      "series": [
+        { "id": "s1", "property": "r" },
+        { "id": "s2", "property": "q", "followSeries": "s1" }
+      ]
+    }`);
+    expect(labels(options)).toContain('"s1"');
+    expect(labels(options)).not.toContain('"s2"');
+  });
+
   // Regression: an entry with "ignore": true is dropped when core builds its sections, so its id was
   // offered and then rejected
   it('omits ignored entries from reference ids', async () => {

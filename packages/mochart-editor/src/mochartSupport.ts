@@ -243,11 +243,13 @@ function referencedValues(document: unknown, property: EditorPropertyModel, path
   const commonValue = property.reference.commonKey && target && typeof target === 'object'
     ? (target as Record<string, unknown>)[property.reference.commonKey]
     : undefined;
+  // a defaults section such as seriesDefaults belongs to the section it defaults, with no entry of its own
+  const ownSectionId = sectionForPath(path)?.id;
   for (const sectionKey of property.reference.sections) {
     const raw = config[sectionKey];
     const entries = Array.isArray(raw) ? raw : raw && typeof raw === 'object' ? [raw] : [];
-    const ownSection = sectionKey === path[0];
-    const ownIndex = typeof path[1] === 'number' ? path[1] : 0;
+    const ownSection = sectionKey === ownSectionId;
+    const ownIndex = sectionKey !== path[0] ? -1 : typeof path[1] === 'number' ? path[1] : 0;
     for (const [index, entry] of entries.entries()) {
       if (entry && typeof entry === 'object') {
         const record = entry as Record<string, unknown>;
