@@ -71,7 +71,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     }
 
     this.setPresent(true);
-    // the resolved font sits on the root as well as on each label, so a band with no label still measures its depth from the configured size
+    // the resolved font sits on the root only: each label inherits it, and a band with no label still measures its depth from the configured size
     this.root.set({ className: mochartCssClasses['clipIndicator'], style: resolveFontStyle(this.props.mochartConfig.clipIndicator.font, this.props.mochartConfig.chart.font) });
 
     // The library's only <title>: one string serves as both the accessible name and the hidden
@@ -145,8 +145,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     // the label is not a hit target: the pointer falls through to the band behind it, which still
     // triggers the <title>, and the text never shows an I-beam or takes a selection
     band.text.set({ transform, textAnchor: 'middle', dy: textDY, pointerEvents: 'none',
-      visibility: fits ? null : 'hidden', ...styleToAttributes(this.props.mochartConfig.clipIndicator.textStyle),
-      style: resolveFontStyle(this.props.mochartConfig.clipIndicator.font, this.props.mochartConfig.chart.font) });
+      visibility: fits ? null : 'hidden', ...styleToAttributes(this.props.mochartConfig.clipIndicator.textStyle) });
   }
 
   private getBand(edge: EdgeKey): Band {

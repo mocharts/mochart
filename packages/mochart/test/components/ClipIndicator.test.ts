@@ -122,6 +122,16 @@ describe('band geometry', () => {
     expect(bands(mount(makeConfig({ chart: { font: { size: 40 } }, clipIndicator: { label: null, labelPadding: 5 } })))[0].height).toBe(40 + 5 * 2);
   });
 
+  // Regression: the resolved font was written on the label as well as on the root, so a relative size such as
+  // 0.85em resolved against the root's already-scaled size and the label rendered at the square of it
+  it('writes the resolved font on the root only, so a relative size is not applied twice', () => {
+    const container = mount(makeConfig({ chart: { font: { size: '0.85em' } } }));
+    const root = container.querySelector<SVGElement>(getCssSelector('clipIndicator'))!;
+    expect(root.getAttribute('style')).toContain('font-size: 0.85em');
+    const text = root.querySelector('text')!;
+    expect(text.getAttribute('style') ?? '').not.toContain('font-size');
+  });
+
   it('never grows deeper than the plot itself', () => {
     const container = mount(makeConfig({ clipIndicator: { size: 10000 } }));
     expect(bands(container)[0].height).toBe(plotRect(container).height);
