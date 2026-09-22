@@ -46,9 +46,11 @@ const editor = createJsonEditor(host, {
 returns a handle. `ariaLabel` is the one required option; it names the
 editable element for assistive tech. The other `JsonEditorOptions`:
 `readOnly` and `lineNumbers` toggle those behaviors, `indentation` sets what
-`format()` inserts (two spaces by default), `theme` picks the initial color
-treatment (`'light'` by default), and `ariaDescribedBy` links the editable
-element to help text. `support` accepts one `JsonEditorSupport` or an array
+`format()` inserts, read the way `JSON.stringify` reads its space argument: a
+number of spaces up to ten (two by default) or a string's first ten characters,
+where `0` or an empty string lays the document out on one line. `theme` picks
+the initial color treatment (`'light'` by default), and `ariaDescribedBy`
+links the editable element to help text. `support` accepts one `JsonEditorSupport` or an array
 of them.
 
 ## The handle

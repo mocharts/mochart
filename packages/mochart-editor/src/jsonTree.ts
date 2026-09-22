@@ -204,6 +204,13 @@ export interface FormattedDocument {
   mapOffset: (offset: number) => number;
 }
 
+/** The indentation string JSON.stringify makes of its space argument: at most ten spaces, or a string's first ten characters. */
+function indentationUnit(indentation: number | string): string {
+  if (typeof indentation === 'string') return indentation.slice(0, 10);
+  const count = Math.min(10, Math.trunc(indentation) || 0);
+  return count < 1 ? '' : ' '.repeat(count);
+}
+
 /**
  * The document laid out the way JSON.stringify(value, null, indentation) lays it out, with every string, number,
  * true, false and null copied from the source as written, so formatting changes whitespace outside strings only
@@ -218,7 +225,9 @@ export function formatDocument(state: EditorState, indentation: number | string)
   tree.iterate({ enter: node => { if (node.type.isError) hasError = true; } });
   if (hasError) return null;
   const source = state.doc.toString();
-  const unit = typeof indentation === 'number' ? ' '.repeat(indentation) : indentation;
+  const unit = indentationUnit(indentation);
+  // an empty unit lays the document out on one line with no separators, as JSON.stringify does
+  const separator = (level: number) => unit === '' ? '' : '\n' + unit.repeat(level);
   const parts: string[] = [];
   const tokens: { from: number; to: number; newFrom: number }[] = [];
   let newLength = 0;
@@ -245,7 +254,7 @@ export function formatDocument(state: EditorState, indentation: number | string)
       }
       members.forEach((member, index) => {
         if (index > 0) commaBefore(member);
-        emit('\n' + unit.repeat(level + 1), null);
+        emit(separator(level + 1), null);
         if (member.name === 'Property') {
           const name = children(member).find(child => child.name === 'PropertyName');
           const colon = children(member).find(child => child.name === ':');
@@ -253,14 +262,14 @@ export function formatDocument(state: EditorState, indentation: number | string)
           if (!name || !value) throw new Error('property without a name or value');
           emit(source.slice(name.from, name.to), name.from);
           emit(':', colon ? colon.from : null);
-          emit(' ', null);
+          if (unit !== '') emit(' ', null);
           emitValue(value, level + 1);
         }
         else {
           emitValue(member, level + 1);
         }
       });
-      emit('\n' + unit.repeat(level), null);
+      emit(separator(level), null);
       punctuation(close, node.to - 1);
       return;
     }

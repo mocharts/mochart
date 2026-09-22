@@ -211,6 +211,25 @@ describe('JSON editor', () => {
     editor.destroy();
   });
 
+  // Regression: the layout from the syntax tree repeated the indentation option as given, so 0 no longer compacted
+  // to one line, 20 indented by 20 where JSON.stringify stops at 10, and a negative number threw
+  it('reads the indentation option the way JSON.stringify reads its space argument', () => {
+    const formatted = (indentation: number | string) => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      const editor = createJsonEditor(host, { value: '{ "a": [1, {"b": 2}], "c": {} }', ariaLabel: 'Configuration', indentation });
+      expect(editor.format()).toBe(true);
+      const text = editor.getValue();
+      editor.destroy();
+      host.remove();
+      return text;
+    };
+    const parsed = JSON.parse('{ "a": [1, {"b": 2}], "c": {} }') as unknown;
+    for (const indentation of [0, -1, 2.7, 20, '', '\t', 'abcdefghijklm']) {
+      expect(formatted(indentation)).toBe(JSON.stringify(parsed, null, indentation));
+    }
+  });
+
   it('leaves invalid JSON unchanged when formatting', () => {
     const host = document.createElement('div');
     const editor = createJsonEditor(host, { value: '{', ariaLabel: 'Configuration' });
