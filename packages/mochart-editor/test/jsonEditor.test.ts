@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { createJsonEditor } from '../src';
 import { defineSupport } from '../src/support';
@@ -197,6 +198,32 @@ describe('JSON editor', () => {
     const formatted = '{\n  "aaa": 1,\n  "bbb": 2\n}';
     expect(view.state.selection.main.anchor).toBe(formatted.indexOf('"bbb"') + 2);
     expect(view.state.selection.main.head).toBe(formatted.indexOf('"bbb"') + 4);
+    editor.destroy();
+    host.remove();
+  });
+
+  // Regression: a throw from the dispatch inside format() left externalUpdate set, so every later user edit
+  // skipped onChange
+  it('keeps reporting user edits after the dispatch inside format() throws', () => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const onChange = vi.fn();
+    let refuse = false;
+    const refusing = defineSupport('refusing', {
+      extensions: [EditorState.transactionFilter.of(transaction => {
+        if (refuse && transaction.docChanged) throw new Error('refused');
+        return transaction;
+      })]
+    });
+    const editor = createJsonEditor(host, { value: '{"a":1}', ariaLabel: 'Configuration', onChange, support: refusing });
+    const view = EditorView.findFromDOM(editor.element)!;
+
+    refuse = true;
+    expect(editor.format()).toBe(false);
+    expect(editor.getValue()).toBe('{"a":1}');
+    refuse = false;
+    view.dispatch({ changes: { from: 1, insert: ' ' } });
+    expect(onChange).toHaveBeenCalledWith('{ "a":1}');
     editor.destroy();
     host.remove();
   });

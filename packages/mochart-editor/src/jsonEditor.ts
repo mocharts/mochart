@@ -161,8 +161,13 @@ export function createJsonEditor(host: HTMLElement, options: JsonEditorOptions):
       if (value === view.state.doc.toString()) return;
       // a fresh state, not a change: the host replaced the document, so undo must not bring the old one back
       externalUpdate = true;
-      view.setState(EditorState.create({ doc: value, extensions: makeExtensions() }));
-      externalUpdate = false;
+      try {
+        view.setState(EditorState.create({ doc: value, extensions: makeExtensions() }));
+      }
+      finally {
+        // a throw must not leave the flag set, or every later user edit would skip onChange
+        externalUpdate = false;
+      }
       // the previous document's validity and problems must not show while the new one waits for its lint pass
       element.dataset.validity = 'pending';
       view.contentDOM.setAttribute('aria-invalid', 'false');
@@ -204,11 +209,15 @@ export function createJsonEditor(host: HTMLElement, options: JsonEditorOptions):
         if (formatted.text === text) return true;
         const { anchor, head } = view.state.selection.main;
         externalUpdate = true;
-        view.dispatch({
-          changes: { from: 0, to: text.length, insert: formatted.text },
-          selection: { anchor: formatted.mapOffset(anchor), head: formatted.mapOffset(head) }
-        });
-        externalUpdate = false;
+        try {
+          view.dispatch({
+            changes: { from: 0, to: text.length, insert: formatted.text },
+            selection: { anchor: formatted.mapOffset(anchor), head: formatted.mapOffset(head) }
+          });
+        }
+        finally {
+          externalUpdate = false;
+        }
         options.onChange?.(formatted.text);
         return true;
       }
