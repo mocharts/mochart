@@ -79,7 +79,8 @@ fills the band between its two values instead of drawing a line:
   line sits at that category's center, as the `Midweek` line at `Wed` above,
   and a range covers whole slots from the first named category to the second.
 - [`thresholdStep`](/reference/categoryAxis#categoryAxis.thresholdStep)
-  repeats a line or range by rule instead of listing values: every `count`-th
+  repeats a line or range by rule instead of listing values. It is off by
+  default, so set `visible: true` along with the rule: every `count`-th
   candidate from an `offset`, where the candidates are an ordinal axis's
   categories, the periods of a date axis under a `period`, or the multiples of
   an `interval` on a number scale. `period: 'week'` with `count: 2` bands every
