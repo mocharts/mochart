@@ -206,7 +206,8 @@ set to 16 on a page with a 12px font the minor labels are 10.2px, not 13.6px:
 
 A member that is `null` in both places is left to CSS, so the page keeps
 deciding it. A member that is set is written as an inline style on the text
-element itself (on the tooltip's box for the HTML tooltip), which is why a
+element itself (on the tooltip's box for the HTML tooltip, and on the clip
+indicator's group, which its label inherits), which is why a
 configured value wins over any host page CSS rule that matches the element,
 including a reset. The chart measures its text after writing the font, so a
 larger `size` reserves more room for the labels it applies to.

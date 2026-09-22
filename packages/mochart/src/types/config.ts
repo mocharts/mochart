@@ -514,8 +514,9 @@ export interface ChartConfig {
    * four members. A member is resolved per text element: the part's own value
    * when it is not `null`, otherwise this chart-wide value, otherwise nothing.
    * Resolved members are written as an inline style on the text element itself
-   * (`font-family`, `font-size`, `font-weight`, `font-style`), so a configured
-   * value wins over any host page css rule; a member left `null` in both places
+   * (`font-family`, `font-size`, `font-weight`, `font-style`), or for the clip
+   * indicator on its group, which its label inherits, so a configured value
+   * wins over any host page css rule; a member left `null` in both places
    * writes nothing and stays with css. Text is measured after the font is
    * written, so a larger size reserves more space in the layout. A `size`
    * number is written in pixels; a string is written as given, so relative
