@@ -227,7 +227,7 @@ export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: Axi
   }, vertical, inverted, notAfter, titleMarginInner, titleMarginOuter, titlePaddingInner, titlePaddingOuter);
 
   // the focus range wraps whichever kind of label reserves the room
-  const tickLabelLayoutInfo = axisLayoutInfo.tickLabelLayoutInfo = major.layoutInfo;
+  axisLayoutInfo.tickLabelLayoutInfo = major.layoutInfo;
   const focusLabelLayoutInfo = minor.totalSize > major.totalSize ? minor.layoutInfo : major.layoutInfo;
 
   const { applyToTitle: focusRangeApplyToTitle } = focusRange;
@@ -242,7 +242,6 @@ export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: Axi
     width: vertical ? (focusRangeApplyToTitle ? titleLayoutInfo.width + focusLabelLayoutInfo.width : focusLabelLayoutInfo.width) : width,
     height: !vertical ? (focusRangeApplyToTitle ? titleLayoutInfo.height + focusLabelLayoutInfo.height : focusLabelLayoutInfo.height) : height,
   }, vertical, inverted, notAfter, focusMarginInner, focusMarginOuter, focusPaddingInner, focusPaddingOuter);
-  void tickLabelLayoutInfo;
 
   if (title !== NONE) {
     const titleOffset = notAfter ? titleMarginOuter + titlePaddingOuter + axisLayoutInfo.titleSize / 2.0 : (totalTickLabelSize + totalTitleSize - titleMarginOuter - titlePaddingOuter - axisLayoutInfo.titleSize / 2.0);
