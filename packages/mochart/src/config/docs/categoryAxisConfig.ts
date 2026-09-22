@@ -135,7 +135,7 @@ export function getDetails() {
       properties: {
         ...getThresholdMemberDetails(),
         value: 'On a linear axis it takes the same forms as `min`: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string when `type` is `date`. On an ordinal axis it names a category, matched the way explicit `ticks` are (a date by instant, so the ISO and timestamp forms both find a `Date` category; the category string on a `string` axis; the key when the axis has a `keyProperty`), and a line sits at the category\'s center. An entry naming no category is not drawn.',
-        rangeValue: getThresholdMemberDetails().rangeValue + ' On an ordinal axis the range covers whole slots from the first named category\'s outer edge to the second\'s, so ranges over consecutive weeks tile without gaps; a range with either end naming a category the data does not hold is not drawn, since an ordinal axis has no position to clip it to.'
+        rangeValue: getThresholdMemberDetails().rangeValue + ' On an ordinal axis the range covers whole slots, from the outer edge of the lower positioned of the two named categories to the outer edge of the higher, so ranges over consecutive weeks tile without gaps; a range with either end naming a category the data does not hold is not drawn, since an ordinal axis has no position to clip it to.'
       }
     }
   };
