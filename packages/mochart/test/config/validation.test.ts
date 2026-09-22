@@ -656,6 +656,19 @@ describe('list member element paths', () => {
     const errors = errorsFor({ version: V, categoryAxis: { property: 'p' }, valueAxes: [{ id: 'A', thresholds: [{ value: 1 }, 'garbage'] }] });
     expect(errors).toContainEqual(expect.stringContaining('valueAxes[0] - thresholds[1] - should be an object'));
   });
+
+  it('reports up to ten failing elements of a list one by one, and a list failing in more with one message', () => {
+    const stops = (count: number) => Array.from({ length: count }, () => ({ offset: 2, color: 'red', opacity: 1 }));
+    const configFor = (count: number) => ({ version: V, categoryAxis: { property: 'p' }, linearGradients: [{ id: 'G', stops: stops(count) }] });
+    const ten = errorsFor(configFor(10));
+    expect(ten.length).toBe(10);
+    expect(ten[0]).toBe('linearGradients[0] - stops[0].offset - should be a number >= to 0 and <= 1: 2');
+    expect(ten[9]).toBe('linearGradients[0] - stops[9].offset - should be a number >= to 0 and <= 1: 2');
+    const eleven = errorsFor(configFor(11));
+    expect(eleven.length).toBe(1);
+    expect(eleven[0]).toContain('linearGradients[0] - stops - should be a non-empty array with elements that');
+    expect(detailedFor(configFor(11)).diagnostics.filter(diagnostic => diagnostic.severity === 'error').map(diagnostic => diagnostic.path)).toEqual([['linearGradients', 0, 'stops']]);
+  });
 });
 
 // invalid entries slipped past both halves of the shape guard unreported.

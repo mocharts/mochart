@@ -84,7 +84,8 @@ function addErrorMessageForKey(prefix: string, properties: (string | number)[], 
   const item = itemValidatorOf(validator);
   if (item !== null && Array.isArray(value)) {
     const failedIndices = value.map((element, index) => item(element) ? -1 : index).filter(index => index >= 0);
-    if (failedIndices.length > 0) {
+    // a list failing in more elements than the cap gets the one aggregate message, not a message per element
+    if (failedIndices.length > 0 && failedIndices.length <= maxInvalidProperties) {
       for (const index of failedIndices) {
         addErrorMessageForKey(prefix, [...properties, index], value[index], item, errorMessages, errorDetails, i);
       }
