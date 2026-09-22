@@ -2984,8 +2984,10 @@ export interface AxisConfigBase {
    * categories between an ordinal step's ticks, the `minorSteps` or
    * `minorPeriod` ticks of a linear step) or a `ticks` entry marked `minor`.
    * Every tick label setting has a minor version named "minor" followed by the
-   * setting name, and each defaults to `"major"`, which uses the value of the
-   * matching non-minor setting.
+   * setting name. Each defaults to `"major"`, which uses the value of the
+   * matching non-minor setting, except `minorPrefix` and `minorSuffix`, which
+   * default to null and take no `"major"`, and the `text` of the category axis
+   * `minorTruncation`, which is always a string of its own.
    *
    * Category axis default: `{ visible: true, front: false, anchor: "auto",
    * backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1,
@@ -3142,8 +3144,10 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * categories between an ordinal step's ticks, the `minorSteps` or
    * `minorPeriod` ticks of a linear step) or a `ticks` entry marked `minor`.
    * Every tick label setting has a minor version named "minor" followed by the
-   * setting name, and each defaults to `"major"`, which uses the value of the
-   * matching non-minor setting.
+   * setting name. Each defaults to `"major"`, which uses the value of the
+   * matching non-minor setting, except `minorPrefix` and `minorSuffix`, which
+   * default to null and take no `"major"`, and the `text` of the category axis
+   * `minorTruncation`, which is always a string of its own.
    *
    * @default { visible: true, front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, minorFront: "major", minorAnchor: "major", minorBackgroundStyle: { … }, minorSize: "major", minorMarginInner: "major", minorMarginOuter: "major", minorPaddingInner: "major", minorPaddingOuter: "major", minorFormat: "major", minorPrefix: null, minorSuffix: null, minorRotation: "major", minorTextStyle: { … }, minorFont: { … }, truncation: { … }, minorTruncation: { … } }
    */
@@ -3417,8 +3421,10 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * categories between an ordinal step's ticks, the `minorSteps` or
    * `minorPeriod` ticks of a linear step) or a `ticks` entry marked `minor`.
    * Every tick label setting has a minor version named "minor" followed by the
-   * setting name, and each defaults to `"major"`, which uses the value of the
-   * matching non-minor setting.
+   * setting name. Each defaults to `"major"`, which uses the value of the
+   * matching non-minor setting, except `minorPrefix` and `minorSuffix`, which
+   * default to null and take no `"major"`, and the `text` of the category axis
+   * `minorTruncation`, which is always a string of its own.
    *
    * @default { visible: true, front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, minorFront: "major", minorAnchor: "major", minorBackgroundStyle: { … }, minorSize: "major", minorMarginInner: "major", minorMarginOuter: "major", minorPaddingInner: "major", minorPaddingOuter: "major", minorFormat: "major", minorPrefix: null, minorSuffix: null, minorRotation: "major", minorTextStyle: { … }, minorFont: { … }, adjustSizeForFiltering: false }
    */

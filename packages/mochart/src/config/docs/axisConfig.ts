@@ -112,7 +112,7 @@ export function getTickLabelDescriptions(): DescriptionMap {
 
 export const tickLabelDescription = 'the labels shown at each tick along the axis';
 
-export const minorTickLabelIntro = 'A minor tick is one a `tickStep` places between its own ticks (the categories between an ordinal step\'s ticks, the `minorSteps` or `minorPeriod` ticks of a linear step) or a `ticks` entry marked `minor`. Every tick label setting has a minor version named "minor" followed by the setting name, and each defaults to `"major"`, which uses the value of the matching non-minor setting.';
+export const minorTickLabelIntro = 'A minor tick is one a `tickStep` places between its own ticks (the categories between an ordinal step\'s ticks, the `minorSteps` or `minorPeriod` ticks of a linear step) or a `ticks` entry marked `minor`. Every tick label setting has a minor version named "minor" followed by the setting name. Each defaults to `"major"`, which uses the value of the matching non-minor setting, except `minorPrefix` and `minorSuffix`, which default to null and take no `"major"`, and the `text` of the category axis `minorTruncation`, which is always a string of its own.';
 
 /** The tick label details shared by both axes: what a minor tick is, how its labels fit, and the font size note. */
 export function getTickLabelDetails(): DescriptionMap {
