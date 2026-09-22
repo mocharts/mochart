@@ -18,12 +18,12 @@ const rows = [
   { month: 'Mar', sales: 30 }
 ];
 
-function makeConfig(): MochartInputConfig {
+function makeConfig(categoryThresholds: Record<string, unknown>[] = []): MochartInputConfig {
   return {
     version: '1.0.0',
     animation: { enabled: false },
     tooltip: { followPointer: true, snapToCategory: false },
-    categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+    categoryAxis: { property: 'month', type: 'string', scale: 'ordinal', thresholds: categoryThresholds },
     valueAxes: [{ id: 'VA0', min: 0, max: 40, thresholds: [{ value: 25 }, { value: 15, front: true }] }],
     series: [{ id: 'S0', property: 'sales', axis: 'VA0', renderer: 'bar' }]
   } as unknown as MochartInputConfig;
@@ -46,9 +46,14 @@ function mouse(target: Element, type: string, clientX: number, clientY: number):
 }
 
 describe('threshold line sync while the tooltip tracks the pointer', () => {
-  it('skips every threshold line while category crossings re-sync the plot', () => {
+  // Regression: the ordinal slot positions were rebuilt as a new object on every container sync, so every
+  // category-axis threshold shape re-synced on every pointer move while the value-axis ones were skipped
+  it.each([
+    ['value axis', []],
+    ['category axis', [{ value: 'Feb' }, { value: 'Jan', rangeValue: 'Feb' }]]
+  ])('skips every %s threshold shape while category crossings re-sync the plot', (_axis, categoryThresholds) => {
     const container = mountContainer();
-    trackHandle(mochart.createDefaultChart(container, { config: makeConfig(), data: rows, width: WIDTH, height: HEIGHT } as DefaultChartProps));
+    trackHandle(mochart.createDefaultChart(container, { config: makeConfig(categoryThresholds), data: rows, width: WIDTH, height: HEIGHT } as DefaultChartProps));
     runFrames();
     expect(container.querySelectorAll(getCssSelector('axisThreshold')).length).toBeGreaterThan(0);
     const root = container.querySelector(getChartRootCssSelector())!;

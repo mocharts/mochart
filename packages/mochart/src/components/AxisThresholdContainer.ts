@@ -8,8 +8,9 @@ import { accessibilityActive } from '../utils/utils';
 import AxisThreshold from './AxisThreshold';
 import { SCALE_ORDINAL } from '../config/core/constants';
 import type { ThresholdCategoryPositions } from './AxisThresholdShape';
+
 import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { AxisData, CategoryAxisData, ChartData } from '../types/data';
+import type { AxisData, CategoryAxisData, CategoryValue, ChartData } from '../types/data';
 import type { FocusData } from '../types/animation';
 import type { AxisLayoutInfo, CategoryAxisLayoutInfo, LayoutInfo } from '../types/layout';
 
@@ -50,6 +51,18 @@ export default class AxisThresholdContainer extends Renderer<AxisThresholdContai
     return this.categoryRange!.range;
   }
 
+  /** the ordinal slot positions, kept while their inputs hold so the shape renderers' shallow-equal skips see one object */
+  private categoryPositions: { values: unknown; keys: unknown; positions: unknown; axisExtent: number; result: ThresholdCategoryPositions } | null = null;
+
+  private getCategoryPositions(values: readonly CategoryValue[], keys: readonly CategoryValue[], positions: number[], axisExtent: number): ThresholdCategoryPositions {
+    const cached = this.categoryPositions;
+    if (cached === null || cached.values !== values || cached.keys !== keys || cached.positions !== positions || cached.axisExtent !== axisExtent) {
+      this.categoryPositions = { values, keys, positions, axisExtent,
+        result: { values, keys, positions, slotExtent: positions.length > 1 ? Math.abs(positions[1]! - positions[0]!) : axisExtent } };
+    }
+    return this.categoryPositions!.result;
+  }
+
   create() {
     return this.root.node;
   }
@@ -75,8 +88,7 @@ export default class AxisThresholdContainer extends Renderer<AxisThresholdContai
     if (categoryAxisConfig.scale === SCALE_ORDINAL) {
       const { positions } = axisData.category.valueData;
       const axisExtent = inverted ? seriesLayoutInfo.height : seriesLayoutInfo.width;
-      categoryPositions = { values: categoryData.values.parsed, keys: categoryData.values.key, positions,
-        slotExtent: positions.length > 1 ? Math.abs(positions[1]! - positions[0]!) : axisExtent };
+      categoryPositions = this.getCategoryPositions(categoryData.values.parsed, categoryData.values.key, positions, axisExtent);
     }
     // ascending: a category axis renders ascending, a value axis only when horizontal (inverted); reversed flips either
     this.categoryThreshold.set(AxisThreshold, { front, plotConfig, axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
