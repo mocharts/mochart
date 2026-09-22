@@ -399,9 +399,9 @@ export function validateTickEntries(config: ConfigObject, configWithoutDefaults:
       if (!isConfigObject(tick) || (typeof tick['value'] !== 'string' && typeof tick['value'] !== 'number')) {
         return;
       }
-      // the same key the chart matches ticks to categories by: the instant on a date axis without a keyProperty, else the value
+      // the same key the chart matches ticks to categories by (getCategoryValueKey): the instant on a date axis without a keyProperty, else the value as a string, so 1 and '1' are one entry
       const dateValue = dateAxis ? boundValue(tick['value'], true) : null;
-      const key = dateValue !== null ? 'date:' + dateValue : typeof tick['value'] + ':' + String(tick['value']);
+      const key = dateValue !== null ? 'date:' + dateValue : String(tick['value']);
       if (seen.has(key)) {
         report(['ticks', index, 'value'], 'ticks[' + index + '].value', duplicateTickMessage);
       }

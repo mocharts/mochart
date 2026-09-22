@@ -304,6 +304,17 @@ describe('explicit minor ticks', () => {
     expect(errors).toMatch(/categoryAxis - ticks\[1\]\.value - should not repeat the value of another ticks entry/);
     expect(errors).toMatch(/valueAxes\[0\] - ticks\[2\]\.value - should not repeat/);
   });
+
+  it('rejects the string and number forms of one key on a keyed ordinal axis, as the chart matches them to one category', () => {
+    const { enhanceConfig } = mochart;
+    const errors = enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', keyProperty: 'id', type: 'string', scale: 'ordinal', ticks: [{ value: 1 }, { value: '1', minor: true }] },
+      valueAxes: [{}],
+      series: [{ property: 'value' }]
+    }).validation.errors.join('\n');
+    expect(errors).toMatch(/categoryAxis - ticks\[1\]\.value - should not repeat the value of another ticks entry/);
+  });
 });
 
 describe('tick step on linear axes', () => {
