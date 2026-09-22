@@ -79,7 +79,7 @@ function styleStates(description: string, members: string[]): NestedDescription 
 /** The tick label members shared by both axes; each axis adds its own (format, truncation, filtering). */
 export function getTickLabelDescriptions(): DescriptionMap {
   return {
-    visible: 'whether to show the axis tick labels (the minor tick labels follow minorVisible)',
+    visible: 'whether to show the axis tick labels (false hides the minor tick labels too)',
     front: 'whether the axis tick labels should be shown in front (true) or behind (false) the series shapes',
     backgroundStyle: style('the styles to apply to the axis tick label background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
     size: 'the space (in pixels) perpendicular to the axis direction to allocate for the tick labels (use "auto" to derive from the font size)',
@@ -118,7 +118,7 @@ export const minorTickLabelIntro = 'A minor tick is one a `tickStep` places betw
 export function getTickLabelDetails(): DescriptionMap {
   return {
     visible: 'A label hidden here is not drawn and takes no room in the layout, and its ticks are no longer thinned to make the labels fit: their tick marks and grid lines are limited only by `tickStep.minSpacing`. To keep hidden labels in the layout, leave them visible and set the opacities of every state of `textStyle` to 0 instead.',
-    minorVisible: 'The default is `false` while `minorFormat` is `"major"` and `ticks` is unset, so a `tickStep` alone labels only its own ticks; setting a `minorFormat` or listing `ticks` turns it to `"major"`. Minor labels never change which non-minor labels show. A minor label shows only when every minor label fits beside its neighbours, minor or not, measured from the widest minor and non-minor labels plus `minTickSpacing`; when one does not fit they all hide, unless the category axis `minorTruncation` truncates them instead. Hidden minor labels (not fitting, or `false` here) hide their tick marks and grid lines with them, and `false` here also takes them out of the layout.',
+    minorVisible: 'The default is `false` while `minorFormat` is `"major"` and `ticks` is unset, so a `tickStep` alone labels only its own ticks; setting a `minorFormat` or listing `ticks` turns it to `"major"`. Minor labels never change which non-minor labels show. A minor label shows only when every minor label fits beside its neighbours, minor or not, measured from the widest minor and non-minor labels plus `minTickSpacing`; when one does not fit they all hide, unless the category axis `minorTruncation` truncates them instead. Minor labels that do not fit hide their tick marks and grid lines with them; `false` here hides only the labels and takes them out of the layout, and `visible: false` hides the minor labels whatever this says.',
     minorFormat: '`"major"` is replaced with the value of `format` before any formatter is built, so it never reaches d3.',
     minorSize: 'The minor labels have a layout of their own: they are measured and placed from the minor settings, the axis reserves the larger of the two label totals (size, margins and paddings), the title sits after the larger one, and the minor labels get their own background box.',
     minorFont: { properties: { size: 'A relative size such as `"0.85em"` resolves against the font size the label inherits from the host page, as every font size in mochart does, not against `tickLabel.font.size` or `chart.font.size`: with `tickLabel.font.size` 16 on a page with a 12px font, `"0.85em"` gives minor labels 10.2px, not 13.6px.' } }
@@ -254,7 +254,7 @@ export default function getDescriptions() {
     gridLine: {
       description: 'the grid lines drawn across the plot at each tick on the axis',
       properties: {
-        visible: 'whether to show grid lines perpendicular to each tick on the axis',
+        visible: 'whether to show grid lines perpendicular to each tick on the axis (false hides the minor grid lines too)',
         front: 'whether the axis grid lines should be shown in front (true) or behind (false) the series shapes',
         style: styleStates('the style of the axis grid lines', strokeMembers),
         minorVisible: 'whether to show grid lines perpendicular to each minor tick on the axis' + majorNote('gridLine.visible'),
@@ -293,7 +293,7 @@ export default function getDescriptions() {
     tickMark: {
       description: 'the tick marks drawn perpendicular to the axis at each tick value',
       properties: {
-        visible: 'whether to show lines perpendicular to each tick value along the axis',
+        visible: 'whether to show lines perpendicular to each tick value along the axis (false hides the minor tick marks too)',
         front: 'whether the axis tick marks should be shown in front (true) or behind (false) the series shapes',
         size: 'the length (in pixels) of the axis tick mark lines',
         marginInner: 'the margin (in pixels) to show between the inside of the axis and the axis tick mark lines',

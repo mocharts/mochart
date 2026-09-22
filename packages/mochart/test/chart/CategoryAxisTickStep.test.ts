@@ -251,6 +251,15 @@ describe('category axis tick step minor labels', () => {
     chart.destroy();
   });
 
+  it('hides the minor ticks of a part whose visible is false, whatever its minorVisible says', () => {
+    const { container, chart } = renderChart({ type: 'date', scale: 'ordinal', tickStep: { period: 'week' },
+      tickLabel: { visible: false, minorVisible: true }, tickMark: { visible: false, minorVisible: true }, gridLine: { visible: false, minorVisible: true } }, dateRows(dates));
+    expect(container.querySelectorAll(categoryTickLabels).length).toBe(0);
+    expect(container.querySelectorAll(categoryTickMarks).length).toBe(0);
+    expect(container.querySelectorAll(categoryGridLines).length).toBe(0);
+    chart.destroy();
+  });
+
   it('adds no minor class without a tick step', () => {
     const { container, chart } = renderChart({ type: 'string', scale: 'ordinal', tickMark: { visible: true } }, letterRows);
     expect(container.querySelectorAll(minorLabel).length).toBe(0);

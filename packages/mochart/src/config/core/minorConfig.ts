@@ -70,6 +70,7 @@ export function getMinorTickLabel(tickLabel: AxisTickLabelConfig & Partial<Pick<
   let minor = minorTickLabels.get(tickLabel);
   if (minor === undefined) {
     minor = {
+      // a part hidden by visible hides its minor ticks too, whatever minorVisible says
       visible: tickLabel.visible && major(tickLabel.minorVisible, tickLabel.visible),
       front: major(tickLabel.minorFront, tickLabel.front),
       anchor: major(tickLabel.minorAnchor, tickLabel.anchor),
@@ -98,7 +99,7 @@ export function getMinorTickMark(tickMark: AxisTickMarkConfig): MinorTickMark {
   let minor = minorTickMarks.get(tickMark);
   if (minor === undefined) {
     minor = {
-      visible: major(tickMark.minorVisible, tickMark.visible),
+      visible: tickMark.visible && major(tickMark.minorVisible, tickMark.visible),
       front: major(tickMark.minorFront, tickMark.front),
       size: major(tickMark.minorSize, tickMark.size),
       marginInner: major(tickMark.minorMarginInner, tickMark.marginInner),
@@ -113,7 +114,7 @@ export function getMinorGridLine(gridLine: AxisGridLineConfig): MinorGridLine {
   let minor = minorGridLines.get(gridLine);
   if (minor === undefined) {
     minor = {
-      visible: major(gridLine.minorVisible, gridLine.visible),
+      visible: gridLine.visible && major(gridLine.minorVisible, gridLine.visible),
       front: major(gridLine.minorFront, gridLine.front),
       style: majorStates(gridLine.minorStyle, gridLine.style)
     };

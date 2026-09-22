@@ -2205,7 +2205,8 @@ export interface MinorTickLabelTruncationConfig {
 
 export interface AxisGridLineConfig {
   /**
-   * Whether to show grid lines perpendicular to each tick on the axis.
+   * Whether to show grid lines perpendicular to each tick on the axis (false
+   * hides the minor grid lines too).
    *
    * @default false
    */
@@ -2253,7 +2254,8 @@ export interface AxisGridLineConfig {
 /** The tick marks an axis draws at each tick value. */
 export interface AxisTickMarkConfig {
   /**
-   * Whether to show lines perpendicular to each tick value along the axis.
+   * Whether to show lines perpendicular to each tick value along the axis
+   * (false hides the minor tick marks too).
    *
    * @default true
    */
@@ -2425,8 +2427,8 @@ export interface AxisTickLabelConfig {
    */
   font: FontConfig;
   /**
-   * Whether to show the axis tick labels (the minor tick labels follow
-   * minorVisible).
+   * Whether to show the axis tick labels (false hides the minor tick labels
+   * too).
    *
    * A label hidden here is not drawn and takes no room in the layout, and its
    * ticks are no longer thinned to make the labels fit: their tick marks and
@@ -2449,9 +2451,9 @@ export interface AxisTickLabelConfig {
    * minor label fits beside its neighbours, minor or not, measured from the
    * widest minor and non-minor labels plus `minTickSpacing`; when one does not
    * fit they all hide, unless the category axis `minorTruncation` truncates
-   * them instead. Hidden minor labels (not fitting, or `false` here) hide their
-   * tick marks and grid lines with them, and `false` here also takes them out
-   * of the layout.
+   * them instead. Minor labels that do not fit hide their tick marks and grid
+   * lines with them; `false` here hides only the labels and takes them out of
+   * the layout, and `visible: false` hides the minor labels whatever this says.
    *
    * Category axis defaults:
    * - `false` — when tickLabel.minorFormat is "major" and ticks is null
