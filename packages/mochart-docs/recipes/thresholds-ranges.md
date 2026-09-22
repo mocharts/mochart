@@ -87,4 +87,8 @@ fills the band between its two values instead of drawing a line:
   demo in the gallery does, and on a value axis `interval: 10` with `count: 2`
   bands 0 to 10, 20 to 30 and so on. `range: false` draws lines at the
   candidates instead. The stepped shapes share one `style`, `pattern` or
-  `gradient`, carry no title, and stop at 500 shapes.
+  `gradient` and carry no title. On a linear axis
+  [`minSpacing`](/reference/valueAxes#valueAxes.thresholdStep.minSpacing)
+  is the least distance in pixels allowed between the thresholds the rule
+  draws: when they would sit closer together than that, none are drawn and a
+  console warning names the axis.
