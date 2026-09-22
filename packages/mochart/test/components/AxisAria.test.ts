@@ -118,6 +118,17 @@ describe('axis text in the accessibility tree', () => {
     expect(frontCategoryAxis.getAttribute('aria-label')).toBeNull();
   });
 
+  it('names no group and leaves the title readable when the axis draws no tick labels', () => {
+    const container = mountChart(makeConfig({ categoryAxis: { property: 'month', type: 'string', scale: 'ordinal', title: { text: 'Months' }, tickLabel: { visible: false } } }));
+    for (const half of ['plotBack', 'plotFront'] as const) {
+      const categoryAxis = container.querySelector(getDescendantCssSelector(half, 'categoryAxis'))!;
+      expect(categoryAxis.getAttribute('role'), half).toBeNull();
+      expect(categoryAxis.getAttribute('aria-label'), half).toBeNull();
+    }
+    expect(container.querySelector(getDescendantCssSelector('categoryAxis', 'axisTitle'))!.getAttribute('aria-hidden')).toBeNull();
+    expect(exposedTexts(container)).toContain('Months');
+  });
+
   it('keeps the overlap-suppressed tick labels out of the reading order', () => {
     const container = mountChart(makeConfig());
     const tickTexts = [...container.querySelectorAll(getDescendantCssSelector('plotBack', 'axisTickLabel') + ' text')];

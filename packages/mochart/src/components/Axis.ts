@@ -68,8 +68,10 @@ export default class Axis extends Renderer<AxisProps> {
       const tickLabelsInPass = (front === tickLabelFront && axisConfig.tickLabel.visible) || (front === minorTickLabel.front && minorTickLabel.visible);
       const tickMarksInPass = (front === tickMarkFront && axisConfig.tickMark.visible) || (front === minorTickMark.front && minorTickMark.visible);
 
-      // the front and back passes split one axis in two; only the half that draws tick labels is a named group
-      const namedGroup = front === tickLabelFront && axisTicks.length > 0;
+      // the front and back passes split one axis in two; only the half that draws tick labels is a named group, and
+      // an axis drawing none has no group (hidden major labels hide the minor ones too, so that is the major half)
+      const labelFront = axisConfig.tickLabel.visible && axisTicks.length > 0 ? tickLabelFront : null;
+      const namedGroup = labelFront === front;
 
       this.setPresent(true);
       this.root.set({ className: axisClass,
@@ -120,7 +122,7 @@ export default class Axis extends Renderer<AxisProps> {
       }
       else {
         // the named group (in whichever half) already reads the title, so the drawn title stays hidden even when it draws in the other half
-        this.titleSlot.set(AxisTitle, { axisConfig, axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null, ariaHidden: accessibility && axisTicks.length > 0, chartFont });
+        this.titleSlot.set(AxisTitle, { axisConfig, axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null, ariaHidden: accessibility && labelFront !== null, chartFont });
       }
 
       if (front !== focusTickMarkFront) {
