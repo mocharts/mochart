@@ -21,7 +21,7 @@ describe('font validation', () => {
   });
 
   it('accepts every css font-size form as a string', () => {
-    for (const size of ['0.85em', '1.25rem', '120%', '14px', '11pt', '2vw', 'large', 'smaller', 'calc(1em + 2px)', 'var(--chart-size)']) {
+    for (const size of ['0.85em', '1.25rem', '120%', '14px', '11pt', '2vw', '1cqw', '3cqmin', '1e1px', '+2rem', '.5E1em', 'large', 'smaller', 'calc(1em + 2px)', 'var(--chart-size)']) {
       expect(errorsFor(withFont({ chart: { font: { size } } })), size).toEqual([]);
     }
   });
@@ -37,7 +37,7 @@ describe('font validation', () => {
   });
 
   it('rejects a string that is not a css font-size', () => {
-    for (const size of ['0em', '-1rem', '12', 'big', 'px', '']) {
+    for (const size of ['0em', '-1rem', '12', 'big', 'px', '', '1e', '1cq', '++2rem', '0e5px']) {
       expect(errorsFor(withFont({ chart: { font: { size } } })), size)
         .toContainEqual(expect.stringContaining('chart - font.size - should be a number of pixels greater than 0, or a css font-size string'));
     }

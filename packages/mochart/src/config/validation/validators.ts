@@ -55,7 +55,7 @@ const cssStyleKeyMap = {
 
 // a number is written in px; a string is any css font-size: a length above 0 in any unit, a
 // percentage, a size keyword, or a function the browser resolves
-const fontSizeLengthRegexp = /^(?:\d*\.\d+|\d+)(?:px|em|rem|%|pt|pc|in|cm|mm|q|ch|ex|cap|ic|lh|rlh|[sld]?v(?:w|h|min|max|i|b))$/i;
+const fontSizeLengthRegexp = /^\+?(?:\d*\.\d+|\d+)(?:e[+-]?\d+)?(?:px|em|rem|%|pt|pc|in|cm|mm|q|ch|ex|cap|ic|lh|rlh|cq(?:w|h|i|b|min|max)|[sld]?v(?:w|h|min|max|i|b))$/i;
 const fontSizeKeywords = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large', 'xxx-large', 'smaller', 'larger'];
 const fontSizeFunctionRegexp = /^(?:calc|clamp|min|max|var)\(.*\)$/i;
 const fontSize: CustomValidator = value => {
