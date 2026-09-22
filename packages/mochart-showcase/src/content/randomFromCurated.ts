@@ -3,6 +3,7 @@
 // of jumping to demo-data's shared defaults (15 categories spread over 2014 to
 // 2018, values between -500 and 500).
 
+import { weekdayMillis } from '@mochart/demo-common';
 import type { DataObject, DemoConfig, RandomConfig } from '@mochart/demo-data';
 
 type DateUnit = RandomConfig['category']['date']['intervalUnit'];
@@ -70,7 +71,7 @@ function toMillis(value: unknown): number {
   return typeof value === 'number' ? value : new Date(String(value)).getTime();
 }
 
-function deriveDate(values: unknown[], count: number): Partial<RandomConfig['category']> | null {
+function deriveDate(values: unknown[], count: number, weekdays: boolean): Partial<RandomConfig['category']> | null {
   const millis = values.map(toMillis).filter(Number.isFinite).sort((a, b) => a - b);
   if (millis.length < 2) {
     return null;
@@ -103,13 +104,18 @@ function deriveDate(values: unknown[], count: number): Partial<RandomConfig['cat
     min = Math.max(min, dayStart);
     max = Math.min(max, dayStart + DAY_MILLIS - 1);
   }
+  // A weekdays-only demo keeps drawing weekdays while the derived spacing is
+  // still one day, the only spacing the member allows, and its pool is then
+  // the window's weekdays rather than its days.
+  const daily = weekdays && unit === 'day' && interval === DAY_MILLIS;
   return {
-    count: Math.min(count, slots(max - min, interval)),
+    count: Math.min(count, daily ? weekdayMillis(min, max).length : slots(max - min, interval)),
     date: {
       min: new Date(min).toISOString(),
       max: new Date(max).toISOString(),
       interval: interval / unitMillis,
-      intervalUnit: unit
+      intervalUnit: unit,
+      ...(daily ? { weekdays: true } : {})
     }
   };
 }
@@ -205,16 +211,11 @@ export function randomFromCurated(config: DemoConfig, rows: DataObject[], random
   const values = categoryValues(rows, property);
   const count = values.length;
   const category = count === 0 ? null
-    : type === 'date' ? deriveDate(values, count)
+    : type === 'date' ? deriveDate(values, count, random.category.date.weekdays === true)
     : type === 'number' ? deriveNumber(values, count)
     : deriveString(values, count);
 
   const seriesNumber = deriveSeriesNumber(rows, seriesProperties(config));
-
-  // a weekdays-only demo keeps drawing weekdays while the derived spacing is still one day, the only spacing the member allows
-  if (category !== null && category.date !== undefined && random.category.date.weekdays === true && category.date.intervalUnit === 'day' && category.date.interval === 1) {
-    category.date = { ...category.date, weekdays: true };
-  }
 
   return {
     category: { ...random.category, count, ...category },

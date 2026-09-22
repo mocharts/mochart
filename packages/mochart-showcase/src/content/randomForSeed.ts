@@ -4,6 +4,7 @@
 // because half the categories come from the shared 'global' seed and the rest
 // are drawn from a pool wide enough that they always reach both of its ends.
 
+import { weekdayMillis } from '@mochart/demo-common';
 import type { DemoRandomConfig, RandomConfig } from '@mochart/demo-data';
 
 import type { WalkBounds } from './types';
@@ -100,7 +101,7 @@ function snap(millis: number, unitMillis: number): number {
   return Math.round(millis / unitMillis) * unitMillis;
 }
 
-function walkDate(date: CategoryConfig['date'], walk: Walk): CategoryConfig['date'] {
+function walkDate(date: CategoryConfig['date'], walk: Walk, categoryCount: number): CategoryConfig['date'] {
   const unitMillis = UNIT_MILLIS[date.intervalUnit] ?? 1000;
   const min = toMillis(date.min);
   const max = toMillis(date.max);
@@ -129,6 +130,13 @@ function walkDate(date: CategoryConfig['date'], walk: Walk): CategoryConfig['dat
   }
   else {
     windowMin = snap(windowMin, unitMillis);
+  }
+  // A weekdays-only pool is the window's weekdays, so a shifted window that
+  // lands short of one per category grows a day at a time until it has room.
+  if (date.weekdays === true) {
+    while (weekdayMillis(windowMin, windowMin + span).length < categoryCount) {
+      span += DAY_MILLIS;
+    }
   }
   return {
     ...date,
@@ -197,7 +205,7 @@ export function randomForSeed(random: DemoRandomConfig, seed: number, bounds?: W
       // window whatever else moves. The half-step share stays as the demo set
       // it: it still lines adjacent steps up where the window barely moves.
       reuse: { globalFraction: 0, stepFraction: category.reuse.stepFraction },
-      date: walkDate(category.date, walk),
+      date: walkDate(category.date, walk, category.count),
       number: walkNumber(category.number, walk, bounds)
     }
   };

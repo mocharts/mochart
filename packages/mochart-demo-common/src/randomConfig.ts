@@ -1,6 +1,7 @@
 import validators from '@mochart/movalid';
 import type { Validator } from '@mochart/movalid';
 
+import { weekdayMillis } from './randomGenerator';
 import type { DemoRandomConfig, RandomConfigWithValid } from './types';
 
 // Every chart-type generator validates against the schema its random JSON
@@ -205,13 +206,7 @@ function addGenericErrorMessages(errorMessages: string[], randomConfig: any): vo
         if (date.intervalUnit !== 'day' || date.interval !== 1) {
           errorMessages.push(datePrefix + 'weekdays requires an interval of one day');
         }
-        distinctDates = 0;
-        for (let day = minDate; day <= maxDate; day += 86400000) {
-          const weekday = new Date(day).getUTCDay();
-          if (weekday !== 0 && weekday !== 6) {
-            distinctDates++;
-          }
-        }
+        distinctDates = weekdayMillis(minDate, maxDate).length;
       }
       if (distinctDates < requiredDistinct) {
         errorMessages.push(datePrefix + 'range insufficient to fulfill category count');

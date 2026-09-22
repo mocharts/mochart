@@ -32,6 +32,7 @@ export { createJsonEditorContent } from './jsonEditorContent';
 export type { JsonEditorContentHandle, JsonEditorContentOptions } from './jsonEditorContent';
 
 export { validateRandomConfig, restoreSharedRandomConfig, formatRandomConfig, neutralizeRandomReuse } from './randomConfig';
+export { weekdayMillis } from './randomGenerator';
 export { parseRandomId, nextRandomId, previousRandomId } from './randomId';
 
 export {

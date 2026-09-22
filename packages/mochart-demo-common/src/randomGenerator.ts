@@ -87,7 +87,7 @@ function numberToString(number: number): string {
 }
 
 /** Every Monday to Friday day from min to max as UTC midnights, the pool a weekdays-only date category draws from. */
-function weekdayMillis(min: number, max: number): number[] {
+export function weekdayMillis(min: number, max: number): number[] {
   const days: number[] = [];
   for (let day = min; day <= max; day += DAY_MILLIS) {
     const weekday = new Date(day).getUTCDay();
@@ -135,6 +135,8 @@ function categoryGenerator(type: string, categoryConfig: RandomCategoryConfig, r
   return categoryTypeToGenerator[type](categoryConfig, randomGenerator);
 }
 
+const REDRAWS_PER_TAKEN = 100;
+
 function generateCategoryValues(
   generator: ValueGenerator,
   missingGenerator: Rng,
@@ -143,15 +145,22 @@ function generateCategoryValues(
   categoryValueMap: Record<string, CategoryValue> = {}
 ): CategoryValue[] {
   const categoryValues: CategoryValue[] = [];
+  let taken = Object.keys(categoryValueMap).length;
   let i, v: CategoryValue;
   for (i = 0; i < categoryCount; i++) {
     if (missingProbability === 0 || missingGenerator() >= missingProbability) {
       v = generator();
+      let redraws = 0;
       while (categoryValueMap['' + v] !== undefined) {
+        // a pool one larger than the taken values fails this many draws with probability e^-100, so only a full pool throws
+        if (++redraws > REDRAWS_PER_TAKEN * (taken + 1)) {
+          throw new Error('random category pool has no unused value left after ' + taken + ' categories');
+        }
         v = generator();
       }
       categoryValueMap['' + v] = v;
       categoryValues.push(v);
+      taken++;
     }
   }
   return categoryValues;

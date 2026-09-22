@@ -80,6 +80,17 @@ describe('randomFromCurated', () => {
     expect(validateRandomConfig(weekly)).toBe(true);
   });
 
+  it('never asks a weekdays-only pool for more categories than the window has weekdays', () => {
+    // the two trading weeks plus their weekend: twelve rows, but the widened window holds ten weekdays
+    const days = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map(day => ({ c: '2026-06-' + day, v: 1 }));
+    const random = makeGenericRandom();
+    random.category.date.weekdays = true;
+    const spec = randomFromCurated(config('date'), days, random);
+    expect(spec.category.date).toMatchObject({ min: '2026-05-30T00:00:00.000Z', max: '2026-06-14T00:00:00.000Z', weekdays: true });
+    expect(spec.category.count).toBe(10);
+    expect(validateRandomConfig(spec)).toBe(true);
+  });
+
   it('leaves the rows and the demo spec untouched', () => {
     const rows = [{ c: 1, v: 1 }, { c: 2, v: 2 }];
     const random = makeGenericRandom();

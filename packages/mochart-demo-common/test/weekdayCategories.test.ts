@@ -47,4 +47,11 @@ describe('weekdays-only random date categories', () => {
     const days = [1, 2, 3, 4, 5].flatMap(randomId => weekdaysOf(false, randomId));
     expect(days.some(day => day === 0 || day === 6)).toBe(true);
   });
+
+  it('throws instead of redrawing forever when the pool has fewer weekdays than categories', () => {
+    const random = randomConfig(true);
+    // ten weekdays for twenty categories
+    random.category.date.max = '2026-06-12';
+    expect(() => generateDemoDataProvider(undefined, config, random as never, 1)).toThrow('random category pool has no unused value left');
+  });
 });

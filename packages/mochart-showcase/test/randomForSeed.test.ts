@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { validateRandomConfig } from '@mochart/demo-common';
+import { validateRandomConfig, weekdayMillis } from '@mochart/demo-common';
 import type { RandomConfig, RangeRandomConfig } from '@mochart/demo-data';
 
 import { makeGenericRandom } from '../src/content/locals';
@@ -80,6 +80,22 @@ describe('randomForSeed', () => {
       expect(max < '2026-03-04T00:00:00.000Z').toBe(true);
       expect(slots(Date.parse(max) - Date.parse(min), interval * 60000)).toBeGreaterThanOrEqual(10);
     }
+  });
+
+  it('grows a weekdays-only window that a shift leaves short of a weekday per category', () => {
+    // 2026-06-01 is a Monday: the twelve-day window holds exactly the ten weekdays the count needs
+    const weekdays = makeGenericRandom({ categoryCount: 10, categoryDate: { min: '2026-06-01', max: '2026-06-12' } });
+    weekdays.category.date.weekdays = true;
+    const spans = new Set<number>();
+    for (let seed = 0; seed <= 200; seed++) {
+      const { min, max, weekdays: kept } = walked(weekdays, seed).category.date;
+      expect(kept).toBe(true);
+      expect(weekdayMillis(Date.parse(min), Date.parse(max)).length, `seed ${seed}`).toBeGreaterThanOrEqual(10);
+      expect(validateRandomConfig(walked(weekdays, seed))).toBe(true);
+      spans.add(Date.parse(max) - Date.parse(min));
+    }
+    expect(Math.min(...spans)).toBe(11 * 86400000);
+    expect(spans.size).toBeGreaterThan(1);
   });
 
   it('passes a chart-type generator spec through untouched', () => {
