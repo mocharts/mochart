@@ -50,6 +50,8 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
 
   /** the last expansion, kept while its inputs hold so the shape renderers' shallow-equal skips see stable thresholds */
   private stepped: { step: unknown; domainMin: unknown; domainMax: unknown; categoryValues: unknown; axisLength: number; thresholds: ResolvedThreshold[] } | null = null;
+  /** whether the last expansion found the step too dense: the warning is for the change, not for every frame of an animated domain */
+  private steppedTooDense = false;
 
   private getSteppedThresholds(axisConfig: ThresholdAxisConfig, axisDomain: AxisThresholdProps['axisDomain'], categoryValues: readonly CategoryValue[] | null, categoryKeys: readonly CategoryValue[] | null, axisLength: number): ResolvedThreshold[] {
     const domainMin = axisDomain[0]?.valueOf();
@@ -58,9 +60,11 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
     if (cached === null || cached.step !== axisConfig.thresholdStep || cached.domainMin !== domainMin || cached.domainMax !== domainMax || cached.categoryValues !== categoryValues || cached.axisLength !== axisLength) {
       const { front, axisName } = this.props;
       // the pass that would draw the step's shapes warns, so the front and back renderers do not both report it
-      if (front === axisConfig.thresholdStep.front && axisConfig.thresholdStep.visible && !steppedThresholdsFit(axisConfig, axisDomain, axisLength)) {
+      const tooDense = front === axisConfig.thresholdStep.front && axisConfig.thresholdStep.visible && !steppedThresholdsFit(axisConfig, axisDomain, axisLength);
+      if (tooDense && !this.steppedTooDense) {
         console.warn('mochart ' + axisName + ' thresholdStep draws nothing: its thresholds would be closer together than minSpacing (' + axisConfig.thresholdStep.minSpacing + 'px)');
       }
+      this.steppedTooDense = tooDense;
       this.stepped = { step: axisConfig.thresholdStep, domainMin, domainMax, categoryValues, axisLength, thresholds: getSteppedThresholds(axisConfig, axisDomain, categoryValues, categoryKeys, axisLength) };
     }
     return this.stepped!.thresholds;

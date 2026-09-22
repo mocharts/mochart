@@ -2,7 +2,7 @@
 // value intervals, stepped by count and offset, clipped to the plot, and kept minSpacing apart
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
-import { mountContainer, trackHandle, mockBoundingClientRect } from './helpers';
+import { mountContainer, trackHandle, lastHandle, mockBoundingClientRect } from './helpers';
 import { createDefaultChart } from '../../src/createChart';
 import { getSteppedThresholds } from '../../src/data/ThresholdSteps';
 import { getStepCandidates } from '../../src/data/Steps';
@@ -188,6 +188,30 @@ describe('threshold steps on linear scales', () => {
       const messages = warn.mock.calls.map((call) => String(call[0])).filter((message) => message.includes('thresholdStep'));
       expect(messages).toHaveLength(1);
       expect(messages[0]).toMatch(/value axis VA0 thresholdStep draws nothing/);
+    }
+    finally {
+      warn.mockRestore();
+    }
+  });
+
+  // Regression: the warning ran on every expansion, so every domain change (and every frame of an animated one) logged it again
+  it('warns again only once the rule fits and then turns too dense again, not on every domain change', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const rows = (max: number) => [{ label: 'a', value: 5 }, { label: 'b', value: max }];
+      const config = { categoryAxis: { property: 'label', type: 'string', scale: 'ordinal' },
+        valueAxes: [{ min: 0, thresholdStep: { visible: true, interval: 1, style: stepStyle } }] };
+      mount(config, rows(33));
+      const handle = lastHandle();
+      const messages = () => warn.mock.calls.map((call) => String(call[0])).filter((message) => message.includes('thresholdStep'));
+      expect(messages()).toHaveLength(0);
+      handle.update({ data: rows(120000) });
+      expect(messages()).toHaveLength(1);
+      handle.update({ data: rows(130000) });
+      expect(messages()).toHaveLength(1);
+      handle.update({ data: rows(33) });
+      handle.update({ data: rows(120000) });
+      expect(messages()).toHaveLength(2);
     }
     finally {
       warn.mockRestore();
