@@ -6,10 +6,10 @@ import { getWithMutations } from '../utils/WithMutations';
 import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData';
 import { getCategoryValueKey } from './CategoryValue';
 import { areArraysAndEqual, arrayToMap, idAccessor } from '../utils/utils';
-import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE, STEP_PERIOD_DAY, STEP_PERIOD_WEEK, STEP_PERIOD_MONTH } from '../config/core/constants';
+import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants';
 import { getMinorTickLabel } from '../config/core/minorConfig';
-import { getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getStepCandidates } from './Steps';
-import type { Auto, DataType, StepPeriod } from '../config/core/constants';
+import { getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps';
+import type { Auto, DataType } from '../config/core/constants';
 import type { MinorTickLabel } from '../config/core/minorConfig';
 import type { AxisConfigBase, AxisTickStepConfig, CategoryAxisConfig, CategoryAxisTick, CategoryAxisTickStepConfig, PlotConfig, ValueAxisTick } from '../types/config';
 import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced';
@@ -267,18 +267,6 @@ function fitMinorLabels(ticks: AxisTick[], majorFit: TickLabelFit, minorFit: Tic
   return Math.max(0, room);
 }
 
-const DAY_MILLIS = 86400000;
-
-// the regular spacing of a minor period: a minor tick closer than this to a tick is hidden
-function getPeriodMillis(period: StepPeriod): number {
-  switch (period) {
-    case STEP_PERIOD_DAY: return DAY_MILLIS;
-    case STEP_PERIOD_WEEK: return 7 * DAY_MILLIS;
-    case STEP_PERIOD_MONTH: return 28 * DAY_MILLIS;
-    default: return 365 * DAY_MILLIS;
-  }
-}
-
 // float noise from a multiple of a decimal step (3 * 0.1) would leak into labels and lookups
 function multiple(count: number, step: number): number {
   return Number((count * step).toPrecision(12));
@@ -353,10 +341,20 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
       warn('minors', minorsDense);
       if (!minorsDense) {
         const majorTimes = majors.map(major => major.getTime());
-        const spacing = getPeriodMillis(minorPeriod);
+        // a tick inside a minor period hides the minor ticks at both ends of that period; decided by calendar
+        // period, not by a fixed span, so a day shortened by daylight saving does not hide the minor tick before a tick
+        const hiddenMinorIndexes = new Set<number>();
+        for (const major of majors) {
+          const minorStart = getPeriodStart(minorPeriod, dateUTC, major);
+          if (minorStart.getTime() !== major.getTime()) {
+            const index = getPeriodIndex(minorPeriod, dateUTC, minorStart);
+            hiddenMinorIndexes.add(index);
+            hiddenMinorIndexes.add(index + 1);
+          }
+        }
         minors = getPeriodBoundaries(minorPeriod, dateUTC, [new Date(domainMin), new Date(domainMax)])
           .filter(boundary => !majorTimes.includes(boundary.getTime()))
-          .map(boundary => ({ value: boundary, hidden: majorTimes.some(time => Math.abs(time - boundary.getTime()) < spacing) }));
+          .map(boundary => ({ value: boundary, hidden: hiddenMinorIndexes.has(getPeriodIndex(minorPeriod, dateUTC, boundary)) }));
       }
     }
     return { majors, minors };

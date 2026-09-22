@@ -3305,10 +3305,11 @@ export interface CategoryAxisTickStepConfig extends AxisTickStepConfig {
    * none).
    *
    * Needs a `period`, and must be a shorter period than it: a week inside a
-   * month, or a day inside a week. A minor tick on a period boundary is
-   * dropped, and one closer to a period boundary than a whole minor period,
-   * such as a Monday the day after the 1st of a month, is hidden with its tick
-   * mark and grid line.
+   * month, or a day inside a week. A minor tick on a tick the step keeps is
+   * dropped, and a tick inside a minor period hides the minor ticks at both
+   * ends of that period, such as the Mondays either side of the 1st of a month,
+   * with their tick marks and grid lines; a tick on a minor boundary hides
+   * none.
    *
    * @default null
    */

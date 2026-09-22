@@ -355,6 +355,24 @@ describe('tick step on linear axes', () => {
     chart.destroy();
   });
 
+  // Regression: the hiding compared against a fixed 24 hours, so a local day shortened by daylight saving hid the minor tick before a week tick
+  it('keeps the minor day tick before a week tick across a daylight saving change', () => {
+    const tz = process.env.TZ;
+    process.env.TZ = 'America/New_York';
+    try {
+      // the premise: the zone springs forward on March 8 2026
+      expect(new Date('2026-03-07T12:00:00').getTimezoneOffset()).not.toBe(new Date('2026-03-21T12:00:00').getTimezoneOffset());
+      const rows = [{ label: '2026-03-01T00:00:00', value: 1 }, { label: '2026-03-21T00:00:00', value: 2 }];
+      const { container, chart } = renderChart({ type: 'date', scale: 'linear', dateUTC: false, tickLabel: { format: '%b %d', minorFormat: '%d' }, tickStep: { period: 'week', minorPeriod: 'day' } }, rows, 2400);
+      expect(getKindLabels(container, categoryTickLabels, false)).toEqual(['Mar 02', 'Mar 09', 'Mar 16']);
+      expect(getKindLabels(container, categoryTickLabels, true)).toContain('08');
+      chart.destroy();
+    }
+    finally {
+      process.env.TZ = tz;
+    }
+  });
+
   it('creates no minor ticks, then no ticks, when they would be closer than minSpacing, warning once each', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     try {
