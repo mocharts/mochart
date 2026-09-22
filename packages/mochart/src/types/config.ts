@@ -3244,7 +3244,9 @@ export interface AxisTickStepConfig {
    *
    * Counted in candidates, so under a `period` an offset of 1 skips the first
    * period rather than the first category. On a linear axis it needs a `period`
-   * or `interval` to count, so setting it without one is a validation error.
+   * or `interval` to count, so setting it without one is a validation error,
+   * and it shifts which count-th step is kept, so setting it while `count` is
+   * `"auto"` (every step kept) is one too.
    *
    * @default 0
    */

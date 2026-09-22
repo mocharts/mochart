@@ -400,6 +400,17 @@ describe('category axis tick step validation', () => {
       series: [{ property: 'value' }]
     });
     expect(placed.validation.errors).toEqual([]);
+    // with every step kept there is nothing for a linear offset to shift; a thresholdStep counts from 1 so its offset always has a phase
+    const unshiftable = enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', type: 'number', scale: 'linear', tickStep: { interval: 10, offset: 1 }, thresholdStep: { interval: 10, offset: 1 } },
+      valueAxes: [{ tickStep: { interval: 10, count: 'auto', offset: 1 } }],
+      series: [{ property: 'value' }]
+    });
+    expect(unshiftable.validation.errors).toEqual([
+      'categoryAxis - tickStep.offset - should be 0 on a linear axis unless count is a number, since every step is kept and there is nothing to shift',
+      'valueAxes[0] - tickStep.offset - should be 0 on a linear axis unless count is a number, since every step is kept and there is nothing to shift'
+    ]);
     const stringUnit = enhanceConfig({
       version: '1.0.0',
       categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { period: 'week' } },

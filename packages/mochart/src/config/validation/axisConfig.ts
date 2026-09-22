@@ -335,6 +335,7 @@ function getAxisReporter({ prefix, path, raw }: ValidationAxis, reportedDefaults
 const PERIOD_ORDER = ['day', 'week', 'month', 'year'];
 const stepNeedsPlacementMessage = 'should be left at its default on a linear axis unless period or interval is set';
 const minorPeriodNeedsPeriodMessage = 'should be null unless period is set';
+const offsetNeedsCountMessage = 'should be 0 on a linear axis unless count is a number, since every step is kept and there is nothing to shift';
 const minorPeriodTooLongMessage = 'should be a shorter period than period';
 const minorStepsNeedsIntervalMessage = 'should be null unless interval is set';
 const duplicateTickMessage = 'should not repeat the value of another ticks entry';
@@ -364,6 +365,10 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
         if (step['offset'] !== 0) {
           reportStep('offset', stepNeedsPlacementMessage);
         }
+      }
+      // a linear offset shifts which count-th step is kept, so with every step kept (count "auto") it does nothing
+      else if (linear && step['offset'] !== 0 && step['offset'] !== undefined && (step['count'] === undefined || step['count'] === AUTO) && defaultCount === AUTO) {
+        reportStep('offset', offsetNeedsCountMessage);
       }
       if (groupKey === 'tickStep') {
         const minorPeriod = step['minorPeriod'];
