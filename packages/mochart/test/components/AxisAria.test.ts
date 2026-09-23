@@ -198,7 +198,7 @@ describe('truncated tick labels', () => {
     };
   });
 
-  it('names an ellipsised tick label with its full string', () => {
+  it('names a truncated tick label with its full string', () => {
     const container = mountContainer();
     const handle = trackHandle(createDefaultChart(container, {
       config: makeConfig({ series: [{ id: 'S0', property: 'sales' }] }),

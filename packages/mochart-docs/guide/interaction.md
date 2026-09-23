@@ -2,7 +2,7 @@
 
 Charts respond to hover, click, and legend interaction out of the box, and
 report everything through optional callback props. Every interaction on this
-page also works from the keyboard — see [Accessibility](/guide/accessibility).
+page also works from the keyboard (see [Accessibility](/guide/accessibility)).
 
 <script setup>
 import * as interaction from '../examples/interaction'
@@ -10,8 +10,8 @@ import * as pie from '../examples/pie'
 </script>
 
 Hover a legend entry to focus its series, click the plot to pin the tooltip
-and crosshair, and click legend entries to filter series in and out —
-filtering plays the staged series transition:
+and crosshair, and click legend entries to filter series in and out,
+which plays the staged series transition:
 
 <LiveChart :config="interaction.config" :data="interaction.data" />
 
@@ -23,7 +23,7 @@ Hovering or clicking a series (per its
 default) focuses it: the focused series is styled from the `focused` state of
 its [styles](/guide/config-model#styles-and-focus-states) and every other
 series from their `defocused` state. By default those states change only
-opacity and width — their colors are `'same'`, meaning "keep the normal
+opacity and width: their colors are `'same'`, meaning "keep the normal
 state's color". The legend drives the same focus via
 [`legend.focusOnHover`](/reference/legend#legend.focusOnHover) (on by default)
 and [`legend.focusOnClick`](/reference/legend#legend.focusOnClick) (off).
@@ -36,8 +36,8 @@ Series and axis focus feed each other: a series with
 [`useAxisFocus`](/reference/series#series.useAxisFocus) (on by default) shows
 as focused whenever the value axis it belongs to is, and an axis with
 [`useSeriesFocus`](/reference/valueAxes#valueAxes.useSeriesFocus) (on by
-default) shows as focused whenever one of its series is — the axis line, grid
-and ticks only; the axis's other series are unaffected.
+default) shows as focused whenever one of its series is (the axis line, grid
+and ticks only); the axis's other series are unaffected.
 
 Category focus has knobs of its own: the series'
 [`focusCategoryOnHover`](/reference/series#series.focusCategoryOnHover)
@@ -45,11 +45,11 @@ and [`focusCategoryOnClick`](/reference/series#series.focusCategoryOnClick)
 focus the category the pointer is on. Those are off by default, but the
 tooltip focuses its category anyway while
 [`tooltip.applyFocus`](/reference/tooltip#tooltip.applyFocus) or
-[`crosshair.applyFocus`](/reference/crosshair#crosshair.applyFocus) is set —
-both on by default — so a plain plot click reports a focused category through
+[`crosshair.applyFocus`](/reference/crosshair#crosshair.applyFocus) is set
+(both on by default), so a plain plot click reports a focused category through
 `onFocus`.
 
-The `*OnHover` configs act on hovering pointers only — a mouse, a
+The `*OnHover` configs act on hovering pointers only: a mouse, a
 trackpad, or a pen held over the chart. A touch tap never counts as a hover
 (browsers emulate one right before the tap's click), so on touch screens a
 tap does only what the matching `*OnClick` config says; give touch users
@@ -57,7 +57,7 @@ tap does only what the matching `*OnClick` config says; give touch users
 [`legend.focusOnClick`](/reference/legend#legend.focusOnClick) where they
 should be able to focus.
 
-Every focus change — series, value axis or category — animates over
+Every focus change (series, value axis or category) animates over
 [`focusDuration`](/reference/animation#animation.focusDuration).
 
 ## Legend filtering
@@ -81,7 +81,7 @@ drop the color icon from its legend item.
 [`tooltip`](/reference/tooltip) and
 [`crosshair`](/reference/crosshair) style the tooltip and
 crosshair shown for the focused category. Per-series formatting of tooltip
-values — label, prefix/suffix, d3-format string — lives on the series
+values (label, prefix/suffix, d3-format string) lives on the series
 ([`valueLabel`](/reference/series#series.valueLabel),
 [`valueFormat`](/reference/series#series.valueFormat), and
 friends).
@@ -103,11 +103,11 @@ the tooltip rows with
 control strip above the tooltip's lines: ‹ and › buttons step the shown
 category, and a mode button toggles what clicking a tooltip row does. In
 filter mode (the initial mode) clicking a series row toggles its series out
-of the chart, exactly like a legend click — respecting
-[`filterable`](/reference/series#series.filterable) — and hovering a row
+of the chart, exactly like a legend click (respecting
+[`filterable`](/reference/series#series.filterable)), and hovering a row
 focuses its series the way hovering its legend item does; in focus mode
-clicking a row pins focus on its series — or, on the category line, on the
-category. With the controls shown, the mode decides row behavior and the
+clicking a row pins focus on its series (or, on the category line, on the
+category). With the controls shown, the mode decides row behavior and the
 `focus…OnClick` / `filterSeriesOnClick` / `focusSeriesOnHover` settings
 above are not consulted.
 [`tooltip.focusCategoryOnHover`](/reference/tooltip#tooltip.focusCategoryOnHover)
@@ -121,8 +121,8 @@ accessible labels from
 [`accessibility.tooltipPreviousLabel`](/reference/accessibility#accessibility.tooltipPreviousLabel)
 and
 [`accessibility.tooltipNextLabel`](/reference/accessibility#accessibility.tooltipNextLabel).
-The buttons and rows all work from the keyboard — see the
-[keyboard map](/guide/accessibility#keyboard-map).
+The buttons and rows all work from the keyboard (see the
+[keyboard map](/guide/accessibility#keyboard-map)).
 
 ## Callbacks
 
@@ -146,7 +146,7 @@ createDefaultChart(container, {
 - `onSeriesFilter(filter)`: a legend click toggled a series in or out of
   the filtered set
 - `onChartClick` / `onChartMouseEnter` / `onChartMouseMove` /
-  `onChartMouseLeave` — plot-area pointer events with chart coordinates and
+  `onChartMouseLeave`: plot-area pointer events with chart coordinates and
   the nearest category index
 - `onSliceClick(payload)`: a slice of a [pie or donut](/recipes/pie) chart
   was clicked
@@ -154,10 +154,10 @@ createDefaultChart(container, {
   line/area path) was clicked; reports the series id, the shape's category
   index (`-1` for a whole-series path), and the category index nearest the
   pointer. Fires whether or not the series' `focusOnClick` config is set, and
-  only on click — the cartesian counterpart of `onSliceClick`
+  only on click, as the cartesian counterpart of `onSliceClick`
 - `onTitleClick()`: the chart title was clicked or activated from the
-  keyboard. Supplying it makes the title a button — tab stop, `role="button"`,
-  an accessible name from the title text, Enter and Space — unless
+  keyboard. Supplying it makes the title a button (tab stop, `role="button"`,
+  an accessible name from the title text, Enter and Space), unless
   [`title.link`](/reference/title#title.link) is set, where the anchor already
   provides that (see also `linkDisabled`)
 - `onSeriesLayoutBoundsChange(bounds)`: the plot area was re-laid-out
@@ -173,10 +173,10 @@ every payload field is listed in
 
 Making a shape clickable doesn't change the mouse cursor. Set
 [`showPointer`](/reference/series#series.showPointer) on a series (or
-`seriesDefaults`, as the example below does) to give its shapes — including
-pie slices — `cursor: pointer`, advertising that clicking does something.
+`seriesDefaults`, as the example below does) to give its shapes (including
+pie slices) `cursor: pointer`, advertising that clicking does something.
 
-Watch them fire — click a bar, hover a series, or toggle a legend entry;
+Watch them fire: click a bar, hover a series, or toggle a legend entry;
 the log records each event in order and follows the latest (scroll up for
 older ones). One interaction often fires several: with `focusOnClick` set,
 clicking a bar reports `onFocus` and `onSeriesClick` together.
@@ -197,14 +197,14 @@ what the callbacks report to keep several charts in sync:
 - [`focusedCategoryIndex`](/reference/props#props.focusedCategoryIndex) (`-1` =
   none), [`focusedSeriesId`](/reference/props#props.focusedSeriesId) and
   [`focusedValueAxisId`](/reference/props#props.focusedValueAxisId)
-  (`null` = none) — the controlled form of `onFocus`
+  (`null` = none), the controlled form of `onFocus`
 - [`filteredSeriesIds`](/reference/props#props.filteredSeriesIds): the
   controlled form of `onSeriesFilter`
 
 `focusedSeriesId`, and every key of `filteredSeriesIds`, should be the id of a
 series that does not set [`followSeries`](/reference/series#series.followSeries).
-A series that follows another has no focus or filter state of its own — it takes
-both from the series it follows — so its own id has no effect in either prop.
+A series that follows another has no focus or filter state of its own (it takes
+both from the series it follows), so its own id has no effect in either prop.
 `onSeriesFilter` reports maps keyed the same way, so passing them straight back
 keeps charts in sync.
 

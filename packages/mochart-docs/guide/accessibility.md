@@ -4,7 +4,7 @@ Charts are keyboard-accessible and screen-reader labeled by default. The
 plot area, legend, and interactive series are tab stops; the keyboard
 drives the same tooltip, focus, and filtering as the mouse; and assistive
 tech hears roles, names, and live value announcements instead of unlabeled
-shapes. It works out of the box — the
+shapes. It works out of the box. The
 [`accessibility`](/reference/accessibility) config section tunes it, localizes
 its labels, or turns it off.
 
@@ -18,7 +18,7 @@ and filter a series with <kbd>Enter</kbd>:
 
 <LiveChart :config="a11y.config" :data="a11y.data" />
 
-This example's config names its own tab stops — a screen reader announces the
+This example's config names its own tab stops, so a screen reader announces the
 plot area as "Weekly signup values" and the legend as "Signup types":
 
 ```js
@@ -47,7 +47,7 @@ charts (a pie or donut), the arrow keys are inert and
 <kbd>Enter</kbd>/<kbd>Space</kbd> still toggles the tooltip.
 
 The plot area is the only tab stop whose arrow keys step categories. Every
-other one — legend items, tooltip rows, interactive series and pie slices — is
+other one (legend items, tooltip rows, interactive series and pie slices) is
 a group of items sharing a single tab stop, where the arrow keys move *between
 the items* (again without wrapping), <kbd>Home</kbd>/<kbd>End</kbd> jump to
 the first and last, and <kbd>Tab</kbd> leaves the group, following the usual
@@ -56,7 +56,7 @@ between widgets: it closes an open tooltip from the plot area, from a series
 or slice inside it, and from inside the tooltip itself.
 
 With both the tooltip and the crosshair disabled, the chart has no keyboard
-or screen-reader route to its values — the remaining tab stops filter and
+or screen-reader route to its values: the remaining tab stops filter and
 focus series but never read numbers. If you disable both, provide the values
 another way, such as a data table or text summary near the chart.
 
@@ -65,17 +65,17 @@ An open tooltip is part of the tab order. With
 ‹ / › / mode controls are ordinary buttons, each its own tab stop (the ends
 report `aria-disabled` instead of dropping out of the tab order). The
 tooltip's rows are keyboard-reachable whenever clicking them does something
-— per the controls' current mode, or the
+(per the controls' current mode, or the
 [`focusCategoryOnClick`](/reference/tooltip#tooltip.focusCategoryOnClick) /
 [`focusSeriesOnClick`](/reference/tooltip#tooltip.focusSeriesOnClick) /
 [`filterSeriesOnClick`](/reference/tooltip#tooltip.filterSeriesOnClick)
-config. Like legend items they form a single tab stop with a roving focus:
+config). Like legend items they form a single tab stop with a roving focus:
 arrows and <kbd>Home</kbd>/<kbd>End</kbd> move between rows,
 <kbd>Enter</kbd>/<kbd>Space</kbd> acts exactly like a click, and a
 keyboard-focused row highlights the same way a hovered one does.
 <kbd>Esc</kbd> anywhere inside the tooltip closes it. Closing the tooltip
-while keyboard focus is inside it — by <kbd>Esc</kbd>, a click inside it, or a
-click on the plot — returns focus to the plot area rather than dropping it on
+while keyboard focus is inside it (by <kbd>Esc</kbd>, a click inside it, or a
+click on the plot) returns focus to the plot area rather than dropping it on
 the page body.
 
 Legend items are keyboard-reachable whenever clicking them does something
@@ -83,7 +83,7 @@ Legend items are keyboard-reachable whenever clicking them does something
 [`legend.focusOnClick`](/reference/legend#legend.focusOnClick)). They form a
 single tab stop with a roving focus: <kbd>Tab</kbd> enters the legend, the
 arrow keys and <kbd>Home</kbd>/<kbd>End</kbd> move between items, and
-<kbd>Enter</kbd>/<kbd>Space</kbd> acts exactly like a click — filtering or
+<kbd>Enter</kbd>/<kbd>Space</kbd> acts exactly like a click, filtering or
 focusing the series. A keyboard-focused item highlights its series the same
 way hovering it does (with
 [`legend.focusOnHover`](/reference/legend#legend.focusOnHover), on by
@@ -93,7 +93,7 @@ Pie and donut slices work the same way when they are interactive (the series
 has [`focusOnClick`](/reference/series#series.focusOnClick) or the chart has
 an `onSliceClick` callback): one tab stop, arrow keys moving between slices
 in config order, and <kbd>Enter</kbd>/<kbd>Space</kbd> doing what clicking the
-slice does — the focus toggle, `onSliceClick`, and toggling the tooltip — with
+slice does (the focus toggle, `onSliceClick`, and toggling the tooltip), with
 no pointer position invented for it. A pie has a single category, so the
 tooltip a slice opens is the one covering that slice; there is nothing to
 choose.
@@ -102,7 +102,7 @@ Cartesian series follow the same pattern when clicking them does something
 (the series has [`focusOnClick`](/reference/series#series.focusOnClick) or
 the chart has an `onSeriesClick` callback): one roving tab stop over the
 series, arrow keys moving between them in config order, and
-<kbd>Enter</kbd>/<kbd>Space</kbd> acting as a whole-series click —
+<kbd>Enter</kbd>/<kbd>Space</kbd> acting as a whole-series click:
 `onSeriesClick` reports `categoryIndex: -1`, as a line or area path click
 does. Follower series ([`followSeries`](/reference/series#series.followSeries))
 stay pointer-only; their clicks belong to their leader, and a filtered series
@@ -114,7 +114,7 @@ payload.
 
 Unlike a slice, activating a cartesian series does **not** open the tooltip.
 A cartesian series runs across every category, so there is no category the
-keyboard could open it at — a mouse click has a pointer position to read one
+keyboard could open it at: a mouse click has a pointer position to read one
 from, and <kbd>Enter</kbd> does not. Read the values from the plot area
 instead: it is the tab stop immediately before the series, so
 <kbd>Shift</kbd>+<kbd>Tab</kbd> reaches it. <kbd>Esc</kbd> pressed on a series
@@ -130,7 +130,7 @@ already keyboard-reachable and gets no second role.
 A refresh can take the tab stop you are on away: data with no categories, or
 an error, replaces the plot area and its tooltip with the
 [no-data or error message](/guide/chart-states). Keyboard focus moves to that
-message — where a screen reader reads it — instead of being dropped on the
+message (where a screen reader reads it) instead of being dropped on the
 page body, so <kbd>Tab</kbd> carries on from the chart rather than from the
 top of the document. The message is not a tab stop of its own; when values
 come back, the plot area is the stop again.
@@ -141,8 +141,8 @@ The chart svg is a `role="group"` announced as a chart (via
 `aria-roledescription`) and named from
 [`title.text`](/reference/title#title.text); an untitled chart falls back to
 [`accessibility.chartLabel`](/reference/accessibility#accessibility.chartLabel).
-The geometry the chart draws — grid lines, axis lines, tick marks, bars,
-markers, paths, the crosshair — carries no text and no role, so there is
+The geometry the chart draws (grid lines, axis lines, tick marks, bars,
+markers, paths, the crosshair) carries no text and no role, so there is
 nothing there for a screen reader to announce, and it lands on the meaningful
 stops instead: the plot area button, the legend, and the tooltip.
 
@@ -158,7 +158,7 @@ Each group appears only while its items are actually tab stops.
 
 Keyboard navigation speaks. Opening or stepping the tooltip (from the plot
 area or the tooltip's ‹ / › buttons) announces its content through a
-visually-hidden polite live region — "Mon: Trial: 18, Paid: 6" — mirroring
+visually-hidden polite live region ("Mon: Trial: 18, Paid: 6"), mirroring
 exactly what the tooltip shows, including per-series value formatting; a held
 arrow key announces only the category it settles on. The plot area reports
 whether the tooltip is open through `aria-expanded`. Legend items whose click
@@ -186,12 +186,12 @@ or
 [`accessibility.valueAxisLabel`](/reference/accessibility#accessibility.valueAxisLabel).
 The group is also one object in a screen reader's object navigation, so the
 whole scale can be skipped in a single move. Because the group carries the
-axis name, the drawn axis title is not read a second time — and the name is
-the untruncated title even when the drawn one is ellipsised. Give every axis
+axis name, the drawn axis title is not read a second time, and the name is
+the untruncated title even when the drawn one is truncated. Give every axis
 a title when a chart has more than one value axis: untitled ones all read
 with the same default name.
 
-A tick label the chart had to ellipsise to fit keeps its full text for
+A tick label the chart had to truncate to fit keeps its full text for
 assistive tech through an `aria-label`, so "Really long value that should be…"
 still reads in full. A tick label the chart suppressed to stop labels
 overlapping is `aria-hidden`, as is the hidden width probe an ordinal axis
@@ -228,7 +228,7 @@ import '@mochart/core/mochart.css';
 ```
 
 It draws a 2px `currentColor` outline on the focused tab stop, only for
-keyboard focus (`:focus-visible`) — mouse clicks stay ring-free — and inset
+keyboard focus (`:focus-visible`), so mouse clicks stay ring-free, and inset
 on the plot rect so it stays clear of the axis labels. Without the import,
 charts fall back to the browser's default focus outline; keyboard access
 itself works either way.
@@ -236,7 +236,7 @@ itself works either way.
 The ring rules are scoped to a `mochart-accessible` class that the chart
 puts on its root element only while accessibility is active
 ([`enabled`](/reference/accessibility#accessibility.enabled) `true` and
-[`hidden`](/reference/accessibility#accessibility.hidden) `false`) — so a
+[`hidden`](/reference/accessibility#accessibility.hidden) `false`), so a
 chart with accessibility disabled keeps browser-default outlines on its
 native controls (the tooltip's buttons, a linked title) even with the
 stylesheet imported.
@@ -251,7 +251,7 @@ blurs), so focus is never invisible after the chart moves it.
 
 ## Click targets
 
-The chart lays its own clickable chrome out to a minimum of 24 by 24 pixels —
+The chart lays its own clickable chrome out to a minimum of 24 by 24 pixels,
 the [WCAG 2.5.8](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum)
 floor, which the same chrome misses at ordinary font sizes: a legend item is
 about 22px tall at a 16px host font, and items sit a pixel apart, so a mis-hit
@@ -263,17 +263,17 @@ filters the series next to the one you aimed at. Three things take the floor:
 | the tooltip controls' ‹ / › / mode buttons | a minimum height, and the arrow ends widen to match |
 | interactive tooltip rows | a minimum height; the extra space lands under the row text |
 
-A target takes the floor only while clicking it does something — the legend's
+A target takes the floor only while clicking it does something (the legend's
 [`filterOnClick`](/reference/legend#legend.filterOnClick) /
 [`focusOnClick`](/reference/legend#legend.focusOnClick), the tooltip's
-[`showControls`](/reference/tooltip#tooltip.showControls) and its click config
-— so a legend nothing responds to stays compact. Change the floor with
+[`showControls`](/reference/tooltip#tooltip.showControls) and its click config),
+so a legend nothing responds to stays compact. Change the floor with
 [`accessibility.minTargetSize`](/reference/accessibility#accessibility.minTargetSize):
 raise it (`44` is the common touch recommendation) or set `0` to lay every
 target out at its content size. It is deliberately not gated by `enabled` or
 `hidden`, because clicking and tapping work whatever those are set to.
 
-Series shapes — bars, markers, pie slices — are left at the size their data
+Series shapes (bars, markers, pie slices) are left at the size their data
 gives them. Padding a marker's hit area would change which value the pointer
 lands on, which is worse than a small target and is why 2.5.8 exempts a
 presentation that is essential; the plot area is one large target for the
@@ -314,15 +314,15 @@ colors. This follows
 ## Forced colors and High Contrast
 
 In forced-colors modes (Windows High Contrast among them) the stylesheet
-restores the tooltip control buttons to the system palette — `ButtonFace`,
-`ButtonText`, `ButtonBorder`, `GrayText` at the disabled ends — and replaces
+restores the tooltip control buttons to the system palette (`ButtonFace`,
+`ButtonText`, `ButtonBorder`, `GrayText` at the disabled ends) and replaces
 their hover and active tints, which are `color-mix` over `currentColor` and
 flatten to nothing under forced colors, with `Highlight` fills. The focus
 ring switches to `Highlight`.
 
 Series fills and strokes are left as configured. They are SVG presentation
 attributes from the palette, and forcing them to the system palette would
-collapse every series to one color — worse than keeping hues the mode did not
+collapse every series to one color, which is worse than keeping hues the mode did not
 ask about. A chart that has to stay readable there should carry a non-color
 encoding as well: distinct
 [`marker.shape`](/reference/series#series.marker.shape) values per series, or
@@ -334,8 +334,8 @@ When the user's system requests reduced motion, the chart applies every
 update instantly instead of animating, and the preference is watched live.
 This is on by default and controlled by
 [`accessibility.respectReducedMotion`](/reference/accessibility#accessibility.respectReducedMotion)
-— see [Reduced motion](/guide/staged-animation#reduced-motion) in the
-animation guide.
+(see [Reduced motion](/guide/staged-animation#reduced-motion) in the
+animation guide).
 
 ## Localizing the labels
 
@@ -362,16 +362,16 @@ const config = {
 Series and category announcements are built from your data and titles, so
 they need no extra translation. The one visible string in the set is the
 [tooltip controls'](/guide/interaction#tooltip-controls) mode button, which
-is chart UI rather than a screen-reader label — its words localize through
+is chart UI rather than a screen-reader label, so its words localize through
 [`tooltip.filterModeText`](/reference/tooltip#tooltip.filterModeText) and
 [`tooltip.focusModeText`](/reference/tooltip#tooltip.focusModeText).
 
 ## Turning it off
 
 Set [`accessibility.enabled`](/reference/accessibility#accessibility.enabled)
-to `false` to render the chart with none of the above — no plot, series,
+to `false` to render the chart with none of the above (no plot, series,
 legend, or tooltip-row tab stops, key handlers, roles, labels, `aria-hidden`
-markers, or live region — for example when the host page provides its own
+markers, or live region), for example when the host page provides its own
 accessible alternative to the chart. Native controls (the tooltip's ‹ / › /
 mode buttons, a linked title) stay focusable as any button or link would.
 Pointer interactions are unaffected, and `respectReducedMotion` is
@@ -380,13 +380,13 @@ deliberately not gated by this switch.
 ## Decorative charts
 
 `enabled: false` still leaves the chart's text content (title, axis and data
-labels) exposed to screen readers. For a chart that is *purely decorative* —
-say a sparkline repeating a value already shown as text — set
+labels) exposed to screen readers. For a chart that is *purely decorative*
+(say a sparkline repeating a value already shown as text), set
 [`accessibility.hidden`](/reference/accessibility#accessibility.hidden) to
 `true` instead. It overrides `enabled`: the chart's container is marked
 `aria-hidden` so assistive tech skips it entirely, and every tab stop the
-chart itself renders — series, slices, the plot, tooltip controls, legend
-items, and a linked title — is removed with it, so keyboard users cannot land
+chart itself renders (series, slices, the plot, tooltip controls, legend
+items, and a linked title) is removed with it, so keyboard users cannot land
 on content screen readers cannot see. Content you inject through the
 [state factories](/guide/chart-states) is yours to make non-focusable. Only do
 this when the surrounding page already conveys what the chart shows.
@@ -394,7 +394,7 @@ this when the surrounding page already conveys what the chart shows.
 ## Exports
 
 A downloaded SVG is a static image, so [exporting](/guide/export) removes
-the interactive semantics — the tab stops and their `role`, `aria-label`,
+the interactive semantics: the tab stops and their `role`, `aria-label`,
 `aria-expanded`, and `aria-pressed` attributes.
 
 What the root svg gets depends on whether the chart has an accessible name
@@ -406,7 +406,7 @@ by the chart's name. With
 [`accessibility.enabled`](/reference/accessibility#accessibility.enabled)
 `false` or
 [`hidden`](/reference/accessibility#accessibility.hidden) `true` there is no
-`aria-label` to keep, so the export is marked `aria-hidden="true"` instead —
-an unnamed `role="img"` would be a worse result than the unroled svg it came
+`aria-label` to keep, so the export is marked `aria-hidden="true"` instead,
+because an unnamed `role="img"` would be a worse result than the unroled svg it came
 from. Add your own `aria-label`, `figcaption` or adjacent text where you
 place the image if it needs a name in that case.

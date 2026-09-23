@@ -74,7 +74,7 @@ export default class AxisContainer extends Renderer<AxisContainerProps> {
   }
 }
 
-// the untruncated title names the axis group; the drawn title may be ellipsised
+// the untruncated title names the axis group; the drawn title may be truncated
 export function getAxisAccessibleLabel(title: string | null, defaultLabel: string): string {
   return title === NONE || title === '' ? defaultLabel : title!;
 }
