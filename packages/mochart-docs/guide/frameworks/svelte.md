@@ -1,6 +1,7 @@
 # Svelte
 
-`@mochart/svelte` wraps [@mochart/core](https://github.com/mocharts/mochart/tree/main/packages/mochart)
+`@mochart/svelte` wraps
+[@mochart/core](https://github.com/mocharts/mochart/tree/main/packages/mochart)
 in Svelte 5 components. Config and data changes get mochart's
 [staged animations](/guide/staged-animation) with no extra wiring: axis
 expansion, value change, axis contraction, and gapless stacked transitions.
@@ -11,16 +12,16 @@ expansion, value change, axis contraction, and gapless stacked transitions.
 npm install @mochart/svelte @mochart/core svelte
 ```
 
-Svelte 5 is required (`svelte` and `@mochart/core` are peer dependencies);
-the components are written with runes.
+Svelte 5 is required (`svelte` and `@mochart/core` are peer dependencies); the
+components are written with runes.
 
 ## The optional stylesheet
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's
 [optional stylesheet](/guide/getting-started#the-optional-stylesheet). It
-re-asserts the browser defaults the chart's tooltip and message overlays
-rely on, and never overrides the chart's own styling:
+re-asserts the browser defaults the chart's tooltip and message overlays rely
+on, and never overrides the chart's own styling:
 
 ```js
 import '@mochart/core/mochart.css';
@@ -67,9 +68,9 @@ dataset (an array of objects or an object of arrays):
 <Chart {mochartConfig} {dataProvider} width={640} height={400} />
 ```
 
-`Chart` accepts `null` for `mochartConfig` and `dataProvider` while the host
-is still loading them; pair it with the `loading` prop to show the loading
-state until they arrive.
+`Chart` accepts `null` for `mochartConfig` and `dataProvider` while the host is
+still loading them; pair it with the `loading` prop to show the loading state
+until they arrive.
 
 ## Sizing and the container
 
@@ -90,9 +91,9 @@ container div, for test selectors.
 ## When the data changes
 
 Config and data changes are detected **by reference identity**: the chart
-compares the props it receives, not their contents. `$state`'s deep
-reactivity updates your own markup after an in-place `push`, but the chart
-still sees the same array. Reassign instead of mutate:
+compares the props it receives, not their contents. `$state`'s deep reactivity
+updates your own markup after an in-place `push`, but the chart still sees the
+same array. Reassign instead of mutate:
 
 ```js
 let data = $state(initialData);
@@ -105,15 +106,14 @@ data.push({ month: 'Mar', revenue: 30 });
 ```
 
 The same rule applies to `config` on `DefaultChart` and to
-`mochartConfig`/`dataProvider` on `Chart`. Pass a new object (or provider)
-to change them. A prop change made before the component's first effect run
-(in a parent's `onMount`, say) is applied too.
+`mochartConfig`/`dataProvider` on `Chart`. Pass a new object (or provider) to
+change them. A prop change made before the component's first effect run (in a
+parent's `onMount`, say) is applied too.
 
-For hosts that do mutate data in place, `bind:this` exposes a `ChartRef`
-handle with the core
-[`refresh()`](/guide/data-providers#when-the-data-changes) escape hatch.
-It re-reads the current data (the built-in providers read live, so
-any in-place change is seen):
+For hosts that do mutate data in place, `bind:this` exposes a `ChartRef` handle
+with the core [`refresh()`](/guide/data-providers#when-the-data-changes) escape
+hatch. It re-reads the current data (the built-in providers read live, so any
+in-place change is seen):
 
 ```svelte
 <script lang="ts">
@@ -133,41 +133,40 @@ any in-place change is seen):
 
 ## Callbacks and states
 
-Both components accept the [chart callbacks](/guide/interaction#callbacks)
-under their core names (`onChartClick`, `onFocus`, `onSeriesFilter`,
-`onSeriesClick`, `onSliceClick`, `onTitleClick`, …) with the core payloads.
-Only the callbacks you pass are wired into the chart, which matters where
-the core switches behavior on a callback's presence: an `onTitleClick`
-makes the title a button, for instance.
+Both components accept the [chart callbacks](/guide/interaction#callbacks) under
+their core names (`onChartClick`, `onFocus`, `onSeriesFilter`, `onSeriesClick`,
+`onSliceClick`, `onTitleClick`, …) with the core payloads. Only the callbacks
+you pass are wired into the chart, which matters where the core switches
+behavior on a callback's presence: an `onTitleClick` makes the title a button,
+for instance.
 
 Both components also accept `loading` and `error` to force the
-[loading or error state](/guide/chart-states), and a placeholder prop per
-state: `loadingComponent`, `errorComponent`, `noDataComponent`,
-`noSizeComponent`, `noSeriesComponent`, and `configErrorComponent`. Each takes
-a **Svelte component** that receives the
+[loading or error state](/guide/chart-states), and a placeholder prop per state:
+`loadingComponent`, `errorComponent`, `noDataComponent`, `noSizeComponent`,
+`noSeriesComponent`, and `configErrorComponent`. Each takes a **Svelte
+component** that receives the
 [chart state context](/guide/chart-states#customizing-what-renders) (`width`,
-`height`, `error`, …) as props and is rendered while the chart is in that
-state; leave a prop off to keep the built-in placeholder.
+`height`, `error`, …) as props and is rendered while the chart is in that state;
+leave a prop off to keep the built-in placeholder.
 
 A placeholder is mounted with a copy of the chart component's contexts, taken
 when the chart initialises, so `getContext` inside a placeholder reaches
 anything an ancestor set with `setContext`. Contexts are the only thing it
 inherits: it is mounted as its own component root rather than as a child of the
-chart. Vue and Angular reach less than this; see
-[Vue](/guide/frameworks/vue) and [Angular](/guide/frameworks/angular).
+chart. Vue and Angular reach less than this; see [Vue](/guide/frameworks/vue)
+and [Angular](/guide/frameworks/angular).
 
 Every prop, with its type and its core counterpart, is listed in
 [Framework props](/reference/framework-props#svelte).
 
 ## Controlled state
 
-Focus and legend filtering are chart-managed by default, but each piece of
-that state has a matching prop that takes over while it is set (not
-`undefined`): `focusedCategoryIndex` (`-1` = none), `focusedSeriesId` and
-`focusedValueAxisId` (`null` = none), and `filteredSeriesIds` (a map of
-series id → `true` = filtered out). Pass back what `onFocus` and
-`onSeriesFilter` report to keep focus and filtering in sync across several
-charts (the round-trip is shown in
+Focus and legend filtering are chart-managed by default, but each piece of that
+state has a matching prop that takes over while it is set (not `undefined`):
+`focusedCategoryIndex` (`-1` = none), `focusedSeriesId` and `focusedValueAxisId`
+(`null` = none), and `filteredSeriesIds` (a map of series id → `true` = filtered
+out). Pass back what `onFocus` and `onSeriesFilter` report to keep focus and
+filtering in sync across several charts (the round-trip is shown in
 [Controlled focus and filtering](/guide/interaction#controlled-focus-and-filtering));
 leave a prop `undefined` to let the chart keep managing that piece itself.
 
@@ -177,18 +176,18 @@ The package ships its own declarations. It exports the prop interfaces
 `ChartProps`, `DefaultChartProps`, `BaseChartProps` (everything except the
 config/data props) and `ChartCallbackProps`, the `ChartRef` handle, and
 `PlaceholderProps`/`PlaceholderComponent` for typing placeholder components.
-Config, data, and callback payload types (`MochartInputConfig`,
-`DataObject`, `ChartFocus`, `ChartEventPayload`, …) come from `@mochart/core`;
-see [Callbacks and payloads](/reference/callbacks).
+Config, data, and callback payload types (`MochartInputConfig`, `DataObject`,
+`ChartFocus`, `ChartEventPayload`, …) come from `@mochart/core`; see
+[Callbacks and payloads](/reference/callbacks).
 
 ## Server-side rendering
 
 The chart mounts in `onMount`, which Svelte does not run on the server: SSR
 emits only the container div, and the chart is created in the browser after
-hydration. No `browser` guards are needed in your own code. Nothing of the
-chart itself is server-rendered (the page shows an empty container until the
-client mounts), so a chart contributes no SEO or first-paint content, and a
-size measured from the container is only known in the browser. See
+hydration. No `browser` guards are needed in your own code. Nothing of the chart
+itself is server-rendered (the page shows an empty container until the client
+mounts), so a chart contributes no SEO or first-paint content, and a size
+measured from the container is only known in the browser. See
 [Browser support](/guide/getting-started#browser-support) for what the core
 itself needs.
 

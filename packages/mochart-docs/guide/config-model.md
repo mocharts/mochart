@@ -1,9 +1,8 @@
 # The config model
 
 A mochart config is a plain, JSON-serializable object made of per-concern
-**sections**. Every section (and almost every property inside one) is
-optional and falls back to a default, so configs only say what differs from
-the defaults.
+**sections**. Every section (and almost every property inside one) is optional
+and falls back to a default, so configs only say what differs from the defaults.
 
 ```js
 const config = {
@@ -21,28 +20,26 @@ const config = {
 ```
 
 The [config reference](/reference/) lists every section and is generated from
-the library's own validators, defaults, and descriptions, so it can't drift
-from the code.
+the library's own validators, defaults, and descriptions, so it can't drift from
+the code.
 
 ## Object sections and list sections
 
 Sections come in two shapes:
 
-- **Object sections** configure a single thing: `title`,
-  `categoryAxis`, `legend`, `tooltip`, `crosshair`,
-  `animation`, `chart`, `plot`, `colorPalette`, `accessibility`, `pie`,
-  `clipIndicator`.
-- **List sections** configure a collection and take an array of config
-  objects: `series`, `valueAxes`, `seriesGroups`,
-  `seriesStacks`, `linearGradients`, `radialGradients`, `patterns`.
-  Passing a single object instead of an array is allowed and treated as a
-  one-entry list.
+- **Object sections** configure a single thing: `title`, `categoryAxis`,
+  `legend`, `tooltip`, `crosshair`, `animation`, `chart`, `plot`,
+  `colorPalette`, `accessibility`, `pie`, `clipIndicator`.
+- **List sections** configure a collection and take an array of config objects:
+  `series`, `valueAxes`, `seriesGroups`, `seriesStacks`, `linearGradients`,
+  `radialGradients`, `patterns`. Passing a single object instead of an array is
+  allowed and treated as a one-entry list.
 
 ## Shared `*Defaults` sections
 
 Every list section has a companion `*Defaults` section (`seriesDefaults`,
-`valueAxisDefaults`, and so on) whose values apply to **every** entry of
-the list. A value set on an individual entry wins over the shared one:
+`valueAxisDefaults`, and so on) whose values apply to **every** entry of the
+list. A value set on an individual entry wins over the shared one:
 
 ```js
 seriesDefaults: { renderer: 'bar', valueFormat: ',.0f' },
@@ -53,22 +50,21 @@ series: [
 ```
 
 Not every property can be shared. A value that has to differ per entry is
-rejected by validation rather than ignored, so it invalidates the whole
-config: `id` on any list, `order` on `series` and `valueAxes`, and `ignore`
-everywhere. [`patternDefaults`](/reference/patterns) also excludes `type` and
-the members that depend on it, since a pattern's type decides which of them
-apply.
+rejected by validation rather than ignored, so it invalidates the whole config:
+`id` on any list, `order` on `series` and `valueAxes`, and `ignore` everywhere.
+[`patternDefaults`](/reference/patterns) also excludes `type` and the members
+that depend on it, since a pattern's type decides which of them apply.
 
 ## Styles and focus states
 
-Everything the chart draws is styled by a **style** object rather than by a
-flat set of color properties. A style holds `strokeColor`, `strokeOpacity`,
+Everything the chart draws is styled by a **style** object rather than by a flat
+set of color properties. A style holds `strokeColor`, `strokeOpacity`,
 `strokeWidth` and `strokeDashArray`, plus `fillColor` and `fillOpacity` for
 shapes that have an interior. Lines (grid lines, tick marks, thresholds,
 crosshairs, error-bar whiskers) take the stroke half only.
 
-Most elements are drawn differently depending on what has focus, so their
-style is nested one level deeper, under `normal`, `focused` and `defocused`:
+Most elements are drawn differently depending on what has focus, so their style
+is nested one level deeper, under `normal`, `focused` and `defocused`:
 
 ```js
 series: [{
@@ -81,34 +77,32 @@ series: [{
 }]
 ```
 
-In the `focused` and `defocused` states a color, and likewise
-`strokeOpacity`, `fillOpacity`, `strokeWidth` and `strokeDashArray`, may be
-the literal `'same'`, meaning "whatever the `normal` state resolved to". That
-is the default for the colors, width and dash array almost everywhere:
-elements change opacity on focus but keep their color. The default opacities
-are numbers, so a style that only changes its `normal` opacity still takes the
-default `focused` and `defocused` opacities unless those are set too.
+In the `focused` and `defocused` states a color, and likewise `strokeOpacity`,
+`fillOpacity`, `strokeWidth` and `strokeDashArray`, may be the literal `'same'`,
+meaning "whatever the `normal` state resolved to". That is the default for the
+colors, width and dash array almost everywhere: elements change opacity on focus
+but keep their color. The default opacities are numbers, so a style that only
+changes its `normal` opacity still takes the default `focused` and `defocused`
+opacities unless those are set too.
 
 Series styles additionally accept the palette modes `'seriesIndex'` and
-`'categoryIndex'` in place of a color, and (everywhere but `shapeStyle`,
-which defines the series color itself) `'series'` for the series' own
-color; see [`colorPalette`](/reference/colorPalette). Any style color also
-accepts `'currentColor'` to follow the host page's CSS `color` (how chart
-chrome themes itself: see
-[Colors, theming, and dark mode](/guide/theming)), and `'none'` to switch
-that half of the style off.
+`'categoryIndex'` in place of a color, and (everywhere but `shapeStyle`, which
+defines the series color itself) `'series'` for the series' own color; see
+[`colorPalette`](/reference/colorPalette). Any style color also accepts
+`'currentColor'` to follow the host page's CSS `color` (how chart chrome themes
+itself: see [Colors, theming, and dark mode](/guide/theming)), and `'none'` to
+switch that half of the style off.
 
 Style colors are written straight to the DOM, so any CSS color the browser
-understands works: named (`red`), hex 3/4/6/8, `rgb()`/`hsl()` in either
-syntax, `oklch()`, `var(--brand)`. The exception is the series color-scale
-bounds (`colorScale.min`, `colorScale.max`, `colorScale.missing`,
-`colorScale.base.*`), `colorPalette` entries, and gradient stop colors: mochart
-interpolates those itself, so they must be concrete colors: no keywords, no
-`var()`.
+understands works: named (`red`), hex 3/4/6/8, `rgb()`/`hsl()` in either syntax,
+`oklch()`, `var(--brand)`. The exception is the series color-scale bounds
+(`colorScale.min`, `colorScale.max`, `colorScale.missing`, `colorScale.base.*`),
+`colorPalette` entries, and gradient stop colors: mochart interpolates those
+itself, so they must be concrete colors: no keywords, no `var()`.
 
-Text is styled by a `textStyle` like any other shape, and its font is a
-separate `font` object beside it, with `family`, `size`, `weight` and `style`
-members. Each member falls back to the same member of
+Text is styled by a `textStyle` like any other shape, and its font is a separate
+`font` object beside it, with `family`, `size`, `weight` and `style` members.
+Each member falls back to the same member of
 [`chart.font`](/reference/chart#chart.font) and then, when both are `null`, to
 the host page's CSS. The font is a sibling of `textStyle` rather than a member
 of its states because a style state is shared with shapes, where a font means
@@ -121,43 +115,44 @@ is addressable in its own right.
 
 ## Partial overrides
 
-Config layers are merged member by member at every depth, so a config only
-names what it changes. In the example above `shapeStyle.normal.strokeColor`,
+Config layers are merged member by member at every depth, so a config only names
+what it changes. In the example above `shapeStyle.normal.strokeColor`,
 `strokeWidth` and both other states' colors keep their defaults: writing one
 member never blanks out its siblings. The same holds when a `*Defaults` section
 merges into an individual list entry.
 
 Two values do not merge:
 
-- **Arrays replace wholesale.** `ticks`, gradient `stops` and the palette
-  color lists are values, not structures to merge element-wise.
+- **Arrays replace wholesale.** `ticks`, gradient `stops` and the palette color
+  lists are values, not structures to merge element-wise.
 - **`null` is a real value, not a hole.** On a plain style,
   `{ strokeColor: null }` overrides a non-null default and leaves the SVG
-  attribute unset so CSS can supply it. Use `undefined` (or simply omit the
-  key) to mean "not specified".
+  attribute unset so CSS can supply it. Use `undefined` (or simply omit the key)
+  to mean "not specified".
 
   Inside a `normal` / `focused` / `defocused` state this applies to
-  `strokeWidth` and `strokeDashArray` only: a state always writes its color
-  and opacity attributes, so those must be concrete values. Use `'none'` to
-  switch a half of the style off.
+  `strokeWidth` and `strokeDashArray` only: a state always writes its color and
+  opacity attributes, so those must be concrete values. Use `'none'` to switch a
+  half of the style off.
 
 ## Cross-references and id defaulting
 
-Entries in list sections are wired together by id: a series names its value
-axis via [`axis`](/reference/series#series.axis), its stack via
+Entries in list sections are wired together by id: a series names its value axis
+via [`axis`](/reference/series#series.axis), its stack via
 [`stack`](/reference/series#series.stack), and its series group via
-[`group`](/reference/series#series.group), each matching an
-`id` in the corresponding section.
+[`group`](/reference/series#series.group), each matching an `id` in the
+corresponding section.
 
 When exactly one target exists, the reference defaults to it: with a single
-`valueAxes` entry (or none at all) you never need to mention axis
-ids, and with a single `seriesStacks` entry every series joins that
-stack automatically (see the [stacked bars recipe](/recipes/stacked-bars)).
-Validation reports references that don't resolve.
+`valueAxes` entry (or none at all) you never need to mention axis ids, and with
+a single `seriesStacks` entry every series joins that stack automatically (see
+the [stacked bars recipe](/recipes/stacked-bars)). Validation reports references
+that don't resolve.
 
 ## Validation
 
-Configs are validated with [@mochart/movalid](https://github.com/mocharts/mochart/tree/main/packages/movalid),
+Configs are validated with
+[@mochart/movalid](https://github.com/mocharts/mochart/tree/main/packages/movalid),
 producing human-readable messages rather than schema jargon:
 
 ```js
@@ -167,8 +162,8 @@ const { valid, errors, warnings } = validateConfig(config);
 // e.g. "series[1] - had 1 invalid properties: valueFormt"
 ```
 
-Editor and tooling integrations can ask for structured locations on top of
-the same result:
+Editor and tooling integrations can ask for structured locations on top of the
+same result:
 
 ```js
 import { validateConfigDetailed } from '@mochart/core';
@@ -182,23 +177,23 @@ const { valid, errors, warnings, diagnostics } = validateConfigDetailed(config);
 // }]
 ```
 
-`path` holds the object keys and array indexes leading to the offending
-value; a top-level problem that belongs to no one property has an empty path.
+`path` holds the object keys and array indexes leading to the offending value; a
+top-level problem that belongs to no one property has an empty path.
 
 Two things validation insists on:
 
 - **`version`**, when present, must equal the current config format version
-  (`'1.0.0'`). Omitting it means "the current format". Include it in configs
-  you store or share: `enhanceConfig` migrates on the way in, so a config
-  written against an older format keeps working, but only if it says which
-  format it was written against. `migrateConfig(config)` returns the
-  upgraded config on its own, without building a chart.
+  (`'1.0.0'`). Omitting it means "the current format". Include it in configs you
+  store or share: `enhanceConfig` migrates on the way in, so a config written
+  against an older format keeps working, but only if it says which format it was
+  written against. `migrateConfig(config)` returns the upgraded config on its
+  own, without building a chart.
 - **Unknown properties** produce warnings, and a config with warnings is
   rejected in strict mode, so typos surface immediately instead of being
   silently ignored. Strict mode is the default and is what the chart entry
-  points use; `validateConfig(config, getDefaults(config), false)` and the
-  same third argument on `validateConfigDetailed` collect the warnings
-  without invalidating the config.
+  points use; `validateConfig(config, getDefaults(config), false)` and the same
+  third argument on `validateConfigDetailed` collect the warnings without
+  invalidating the config.
 
 When a chart receives an invalid config it renders its
 [config error state](/guide/chart-states) instead of a broken chart.
@@ -218,12 +213,11 @@ const mochartConfig = enhanceConfig(config);
 
 `enhanceConfig` returns a `MochartConfig`, the fully-built form with every
 default applied and cross-references resolved, which is what the renderer
-consumes. Data can then be checked against it with
-`getDataErrors(mochartConfig, dataProvider)` (see
-[Data providers](/guide/data-providers)).
+consumes. Data can then be checked against it with `getDataErrors(mochartConfig,
+dataProvider)` (see [Data providers](/guide/data-providers)).
 
-To work with defaults on the *raw* config (a config editor showing or
-hiding them, for instance), use the
+To work with defaults on the *raw* config (a config editor showing or hiding
+them, for instance), use the
 [`getConfigWithDefaults` / `getConfigWithoutDefaults`](/reference/api#config-helpers)
 pair instead: the first fills every default in, the second strips every value
 that only restates one, and both return plain serializable configs that share

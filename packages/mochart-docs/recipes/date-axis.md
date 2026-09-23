@@ -1,10 +1,10 @@
 # Date axis
 
 Time-series data uses a category axis with
-[`type: 'date'`](/reference/categoryAxis#categoryAxis.type). Combined
-with [`scale: 'linear'`](/reference/categoryAxis#categoryAxis.scale),
-each point is positioned by its actual date. Note the uneven horizontal
-spacing below matching the gaps in the data.
+[`type: 'date'`](/reference/categoryAxis#categoryAxis.type). Combined with
+[`scale: 'linear'`](/reference/categoryAxis#categoryAxis.scale), each point is
+positioned by its actual date. Note the uneven horizontal spacing below matching
+the gaps in the data.
 
 <script setup>
 import * as dateAxis from '../examples/dateAxis'
@@ -18,54 +18,55 @@ import * as tickStep from '../examples/tickStep'
 
 ## How it works
 
-- Date values in the data can be ISO strings (as in the example above),
-  `Date` objects, or millisecond timestamps.
+- Date values in the data can be ISO strings (as in the example above), `Date`
+  objects, or millisecond timestamps.
   [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC) decides whether
   ticks are placed and labels formatted in UTC or local time. It defaults to
   `true`, so set it to `false` for data whose day boundaries are local ones.
 - [`tickLabel.format`](/reference/categoryAxis#categoryAxis.tickLabel.format)
   takes a d3 time-format string for date axes (`'%b %d'` → "Jun 01"), as does
   the category axis
-  [`valueFormat`](/reference/categoryAxis#categoryAxis.valueFormat) shown in
-  the tooltip.
-- With `scale: 'ordinal'` instead, dates are spaced evenly in data order,
-  which is useful when the gaps are noise (e.g. trading days).
+  [`valueFormat`](/reference/categoryAxis#categoryAxis.valueFormat) shown in the
+  tooltip.
+- With `scale: 'ordinal'` instead, dates are spaced evenly in data order, which
+  is useful when the gaps are noise (e.g. trading days).
 - [`min`](/reference/categoryAxis#categoryAxis.min) /
-  [`max`](/reference/categoryAxis#categoryAxis.max) (and the soft bounds)
-  window a linear date axis; they take an ISO date string or a timestamp (see
+  [`max`](/reference/categoryAxis#categoryAxis.max) (and the soft bounds) window
+  a linear date axis; they take an ISO date string or a timestamp (see
   [axis bounds](/recipes/axis-bounds)).
 - A date that is present but has no value is a gap in the shape;
-  [`missingValueMode`](/reference/series#series.missingValueMode) chooses whether
-  the shape breaks there (default), connects across it, or drops to the base.
+  [`missingValueMode`](/reference/series#series.missingValueMode) chooses
+  whether the shape breaks there (default), connects across it, or drops to the
+  base.
 - The `area` renderer fills to the value axis
   [`base`](/reference/valueAxes#valueAxes.base) when one is set; with no base
-  set (the default for an axis without stacks, as here), it fills to the
-  minimum end of the axis. Swap in `line` or `bar` per series via
+  set (the default for an axis without stacks, as here), it fills to the minimum
+  end of the axis. Swap in `line` or `bar` per series via
   [`renderer`](/reference/series#series.renderer).
 
 ## Labeling chosen dates
 
-A daily ordinal axis has more categories than fit as labels, and the
-generated ticks are thinned by skipping every Nth category, which lands on
-arbitrary days. [`tickStep`](/reference/categoryAxis#categoryAxis.tickStep)
-chooses the ticks by rule instead. With a `period` on a date axis the first
-category of each period gets the tick, here each week's first trading day,
-and that holds through holidays and as the data window slides:
+A daily ordinal axis has more categories than fit as labels, and the generated
+ticks are thinned by skipping every Nth category, which lands on arbitrary days.
+[`tickStep`](/reference/categoryAxis#categoryAxis.tickStep) chooses the ticks by
+rule instead. With a `period` on a date axis the first category of each period
+gets the tick, here each week's first trading day, and that holds through
+holidays and as the data window slides:
 
 <LiveChart :config="tickStep.config" :data="tickStep.data" demo="candlestick" />
 
 <<< @/examples/tickStep.ts{15}
 
 - `period` is `day`, `week`, `month` or `year`; weeks start on Monday and the
-  boundaries follow [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC).
-  A partial first week is a period of its own, so its first day gets a tick;
+  boundaries follow [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC). A
+  partial first week is a period of its own, so its first day gets a tick;
   `offset: 1` skips it.
 - `count` and `offset` step through the candidates: `period: 'week'` with
   `count: 2` labels every second week, and on a string axis
   `count: 5, offset: 3` shows the fourth category and every fifth after it.
   `includeFirst` always keeps the first category.
-- When more ticks survive than fit, every k-th survivor is kept from the
-  first, so a thinned weekly rule still lands on Mondays.
+- When more ticks survive than fit, every k-th survivor is kept from the first,
+  so a thinned weekly rule still lands on Mondays.
 - The categories between the rule's ticks are minor ticks.
   [`tickLabel.minorFormat`](/reference/categoryAxis#categoryAxis.tickLabel.minorFormat)
   labels them in a d3 format of their own, `%a` for the weekday. Every other
@@ -73,34 +74,33 @@ and that holds through holidays and as the data window slides:
   (`minorFont`, `minorTextStyle`, `tickMark.minorVisible` and so on), each
   defaulting to `"major"`, which uses the value of the matching non-minor
   setting. The minor labels show only while every one fits beside its
-  neighbours; when one does not they all hide together, and the rule's ticks
-  are unchanged either way. Their tick marks, grid lines and labels carry
+  neighbours; when one does not they all hide together, and the rule's ticks are
+  unchanged either way. Their tick marks, grid lines and labels carry
   `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and
   `mochart-axis-minor-tick-label` classes for styling.
-- On a linear date axis the ticks sit on the period boundaries themselves
-  rather than on categories, `count` and `offset` keep every count-th
-  boundary, and `minorPeriod` places minor ticks between them: a day inside
-  each week, or a week inside each month. A linear number axis steps by
-  `interval` instead, with `minorSteps` splitting each interval into minor
-  ticks, and value axes take the same `tickStep`.
+- On a linear date axis the ticks sit on the period boundaries themselves rather
+  than on categories, `count` and `offset` keep every count-th boundary, and
+  `minorPeriod` places minor ticks between them: a day inside each week, or a
+  week inside each month. A linear number axis steps by `interval` instead, with
+  `minorSteps` splitting each interval into minor ticks, and value axes take the
+  same `tickStep`.
 
 To name the dates outright instead,
 [`ticks`](/reference/categoryAxis#categoryAxis.ticks) replaces the generated
-ticks with a list of category values, so only those categories get a tick,
-grid line and label:
+ticks with a list of category values, so only those categories get a tick, grid
+line and label:
 
 <LiveChart :config="categoryTicks.config" :data="categoryTicks.data" demo="category-ticks" />
 
 <<< @/examples/categoryTicks.ts{15-20}
 
 - Each entry names a category by value: an ISO date string or timestamp on a
-  date axis (matched by instant, so either form finds the category), a number
-  on a number axis, or the category string on a string axis. A `label`
-  replaces the formatted value; without one the tick shows the value in
-  `tickLabel.format`.
-- A tick naming no category is hidden, so a list of Mondays stays valid as
-  the data window slides. On a linear axis a tick is placed by its value
-  instead, and one outside the domain is hidden.
+  date axis (matched by instant, so either form finds the category), a number on
+  a number axis, or the category string on a string axis. A `label` replaces the
+  formatted value; without one the tick shows the value in `tickLabel.format`.
+- A tick naming no category is hidden, so a list of Mondays stays valid as the
+  data window slides. On a linear axis a tick is placed by its value instead,
+  and one outside the domain is hidden.
 - The list replaces tick generation entirely: tick counts, intervals and the
   skipping that keeps labels apart no longer apply, so ticks placed too close
   together overlap.

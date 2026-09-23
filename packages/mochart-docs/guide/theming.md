@@ -1,18 +1,17 @@
 # Colors, theming, and dark mode
 
-A chart has two kinds of color. **Series colors** (bars, lines, markers,
-slices) come from the config: the
-[color palette](/reference/colorPalette), per-series style overrides, or a
-color ramp. **Chrome** (the title, axis lines, tick marks and labels, grid
-lines, the legend, the crosshair) defaults to the CSS keyword
+A chart has two kinds of color. **Series colors** (bars, lines, markers, slices)
+come from the config: the [color palette](/reference/colorPalette), per-series
+style overrides, or a color ramp. **Chrome** (the title, axis lines, tick marks
+and labels, grid lines, the legend, the crosshair) defaults to the CSS keyword
 `currentColor`, so it resolves to whatever CSS `color` the chart's container
 inherits from your page.
 
 That split is most of the theming story. Put the chart on a page whose text
 color flips with the theme and every piece of chrome follows along, with no
-config and no second stylesheet: the live examples on this site restyle
-when you toggle the site theme (try it). Series colors never follow the
-page; they stay whatever the palette or your config says.
+config and no second stylesheet: the live examples on this site restyle when you
+toggle the site theme (try it). Series colors never follow the page; they stay
+whatever the palette or your config says.
 
 <script setup>
 import * as theming from '../examples/theming'
@@ -29,21 +28,21 @@ tint while the series keep their palette colors:
 ## Series color palettes
 
 Mochart's default is Paul Tol's
-[Bright qualitative color scheme](https://sronpersonalpages.nl/~pault/), in
-its recommended order:
+[Bright qualitative color scheme](https://sronpersonalpages.nl/~pault/), in its
+recommended order:
 
 ```js
 ['#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee', '#aa3377', '#bbbbbb']
 ```
 
-It is designed to distinguish unordered categories for people with common
-forms of color-vision deficiency. A default series shape takes the color at
-its series index; a style set to `categoryIndex` instead takes the color at
-the datum's category index. Indices wrap, so index 7 reuses index 0. If that
-would make two things that readers must identify share a color, add another
-visual encoding or choose a suitable palette with more entries (see
-[Color and visual encoding](/guide/accessibility#color-and-visual-encoding)).
-A series styled with `categoryIndex` has no single color, so its legend and
+It is designed to distinguish unordered categories for people with common forms
+of color-vision deficiency. A default series shape takes the color at its series
+index; a style set to `categoryIndex` instead takes the color at the datum's
+category index. Indices wrap, so index 7 reuses index 0. If that would make two
+things that readers must identify share a color, add another visual encoding or
+choose a suitable palette with more entries (see
+[Color and visual encoding](/guide/accessibility#color-and-visual-encoding)). A
+series styled with `categoryIndex` has no single color, so its legend and
 tooltip icons show the palette's first colors as a striped swatch.
 
 Set both `strokeColors` and `fillColors` when line and filled renderers should
@@ -65,46 +64,43 @@ The four top-level palette groups serve different elements:
 - `shape` colors the main line, area, bar, or pie shape.
 - `marker`, `label`, and `errorBar` provide independent colors when those
   elements' styles explicitly use `seriesIndex` or `categoryIndex`.
-- By default, markers and error bars use the owning `series` color, while
-  labels use the page's `currentColor`, so changing `shape` is usually enough.
+- By default, markers and error bars use the owning `series` color, while labels
+  use the page's `currentColor`, so changing `shape` is usually enough.
 
 See the [`colorPalette` reference](/reference/colorPalette) for the complete
 shape and [the config model](/guide/config-model#partial-overrides) for merge
-behavior. A qualitative palette identifies separate categories; to map a
-numeric magnitude through a continuous or diverging ramp, use
+behavior. A qualitative palette identifies separate categories; to map a numeric
+magnitude through a continuous or diverging ramp, use
 [`colorProperty` and `colorScale`](/recipes/color-by-value) instead.
 
 ## Chrome and `currentColor`
 
 Chrome style fields default to `'currentColor'`, which is written to the
 rendered SVG as-is, and the browser resolves it against the inherited `color`,
-so mochart never computes a theme itself. The defaults that resolve this
-way:
+so mochart never computes a theme itself. The defaults that resolve this way:
 
 - the title text, and the axis title texts
 - axis lines, base lines, tick marks, and tick label text
-- grid lines, threshold lines and titles, the axis focus range, and focus
-  tick marks
+- grid lines, threshold lines and titles, the axis focus range, and focus tick
+  marks
 - the crosshair lines
 - legend item text, and the series-icon borders in the legend and tooltip
 - series value labels, and the pie center labels
 - the clip indicator band and its label
 
-Each comes with a tuned default opacity so a single value reads correctly
-over both light and dark backgrounds: grid lines at `strokeOpacity` 0.13,
-axis lines and tick marks at 0.65, the crosshair at 0.3, text at or near 1.
-Chrome contrast is therefore adjusted through opacities, not by picking new
-colors per theme.
+Each comes with a tuned default opacity so a single value reads correctly over
+both light and dark backgrounds: grid lines at `strokeOpacity` 0.13, axis lines
+and tick marks at 0.65, the crosshair at 0.3, text at or near 1. Chrome contrast
+is therefore adjusted through opacities, not by picking new colors per theme.
 
 ## What does not follow the page
 
 - **Series colors.** The palette and the color-ramp fields produce concrete
   colors by design, because chart data should look the same on every page.
-  Restyle them per theme by passing a different config (for example a
-  different [`colorPalette`](/reference/colorPalette)) when your theme
-  changes.
-- **Colors you set yourself.** Any literal color in your config is used
-  exactly as written, in every theme.
+  Restyle them per theme by passing a different config (for example a different
+  [`colorPalette`](/reference/colorPalette)) when your theme changes.
+- **Colors you set yourself.** Any literal color in your config is used exactly
+  as written, in every theme.
 - **The tooltip surface**: see below.
 
 ## Dark mode
@@ -122,15 +118,14 @@ give a surface its own background, every part that has one takes a
 concrete colors like any other, so a config that sets them needs a per-theme
 variant.
 
-The tooltip is the one exception. It is an HTML overlay, and its background
-and border form a *surface* that must sit at the opposite end of the
-contrast pair from the text on top of it (something no inherited text
-color can express), so its defaults are a translucent white background with
-a dark border. Its text does inherit the page color, which is right for a
-light surface in both themes; if you keep the light surface on a dark page,
-scope a `color` override to the tooltip instead. To flip the surface
-itself, override it with CSS scoped to your dark theme (the colors are
-inline styles, so the overrides need `!important`):
+The tooltip is the one exception. It is an HTML overlay, and its background and
+border form a *surface* that must sit at the opposite end of the contrast pair
+from the text on top of it (something no inherited text color can express), so
+its defaults are a translucent white background with a dark border. Its text
+does inherit the page color, which is right for a light surface in both themes;
+if you keep the light surface on a dark page, scope a `color` override to the
+tooltip instead. To flip the surface itself, override it with CSS scoped to your
+dark theme (the colors are inline styles, so the overrides need `!important`):
 
 ```css
 html.dark .mochart-tooltip-container .mochart-tooltip {
@@ -139,17 +134,17 @@ html.dark .mochart-tooltip-container .mochart-tooltip {
 }
 ```
 
-This is exactly what this docs site does for its live examples.
-Alternatively, keep it in config: pass a config with a dark
-[`tooltip.backgroundStyle`](/reference/tooltip#tooltip.backgroundStyle)
-when your theme changes.
+This is exactly what this docs site does for its live examples. Alternatively,
+keep it in config: pass a config with a dark
+[`tooltip.backgroundStyle`](/reference/tooltip#tooltip.backgroundStyle) when
+your theme changes.
 
 ## Using `currentColor` in your config
 
 Every style color field accepts `'currentColor'`
 ([the config model](/guide/config-model#styles-and-focus-states) covers the
-style shape), so any element you restyle can opt back into following the
-page, for example a series drawn in the page's text color:
+style shape), so any element you restyle can opt back into following the page,
+for example a series drawn in the page's text color:
 
 ```js
 series: [{
@@ -158,29 +153,29 @@ series: [{
 }]
 ```
 
-The places it is rejected are the series color-scale bounds
-(`colorScale.min`, `colorScale.max`, `colorScale.missing` and
-`colorScale.base.*`), `colorPalette` entries, and gradient stop colors: those
-are interpolated by d3 scales, which need concrete colors, so validation turns a
-keyword away rather than letting it produce `NaN` colors.
+The places it is rejected are the series color-scale bounds (`colorScale.min`,
+`colorScale.max`, `colorScale.missing` and `colorScale.base.*`), `colorPalette`
+entries, and gradient stop colors: those are interpolated by d3 scales, which
+need concrete colors, so validation turns a keyword away rather than letting it
+produce `NaN` colors.
 
 ## Typography
 
-Text takes its font from the host page by default: the chart writes no font
-of its own, so every label renders in whatever `font-family`, `font-size`,
+Text takes its font from the host page by default: the chart writes no font of
+its own, so every label renders in whatever `font-family`, `font-size`,
 `font-weight` and `font-style` the container inherits. To set typography from
-the config instead, every text part has a `font` with four members, each
-`null` by default:
+the config instead, every text part has a `font` with four members, each `null`
+by default:
 
 - `family`, written as `font-family`
 - `size`, a number of pixels or any CSS `font-size` string such as `'0.85em'`,
   `'120%'` or `'large'`, written as `font-size`
-- `weight`, a hundred from 100 to 900 or one of `normal`, `bold`, `lighter`
-  and `bolder`, written as `font-weight`
+- `weight`, a hundred from 100 to 900 or one of `normal`, `bold`, `lighter` and
+  `bolder`, written as `font-weight`
 - `style`, one of `normal`, `italic` and `oblique`, written as `font-style`
 
-[`chart.font`](/reference/chart#chart.font) is the chart-wide default. The
-title and its prefix and suffix, legend items, axis tick labels, axis titles,
+[`chart.font`](/reference/chart#chart.font) is the chart-wide default. The title
+and its prefix and suffix, legend items, axis tick labels, axis titles,
 threshold titles, series labels, the pie center label and total, the clip
 indicator label and the tooltip each have a `font` of their own, a sibling of
 their `textStyle`. A part's member is used when it is set, otherwise the
@@ -194,24 +189,24 @@ valueAxes: [{ title: { text: 'tickets', font: { style: 'italic' } } }],
 legend: { item: { font: { size: '0.85em' } } }
 ```
 
-This chart renders in Georgia while the rest of this page keeps the site
-font, with a larger bold title, an italic value axis title and legend items
-at `0.85em`. A relative size is written on the element as given, so it
-resolves the way CSS does, against the font size the element inherits from
-the page, not against `chart.font`. The same holds for the minor tick labels
-of an axis: `tickLabel.minorFont.size` of `'0.85em'` resolves against the
-page font, not against `tickLabel.font.size`, so with `tickLabel.font.size`
-set to 16 on a page with a 12px font the minor labels are 10.2px, not 13.6px:
+This chart renders in Georgia while the rest of this page keeps the site font,
+with a larger bold title, an italic value axis title and legend items at
+`0.85em`. A relative size is written on the element as given, so it resolves the
+way CSS does, against the font size the element inherits from the page, not
+against `chart.font`. The same holds for the minor tick labels of an axis:
+`tickLabel.minorFont.size` of `'0.85em'` resolves against the page font, not
+against `tickLabel.font.size`, so with `tickLabel.font.size` set to 16 on a page
+with a 12px font the minor labels are 10.2px, not 13.6px:
 
 <LiveChart :config="typography.config" :data="typography.data" />
 
 A member that is `null` in both places is left to CSS, so the page keeps
 deciding it. A member that is set is written as an inline style on the text
 element itself (on the tooltip's box for the HTML tooltip, and on the clip
-indicator's group, which its label inherits), which is why a
-configured value wins over any host page CSS rule that matches the element,
-including a reset. The chart measures its text after writing the font, so a
-larger `size` reserves more room for the labels it applies to.
+indicator's group, which its label inherits), which is why a configured value
+wins over any host page CSS rule that matches the element, including a reset.
+The chart measures its text after writing the font, so a larger `size` reserves
+more room for the labels it applies to.
 
 The font is not part of the style states: `normal`, `focused` and `defocused`
 change colors and opacities, never the font, so the layout does not move when
@@ -219,7 +214,7 @@ the focus does.
 
 ## Exports
 
-Exported images inline the chart's *resolved* colors, so a chart exported
-from a dark page has light chrome, so pass the export a background color that
-matches the page, or export transparent. See
+Exported images inline the chart's *resolved* colors, so a chart exported from a
+dark page has light chrome, so pass the export a background color that matches
+the page, or export transparent. See
 [Exporting images](/guide/export#dark-pages).
