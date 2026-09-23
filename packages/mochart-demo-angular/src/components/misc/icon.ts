@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 
 /**
- * Font Awesome 6 solid icon (css classes only). Relies on the
+ * Font Awesome 7 solid icon (css classes only). Relies on the
  * `@fortawesome/fontawesome-free` css being imported.
  */
 @Component({
@@ -30,8 +30,8 @@ export class Icon {
     if (this.size) {
       list.push(`fa-${this.size}`);
     }
-    if (this.fixedWidth) {
-      list.push('fa-fw');
+    if (!this.fixedWidth) {
+      list.push('fa-width-auto');
     }
     if (this.flip) {
       list.push(`fa-flip-${this.flip}`);

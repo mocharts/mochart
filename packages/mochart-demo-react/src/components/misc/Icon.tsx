@@ -1,4 +1,4 @@
-// Font Awesome 6 solid icon (css classes only), the React equivalent of the
+// Font Awesome 7 solid icon (css classes only), the React equivalent of the
 // svelte/vue demos' Icon component. Relies on the
 // `@fortawesome/fontawesome-free` css being imported.
 import type { CSSProperties } from 'react';
@@ -17,8 +17,8 @@ export default function Icon({ name, size, fixedWidth, flip, style }: IconProps)
   if (size) {
     classes.push(`fa-${size}`);
   }
-  if (fixedWidth) {
-    classes.push('fa-fw');
+  if (!fixedWidth) {
+    classes.push('fa-width-auto');
   }
   if (flip) {
     classes.push(`fa-flip-${flip}`);

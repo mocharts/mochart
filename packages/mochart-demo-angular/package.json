@@ -11,7 +11,7 @@
     "@angular/core": "^22.2.0",
     "@angular/platform-browser": "^22.2.0",
     "@angular/router": "^22.2.0",
-    "@fortawesome/fontawesome-free": "^6.7.2",
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "@mochart/core": "*",
     "@mochart/angular": "*",
     "@mochart/demo-common": "*",

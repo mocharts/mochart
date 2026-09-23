@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-// Font Awesome 6 solid icon (css classes only). Relies on the
+// Font Awesome 7 solid icon (css classes only). Relies on the
 // `@fortawesome/fontawesome-free` css being imported.
 interface Props {
   name: string;
@@ -21,8 +21,8 @@ const classes = computed(() => {
   if (props.size) {
     list.push(`fa-${props.size}`);
   }
-  if (props.fixedWidth) {
-    list.push('fa-fw');
+  if (!props.fixedWidth) {
+    list.push('fa-width-auto');
   }
   if (props.flip) {
     list.push(`fa-flip-${props.flip}`);

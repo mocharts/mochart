@@ -856,7 +856,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
 .demo-btn:disabled {
     cursor: default;
 }
-/* FA6's .fa-lg collapses its line box (line-height: 0.05em), which makes
+/* Font Awesome's .fa-lg collapses its line box (line-height: 0.05em), which makes
    icon-only buttons shorter than labeled ones. 1.25em x 1.2 = the same 1.5em
    line box as the button text, so all buttons come out the same height. */
 .demo-btn .fa-solid.fa-lg {

@@ -167,7 +167,7 @@ export function setChildren(parent: HTMLElement, children: readonly Node[]): voi
 }
 
 // ---------------------------------------------------------------------------
-// Icon: Font Awesome 6 solid icon (css classes only); relies on the
+// Icon: Font Awesome 7 solid icon (css classes only); relies on the
 // `@fortawesome/fontawesome-free` css being imported.
 // ---------------------------------------------------------------------------
 
@@ -182,8 +182,8 @@ export function icon(name: string, options: IconOptions = {}): HTMLSpanElement {
   if (options.size) {
     list.push(`fa-${options.size}`);
   }
-  if (options.fixedWidth) {
-    list.push('fa-fw');
+  if (!options.fixedWidth) {
+    list.push('fa-width-auto');
   }
   if (options.flip) {
     list.push(`fa-flip-${options.flip}`);

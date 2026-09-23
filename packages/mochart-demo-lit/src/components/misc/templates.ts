@@ -17,7 +17,7 @@ interface IconProps {
 }
 
 /**
- * Font Awesome 6 solid icon (css classes only), same as the Vue demo's Icon
+ * Font Awesome 7 solid icon (css classes only), same as the Vue demo's Icon
  * component. Relies on the `@fortawesome/fontawesome-free` css being imported.
  */
 export function icon({ name, size, fixedWidth, flip, style }: IconProps): TemplateResult {
@@ -25,8 +25,8 @@ export function icon({ name, size, fixedWidth, flip, style }: IconProps): Templa
   if (size) {
     list.push(`fa-${size}`);
   }
-  if (fixedWidth) {
-    list.push('fa-fw');
+  if (!fixedWidth) {
+    list.push('fa-width-auto');
   }
   if (flip) {
     list.push(`fa-flip-${flip}`);
