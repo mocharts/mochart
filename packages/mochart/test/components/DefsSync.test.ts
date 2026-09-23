@@ -67,7 +67,7 @@ function mountChart(config: MochartInputConfig): { container: Element; handle: C
   return { container, handle };
 }
 
-/** The chart svg's own <defs> — the tooltip icons keep separate defs inside the tooltip. */
+/** The chart svg's own <defs>. The tooltip icons keep separate defs inside the tooltip. */
 function chartDefs(container: Element): Element {
   return container.querySelector(getChartRootCssSelector() + ' > svg > defs')!;
 }

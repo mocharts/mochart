@@ -1,7 +1,7 @@
 // Regenerates JSDoc on the config interfaces in src/types/config.ts from the config-reference
 // model, so hovers, the shipped .d.ts, and the reference docs share one source. Covered
 // properties' JSDoc is replaced; properties without a model entry are left untouched.
-// Usage: tsx scripts/generateJsdoc.ts [--check] — --check exits 1 on drift
+// Usage: tsx scripts/generateJsdoc.ts [--check]. With --check it exits 1 on drift
 // (the same ratchet is enforced by test/config/jsdocSync.test.ts).
 
 import ts from 'typescript';
@@ -131,8 +131,8 @@ const sharedAxisInterfaces: SharedAxisInterface[] = [
   { interfaceName: 'AxisTitleConfig', propertyKey: 'title' }
 ];
 
-/** Interfaces several config sections share — extended by them, or (with propertyKey) held under one of
- * their nested properties — documented from those sections: the first supplies the prose, and any
+/** Interfaces several config sections share (extended by them, or, with propertyKey, held under one of
+ * their nested properties), documented from those sections: the first supplies the prose, and any
  * section wording it differently has its wording documented alongside. */
 interface SharedSectionInterface {
   interfaceName: string;
@@ -651,7 +651,7 @@ if (runDirectly) {
   }
   if (check) {
     if (output !== source) {
-      console.error('src/types/config.ts is out of date with the config docs — run "npm run generate-jsdoc -w @mochart/core"');
+      console.error('src/types/config.ts is out of date with the config docs. Run "npm run generate-jsdoc -w @mochart/core"');
       process.exitCode = 1;
     }
     else {

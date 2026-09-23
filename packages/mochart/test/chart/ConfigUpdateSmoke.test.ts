@@ -1,6 +1,6 @@
 /**
  * Smoke tests for config changes on a mounted chart. Oracle is convergence: after A -> B settles,
- * the retained DOM must match a fresh mount of B — catching stale derived data, layout, retained
+ * the retained DOM must match a fresh mount of B, catching stale derived data, layout, retained
  * list items, and animation state.
  */
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -261,7 +261,7 @@ const dataErrorEndpoint = () => endpoint(config({
   state: 'dataError'
 });
 
-// parts that measure text must survive being turned on after mounting hidden — a hidden part has no measurement to carry into the frame where it becomes visible
+// parts that measure text must survive being turned on after mounting hidden, because a hidden part has no measurement to carry into the frame where it becomes visible
 const legendHiddenEndpoint = () => endpoint(config({ legend: { visible: false } }), {
   categoryLabels: ['Jan', 'Feb', 'Mar'], seriesIds: ['primary'], valueAxisIds: ['value'], pie: false
 });

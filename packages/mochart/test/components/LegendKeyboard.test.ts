@@ -1,6 +1,6 @@
 /**
  * Keyboard accessibility of legend filtering: legend items are buttons with
- * a roving tab stop — one item is Tab-reachable, arrows move between items,
+ * a roving tab stop. One item is Tab-reachable, arrows move between items,
  * Enter/Space toggles like a click, and aria-pressed tracks visibility
  * (pressed = series shown).
  */

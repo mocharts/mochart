@@ -2,7 +2,7 @@
 // src/config/core/constants.ts, the values it covers, and the config members typed with it.
 // The values come from the constants module and the uses from src/types/config.ts, so the
 // page cannot drift from either; the one hand-written part is the description table below,
-// and a union without one — or a stale one — is an integrity error that fails the generator.
+// and a union without one (or a stale one) is an integrity error that fails the generator.
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -78,11 +78,11 @@ const descriptions: Record<string, string> = {
 };
 
 const lead =
-  'Many config members take one of a fixed set of string values — `renderer: \'bar\'`,' +
-  ' `curve.type: \'monotoneX\'` — and each member\'s reference page lists its own. This page' +
+  'Many config members take one of a fixed set of string values (`renderer: \'bar\'`,' +
+  ' `curve.type: \'monotoneX\'`), and each member\'s reference page lists its own. This page' +
   ' lists them by the TypeScript type they form. Every type here is exported from' +
-  ' `@mochart/core`, so code that builds configs can name one in its own signature —' +
-  ' `function setRenderer(renderer: RendererType)` — instead of indexing into a config' +
+  ' `@mochart/core`, so code that builds configs can name one in its own signature' +
+  ' (`function setRenderer(renderer: RendererType)`) instead of indexing into a config' +
   ' type as `SeriesConfig[\'renderer\']`. The few exported value constants (`AUTO`,' +
   ' `TYPE_NUMBER`, …) are on the [API page](/reference/api#constants).';
 

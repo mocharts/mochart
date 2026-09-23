@@ -180,7 +180,7 @@ describe('getConfigWithoutDefaults', () => {
   });
 
   // Regression: a grouped key was compared whole, so overriding one member kept every default-equal
-  // sibling — after the flat-keys-to-groups regrouping that was nearly every property in the config
+  // sibling, and after the flat-keys-to-groups regrouping that was nearly every property in the config
   it('strips default-equal members inside a grouped key', () => {
     expect(getConfigWithoutDefaults(
       { categoryAxis: { property: 'x', tickLabel: { rotation: 45, size: 12, format: null } } },

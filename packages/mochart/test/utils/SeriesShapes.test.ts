@@ -339,9 +339,9 @@ describe('stacked bar outer caps with skipped categories', () => {
 
   it('caps the segment that is outer at its raw category, not its compacted index', () => {
     const generator = getColumnGenerator(config, seriesPositionData, false, stackData);
-    // compacted 1 is raw category 2, where B is the outer series — the point cap draws line segments
+    // compacted 1 is raw category 2, where B is the outer series, so the point cap draws line segments
     expect(generator(1)).toContain('L');
-    // compacted 0 is raw category 0, where A is outer — B draws a plain uncapped rect
+    // compacted 0 is raw category 0, where A is outer, so B draws a plain uncapped rect
     expect(generator(0)).not.toContain('L');
   });
 });

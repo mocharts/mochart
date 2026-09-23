@@ -124,8 +124,8 @@ describe('getAxisDomain', () => {
 });
 
 // getRenderAxisDomain: the domain scales/ticks are built from. A collapsed domain
-// draws every value on the midline, so it widens — relative to the value, then
-// nice()d — while the semantic domain above stays exact for bounds consumers.
+// draws every value on the midline, so it widens (relative to the value, then
+// nice()d), while the semantic domain above stays exact for bounds consumers.
 describe('getRenderAxisDomain', () => {
   const HOUR = 60 * 60 * 1000;
   const DAY = 24 * HOUR;

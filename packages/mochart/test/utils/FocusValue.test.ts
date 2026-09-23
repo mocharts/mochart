@@ -35,7 +35,7 @@ describe('getFocusValue', () => {
     expect(getFocusValue(-0.5, NORMAL, FOCUSED, DEFOCUSED)).toBe(7.5);
   });
 
-  // The linear interpolation is exact for any value ordering — an inverted style config
+  // The linear interpolation is exact for any value ordering: an inverted style config
   // (focused below normal, defocused above) still lands on every endpoint.
   it('interpolates exactly with an inverted value ordering', () => {
     expect(getFocusValue(1, 0.6, 0.2, 1)).toBeCloseTo(0.2);

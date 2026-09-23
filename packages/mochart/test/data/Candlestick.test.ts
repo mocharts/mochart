@@ -158,7 +158,7 @@ describe('createCandlestick', () => {
         expect(seriesConfig.axis, seriesConfig.id).toBe(seriesConfig.id!.includes('Volume') ? 'volume' : 'price');
       }
       const [priceAxis, volumeAxis] = valueAxisConfigs!;
-      // defaults: volume pane 20%, gap 5% — the price margins put the lows at 25% of the plot, volume margin (0.8 / 0.2)
+      // defaults: volume pane 20%, gap 5%. The price margins put the lows at 25% of the plot, volume margin (0.8 / 0.2)
       expect(priceAxis).toMatchObject({ id: 'price', maxMarginFraction: 0.05 });
       expect(priceAxis.minMarginFraction).toBeCloseTo(0.25 * 1.05 / 0.75, 6);
       expect(bottomShare(priceAxis)).toBeCloseTo(0.25, 6);

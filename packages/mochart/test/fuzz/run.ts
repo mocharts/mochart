@@ -124,7 +124,7 @@ function loadBases(library: Library, options: Options): BaseCase[] {
     raw.animation = { ...(raw.animation as object), enabled: options.animation };
     const validation = library.validateConfig(raw);
     if (!validation.valid) {
-      console.warn('skipping base ' + id + ': its own config does not validate — ' + validation.errors.join('; '));
+      console.warn('skipping base ' + id + ': its own config does not validate: ' + validation.errors.join('; '));
       continue;
     }
     bases.push({ id, config: raw, data: loadJson(dataPaths[demo.data]!) });
@@ -147,7 +147,7 @@ function elapsedSeconds(): number {
 
 function formatEta(done: number, total: number): string {
   if (done === 0) {
-    return '—';
+    return '?';
   }
   const remaining = Math.round((elapsedSeconds() / done) * (total - done));
   return Math.floor(remaining / 60) + 'm' + String(remaining % 60).padStart(2, '0') + 's';
@@ -273,7 +273,7 @@ async function main(): Promise<void> {
 
   write(done);
   const findings = fuzzer.getFindings();
-  console.log((interrupted ? 'interrupted' : 'done') + ' — ' + fuzzer.stats.cases + ' cases in '
+  console.log((interrupted ? 'interrupted' : 'done') + ': ' + fuzzer.stats.cases + ' cases in '
     + elapsedSeconds().toFixed(0) + 's · ' + findings.length + ' finding groups · ' + path.join(options.out, 'report.md'));
   if (options.failOnFindings && findings.length > 0) {
     process.exitCode = 1;

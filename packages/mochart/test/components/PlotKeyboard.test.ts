@@ -1,5 +1,5 @@
 /**
- * Plot-area keyboard accessibility: the series-area rect is a button tab stop — Enter/Space toggles the
+ * Plot-area keyboard accessibility: the series-area rect is a button tab stop. Enter/Space toggles the
  * tooltip (aria-expanded tracks it), arrows/Home/End step categories, Escape closes, reopening resumes.
  */
 import { describe, it, expect, beforeAll, vi } from 'vitest';
@@ -302,7 +302,7 @@ describe('plot keyboard semantics', () => {
   });
 
   // Regression: the no-config, no-error, not-loading state only detached the root, leaving the body,
-  // its live region and a pending announcement alive behind it — and the stale region came back as-is
+  // its live region and a pending announcement alive behind it, and the stale region came back as-is
   it('tears the body down when the config goes away without an error or loading', async () => {
     const container = mountContainer();
     const handle = trackHandle(createChart(container, {

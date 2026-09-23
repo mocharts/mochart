@@ -1,5 +1,5 @@
-// markerProperty size interpolation: a clamped scale over the marker value domain — sqrt by default (area tracks
-// the value), linear via markerSizeScale — so fractional domains span the full size range, constants land mid-range.
+// markerProperty size interpolation: a clamped scale over the marker value domain, sqrt by default (area tracks
+// the value), linear via markerSizeScale, so fractional domains span the full size range, constants land mid-range.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
 import { mountContainer, trackHandle } from './helpers';

@@ -63,7 +63,7 @@ function mouse(target: Element, type: string, clientX: number, clientY: number):
 }
 
 // Regression: axis layout reads only axisConfig.visible, so a pie with a visible axis reserved the
-// gutter while RadialPlot drew no axis — and grew real axes through PlotEmpty when the data emptied
+// gutter while RadialPlot drew no axis, and grew real axes through PlotEmpty when the data emptied
 describe('axis visibility in pie mode', () => {
   function validation(visible: boolean) {
     const { config } = pieChartProps(ITEMS);

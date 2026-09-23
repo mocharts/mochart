@@ -65,7 +65,7 @@ function framesToSettle(): number {
   return frames;
 }
 
-// height of a settled Jan bar at 100; measured once — runFrames would also settle a chart under test
+// height of a settled Jan bar at 100; measured once, because runFrames would also settle a chart under test
 let fullHeight = 0;
 beforeAll(() => {
   const { chart, container } = mountChart(highRows);

@@ -10,7 +10,7 @@ import type { MochartInputConfig } from '../../src/types/config';
 
 const VERSION = '1.0.0';
 
-/** config whose single series reads numeric values — valid against `rows` */
+/** config whose single series reads numeric values, valid against `rows` */
 function salesConfig(): MochartInputConfig {
   return {
     version: VERSION,
@@ -19,7 +19,7 @@ function salesConfig(): MochartInputConfig {
   } as unknown as MochartInputConfig;
 }
 
-/** config whose single series reads string values — invalid against `rows` */
+/** config whose single series reads string values, invalid against `rows` */
 function labelConfig(): MochartInputConfig {
   return {
     version: VERSION,

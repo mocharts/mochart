@@ -1,6 +1,6 @@
 import type { EnhancedMochartConfig } from '../../src/types/enhanced';
 // Tween engine + ChartTweenManager tests (sequencing, events, durations, cancellation) on a fake
-// clock; the data/focus interpolators are mocked — their math is covered by their own test files.
+// clock; the data/focus interpolators are mocked, because their math is covered by their own test files.
 import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import { FRAME_MS, installFakeFrameClock, runFrames } from '../components/helpers';
 import {

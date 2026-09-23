@@ -560,7 +560,7 @@ describe('pie chart config validation', () => {
 });
 
 // Regression: list-section validation paired built (filtered) entries with the raw array by position,
-// so an ignore:true entry shifted later entries onto the wrong index — garbage passed, ignored entries errored.
+// so an ignore:true entry shifted later entries onto the wrong index, so garbage passed and ignored entries errored.
 describe('list-section validation with ignored entries', () => {
   it('validates entries after an ignored entry at their raw index', () => {
     const errors = errorsFor({

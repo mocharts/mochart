@@ -97,7 +97,7 @@ export class Fuzzer {
       : new this.library.ObjectOfArraysDataProvider(data as ObjectOfArraysData);
   }
 
-  /** A config its data cannot satisfy is out of contract for createChart — DefaultChartInput gates on the same check. */
+  /** A config its data cannot satisfy is out of contract for createChart, and DefaultChartInput gates on the same check. */
   private hasDataMismatch(raw: Record<string, unknown>, data: unknown): boolean {
     const enhanced = this.library.enhanceConfig(structuredClone(raw));
     return this.library.getDataErrors(enhanced, this.makeProvider(structuredClone(data))).length > 0;
@@ -110,7 +110,7 @@ export class Fuzzer {
       this.stats.notSettled++;
       this.record('error', property, 'no-settle', {
         base, value, stage,
-        detail: 'still had pending frames after ' + frames + ' frames — the chart never settles'
+        detail: 'still had pending frames after ' + frames + ' frames, so the chart never settles'
       });
     }
   }

@@ -18,7 +18,7 @@ describe('types/config.ts JSDoc sync', () => {
   it('matches the checked-in file', () => {
     expect(
       output === source,
-      'src/types/config.ts JSDoc is out of date with the config docs — run "npm run generate-jsdoc -w @mochart/core"'
+      'src/types/config.ts JSDoc is out of date with the config docs. Run "npm run generate-jsdoc -w @mochart/core"'
     ).toBe(true);
   });
 });

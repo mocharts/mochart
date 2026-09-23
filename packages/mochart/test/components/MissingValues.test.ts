@@ -79,7 +79,7 @@ describe('missingValueMode connect category-index remapping', () => {
       { onFocus: focus => { focuses.push(focus); } }
     );
 
-    // Feb is missing, so its bar is absent — the suffix skips 1 rather than compacting
+    // Feb is missing, so its bar is absent, and the suffix skips 1 rather than compacting
     expect(container.querySelector(getIdCssSelector('seriesBar', '1'))).toBeNull();
     click(container.querySelector(getIdCssSelector('seriesBar', '2'))!);
     expect(focuses[focuses.length - 1]!.focusedCategoryIndex).toBe(2);
@@ -104,7 +104,7 @@ describe('missingValueMode connect category-index remapping', () => {
   });
 
   // Regression: shapes were keyed by the compacted index, so a category appearing earlier in the
-  // series shifted every later shape's key — the retained list then handed one category's node to
+  // series shifted every later shape's key, and the retained list then handed one category's node to
   // its neighbour and tweened the geometry across, instead of leaving it alone and adding a node.
   it('keeps a category on its own node when an earlier category gains a value', () => {
     const { container, handle } = mountChart(

@@ -1,6 +1,6 @@
 /**
  * Keyboard accessibility of pie slices: interactive slices (focusOnClick or an
- * onSliceClick handler) are buttons with a roving tab stop — arrows move
+ * onSliceClick handler) are buttons with a roving tab stop. Arrows move
  * between slices in config order (the DOM is focus-ordered, so it cannot drive
  * navigation), Enter/Space clicks, and the slice keeps DOM focus even when
  * focusing reorders the slice nodes. Non-interactive slices stay aria-hidden.
@@ -72,7 +72,7 @@ describe('pie slice keyboard semantics', () => {
   });
 
   // Regression: untitled slices were announced by raw id ("S0, 25%") while the
-  // legend says "Series S0" — two names for the same series on one chart.
+  // legend says "Series S0", two names for the same series on one chart.
   it('announces untitled slices with the same name the legend uses', () => {
     const container = mountChart(makeConfig({
       series: [{ id: 'S0', property: 's0' }, { id: 'S1', property: 's1' }, { id: 'S2', property: 's2' }]
@@ -153,7 +153,7 @@ describe('pie slice keyboard semantics', () => {
 
   // Regression: Enter synthesized a click at the slice's bbox center, and the
   // chart-level bounds gate swallowed it whenever the center fell outside the
-  // series rect (exploded edge slices; jsdom's zero-size bboxes reproduce it) —
+  // series rect (exploded edge slices; jsdom's zero-size bboxes reproduce it),
   // toggling the focus but leaving the tooltip out of sync.
   // pie deliberately keeps this while cartesian series dropped it: the tooltip Enter opens is the slice's own category
   it('toggles the tooltip with Enter and Space regardless of slice geometry', () => {
@@ -187,7 +187,7 @@ describe('pie slice keyboard semantics', () => {
   });
 
   // Regression: filtering out the focused slice detached its node, and the
-  // focus-restore skipped disconnected nodes — keyboard focus fell to <body>.
+  // focus-restore skipped disconnected nodes, so keyboard focus fell to <body>.
   it('moves focus to a neighbor slice when the focused slice is filtered out', () => {
     const container = mountChart(makeConfig(), () => {});
     const handle = lastHandle();

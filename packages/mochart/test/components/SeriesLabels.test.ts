@@ -68,7 +68,7 @@ describe('series label fraction guards', () => {
   });
 
   // Regression: an unstacked value measured its span from zero, so the guard was inert on any chart
-  // whose bars do not start there — a 55 bar on a 50-100 axis counted as spanning 55, not 5
+  // whose bars do not start there, so a 55 bar on a 50-100 axis counted as spanning 55, not 5
   it('measures an unstacked value from the axis base, not from zero', () => {
     const rowsAboveBase = [{ month: 'Jan', sales: 55 }, { month: 'Feb', sales: 90 }];
     expect(labelTexts({ label: { minRangeFraction: 0.2 } }, [{ base: 50, min: 50, max: 100 }], rowsAboveBase))

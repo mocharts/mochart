@@ -91,7 +91,7 @@ describe('getSeriesText', () => {
         makeTooltipConfig({ showMissingValues: true }),
         makeSeriesConfig(skipConfig),
         identity,
-        makeSlice({ range: 10 }) as never, // plain undefined — the other direction's row
+        makeSlice({ range: 10 }) as never, // plain undefined: the other direction's row
         false
       );
       expect(valueText).toBe(null);
@@ -124,7 +124,7 @@ describe('getSeriesText', () => {
         makeTooltipConfig({ showMissingValues: true }),
         makeSeriesConfig({ missingValueMode: 'connect', stack: null, followSeries: 'up' }),
         identity,
-        makeSlice({}) as never, // plain undefined — the other direction's volume row
+        makeSlice({}) as never, // plain undefined: the other direction's volume row
         false
       );
       expect(valueText).toBe(null);
@@ -257,13 +257,13 @@ describe('getSeriesText', () => {
 
   it('shows the missing-value text when the value is absent but missing values are shown', () => {
     const { valueText } = getSeriesText(
-      makeTooltipConfig({ showMissingValues: true, missingValueText: '—' }),
+      makeTooltipConfig({ showMissingValues: true, missingValueText: 'n/a' }),
       makeSeriesConfig(),
       identity,
       makeSlice({}, { plain: 5 }) as never, // raw hole, filtered present
       false
     );
-    expect(valueText).toBe('—');
+    expect(valueText).toBe('n/a');
   });
 
   describe('pie tooltip values', () => {

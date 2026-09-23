@@ -28,14 +28,14 @@ const rows = [
   { month: 'Mar', sales: 30 }
 ];
 
-// same months, same min/max — value-only change with identical domains
+// same months, same min/max: a value-only change with identical domains
 const reversedRows = [
   { month: 'Jan', sales: 30 },
   { month: 'Feb', sales: 20 },
   { month: 'Mar', sales: 10 }
 ];
 
-// different category labels — tick text changes, so a remeasure is required
+// different category labels, so tick text changes and a remeasure is required
 const renamedRows = [
   { month: 'April', sales: 10 },
   { month: 'May', sales: 20 },

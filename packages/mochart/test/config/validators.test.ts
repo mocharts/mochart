@@ -58,7 +58,7 @@ describe('cssColor', () => {
   });
 });
 
-// the ramp bounds are handed to d3 scale ranges, so they must stay parseable by d3-color — no keywords or css-only forms
+// the ramp bounds are handed to d3 scale ranges, so they must stay parseable by d3-color, with no keywords or css-only forms
 describe('color (series color-scale bounds)', () => {
   const validate = configValidators.color();
 

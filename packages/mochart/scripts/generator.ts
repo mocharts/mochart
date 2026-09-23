@@ -1,7 +1,7 @@
 // CLI for the config reference docs: builds the model (configReferenceModel.ts), writes
 // generated/config-reference.json for the docs site, and renders a standalone html page on request.
 // Exits non-zero when the config docs sources have mismatched keys.
-// Usage: tsx scripts/generator.ts [htmlPath] [jsonPath] [apiJsonPath] — paths default into <package> regardless of cwd.
+// Usage: tsx scripts/generator.ts [htmlPath] [jsonPath] [apiJsonPath]. Paths default into <package> regardless of cwd.
 
 import {
   buildConfigReference,

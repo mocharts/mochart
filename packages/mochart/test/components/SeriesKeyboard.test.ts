@@ -1,5 +1,5 @@
-// Cartesian series keyboard a11y: interactive series (focusOnClick or onSeriesClick) are buttons with a roving tab stop —
-// arrows move in config order, Enter/Space clicks the whole series (categoryIndex -1), followers stay pointer-only, others aria-hidden; the plot rect owns the tooltip, only Escape crosses over.
+// Cartesian series keyboard a11y: interactive series (focusOnClick or onSeriesClick) are buttons with a roving tab stop.
+// Arrows move in config order, Enter/Space clicks the whole series (categoryIndex -1), followers stay pointer-only, others aria-hidden; the plot rect owns the tooltip, only Escape crosses over.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
 import { mountContainer, trackHandle, lastHandle } from './helpers';
@@ -161,7 +161,7 @@ describe('cartesian series keyboard semantics', () => {
     expect(rect.getAttribute('aria-expanded')).toBe('false');
   });
 
-  // the category cursor lives on the plot rect alone — arrows inside the series group are sibling navigation, not a second cursor
+  // the category cursor lives on the plot rect alone, while arrows inside the series group are sibling navigation, not a second cursor
   it('steps between series with arrows without moving the open tooltip', () => {
     const container = mountChart(makeConfig(), () => {});
     const items = seriesNodes(container);

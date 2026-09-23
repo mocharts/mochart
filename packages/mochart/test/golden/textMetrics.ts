@@ -1,4 +1,4 @@
-// A synthetic proportional font for the golden suite: jsdom has no font engine, and the old zero stubs made every measurement fall to the 20x20 defaultBounds fallback, so truncation, tick pruning and layout fitting never ran; widths are per-code-point advance fractions of a fixed em — a pure function of the string, identical on every machine, deliberately not any real font
+// A synthetic proportional font for the golden suite: jsdom has no font engine, and the old zero stubs made every measurement fall to the 20x20 defaultBounds fallback, so truncation, tick pruning and layout fitting never ran; widths are per-code-point advance fractions of a fixed em, a pure function of the string, identical on every machine, deliberately not any real font
 
 /** Nominal font size, in pixels, for every text element that sets no font size of its own. */
 export const EM_PX = 16;
@@ -92,8 +92,8 @@ function getTextContent(element: Element): string {
 }
 
 /**
- * Install the metrics on every measurement entry point the chart uses — `getComputedTextLength`,
- * `getBBox`, and computed-style `fontSize` — all reporting the same model, so the library never
+ * Install the metrics on every measurement entry point the chart uses (`getComputedTextLength`,
+ * `getBBox`, and computed-style `fontSize`), all reporting the same model, so the library never
  * sees a width that disagrees with a font size.
  */
 export function installTextMetrics(): void {

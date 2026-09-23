@@ -1,5 +1,5 @@
 /**
- * ChartHandle.refresh(): the escape hatch for in-place data mutation — update() detects changes by
+ * ChartHandle.refresh(): the escape hatch for in-place data mutation. update() detects changes by
  * object identity only, so mutated arrays/providers need refresh() to be re-read and re-rendered.
  */
 import { describe, it, beforeAll, expect } from 'vitest';

@@ -48,7 +48,7 @@ describe('category key identity', () => {
     chart.update({ ...props, dataProvider: new mochart.ArrayOfObjectsDataProvider([...ROWS]) } as never);
     runFrames();
 
-    // identical data, so the focused category is still index 1 — matching by label would report 0
+    // identical data, so the focused category is still index 1, while matching by label would report 0
     expect(focuses.map(focus => focus.focusedCategoryIndex)).toEqual([]);
     chart.destroy();
   });

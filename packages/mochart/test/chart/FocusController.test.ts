@@ -234,7 +234,7 @@ describe('FocusController focus handling', () => {
   });
 
   // Regression: the filter map was a plain {}, so assigning a __proto__ id hit
-  // the prototype setter instead of creating a key — the series could never be filtered.
+  // the prototype setter instead of creating a key, so the series could never be filtered.
   it('toggles a series whose id is a prototype member name', () => {
     const { controller } = makeHarness();
 

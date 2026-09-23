@@ -19,7 +19,7 @@ function edges(configInput: Record<string, unknown>, rows: Row[] = overflowing, 
   return getClippedEdges(config, chartData);
 }
 
-/** The edges reported as clipped, as a sorted list — easier to read than four booleans. */
+/** The edges reported as clipped, as a sorted list, easier to read than four booleans. */
 function clipped(configInput: Record<string, unknown>, rows: Row[] = overflowing, filteredSeriesIds: Record<string, boolean> = {}) {
   const result = edges(configInput, rows, filteredSeriesIds);
   return (Object.keys(result) as (keyof typeof result)[]).filter((edge) => result[edge]).sort();
@@ -104,7 +104,7 @@ describe('filtered series', () => {
     expect(clipped(config, rows)).toEqual(['top']);
   });
 
-  it('reports nothing once that series is filtered out — the filter hides it, not the clip', () => {
+  it('reports nothing once that series is filtered out, because the filter hides it, not the clip', () => {
     expect(edges(config, rows, { S1: true })).toEqual(noClippedEdges);
   });
 
@@ -128,7 +128,7 @@ describe('category axis bounds', () => {
     expect(clipped(dateAxis({ min: '2020-03-01', max: '2020-12-01' }), dateRows)).toEqual(['left']);
   });
 
-  // a vertical category axis runs top-to-bottom, so its max is at the bottom — the opposite of a
+  // a vertical category axis runs top-to-bottom, so its max is at the bottom, the opposite of a
   // vertical value axis. Measured: with plot.inverted the first date renders at y=0, the last at y=255.
   it('maps an exceeded max to the bottom edge when the plot is inverted', () => {
     expect(clipped({ plot: { inverted: true }, ...dateAxis({ min: '2020-01-01', max: '2020-03-01' }) }, dateRows)).toEqual(['bottom']);

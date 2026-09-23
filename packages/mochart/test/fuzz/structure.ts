@@ -1,6 +1,6 @@
 // Shape changes the property sweep never makes: adding, removing and reordering list entries, and
 // adding or removing a data row. Every case is still one move away from its base, so the same
-// path-independence oracle applies — reaching a shape by update must match building it directly.
+// path-independence oracle applies: reaching a shape by update must match building it directly.
 import type { BaseCase } from './runner';
 
 const LIST_SECTIONS = ['series', 'valueAxes', 'seriesGroups', 'seriesStacks', 'linearGradients', 'radialGradients', 'patterns'];

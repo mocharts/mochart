@@ -1,6 +1,6 @@
 /**
  * Regression: a missingValueMode 'connect' bar series with a colorProperty must color each bar from its
- * raw category index — the renderer used the compacted position index, so after a skipped gap every
+ * raw category index. The renderer used the compacted position index, so after a skipped gap every
  * later bar read the wrong category's color (heatmap grids with missing cells hit this).
  */
 import { describe, it, beforeAll, expect } from 'vitest';

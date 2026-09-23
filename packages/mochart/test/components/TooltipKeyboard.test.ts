@@ -1,8 +1,8 @@
 /**
  * Keyboard accessibility of the tooltip: per-series and category rows are
- * buttons with a roving tab stop whenever clicking them does something —
- * arrows move between rows, Enter/Space acts like a click, aria-pressed
- * tracks filtering (pressed = series shown) — and Escape anywhere inside
+ * buttons with a roving tab stop whenever clicking them does something.
+ * Arrows move between rows, Enter/Space acts like a click, aria-pressed
+ * tracks filtering (pressed = series shown), and Escape anywhere inside
  * the tooltip closes it and hands focus back to the plot tab stop.
  */
 import { describe, it, expect, beforeAll } from 'vitest';

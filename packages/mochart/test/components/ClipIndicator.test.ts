@@ -358,7 +358,7 @@ describe('mitred corners', () => {
   });
 
   // Regression: the per-edge test read the band's label rect, which is the part left clear of the
-  // perpendicular bands — empty once those two span the extent — so a band with real depth vanished
+  // perpendicular bands (empty once those two span the extent), so a band with real depth vanished
   it('keeps a band whose perpendicular neighbours leave its label no room', () => {
     // 355x255 plot: top and bottom take the 127.5 half-share each, so the left band's label rect is 0 tall
     const container = mount(threeEdges({ size: 150 }), dateRows);

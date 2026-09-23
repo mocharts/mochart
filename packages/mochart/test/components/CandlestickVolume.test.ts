@@ -56,7 +56,7 @@ describe('candlestick volume pane', () => {
     const container = mountVolumeCandlestick();
     const volumeBars = ['upVolume', 'downVolume'].flatMap((seriesId) => barRects(container, seriesId));
     // the volume axis min is pinned at 0, so every bar grows from the bottom
-    // of the series area — the shared baseline is the series extent
+    // of the series area: the shared baseline is the series extent
     const bottoms = volumeBars.map((bar) => bar.y + bar.height);
     const seriesExtent = bottoms[0];
     for (const bottom of bottoms) {

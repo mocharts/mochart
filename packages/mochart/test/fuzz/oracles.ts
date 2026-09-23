@@ -1,6 +1,6 @@
 // The four tier-1 oracles' primitives: a canonical DOM serialization for comparison, a geometry scan
 // for impossible attribute values, and a deep compare that reports where two objects diverge.
-// Only the leaf ChartDom module is imported here — the library entry must load after the clock.
+// Only the leaf ChartDom module is imported here, because the library entry must load after the clock.
 import { mochartVersionAttribute } from '../../src/utils/ChartDom';
 
 const UNIQUE_ID_PREFIXES = [
@@ -13,7 +13,7 @@ const uniqueIdPattern = new RegExp('(' + UNIQUE_ID_PREFIXES.join('|') + ')(\\d+)
 
 /**
  * Line-per-node serialization with attributes sorted by name and the per-instance id counters
- * flattened. Two chart instances built from the same config must produce the same text — attribute
+ * flattened. Two chart instances built from the same config must produce the same text. Attribute
  * write order is not observable, so it must not be compared.
  */
 export function serializeDom(root: Element): string {

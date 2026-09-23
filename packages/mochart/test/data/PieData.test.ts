@@ -59,8 +59,8 @@ describe('getPieSliceFractions', () => {
   });
 
   it('normalizes the same way the slice angles do', () => {
-    // the tooltip reads one category's scalars, the slices read per-category arrays —
-    // both must agree on each slice's share
+    // the tooltip reads one category's scalars, the slices read per-category arrays,
+    // and both must agree on each slice's share
     const angles = getPieSliceAngles(configs, { a: values([30]), b: values([10]), c: values(null) }, pieConfig());
     const scalars: Record<string, number | null | undefined> = { a: 30, b: 10, c: null };
     const fractionMap = getPieSliceFractionMap(configs, id => scalars[id]);

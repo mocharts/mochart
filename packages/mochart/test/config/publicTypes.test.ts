@@ -1,4 +1,4 @@
-// every config union type and value constant must be exported by name; the type half is enforced at typecheck time — dropping an export fails `npm run typecheck` on this file
+// every config union type and value constant must be exported by name; the type half is enforced at typecheck time: dropping an export fails `npm run typecheck` on this file
 import { describe, it, expect, expectTypeOf } from 'vitest';
 import * as mochart from '../../src';
 import { CONFIG_VERSION } from '../../src/config/core/constants';
@@ -90,7 +90,7 @@ describe('public config type surface', () => {
   });
 });
 
-// the tooltip background renders as a css border, so its style type has no strokeDashArray — type and validator agree
+// the tooltip background renders as a css border, so its style type has no strokeDashArray, and type and validator agree
 describe('tooltip background style', () => {
   it('accepts the five keys the validator accepts', () => {
     const config: MochartInputConfig = {

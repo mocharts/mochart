@@ -20,7 +20,7 @@ export interface ParsedInterface {
   typeParameters: string[];
   extendsNames: string[];
   members: ParsedMember[];
-  /** Members the model cannot render — method signatures and computed names. */
+  /** Members the model cannot render: method signatures and computed names. */
   skippedMembers: string[];
 }
 

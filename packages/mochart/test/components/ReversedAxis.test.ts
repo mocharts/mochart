@@ -1,4 +1,4 @@
-// axis.reversed runs an axis in the opposite direction by reversing the scale's *range* only — bases, thresholds, tick generation and animation deltas all keep seeing an ascending domain.
+// axis.reversed runs an axis in the opposite direction by reversing the scale's *range* only: bases, thresholds, tick generation and animation deltas all keep seeing an ascending domain.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
 import { mountContainer, trackHandle, mockBoundingClientRect } from './helpers';
@@ -176,7 +176,7 @@ describe('category axis reversed', () => {
     // same two bars, mirrored across the plot: first is now on the right
     expect(reversed[0].x).toBeGreaterThan(reversed[1].x);
     expect(normal[0].x).toBeLessThan(normal[1].x);
-    // heights are unaffected — only the category positions moved
+    // heights are unaffected, and only the category positions moved
     for (let i = 0; i < normal.length; i++) {
       expect(reversed[i].bottom - reversed[i].top).toBe(normal[i].bottom - normal[i].top);
     }

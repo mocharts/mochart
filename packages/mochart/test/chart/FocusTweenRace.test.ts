@@ -69,7 +69,7 @@ describe('focus tween target', () => {
   it('keeps the category pin when a series focus lands inside the cancel window', () => {
     const { chart, container } = mountChart();
 
-    // pin the category, then focus a series before any frame runs — the
+    // pin the category, then focus a series before any frame runs, so the
     // category tween is still inside its start delay when it gets canceled
     chart.update({ focusedCategoryIndex: 1 });
     chart.update({ focusedCategoryIndex: 1, focusedSeriesId: 'sales' });

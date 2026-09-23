@@ -1,6 +1,6 @@
 /**
  * Shared jsdom test harness: fake frame clock, layout mocks, chart-handle teardown and bar-path parsing.
- * Only imports the leaf ChartDom module — fake timers must be installed before the library entry is imported.
+ * Only imports the leaf ChartDom module, because fake timers must be installed before the library entry is imported.
  */
 import { afterAll, afterEach, expect, vi } from 'vitest';
 import type { ChartHandle } from '../../src/createChart';

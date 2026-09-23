@@ -414,7 +414,7 @@ describe('shallowEqual', () => {
 
 interface Row { id: string; label: string }
 
-// create() builds bare structure only — all content comes from update(), so a
+// create() builds bare structure only, and all content comes from update(), so a
 // block created and never updated would show up as an empty <li>
 const rowAdapter = {
   key: (row: Row) => row.id,

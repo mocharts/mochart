@@ -454,7 +454,7 @@ describe('non-integer order values', () => {
 });
 
 // Regression: the id maps were plain {} objects, so ids and references named
-// after Object.prototype members hit inherited values — a sole axis id of
+// after Object.prototype members hit inherited values, so a sole axis id of
 // "constructor" crashed the build, and lookups returned functions.
 describe('prototype-member-named ids', () => {
   it('accepts a prototype member name as an id end to end', () => {
@@ -507,7 +507,7 @@ describe('object-valued ids and references', () => {
 // caller-supplied defaults and re-validating with them flipped valid to false.
 describe('caller-supplied defaults immutability', () => {
   it('buildMochartConfig leaves the defaults untouched', () => {
-    // no valueAxes/seriesStacks/seriesGroups sections — all come from the defaults
+    // no valueAxes/seriesStacks/seriesGroups sections, so all come from the defaults
     const config = { version: VERSION_STRING, categoryAxis: { property: 'g' }, series: [{ property: 'v' }] };
     const defaults = getDefaults(config);
     const snapshot = JSON.parse(JSON.stringify(defaults));
@@ -575,7 +575,7 @@ describe('axis min/max bounds', () => {
   it('does not date-parse string bounds on a non-date axis', () => {
     const mochartConfig = enhance({ ...base,
       categoryAxis: { property: 'c', type: 'number', scale: 'linear', min: '2020-06-01', max: 0 } });
-    // the type error stands alone — no bounds comparison against a date-parsed string
+    // the type error stands alone, with no bounds comparison against a date-parsed string
     expect(mochartConfig.validation.errors).toHaveLength(1);
     expect(mochartConfig.validation.errors[0]).toContain('categoryAxis - min');
   });

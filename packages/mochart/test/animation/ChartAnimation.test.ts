@@ -383,8 +383,8 @@ describe('animation.valueDomainChange modes', () => {
   });
 });
 
-// categoryDomainChange defaults to 'staged' — a window slide zooms out over the union unless the
-// config opts into 'auto'/'combined' — and the two axis kinds mix modes independently
+// categoryDomainChange defaults to 'staged' (a window slide zooms out over the union unless the
+// config opts into 'auto'/'combined'), and the two axis kinds mix modes independently
 describe('animation.categoryDomainChange', () => {
   const DAY = 24 * 60 * 60 * 1000;
   const T0 = Date.UTC(2026, 0, 1);
@@ -555,7 +555,7 @@ describe('filtered series-domain deltas drive the phase pacing', () => {
   });
 });
 
-// Regression: getMaxDeltaPercentage omitted the tooltip key — a tooltip-only transition degraded
+// Regression: getMaxDeltaPercentage omitted the tooltip key, so a tooltip-only transition degraded
 // to a 0-duration jump and mixed transitions under-interpolated before snapping.
 describe('tooltip value deltas drive the phase pacing', () => {
   it('counts a tooltip-only change and keeps its factor >= 1', () => {

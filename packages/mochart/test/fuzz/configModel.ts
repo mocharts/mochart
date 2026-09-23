@@ -66,7 +66,7 @@ const STRING_VALUES = ['Fuzzed', 'A considerably longer string, long enough to n
 
 function readModel(): ConfigModel {
   if (!fs.existsSync(modelPath)) {
-    throw new Error('Missing ' + modelPath + ' — run `npm run generate-docs -w @mochart/core` first');
+    throw new Error('Missing ' + modelPath + '. Run `npm run generate-docs -w @mochart/core` first');
   }
   return JSON.parse(fs.readFileSync(modelPath, 'utf8')) as ConfigModel;
 }
@@ -239,7 +239,7 @@ export function entryCount(config: Record<string, unknown>, spec: PropertySpec):
 
 /**
  * Write `value` at the spec's path in a raw config, creating missing groups. Returns false when the
- * config has nowhere to put it — a list section the base never declares that entry for.
+ * config has nowhere to put it: a list section the base never declares that entry for.
  */
 export function applyValue(config: Record<string, unknown>, spec: PropertySpec, value: unknown, entryIndex = 0): boolean {
   let target: Record<string, unknown>;

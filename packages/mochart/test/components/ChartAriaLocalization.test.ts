@@ -84,7 +84,7 @@ describe('accessibility label overrides', () => {
     expect(svgRoot(container).getAttribute('aria-label')).toBe(german.chartLabel);
   });
 
-  // the title wins over both the default and an override — it names the chart better than either
+  // the title wins over both the default and an override, because it names the chart better than either
   it('lets the title outrank the chart label', () => {
     const container = mountChart({ title: { text: 'Umsatz' }, accessibility: { chartLabel: german.chartLabel } });
 

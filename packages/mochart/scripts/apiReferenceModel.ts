@@ -1,7 +1,7 @@
 // Builds the api-reference model for the docs prop/callback pages straight from the prop
 // interfaces in src/types/chart.ts, whose JSDoc also feeds the shipped .d.ts and hovers.
 // Every exported interface needs a page group or an internalInterfaces entry, and every
-// member a JSDoc description — violations are integrity errors that fail the generator.
+// member a JSDoc description. Violations are integrity errors that fail the generator.
 // The ratchet covers this one file: everything else on the public surface is checked by
 // mochart-docs/scripts/checkApiCoverage.ts against the hand-written reference/api.md.
 
@@ -88,8 +88,8 @@ const pageSources: PageSource[] = [
     lead:
       'Props accepted by the two chart entry points, `createDefaultChart` and' +
       ' `createChart` (see the [API reference](/reference/api)). The framework' +
-      ' bindings accept the same props — with the per-binding renamings noted on' +
-      ' each [framework page](/guide/frameworks/react) — and derive `width` and' +
+      ' bindings accept the same props, with the per-binding renamings noted on' +
+      ' each [framework page](/guide/frameworks/react), and derive `width` and' +
       ' `height` from their container when those are omitted.',
     groups: [
       {
@@ -124,8 +124,8 @@ const pageSources: PageSource[] = [
         title: 'State factories',
         interfaceName: 'ChartFactories',
         description:
-          'Customize what renders in each non-chart state — see' +
-          ' [Chart states](/guide/chart-states). Each factory is called with the' +
+          'Customize what renders in each non-chart state (see' +
+          ' [Chart states](/guide/chart-states)). Each factory is called with the' +
           ' context below and returns a DOM node or string.'
       },
       {
@@ -138,7 +138,7 @@ const pageSources: PageSource[] = [
   },
   {
     id: 'callbacks',
-    // The title must not slugify to a group id below — VitePress rejects
+    // The title must not slugify to a group id below, because VitePress rejects
     // duplicate anchors, and `callbacks` is the group.
     title: 'Callbacks and payloads',
     lead:
@@ -166,14 +166,14 @@ const pageSources: PageSource[] = [
         title: 'ChartFocus',
         interfaceName: 'ChartFocus',
         description:
-          'Received by `onFocus` — the whole focus state, not just what changed.'
+          'Received by `onFocus`: the whole focus state, not just what changed.'
       },
       {
         id: 'chartSeriesFilter',
         title: 'ChartSeriesFilter',
         interfaceName: 'ChartSeriesFilter',
         description:
-          'Received by `onSeriesFilter` — the whole filter map, not just what changed.'
+          'Received by `onSeriesFilter`: the whole filter map, not just what changed.'
       },
       {
         id: 'chartSliceClickPayload',
@@ -212,7 +212,7 @@ export function buildApiReference(configModel: ConfigReferenceModel = buildConfi
   for (const name of exportedNames) {
     if (!referenceByInterface.has(name) && !(name in internalInterfaces)) {
       integrityErrors.push(
-        `${name} is exported from types/chart.ts but has no reference page group —` +
+        `${name} is exported from types/chart.ts but has no reference page group:` +
         ' add it to pageSources, or to internalInterfaces with a reason'
       );
     }
@@ -225,7 +225,7 @@ export function buildApiReference(configModel: ConfigReferenceModel = buildConfi
   for (const [name, parsed] of interfaces) {
     if (referenceByInterface.has(name) && parsed.skippedMembers.length > 0) {
       integrityErrors.push(
-        `${name} has members the reference cannot render (${parsed.skippedMembers.join(', ')}) —` +
+        `${name} has members the reference cannot render (${parsed.skippedMembers.join(', ')}):` +
         ' give them property syntax, or move the interface to internalInterfaces with a reason'
       );
     }

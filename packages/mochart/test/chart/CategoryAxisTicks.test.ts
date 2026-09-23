@@ -1,6 +1,6 @@
 /**
- * Category axis explicit `ticks`: replaces generated ticks with configured { value, label } entries —
- * an ordinal axis shows a tick at each matching category (a date matches by instant), labels fall
+ * Category axis explicit `ticks`: replaces generated ticks with configured { value, label } entries.
+ * An ordinal axis shows a tick at each matching category (a date matches by instant), labels fall
  * back to the formatted value, and a tick matching no category (or outside a linear domain) is hidden.
  */
 import { describe, it, beforeAll, expect } from 'vitest';

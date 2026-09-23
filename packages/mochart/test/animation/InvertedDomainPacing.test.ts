@@ -1,4 +1,4 @@
-// an inverted explicit domain has a negative extent that used to zero the phase-duration denominator — an Infinity-duration tween that never settles; both tests drive real frames on a fake clock
+// an inverted explicit domain has a negative extent that used to zero the phase-duration denominator, giving an Infinity-duration tween that never settles; both tests drive real frames on a fake clock
 import { describe, it, beforeAll, expect, vi } from 'vitest';
 import { installSvgMeasurementShims } from '../components/svgShims';
 import { installFakeFrameClock, runFrames, mountContainer } from '../components/helpers';

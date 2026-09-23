@@ -1,6 +1,6 @@
 // Builds the config-reference model for every docs surface (generated JSON, JSDoc
-// codegen) from the same per-section sources the runtime uses —
-// descriptions, validators, and (conditional) defaults — and cross-checks their keys stay in sync.
+// codegen) from the same per-section sources the runtime uses
+// (descriptions, validators, and conditional defaults) and cross-checks their keys stay in sync.
 
 import {
   configWithoutAllValidators as mochartConfigSectionValidators,
@@ -239,7 +239,7 @@ export interface SectionDoc {
   /** Companion `*Defaults` key whose values apply to every entry, if any. */
   allKey?: string;
   allDescription?: string;
-  /** Per-entry unique properties (e.g. id/order) — not settable on the all config. */
+  /** Per-entry unique properties (e.g. id/order), not settable on the all config. */
   uniqueKeys?: string[];
   /** Additional per-entry properties that cannot be supplied by the companion defaults section. */
   allExcludedKeys?: string[];
@@ -886,7 +886,7 @@ function buildSectionDoc(source: SectionSource, sectionValidators: SectionValida
     shape: sectionValidator.validator.validatorName === 'arrayOf' ? 'array' : 'object',
     properties
   };
-  // the section validator holds no member list of its own — its properties are validated separately —
+  // the section validator holds no member list of its own (its properties are validated separately),
   // so the rule is composed rather than split, in the wording its nested properties use
   section.shapeRule = {
     lead: (section.shape === 'array' ? 'should be an array with elements that should be an object' : 'should be an object') +

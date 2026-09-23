@@ -1,10 +1,10 @@
-// TextTruncation fits text with getComputedTextLength(), so every width a layout reserves must come from the same call — getBBox().width is not interchangeable (Gecko inflates text boxes by 2px per side, making Firefox reserve more than it needs)
+// TextTruncation fits text with getComputedTextLength(), so every width a layout reserves must come from the same call, because getBBox().width is not interchangeable (Gecko inflates text boxes by 2px per side, making Firefox reserve more than it needs)
 import { describe, it, expect } from 'vitest';
 import { getSvgMaxWidthAndHeight, getSvgWidthAndHeight } from '../../src/utils/TextMeasurement';
 import { truncateSVGText } from '../../src/utils/TextTruncation';
 import { getTextHeight, measureTextWidth } from '../golden/textMetrics';
 
-/** Gecko's text-bbox width inflation, 2px per side — measured live in Firefox, exactly 4.00 for every label. */
+/** Gecko's text-bbox width inflation, 2px per side, measured live in Firefox, exactly 4.00 for every label. */
 const GECKO_BBOX_WIDTH_INFLATION = 4;
 
 /** Any box height above the advance model's, so a height read off the box is distinguishable. */

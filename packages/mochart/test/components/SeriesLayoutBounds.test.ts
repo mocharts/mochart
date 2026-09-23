@@ -1,4 +1,4 @@
-// onSeriesLayoutBoundsChange used to fire inside derive() — invoking the previous render's closure and letting a re-entrant host update be overwritten — so it now flushes from the post-commit measure hook.
+// onSeriesLayoutBoundsChange used to fire inside derive() (invoking the previous render's closure and letting a re-entrant host update be overwritten), so it now flushes from the post-commit measure hook.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
 import { mountContainer, trackHandle } from './helpers';
@@ -53,13 +53,13 @@ describe('onSeriesLayoutBoundsChange', () => {
       onSeriesLayoutBoundsChange: bounds => { calledB.push(bounds); }
     } as DefaultChartProps);
 
-    // the resize changed the series area, so exactly one notification is due — on the new closure
+    // the resize changed the series area, so exactly one notification is due, on the new closure
     expect(calledB.length).toBe(1);
     expect(calledA.length).toBe(1);
   });
 
   it('does not discard an update the host makes from inside the callback', () => {
-    // a host that resizes in response to new bounds — the classic responsive-container pattern
+    // a host that resizes in response to new bounds, the classic responsive-container pattern
     let reacted = false;
     let chart: ChartHandle<DefaultChartProps> | null = null;
     const { container, handle } = mountChart({

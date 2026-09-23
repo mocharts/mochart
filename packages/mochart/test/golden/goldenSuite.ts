@@ -68,7 +68,7 @@ function loadJson(filePath: string): any {
 }
 
 // ---------------------------------------------------------------------------
-// library loading — fake timers must be installed before the import
+// library loading: fake timers must be installed before the import
 // ---------------------------------------------------------------------------
 
 let mochart: typeof import('../../src');
@@ -104,7 +104,7 @@ const uniqueIdPattern = new RegExp('(' + UNIQUE_ID_PREFIXES.join('|') + ')(\\d+)
 
 /**
  * Normalize markup for stable snapshots: per-instance id counters, version stamps, and comment
- * nodes (vdom empty-child placeholders vs retained-renderer anchors — neither affects rendering).
+ * nodes (vdom empty-child placeholders vs retained-renderer anchors, neither of which affects rendering).
  */
 function normalizeHtml(html: string) {
   return html
@@ -149,7 +149,7 @@ function makeProvider(rows: Row[]): DataProvider {
 
 /**
  * The app's random-mode data for a generator demo at `randomId`: every step re-runs the core chart
- * helper, so it stays a valid chart of its type — the per-property transforms below would corrupt
+ * helper, so it stays a valid chart of its type, because the per-property transforms below would corrupt
  * these demos' structural range/color properties.
  */
 function generatorProvider(demo: Demo, mochartConfig: EnhancedMochartConfig, randomId: number): DataProvider {
@@ -360,7 +360,7 @@ export function describeDemoGoldens(demos: Demo[]): void {
 }
 
 // ---------------------------------------------------------------------------
-// Series filtering via legend click — the per-demo suites never filter. A wrong tween resting value
+// Series filtering via legend click. The per-demo suites never filter. A wrong tween resting value
 // (the axis base) strands the shrink partway, and a fixed-frame snapshot can miss it, so the oracle
 // is the LAST frame the filtered series is still in the DOM: correct code shows a vanishing sliver,
 // a wrong base a stranded shape. Radial demos cover the pie-mode base-0 default; grouped is the xy control;
@@ -431,7 +431,7 @@ export function describeFilteringGoldens(): void {
 }
 
 // ---------------------------------------------------------------------------
-// Config updates on a live chart — exercises Chart.derive's incremental vs full-rebuild branches
+// Config updates on a live chart: exercises Chart.derive's incremental vs full-rebuild branches
 // and ChartController's animate-toggle source swap, which the data-only per-demo suites never reach.
 // ---------------------------------------------------------------------------
 
@@ -521,7 +521,7 @@ export function describeConfigUpdateGoldens(): void {
       expect(normalizeHtml(container.innerHTML)).toBe(appliedHtml);
       await expectSnapshot(container, demo.id, 'config-animate-off');
 
-      // animate back on with unchanged data settles to the same DOM, style attributes included — an emptied style removes its attribute, so neither path leaves style="" behind
+      // animate back on with unchanged data settles to the same DOM, style attributes included, because an emptied style removes its attribute, so neither path leaves style="" behind
       chart.update({ mochartConfig: animatedConfig });
       settle();
       expect(normalizeHtml(container.innerHTML)).toBe(appliedHtml);
@@ -542,7 +542,7 @@ export function describeConfigUpdateGoldens(): void {
 }
 
 // ---------------------------------------------------------------------------
-// Rotated category tick labels — the perpendicular truncation path, where the tick-label budget and
+// Rotated category tick labels: the perpendicular truncation path, where the tick-label budget and
 // the clip rect are sized from a fraction of a layout box rather than from the tick spacing. Every
 // demo golden has parallel labels, so nothing else covers it.
 // ---------------------------------------------------------------------------

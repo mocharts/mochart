@@ -1,9 +1,9 @@
-# Config fuzzer — tier 1
+# Config fuzzer: tier 1
 
 A single-property sweep over the whole config surface, looking for lingering bugs in core. Every leaf
 config property from `generated/config-reference.json` is moved to each of its candidate values on
 each of several base configs, and the result is checked by four oracles. Nothing here needs an
-expected output to be written by hand — every check is a property the library must satisfy for any
+expected output to be written by hand: every check is a property the library must satisfy for any
 config, which is what lets it cover ~976 properties.
 
 ```
@@ -16,20 +16,20 @@ seconds, so a long run can be read while it is still going.
 
 ## The oracles
 
-1. **error** — nothing throws, nothing reaches `console.error`/`warn`, and every chart settles inside
+1. **error**: nothing throws, nothing reaches `console.error`/`warn`, and every chart settles inside
    the frame cap. A chart that never settles is an animation that never ends.
-2. **geometry** — no `NaN`, `Infinity`, `undefined`/`null` or negative extent reaches a rendered
+2. **geometry**: no `NaN`, `Infinity`, `undefined`/`null` or negative extent reaches a rendered
    attribute, and no text node reads as `NaN`. Catches most scale and domain edge cases.
-3. **path-independence** — building a chart with config A and updating it to B must reach the same
+3. **path-independence**: building a chart with config A and updating it to B must reach the same
    DOM as building B directly, and updating back to A must return to A's DOM. A mismatch is retained
    renderer state that a config change failed to clean up. This is the oracle with the most reach.
-4. **input-mutation** — the raw config, the enhanced config and the data rows handed to the library
+4. **input-mutation**: the raw config, the enhanced config and the data rows handed to the library
    come back byte-identical.
 
 ## Shape changes
 
 Alongside the property sweep, each base also runs a small set of cases that change the chart's shape
-rather than a value — the property sweep can only ever move a value *inside* an entry that already
+rather than a value, because the property sweep can only ever move a value *inside* an entry that already
 exists. Per base: drop each list entry in turn, duplicate the last one, swap the first two, and add or
 remove a data row. About 100 cases in total, a minute of a multi-hour run, checked by the same four
 oracles: reaching a shape by update must match building it directly.
@@ -50,7 +50,7 @@ For a base config A and a candidate value producing config B:
 7. compare every input object against its pre-call copy
 
 A case only runs when the mutated config passes `validateConfig` and the config/data pair passes
-`getDataErrors` — an invalid value is a different experiment (that the validator rejects it is what
+`getDataErrors`, because an invalid value is a different experiment (that the validator rejects it is what
 should be checked, and that is not this tier). The `getDataErrors` gate matters because `createChart`
 trusts its input: `DefaultChartInput` runs the same check and swaps in an error provider before the
 controller sees the data, so a pair that fails it is out of contract rather than a bug. Without the
@@ -62,18 +62,18 @@ gate, moving `categoryAxis.type` to `number` over string categories renders `NaN
 | --- | --- | --- |
 | `--bases=a,b` / `--bases=all` | ten demos spanning bar, line, multi-axis, gradient, pattern, text-heavy, missing-data, pie and heatmap charts | which demo configs to sweep against |
 | `--sections=legend,tooltip` | every section | restrict to config sections |
-| `--property=tickLabel` | — | substring filter on the dotted property id |
+| `--property=tickLabel` | none | substring filter on the dotted property id |
 | `--values=6` | 6 | candidate values per property |
 | `--frames=600` | 600 | frame cap per settle |
 | `--width`, `--height` | 800×600 | chart size |
 | `--no-animation` | animation on | render without tweens |
-| `--shard=2/4` | — | run one shard; shards are disjoint and can run in parallel processes |
+| `--shard=2/4` | none | run one shard; shards are disjoint and can run in parallel processes |
 | `--no-structural` | shape changes on | skip the add/remove/reorder cases |
 | `--list-entries=N` / `--list-entries=all` | 1 | how many entries of each list section (`series`, `valueAxes`, gradients, …) to sweep; `all` roughly doubles the run |
-| `--limit=N` | — | stop after N units (a unit is one property on one base entry) |
-| `--resume` | — | continue the previous run of the same options, merging findings |
+| `--limit=N` | none | stop after N units (a unit is one property on one base entry) |
+| `--resume` | none | continue the previous run of the same options, merging findings |
 | `--out=dir` | `packages/mochart/.fuzz` | report directory |
-| `--fail-on-findings` | — | exit non-zero when anything is found (for CI, once the report is clean) |
+| `--fail-on-findings` | none | exit non-zero when anything is found (for CI, once the report is clean) |
 
 `Ctrl-C` writes the report and stops cleanly.
 

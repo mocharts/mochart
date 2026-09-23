@@ -60,7 +60,7 @@ describe('series clip', () => {
     expect(clipRect(container)).toEqual(plotRect(container));
   });
 
-  it('leaves the out-of-range geometry alone — clipping is a viewport operation', () => {
+  it('leaves the out-of-range geometry alone, because clipping is a viewport operation', () => {
     const container = mount(makeConfig({ valueAxes: [{ min: 0, max: 10 }] }));
     const paths = [...container.querySelectorAll(getCssSelector('series') + ' path')];
     const tops = paths.map((path) => Number(/^M(-?[\d.]+),(-?[\d.]+)/.exec(path.getAttribute('d') ?? '')![2]));

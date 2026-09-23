@@ -134,7 +134,7 @@ describe('value axis focus range placement', () => {
     const axisHeight = rect(group, getCssSelector('axisTickLabels') + ' rect').height;
 
     expect(range.y).toBeGreaterThan(0);
-    // the focused category's value runs down to the axis base — the smallest value on the axis,
+    // the focused category's value runs down to the axis base, the smallest value on the axis,
     // which the bottom margin leaves just short of the axis end
     expect(range.y + range.height).toBeLessThan(axisHeight);
     expect(range.y + range.height).toBeCloseTo(472.55, 1);

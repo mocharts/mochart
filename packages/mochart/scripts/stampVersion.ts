@@ -19,7 +19,7 @@ const stamped = source.replace(/mochartVersion = "[^"]+"/, 'mochartVersion = "' 
 if (stamped !== source) {
   if (check) {
     console.error('stampVersion: src/version.ts is out of date with package.json version ' + version
-      + ' — run `npm run stamp-version -w @mochart/core`');
+      + '. Run `npm run stamp-version -w @mochart/core`');
     process.exit(1);
   }
   fs.writeFileSync(versionPath, stamped);

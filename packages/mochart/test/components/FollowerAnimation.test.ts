@@ -102,7 +102,7 @@ describe('followSeries animation sync (hollow candlestick)', () => {
     container.querySelector(getCssClassMatchSelector(getIdCssClass('legendItem', 'up')))!
       .dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
-    // sample several mid-animation frames — before the fix the segments'
+    // sample several mid-animation frames. Before the fix the segments'
     // synced-to-high edges lagged the body's and overlapped it here
     let filteringFrames = 0;
     for (const step of [2, 3, 3, 3]) {
@@ -140,7 +140,7 @@ describe('followSeries animation sync (hollow candlestick)', () => {
     runFrames();
 
     // move every candle value by a different amount so body and segment edges travel
-    // different distances — the case that desynchronizes unsynced constant-speed animations
+    // different distances, the case that desynchronizes unsynced constant-speed animations
     const changed = mochart.createCandlestick([
       { label: 'Mon', open: 1.5, high: 6, low: 1, close: 4 },
       { label: 'Tue', open: 3, high: 5, low: 0.5, close: 2 }

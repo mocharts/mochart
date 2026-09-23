@@ -1,5 +1,5 @@
 /**
- * Regression: series on a hidden (visible: false) axis must still get a usable value scale — the
+ * Regression: series on a hidden (visible: false) axis must still get a usable value scale. The
  * axis used to map to zero bounds without a seriesExtent, so every position was NaN (sparklines hit this).
  */
 import { describe, it, beforeAll, expect } from 'vitest';

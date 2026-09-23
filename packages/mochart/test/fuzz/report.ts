@@ -13,10 +13,10 @@ export interface RunSummary {
 }
 
 const ORACLE_TITLES: Record<Oracle, string> = {
-  'error': 'Errors — a throw, a console error, or a chart that never settles',
-  'geometry': 'Impossible geometry — NaN, Infinity, missing values or negative extents in the DOM',
-  'path-independence': 'Path dependence — updating to a value does not match building it directly',
-  'input-mutation': 'Input mutation — the library wrote to an object the caller owns'
+  'error': 'Errors: a throw, a console error, or a chart that never settles',
+  'geometry': 'Impossible geometry: NaN, Infinity, missing values or negative extents in the DOM',
+  'path-independence': 'Path dependence: updating to a value does not match building it directly',
+  'input-mutation': 'Input mutation: the library wrote to an object the caller owns'
 };
 
 const ORACLE_ORDER: Oracle[] = ['error', 'geometry', 'path-independence', 'input-mutation'];
@@ -34,7 +34,7 @@ function formatCount(value: number): string {
 
 function renderGroup(group: FindingGroup): string {
   const lines = [
-    '#### `' + group.property + '` — ' + group.signature,
+    '#### `' + group.property + '`: ' + group.signature,
     '',
     formatCount(group.count) + ' case' + (group.count === 1 ? '' : 's') + ' · bases: ' + group.bases.join(', '),
     ''
@@ -53,7 +53,7 @@ function renderGroup(group: FindingGroup): string {
 
 function renderMarkdown(summary: RunSummary, findings: FindingGroup[]): string {
   const lines = [
-    '# Config fuzz — tier 1',
+    '# Config fuzz: tier 1',
     '',
     'Single-property sweep over the generated config model, checked for errors, impossible geometry,',
     'path dependence and input mutation. Written by `npm run fuzz -w @mochart/core`.',
@@ -72,12 +72,12 @@ function renderMarkdown(summary: RunSummary, findings: FindingGroup[]): string {
   }
   lines.push('');
   if (summary.properties.untested.length > 0) {
-    lines.push('## Untested properties — ' + formatCount(summary.properties.untested.length), '',
+    lines.push('## Untested properties (' + formatCount(summary.properties.untested.length) + ')', '',
       'No candidate values were generated for these, so no case ever moved them.', '',
       ...summary.properties.untested.map(id => '- `' + id + '`'), '');
   }
   if (summary.properties.unswept.length > 0) {
-    lines.push('## Properties with no valid case — ' + formatCount(summary.properties.unswept.length), '',
+    lines.push('## Properties with no valid case (' + formatCount(summary.properties.unswept.length) + ')', '',
       'Every generated value was rejected by validation or the data before a case could run, so no case ever moved them.', '',
       ...summary.properties.unswept.map(id => '- `' + id + '`'), '');
   }
@@ -85,7 +85,7 @@ function renderMarkdown(summary: RunSummary, findings: FindingGroup[]): string {
     lines.push('## No findings', '', 'Every case passed all four oracles.', '');
     return lines.join('\n');
   }
-  lines.push('## Findings — ' + formatCount(findings.length) + ' groups', '');
+  lines.push('## Findings (' + formatCount(findings.length) + ' groups)', '');
   for (const oracle of ORACLE_ORDER) {
     const groups = findings.filter(group => group.oracle === oracle);
     if (groups.length === 0) {

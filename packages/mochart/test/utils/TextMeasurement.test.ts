@@ -32,7 +32,7 @@ function legendIds(mochartConfig: EnhancedMochartConfig): string[] {
 describe('getLegendItemTextRawBounds', () => {
   it('measures only the showInLegend series, matching the rendered items', () => {
     const mochartConfig = makeConfig([false, false, true, true]);
-    // the DOM holds two rendered legend items — one per visible series
+    // the DOM holds two rendered legend items, one per visible series
     const bounds = getLegendItemTextRawBounds(mochartConfig, makeDomAccessors([30, 50]));
     const [thirdId, fourthId] = legendIds(mochartConfig);
     expect(bounds).toEqual({
@@ -94,7 +94,7 @@ describe('getSvgMaxWidthAndHeight', () => {
 });
 
 // Regression: an element whose text is '' measures 0x0 forever, which used to read as unmeasurable
-// (default bounds) — layout reserved a phantom 20x20 and hasDefault re-measured the DOM every render.
+// (default bounds), so layout reserved a phantom 20x20 and hasDefault re-measured the DOM every render.
 describe('empty rendered text', () => {
   const textElement = (textContent: string, width: number, height: number): SVGGraphicsElement => {
     const element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -142,7 +142,7 @@ describe('empty rendered text', () => {
   });
 
   // Regression: an axis that draws nothing while its series are filtered was still measured, and the
-  // zero-element result read as unmeasurable — pinning hasDefault for as long as the filter was on
+  // zero-element result read as unmeasurable, pinning hasDefault for as long as the filter was on
   it('does not pin hasDefault for a value axis that draws nothing while all its series are filtered', () => {
     const mochartConfig = enhanceConfig({
       version: '1.0.0',

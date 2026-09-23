@@ -86,7 +86,7 @@ describe('tick-label truncation state across updates', () => {
     handle.update({ focusedCategoryIndex: 0 } as Partial<DefaultChartProps>);
     expect(labelTexts().map((text, i) => isTruncationOf(text, originals[i]))).toEqual([true, true, true]);
 
-    // same tick count, entirely new labels — the truncation cache must adopt
+    // same tick count, entirely new labels, and the truncation cache must adopt
     // them instead of converging on truncations of the previous labels
     const replacements = [
       'replacement-lengthy-monday-label-that-cannot-possibly-fit',

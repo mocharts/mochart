@@ -10,7 +10,7 @@ const VERSION = '1.0.0';
  * Builds a fully-defaulted, validated EnhancedMochartConfig from a partial input.
  * enhanceConfig is the same entry point the public API uses, so fixtures stay
  * in sync with real config defaults rather than being hand-assembled. Input is
- * intentionally loose — these fixtures feed runtime code that accepts untrusted
+ * intentionally loose, because these fixtures feed runtime code that accepts untrusted
  * config, so the static config type is not enforced here.
  */
 export function makeConfig(input: Record<string, unknown>): EnhancedMochartConfig {
