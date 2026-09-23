@@ -1,6 +1,6 @@
 // Shared user-facing text for the framework demos: tab titles, button labels,
 // tooltips, aria-labels, captions and inline error messages. Every demo renders
-// the same UI, so the copy lives here once — edit it here and all demos update.
+// the same UI, so the copy lives here once. Edit it here and all demos update.
 //
 // Naming convention per button: { label, tooltip, aria }. Buttons without a
 // visible label omit `label`.
@@ -9,7 +9,7 @@
 // been folded into a phone overflow menu, where an icon-only button would
 // otherwise be a bare glyph in a column of bare glyphs. It is deliberately not
 // spelled `label`, because `label` renders a `.btn-label` span that is visible
-// at every width above 900px — giving these buttons one would put new text in
+// at every width above 900px, so giving these buttons one would put new text in
 // the desktop toolbars. The ports render `menuLabel` in a `.btn-menu-label`
 // span instead, which demo.css hides everywhere except inside a menu.
 export const demoText = {
@@ -19,16 +19,16 @@ export const demoText = {
     data: 'Data',
     randomConfig: 'Random Config',
     transitionConfig: 'Transition Config',
-    chartPendingTitle: 'Applied changes are waiting — switch here to see them',
+    chartPendingTitle: 'Applied changes are waiting. Switch here to see them',
     // Accessible name of the strip itself (a tablist), which has no visible label.
     listAria: 'Demo views'
   },
   errors: {
     errorOccurred: 'An Error Occurred',
     invalidJson: 'Invalid JSON',
-    invalidChartConfig: 'Invalid chart config — details in the browser console',
-    invalidRandomConfigValues: 'Config has invalid values — details in the browser console',
-    invalidDataArray: 'Invalid Data — should be an array of objects',
+    invalidChartConfig: 'Invalid chart config (details in the browser console)',
+    invalidRandomConfigValues: 'Config has invalid values (details in the browser console)',
+    invalidDataArray: 'Invalid Data: should be an array of objects',
     invalidRandomConfig: 'Invalid Random Config',
     creatingDataProvider: 'Error creating DataProvider',
     // short labels shown as the chart's error state (the onDataError payload)
@@ -36,7 +36,7 @@ export const demoText = {
     invalidDataContent: 'Invalid Data Content',
     invalidConfigAndData: 'Invalid Config & Data',
     // appended to a short label when the console warning has the specifics
-    detailsInConsoleSuffix: ' — details in the browser console',
+    detailsInConsoleSuffix: ' (details in the browser console)',
     transitionObject: 'Transition config should be an object',
     transitionConfigObject: '"config" should be an object',
     transitionDataArrays: '"data" should be an array of arrays'
@@ -83,13 +83,13 @@ export const demoText = {
     invert: { label: 'Invert', tooltip: 'Swap the chart between vertical and horizontal orientation', aria: 'Toggle Inverted' },
     slow: { label: 'Slow', tooltip: 'Slow all animations down so transitions are easy to watch', aria: 'Toggle Slow' },
     format: { label: 'Format', tooltip: 'Reformat the config JSON', aria: 'Format' },
-    apply: { label: 'Apply', tooltip: 'Apply this config — the chart updates when you return to the Chart tab', aria: 'Apply' },
+    apply: { label: 'Apply', tooltip: 'Apply this config. The chart updates when you return to the Chart tab', aria: 'Apply' },
     editorAria: 'Chart config JSON'
   },
   dataTab: {
     reset: { label: 'Reset', tooltip: "Restore this demo's original data", aria: 'Reset' },
     unused: { label: 'Unused', tooltip: 'Show or hide data properties the chart config does not use', aria: 'Toggle Unused' },
-    apply: { label: 'Apply', tooltip: 'Apply this data — the chart updates when you return to the Chart tab', aria: 'Apply' },
+    apply: { label: 'Apply', tooltip: 'Apply this data. The chart updates when you return to the Chart tab', aria: 'Apply' },
     editorAria: 'Chart data JSON'
   },
   exportButtons: {
@@ -102,8 +102,8 @@ export const demoText = {
   },
   // Phone-only overflow menus: the controls that do not fit across ~360px are
   // moved behind a trigger rather than wrapped onto another row. A single view
-  // can show two of these at once — the navigation row's and the control
-  // strip's — so each trigger names what it holds instead of all of them
+  // can show two of these at once (the navigation row's and the control
+  // strip's), so each trigger names what it holds instead of all of them
   // saying "More", which would leave two identically-labelled buttons on screen
   // and no way to tell which one has the thing you are looking for.
   overflowMenu: {
@@ -111,8 +111,8 @@ export const demoText = {
     chart: { tooltip: 'More chart controls', aria: 'More chart controls' },
     random: { tooltip: 'More random controls', aria: 'More random controls' },
     // The Config and Data tab footers. Named separately from `chart` because
-    // what folds there edits the JSON — Reset, Defaults, Invert, Slow and the
-    // reference links — and a screen-reader user who hears "more chart
+    // what folds there edits the JSON (Reset, Defaults, Invert, Slow and the
+    // reference links), and a screen-reader user who hears "more chart
     // controls" on the Config tab has been told the wrong thing. Two triggers
     // are never on screen at once, but they are on adjacent tabs.
     editor: { tooltip: 'More editor controls', aria: 'More editor controls' }
@@ -135,7 +135,7 @@ export const demoText = {
     aria: 'Back to the Mochart site'
   },
   themeToggle: {
-    // Icon-only button (sun/moon) in every view's navigation row — so it needs
+    // Icon-only button (sun/moon) in every view's navigation row, so it needs
     // menu text for both states once it folds, not just a tooltip.
     tooltipToDark: 'Switch to the dark theme',
     tooltipToLight: 'Switch to the light theme',
@@ -147,7 +147,7 @@ export const demoText = {
     label: 'Share',
     tooltip: 'Copy a link to this chart with the current config and data',
     tooltipCopied: 'Link copied',
-    // Spoken through the copier's live region — the whole confirmation an assistive-tech user gets, so it says where the link went.
+    // Spoken through the copier's live region. It is the whole confirmation an assistive-tech user gets, so it says where the link went.
     announcementCopied: 'Share link copied to clipboard',
     aria: 'Copy Share Link'
   },
@@ -158,7 +158,7 @@ export const demoText = {
     seriesIndexPrefix: 'Series: ',
     // Phone-tier stand-ins for the two prefixes above. The full prefixes are
     // sr-only clipped there (the strip cannot spare their width), but a bare
-    // `-1` between two arrows names nothing visually either — so a one-letter,
+    // `-1` between two arrows names nothing visually either, so a one-letter,
     // aria-hidden prefix carries the meaning for sighted users while the
     // clipped full text keeps carrying the accessible name.
     categoryIndexPrefixCompact: 'C',
@@ -221,7 +221,7 @@ export const demoText = {
     intervalAria: 'Randomize interval in milliseconds',
     reuse: {
       label: 'Reuse',
-      tooltip: "Keep part of the data the same between randomizations (the config's reuse settings), so transitions animate with continuity — off generates fully independent datasets",
+      tooltip: "Keep part of the data the same between randomizations (the config's reuse settings), so transitions animate with continuity. Off generates fully independent datasets",
       aria: 'Reuse'
     }
   },
@@ -247,7 +247,7 @@ export const demoText = {
   // then a small-multiples metrics table.
   sparklinePage: {
     intro: [
-      'Sparklines are word-sized charts that live inside running text. The createSparklineConfig helper strips a regular chart config down to its plotted shape — no axes, legend, tooltip or margins — so a 30-day revenue trend ',
+      'Sparklines are word-sized charts that live inside running text. The createSparklineConfig helper strips a regular chart config down to its plotted shape (no axes, legend, tooltip or margins), so a 30-day revenue trend ',
       ' can sit right in a sentence, an error-rate pulse ',
       ' beside it, and the same preset scales up to small-multiple tables like the one below.'
     ],

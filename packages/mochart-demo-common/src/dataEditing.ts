@@ -8,7 +8,7 @@ import { filterDataProperties, restoreHiddenDataProperties } from './unusedDataP
 import type { DataObject, DemoConfig, MochartDemoConfig } from './types';
 
 /**
- * Compact JSON with a space after each structural comma — built structurally
+ * Compact JSON with a space after each structural comma, built structurally
  * so commas inside string values stay untouched.
  */
 export function stringifyWithSpacedCommas(value: unknown): string {
@@ -91,7 +91,7 @@ function getMochartConfigDataError(mochartConfig: MochartDemoConfig['mochartConf
 
 /**
  * Validate a config/data pair for the chart path (initial load and applied
- * config/data edits): the dataError to show, or false when the data is clean —
+ * config/data edits): the dataError to show, or false when the data is clean,
  * or when the config itself is invalid, which the config error UI reports.
  */
 export function getConfigDataError(config: DemoConfig, data: DataObject[]): string | false {

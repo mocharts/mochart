@@ -16,7 +16,7 @@ export interface SparklineMetric {
   id: string;
   /** Row label shown in the metrics table (table metrics only). */
   label: string;
-  /** Chart size in pixels — inline metrics are word-sized, table cells larger. */
+  /** Chart size in pixels: inline metrics are word-sized, table cells larger. */
   width: number;
   height: number;
   config: DemoConfig;
@@ -50,7 +50,7 @@ function lineConfig(renderer: 'line' | 'area', color: string): DemoConfig {
     version: '1.0.0',
     categoryAxis: { property: 'i', type: 'number', scale: 'linear' },
     // The preset hides value axes through valueAxisDefaults, which only
-    // merges into *declared* axes — so declare the (otherwise defaulted) one.
+    // merges into *declared* axes, so declare the (otherwise defaulted) one.
     valueAxes: [{}],
     series: [
       { property: 'value', renderer, shapeStyle: { normal: { strokeColor: color, fillColor: color } } }

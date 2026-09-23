@@ -60,8 +60,8 @@ function reusedDraw(scope: string, key: string, randomId: number, reuseGlobal: b
  * The draw stream for pool entry `index` at step `randomId` under the pool
  * reuse fractions: the first globalFraction of entries pin to a global seed
  * (their state never changes), then stepFraction of the remainder read a
- * half-step seed shared with one neighbouring step — staggered by entry
- * parity, so every step boundary sees half of them persist exactly — and the
+ * half-step seed shared with one neighbouring step (staggered by entry
+ * parity, so every step boundary sees half of them persist exactly), and the
  * rest draw fresh each step.
  */
 function poolEntryRng(scope: string, index: number, randomId: number, poolSize: number, globalFraction: number, stepFraction: number): Rng {
@@ -199,7 +199,7 @@ function waterfallRows({ value, missing, reuse }: WaterfallRandomConfig, randomI
       items.push({ label: step.label, total: true });
       return;
     }
-    // one fixed-order stream per entry — [drop roll, value roll] — so a
+    // one fixed-order stream per entry ([drop roll, value roll]), so a
     // persisted entry keeps its whole state across the shared steps
     const entryRng = poolEntryRng('waterfall', index, randomId, WATERFALL_STEP_POOL.length, reuse.globalFraction, reuse.stepFraction);
     const dropRoll = entryRng();
@@ -262,7 +262,7 @@ const HEATMAP_COLUMNS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug',
 function heatmapRows({ columns, missing, reuse }: HeatmapRandomConfig, randomId: number): DataObject[] {
   const maxDropped = Math.min(HEATMAP_COLUMNS.length - 1, Math.max(0, Math.round(columns.maxDropped)));
 
-  // Column dropouts churn per step regardless of reuse — they are the category
+  // Column dropouts churn per step regardless of reuse: they are the category
   // enter/exit the demo shows. Cells key on their column label, so a kept
   // column's values are unaffected by its neighbours dropping.
   const columnRng = seedrandom('heatmap:columns:' + randomId);
@@ -315,7 +315,7 @@ function buildHeatmapSnapshot(): ChartTypeDemoSnapshot {
     label: profile.label,
     values: HEATMAP_COLUMNS.map((column, c) => {
       if (profile.label === 'Sat' && column === 'Apr') {
-        return null; // no data collected — demos the missingValueMode 'connect' gap
+        return null; // no data collected, which demos the missingValueMode 'connect' gap
       }
       const t = (1 + Math.cos((c / HEATMAP_COLUMNS.length) * 2 * Math.PI)) / 2;
       return Math.round(profile.min + t * (profile.max - profile.min));
@@ -337,7 +337,7 @@ function buildHeatmapSnapshot(): ChartTypeDemoSnapshot {
 
 // --- Candlestick -------------------------------------------------------------
 
-// Twenty June 2026 trading days as ISO dates (weekends skipped — the helper's
+// Twenty June 2026 trading days as ISO dates (weekends skipped, and the helper's
 // ordinal date axis keeps the candles evenly spaced across the gaps). The fixed
 // pool keeps most labels shared between random steps, so candles animate in
 // place while the tail enters and exits.
@@ -370,7 +370,7 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-// The snapshot baseline walk — sequential draws from one rng so the baked
+// The snapshot baseline walk: sequential draws from one rng so the baked
 // demo JSON stays bit-identical. Keep the formulas in sync with walkItems,
 // the random-mode equivalent below.
 function candlestickItems(rng: Rng, dayCount: number): CandlestickItem[] {
@@ -419,7 +419,7 @@ function walkVolumes(scope: string, randomId: number, items: CandlestickItem[]):
 }
 
 // Volumes are drawn after the whole price walk, so the price sequence for a
-// given seed stays identical whether or not a demo adds volumes — the hollow
+// given seed stays identical whether or not a demo adds volumes. The hollow
 // and OHLC demos share the walk without them.
 function withVolumes(items: CandlestickItem[], rng: Rng): CandlestickItem[] {
   return items.map(item => ({
@@ -494,7 +494,7 @@ function buildCandlestickHollowSnapshot(): ChartTypeDemoSnapshot {
 
 // --- OHLC --------------------------------------------------------------------
 
-// The OHLC demo shares the candlestick price walk (different seed) — only the
+// The OHLC demo shares the candlestick price walk (different seed), and only the
 // helper differs: thin low/high lines with open/close ticks instead of
 // wick-and-body candles.
 
@@ -522,7 +522,7 @@ function buildOhlcSnapshot(): ChartTypeDemoSnapshot {
 // --- Error bars --------------------------------------------------------------
 
 // Error bars are first-class series config (errorLowProperty/errorHighProperty),
-// so there is no core helper to re-run — but the generic randomizer would draw
+// so there is no core helper to re-run, but the generic randomizer would draw
 // value, low and high independently and break low ≤ value ≤ high. This
 // generator draws each point's value and its two error margins instead, and
 // derives the bounds. The fixed month pool keeps most categories shared between
@@ -530,7 +530,7 @@ function buildOhlcSnapshot(): ChartTypeDemoSnapshot {
 // enter and exit.
 const ERROR_BARS_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-// The snapshot baseline — sequential draws from one rng so the baked demo
+// The snapshot baseline: sequential draws from one rng so the baked demo
 // JSON stays bit-identical. Keep the formulas in sync with errorBarsRandomRows.
 function errorBarsItems(rng: Rng, monthCount: number): DataObject[] {
   return ERROR_BARS_MONTHS.slice(0, monthCount).map((month, m) => {
@@ -623,7 +623,7 @@ interface PieSlicePoolEntry {
   dropWeight?: number;
 }
 
-// Slices keep their pool position across random steps — an absent slice
+// Slices keep their pool position across random steps: an absent slice
 // generates value 0 (a zero-width slice that animates out) instead of being
 // dropped, so the row's slice{i} properties always match the baked config.
 // Drop weights make the minor slices flakier than the config's baseline.
@@ -653,7 +653,7 @@ function pieItems(pool: PieSlicePoolEntry[], scope: string, { value, missing, re
   const poolMax = Math.max(...pool.map(slice => slice.value));
 
   return pool.map((slice, index) => {
-    // one fixed-order stream per slice — [drop roll, value roll] — so a
+    // one fixed-order stream per slice ([drop roll, value roll]), so a
     // persisted slice keeps its whole state across the shared steps
     const sliceRng = poolEntryRng(scope, index, randomId, pool.length, reuse.globalFraction, reuse.stepFraction);
     const dropRoll = sliceRng();

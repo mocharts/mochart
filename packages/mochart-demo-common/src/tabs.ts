@@ -12,12 +12,12 @@ export interface DemoTab {
   pending?: boolean;
 }
 
-/** Id of a tab button — the pane's `aria-labelledby` target. */
+/** Id of a tab button, the pane's `aria-labelledby` target. */
 export function demoTabId(name: DemoTabName): string {
   return 'demo-tab-' + name;
 }
 
-/** Id of a pane — the tab button's `aria-controls` target. */
+/** Id of a pane, the tab button's `aria-controls` target. */
 export function demoTabPanelId(name: DemoTabName): string {
   return 'demo-tabpanel-' + name;
 }

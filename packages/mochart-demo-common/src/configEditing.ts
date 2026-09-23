@@ -5,13 +5,13 @@ import { getJsonErrorMessage, parseJson } from './json';
 import type { DemoConfig, MochartDemoConfig } from './types';
 
 // The with/without-defaults config views the editor toggles between. Config
-// sections are intentionally loose (`any`) — they are arbitrary user JSON.
+// sections are intentionally loose (`any`), since they are arbitrary user JSON.
 export interface DemoConfigView {
   configWithDefaults: Record<string, any>;
   configWithoutDefaults: Record<string, any>;
 }
 
-// No default-equal values (enabled: true) — Apply strips them, breaking isConfigSectionActive.
+// No default-equal values (enabled: true): Apply strips them, breaking isConfigSectionActive.
 export const slowAnimationConfig = {
   "initialDuration": 5000,
   "expansionDuration": 3000,

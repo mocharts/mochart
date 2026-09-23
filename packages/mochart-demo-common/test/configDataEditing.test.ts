@@ -10,7 +10,7 @@ import { demoText } from '../src/demoText';
 import type { DemoConfig, MochartDemoConfig } from '../src/types';
 
 // Regression: the Slow toggle detected its state by object identity with the
-// module constant, which every Apply's JSON-clone destroyed — the button read
+// module constant, which every Apply's JSON-clone destroyed, so the button read
 // unpressed while slow animations stayed active, and only Reset recovered.
 describe('toggleConfigSection across the clone boundary', () => {
   const original = { enabled: true, initialDuration: 700 };
@@ -209,8 +209,8 @@ describe('toggleConfigFromText', () => {
 });
 
 // Regression: Apply hardcoded its own copy, so the same invalid data showed
-// "Invalid Data — should be an array of objects" on live edits but
-// "Invalid Data — details in the browser console" on Apply.
+// "Invalid Data: should be an array of objects" on live edits but
+// "Invalid Data (details in the browser console)" on Apply.
 describe('applyDataEdit error copy', () => {
   const config = {
     version: '1.0.0',

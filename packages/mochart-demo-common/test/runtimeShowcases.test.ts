@@ -10,7 +10,7 @@ import { defaultTransitionConfig, getTransitionMochartConfig, getTransitionDataP
 
 // These paths only run in the browser (random mode, the rotation and
 // transition showcases), so nothing else feeds their configs through
-// enhanceConfig — a rename that misses one of them ships a runtime crash
+// enhanceConfig, so a rename that misses one of them ships a runtime crash
 // behind a green board. This suite crosses each seam the way the demo UIs do.
 
 const demos = demoData.demoIds.map(id => demoData.demoObjectMap[id]!);

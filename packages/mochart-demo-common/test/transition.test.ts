@@ -5,7 +5,7 @@ import type { TransitionConfig } from '../src/types';
 
 // The providers wrap the raw rows wholesale: the category key property and
 // extra series properties (colorProperty, markerProperty, ...) are served as
-// columns like any other row property — nothing is dropped in transit.
+// columns like any other row property, so nothing is dropped in transit.
 // (Verified end-to-end: a chart animating between two such providers keeps
 // matching categories by key, not by their repeated values, mid-transition.)
 describe('getTransitionDataProviders', () => {

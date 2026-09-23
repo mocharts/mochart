@@ -4,7 +4,7 @@ import type { DataObject } from './types';
 
 /**
  * The set of data properties the chart config actually reads, or null when the
- * config is invalid (no reliable property set — callers should show all data).
+ * config is invalid (no reliable property set, so callers should show all data).
  */
 export function collectUsedDataProperties(mochartConfig: MochartConfig): Set<string> | null {
   if (!mochartConfig.validation.valid) {

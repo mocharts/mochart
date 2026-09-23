@@ -2,9 +2,9 @@
 // state needed to reproduce what's on screen; the demo id (and, for random,
 // the step) already live in the URL path, so only the mode's own view state
 // goes in the payload:
-//   single — the (possibly edited) config and data
-//   multi  — the grid size, playback step and interval
-//   random — the (possibly edited) generator config, the reuse toggle and interval
+//   single: the (possibly edited) config and data
+//   multi:  the grid size, playback step and interval
+//   random: the (possibly edited) generator config, the reuse toggle and interval
 // The payload is JSON, deflate-compressed (the data/config is very repetitive,
 // so this shrinks links a lot) and base64url-encoded. Every gallery uses the
 // same helpers: createShareLinkCopier from its share menu, consumeShareState
@@ -154,7 +154,7 @@ function stripShareHash(): void {
  *
  * This clears the hash via the History API as a best effort. Under a
  * client-side router that owns the location (e.g. React Router re-asserts the
- * initial URL during mount), this can be overwritten — such demos should also
+ * initial URL during mount), this can be overwritten, so such demos should also
  * clear the hash through their router after consuming (see the React demo's
  * useClearShareHash). Decoding is synchronous, so callers get the state
  * immediately for their initial render.

@@ -26,7 +26,7 @@ describe('applyPieSliceValue', () => {
     expect(row['slice0']).toBe(999);
   });
 
-  it('touches nothing else — shares are derived by the chart, not stored', () => {
+  it('touches nothing else, since shares are derived by the chart, not stored', () => {
     const slices = getPieSlices(enhanceConfig(donutDemo.config));
     const row = { ...donutDemo.data[0] };
     applyPieSliceValue(row, slices[0].property, 50);

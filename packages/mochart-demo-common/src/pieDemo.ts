@@ -9,7 +9,7 @@ import type { MochartConfig } from '@mochart/core';
 import type { DataObject, FilteredSeriesIds } from './types';
 
 export interface PieSliceInfo {
-  /** The series id — what focus, legend filtering and filtering key on. */
+  /** The series id, which focus, legend filtering and filtering key on. */
   id: string;
   /** The display title (legend text). */
   title: string;
@@ -38,7 +38,7 @@ export function applyPieSliceValue(row: DataObject, property: string, value: num
 
 /**
  * The step cycle of the multi-mode pie stepper: one step per slice, so
- * filtering runs from none up to all but one — at least one slice always
+ * filtering runs from none up to all but one, so at least one slice always
  * remains.
  */
 export function getPieStepCycle(sliceIds: string[]): number {
@@ -65,7 +65,7 @@ export function getPieStepFilteredIds(sliceIds: string[], chartIndex: number, st
 /**
  * Fold a chart's reported filter map back into the user's own map. A pie-mode
  * multi chart is shown the union of the user map and the stepper's per-chart
- * overlay, and it reports the whole updated union on a legend toggle — only
+ * overlay, and it reports the whole updated union on a legend toggle. Only
  * the delta against what that chart was shown belongs in the user map, or the
  * overlay leaks into every chart's user filtering and can never step back out.
  */

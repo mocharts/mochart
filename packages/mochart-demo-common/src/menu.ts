@@ -8,16 +8,16 @@
 // anything stacked below it. So a menu is positioned `fixed` at coordinates
 // measured from its trigger, at a z-index above the chart. That escapes both
 // problems, at the price of doing by hand everything `position: absolute` would
-// have done for free — the arithmetic, the "the world moved" invalidation, and
+// have done for free: the arithmetic, the "the world moved" invalidation, and
 // the accessibility wiring that comes with detaching a panel from its trigger.
 //
 // Three layers, because the ports do not all want the same amount of it:
 //
-//   1. `getMenuPosition` — pure geometry over plain numbers. No DOM, no
+//   1. `getMenuPosition`: pure geometry over plain numbers. No DOM, no
 //      globals, so it is testable and safe to call during SSR.
-//   2. `watchMenuDismiss` — the outside-click / Escape / the-viewport-moved
+//   2. `watchMenuDismiss`: the outside-click / Escape / the-viewport-moved
 //      listeners, as one subscription with one unsubscribe.
-//   3. `createMenuController` — the whole imperative open/close dance against
+//   3. `createMenuController`: the whole imperative open/close dance against
 //      a trigger and a panel element.
 //
 // The reactive ports (react, svelte, vue) own their own DOM and their own
@@ -32,7 +32,7 @@ export type MenuAlign = 'start' | 'end';
 
 /**
  * Structurally a `DOMRect`, so callers can hand one straight from
- * `getBoundingClientRect()` while tests hand a plain object literal — the
+ * `getBoundingClientRect()` while tests hand a plain object literal, because the
  * geometry never needs the rest of a real rect.
  */
 export type MenuAnchorRect = Pick<DOMRect, 'top' | 'bottom' | 'left' | 'right'>;
@@ -70,7 +70,7 @@ export const navMenuPlacement: MenuPlacement = { side: 'bottom', align: 'end', g
 /** Every menu hanging off a controls strip (export/share, overflow triggers): upward from the bottom-of-pane strip, right-aligned. */
 export const controlsMenuPlacement: MenuPlacement = { side: 'top', align: 'end', gap: 4 };
 
-/** The "about this demo" popover; `width` mirrors `.demo-menu-notes` in demo.css (a `display: none` panel measures 0) — keep the two in step. */
+/** The "about this demo" popover; `width` mirrors `.demo-menu-notes` in demo.css (a `display: none` panel measures 0). Keep the two in step. */
 export const notesMenuPlacement: MenuPlacement = { side: 'bottom', align: 'start', gap: 6, width: 340, viewportMargin: 32 };
 
 /** Marks a subtree inside a menu panel whose clicks must NOT dismiss it (a stepper beside a number input, say). */
@@ -116,7 +116,7 @@ export const menuZIndex = 1080;
 /**
  * Floor for `maxHeight`. A trigger pinned against the edge it opens away from
  * leaves no room at all, and both a negative and a two-pixel `max-height` are
- * useless — a panel that overflows a little and scrolls is the better failure.
+ * useless: a panel that overflows a little and scrolls is the better failure.
  */
 const minMenuHeight = 96;
 
@@ -172,8 +172,8 @@ function toNode(target: EventTarget | null): Node | null {
 }
 
 /**
- * Subscribes the four things that should close an open menu — a press outside
- * it, Escape, a scroll, and a viewport resize — and returns the unsubscribe.
+ * Subscribes the four things that should close an open menu (a press outside
+ * it, Escape, a scroll, and a viewport resize), and returns the unsubscribe.
  *
  * A fixed panel is pinned to coordinates measured once, so anything that moves
  * the trigger or the viewport under it invalidates those coordinates; the demos
@@ -206,7 +206,7 @@ export function watchMenuDismiss(options: MenuDismissOptions): () => void {
 
   // `scroll` does not bubble, so this has to be a capture-phase listener on
   // window to hear scrolls in nested scrollers at all. That catches the panel's
-  // own scrolling too, and the overflow menus are `overflow-y: auto` — without
+  // own scrolling too, and the overflow menus are `overflow-y: auto`. Without
   // this guard, scrolling a menu would close it mid-gesture.
   function onScroll(event: Event): void {
     const scrollable = getScrollableEl === undefined ? null : getScrollableEl();
@@ -254,7 +254,7 @@ export interface MenuControllerOptions {
   getAnchor?: () => HTMLElement;
   /**
    * Extra elements that count as "inside" for outside-press dismissal, for
-   * panels whose contents are not all descendants — a reparented control, or a
+   * panels whose contents are not all descendants, such as a reparented control or a
    * second trigger. Called per event, so it may return elements that come and go.
    */
   getExtraInside?: () => readonly (HTMLElement | null | undefined)[];
@@ -296,13 +296,13 @@ function ensureId(element: HTMLElement, prefix: string): string {
  * Drives one menu: open/close state, the fixed-position arithmetic, dismissal,
  * focus and ARIA.
  *
- * ARIA note — these are **disclosures, not menus**. The trigger gets
+ * ARIA note: these are **disclosures, not menus**. The trigger gets
  * `aria-expanded` and `aria-controls`; the panel gets `aria-labelledby` back.
  * No `role="menu"`, no `menuitem`, no `aria-haspopup` (which the ports used to
  * set, promising a keyboard menu with roving tabindex that the markup never
  * implemented). The promise would be unkeepable anyway: these panels hold a
  * link, a row of buttons and a number input, none of which are valid
- * `menuitem`s, and `aria-pressed` — which several of the toggles rely on — is
+ * `menuitem`s, and `aria-pressed` (which several of the toggles rely on) is
  * invalid on `role="menuitem"`. A disclosure describes what is actually there.
  */
 export function createMenuController(options: MenuControllerOptions): MenuController {
@@ -329,7 +329,7 @@ export function createMenuController(options: MenuControllerOptions): MenuContro
     }
     const anchorEl = getAnchor === undefined ? trigger : getAnchor();
     // `position: fixed` resolves against the layout viewport, so that is the
-    // box to measure against — the visual viewport is the right ruler for
+    // box to measure against. The visual viewport is the right ruler for
     // *when* to close (see watchMenuDismiss) but the wrong one for *where*.
     const position = getMenuPosition(
       anchorEl.getBoundingClientRect(),
@@ -404,7 +404,7 @@ export function createMenuController(options: MenuControllerOptions): MenuContro
     // Drop the whole inline style rather than unset each edge: the next open
     // may use a different placement, and a stale `right` would fight its `left`.
     panel.removeAttribute('style');
-    // A disclosure is not a modal, so focus is never trapped — but losing it to
+    // A disclosure is not a modal, so focus is never trapped, but losing it to
     // <body> because the thing holding it was hidden strands keyboard users
     // back at the top of the document. Hand it back to the trigger they used.
     if (hadFocus) {

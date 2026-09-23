@@ -2,7 +2,7 @@
 // reference. The deployed site nests each gallery beside the docs
 // (<docsBase><slug>/, see scripts/build-pages.mjs), so the docs base is the
 // gallery's router base path minus its slug segment. Under a dev server the
-// links resolve to the site root and 404 — same trade-off as the docs site's
+// links resolve to the site root and 404, the same trade-off as the docs site's
 // links back to the demos.
 
 const referenceSectionIds = [

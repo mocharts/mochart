@@ -48,7 +48,7 @@ export type DemoMode = 'single' | 'multi' | 'random' | 'transition' | 'rotation'
 export type RandomConfigWithValid = DemoRandomConfig & { valid: boolean };
 
 /**
- * The derived config bundle returned by buildMochartDemoConfig — the built
+ * The derived config bundle returned by buildMochartDemoConfig: the built
  * mochart config plus the with/without-defaults variants used by the editors.
  */
 export interface MochartDemoConfig {

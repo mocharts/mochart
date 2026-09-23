@@ -11,10 +11,10 @@ import { buildChartTypeDemoSnapshotFiles } from '../scripts/generateChartTypeDem
 describe('chart-type demo snapshot sync', () => {
   for (const file of buildChartTypeDemoSnapshotFiles()) {
     it(`${path.basename(file.path)} matches the checked-in file`, () => {
-      expect(fs.existsSync(file.path), `${file.path} is missing — run "npm run generate-demos -w @mochart/demo-common"`).toBe(true);
+      expect(fs.existsSync(file.path), `${file.path} is missing. Run "npm run generate-demos -w @mochart/demo-common"`).toBe(true);
       expect(
         fs.readFileSync(file.path, 'utf-8') === file.content,
-        `${file.path} is out of date with the demo generators — run "npm run generate-demos -w @mochart/demo-common"`
+        `${file.path} is out of date with the demo generators. Run "npm run generate-demos -w @mochart/demo-common"`
       ).toBe(true);
     });
   }

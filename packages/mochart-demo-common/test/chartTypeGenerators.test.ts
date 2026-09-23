@@ -169,7 +169,7 @@ describe('generateChartTypeDataProvider', () => {
     }
   });
 
-  it('donut rows carry slice values only — its percent labels and tooltip shares are derived', () => {
+  it('donut rows carry slice values only, since its percent labels and tooltip shares are derived', () => {
     const donut = snapshots.find(snapshot => snapshot.id === 'donut')!;
     const mochartConfig = enhanceConfig(donut.config);
     expect(mochartConfig.pie.tooltip.valueType).toBe('percent');

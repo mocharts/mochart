@@ -44,21 +44,21 @@
     /* Every popover (export/share, notes, the phone overflow menus) sits at one
        height, above the chart's own tooltip/crosshair layer. The openers already
        write this exact number as an inline `z-index` when they position a menu
-       — twelve places across the six ports, plus `defaultZIndex` in
-       demo-common's menu.ts — because an inline style is the only way to set it
+       (twelve places across the six ports, plus `defaultZIndex` in
+       demo-common's menu.ts), because an inline style is the only way to set it
        alongside the inline `position: fixed` coordinates. Naming it here so a
        follow-up can delete those literals and let the stylesheet own it. */
     --demo-menu-z: 1080;
     /* A CSS-visible mirror of the phone tier: 0 here, flipped to 1 by the phone
        media query at the bottom of this file. Nothing is styled with it. It
        exists so JS can read back what the *stylesheet* decided rather than
-       re-deriving it from its own copy of the query — see the drift guard in
-       src/viewport.ts. */
+       re-deriving it from its own copy of the query (see the drift guard in
+       src/viewport.ts). */
     --demo-phone: 0;
     color-scheme: light;
 }
 
-/* Dark theme — same token vocabulary, VitePress dark palette. The `dark`
+/* Dark theme: same token vocabulary, VitePress dark palette. The `dark`
    class on <html> is owned by the theme controller (demo-common theme.ts),
    which shares the docs site's localStorage appearance key. */
 html.dark {
@@ -118,8 +118,8 @@ a:hover {
 
 /* The shell is exactly one viewport tall and never scrolls, so the height unit
    has to mean "what is actually visible". `vh` on a phone means the viewport
-   with the browser chrome *retracted*, so the bottom of the layout — the
-   controls strip — sat behind the toolbar and could not be scrolled to.
+   with the browser chrome *retracted*, so the bottom of the layout (the
+   controls strip) sat behind the toolbar and could not be scrolled to.
    `dvh` tracks the chrome as it hides and shows; the `vh` line before it is the
    fallback for engines without `dvh` (which get the old behaviour, not zero
    height). */
@@ -150,7 +150,7 @@ html, body {
 }
 
 /* ============================================================
-   App shell — breathing room around the whole demo
+   App shell (breathing room around the whole demo)
    ============================================================ */
 .mochart-demo-container {
     display: flex;
@@ -312,8 +312,8 @@ html, body {
 /* The 1–2 charts are a grid of equal columns over two shared rows: the plot
    (1fr) and the controls strip (auto).
    A column per chart, rather than flex items, because the two strips do not
-   hold the same buttons — only the first has the 2nd-chart toggle, and edit
-   mode is per-chart state — so they wrap to different heights. As flex items
+   hold the same buttons (only the first has the 2nd-chart toggle, and edit
+   mode is per-chart state), so they wrap to different heights. As flex items
    each column then split its own height, and the plots came out different
    sizes and vertically offset from each other. Sharing the rows sizes the
    controls row to the taller strip and leaves both plots identical.
@@ -346,7 +346,7 @@ html, body {
    wrappers, which did the same job with much narrower browser support.
    Dropping their boxes is safe because they carry no paint (no border,
    background or padding), are not a containing block for anything positioned
-   (that is `.mochart-chart`), and are never measured — the ports measure the
+   (that is `.mochart-chart`), and are never measured: the ports measure the
    tab container above and the chart host below. The `min-*`/`overflow` they
    used to need moved onto the two children. */
 .mochart-demo-content .editable-mochart-chart,
@@ -413,7 +413,7 @@ html, body {
     border-top: 1px solid var(--demo-border);
     margin-top: 8px;
 }
-/* Wraps when the strip is narrower than its buttons — half-width (two charts
+/* Wraps when the strip is narrower than its buttons: half-width (two charts
    shown) or a phone. Shrink-but-don't-grow on the button block keeps the input
    sitting right after the buttons when there is room to spare.
    align-content packs the wrapped rows at the top: with two charts shown both
@@ -780,7 +780,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     gap: 6px 10px;
     min-width: 0;
 }
-/* Form rows carry a .demo-field class — lay them out inline */
+/* Form rows carry a .demo-field class, so lay them out inline */
 .mochart-demo-modes-container form .demo-field,
 .mochart-demo-content form .demo-field {
     display: flex;
@@ -804,8 +804,8 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     font-variant-numeric: tabular-nums;
 }
 /* The one-letter stand-ins for the readout prefixes (`G`/`S`). Only the phone
-   tier renders them — see the block that clips `.demo-label-prefix`, which is
-   the width crunch they exist for. */
+   tier renders them (see the block that clips `.demo-label-prefix`, which is
+   the width crunch they exist for). */
 .demo-label-prefix-compact {
     display: none;
 }
@@ -816,7 +816,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     align-items: center;
     gap: 6px;
 }
-/* Groups wrap internally too — a group is otherwise one unbreakable unit, so
+/* Groups wrap internally too, because a group is otherwise one unbreakable unit, so
    the whole controls strip could not shrink past its widest group. */
 .demo-btn-group {
     display: inline-flex;
@@ -884,7 +884,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     background: var(--demo-surface);
     border-color: var(--demo-border);
 }
-/* Pressed state for toggle buttons (aria-pressed) — accent-tinted so the
+/* Pressed state for toggle buttons (aria-pressed), accent-tinted so the
    on/off state is legible at a glance. Also used while a menu is open. */
 .demo-btn-secondary.active,
 .demo-btn-secondary.active:hover:not(:disabled) {
@@ -908,7 +908,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     background: var(--demo-accent-active);
     border-color: var(--demo-accent-active);
 }
-/* a disabled primary button marks the currently selected mode — keep it
+/* a disabled primary button marks the currently selected mode, so keep it
    fully saturated so it reads as "selected", not "unavailable" */
 .demo-btn-primary:disabled {
     color: var(--demo-on-accent);
@@ -962,7 +962,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
        cap alone only moves the problem: the surplus content would spill out of
        the panel box and still be cut off by a shell that does not scroll. This
        is what makes the capped content reachable. It is inert whenever the cap
-       does not bind, which is every menu on a desktop-sized window — only the
+       does not bind, which is every menu on a desktop-sized window. Only the
        longest demo notes on a landscape phone are tall enough to overflow.
        `contain` stops a flick at the end of the list from scrolling the page
        behind the menu. */
@@ -1012,10 +1012,10 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
 }
 
 /* The notes panel reuses .demo-menu's popover plumbing (fixed positioning by
-   the opener, escaping ancestor overflow) but holds prose, not menu items — so
+   the opener, escaping ancestor overflow) but holds prose, not menu items, so
    it is wider and its text wraps. It opens downward from the navigation row. */
 /* Also a .demo-btn-group, whose `display: inline-flex` outranks the user-agent
-   `[hidden] { display: none }` rule — so restate it for demos without notes. */
+   `[hidden] { display: none }` rule, so restate it for demos without notes. */
 .mochart-demo-notes-menu {
     position: relative;
 }
@@ -1023,7 +1023,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     display: none;
 }
 /* Width is duplicated in notesPanel.ts, which clamps the panel's left offset
-   against it — keep the two in step. */
+   against it. Keep the two in step. */
 .demo-menu.demo-menu-notes {
     width: min(340px, calc(100vw - 32px));
     padding: 12px 14px;
@@ -1046,21 +1046,21 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
    Overflow menus (the phone fold)
    ============================================================ */
 /* On a phone the navigation row and the control strips hold more buttons than
-   fit across ~360px of usable width. Rather than let them wrap — every wrapped
-   row is a row of chart the plot loses, and the shell does not scroll — the
+   fit across ~360px of usable width. Rather than let them wrap (every wrapped
+   row is a row of chart the plot loses, and the shell does not scroll), the
    ports move the controls that did not fit into a menu behind a single trigger.
    The trigger is a `.demo-overflow-menu`; the panel is a `.demo-menu` carrying
    `.demo-menu-overflow`.
    Everything in this section is dead code above the phone tier: no port renders
    any of these classes outside the fold, so none of these selectors can match
    at a desktop width today. The rules that would misfire if a menu *did* exist
-   at a wider size — the `.btn-label` un-clip — live in the ≤900px media query
+   at a wider size (the `.btn-label` un-clip) live in the ≤900px media query
    at the bottom of the file instead, for the reason documented there. */
 
 /* The fold MOVES the strip's existing button elements into the menu and back
-   (hosts, not mirrors — the vanilla port's OverflowMenu.ts header has the full
+   (hosts, not mirrors: the vanilla port's OverflowMenu.ts header has the full
    story), so they arrive still wearing `.demo-btn` (`.demo-btn-secondary`,
-   `.demo-btn-primary`, `.active`, …) — a centred, auto-width, bordered pill —
+   `.demo-btn-primary`, `.active`, …), a centred, auto-width, bordered pill,
    and have to be restyled into full-width menu rows by context. Restyling by
    context rather than swapping classes on the way in also means an unfold
    cannot leave a stale class behind. */
@@ -1080,7 +1080,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
    two-word export items. `dvh` for the same reason as the shell (see the note on
    html/body): on a phone `vh` is the viewport with the browser chrome
    *retracted*, so a menu sized to it would run under the toolbar and the last
-   rows could not be reached — the panel scrolls internally, but only within a
+   rows could not be reached. The panel scrolls internally, but only within a
    height it can actually show. The `vh` line first is the fallback for engines
    without `dvh`, which get the old meaning rather than no limit at all. The
    96px is the trigger's strip plus the shell's padding, so the panel stops
@@ -1106,7 +1106,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     width: 100%;
     gap: 2px;
 }
-/* Groups emptied by the fold — every child moved into the menu — would still
+/* Groups emptied by the fold (every child moved into the menu) would still
    draw their parent's `gap` on both sides of a zero-width box, leaving a
    double gap in the strip where the group used to be.
    Unconditional, not phone-scoped, and that is safe today: an audit of all six
@@ -1181,8 +1181,8 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
 }
 
 /* Menu-only button text. The transport and stepper buttons (play/stop, prev/
-   next, order up/down) are icon-only at every width by design — they have no
-   `.btn-label` to un-clip — so folded into a menu they would be a column of
+   next, order up/down) are icon-only at every width by design (they have no
+   `.btn-label` to un-clip), so folded into a menu they would be a column of
    bare glyphs with nothing to read. They carry a second span that is hidden
    wherever it normally lives and shown only inside a menu. Its copy lives in
    demoText.ts under a `menuLabel` key, deliberately not `label`, because a real
@@ -1305,18 +1305,18 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
 }
 
 /* ============================================================
-   Narrow viewports — collapse button labels, tighten the chrome
+   Narrow viewports (collapse button labels, tighten the chrome)
    ============================================================ */
 /* Two tiers:
 
-   ≤ 900px ("narrow") — every collapsible button drops to its icon. The control
+   ≤ 900px ("narrow"): every collapsible button drops to its icon. The control
    strips are the tallest thing after the plot, and with labels they wrap to
    three or four rows; the nav row is `flex: none` above the plot, so each row it
    wraps to is a row the chart loses. Icon-only is already the house style for
    the steppers and transport buttons, and every one of these buttons carries a
    `title` and a real label, so nothing becomes unidentifiable.
 
-   ≤ 640px ("phone") — three jobs, in the order they were added:
+   ≤ 640px ("phone") has three jobs, in the order they were added:
 
    1. Space that only a phone needs back: shell padding, gaps and the number
       inputs. A phone turned sideways is wider than 640px (896×414 for the
@@ -1330,7 +1330,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
       wrapping. `flex-wrap: nowrap` on the navigation row is the half of
       that which does the work: it is what converts "wrapped onto a second row" into "the
       fold has to have taken these", and it is only safe because the fold ran.
-      The tabs are the elastic element in that row — they shrink and ellipsis —
+      The tabs are the elastic element in that row (they shrink and ellipsis),
       because they are the only thing in it whose text is expendable.
 
    3. Touch targets. The buttons are sized for a mouse everywhere else; on a
@@ -1341,11 +1341,11 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
    Labels are taken out of the layout rather than `display: none`d, so a button
    whose accessible name comes from its visible text keeps that name.
 
-   The tab buttons (`.demo-tab`) are deliberately not in this list — they have no
+   The tab buttons (`.demo-tab`) are deliberately not in this list, because they have no
    icons, so hiding their labels would leave three blank buttons.
 
    Keep the phone query in step with `phoneQuery` in src/viewport.ts, which hides
-   Multi mode at exactly the same sizes — and which now checks itself against the
+   Multi mode at exactly the same sizes, and which now checks itself against the
    `--demo-phone` custom property this block sets, so the two can be caught
    drifting instead of only being asked politely not to. */
 @media (max-width: 900px) {
@@ -1366,7 +1366,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
         clip-path: inset(50%);
         white-space: nowrap;
     }
-    /* `Mode:` — the three mode icons say it. */
+    /* Hide `Mode:`, because the three mode icons say it. */
     .mochart-demo-mode-switcher .demo-label {
         display: none;
     }
@@ -1385,15 +1385,15 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
        Un-clip labels inside an overflow menu.
 
        DO NOT MOVE THIS OUT OF THIS MEDIA QUERY, and do not move it above
-       the clipping rules — this is the whole reason it exists.
+       the clipping rules. This is the whole reason it exists.
 
        An open overflow panel is `position: fixed` (the opener writes the
        coordinates inline, so it can escape the strips' `overflow: hidden`),
        but fixed positioning only takes it out of the *layout*; it is still a
        DOM descendant of the strip it hangs off. So every selector at the top
-       of this block still matches its contents, and each row of the menu —
-       which exists precisely to show the labels there is no room for in the
-       strip — would render as a bare icon with a 1px clipped span beside it.
+       of this block still matches its contents, and each row of the menu
+       (which exists precisely to show the labels there is no room for in the
+       strip) would render as a bare icon with a 1px clipped span beside it.
 
        Hence: same media query, after the clipping rules, at matching
        specificity. The clippers are three-class selectors scoped to the
@@ -1446,7 +1446,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
        320x568 phone leaves it, and the ▲ stepper wraps alone onto a second
        row. Two adjustments close it: the column gap drops to the 6px that
        everything else at this tier already uses, and the readout minimum drops
-       to the two characters an index actually needs (`-1`, `24` — three-char
+       to the two characters an index actually needs (`-1` or `24`, since three-char
        indexes do not occur, and tabular-nums keeps the digits steady). The
        category panel's form has a single field and the slice panel's readout is
        two characters, so neither is moved by these. */
@@ -1488,7 +1488,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
        by this width and have nothing left to give; the tab strip is three or
        four words of text and can lose characters and still be usable, because
        the active tab is also marked by its background. `min-width: 0` has to be
-       repeated all the way down the chain — a flex item's automatic minimum
+       repeated all the way down the chain, because a flex item's automatic minimum
        size is its content, so a single missing `min-width: 0` anywhere between
        the row and the text pins the whole row at its natural width and `nowrap`
        starts pushing the right-hand controls out of the (clipped) container
@@ -1524,7 +1524,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     /* Stays `display: block`: `text-overflow: ellipsis` only applies to block
        containers, and a flex tab would put its text in an anonymous flex item
        that never gets an ellipsis. That rules out `align-items: center` for the
-       taller touch target, so the height comes from the line box instead —
+       taller touch target, so the height comes from the line box instead:
        6px padding × 2 + a 32px line box = exactly the 44px target, with the
        text centred inside it. Ungated: the touch target stands on its own. */
     .demo-tab {
@@ -1535,7 +1535,7 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
            `Random Config` / `Data` needs 278px of a 230px row and ellipses down
            to `C…` / `Random C…` / `D…`. Three tabs x 2 sides x 8px recovers
            exactly the 48px shortfall, and the labels are the one thing the fold
-           deliberately keeps on screen — a tab strip nobody can read would give
+           deliberately keeps on screen. A tab strip nobody can read would give
            back the space the overflow menu was built to win.
            Horizontal only: `min-height: 44px` below still owns the touch
            target. */
@@ -1549,8 +1549,8 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
         width: min(320px, calc(100vw - 32px));
     }
 
-    /* A folded field — a label beside its input, like the random strip's
-       interval — is the one menu row that is not a `.demo-btn`, so nothing gives
+    /* A folded field (a label beside its input, like the random strip's
+       interval) is the one menu row that is not a `.demo-btn`, so nothing gives
        it the inset every other row gets from `.demo-menu-overflow .demo-btn`'s
        `padding: 7px 10px`. Measured at 390x844 in the random panel: the button
        rows start their content 17px in from the panel's edge and the interval
@@ -1558,8 +1558,8 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
        Same padding, so the rule is the button rule's counterpart rather than a
        number of its own.
 
-       Phone-scoped because that is where it can matter — an overflow panel only
-       exists below this breakpoint — and because the ports' other `.demo-field`s
+       Phone-scoped because that is where it can matter (an overflow panel only
+       exists below this breakpoint), and because the ports' other `.demo-field`s
        are strip layout, which this must never reach. */
     .demo-menu-overflow .demo-field {
         padding: 7px 10px;
@@ -1568,13 +1568,13 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     /* ---- Index readout prefixes ------------------------------------
        The series strip's stepper row holds four 44px buttons plus the two
        readouts, and at 320x568 that already fills the ~274px available.
-       `Category: ` and `Series: ` cost ~51px each — either prefix would wrap the
+       `Category: ` and `Series: ` cost ~51px each, and either prefix would wrap the
        row, so both are clipped and the one-letter stand-ins below carry the
        meaning instead.
 
        Clipped, not `display: none`d: the readout is a bare number without it,
        and a `3` between two arrows names nothing. This is the same sr-only
-       idiom the ≤900px block uses on `.btn-label`, and for the same reason —
+       idiom the ≤900px block uses on `.btn-label`, and for the same reason:
        the text stays in the accessibility tree, it just stops taking space.
 
        Scoped to the chart controls strip (the only place the class is used at
@@ -1602,22 +1602,22 @@ details.mochart-demo-gallery-section > summary .mochart-demo-gallery-section-tit
     /* ---- Touch targets ---------------------------------------------
        Measured in the current build at 390×844: `.demo-btn` is 33px tall and
        43.9px wide when icon-only, `.demo-menu-item` is 31px tall, `.demo-tab`
-       29px. Height is the only genuinely short axis — the widths are already
-       there or within a rounding error — so `min-height` does all the work and
+       29px. Height is the only genuinely short axis (the widths are already
+       there or within a rounding error), so `min-height` does all the work and
        `min-width` exists only to close that 0.1px gap on the icon-only
        buttons rather than to widen anything.
 
        On the standard: WCAG 2.2 SC 2.5.8 Target Size (Minimum, AA) asks for
        24×24 CSS px, and every one of these already passes it comfortably. 44px
        is SC 2.5.5 Target Size (Enhanced, AAA), and independently the iOS HIG
-       and Material minimum — i.e. what a thumb actually needs, as opposed to
+       and Material minimum, i.e. what a thumb actually needs, as opposed to
        what conformance requires.
 
        It is not free: 44px adds ~11px to each control row, ~24px of chrome
        across the nav row and one control strip. That is affordable only
        because the fold took the strips from three or four wrapped rows down to
        one and handed back roughly 119px on a 390×844 phone. If the fold is
-       ever reverted, revert this with it — paying 24px on top of the wrapped
+       ever reverted, revert this with it. Paying 24px on top of the wrapped
        rows would leave the plot smaller than it was before either change. */
     .demo-btn,
     .demo-menu-item,

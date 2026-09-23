@@ -1,5 +1,5 @@
 // Viewport-width tiers shared by all six framework ports, so the one thing the
-// stylesheet cannot do on its own — leaving a mode out of the switcher — agrees
+// stylesheet cannot do on its own (leaving a mode out of the switcher) agrees
 // with the breakpoints in demo.css.
 
 import { switchableDemoModes } from './gallery';
@@ -16,7 +16,7 @@ export const phoneMaxWidth = 640;
 
 /**
  * A phone turned sideways is still a phone, but it is wider than
- * `phoneMaxWidth` — 896×414 for the largest of them. Height alone would catch
+ * `phoneMaxWidth` (896×414 for the largest of them). Height alone would catch
  * short desktop windows too, so both bounds are needed.
  */
 export const landscapePhoneMaxWidth = 900;
@@ -27,7 +27,7 @@ const phoneQuery = '(max-width: ' + phoneMaxWidth + 'px), '
 
 /**
  * The custom property demo.css sets to `0` on `:root` and to `1` from inside
- * its phone media block — i.e. the stylesheet's own answer, rather than a
+ * its phone media block, i.e. the stylesheet's own answer, rather than a
  * second derivation of the same numbers.
  */
 const phoneTierProperty = '--demo-phone';
@@ -47,13 +47,13 @@ const phoneTierProperty = '--demo-phone';
  * - Stylesheet wider than the JS: the stylesheet applies `flex-wrap: nowrap` to
  *   a navigation row whose surplus controls the JS has *not* folded into the
  *   overflow menu, inside a container with `overflow: hidden`. The controls
- *   past the right edge are simply gone — no wrap, no scrollbar, no clue on
+ *   past the right edge are simply gone: no wrap, no scrollbar, no clue on
  *   screen that anything is missing. That failure can survive review.
  *
  * Development builds only; this is a development aid, not behaviour. It is also
- * quiet whenever it cannot get a real answer — during SSR/prerender, and in
+ * quiet whenever it cannot get a real answer (during SSR/prerender, and in
  * jsdom-style test environments where demo.css was never loaded and the
- * property resolves to the empty string — so it can never turn a missing
+ * property resolves to the empty string), so it can never turn a missing
  * stylesheet into console noise.
  */
 function assertPhoneTierInSync(matches: boolean): void {
@@ -89,8 +89,8 @@ export function isPhoneViewport(): boolean {
 }
 
 /**
- * Calls `onChange` whenever the viewport crosses the phone breakpoint — a
- * rotation or a resized desktop window, not just the initial load. Returns the
+ * Calls `onChange` whenever the viewport crosses the phone breakpoint (a
+ * rotation or a resized desktop window, not just the initial load). Returns the
  * unsubscribe function; it does not fire on subscribe.
  */
 export function watchPhoneViewport(onChange: (isPhone: boolean) => void): () => void {
