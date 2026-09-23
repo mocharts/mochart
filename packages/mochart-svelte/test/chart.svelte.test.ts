@@ -434,7 +434,7 @@ describe('refresh', () => {
   });
 });
 
-// The callback maps are string-to-string plumbing — a dropped or misspelled row ships and the callback never fires — and core switches behaviour on callback presence, so every row gets a delivery case.
+// The callback maps are string-to-string plumbing (a dropped or misspelled row ships and the callback never fires), and core switches behaviour on callback presence, so every row gets a delivery case.
 describe('interaction callbacks', () => {
   async function mountCallbacks(callbacks: Record<string, unknown>, config = rawConfig()) {
     const el = target();

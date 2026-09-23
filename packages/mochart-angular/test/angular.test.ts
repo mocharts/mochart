@@ -1,4 +1,4 @@
-// JIT-compile the components at runtime — these tests run the raw TS source
+// JIT-compile the components at runtime, because these tests run the raw TS source
 // under vitest, not the AOT (ngc) build.
 import '@angular/compiler';
 
@@ -464,7 +464,7 @@ class EagerBoundsHost {
 }
 
 // Regression: outputs the core raised synchronously from the mount and from input-driven update()
-// were emitted inside Angular's refresh pass, which only marks the host dirty — a plain-field OnPush
+// were emitted inside Angular's refresh pass, which only marks the host dirty. A plain-field OnPush
 // host never re-rendered the payload and an Eager host threw NG0100
 describe('outputs raised while Angular refreshes views', () => {
   it('reach a plain-field OnPush host template after mount', async () => {
@@ -511,7 +511,7 @@ describe('refresh', () => {
   });
 });
 
-// The emitter -> core-name table in base-chart.ts is string-to-string plumbing — a dropped or misspelled row ships and the output never fires — so every row is iterated here.
+// The emitter -> core-name table in base-chart.ts is string-to-string plumbing (a dropped or misspelled row ships and the output never fires), so every row is iterated here.
 describe('interaction callbacks', () => {
   const OUTPUTS = [
     'chartClick', 'sliceClick', 'seriesClick', 'chartMouseEnter', 'chartMouseMove',

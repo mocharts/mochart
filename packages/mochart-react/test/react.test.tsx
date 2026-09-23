@@ -128,7 +128,7 @@ describe('Chart auto-sizing', () => {
 
   it('ignores the transform-scaled client rect when measuring the container', () => {
     // a mount during e.g. a dialog's scale(0.95) entry animation: the rect is
-    // scaled, the layout size is not — and no resize event ever corrects it
+    // scaled, the layout size is not, and no resize event ever corrects it
     const widthSpy = vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(400);
     const heightSpy = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
     const rectSpy = vi
@@ -257,7 +257,7 @@ describe('placeholder components', () => {
   });
 
   // Placeholders render through portals in the host tree, so they inherit the
-  // app's context providers — and follow provider updates.
+  // app's context providers and follow provider updates.
   it('gives placeholders the host tree context, including provider updates', () => {
     const { container, root } = host();
     const ThemeContext = createContext('light');
@@ -463,7 +463,7 @@ describe('refresh', () => {
   });
 });
 
-// The callback maps are string-to-string plumbing — a dropped or misspelled row ships and the callback never fires — and core switches behaviour on callback presence, so every row gets a delivery case.
+// The callback maps are string-to-string plumbing (a dropped or misspelled row ships and the callback never fires), and core switches behaviour on callback presence, so every row gets a delivery case.
 describe('interaction callbacks', () => {
   function mountWithCallbacks(callbacks: Record<string, unknown>, config = rawConfig()) {
     const { container, root } = host();

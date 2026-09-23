@@ -6,7 +6,7 @@ import type { ChartRef } from './types.js';
 
 /**
  * Vue wrapper around mochart's `createDefaultChart`: takes a raw `config`
- * (enhanced internally) and a plain `data` — an array of objects or an object of arrays. Omit
+ * (enhanced internally) and a plain `data` (an array of objects or an object of arrays). Omit
  * `width`/`height` to have the chart track the container div's size.
  * `class`/`style` fall through to the container div. A template ref on the
  * component exposes `refresh()`.

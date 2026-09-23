@@ -2,13 +2,13 @@
 
 React components for the [@mochart/core](https://github.com/mocharts/mochart) charting library.
 
-Docs: [mochart.org](https://mochart.org) — start with the
+Docs: [mochart.org](https://mochart.org). Start with the
 [React guide](https://mochart.org/guide/frameworks/react).
 
 Config and data changes get mochart's
 [staged animations](https://github.com/mocharts/mochart/tree/main/packages/mochart#staged-animation)
-for free — axis expansion, value change (with category and series transitions),
-axis contraction, and gapless stacked transitions — no extra wiring needed.
+with no extra wiring: axis expansion, value change (with category and series
+transitions), axis contraction, and gapless stacked transitions.
 
 ## Install
 
@@ -22,7 +22,7 @@ React 18 or newer.
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's optional
-stylesheet — it re-asserts the browser defaults the chart's tooltip and
+stylesheet. It re-asserts the browser defaults the chart's tooltip and
 message overlays rely on, and never overrides the chart's own styling:
 
 ```js
@@ -31,8 +31,8 @@ import '@mochart/core/mochart.css';
 
 ## Usage
 
-`DefaultChart` is the simplest entry point — give it a raw config and a plain
-dataset — an array of objects or an object of arrays:
+`DefaultChart` is the simplest entry point. Give it a raw config and a plain
+dataset (an array of objects or an object of arrays):
 
 ```tsx
 import type { MochartInputConfig } from '@mochart/core';
@@ -87,15 +87,15 @@ container div, for test selectors.
 ## When the data changes
 
 Config and data changes are detected **by reference identity**: passing the
-same array or object again — even after mutating it in place — leaves the
+same array or object again, even after mutating it in place, leaves the
 chart unchanged. Idiomatic React state updates already produce new
 references:
 
 ```tsx
-// ✓ a new array — the chart animates to it
+// ✓ a new array, so the chart animates to it
 setData(current => [...current, { month: 'Mar', revenue: 30 }]);
 
-// ✗ invisible — same array identity (and no React re-render either)
+// ✗ the same reference, so neither React nor the chart sees it
 data.push({ month: 'Mar', revenue: 30 });
 ```
 
@@ -127,8 +127,8 @@ components (`loadingComponent`, `errorComponent`, `noDataComponent`,
 placeholder prop takes a **React component** that receives the chart context
 (`width`, `height`, `error`, …) as props and is rendered while the chart is in
 that state. Placeholders render through a portal in the host component tree, so
-they read any React context an ancestor provides and follow provider updates —
-the other bindings reach less, each in its own way. Both components also accept
+they read any React context an ancestor provides and follow provider updates.
+The other bindings reach less, each in its own way. Both components also accept
 `loading` and `error` to force the loading or error state.
 
 ### Controlled state

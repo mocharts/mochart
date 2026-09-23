@@ -35,7 +35,7 @@ export interface PlaceholderAdapter {
  * Adapts placeholder component props into the DOM-node factories the core
  * expects: each slot keeps one persistent container div the factory returns
  * synchronously, and the component renders into it through a portal from the
- * host tree — so placeholders inherit the host app's context providers. The
+ * host tree, so placeholders inherit the host app's context providers. The
  * host subscribes and re-renders `getPortals()` whenever a slot changes.
  */
 export function createPlaceholderAdapter(): PlaceholderAdapter {

@@ -6,7 +6,7 @@ import type { CreateChartFn } from './host.js';
 
 /**
  * Angular wrapper around mochart's `createDefaultChart`: takes a raw `config`
- * (enhanced internally) and a plain `data` — an array of objects or an object of arrays. Omit
+ * (enhanced internally) and a plain `data` (an array of objects or an object of arrays). Omit
  * `width`/`height` to have the chart track the host element's size;
  * `class`/`style` set on `<mochart-default-chart>` style that same element.
  */

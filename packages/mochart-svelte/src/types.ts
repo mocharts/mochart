@@ -7,7 +7,7 @@ import type {
 /**
  * The handle `bind:this` exposes on both components. `refresh()` re-reads the
  * current config/data (rebuilding or re-indexing the data provider) without
- * needing new references — the escape hatch for hosts that mutate data in place.
+ * needing new references, for hosts that mutate data in place.
  */
 export interface ChartRef {
   refresh(): void;
@@ -83,7 +83,7 @@ export interface ChartProps extends BaseChartProps {
   dataProvider: DataProvider | null;
 }
 
-/** Props for `DefaultChart`: a raw config plus a plain dataset — an array of objects or an object of arrays. */
+/** Props for `DefaultChart`: a raw config plus a plain dataset (an array of objects or an object of arrays). */
 export interface DefaultChartProps extends BaseChartProps {
   config: MochartInputConfig;
   data: ArrayOfObjectsData | ObjectOfArraysData;

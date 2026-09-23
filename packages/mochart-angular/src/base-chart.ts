@@ -179,9 +179,8 @@ export abstract class BaseChart implements AfterViewInit, OnChanges, OnDestroy {
 
   /**
    * Re-read the current config/data (rebuilding or re-indexing the data
-   * provider) without needing new references — the escape hatch for hosts
-   * that mutate data in place. Reach it through a template reference
-   * variable or `@ViewChild`.
+   * provider) without needing new references, for hosts that mutate data in
+   * place. Reach it through a template reference variable or `@ViewChild`.
    */
   refresh(): void {
     this.host?.refresh();

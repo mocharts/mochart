@@ -2,13 +2,13 @@
 
 Vue 3 components for the [@mochart/core](https://github.com/mocharts/mochart) charting library.
 
-Docs: [mochart.org](https://mochart.org) — start with the
+Docs: [mochart.org](https://mochart.org). Start with the
 [Vue guide](https://mochart.org/guide/frameworks/vue).
 
 Config and data changes get mochart's
 [staged animations](https://github.com/mocharts/mochart/tree/main/packages/mochart#staged-animation)
-for free — axis expansion, value change (with category and series transitions),
-axis contraction, and gapless stacked transitions — no extra wiring needed.
+with no extra wiring: axis expansion, value change (with category and series
+transitions), axis contraction, and gapless stacked transitions.
 
 ## Install
 
@@ -20,7 +20,7 @@ npm install @mochart/vue @mochart/core vue
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's optional
-stylesheet — it re-asserts the browser defaults the chart's tooltip and
+stylesheet. It re-asserts the browser defaults the chart's tooltip and
 message overlays rely on, and never overrides the chart's own styling:
 
 ```js
@@ -29,8 +29,8 @@ import '@mochart/core/mochart.css';
 
 ## Usage
 
-`DefaultChart` is the simplest entry point — give it a raw config and a plain
-dataset — an array of objects or an object of arrays:
+`DefaultChart` is the simplest entry point. Give it a raw config and a plain
+dataset (an array of objects or an object of arrays):
 
 ```vue
 <script setup>
@@ -86,7 +86,7 @@ Explicit `width`/`height` props win over conflicting `style` values.
 
 Other attributes (`id`, `data-testid`, …) fall through to the container div
 the same way. The optional `dataTestId` prop is the same surface the other
-bindings offer — it also sets `data-testid` and wins over a fallthrough
+bindings offer. It also sets `data-testid` and wins over a fallthrough
 attribute when both are given.
 
 ## When the data changes
@@ -94,13 +94,13 @@ attribute when both are given.
 Config and data changes are detected **by reference identity**: the chart
 compares the props it receives, not their contents. Vue's deep reactivity
 re-renders your own template after an in-place `push`, but the chart still
-sees the same array — replace instead of mutate:
+sees the same array. Replace instead of mutate:
 
 ```js
-// ✓ a new array — the chart animates to it
+// ✓ a new array, so the chart animates to it
 data.value = [...data.value, { month: 'Mar', revenue: 30 }];
 
-// ✗ invisible to the chart — same array identity
+// ✗ the same reference, so the chart does not see it
 data.value.push({ month: 'Mar', revenue: 30 });
 ```
 
@@ -132,7 +132,7 @@ function addRow(row) {
 
 Both components accept the chart callbacks (`onChartClick`, `onSliceClick`, `onSeriesClick`,
 `onChartMouseEnter`, `onChartMouseMove`, `onChartMouseLeave`, `onTitleClick`,
-`onFocus`, `onSeriesFilter`, `onSeriesLayoutBoundsChange` — usable as
+`onFocus`, `onSeriesFilter`, `onSeriesLayoutBoundsChange`, usable as
 `@chart-click` etc. in templates) and the placeholder components
 (`loadingComponent`, `errorComponent`, `noDataComponent`, `noSizeComponent`,
 `noSeriesComponent`, `configErrorComponent`). Each placeholder prop takes a

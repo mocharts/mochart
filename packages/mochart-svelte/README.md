@@ -2,13 +2,13 @@
 
 Svelte 5 components for the [@mochart/core](https://github.com/mocharts/mochart) charting library.
 
-Docs: [mochart.org](https://mochart.org) — start with the
+Docs: [mochart.org](https://mochart.org). Start with the
 [Svelte guide](https://mochart.org/guide/frameworks/svelte).
 
 Config and data changes get mochart's
 [staged animations](https://github.com/mocharts/mochart/tree/main/packages/mochart#staged-animation)
-for free — axis expansion, value change (with category and series transitions),
-axis contraction, and gapless stacked transitions — no extra wiring needed.
+with no extra wiring: axis expansion, value change (with category and series
+transitions), axis contraction, and gapless stacked transitions.
 
 ## Install
 
@@ -20,7 +20,7 @@ npm install @mochart/svelte @mochart/core svelte
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's optional
-stylesheet — it re-asserts the browser defaults the chart's tooltip and
+stylesheet. It re-asserts the browser defaults the chart's tooltip and
 message overlays rely on, and never overrides the chart's own styling:
 
 ```js
@@ -29,8 +29,8 @@ import '@mochart/core/mochart.css';
 
 ## Usage
 
-`DefaultChart` is the simplest entry point — give it a raw config and a plain
-dataset — an array of objects or an object of arrays:
+`DefaultChart` is the simplest entry point. Give it a raw config and a plain
+dataset (an array of objects or an object of arrays):
 
 ```svelte
 <script>
@@ -88,13 +88,13 @@ container div, for test selectors.
 Config and data changes are detected **by reference identity**: the chart
 compares the props it receives, not their contents. `$state`'s deep
 reactivity updates your own markup after an in-place `push`, but the chart
-still sees the same array — reassign instead of mutate:
+still sees the same array. Reassign instead of mutate:
 
 ```js
-// ✓ a new array — the chart animates to it
+// ✓ a new array, so the chart animates to it
 data = [...data, { month: 'Mar', revenue: 30 }];
 
-// ✗ invisible to the chart — same array identity
+// ✗ the same reference, so the chart does not see it
 data.push({ month: 'Mar', revenue: 30 });
 ```
 
@@ -166,7 +166,7 @@ maps cannot be produced by the tool that builds this package. Little is lost:
 the three components are published as `.svelte` files that are their own
 source, `index.js` and `types.js` are re-exports with no logic, and `host.js`
 and `placeholders.svelte.js` are the `.ts` sources with the type annotations
-stripped — unbundled, unminified, comments intact.
+stripped. They are unbundled and unminified, with comments intact.
 
 The `development` export condition above is the supported route for stepping
 through the real TypeScript sources: enable it and the debugger runs `src/`
