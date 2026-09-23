@@ -15,11 +15,11 @@ import * as ohlc from '../examples/ohlc'
 ## How it works
 
 - Each item is `{ label, open, high, low, close }`. A bar is **up** when the
-  close is at or above the open, **down** otherwise — the same math and input
-  checks as the [Candlestick](/recipes/candlestick), which shares its input
-  shape.
+  close is at or above the open, **down** otherwise, with the same math and
+  input checks as the [Candlestick](/recipes/candlestick), which shares its
+  input shape.
 - The helper returns `{ candles, data, categoryAxis, series }`. The bars are
-  six ordinary `bar` series — an up and a down low→high line narrowed to a
+  six ordinary `bar` series: an up and a down low→high line narrowed to a
   sliver of the slot with
   [`bar.widthFraction`](/reference/series#series.bar.widthFraction), plus per
   direction an open and a close tick. Every row carries values for exactly
@@ -29,10 +29,10 @@ import * as ohlc from '../examples/ohlc'
   keeps the other direction's series from rendering.
 - The ticks are ranged bars whose `property` and
   [`rangeProperty`](/reference/series#series.rangeProperty) read the same
-  value, so they'd have zero extent —
-  [`bar.minExtent`](/reference/series#series.bar.minExtent) expands them into
-  visible marks (`tickExtent`, default 2px). Each tick is a half-width bar
-  pushed to one side of the slot with
+  value, so they'd have zero extent,
+  and [`bar.minExtent`](/reference/series#series.bar.minExtent) expands them
+  into visible marks (`tickExtent`, default 2px). Each tick is a half-width
+  bar pushed to one side of the slot with
   [`bar.alignFraction`](/reference/series#series.bar.alignFraction): the open
   tick spans slot-start→center and the close tick center→slot-end, meeting at
   the line.
@@ -65,7 +65,7 @@ import * as ohlc from '../examples/ohlc'
   direction removes whole bars and focusing a direction highlights whole
   bars.
 - Each row also carries the raw `open`/`high`/`low`/`close` plus `change`
-  and `direction`, and the computed bars come back under `candles` — the
+  and `direction`, and the computed bars come back under `candles`. The
   helper reuses `computeCandlesticks(items)` for the math.
 - Items with a `volume` can add the classic volume pane via `volume: true`,
   exactly as in the [Candlestick](/recipes/candlestick#volume-pane) recipe.

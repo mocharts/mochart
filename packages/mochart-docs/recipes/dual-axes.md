@@ -17,7 +17,7 @@ import * as dualAxes from '../examples/dualAxes'
 ## How it works
 
 - Each axis gets an [`id`](/reference/valueAxes#valueAxes.id);
-  series reference it with `axis`. With a single axis none of this is needed —
+  series reference it with `axis`. With a single axis none of this is needed:
   ids matter only when there are several.
 - [`side: 'end'`](/reference/valueAxes#valueAxes.side)
   moves the second axis to the end side (right, for vertical charts).
@@ -26,5 +26,5 @@ import * as dualAxes from '../examples/dualAxes'
   [`valueFormat`](/reference/series#series.valueFormat) formats
   the tooltip value independently.
 - Mixing renderers per series (bars + line here) needs no extra
-  configuration — set each series'
+  configuration: set each series'
   [`renderer`](/reference/series#series.renderer).

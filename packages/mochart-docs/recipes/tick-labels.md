@@ -43,7 +43,7 @@ import * as tickLabelsDense from '../examples/tickLabelsDense'
   of the plot bounds (the plot height for a horizontal axis, its width for a
   vertical one), and never less than
   [`truncation.minLength`](/reference/categoryAxis#categoryAxis.tickLabel.truncation.minLength)
-  pixels — that floor is what keeps the labels above legible on a short
+  pixels. That floor is what keeps the labels above legible on a short
   chart.
 - [`truncation.tooltipEnabled`](/reference/categoryAxis#categoryAxis.tickLabel.truncation.tooltipEnabled)
   (on by default) gives each truncated label an svg `<title>` holding its full
@@ -55,7 +55,7 @@ import * as tickLabelsDense from '../examples/tickLabelsDense'
 - [`anchor`](/reference/categoryAxis#categoryAxis.tickLabel.anchor) sets
   which end of the text sits on the tick. The default `auto` centres labels
   that run along the axis and, for perpendicular ones, anchors the end
-  nearest the axis — a `-45°` label ends at its tick and reads up towards it,
+  nearest the axis: a `-45°` label ends at its tick and reads up towards it,
   a `45°` one starts there and reads away. Set `start`, `middle` or `end` to
   override.
 - [`format`](/reference/categoryAxis#categoryAxis.tickLabel.format) is a
@@ -96,7 +96,7 @@ drawn in full.
   to get down to the count; on a linear axis it asks the scale for that many
   ticks. A number replaces the calculation outright.
 - [`maxTickCount`](/reference/categoryAxis#categoryAxis.maxTickCount) caps the
-  computed count — 10 on a linear axis, uncapped (`0`) on an ordinal one — so
+  computed count (10 on a linear axis, uncapped (`0`) on an ordinal one), so
   the eight ticks above are the cap, not the fit. On a linear axis
   [`minTickInterval`](/reference/categoryAxis#categoryAxis.minTickInterval)
   also stops ticks landing closer together than a given value.

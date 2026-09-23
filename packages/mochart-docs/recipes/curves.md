@@ -2,7 +2,7 @@
 
 [`curve`](/reference/series#series.curve) selects the d3-shape curve that
 interpolates a series between its points. It affects the `line` and `area`
-renderers only; the default is `linear` — straight segments.
+renderers only; the default is `linear` (straight segments).
 
 <script setup>
 import * as curves from '../examples/curves'
@@ -23,10 +23,10 @@ import * as curvesStep from '../examples/curvesStep'
   rounder but can swing past the extremes (or below the axis); `basis`
   smooths hardest and stops passing through the points entirely.
 - [`curve.param`](/reference/series#series.curve.param) feeds the two curve
-  types that take a configurator — `cardinal`'s tension and `catmullRom`'s
+  types that take a configurator: `cardinal`'s tension and `catmullRom`'s
   alpha, e.g. `{ type: 'cardinal', param: 0.8 }`. The other types ignore it,
   and leaving it unset uses the curve's own default.
-- Markers stay at the true data values whatever the curve draws — keep the
+- Markers stay at the true data values whatever the curve draws, so keep the
   default circles on a raw series to show the measurements against a smoothed
   line, or turn them off with
   [`marker.shape: null`](/reference/series#series.marker.shape) as the
@@ -36,7 +36,7 @@ import * as curvesStep from '../examples/curvesStep'
 ## Step charts
 
 The three `step` variants hold values between points instead of connecting
-them — the right reading for state that persists until the next observation.
+them, the right reading for state that persists until the next observation.
 
 <LiveChart :config="curvesStep.config" :data="curvesStep.data" demo="curved" />
 

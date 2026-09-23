@@ -20,11 +20,11 @@ import * as thresholdRange from '../examples/thresholdRange'
   a value axis draws one reference line per entry. Each entry has a `value`,
   an optional `title` beside the line (its `text`, and `side`, `textStyle`
   and the other members that place and style the label), and a `style` for
-  the line — color, width and dash array in `normal`, `focused` and
-  `defocused` states; `front` puts the line in front of or behind the series. A linear
-  category axis takes the same `thresholds` for vertical reference lines (a
-  date axis value is an ISO string or timestamp); an ordinal one places them
-  by category, described below.
+  the line (color, width and dash array in `normal`, `focused` and
+  `defocused` states); `front` puts the line in front of or behind the series. A
+  linear category axis takes the same `thresholds` for vertical reference lines (a
+  date axis value is an ISO string or timestamp); an ordinal one places them by
+  category, described below.
 - The data band is an ordinary `area` series with
   [`rangeProperty`](/reference/series#series.rangeProperty):
   the shape spans from the `rangeProperty` value (here `p5`) to the

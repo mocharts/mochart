@@ -4,7 +4,7 @@ A series normally takes one color from the palette. Point
 [`colorProperty`](/reference/series#series.colorProperty) at a
 data property and each bar is colored per category instead, mapped through the
 series' [`colorScale`](/reference/series#series.colorScale)
-ramp — a second measure encoded on the same bars.
+ramp: a second measure encoded on the same bars.
 
 <script setup>
 import * as colorByValue from '../examples/colorByValue'
@@ -20,18 +20,18 @@ import * as colorByValueBase from '../examples/colorByValueBase'
 - Each category's `colorProperty` value maps linearly from
   [`colorScale.min`](/reference/series#series.colorScale.min) to
   [`colorScale.max`](/reference/series#series.colorScale.max)
-  across the property's extent *in that series* — the palest bar is always
+  across the property's extent *in that series*, so the palest bar is always
   the smallest color value and the darkest the largest, whatever the numbers
   are. Point `colorProperty` at the series' own `property` to shade each bar
   by its own value instead of a second measure.
 - [`colorScale.interpolation`](/reference/series#series.colorScale.interpolation)
   picks the d3 color space to interpolate in (`rgb`, `hsl`, `lab`, `hcl`).
   Setting `colorProperty` is the switch: once it's set, the scale defaults to
-  `hcl` through `#8f8fff` → `#0000ff` — the example above overrides the ramp,
+  `hcl` through `#8f8fff` → `#0000ff`. The example above overrides the ramp,
   everything else is defaults.
 - Per-category color applies to `bar` series (including floating bars via
-  [`rangeProperty`](/reference/series#series.rangeProperty)) —
-  line and area shapes and markers keep their single series color.
+  [`rangeProperty`](/reference/series#series.rangeProperty)),
+  while line and area shapes and markers keep their single series color.
 - Bar fills and strokes default to `0.8` opacity, which dilutes the ramp
   against the background; the example sets
   [`shapeStyle.normal`](/reference/series#series.shapeStyle.normal)'s
@@ -57,19 +57,19 @@ import * as colorByValueBase from '../examples/colorByValueBase'
 
 Set [`colorScale.base.value`](/reference/series#series.colorScale.base.value)
 and the ramp splits in two: one color pair above the threshold, another below
-— growth in blue, decline in red.
+(growth in blue, decline in red).
 
 <LiveChart :config="colorByValueBase.config" :data="colorByValueBase.data" demo="color-base-property" />
 
 <<< @/examples/colorByValueBase.ts
 
 - With `base.value` set, `min`/`max` must be `null` (their default in that
-  case — setting them alongside a base is a validation error) and the four
+  case, and setting them alongside a base is a validation error) and the four
   [`base`](/reference/series#series.colorScale.base) colors take
   over. Each anchors to its half's data extent: `aboveMin` sits *at* the base
   and `aboveMax` at the highest value; `belowMin` sits at the *most negative*
   value and `belowMax` at the base. The defaults give the classic diverging
-  look — palest at the base, saturated at both extremes.
+  look: palest at the base, saturated at both extremes.
 - Each half fits its own side of the color property's extent, so the deepest
   red and deepest blue always mark the current extremes.
 - The base splits only the *colors*. Here the bars measure revenue (all
@@ -78,5 +78,5 @@ and the ramp splits in two: one color pair above the threshold, another below
   [`base`](/reference/valueAxes#valueAxes.base) so the bars grow
   out of the same divide the colors split on.
 
-For value-colored *grids* — rows of full-width bars sharing one global ramp —
+For value-colored *grids* (rows of full-width bars sharing one global ramp),
 see the [heatmap recipe](/recipes/heatmap).

@@ -30,7 +30,7 @@ import * as legendSingle from '../examples/legendSingle'
   chart edge rather than the value axis. Items that do not fit the row wrap
   onto further rows.
 - [`visible`](/reference/legend#legend.visible) defaults to `true` only
-  above one series — a single-series chart has to set it, as the [next
+  above one series, so a single-series chart has to set it, as the [next
   example](#a-single-series-key) does.
 - [`margin`](/reference/legend#legend.margin) and
   [`padding`](/reference/legend#legend.padding) space the legend as a whole
@@ -69,8 +69,8 @@ import * as legendSingle from '../examples/legendSingle'
   strikes its title through as well. Hovering an item
   [focuses](/guide/interaction#focus) its series while
   [`focusOnHover`](/reference/legend#legend.focusOnHover) is on (the default),
-  and [`focusOnClick`](/reference/legend#legend.focusOnClick) — off by
-  default — makes a click do the same, which is what touch users need since
+  and [`focusOnClick`](/reference/legend#legend.focusOnClick) (off by
+  default) makes a click do the same, which is what touch users need since
   a tap never counts as a hover.
 
 ## A single-series key

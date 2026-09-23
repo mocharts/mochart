@@ -39,10 +39,10 @@ import * as tooltipFormat from '../examples/tooltipFormat'
 - The label before the value defaults to the series title (via
   [`useTitleForValueLabel`](/reference/series#series.useTitleForValueLabel));
   set [`valueLabel`](/reference/series#series.valueLabel) to override it, or
-  `useTitleForValueLabel: false` for no label at all — `valueLabel: null` is
+  `useTitleForValueLabel: false` for no label at all. `valueLabel: null` is
   the default and falls back to the title.
 - [`tooltipProperty`](/reference/series#series.tooltipProperty) shows another
-  data property in place of the series value — the [heatmap](/recipes/heatmap)
+  data property in place of the series value: the [heatmap](/recipes/heatmap)
   uses it to show cell values instead of band coordinates. A series with a
   [`rangeProperty`](/reference/series#series.rangeProperty) shows both ends
   joined by the tooltip's

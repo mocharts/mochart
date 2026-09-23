@@ -26,7 +26,7 @@ import * as axisReversed from '../examples/axisReversed'
   [`softMin`](/reference/valueAxes#valueAxes.softMin) /
   [`softMax`](/reference/valueAxes#valueAxes.softMax) instead. They
   extend the domain to the bound when the data does not already reach it, and
-  give way when it does — see
+  give way when it does. See
   [positive and negative](/recipes/positive-negative) for holding
   zero in view that way.
 - Both bounds default to `auto`, which fits the domain to the data (plus
@@ -59,7 +59,7 @@ plot edge with data behind it and needs no configuration to appear.
   text, which doubles as the band's accessible name and shows on hover. Set it
   to `null` for a band with no text.
 - [`size`](/reference/clipIndicator#clipIndicator.size) is the band
-  depth, defaulting to `auto` — the label height plus
+  depth, defaulting to `auto`: the label height plus
   [`labelPadding`](/reference/clipIndicator#clipIndicator.labelPadding) on
   both sides.
 - [`hatch`](/reference/clipIndicator#clipIndicator.hatch) sets the
@@ -70,7 +70,7 @@ plot edge with data behind it and needs no configuration to appear.
 - Two axes clipping the same edge produce one band. Bands on neighbouring
   edges meet on a diagonal, so no corner is drawn twice.
 - [`visible: false`](/reference/clipIndicator#clipIndicator.visible)
-  turns the band off. Clipping itself still happens — the values are hidden
+  turns the band off. Clipping itself still happens: the values are hidden
   either way, so leaving it on is what tells a reader they are.
 
 ## Reversing an axis
@@ -80,7 +80,7 @@ plot edge with data behind it and needs no configuration to appear.
 <<< @/examples/axisReversed.ts
 
 - [`reversed`](/reference/valueAxes#valueAxes.reversed) runs an axis
-  backwards. `min` is still the lower bound — the flag changes which end of the
+  backwards. `min` is still the lower bound: the flag changes which end of the
   plot that bound sits at, so a rank of `1` lands at the top.
 - It works on every axis, including the
   [category axis](/reference/categoryAxis#categoryAxis.reversed) and
@@ -89,5 +89,5 @@ plot edge with data behind it and needs no configuration to appear.
   which is a different setting: `inverted` swaps which screen direction each
   axis runs along (see [horizontal charts](/recipes/horizontal-bars)),
   while `reversed` flips one axis end for end.
-- Base lines, thresholds, ticks and stacking are unaffected — the domain still
+- Base lines, thresholds, ticks and stacking are unaffected: the domain still
   ascends, only its screen direction changes.

@@ -18,8 +18,8 @@ import * as patterns from '../examples/patterns'
 ## How it works
 
 - Patterns are measured in screen pixels, so their marks stay the same size
-  across differently sized bars, areas, and pie slices. Markers stay solid —
-  at marker size a pattern is unreadable.
+  across differently sized bars, areas, and pie slices. Markers stay solid,
+  because at marker size a pattern is unreadable.
 - In an XY chart, a series can use a pattern only when its `renderer` is
   `area` or `bar`; pie slices can use one whatever the series renderer.
 - `spacing`, the foreground/background colors and their opacities are common

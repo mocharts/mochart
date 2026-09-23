@@ -19,10 +19,10 @@ import * as candlestickVolume from '../examples/candlestickVolume'
 - Each item is `{ label, open, high, low, close }`. A candle is **up** when
   the close is at or above the open, **down** otherwise. Labels must be
   unique, every price must be a finite number, `high` may not be below
-  `low`, and `open` and `close` must lie within them — the helper throws
+  `low`, and `open` and `close` must lie within them. The helper throws
   otherwise, so one bad tick can't blank the chart.
 - The helper returns `{ candles, data, categoryAxis, series }`. The candles
-  are four ordinary `bar` series — an up and a down body spanning from `open`
+  are four ordinary `bar` series: an up and a down body spanning from `open`
   via [`rangeProperty`](/reference/series#series.rangeProperty), and an up
   and a down wick spanning `low`→`high`, narrowed to a sliver of the slot
   with [`bar.widthFraction`](/reference/series#series.bar.widthFraction) and
@@ -30,7 +30,7 @@ import * as candlestickVolume from '../examples/candlestickVolume'
   exactly one direction, and
   [`missingValueMode: 'connect'`](/reference/series#series.missingValueMode) with
   [`partialRangeIsMissing`](/reference/series#series.partialRangeIsMissing)
-  keeps the other direction's series from rendering — the same trick as the
+  keeps the other direction's series from rendering, the same trick as the
   [Waterfall](/recipes/waterfall).
 - A doji (open equal to close) would have a zero-height body, so filled
   bodies set [`bar.minExtent`](/reference/series#series.bar.minExtent) to 2px
@@ -69,15 +69,15 @@ import * as candlestickVolume from '../examples/candlestickVolume'
   direction removes whole candles and focusing a direction highlights whole
   candles.
 - Each row also carries the raw `open`/`high`/`low`/`close` plus `change`
-  and `direction`, and the computed candles come back under `candles` — or
+  and `direction`, and the computed candles come back under `candles`, or
   call `computeCandlesticks(items)` alone for the math without the chart
   fragments.
-- For the tick-bar style of the same data — a thin low/high line with open
-  and close ticks instead of a body — see [OHLC bars](/recipes/ohlc).
+- For the tick-bar style of the same data (a thin low/high line with open
+  and close ticks instead of a body), see [OHLC bars](/recipes/ohlc).
 
 ## Hollow candles
 
-Pass `hollow: true` to draw up candles as outlines — the classic
+Pass `hollow: true` to draw up candles as outlines, the classic
 hollow-candle style where a filled body means down:
 
 <LiveChart :config="candlestickHollow.config" :data="candlestickHollow.data" demo="candlestick-hollow" />
@@ -86,12 +86,12 @@ hollow-candle style where a filled body means down:
 
 In hollow mode the low→high wick can't sit behind the body (it would show
 through the hollow interior), so the helper splits it into segments that stop
-at the body edges, and the original wick series turns shapeless — it keeps
+at the body edges, and the original wick series turns shapeless: it keeps
 the tooltip's single `low – high` range row and its focus/filter wiring, but
 draws nothing. The up body outlines itself through
-[`shapeStyle`](/reference/series#series.shapeStyle) — a stroke color and
+[`shapeStyle`](/reference/series#series.shapeStyle) (a stroke color and
 width against `fillOpacity: 0`, pinned to 0 in the focused and defocused
-states too so hovering thickens the outline rather than filling it — and its
+states too so hovering thickens the outline rather than filling it), and its
 legend and tooltip icons pick up the stroke color automatically. `colors`,
 `seriesTitles` and the width options apply as in filled mode.
 
@@ -118,5 +118,5 @@ and 0.05; `heightFraction` must be above 0 and `gapFraction` at least 0, both
 below 1, and they must sum to less than 1, or the call throws), relabel the
 tooltip rows with `valueLabel` (default "Volume"), or set `visible: true` on
 the volume axis fragment to show its scale. The volume bars follow their
-direction series — toggling or focusing Up takes its volume bars along — and
+direction series (toggling or focusing Up takes its volume bars along) and
 stay out of the legend, with one volume row per day in the tooltip.

@@ -2,7 +2,7 @@
 
 Series stack when they share a stack id from
 [`seriesStacks`](/reference/seriesStacks). With exactly one stack
-configured, every series joins it automatically — declaring the stack is the
+configured, every series joins it automatically: declaring the stack is the
 only wiring needed.
 
 <script setup>
@@ -21,7 +21,7 @@ shows gaps mid-transition (see
 ## Variations
 
 - Opt a series out of the stack with
-  [`stack: null`](/reference/series#series.stack) — handy for
+  [`stack: null`](/reference/series#series.stack), which is handy for
   overlaying a line on stacked bars.
 - A stack belongs to one value axis
   ([`seriesStacks[].axis`](/reference/seriesStacks#seriesStacks.axis),
@@ -33,9 +33,10 @@ shows gaps mid-transition (see
   be ungrouped), otherwise its members would land in different sub-slots.
 - Cap only the outer end of the whole stack with
   [`outerCap.type`](/reference/seriesStacks#seriesStacks.outerCap.type)
-  — see the [bar caps recipe](/recipes/bar-caps#capping-a-stack).
+  (see the [bar caps recipe](/recipes/bar-caps#capping-a-stack)).
 - Side-by-side (grouped) bars instead of stacked: declare a
   [`seriesGroups`](/reference/seriesGroups) entry rather than a
-  stack — series default into a sole group the same way.
-- Series with negative values stack downward from the same zero base —
-  see [positive and negative values](/recipes/positive-negative#stacking-mixed-signs).
+  stack: series default into a sole group the same way.
+- Series with negative values stack downward from the same zero base
+  (see
+  [positive and negative values](/recipes/positive-negative#stacking-mixed-signs)).

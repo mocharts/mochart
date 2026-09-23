@@ -17,9 +17,9 @@ import * as waterfall from '../examples/waterfall'
 - Each item is `{ label, value }` for a delta step, or `{ label, total: true }`
   for a total bar showing the running total so far (give a total a `value` to
   reset the running total, e.g. an audited closing balance). Labels must be
-  unique — they become the category values.
+  unique, because they become the category values.
 - The helper returns `{ steps, data, categoryAxis, series, valueAxes }`. The
-  floating bars are three ordinary `bar` series — increase, decrease, total —
+  floating bars are three ordinary `bar` series (increase, decrease, total),
   all spanning from the shared `start` property via
   [`rangeProperty`](/reference/series#series.rangeProperty). Every row
   carries a value for exactly one of them, and
@@ -36,10 +36,10 @@ import * as waterfall from '../examples/waterfall'
   series with `seriesTitles`.
 - `base` sets the value the running total starts from and total bars span
   from (default 0). It comes back in `valueAxes` as the axis
-  [`base`](/reference/valueAxes#valueAxes.base) — spread that fragment and
+  [`base`](/reference/valueAxes#valueAxes.base): spread that fragment and
   the axis agrees with the bars, whatever the base is.
 - Each row also carries `delta`, `cumulative` and `direction`, and the
-  computed steps come back under `steps` — or call
+  computed steps come back under `steps`, or call
   `computeWaterfallSteps(items, base)` alone for the math without the chart
   fragments.
 - Each bar spans from the running total before the step to the total after
