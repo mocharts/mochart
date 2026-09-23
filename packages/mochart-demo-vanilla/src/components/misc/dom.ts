@@ -1,7 +1,7 @@
 // Tiny DOM helpers shared by every component in this demo. This package is
 // the no-framework peer of the framework galleries, so components are plain
-// factory functions returning DOM elements plus targeted update methods —
-// there is deliberately no vdom, reactivity, or template layer here.
+// factory functions returning DOM elements plus targeted update methods.
+// There is deliberately no vdom, reactivity, or template layer here.
 
 import { demoText, getDemoTabPanelAttrs } from '@mochart/demo-common';
 import type { DemoTabName } from '@mochart/demo-common';
@@ -55,7 +55,7 @@ export function el<K extends keyof HTMLElementTagNameMap>(
  * Two things, because the demo shell hides a pane by MOVING it rather than by
  * taking it out of the layout. `.mochart-demo-tab-container` stacks every pane
  * with `margin-left: -100%` and orders the `.active` one last, so an inactive
- * pane is still rendered, still laid out, and still focusable — one screen's
+ * pane is still rendered, still laid out, and still focusable, one screen's
  * width to the left. Tabbing out of the top bar used to walk straight into the
  * Config pane's textarea and buttons while the Chart pane was on screen.
  *
@@ -66,7 +66,7 @@ export function el<K extends keyof HTMLElementTagNameMap>(
  *
  * It also matters more since the phone fold: each strip now carries its own `…`
  * trigger, so an offscreen pane contributed a focusable button whose measured
- * rect is a full viewport-width to the left — opening it positioned a panel off
+ * rect is a full viewport-width to the left, so opening it positioned a panel off
  * the screen entirely.
  *
  * Do NOT add `aria-hidden` alongside it: `inert` already implies it, and the
@@ -84,7 +84,7 @@ export function setActiveClass(element: HTMLElement, active: boolean): void {
  * A tab pane, with its active/inert state applied from the start.
  *
  * Every pane used to build its own `class="… active"` string, which set the
- * class but never the `inert` attribute that has to travel with it — the two
+ * class but never the `inert` attribute that has to travel with it, so the two
  * would then only agree once something called `setActiveClass`. Going through
  * one constructor keeps them inseparable.
  */
@@ -113,7 +113,7 @@ export function tabContainer(
  * Run a DOM edit, then hand focus back if the edit dropped it on the floor.
  *
  * `append` and `replaceChildren` MOVE nodes, and a move is a detach followed by
- * an insert — so if the focused element is anywhere in what moved, the browser
+ * an insert, so if the focused element is anywhere in what moved, the browser
  * resets focus to `<body>` on the way past and never puts it back, even though
  * the element is still there a microsecond later.
  *
@@ -121,13 +121,13 @@ export function tabContainer(
  * by moving controls between a strip and a menu panel, and pressing one of those
  * controls can be exactly what triggers the next move. Pressing Edit Series from
  * inside the chart panel re-homes the whole menu onto the series strip, taking
- * the button that was just pressed with it — and losing focus there also defeats
+ * the button that was just pressed with it, and losing focus there also defeats
  * the menu controller's own restoration, which only fires while the panel still
  * holds focus, so the press ended with focus at the top of the document.
  *
  * Only restores when the edit left focus nowhere: an edit that deliberately
  * moved focus somewhere else must be allowed to keep it. And only to an element
- * that is still in the document — a control that genuinely went away should not
+ * that is still in the document: a control that genuinely went away should not
  * drag focus after it.
  */
 export function withPreservedFocus(mutate: () => void): void {
@@ -143,7 +143,7 @@ export function withPreservedFocus(mutate: () => void): void {
  * `replaceChildren` guarded by identity.
  *
  * The phone fold's placeControls implementations run from their component's
- * `sync()`, which runs on every keystroke — and an unguarded `replaceChildren`
+ * `sync()`, which runs on every keystroke, and an unguarded `replaceChildren`
  * with an identical list is not a no-op: it detaches and re-inserts every
  * node, which blurs any focused descendant (several folded controls live in an
  * overflow panel) and forces a layout. The lists involved are 1-8 nodes, so
@@ -167,7 +167,7 @@ export function setChildren(parent: HTMLElement, children: readonly Node[]): voi
 }
 
 // ---------------------------------------------------------------------------
-// Icon — Font Awesome 6 solid icon (css classes only); relies on the
+// Icon: Font Awesome 6 solid icon (css classes only); relies on the
 // `@fortawesome/fontawesome-free` css being imported.
 // ---------------------------------------------------------------------------
 
@@ -192,7 +192,7 @@ export function icon(name: string, options: IconOptions = {}): HTMLSpanElement {
 }
 
 // ---------------------------------------------------------------------------
-// ButtonWithTooltip — the native title attribute covers the hint, `label`
+// ButtonWithTooltip: the native title attribute covers the hint, `label`
 // renders visible text beside the icon, `pressed` marks a toggle button
 // (aria-pressed + active styling).
 // ---------------------------------------------------------------------------
@@ -205,7 +205,7 @@ export interface ButtonOptions {
   color?: string;
   label?: string;
   /**
-   * Text shown ONLY when the button is hosted inside a menu — the phone fold
+   * Text shown ONLY when the button is hosted inside a menu. The phone fold
    * reparents icon-only transport buttons (play/stop, prev/next) into an
    * overflow panel, where a column of bare glyphs has nothing to read.
    *
@@ -255,7 +255,7 @@ export function buttonWithTooltip(options: ButtonOptions): ButtonHandle {
 
   // Equivalent content bails out (compare setChildren): sync passes call this
   // unconditionally with freshly minted icons, and replacing equal children
-  // detaches the pressed node mid-press — the browser then never fires `click`.
+  // detaches the pressed node mid-press, and the browser then never fires `click`.
   function contentMatches(desired: readonly (Node | string)[]): boolean {
     const current = button.childNodes;
     if (current.length !== desired.length) {
@@ -327,7 +327,7 @@ export function buttonWithTooltip(options: ButtonOptions): ButtonHandle {
 }
 
 // ---------------------------------------------------------------------------
-// ErrorTab — error-boundary equivalent of the framework demos' ErrorTab. The
+// ErrorTab: error-boundary equivalent of the framework demos' ErrorTab. The
 // child is created (and updated) inside a try/catch; on a throw, the pane is
 // replaced with the same error alert the other demos render.
 // ---------------------------------------------------------------------------
@@ -388,7 +388,7 @@ export function errorTab(create: () => HTMLElement, active: boolean): ErrorTabHa
 }
 
 // ---------------------------------------------------------------------------
-// Size observation — the vanilla stand-in for the framework demos' measured
+// Size observation: the vanilla stand-in for the framework demos' measured
 // containers (bind:clientWidth / ResizeController).
 // ---------------------------------------------------------------------------
 

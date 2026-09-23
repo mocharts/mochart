@@ -9,7 +9,7 @@ import { el, icon } from './dom';
 // export actions so this component stays agnostic about single vs. tiled charts.
 //
 // Open/close, the fixed-position arithmetic, dismissal, focus and the
-// disclosure ARIA all live in demo-common's `createMenuController` — including
+// disclosure ARIA all live in demo-common's `createMenuController`, including
 // the reason any of it is hand-rolled (the controls strips clip an
 // absolutely-positioned dropdown, and the chart's interaction rect eats clicks
 // through anything stacked below it). What stays here is what the controller
@@ -27,7 +27,7 @@ export interface ExportShareMenuHandle {
   setDisabled(disabled: boolean): void;
   /**
    * Dismiss without waiting for a press. Needed because the pane a menu hangs
-   * off can be taken off screen without anything being pressed — switching tabs
+   * off can be taken off screen without anything being pressed: switching tabs
    * only marks the old pane `inert`, and an open panel is `position: fixed`, so
    * it would go on floating over the pane that replaced it.
    */
@@ -129,7 +129,7 @@ export function exportShareMenu(props: ExportShareMenuProps): ExportShareMenuHan
     setDisabled(disabled: boolean) {
       trigger.disabled = disabled;
       // The controller knows nothing about `disabled`. A disabled button fires
-      // no `click`, so it cannot be opened — but a menu that is already open
+      // no `click`, so it cannot be opened, but a menu that is already open
       // when its trigger is disabled would otherwise stay open with no way back
       // to it.
       if (disabled) {

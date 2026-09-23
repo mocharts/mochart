@@ -2,8 +2,8 @@
 // to the gallery, the view's tab strip, the "about this demo" popover, the
 // Single/Multi/Random mode switcher and the theme toggle.
 //
-// It was hand-written six times before this, and — the reason a builder is
-// worth having rather than a copied block — the six copies were not the same
+// It was hand-written six times before this, and (the reason a builder is
+// worth having rather than a copied block) the six copies were not the same
 // markup. Single/Multi/Random put the mode switcher and the theme toggle in a
 // second `.mochart-demo-nav-group`; Transition/Rotation/Sparkline have no
 // switcher, no notes, sometimes no tabs, and hang the theme toggle straight off
@@ -17,8 +17,8 @@
 // The phone fold
 // --------------
 // Below the phone breakpoint a bar with tabs, notes or a mode switcher keeps
-// exactly one thing directly tappable — the tab strip, the only control here
-// whose destination is the content under it — and MOVES everything else into a
+// exactly one thing directly tappable (the tab strip, the only control here
+// whose destination is the content under it) and MOVES everything else into a
 // single `…` menu at the far end. A bar with none of those (rotation,
 // sparkline) never folds: see `canFold` below. Moves,
 // not copies: the very elements the bar built are reparented into the panel and
@@ -81,7 +81,7 @@ export function topBar(props: TopBarProps): TopBarHandle {
 
   const navItems = present([siteRoot, backButton, tabsEl, notesEl]);
   // What is left in the strip once the fold has run. The notes element stays put
-  // rather than being detached — `setFolded` hides it, and a hidden flex item
+  // rather than being detached: `setFolded` hides it, and a hidden flex item
   // draws neither a box nor a gap.
   const foldedNavItems = present([tabsEl, notesEl]);
   const navGroup = el('div', { className: 'mochart-demo-nav-group' }, navItems);
@@ -89,7 +89,7 @@ export function topBar(props: TopBarProps): TopBarHandle {
   // The trailing slot, and the one place the two shapes genuinely differ. With a
   // mode switcher it is a second nav group holding the switcher and the toggle;
   // without one the toggle is a direct child of the row, which is what the three
-  // standalone pages have always rendered — an intermediate group of one would
+  // standalone pages have always rendered. An intermediate group of one would
   // add its own `gap` and move their toggle.
   const trailItems: Node[] = modes === null ? [toggle.el] : [modes.el, toggle.el];
   const trailGroup = modes === null
@@ -99,8 +99,8 @@ export function topBar(props: TopBarProps): TopBarHandle {
 
   // Heading over the mode rows: reparented into the menu, "Single / Random"
   // reads as two more verbs in an undifferentiated list (the strip's own
-  // `Mode:` label is display:none'd at this width). Built once — like the
-  // controller's divider cache — so setItems' identity bail-out holds.
+  // `Mode:` label is display:none'd at this width). Built once (like the
+  // controller's divider cache) so setItems' identity bail-out holds.
   const modeSectionLabel = el('div', {
     className: 'demo-menu-section-label',
     text: demoText.modeSwitcher.menuSectionLabel
@@ -122,7 +122,7 @@ export function topBar(props: TopBarProps): TopBarHandle {
    * is, then where else to see it, then how it looks, then the two ways out.
    *
    * Each optional section carries its own trailing divider rather than the list
-   * putting dividers between fixed slots — `setItems` drops nulls but keeps
+   * putting dividers between fixed slots, because `setItems` drops nulls but keeps
    * dividers, so a demo without notes would otherwise open its menu with a rule
    * above the first row.
    */
@@ -142,12 +142,12 @@ export function topBar(props: TopBarProps): TopBarHandle {
 
   // Whether this bar folds at all. A bar folds when it has something the fold
   // exists to protect: notes or a mode switcher (the menu-worthy features), or
-  // a tab strip (whose labels are what actually overflow a 320px row —
+  // a tab strip (whose labels are what actually overflow a 320px row, as
   // transition's `Chart | Transition Config` plus three icon buttons wraps the
   // bar to two rows at 320x568, measured at ~290px of ~274). Rotation and
   // sparkline have none of the three; their bar is just the back link and the
   // theme toggle, which fits at every width, so folding them produced the
-  // degenerate case this gate removes — a row whose only content was a `…`
+  // degenerate case this gate removes: a row whose only content was a `…`
   // holding two rows, saving zero height.
   const canFold = props.notes !== undefined || props.modes !== undefined || props.tabs !== undefined;
   let isPhone = isPhoneViewport();
@@ -195,8 +195,8 @@ export function topBar(props: TopBarProps): TopBarHandle {
     setDemo(title: string, nextNotes?: string) {
       if (notes !== null) {
         notes.setDemo(title, nextNotes);
-        // A demo with no notes offers no About row, so the menu's contents — and
-        // with them which divider sits where — depend on which demo is showing.
+        // A demo with no notes offers no About row, so the menu's contents (and
+        // with them which divider sits where) depend on which demo is showing.
         placeControls();
       }
     },

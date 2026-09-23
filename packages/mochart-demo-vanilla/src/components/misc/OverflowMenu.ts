@@ -15,7 +15,7 @@ import { el, icon, withPreservedFocus } from './dom';
 // second accessible name for a screen reader to read out twice.
 //
 // Open/close, the fixed-position arithmetic, dismissal, focus and the
-// disclosure ARIA all come from demo-common's `createMenuController` — the same
+// disclosure ARIA all come from demo-common's `createMenuController`, the same
 // machinery the export/share dropdown uses, and for the same reasons (the
 // control strips clip an absolutely-positioned panel, and the chart's
 // interaction rect swallows clicks through anything stacked below it).
@@ -27,14 +27,14 @@ import { el, icon, withPreservedFocus } from './dom';
 // Callers that fold LOOSE buttons (rather than one of the strip's existing
 // groups) give them a menu-side home: a cached `.demo-btn-group`. A group,
 // because that is the class `.demo-menu-overflow` restyles into a full-width
-// column — a loose button wrapper span dropped straight into the panel
+// column. A loose button wrapper span dropped straight into the panel
 // would lay out inline. Cached, because a wrapper minted per call is never
 // identical to the last one and would defeat `setItems`' bail-out exactly the
 // way a freshly created divider would (see the divider cache below).
 
 /**
  * Placeholder for a rule between two sections of the menu. Resolved to a
- * `.demo-menu-divider` element by `setItems` — a symbol rather than a node so
+ * `.demo-menu-divider` element by `setItems`: a symbol rather than a node so
  * callers can describe the list declaratively without minting elements (see
  * the divider cache below for why minting them would be actively harmful).
  */
@@ -50,8 +50,8 @@ export interface OverflowMenuProps {
    * Element to measure the panel against, when that is not the trigger itself.
    *
    * `align: 'end'` lines the panel's right edge up with the anchor's. If the
-   * trigger is not the last thing in its row — the single-mode strip puts the
-   * export/share trigger after it — measuring from the trigger leaves the panel
+   * trigger is not the last thing in its row (the single-mode strip puts the
+   * export/share trigger after it), measuring from the trigger leaves the panel
    * short of the row's end by exactly the width of whatever follows, and a panel
    * wider than the space that remains hangs off the opposite edge of the screen.
    * Passing the whole row fixes the panel to the edge the eye expects.
@@ -107,7 +107,7 @@ export function overflowMenu(props: OverflowMenuProps): OverflowMenuHandle {
   // every keystroke in the group input, and it bails out when the resolved node
   // list is identical to the one already applied. A freshly-created divider is
   // never identical to the last one, so minting them per call would defeat that
-  // bail-out entirely and re-insert every row of the menu on each keystroke —
+  // bail-out entirely and re-insert every row of the menu on each keystroke,
   // blurring whatever had focus inside it.
   const dividers = new Map<number, HTMLElement>();
 
@@ -151,7 +151,7 @@ export function overflowMenu(props: OverflowMenuProps): OverflowMenuHandle {
     }
     appliedItems = nodes;
     // …and when the list HAS changed, the same detach still drops focus to
-    // <body> — even for a node that is put straight back. Not a corner case:
+    // <body>, even for a node that is put straight back. Not a corner case:
     // pressing Edit Series from inside this panel re-runs the fold with a
     // different list, and the button that was pressed is in both.
     withPreservedFocus(() => panel.replaceChildren(...nodes));
@@ -163,7 +163,7 @@ export function overflowMenu(props: OverflowMenuProps): OverflowMenuHandle {
 
   // Closing on activation, in one delegated listener rather than by wrapping the
   // hosted controls: the panel does not own them and must not touch their own
-  // click handlers. Bubble phase — not capture — so this runs *after* the
+  // click handlers. Bubble phase, not capture, so this runs *after* the
   // target's handler, i.e. the button has already done its work by the time the
   // panel disappears out from under it.
   function onPanelClick(event: MouseEvent): void {
@@ -181,7 +181,7 @@ export function overflowMenu(props: OverflowMenuProps): OverflowMenuHandle {
     setItems,
     setDisabled(disabled: boolean) {
       trigger.disabled = disabled;
-      // A disabled button fires no `click`, so it cannot be opened — but a menu
+      // A disabled button fires no `click`, so it cannot be opened, but a menu
       // already open when its trigger is disabled would be stranded with no way
       // back to it.
       if (disabled) {

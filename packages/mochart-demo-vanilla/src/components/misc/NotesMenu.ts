@@ -12,7 +12,7 @@ import { el, icon } from './dom';
 //
 // Two representations of the same notes, because a phone has room for only one
 // of them. Above the phone breakpoint the ⓘ button sits in the navigation row
-// and opens the popover. Below it the whole row folds into an overflow menu —
+// and opens the popover. Below it the whole row folds into an overflow menu,
 // and the popover CANNOT come along: its panel would be a descendant of an
 // element that menu hides with `display: none`, so it would be invisible while
 // the menu was open and taken away the moment the menu closed. So the fold gets
@@ -33,7 +33,7 @@ export interface NotesMenuHandle {
   /**
    * The phone fold's stand-in for the trigger/panel pair: a `.demo-menu-item`
    * button and the block it discloses, for the navigation row's overflow menu to
-   * host. Deliberately NOT a child of `el` — it stays detached until the fold
+   * host. Deliberately NOT a child of `el`: it stays detached until the fold
    * hands it over, so it can never render in the bar.
    */
   menuItemEl: HTMLElement;
@@ -83,7 +83,7 @@ export function notesMenu(props: NotesMenuProps): NotesMenuHandle {
   const menuTitleEl = el('span', { className: 'demo-menu-notes-title' });
   const menuBodyEl = el('span', { className: 'demo-menu-notes-body' });
   // `.demo-field` is the overflow panel's existing hook for a row that is not a
-  // `.demo-btn` — the only thing that gives such a row the same inset the button
+  // `.demo-btn`, and the only thing that gives such a row the same inset the button
   // rows get from their own padding (see the rule beside it in demo.css). It
   // carries no layout of its own outside a form, so the title and body keep the
   // block flow their own classes give them and their text wraps as prose.
@@ -111,7 +111,7 @@ export function notesMenu(props: NotesMenuProps): NotesMenuHandle {
   ]);
 
   // `.demo-menu-keep-open` on the pair, so the overflow menu's delegated close
-  // handler leaves the panel open when the disclosure is toggled — otherwise the
+  // handler leaves the panel open when the disclosure is toggled. Otherwise the
   // note would be revealed and taken away again in the same tap.
   const menuItemEl = el('div', {
     className: 'mochart-demo-notes-item ' + menuKeepOpenClassName
@@ -141,7 +141,7 @@ export function notesMenu(props: NotesMenuProps): NotesMenuHandle {
     menuTitleEl.textContent = title;
     menuBodyEl.textContent = notes ?? '';
     // Hidden both when there is nothing to say and when the fold is showing the
-    // disclosure instead — two ways into one note would be one too many.
+    // disclosure instead: two ways into one note would be one too many.
     root.hidden = notes === undefined || folded;
   }
 

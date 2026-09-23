@@ -49,7 +49,7 @@ export function chartsTab(props: ChartsTabProps): ChartsTabHandle {
   let sliceIds = mochartDemoConfig.pieMode ? getPieSlices(mochartDemoConfig.mochartConfig).map(slice => slice.id) : [];
   const stepCycle = () => mochartDemoConfig.pieMode ? getPieStepCycle(sliceIds) : dataCount;
   // A shared step seeks the playback position; otherwise start on the full set
-  // (pie mode starts at step 0 — the grid's staggered initial view).
+  // (pie mode starts at step 0, the grid's staggered initial view).
   let currentDataCount = sharedMulti && stepCycle() > 0
     ? ((Math.round(sharedMulti.step) % stepCycle()) + stepCycle()) % stepCycle()
     : (mochartDemoConfig.pieMode ? 0 : dataCount);

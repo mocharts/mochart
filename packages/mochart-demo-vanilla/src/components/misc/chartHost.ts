@@ -103,7 +103,7 @@ export function mountChart(
   return mountHost(createChart as CreateChartFn, props, containerOptions);
 }
 
-/** Mount a chart from a raw config plus a plain dataset — an array of objects or an object of arrays. */
+/** Mount a chart from a raw config plus a plain dataset (an array of objects or an object of arrays). */
 export function mountDefaultChart(
   props: Record<string, any>,
   containerOptions: { className?: string; style?: string } = {}

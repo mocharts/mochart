@@ -166,8 +166,8 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
   // The section list the row was last built from, and whether it produced any
   // links at all.
   //
-  // `syncDocsLinks` runs on every keystroke but its input — the config's own
-  // section ids — only changes when the config does, and rebuilding the row
+  // `syncDocsLinks` runs on every keystroke but its input (the config's own
+  // section ids) only changes when the config does, and rebuilding the row
   // regardless is not free once the row is hosted by the overflow panel: it
   // would detach and re-insert a link the user may be about to follow. It also
   // keeps the row itself one stable element, which is what lets `setItems`'
@@ -213,7 +213,7 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
     getAnchor: () => footer
   });
 
-  // Menu-side home for the folded footer buttons — a cached `.demo-btn-group`;
+  // Menu-side home for the folded footer buttons: a cached `.demo-btn-group`;
   // OverflowMenu.ts's header says why that shape.
   const menuActionGroup = el('div', { className: 'demo-btn-group' });
   const menuActionButtons = [resetButton.el, defaultsButton.el, invertedButton.el, slowButton.el, formatButton.el];
@@ -224,7 +224,7 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
     resetButton.el, defaultsButton.el, invertedButton.el, slowButton.el, formatButton.el, applyButton.el, footerError
   ];
   // Apply stays beside the editor it applies, and the error span carries
-  // `role="alert"` — a message that has to be read cannot live behind a tap.
+  // `role="alert"`, because a message that has to be read cannot live behind a tap.
   const foldedToolbarItems = [applyButton.el, overflowMenuHandle.el, footerError];
   const toolbar = el('div', { className: 'demo-toolbar' }, toolbarItems);
   const footerItems = [toolbar, docsLinks];
@@ -237,7 +237,7 @@ export function configTab(props: ConfigTabProps): ConfigTabHandle {
 
   /**
    * Where every footer control lives right now. Reparenting, never
-   * duplication — see OverflowMenu.ts's header.
+   * duplication (see OverflowMenu.ts's header).
    */
   function placeControls(): void {
     // Do this first: emptying the panel detaches whatever it was hosting, so the

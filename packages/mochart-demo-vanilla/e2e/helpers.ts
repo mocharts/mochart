@@ -24,15 +24,15 @@ export function chartClass(entry: string): string {
   return '.' + entry.split(' ')[0];
 }
 
-/** The demo this suite drives — plain bars with several series, no pie mode or generator step. */
+/** The demo this suite drives: plain bars with several series, no pie mode or generator step. */
 export const demoId = 'stacked';
 
-/** Element carrying an `aria-label` from demoText — the demos' control selector. */
+/** Element carrying an `aria-label` from demoText, the demos' control selector. */
 export function byAria(scope: Page | Locator, ariaLabel: string): Locator {
   return scope.locator('[aria-label=' + JSON.stringify(ariaLabel) + ']');
 }
 
-/** Element carrying a `title` from demoText — a role query would skip controls hidden in a closed overflow panel. */
+/** Element carrying a `title` from demoText, because a role query would skip controls hidden in a closed overflow panel. */
 export function byTitle(scope: Page | Locator, title: string): Locator {
   return scope.locator('[title=' + JSON.stringify(title) + ']');
 }
@@ -47,7 +47,7 @@ export function tabPanel(page: Page, name: DemoTabName): Locator {
   return page.locator('#' + demoTabPanelId(name));
 }
 
-/** Press `control` once and assert `attribute` reads `value` — no retry, so a lost press fails the gate. */
+/** Press `control` once and assert `attribute` reads `value`, with no retry, so a lost press fails the gate. */
 export async function press(control: Locator, attribute: string, value: string): Promise<void> {
   await control.click();
   await expect(control).toHaveAttribute(attribute, value);
@@ -70,7 +70,7 @@ export async function followShareLink(page: Page, link: string): Promise<void> {
   await page.goto(link);
 }
 
-/** Grant clipboard permissions so the test can read back what the copier wrote — Chromium refuses `readText` without `clipboard-read`. */
+/** Grant clipboard permissions so the test can read back what the copier wrote, since Chromium refuses `readText` without `clipboard-read`. */
 export async function grantClipboard(page: Page): Promise<void> {
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write'], {
     origin: new URL(page.url()).origin

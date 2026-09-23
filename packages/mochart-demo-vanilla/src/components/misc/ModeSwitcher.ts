@@ -99,7 +99,7 @@ export interface ThemeToggleHandle {
  * The subscription is handed back rather than dropped on the floor: `theme` is
  * an app-lifetime singleton, so a toggle that never unsubscribes keeps its
  * button (and the whole view it was mounted in) alive for as long as the tab
- * lives — one leaked view per navigation between demo modes.
+ * lives: one leaked view per navigation between demo modes.
  */
 export function themeToggle(): ThemeToggleHandle {
   const button = el('button', {
@@ -108,8 +108,8 @@ export function themeToggle(): ThemeToggleHandle {
   });
   // The button is icon-only in every bar it appears in, so folded into the
   // navigation row's overflow menu it would be the one row with nothing to read.
-  // `.btn-menu-label` is `display: none` everywhere except inside a `.demo-menu`
-  // — and a `display: none` child is not a flex item, so it costs the bars
+  // `.btn-menu-label` is `display: none` everywhere except inside a `.demo-menu`,
+  // and a `display: none` child is not a flex item, so it costs the bars
   // neither a box nor one of `.demo-btn`'s gaps. It names the theme the button
   // switches TO, exactly as the tooltip beside it does.
   const menuLabel = el('span', { className: 'btn-menu-label' });

@@ -140,8 +140,8 @@ export function randomChartTab(props: RandomChartTabProps): RandomChartTabHandle
   const transportButtons = [backButton.el, nextButton.el, playButton.el, stopButton.el];
   const foldedTransportButtons = [backButton.el, nextButton.el];
   const transportGroup = el('div', { className: 'demo-btn-group' }, transportButtons);
-  // `.demo-menu-keep-open` so a press inside the field — the number input's own
-  // spinners in particular — cannot dismiss the panel it is hosted in. The class
+  // `.demo-menu-keep-open` so a press inside the field (the number input's own
+  // spinners in particular) cannot dismiss the panel it is hosted in. The class
   // paints nothing, so it is set once here rather than toggled by the fold.
   const rateField = el('div', { className: 'demo-field ' + menuKeepOpenClassName }, [
     el('label', { className: 'demo-label', attrs: { for: 'random-rate' }, text: demoText.randomChartTab.intervalLabel }),
@@ -151,7 +151,7 @@ export function randomChartTab(props: RandomChartTabProps): RandomChartTabHandle
   const transportToolbar = el('div', { className: 'demo-toolbar' }, transportToolbarItems);
 
   const reuseGroup = el('div', { className: 'demo-btn-group' }, [reuseButton.el]);
-  // Menu-side home for Play and Stop — a cached `.demo-btn-group`;
+  // Menu-side home for Play and Stop: a cached `.demo-btn-group`;
   // OverflowMenu.ts's header says why that shape.
   const menuTransportGroup = el('div', { className: 'demo-btn-group' });
   const overflowMenuHandle = overflowMenu({
@@ -166,8 +166,8 @@ export function randomChartTab(props: RandomChartTabProps): RandomChartTabHandle
     // because `.chart-controls-menu` carries `margin-left: auto` and so *is* the
     // row's end; nothing pushes this strip's menus right, and its controls are
     // left-packed inside a shrink-to-fit form. Measured at 390x844 the trailing
-    // group ends at x=281 of a 369px row, which put a 320px panel at left=-39 —
-    // the "Back" and "Interval (ms):" labels were off the screen. The strip is
+    // group ends at x=281 of a 369px row, which put a 320px panel at left=-39,
+    // so the "Back" and "Interval (ms):" labels were off the screen. The strip is
     // full width, so its right edge is the row's end: left=49 (and left=11 at
     // 320x568, matching the two editor footers).
     getAnchor: () => controls
@@ -186,7 +186,7 @@ export function randomChartTab(props: RandomChartTabProps): RandomChartTabHandle
 
   /**
    * Where every control of the strip lives right now. Reparenting, never
-   * duplication — see OverflowMenu.ts's header.
+   * duplication (see OverflowMenu.ts's header).
    */
   function placeControls(): void {
     // Do this first: emptying the panel detaches whatever it was hosting, so the

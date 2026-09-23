@@ -33,8 +33,8 @@ const { demoObjectMap } = demoData;
 // /<mode>/<demoId>. The legacy scheme used a 'demos' pseudo-demo-id for the
 // list ("/single/demos"), so those URLs redirect to the gallery.
 //
-// A phone has no Multi mode (the switcher leaves it out), so a /multi URL —
-// shared link, bookmark, rotation — redirects to the fallback mode rather than
+// A phone has no Multi mode (the switcher leaves it out), so a /multi URL
+// (shared link, bookmark, rotation) redirects to the fallback mode rather than
 // rendering a grid the viewport cannot show.
 function resolveRoute(path: string): Route {
   const segments = path.split('/').filter(segment => segment.length > 0);

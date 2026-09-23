@@ -122,7 +122,7 @@ export function dataTab(props: DataTabProps): DataTabHandle {
   const footerError = el('span', { className: 'mochart-demo-footer-error', attrs: { role: 'alert' } });
   footerError.hidden = true;
 
-  // Same fold as the config footer — same trigger copy (the data editor's own
+  // Same fold as the config footer: same trigger copy (the data editor's own
   // controls, not chart controls), same upward placement, same full-width
   // footer anchor. The reasons live on ConfigTab's overflowMenu call.
   const overflowMenuHandle = overflowMenu({
@@ -131,7 +131,7 @@ export function dataTab(props: DataTabProps): DataTabHandle {
     getAnchor: () => footer
   });
 
-  // Menu-side home for the folded footer buttons — a cached `.demo-btn-group`;
+  // Menu-side home for the folded footer buttons: a cached `.demo-btn-group`;
   // OverflowMenu.ts's header says why that shape.
   const menuActionGroup = el('div', { className: 'demo-btn-group' });
   const menuActionButtons = [resetButton.el, unusedButton.el];
@@ -140,7 +140,7 @@ export function dataTab(props: DataTabProps): DataTabHandle {
   // the desktop layout has exactly one definition.
   const toolbarItems = [resetButton.el, unusedButton.el, applyButton.el, footerError];
   // Apply stays beside the editor it applies, and the error span carries
-  // `role="alert"` — a message that has to be read cannot live behind a tap.
+  // `role="alert"`, because a message that has to be read cannot live behind a tap.
   const foldedToolbarItems = [applyButton.el, overflowMenuHandle.el, footerError];
   const toolbar = el('div', { className: 'demo-toolbar' }, toolbarItems);
   const footer = el('div', { className: 'mochart-demo-tab-footer' }, [toolbar]);
@@ -152,7 +152,7 @@ export function dataTab(props: DataTabProps): DataTabHandle {
 
   /**
    * Where every footer control lives right now. Reparenting, never
-   * duplication — see OverflowMenu.ts's header.
+   * duplication (see OverflowMenu.ts's header).
    */
   function placeControls(): void {
     // Do this first: emptying the panel detaches whatever it was hosting, so the

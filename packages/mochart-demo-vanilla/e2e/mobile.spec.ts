@@ -49,8 +49,8 @@ async function openChartMenu(page: Page): Promise<void> {
  *
  * The tooltip is the state assertion: the button keeps one accessible name and
  * flips its `title` to name the mode it would switch to next. Without it a lost
- * press would leave the counts below passing against the strip they started on —
- * every panel stays mounted, so the DOM alone cannot say which one is showing.
+ * press would leave the counts below passing against the strip they started on.
+ * Every panel stays mounted, so the DOM alone cannot say which one is showing.
  */
 async function toggleEditMode(page: Page, toSeries: boolean): Promise<void> {
   const { editMode } = editableChart;
@@ -85,7 +85,7 @@ test('every folded chart control appears exactly once', { tag: phoneTag }, async
   await expectExactlyOnce(panel, categoryControls);
 
   // Switching edit mode swaps the whole hosted list, which detaches the category
-  // rows and re-homes them on their own strip — the move most likely to leave a
+  // rows and re-homes them on their own strip, the move most likely to leave a
   // copy behind. The button that does it is itself one of the folded controls.
   await toggleEditMode(page, true);
   await expectExactlyOnce(panel, seriesControls);

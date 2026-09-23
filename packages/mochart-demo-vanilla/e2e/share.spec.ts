@@ -65,7 +65,7 @@ test.describe('share links', () => {
     await openDemo(page, 'single');
     const link = await copyShareLink(page, tabPanel(page, 'chart'));
 
-    // Same payload, hand-moved onto the multi route — which is what the mode tag
+    // Same payload, hand-moved onto the multi route, which is what the mode tag
     // inside it exists to catch. The multi view must fall back to its own
     // defaults (2x2) rather than reading someone else's state, and must not
     // throw doing it (the fixture fails the test on any page error).

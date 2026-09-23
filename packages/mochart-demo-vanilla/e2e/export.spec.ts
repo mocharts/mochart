@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { byAria, charts, chartClass, demoText, expect, openDemo, openExportShareMenu, test } from './helpers';
 import { mochartCssClasses } from '@mochart/core';
 
-// Multi mode's export stitches the whole grid into ONE file — a different code
+// Multi mode's export stitches the whole grid into ONE file, a different code
 // path from the single-chart export demo-basic covers, in both formats (svg
 // stitches serialized documents side by side, png composites onto one canvas).
 

@@ -58,7 +58,7 @@ export interface EditableChartHandle {
   /**
    * Dismiss both of this strip's popovers. The tab that owns this chart calls it
    * on the way out: a pane is deactivated by being marked `inert` and shifted a
-   * viewport-width left, and an open panel is `position: fixed` — inert stops it
+   * viewport-width left, and an open panel is `position: fixed`. Inert stops it
    * being usable but not being *seen*, so it would hang over the pane that
    * replaced it.
    */
@@ -594,7 +594,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
         updateFilteredDataState({}, filteredData, removedData, false);
       }
       catch {
-        // invalid JSON in the series input — ignore, matching the other demos
+        // invalid JSON in the series input: ignore it, matching the other demos
       }
     }
   }
@@ -691,7 +691,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   // The phone fold's trigger. It deliberately lives inside `menuSpan` rather
   // than beside the panels: `.editable-mochart-chart` and
   // `.editable-chart-container` are `display: contents`, so their children ARE
-  // the grid items of `.editable-charts` — a third child of the container would
+  // the grid items of `.editable-charts`, so a third child of the container would
   // start a second implicit column and knock the two plots out of row alignment
   // when two charts are shown (fixed once already in 6ad187d). Inside
   // `menuSpan` it also inherits the re-parenting sync() already does to keep
@@ -701,7 +701,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     placement: controlsMenuPlacement,
     // Measured against the whole trailing group, not the trigger: the
     // export/share trigger sits to the ⋯'s right, so aligning to the ⋯ alone
-    // would stop the panel ~50px short of the row's end — and on a 390px phone
+    // would stop the panel ~50px short of the row's end, and on a 390px phone
     // a 320px panel pushed that far left hangs off the opposite edge.
     getAnchor: () => menuSpan
   });
@@ -736,7 +736,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     content: [icon('minus', { size: 'lg', fixedWidth: true })]
   });
   // The three transport buttons are icon-only at every width by design, so they
-  // carry `menuLabel` for the fold — without it they read as a column of bare
+  // carry `menuLabel` for the fold. Without it they read as a column of bare
   // glyphs once they are inside the overflow panel.
   const playAddButton = buttonWithTooltip({
     ariaLabel: demoText.editableChart.playAddCategories.aria,
@@ -780,7 +780,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   const categoryButtonGroup = el('div', { className: 'demo-btn-group' }, categoryButtons);
   const categoryToolbar = el('div', { className: 'demo-toolbar' }, [categoryButtonGroup]);
 
-  // Menu-side homes for the loose buttons the fold takes out of the strip —
+  // Menu-side homes for the loose buttons the fold takes out of the strip:
   // cached `.demo-btn-group`s; OverflowMenu.ts's header says why that shape.
   const menuOrderGroup = el('div', { className: 'demo-btn-group' });
   const menuSequenceGroup = el('div', { className: 'demo-btn-group' });
@@ -837,9 +837,9 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   // never shifts the controls to the right of the label.
   //
   // The `Category: ` / `Series: ` prefixes get a span of their own so the phone
-  // tier can take them out of the layout — see `.demo-label-prefix` in the
+  // tier can take them out of the layout (see `.demo-label-prefix` in the
   // stylesheet's phone block, and the width arithmetic beside the margin
-  // toggle in placeControls. They are CLIPPED there, not removed: the readout
+  // toggle in placeControls). They are CLIPPED there, not removed: the readout
   // has no other accessible name.
   //
   // The compact spans are the phone-tier stand-ins: a bare `-1` between two
@@ -897,25 +897,25 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
       ])
     ])
   ]);
-  // Menu-side home for Reset (a cached `.demo-btn-group` — see OverflowMenu.ts).
+  // Menu-side home for Reset (a cached `.demo-btn-group`, explained in OverflowMenu.ts).
   const menuSeriesActionGroup = el('div', { className: 'demo-btn-group' });
   const seriesCommonToolbar = el('div', { className: 'demo-toolbar' });
   // Emptied by the fold (commonControls move into the menu), and an empty flex
-  // item still spends one of the form row's 10px column gaps — which the
+  // item still spends one of the form row's 10px column gaps, which the
   // tightest strip of the three cannot spare. placeControls hides it for the
   // duration of the fold.
   const seriesCommonField = el('div', { className: 'demo-field' }, [seriesCommonToolbar]);
   seriesForm.prepend(seriesCommonField);
 
-  // Named so the fold can move Apply in beside the input it applies — see the
-  // series branch of placeControls.
+  // Named so the fold can move Apply in beside the input it applies (see the
+  // series branch of placeControls).
   const seriesInputForm = el('form', {}, [seriesInput]);
   const seriesPanel = el('div', { className: 'chart-controls-container' }, [
     el('div', { className: 'chart-controls-buttons' }, [seriesForm]),
     el('span', { className: 'chart-controls-input' }, [seriesInputForm])
   ]);
 
-  // Pie-mode slice panel — replaces both panels when slices are the series:
+  // Pie-mode slice panel. It replaces both panels when slices are the series:
   // click a slice (or step prev/next) to select it, edit its value, or play
   // the filter/restore sequence.
   const previousSliceButton = buttonWithTooltip({
@@ -942,8 +942,8 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     onClick: applySliceChanges,
     content: [icon('check', { size: 'lg', fixedWidth: true })]
   });
-  // Icon-only at every width by design, so — like the category panel's transport
-  // buttons — they carry `menuLabel` for the fold, which renders only inside a
+  // Icon-only at every width by design, so (like the category panel's transport
+  // buttons) they carry `menuLabel` for the fold, which renders only inside a
   // menu and so leaves the desktop strip untouched.
   const playSliceButton = buttonWithTooltip({
     ariaLabel: demoText.editableChart.playSliceSequence.aria,
@@ -983,7 +983,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   // The slice menu's optional tail. Built once, and empty rather than
   // `[divider, null]` when there is no second-chart button: `setItems` drops
   // nulls but keeps dividers, so the unconditional form would rule off the
-  // bottom of the panel with nothing under it — which on a phone (where the
+  // bottom of the panel with nothing under it, which on a phone (where the
   // second chart is never offered) is the usual case, not the corner one.
   const sliceMenuTail = (): MenuItem[] => showChartCountControls ? [menuDivider, chartCountControl] : [];
   const menuCommonControls = (): MenuItem[] => showChartCountControls ? commonControls : [modeControl];
@@ -1011,7 +1011,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   ]);
 
   // -------------------------------------------------------------------------
-  // sync — recompute derived state and patch the DOM
+  // sync: recompute derived state and patch the DOM
   // -------------------------------------------------------------------------
 
   let lastChartProps: {
@@ -1025,14 +1025,14 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
   } | null = null;
 
   /**
-   * Where every shared control lives right now — the single place that moves
+   * Where every shared control lives right now: the single place that moves
    * `commonControls` between the three panels' toolbars, and (on a phone) folds
    * whichever panel is showing into the overflow menu.
    *
-   * Reparenting, never duplication — see OverflowMenu.ts's header.
+   * Reparenting, never duplication (see OverflowMenu.ts's header).
    *
    * Only the visible panel folds. The other two are `display: none` at this
-   * point, so their strips are restored unconditionally — that is also what
+   * point, so their strips are restored unconditionally. That is also what
    * pulls their controls back out of the menu when the active panel changes
    * (switching Edit Categories → Edit Series swaps the whole item list, which
    * detaches the category panel's menu rows; the restore below re-homes them).
@@ -1064,7 +1064,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
       setChildren(menuSequenceGroup, [playAddButton.el, playRemoveButton.el, stopButton.el]);
     }
 
-    // Series panel. The steppers and their readouts stay — they are how a category
+    // Series panel. The steppers and their readouts stay, because they are how a category
     // and a series get picked at all. Apply stays visible too, but moves DOWN,
     // onto the input row beside the JSON it applies: with it gone the stepper
     // row is four buttons and two readouts, which is what lets the panel hold
@@ -1083,7 +1083,7 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     // stepper onto a second row. The phone tier's 6px field gap either side is
     // already separation enough for a two-character readout.
     //
-    // Inline, because the desktop values are inline too — a stylesheet rule
+    // Inline, because the desktop values are inline too. A stylesheet rule
     // could not win against them without `!important`. Written on every sync
     // rather than toggled, so the desktop branch always restores the exact
     // string the elements were built with.
@@ -1154,8 +1154,8 @@ export function editableChart(props: EditableChartProps): EditableChartHandle {
     // its input), so it stays pinned to the far right of the active row.
     //
     // `withPreservedFocus` because on a phone `menuSpan` carries the overflow
-    // panel too, and the press that switches panels is usually made *inside* it
-    // — Edit Series is one of the rows the fold puts there. Moving the span
+    // panel too, and the press that switches panels is usually made *inside* it:
+    // Edit Series is one of the rows the fold puts there. Moving the span
     // detaches the button that was just pressed, which drops focus to <body>
     // and, with it, the menu controller's ability to hand focus back to the
     // trigger when it closes a moment later.

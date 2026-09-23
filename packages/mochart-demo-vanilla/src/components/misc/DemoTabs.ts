@@ -63,7 +63,7 @@ export function demoTabs(props: DemoTabsProps): DemoTabsHandle {
       return;
     }
     // Home/End would scroll the pane, and the arrows are ours once focus is on a
-    // tab — the tabs are the only focusable things in the strip.
+    // tab, since the tabs are the only focusable things in the strip.
     event.preventDefault();
     onSelect(tabs[nextIndex].key);
     buttons[nextIndex].focus();
