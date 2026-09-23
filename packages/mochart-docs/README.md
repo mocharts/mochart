@@ -13,14 +13,13 @@ The site has three legs:
   `npm run gen` produces the three models, and the single dynamic route in
   [reference/](reference/) renders every generated page from them:
   - config sections, from `@mochart/core`'s own descriptions, validators, and
-    defaults: the core generator
-    (`packages/mochart/scripts/generator.ts`) emits
+    defaults: the core generator (`packages/mochart/scripts/generator.ts`) emits
     `packages/mochart/generated/config-reference.json`;
-  - chart props, callbacks, and callback payloads, from the JSDoc on the
-    prop interfaces in `@mochart/core`'s `src/types/chart.ts`, and the
-    enumerated values, from the union types in `src/config/core/constants.ts`
-    and their uses in `src/types/config.ts`: the same generator emits both
-    into `packages/mochart/generated/api-reference.json`;
+  - chart props, callbacks, and callback payloads, from the JSDoc on the prop
+    interfaces in `@mochart/core`'s `src/types/chart.ts`, and the enumerated
+    values, from the union types in `src/config/core/constants.ts` and their
+    uses in `src/types/config.ts`: the same generator emits both into
+    `packages/mochart/generated/api-reference.json`;
   - framework props, from the five binding packages' own prop declarations:
     [scripts/generateBindings.ts](scripts/generateBindings.ts) emits
     `generated/binding-reference.json`.
@@ -28,11 +27,11 @@ The site has three legs:
   Every one of them fails the build on drift; see
   [CONTRIBUTING.md](../../CONTRIBUTING.md#the-props-callbacks-and-framework-props-pipeline)
   for what counts as drift and how to add a prop. The hand-written pages are
-  `reference/index.md` (the overview; its section table reads the config
-  model) and `reference/api.md` (the exported functions and classes).
+  `reference/index.md` (the overview; its section table reads the config model)
+  and `reference/api.md` (the exported functions and classes).
 - **Demos**: the nav links to the demo galleries, which
-  `scripts/build-pages.mjs` nests next to the docs on the deployed site.
-  Under `vitepress dev` those links 404; use the demo dev servers instead.
+  `scripts/build-pages.mjs` nests next to the docs on the deployed site. Under
+  `vitepress dev` those links 404; use the demo dev servers instead.
 
 Charts on guide/recipe pages are live: the
 [LiveChart](.vitepress/theme/LiveChart.vue) theme component mounts
@@ -41,11 +40,11 @@ Every example is validated in CI with the library's own `validateConfig` and
 `getDataErrors`, so a broken example fails the build instead of rendering an
 error state.
 
-`npm test` here regenerates the reference models and then runs three checks
-over them:
+`npm test` here regenerates the reference models and then runs three checks over
+them:
 
-- [scripts/checkExamples.ts](scripts/checkExamples.ts): every example config
-  and dataset validates;
+- [scripts/checkExamples.ts](scripts/checkExamples.ts): every example config and
+  dataset validates;
 - [scripts/checkApiCoverage.ts](scripts/checkApiCoverage.ts): every public
   export of `@mochart/core`, `@mochart/export`, and `@mochart/editor`, every
   `ChartHandle` method, chart prop, and non-JS artifact (stylesheet subpaths,
@@ -72,6 +71,6 @@ npm run lint -w @mochart/docs
 The generated models are gitignored, which is why `dev`, `build`, and `test`
 each run `gen` first; invoking `vitepress` directly needs it run by hand.
 
-The deployed site is assembled by `scripts/build-pages.mjs`, which builds
-this package with the deploy base path and places the showcase and the demo
-galleries at `/showcase/`, `/vanilla/`, `/react/`, etc. next to it.
+The deployed site is assembled by `scripts/build-pages.mjs`, which builds this
+package with the deploy base path and places the showcase and the demo galleries
+at `/showcase/`, `/vanilla/`, `/react/`, etc. next to it.

@@ -1,28 +1,29 @@
 # mochart monorepo
 
-Monorepo for **mochart**, an animated interactive SVG charting library with
-zero framework dependencies, plus its framework wrappers, demo gallery, and
-the **@mochart/movalid** validation library it uses for config validation.
+Monorepo for **mochart**, an animated interactive SVG charting library with zero
+framework dependencies, plus its framework wrappers, demo gallery, and the
+**@mochart/movalid** validation library it uses for config validation.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/mocharts/mochart/main/assets/stacked-dark.gif">
   <img alt="A stacked bar chart with a target line animating through a data update: the value axis expands, the bars grow, a new category joins, one series is filtered out of the stack and returns, then the axes contract back" src="https://raw.githubusercontent.com/mocharts/mochart/main/assets/stacked-light.gif" width="800">
 </picture>
 
-**Documentation, live examples, and the demo gallery: [mochart.org](https://mochart.org)**
+**Documentation, live examples, and the demo gallery:
+[mochart.org](https://mochart.org)**
 
 What sets mochart apart is its
 [staged animation](packages/mochart/README.md#staged-animation) model: updates
 play as axis expansion → value change (including category and series
 transitions) → axis contraction, so only one kind of change is in motion at a
-time, and stacked series animate as a single unit so the stack never shows
-gaps between segments mid-transition.
+time, and stacked series animate as a single unit so the stack never shows gaps
+between segments mid-transition.
 
 Charts are also accessible by default: the keyboard drives the same tooltip,
-legend filtering, and pie-slice interaction as the mouse, assistive tech
-hears roles, labels, and live value announcements, and the reduced-motion
-system preference is honored. All of it is tunable through the `accessibility`
-config section.
+legend filtering, and pie-slice interaction as the mouse, assistive tech hears
+roles, labels, and live value announcements, and the reduced-motion system
+preference is honored. All of it is tunable through the `accessibility` config
+section.
 
 ## Packages
 
@@ -47,22 +48,21 @@ config section.
 
 Each wrapper framework also has a full-featured demo gallery
 (`@mochart/demo-angular`, `@mochart/demo-lit`, `@mochart/demo-react`,
-`@mochart/demo-svelte`, and `@mochart/demo-vue`, all private) with three
-demo modes (single edits one chart's config and data as JSON, multi steps a
-configurable grid of charts through dataset sizes together, and random
-generates whole seeded random datasets) plus transition, rotation, and
-sparkline showcases; `@mochart/demo-vanilla` is the same gallery in plain
-TypeScript. `@mochart/showcase` is a separate mobile-first app that tours the
-library's features chart by chart.
-All of them share the demo configs from `@mochart/demo-data` and the
-framework-agnostic demo logic from `@mochart/demo-common`.
-There are also build-free static HTML examples in
+`@mochart/demo-svelte`, and `@mochart/demo-vue`, all private) with three demo
+modes (single edits one chart's config and data as JSON, multi steps a
+configurable grid of charts through dataset sizes together, and random generates
+whole seeded random datasets) plus transition, rotation, and sparkline
+showcases; `@mochart/demo-vanilla` is the same gallery in plain TypeScript.
+`@mochart/showcase` is a separate mobile-first app that tours the library's
+features chart by chart. All of them share the demo configs from
+`@mochart/demo-data` and the framework-agnostic demo logic from
+`@mochart/demo-common`. There are also build-free static HTML examples in
 [packages/mochart/example](packages/mochart/example/README.md).
 
 ## Getting started
 
-This repo uses npm workspaces, and needs Node 22.22.3 or newer (`.nvmrc`
-pins 24; CI runs both):
+This repo uses npm workspaces, and needs Node 22.22.3 or newer (`.nvmrc` pins
+24; CI runs both):
 
 ```sh
 npm install
@@ -104,9 +104,10 @@ npm run screenshots:compare -- <dir-a> <dir-b> # diff two captures
 ```
 
 The screenshot references are not committed, because font rasterization makes
-them machine-specific, so capture your own baseline before a change and diff
-the fresh capture against it. [scripts/screenshots/README.md](scripts/screenshots/README.md)
-has the matrix, the per-port dev server table and the options.
+them machine-specific, so capture your own baseline before a change and diff the
+fresh capture against it.
+[scripts/screenshots/README.md](scripts/screenshots/README.md) has the matrix,
+the per-port dev server table and the options.
 
 Target a single package with `-w`, e.g. `npm test -w @mochart/core`. `lint` and
 `deadcode` exist only at the root; narrow them with `npx eslint <path>` and

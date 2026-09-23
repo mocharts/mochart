@@ -8,10 +8,10 @@ Every demo app ([@mochart/demo-vanilla](../mochart-demo-vanilla/README.md),
 [@mochart/demo-lit](../mochart-demo-lit/README.md),
 [@mochart/demo-react](../mochart-demo-react/README.md),
 [@mochart/demo-svelte](../mochart-demo-svelte/README.md), and
-[@mochart/demo-vue](../mochart-demo-vue/README.md)) implements the same
-gallery in a different UI framework. This package holds the logic they all
-share, so each demo package contains only its framework-specific wiring. The
-JSON demo configs and datasets live separately in
+[@mochart/demo-vue](../mochart-demo-vue/README.md)) implements the same gallery
+in a different UI framework. This package holds the logic they all share, so
+each demo package contains only its framework-specific wiring. The JSON demo
+configs and datasets live separately in
 [@mochart/demo-data](../mochart-demo-data/README.md).
 
 Like `@mochart/demo-data`, this is a source-only TypeScript package: its

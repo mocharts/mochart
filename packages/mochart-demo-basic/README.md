@@ -1,27 +1,25 @@
 # @mochart/demo-basic
 
-Minimal no-framework demo harness for the
-[@mochart/core](../mochart/README.md) charting library (private, not published,
-not deployed to the demo site).
+Minimal no-framework demo harness for the [@mochart/core](../mochart/README.md)
+charting library (private, not published, not deployed to the demo site).
 
 **Role:** this package is deliberately small: a single-file vanilla-TypeScript
 Vite app that renders every demo chart from the shared
 [@mochart/demo-data](../mochart-demo-data/README.md) configs, with a flat DOM,
 stable element ids, and hash routing. That makes it two things:
 
-1. The smallest possible integration example, closer to what you'd paste
-   into your own project than the full galleries.
-2. The host of the core Playwright e2e suite (see [e2e/](e2e/)), which
-   depends on this app's simple, stable DOM contract (`#chart-host`, toolbar
-   button ids, `/#<demo-id>` hash routing). The vanilla gallery has its own.
-   Keep that contract stable when editing.
+1. The smallest possible integration example, closer to what you'd paste into
+   your own project than the full galleries.
+2. The host of the core Playwright e2e suite (see [e2e/](e2e/)), which depends
+   on this app's simple, stable DOM contract (`#chart-host`, toolbar button ids,
+   `/#<demo-id>` hash routing). The vanilla gallery has its own. Keep that
+   contract stable when editing.
 
 Live controls exercise mochart's
-[staged animations](../mochart/README.md#staged-animation):
-randomize values (kept within each demo's random spec and axis range),
-add/remove categories (which plays the full axis expansion → value change →
-axis contraction sequence) and autoplay. The stacked demos show the gapless
-stacked transitions.
+[staged animations](../mochart/README.md#staged-animation): randomize values
+(kept within each demo's random spec and axis range), add/remove categories
+(which plays the full axis expansion → value change → axis contraction sequence)
+and autoplay. The stacked demos show the gapless stacked transitions.
 
 The full-featured galleries live in the peer packages:
 [@mochart/demo-angular](../mochart-demo-angular/README.md),

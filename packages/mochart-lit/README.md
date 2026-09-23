@@ -1,8 +1,8 @@
 # @mochart/lit
 
 [lit-html](https://lit.dev/docs/libraries/standalone-templates/) directives for
-the [@mochart/core](https://github.com/mocharts/mochart) charting library. Works in
-standalone lit-html templates and inside `LitElement` render methods alike.
+the [@mochart/core](https://github.com/mocharts/mochart) charting library. Works
+in standalone lit-html templates and inside `LitElement` render methods alike.
 
 Docs: [mochart.org](https://mochart.org). Start with the
 [Lit guide](https://mochart.org/guide/frameworks/lit).
@@ -24,8 +24,8 @@ lit-html 3.
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's optional
-stylesheet. It re-asserts the browser defaults the chart's tooltip and
-message overlays rely on, and never overrides the chart's own styling:
+stylesheet. It re-asserts the browser defaults the chart's tooltip and message
+overlays rely on, and never overrides the chart's own styling:
 
 ```js
 import '@mochart/core/mochart.css';
@@ -68,18 +68,18 @@ const dataProvider = new ArrayOfObjectsDataProvider(data);
 render(html`${chart({ mochartConfig, dataProvider, width: 640, height: 400 })}`, document.body);
 ```
 
-Both directives have to sit in **child position** (an `${…}` slot between
-tags, as in the snippets above), because each one renders a container div and
-mounts the chart into it. In an attribute, property, or event binding
-(`<div class=${chart({ … })}>`) the directive's constructor throws
-`mochart-lit chart directives can only be used in child position`.
+Both directives have to sit in **child position** (an `${…}` slot between tags,
+as in the snippets above), because each one renders a container div and mounts
+the chart into it. In an attribute, property, or event binding
+(`<div class=${chart({ … })}>`) the directive's constructor throws `mochart-lit
+chart directives can only be used in child position`.
 
 ## Sizing
 
 `width` and `height` are optional. The directive renders a container div the
 chart mounts into; whichever dimension you omit tracks that div's size via
-`ResizeObserver`, so you can size the div from surrounding layout and the
-chart follows it:
+`ResizeObserver`, so you can size the div from surrounding layout and the chart
+follows it:
 
 ```js
 html`<div style="width: 100%; height: 400px">${chart({ mochartConfig, dataProvider })}</div>`
@@ -100,8 +100,8 @@ container div, for test selectors.
 
 Config and data changes are detected **by reference identity**: the chart
 compares the values it receives, not their contents. That matches Lit's own
-change detection (`hasChanged` is identity-based too), so the familiar Lit
-rule applies doubly here. Reassign instead of mutate:
+change detection (`hasChanged` is identity-based too), so the familiar Lit rule
+applies doubly here. Reassign instead of mutate:
 
 ```ts
 // ✓ a new array, so Lit re-renders and the chart animates to it
@@ -111,11 +111,11 @@ this.data = [...this.data, { month: 'Mar', revenue: 30 }];
 this.data.push({ month: 'Mar', revenue: 30 });
 ```
 
-The same rule applies to `config` and to `mochartConfig`/`dataProvider`.
-For hosts that do mutate data in place, the `chartRef` prop (a callback
-ref, like Lit's own `ref()` directive) receives a `ChartRef` handle whose
-`refresh()` re-reads the current data. The built-in providers read live, so
-any in-place change is seen:
+The same rule applies to `config` and to `mochartConfig`/`dataProvider`. For
+hosts that do mutate data in place, the `chartRef` prop (a callback ref, like
+Lit's own `ref()` directive) receives a `ChartRef` handle whose `refresh()`
+re-reads the current data. The built-in providers read live, so any in-place
+change is seen:
 
 ```ts
 import type { DataObject } from '@mochart/core';
@@ -137,17 +137,17 @@ addRow(row: DataObject) {
 }
 ```
 
-The callback receives `null` when the directive disconnects, which destroys
-the chart rather than pausing it. A re-attached directive mounts a new one, so
-the opening animation plays again and any chart-managed focus or legend
-filtering starts over.
+The callback receives `null` when the directive disconnects, which destroys the
+chart rather than pausing it. A re-attached directive mounts a new one, so the
+opening animation plays again and any chart-managed focus or legend filtering
+starts over.
 
 ## Props
 
-Both directives accept the chart callbacks (`onChartClick`, `onSliceClick`, `onSeriesClick`,
-`onChartMouseEnter`, `onChartMouseMove`, `onChartMouseLeave`, `onTitleClick`,
-`onFocus`, `onSeriesFilter`, `onSeriesLayoutBoundsChange`) and the placeholder
-templates (`loadingTemplate`, `errorTemplate`, `noDataTemplate`,
+Both directives accept the chart callbacks (`onChartClick`, `onSliceClick`,
+`onSeriesClick`, `onChartMouseEnter`, `onChartMouseMove`, `onChartMouseLeave`,
+`onTitleClick`, `onFocus`, `onSeriesFilter`, `onSeriesLayoutBoundsChange`) and
+the placeholder templates (`loadingTemplate`, `errorTemplate`, `noDataTemplate`,
 `noSizeTemplate`, `noSeriesTemplate`, `configErrorTemplate`). Each placeholder
 prop takes a **lit-html template function** that receives the chart context
 (`width`, `height`, `error`, …) and is rendered while the chart is in that
@@ -164,25 +164,24 @@ lit-html rather than a component the framework instantiates, so nothing is
 injected into it: it sees the chart context it is called with plus whatever its
 closure captures.
 
-Both directives also accept `loading` and `error` to force the loading or
-error state.
+Both directives also accept `loading` and `error` to force the loading or error
+state.
 
 ### Controlled state
 
-Focus and legend filtering are chart-managed by default, but each piece of
-that state has a matching prop that takes over while it is set (not
-`undefined`): `focusedCategoryIndex` (`-1` = none), `focusedSeriesId` and
-`focusedValueAxisId` (`null` = none), and `filteredSeriesIds` (a map of
-series id → `true` = filtered out). Pass back what `onFocus` and
-`onSeriesFilter` report to keep focus and filtering in sync across several
-charts; leave a prop `undefined` to let the chart keep managing that piece
-itself.
+Focus and legend filtering are chart-managed by default, but each piece of that
+state has a matching prop that takes over while it is set (not `undefined`):
+`focusedCategoryIndex` (`-1` = none), `focusedSeriesId` and `focusedValueAxisId`
+(`null` = none), and `filteredSeriesIds` (a map of series id → `true` = filtered
+out). Pass back what `onFocus` and `onSeriesFilter` report to keep focus and
+filtering in sync across several charts; leave a prop `undefined` to let the
+chart keep managing that piece itself.
 
 ## The `development` export condition
 
 In this repository's manifest, the `exports` map has a `development` entry
-pointing at this package's TypeScript sources; the repo's own dev servers,
-tests and `tsx` scripts run the library from source through it. It never
-reaches npm: publishing goes through `pnpm publish`, which replaces the map
-with the dist-only `publishConfig.exports`, so installed copies of this
-package always resolve the built `dist/`.
+pointing at this package's TypeScript sources; the repo's own dev servers, tests
+and `tsx` scripts run the library from source through it. It never reaches npm:
+publishing goes through `pnpm publish`, which replaces the map with the
+dist-only `publishConfig.exports`, so installed copies of this package always
+resolve the built `dist/`.

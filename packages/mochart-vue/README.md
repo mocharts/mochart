@@ -1,6 +1,7 @@
 # @mochart/vue
 
-Vue 3 components for the [@mochart/core](https://github.com/mocharts/mochart) charting library.
+Vue 3 components for the [@mochart/core](https://github.com/mocharts/mochart)
+charting library.
 
 Docs: [mochart.org](https://mochart.org). Start with the
 [Vue guide](https://mochart.org/guide/frameworks/vue).
@@ -20,8 +21,8 @@ npm install @mochart/vue @mochart/core vue
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's optional
-stylesheet. It re-asserts the browser defaults the chart's tooltip and
-message overlays rely on, and never overrides the chart's own styling:
+stylesheet. It re-asserts the browser defaults the chart's tooltip and message
+overlays rely on, and never overrides the chart's own styling:
 
 ```js
 import '@mochart/core/mochart.css';
@@ -84,17 +85,17 @@ however you like and the chart follows it:
 
 Explicit `width`/`height` props win over conflicting `style` values.
 
-Other attributes (`id`, `data-testid`, …) fall through to the container div
-the same way. The optional `dataTestId` prop is the same surface the other
-bindings offer. It also sets `data-testid` and wins over a fallthrough
-attribute when both are given.
+Other attributes (`id`, `data-testid`, …) fall through to the container div the
+same way. The optional `dataTestId` prop is the same surface the other bindings
+offer. It also sets `data-testid` and wins over a fallthrough attribute when
+both are given.
 
 ## When the data changes
 
 Config and data changes are detected **by reference identity**: the chart
 compares the props it receives, not their contents. Vue's deep reactivity
-re-renders your own template after an in-place `push`, but the chart still
-sees the same array. Replace instead of mutate:
+re-renders your own template after an in-place `push`, but the chart still sees
+the same array. Replace instead of mutate:
 
 ```js
 // ✓ a new array, so the chart animates to it
@@ -106,9 +107,8 @@ data.value.push({ month: 'Mar', revenue: 30 });
 
 The same rule applies to `config` on `DefaultChart` and to
 `mochartConfig`/`dataProvider` on `Chart`. For hosts that do mutate data in
-place, a template ref on the component exposes `refresh()`, which re-reads
-the current data. The built-in providers read live, so any in-place change is
-seen:
+place, a template ref on the component exposes `refresh()`, which re-reads the
+current data. The built-in providers read live, so any in-place change is seen:
 
 ```vue
 <script setup>
@@ -130,10 +130,10 @@ function addRow(row) {
 
 ## Props
 
-Both components accept the chart callbacks (`onChartClick`, `onSliceClick`, `onSeriesClick`,
-`onChartMouseEnter`, `onChartMouseMove`, `onChartMouseLeave`, `onTitleClick`,
-`onFocus`, `onSeriesFilter`, `onSeriesLayoutBoundsChange`, usable as
-`@chart-click` etc. in templates) and the placeholder components
+Both components accept the chart callbacks (`onChartClick`, `onSliceClick`,
+`onSeriesClick`, `onChartMouseEnter`, `onChartMouseMove`, `onChartMouseLeave`,
+`onTitleClick`, `onFocus`, `onSeriesFilter`, `onSeriesLayoutBoundsChange`,
+usable as `@chart-click` etc. in templates) and the placeholder components
 (`loadingComponent`, `errorComponent`, `noDataComponent`, `noSizeComponent`,
 `noSeriesComponent`, `configErrorComponent`). Each placeholder prop takes a
 **Vue component** that receives the chart context (`width`, `height`, `error`,
@@ -145,20 +145,19 @@ force the loading or error state.
 
 ### Controlled state
 
-Focus and legend filtering are chart-managed by default, but each piece of
-that state has a matching prop that takes over while it is set (not
-`undefined`): `focusedCategoryIndex` (`-1` = none), `focusedSeriesId` and
-`focusedValueAxisId` (`null` = none), and `filteredSeriesIds` (a map of
-series id → `true` = filtered out). Pass back what `onFocus` and
-`onSeriesFilter` report to keep focus and filtering in sync across several
-charts; leave a prop `undefined` to let the chart keep managing that piece
-itself.
+Focus and legend filtering are chart-managed by default, but each piece of that
+state has a matching prop that takes over while it is set (not `undefined`):
+`focusedCategoryIndex` (`-1` = none), `focusedSeriesId` and `focusedValueAxisId`
+(`null` = none), and `filteredSeriesIds` (a map of series id → `true` = filtered
+out). Pass back what `onFocus` and `onSeriesFilter` report to keep focus and
+filtering in sync across several charts; leave a prop `undefined` to let the
+chart keep managing that piece itself.
 
 ## The `development` export condition
 
 In this repository's manifest, the `exports` map has a `development` entry
-pointing at this package's TypeScript sources; the repo's own dev servers,
-tests and `tsx` scripts run the library from source through it. It never
-reaches npm: publishing goes through `pnpm publish`, which replaces the map
-with the dist-only `publishConfig.exports`, so installed copies of this
-package always resolve the built `dist/`.
+pointing at this package's TypeScript sources; the repo's own dev servers, tests
+and `tsx` scripts run the library from source through it. It never reaches npm:
+publishing goes through `pnpm publish`, which replaces the map with the
+dist-only `publishConfig.exports`, so installed copies of this package always
+resolve the built `dist/`.

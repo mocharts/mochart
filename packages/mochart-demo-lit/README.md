@@ -5,14 +5,14 @@ Lit demo gallery for [@mochart/core](../mochart/README.md), built on
 
 See it running live at [mochart.org/lit/demos](https://mochart.org/lit/demos).
 
-The full-featured demo app: browse every demo chart in three modes
-(single edits one chart's config and data as JSON, multi steps a
-configurable grid of charts through dataset sizes together, and random
-generates whole seeded random datasets), plus the transition, rotation,
-and sparkline showcases. The JSON demo
+The full-featured demo app: browse every demo chart in three modes (single edits
+one chart's config and data as JSON, multi steps a configurable grid of charts
+through dataset sizes together, and random generates whole seeded random
+datasets), plus the transition, rotation, and sparkline showcases. The JSON demo
 configs and datasets are shared from
-[@mochart/demo-data](../mochart-demo-data/README.md); [@mochart/demo-basic](../mochart-demo-basic/README.md)
-is a smaller no-framework harness of the same demos that hosts the e2e suite.
+[@mochart/demo-data](../mochart-demo-data/README.md);
+[@mochart/demo-basic](../mochart-demo-basic/README.md) is a smaller no-framework
+harness of the same demos that hosts the e2e suite.
 
 ## Install
 

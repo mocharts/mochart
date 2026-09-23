@@ -16,8 +16,10 @@ and series filtering out of the box.
 
 ## Features
 
-- **Renderers**: `bar`, `line`, and `area` series, mixable in one chart, plus pie and donut charts
-- **Scales**: ordinal and linear category axes over string, number, and date values (via d3-scale)
+- **Renderers**: `bar`, `line`, and `area` series, mixable in one chart, plus
+  pie and donut charts
+- **Scales**: ordinal and linear category axes over string, number, and date
+  values (via d3-scale)
 - **Animation**: [staged transitions](#staged-animation) through axis expansion,
   value change (with category and series transitions) and axis contraction, and
   gapless stacked animation
@@ -25,25 +27,26 @@ and series filtering out of the box.
   hover callbacks
 - **Accessibility**: keyboard-driven tooltip, legend filtering, and pie-slice
   interaction, with screen-reader roles, labels, and live value announcements,
-  on by default; the `accessibility` config section localizes or disables
-  it, and honors the reduced-motion system preference
+  on by default; the `accessibility` config section localizes or disables it,
+  and honors the reduced-motion system preference
 - **Extras**: axis thresholds and ranges, linear/radial gradients, built-in
   pattern fills, series markers and labels, stacked and grouped series
 - **Config validation**: configs are validated with
-  [@mochart/movalid](https://github.com/mocharts/mochart/tree/main/packages/movalid), producing human-readable error messages
+  [@mochart/movalid](https://github.com/mocharts/mochart/tree/main/packages/movalid),
+  producing human-readable error messages
 
 ## Staged animation
 
-Most charting libraries tween every element straight to its final position in
-a single step, which makes updates that change both the data and the axis
-domains hard to follow. mochart instead splits each update into sequential
-phases, so only one kind of change is in motion at a time:
+Most charting libraries tween every element straight to its final position in a
+single step, which makes updates that change both the data and the axis domains
+hard to follow. mochart instead splits each update into sequential phases, so
+only one kind of change is in motion at a time:
 
 1. **Axis expansion**: if the new data needs more room (new categories, larger
-   values), the axis domains grow first and the existing shapes reflow into
-   the wider domains, so incoming data has a place to land.
-2. **Value change**: values tween to their new positions. This phase also
-   plays **category transitions** (categories added, removed, or reordered are merged
+   values), the axis domains grow first and the existing shapes reflow into the
+   wider domains, so incoming data has a place to land.
+2. **Value change**: values tween to their new positions. This phase also plays
+   **category transitions** (categories added, removed, or reordered are merged
    into one display sequence so old and new categories animate coherently) and
    **series transitions** (series added, removed, or filtered via the legend).
 3. **Axis contraction**: once the values settle, the axis domains collapse to
@@ -58,12 +61,11 @@ transitions) are set in `animation`.
 
 ### Gapless stacked animation
 
-Stacked series animate as a single unit: throughout a transition, each
-segment's baseline is derived from the tweened top of the segment below it,
-rather than each segment tweening independently toward its final position. The
-stack therefore stays contiguous for the whole animation (no gaps or overlaps
-between segments), even while series are being added to or removed from the
-stack.
+Stacked series animate as a single unit: throughout a transition, each segment's
+baseline is derived from the tweened top of the segment below it, rather than
+each segment tweening independently toward its final position. The stack
+therefore stays contiguous for the whole animation (no gaps or overlaps between
+segments), even while series are being added to or removed from the stack.
 
 ## Install
 
@@ -125,17 +127,17 @@ const chart = createChart(container, { mochartConfig, dataProvider, width: 640, 
 
 Both return a `ChartHandle`:
 
-- `update(nextProps)`: merge new props into the chart; config and data
-  changes animate when animation is enabled, width/height changes re-layout
-  instantly. Change detection is by object identity, so pass new references,
-  or use `refresh` after mutating in place
+- `update(nextProps)`: merge new props into the chart; config and data changes
+  animate when animation is enabled, width/height changes re-layout instantly.
+  Change detection is by object identity, so pass new references, or use
+  `refresh` after mutating in place
 - `replace(nextProps)`: replace the props wholesale; a key absent from
   `nextProps` is unset and returns to chart-managed behavior, where `update`
   would keep its previous value
-- `refresh()`: re-read the current data without a new reference. A default
-  chart rebuilds its provider over `data`, and a `createChart` chart calls the
-  provider's optional `refresh()` hook and re-reads it. This is the escape
-  hatch for hosts that mutate data in place
+- `refresh()`: re-read the current data without a new reference. A default chart
+  rebuilds its provider over `data`, and a `createChart` chart calls the
+  provider's optional `refresh()` hook and re-reads it. This is the escape hatch
+  for hosts that mutate data in place
 - `destroy()`: cancel running tweens and remove the chart's DOM
 
 ## Configuration
@@ -167,17 +169,19 @@ The full property-by-property reference is at
 [mochart.org/reference](https://mochart.org/reference/), generated from the
 validation schema: `npm run generate-docs -w @mochart/core` writes
 `generated/config-reference.json`, the structured model that the
-[@mochart/docs](https://github.com/mocharts/mochart/tree/main/packages/mochart-docs) site renders into its config
-reference pages, and `generated/api-reference.json`, the model behind that
-site's props and callbacks pages. The command fails if the descriptions,
-validators, and defaults ever disagree on a section's keys, or if a prop
-interface has no reference page group or an undocumented member, and it
-writes nothing at all when it fails.
+[@mochart/docs](https://github.com/mocharts/mochart/tree/main/packages/mochart-docs)
+site renders into its config reference pages, and
+`generated/api-reference.json`, the model behind that site's props and callbacks
+pages. The command fails if the descriptions, validators, and defaults ever
+disagree on a section's keys, or if a prop interface has no reference page group
+or an undocumented member, and it writes nothing at all when it fails.
 
 ### Config helpers
 
-- `validateConfig(config, getDefaults(config))`: validate a raw config, returns readable errors
-- `getDefaults(config)`: the per-section defaults `validateConfig` needs as its second argument
+- `validateConfig(config, getDefaults(config))`: validate a raw config, returns
+  readable errors
+- `getDefaults(config)`: the per-section defaults `validateConfig` needs as its
+  second argument
 - `migrateConfig(config)`: migrate configs from older versions
 - `enhanceConfig(config)`: validate/default/normalize into a `mochartConfig`
 - `getDataErrors(mochartConfig, dataProvider)`: validate data against a config
@@ -187,15 +191,23 @@ writes nothing at all when it fails.
 Each returns config fragments and rows to spread into your own config, so the
 chart stays an ordinary xy or pie chart rather than a special mode.
 
-- `createHistogram(values, options)`: bins values into a histogram; `binValues` returns just the bins
-- `createWaterfall(steps, options)`: a running total with rise/fall/total bars; `computeWaterfallSteps` returns just the steps
-- `createHeatmap(rows, options)`: a coloured grid; `createHeatmapColorScale` builds the matching colour ramp
-- `createCandlestick(rows, options)`: open/high/low/close candles; `computeCandlesticks` returns just the derived values
-- `createOhlc(rows, options)`: the same data drawn as open/close ticks on a high/low bar
-- `createPie(slices, options)`: a pie or donut; `computePieFractions` returns just the slice shares
-- `createSparklineConfig(config, options)`: strips a chart config down to a tiny inline chart: axes, legend, tooltip and markers off, margins collapsed
+- `createHistogram(values, options)`: bins values into a histogram; `binValues`
+  returns just the bins
+- `createWaterfall(steps, options)`: a running total with rise/fall/total bars;
+  `computeWaterfallSteps` returns just the steps
+- `createHeatmap(rows, options)`: a coloured grid; `createHeatmapColorScale`
+  builds the matching colour ramp
+- `createCandlestick(rows, options)`: open/high/low/close candles;
+  `computeCandlesticks` returns just the derived values
+- `createOhlc(rows, options)`: the same data drawn as open/close ticks on a
+  high/low bar
+- `createPie(slices, options)`: a pie or donut; `computePieFractions` returns
+  just the slice shares
+- `createSparklineConfig(config, options)`: strips a chart config down to a tiny
+  inline chart: axes, legend, tooltip and markers off, margins collapsed
 
-See the [chart helpers reference](https://mochart.org/reference/api) for the full options.
+See the [chart helpers reference](https://mochart.org/reference/api) for the
+full options.
 
 ## Data providers
 
@@ -204,17 +216,16 @@ Two dataset shapes are supported out of the box:
 - `ArrayOfObjectsDataProvider`: `[{ month: 'Jan', revenue: 10 }, …]`
 - `ObjectOfArraysDataProvider`: `{ month: ['Jan', …], revenue: [10, …] }`
 
-`createDefaultChart` wraps its `data` in whichever built-in provider matches
-its shape automatically; `createChart` accepts any object implementing the
-`DataProvider` interface. One member is required:
-`getPropertyValues(property)` returns all values of one named data property,
-index-aligned with every other property's values, or `undefined` when the
-property isn't in the data. Every property the config names arrives through
-it, the category property and `categoryAxis.keyProperty` included: series
-property values are numbers with `null`/`undefined` as missing values,
-category property values are strings, numbers, or `Date`s, and key property
-values are strings or numbers. `getError`, `getLoading`, and `refresh` are
-optional. See the
+`createDefaultChart` wraps its `data` in whichever built-in provider matches its
+shape automatically; `createChart` accepts any object implementing the
+`DataProvider` interface. One member is required: `getPropertyValues(property)`
+returns all values of one named data property, index-aligned with every other
+property's values, or `undefined` when the property isn't in the data. Every
+property the config names arrives through it, the category property and
+`categoryAxis.keyProperty` included: series property values are numbers with
+`null`/`undefined` as missing values, category property values are strings,
+numbers, or `Date`s, and key property values are strings or numbers. `getError`,
+`getLoading`, and `refresh` are optional. See the
 [data providers guide](https://mochart.org/guide/data-providers) for the full
 contract.
 
@@ -234,27 +245,27 @@ createDefaultChart(container, {
 });
 ```
 
-- `onFocus(focus)`: the focused series/category/axis changed (pointer over/out or
-  click, per the series' `focusOnHover`/`focusOnClick` config)
+- `onFocus(focus)`: the focused series/category/axis changed (pointer over/out
+  or click, per the series' `focusOnHover`/`focusOnClick` config)
 - `onSeriesFilter(filter)`: a legend click toggled a series in/out of the
   filtered set
 - `onChartClick` / `onChartMouseEnter` / `onChartMouseMove` /
-  `onChartMouseLeave`: plot-area pointer events with chart coordinates and
-  the nearest category index
-- `onSliceClick(payload)`: a slice of a pie or donut chart was clicked
-  (fires only on click, unlike `onFocus`, so it can anchor selection)
+  `onChartMouseLeave`: plot-area pointer events with chart coordinates and the
+  nearest category index
+- `onSliceClick(payload)`: a slice of a pie or donut chart was clicked (fires
+  only on click, unlike `onFocus`, so it can anchor selection)
 - `onSeriesClick(payload)`: a cartesian series shape (bar, marker, label, or
-  line/area path) was clicked; reports the series id, the shape's category
-  index (`-1` for a whole-series path), and the nearest category index. Fires
-  whether or not `focusOnClick` is set, and is the cartesian counterpart of
+  line/area path) was clicked; reports the series id, the shape's category index
+  (`-1` for a whole-series path), and the nearest category index. Fires whether
+  or not `focusOnClick` is set, and is the cartesian counterpart of
   `onSliceClick`
 - `onSeriesLayoutBoundsChange(bounds)`: the plot area was re-laid-out
 
 ## Loading, error, and empty states
 
-`loading` and `error` props switch the chart into the corresponding state.
-What renders in each state is customizable through factory props that return a
-DOM node (or string):
+`loading` and `error` props switch the chart into the corresponding state. What
+renders in each state is customizable through factory props that return a DOM
+node (or string):
 
 ```js
 createDefaultChart(container, {
@@ -301,35 +312,40 @@ see which property is at fault.
 
 ## Framework wrappers
 
-- [@mochart/angular](https://github.com/mocharts/mochart/tree/main/packages/mochart-angular): Angular components
-- [@mochart/lit](https://github.com/mocharts/mochart/tree/main/packages/mochart-lit): lit-html directives
-- [@mochart/react](https://github.com/mocharts/mochart/tree/main/packages/mochart-react): React components
-- [@mochart/svelte](https://github.com/mocharts/mochart/tree/main/packages/mochart-svelte): Svelte 5 components
-- [@mochart/vue](https://github.com/mocharts/mochart/tree/main/packages/mochart-vue): Vue 3 components
+- [@mochart/angular](https://github.com/mocharts/mochart/tree/main/packages/mochart-angular):
+  Angular components
+- [@mochart/lit](https://github.com/mocharts/mochart/tree/main/packages/mochart-lit):
+  lit-html directives
+- [@mochart/react](https://github.com/mocharts/mochart/tree/main/packages/mochart-react):
+  React components
+- [@mochart/svelte](https://github.com/mocharts/mochart/tree/main/packages/mochart-svelte):
+  Svelte 5 components
+- [@mochart/vue](https://github.com/mocharts/mochart/tree/main/packages/mochart-vue):
+  Vue 3 components
 
-Each wrapper adds automatic container sizing (omit `width`/`height` to track
-the container) on top of the same chart props.
+Each wrapper adds automatic container sizing (omit `width`/`height` to track the
+container) on top of the same chart props.
 
 ## Browser support
 
-Mochart targets modern evergreen browsers (Chrome/Edge, Firefox, Safari);
-the published builds are ES modules (plus an IIFE bundle for script
-tags) pinned to ES2020, and no polyfills are
-required. The core renders SVG, measures text with the SVG APIs
-(`getBBox`, `getComputedTextLength`), and animates with
+Mochart targets modern evergreen browsers (Chrome/Edge, Firefox, Safari); the
+published builds are ES modules (plus an IIFE bundle for script tags) pinned to
+ES2020, and no polyfills are required. The core renders SVG, measures text with
+the SVG APIs (`getBBox`, `getComputedTextLength`), and animates with
 `requestAnimationFrame`. It needs a real DOM, so do not call
 `createChart`/`createDefaultChart` during server rendering (the framework
-wrappers are SSR-safe and mount only in the browser). `ResizeObserver` is
-used only by the wrappers, feature-detected, and only when
-`width`/`height` are omitted. In jsdom-style test environments, shim the
-SVG measurement APIs to return zero sizes and the chart takes its
-default-bounds fallbacks.
+wrappers are SSR-safe and mount only in the browser). `ResizeObserver` is used
+only by the wrappers, feature-detected, and only when `width`/`height` are
+omitted. In jsdom-style test environments, shim the SVG measurement APIs to
+return zero sizes and the chart takes its default-bounds fallbacks.
 
 ## Examples
 
 Build-free static HTML examples (script tag and ES module) live in
-[example/](https://github.com/mocharts/mochart/tree/main/packages/mochart/example). The full demo gallery is the
-[@mochart/demo-vanilla](https://github.com/mocharts/mochart/tree/main/packages/mochart-demo-vanilla) package.
+[example/](https://github.com/mocharts/mochart/tree/main/packages/mochart/example).
+The full demo gallery is the
+[@mochart/demo-vanilla](https://github.com/mocharts/mochart/tree/main/packages/mochart-demo-vanilla)
+package.
 
 ## Development
 
@@ -342,25 +358,24 @@ npm run generate-jsdoc -w @mochart/core  # regenerate the JSDoc on src/types/con
 npm run fuzz -w @mochart/core            # sweep every config property (see test/fuzz/README.md)
 ```
 
-The JSDoc on the config interfaces in `src/types/config.ts` is generated
-from the same descriptions/validators/defaults as the config reference, so
-IDE hovers document every config property; a test
-(`test/config/jsdocSync.test.ts`) fails when the file drifts from the
-sources.
+The JSDoc on the config interfaces in `src/types/config.ts` is generated from
+the same descriptions/validators/defaults as the config reference, so IDE hovers
+document every config property; a test (`test/config/jsdocSync.test.ts`) fails
+when the file drifts from the sources.
 
-The golden snapshot tests in `test/golden/` render whole charts (initial
-mount, static update, mid-tween, and settled states) and compare serialized
-SVG against checked-in snapshots. They are the primary regression oracle for
-renderer changes.
+The golden snapshot tests in `test/golden/` render whole charts (initial mount,
+static update, mid-tween, and settled states) and compare serialized SVG against
+checked-in snapshots. They are the primary regression oracle for renderer
+changes.
 
 ## The `development` export condition
 
 In this repository's manifest, the `exports` map has a `development` entry
-pointing at this package's TypeScript sources; the repo's own dev servers,
-tests and `tsx` scripts run the library from source through it. It never
-reaches npm: publishing goes through `pnpm publish`, which replaces the map
-with the dist-only `publishConfig.exports`, so installed copies of this
-package always resolve the built `dist/`.
+pointing at this package's TypeScript sources; the repo's own dev servers, tests
+and `tsx` scripts run the library from source through it. It never reaches npm:
+publishing goes through `pnpm publish`, which replaces the map with the
+dist-only `publishConfig.exports`, so installed copies of this package always
+resolve the built `dist/`.
 
 ## License
 

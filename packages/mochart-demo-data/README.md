@@ -1,7 +1,7 @@
 # @mochart/demo-data
 
-Shared demo configs, datasets, and random-generation specs for the mochart
-demo apps (private, not published).
+Shared demo configs, datasets, and random-generation specs for the mochart demo
+apps (private, not published).
 
 Every demo app ([@mochart/demo-vanilla](../mochart-demo-vanilla/README.md),
 [@mochart/demo-angular](../mochart-demo-angular/README.md),
@@ -9,12 +9,11 @@ Every demo app ([@mochart/demo-vanilla](../mochart-demo-vanilla/README.md),
 [@mochart/demo-react](../mochart-demo-react/README.md),
 [@mochart/demo-svelte](../mochart-demo-svelte/README.md),
 [@mochart/demo-vue](../mochart-demo-vue/README.md), and
-[@mochart/demo-basic](../mochart-demo-basic/README.md)) shows the same
-gallery of demo charts. This package is the single source of the JSON behind
-them, so adding or editing a demo here updates every app at once. Its
-framework-agnostic counterpart is
-[@mochart/demo-common](../mochart-demo-common/README.md), which holds the
-shared demo *logic*.
+[@mochart/demo-basic](../mochart-demo-basic/README.md)) shows the same gallery
+of demo charts. This package is the single source of the JSON behind them, so
+adding or editing a demo here updates every app at once. Its framework-agnostic
+counterpart is [@mochart/demo-common](../mochart-demo-common/README.md), which
+holds the shared demo *logic*.
 
 Like `@mochart/demo-common`, this is a source-only TypeScript package: its
 `exports` point straight at `src/index.ts` and the consuming demo's bundler
@@ -34,8 +33,8 @@ requires a Vite (or compatible) bundler.
 
 ## Usage
 
-The default export is the assembled collection: every manifest entry joined
-with its config/data/random JSON:
+The default export is the assembled collection: every manifest entry joined with
+its config/data/random JSON:
 
 ```ts
 import demoData from '@mochart/demo-data';
@@ -45,8 +44,8 @@ const { demoIds, demoObjectMap, testDemoIds } = demoData;
 const stacked = demoObjectMap['stacked'];
 ```
 
-The raw manifest is also exported for tooling that only needs the file list
-(the Playwright e2e suite reads it this way):
+The raw manifest is also exported for tooling that only needs the file list (the
+Playwright e2e suite reads it this way):
 
 ```ts
 import demosJson from '@mochart/demo-data/demos.json';
@@ -54,9 +53,9 @@ import demosJson from '@mochart/demo-data/demos.json';
 
 ## Adding a demo
 
-1. Add a config JSON to `src/config/` (and, if needed, a dataset to
-   `src/data/` and a random spec to `src/random/`).
-2. Add an entry to the `demos` array in `src/demos.json` referencing the
-   files by basename.
+1. Add a config JSON to `src/config/` (and, if needed, a dataset to `src/data/`
+   and a random spec to `src/random/`).
+2. Add an entry to the `demos` array in `src/demos.json` referencing the files
+   by basename.
 
 Every demo app picks it up on the next dev-server reload.

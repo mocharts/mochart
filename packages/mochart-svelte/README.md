@@ -1,6 +1,7 @@
 # @mochart/svelte
 
-Svelte 5 components for the [@mochart/core](https://github.com/mocharts/mochart) charting library.
+Svelte 5 components for the [@mochart/core](https://github.com/mocharts/mochart)
+charting library.
 
 Docs: [mochart.org](https://mochart.org). Start with the
 [Svelte guide](https://mochart.org/guide/frameworks/svelte).
@@ -20,8 +21,8 @@ npm install @mochart/svelte @mochart/core svelte
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's optional
-stylesheet. It re-asserts the browser defaults the chart's tooltip and
-message overlays rely on, and never overrides the chart's own styling:
+stylesheet. It re-asserts the browser defaults the chart's tooltip and message
+overlays rely on, and never overrides the chart's own styling:
 
 ```js
 import '@mochart/core/mochart.css';
@@ -86,9 +87,9 @@ container div, for test selectors.
 ## When the data changes
 
 Config and data changes are detected **by reference identity**: the chart
-compares the props it receives, not their contents. `$state`'s deep
-reactivity updates your own markup after an in-place `push`, but the chart
-still sees the same array. Reassign instead of mutate:
+compares the props it receives, not their contents. `$state`'s deep reactivity
+updates your own markup after an in-place `push`, but the chart still sees the
+same array. Reassign instead of mutate:
 
 ```js
 // ✓ a new array, so the chart animates to it
@@ -122,37 +123,36 @@ seen:
 
 ## Props
 
-Both components accept the chart callbacks (`onChartClick`, `onSliceClick`, `onSeriesClick`,
-`onChartMouseEnter`, `onChartMouseMove`, `onChartMouseLeave`, `onTitleClick`,
-`onFocus`, `onSeriesFilter`, `onSeriesLayoutBoundsChange`) and the placeholder
-components (`loadingComponent`, `errorComponent`, `noDataComponent`,
-`noSizeComponent`, `noSeriesComponent`, `configErrorComponent`). Each
-placeholder prop takes a **Svelte component** that receives the chart context
-(`width`, `height`, `error`, …) as props and is rendered while the chart is in
-that state. It is mounted with a copy of the chart component's contexts, so
-`getContext` inside it reaches anything an ancestor set with `setContext`. Both
-components also accept `loading` and `error` to force the loading or error
-state.
+Both components accept the chart callbacks (`onChartClick`, `onSliceClick`,
+`onSeriesClick`, `onChartMouseEnter`, `onChartMouseMove`, `onChartMouseLeave`,
+`onTitleClick`, `onFocus`, `onSeriesFilter`, `onSeriesLayoutBoundsChange`) and
+the placeholder components (`loadingComponent`, `errorComponent`,
+`noDataComponent`, `noSizeComponent`, `noSeriesComponent`,
+`configErrorComponent`). Each placeholder prop takes a **Svelte component** that
+receives the chart context (`width`, `height`, `error`, …) as props and is
+rendered while the chart is in that state. It is mounted with a copy of the
+chart component's contexts, so `getContext` inside it reaches anything an
+ancestor set with `setContext`. Both components also accept `loading` and
+`error` to force the loading or error state.
 
 ### Controlled state
 
-Focus and legend filtering are chart-managed by default, but each piece of
-that state has a matching prop that takes over while it is set (not
-`undefined`): `focusedCategoryIndex` (`-1` = none), `focusedSeriesId` and
-`focusedValueAxisId` (`null` = none), and `filteredSeriesIds` (a map of
-series id → `true` = filtered out). Pass back what `onFocus` and
-`onSeriesFilter` report to keep focus and filtering in sync across several
-charts; leave a prop `undefined` to let the chart keep managing that piece
-itself.
+Focus and legend filtering are chart-managed by default, but each piece of that
+state has a matching prop that takes over while it is set (not `undefined`):
+`focusedCategoryIndex` (`-1` = none), `focusedSeriesId` and `focusedValueAxisId`
+(`null` = none), and `filteredSeriesIds` (a map of series id → `true` = filtered
+out). Pass back what `onFocus` and `onSeriesFilter` report to keep focus and
+filtering in sync across several charts; leave a prop `undefined` to let the
+chart keep managing that piece itself.
 
 ## The `development` export condition
 
 In this repository's manifest, the `exports` map has a `development` entry
-pointing at this package's TypeScript sources; the repo's own dev servers,
-tests and `tsx` scripts run the library from source through it. It never
-reaches npm: publishing goes through `pnpm publish`, which replaces the map
-with the dist-only `publishConfig.exports`, so installed copies of this
-package always resolve the built `dist/`.
+pointing at this package's TypeScript sources; the repo's own dev servers, tests
+and `tsx` scripts run the library from source through it. It never reaches npm:
+publishing goes through `pnpm publish`, which replaces the map with the
+dist-only `publishConfig.exports`, so installed copies of this package always
+resolve the built `dist/`.
 
 ## Sourcemaps and debugging
 
@@ -163,9 +163,9 @@ publishes alongside `dist/`).
 It ships no `.js.map`. `svelte-package` forces `sourceMap: false` on its
 TypeScript transpile and its CLI has no option to change that, so JavaScript
 maps cannot be produced by the tool that builds this package. Little is lost:
-the three components are published as `.svelte` files that are their own
-source, `index.js` and `types.js` are re-exports with no logic, and `host.js`
-and `placeholders.svelte.js` are the `.ts` sources with the type annotations
+the three components are published as `.svelte` files that are their own source,
+`index.js` and `types.js` are re-exports with no logic, and `host.js` and
+`placeholders.svelte.js` are the `.ts` sources with the type annotations
 stripped. They are unbundled and unminified, with comments intact.
 
 The `development` export condition above is the supported route for stepping

@@ -1,6 +1,7 @@
 # @mochart/react
 
-React components for the [@mochart/core](https://github.com/mocharts/mochart) charting library.
+React components for the [@mochart/core](https://github.com/mocharts/mochart)
+charting library.
 
 Docs: [mochart.org](https://mochart.org). Start with the
 [React guide](https://mochart.org/guide/frameworks/react).
@@ -22,8 +23,8 @@ React 18 or newer.
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's optional
-stylesheet. It re-asserts the browser defaults the chart's tooltip and
-message overlays rely on, and never overrides the chart's own styling:
+stylesheet. It re-asserts the browser defaults the chart's tooltip and message
+overlays rely on, and never overrides the chart's own styling:
 
 ```js
 import '@mochart/core/mochart.css';
@@ -72,8 +73,8 @@ const dataProvider = new ArrayOfObjectsDataProvider(data);
 
 `width` and `height` are optional. The component renders a container div the
 chart mounts into; whichever dimension you omit tracks that div's size via
-`ResizeObserver`. Size the div with the `className`/`style` props and the
-chart follows it:
+`ResizeObserver`. Size the div with the `className`/`style` props and the chart
+follows it:
 
 ```tsx
 <Chart mochartConfig={mochartConfig} dataProvider={dataProvider} style={{ width: '100%', height: 400 }} />
@@ -86,10 +87,9 @@ container div, for test selectors.
 
 ## When the data changes
 
-Config and data changes are detected **by reference identity**: passing the
-same array or object again, even after mutating it in place, leaves the
-chart unchanged. Idiomatic React state updates already produce new
-references:
+Config and data changes are detected **by reference identity**: passing the same
+array or object again, even after mutating it in place, leaves the chart
+unchanged. Idiomatic React state updates already produce new references:
 
 ```tsx
 // ✓ a new array, so the chart animates to it
@@ -101,9 +101,8 @@ data.push({ month: 'Mar', revenue: 30 });
 
 The same rule applies to `config` on `DefaultChart` and to
 `mochartConfig`/`dataProvider` on `Chart`. For hosts that do mutate data in
-place, the `ref` prop exposes a `ChartRef` handle whose `refresh()`
-re-reads the current data. The built-in providers read live, so any in-place
-change is seen:
+place, the `ref` prop exposes a `ChartRef` handle whose `refresh()` re-reads the
+current data. The built-in providers read live, so any in-place change is seen:
 
 ```tsx
 import { useRef } from 'react';
@@ -119,34 +118,34 @@ chartRef.current?.refresh();
 
 ## Props
 
-Both components accept the chart callbacks (`onChartClick`, `onSliceClick`, `onSeriesClick`,
-`onChartMouseEnter`, `onChartMouseMove`, `onChartMouseLeave`, `onTitleClick`,
-`onFocus`, `onSeriesFilter`, `onSeriesLayoutBoundsChange`) and the placeholder
-components (`loadingComponent`, `errorComponent`, `noDataComponent`,
-`noSizeComponent`, `noSeriesComponent`, `configErrorComponent`). Each
-placeholder prop takes a **React component** that receives the chart context
-(`width`, `height`, `error`, …) as props and is rendered while the chart is in
-that state. Placeholders render through a portal in the host component tree, so
-they read any React context an ancestor provides and follow provider updates.
-The other bindings reach less, each in its own way. Both components also accept
-`loading` and `error` to force the loading or error state.
+Both components accept the chart callbacks (`onChartClick`, `onSliceClick`,
+`onSeriesClick`, `onChartMouseEnter`, `onChartMouseMove`, `onChartMouseLeave`,
+`onTitleClick`, `onFocus`, `onSeriesFilter`, `onSeriesLayoutBoundsChange`) and
+the placeholder components (`loadingComponent`, `errorComponent`,
+`noDataComponent`, `noSizeComponent`, `noSeriesComponent`,
+`configErrorComponent`). Each placeholder prop takes a **React component** that
+receives the chart context (`width`, `height`, `error`, …) as props and is
+rendered while the chart is in that state. Placeholders render through a portal
+in the host component tree, so they read any React context an ancestor provides
+and follow provider updates. The other bindings reach less, each in its own way.
+Both components also accept `loading` and `error` to force the loading or error
+state.
 
 ### Controlled state
 
-Focus and legend filtering are chart-managed by default, but each piece of
-that state has a matching prop that takes over while it is set (not
-`undefined`): `focusedCategoryIndex` (`-1` = none), `focusedSeriesId` and
-`focusedValueAxisId` (`null` = none), and `filteredSeriesIds` (a map of
-series id → `true` = filtered out). Pass back what `onFocus` and
-`onSeriesFilter` report to keep focus and filtering in sync across several
-charts; leave a prop `undefined` to let the chart keep managing that piece
-itself.
+Focus and legend filtering are chart-managed by default, but each piece of that
+state has a matching prop that takes over while it is set (not `undefined`):
+`focusedCategoryIndex` (`-1` = none), `focusedSeriesId` and `focusedValueAxisId`
+(`null` = none), and `filteredSeriesIds` (a map of series id → `true` = filtered
+out). Pass back what `onFocus` and `onSeriesFilter` report to keep focus and
+filtering in sync across several charts; leave a prop `undefined` to let the
+chart keep managing that piece itself.
 
 ## The `development` export condition
 
 In this repository's manifest, the `exports` map has a `development` entry
-pointing at this package's TypeScript sources; the repo's own dev servers,
-tests and `tsx` scripts run the library from source through it. It never
-reaches npm: publishing goes through `pnpm publish`, which replaces the map
-with the dist-only `publishConfig.exports`, so installed copies of this
-package always resolve the built `dist/`.
+pointing at this package's TypeScript sources; the repo's own dev servers, tests
+and `tsx` scripts run the library from source through it. It never reaches npm:
+publishing goes through `pnpm publish`, which replaces the map with the
+dist-only `publishConfig.exports`, so installed copies of this package always
+resolve the built `dist/`.
