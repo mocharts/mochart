@@ -6,7 +6,7 @@
 // against an earlier capture (see compare.mjs).
 //
 // Every port renders from the same `demo.css` and the same DOM class structure,
-// so this drives ANY of the six — point `--base-url` at that port's dev server
+// so this drives ANY of the six. Point `--base-url` at that port's dev server
 // and diff the result against a vanilla capture. The shot matrix below is
 // written in terms of routes and demo ids, both of which every port shares.
 //
@@ -44,7 +44,7 @@ import { fileURLToPath } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..', '..');
 // The only package this harness can start for itself. Any other port has to be
-// running already — which is what makes `--base-url` imply `--no-server`.
+// running already, which is what makes `--base-url` imply `--no-server`.
 const vanillaPackageDir = resolve(repoRoot, 'packages', 'mochart-demo-vanilla');
 
 // ---------------------------------------------------------------------------
@@ -91,7 +91,7 @@ function parseArgs(argv) {
   // `--base-url` implies `--no-server`, and this default is a safety measure
   // rather than a convenience. The only server this harness knows how to start is
   // VANILLA's. Point it at another port, forget `--no-server`, and if that port
-  // happens to be down it starts vanilla there instead — then captures vanilla,
+  // happens to be down it starts vanilla there instead, then captures vanilla,
   // diffs it against vanilla, and reports a flawless 147/147 for a port it
   // never loaded. A silent false pass is the worst failure this tool can have,
   // so the safe choice is the default and `--allow-server` is the opt-out.
@@ -142,7 +142,7 @@ const clickChartCount = { kind: 'click', selector: '[aria-label="Toggle Chart Co
 //
 // Every menu panel is `position: fixed` at coordinates measured from its
 // trigger, so where it lands relative to the viewport edges IS the behaviour
-// under test — that is why these shots are full-viewport rather than scoped to
+// under test. That is why these shots are full-viewport rather than scoped to
 // the menu element, which would frame out exactly the clamping being checked.
 //
 // No per-view prefix: each of these shots is on its own path, so the first menu on the page is the right one.
@@ -159,7 +159,7 @@ const openNotesMenu = {
 };
 
 // The phone fold. On a phone the single-mode chart strip MOVES its secondary
-// controls into a `…` menu (see OverflowMenu.ts — hosts, not mirrors), so the
+// controls into a `…` menu (see OverflowMenu.ts: hosts, not mirrors), so the
 // panel is the only place several of them exist at that width. Scoped to
 // `.chart-controls-menu` so this keeps meaning "the chart pane's fold" once
 // other rows grow one of their own.
@@ -195,7 +195,7 @@ const openRandomOverflowMenu = openOverflowMenuIn('.random-controls');
 const openConfigOverflowMenu = openOverflowMenuIn('.mochart-demo-tab-container.config');
 const openDataOverflowMenu = openOverflowMenuIn('.mochart-demo-tab-container.data');
 
-// The navigation row's own fold, and the only one that opens DOWNWARD — the row
+// The navigation row's own fold, and the only one that opens DOWNWARD, because the row
 // is at the top of the shell, so there is nothing above it to open into. It also
 // folds a different kind of thing from the control strips: two whole navigation
 // destinations, the mode switcher's toolbar, and the notes disclosure below.
@@ -205,7 +205,7 @@ const openNavOverflowMenu = openOverflowMenuIn('.mochart-demo-tabs-container');
 //
 // Above the breakpoint the ⓘ button in the row opens a popover. Below it that
 // button is folded away and the notes render as a disclosure INSIDE the
-// navigation row's overflow panel — a popover nested in that panel could not
+// navigation row's overflow panel. A popover nested in that panel could not
 // work, because the panel hides its subtree with `display: none`. So the same
 // state is reached differently: `revealControl` opens the `…` to get at the row,
 // the row expands in place, and the panel it lives in is the one that must still
@@ -222,14 +222,14 @@ function notesStep(viewport) {
 
 // A right-aligned menu pins its panel `right` from the trigger's distance to the
 // viewport edge, and that offset can be floored at the menu gap. Measured across
-// the whole matrix, the export trigger never gets nearer than 23px to the edge —
-// the demo shell's own padding sees to that — so no real state reaches the
+// the whole matrix, the export trigger never gets nearer than 23px to the edge
+// (the demo shell's own padding sees to that), so no real state reaches the
 // floor, and a shot of one would show nothing either way.
 //
 // This moves the trigger group flush into the bottom-right corner so the raw
 // offset is 0 and the floor is the only thing that can decide where the panel
 // lands. It is applied identically to whichever build is being shot, so the
-// before/after pair isolates exactly that arithmetic — but the resulting page is
+// before/after pair isolates exactly that arithmetic, but the resulting page is
 // NOT a state the app can be in, and these shots are named `flushright` so they
 // are never mistaken for one.
 const flushRightCss = `
@@ -273,9 +273,9 @@ function buildShots(options) {
     //
     //  * the export/share dropdown opens upward and right-aligned, anchored from
     //    the trigger's distance to the right edge (never below 23px in any real
-    //    state — see flushRightCss for the case that pushes it to 0);
+    //    state, and flushRightCss is the case that pushes it to 0);
     //  * the notes panel opens downward and left-aligned with a width clamp, and
-    //    holds prose that can outgrow a short viewport — 896x414 (a landscape
+    //    holds prose that can outgrow a short viewport. 896x414 (a landscape
     //    phone, 414px tall) is the tier where a panel height cap would bind.
     //
     // All three modes get an export menu because each mounts its own instance
@@ -287,7 +287,7 @@ function buildShots(options) {
     }
     push(viewport, `single-${notesDemo}`, `/single/${notesDemo}`, 'menu-notes', 'light', [notesStep(viewport)]);
 
-    // The phone fold's own panel, which exists at no other tier — above the
+    // The phone fold's own panel, which exists at no other tier. Above the
     // phone breakpoint the controls stay in the strip and the trigger is
     // `hidden`, so there is nothing to open and the shot would be a guaranteed
     // failure rather than a missing state.
@@ -302,14 +302,14 @@ function buildShots(options) {
     // The shortest phone tier does double duty: at 896x414 the category panel's
     // `max-height` (the room above a trigger 414px down the screen) is smaller
     // than the eight rows it holds, so that shot is also the `overflow-y: auto`
-    // case — the one that decides what happens as more controls fold in.
+    // case, the one that decides what happens as more controls fold in.
     //
     // The random strip and the two editor footers fold as well, and each sends a
     // different kind of thing over: the random panel takes a button, a toggle
     // and a labelled number input (the one menu row that is not a `.demo-btn`),
     // the Config panel four buttons plus the generated reference-links row, the
     // Data panel two buttons. All three are also the shots that show what stayed
-    // behind — Apply and its `role="alert"` error span are deliberately NOT
+    // behind: Apply and its `role="alert"` error span are deliberately NOT
     // foldable, and only a picture proves they are still in the row.
     //
     // The navigation row's fold gets one too, and it is the shot that has to
@@ -337,7 +337,7 @@ function buildShots(options) {
   // The notes of the default demo still fit the shortest viewport, so on their
   // own they never reach a height cap. This demo's notes are the longest in the
   // gallery (~2.7x), which at 414px of viewport height overflows the room below
-  // its trigger outright — the state a `max-height` would have to handle, and
+  // its trigger outright, the state a `max-height` would have to handle, and
   // the one place a capped panel and an uncapped one cannot look the same.
   // 320x568 repeats it narrow, where the width clamp makes the prose taller
   // still.
@@ -352,7 +352,7 @@ function buildShots(options) {
     push(viewport, `single-${tallNotesDemo}`, `/single/${tallNotesDemo}`, 'menu-notes-tall', 'light', [notesStep(viewport)]);
   }
 
-  // A PROBE, not a state of the app — the only shots here whose page has been
+  // A PROBE, not a state of the app: the only shots here whose page has been
   // restyled by the harness. See flushRightCss.
   for (const name of ['320x568', '390x844']) {
     const viewport = viewports.find(entry => entry.name === name);
@@ -368,7 +368,7 @@ function buildShots(options) {
   // Dark, at the phone tier, of the surfaces the fold introduced.
   //
   // Those panels exist at no other viewport, so the two `chart-group` shots
-  // above cannot cover them — and everything in them arrived by being
+  // above cannot cover them, and everything in them arrived by being
   // reparented out of a strip and restyled BY CONTEXT rather than by swapping
   // classes, which is exactly the chain a light-mode literal hides in. Four
   // panels, because each holds a different kind of thing: the navigation row's
@@ -376,7 +376,7 @@ function buildShots(options) {
   // (eight reparented buttons, most of them disabled in this state), the config
   // footer's (four toggles plus the generated reference-links row, the one menu
   // row made of anchors), and the same panel with the longest note in the
-  // gallery expanded inside it — the only place the disclosure's own title and
+  // gallery expanded inside it, the only place the disclosure's own title and
   // body colours are on screen at a phone width.
   {
     const viewport = viewports.find(entry => entry.name === '390x844');
@@ -413,7 +413,7 @@ async function ensureServer(options) {
     // Naming the port is the useful half of this message: the usual cause is a
     // port-scoped dev server that simply is not running yet.
     throw new Error('no dev server at ' + options.baseUrl
-      + ' — start it first (an explicit --base-url implies --no-server; pass --allow-server'
+      + '. Start it first (an explicit --base-url implies --no-server; pass --allow-server'
       + ' to let the harness start the VANILLA demo on that port instead)');
   }
   const port = new URL(options.baseUrl).port || '5179';
@@ -437,7 +437,7 @@ async function ensureServer(options) {
 // ---------------------------------------------------------------------------
 
 // Charts animate on mount and on every change, and the animation is driven by
-// requestAnimationFrame writing SVG attributes — CSS animation controls cannot
+// requestAnimationFrame writing SVG attributes. CSS animation controls cannot
 // stop it. So rather than sleeping a fixed time, poll a hash of the rendered
 // DOM (which carries every animated geometry attribute) and wait until it stops
 // changing. Same idea as waitForSettledBars() in the demo-basic e2e suite, but
@@ -554,7 +554,7 @@ function overflowTriggerIndexOf(element, selectors) {
  * below the phone breakpoint a control like the mode toggle is still in the
  * document, still the same element, but sitting inside a `display: none` panel.
  * Waiting for it to become visible therefore times out and the step used to be
- * abandoned — which quietly deleted five phone shots from the matrix.
+ * abandoned, which quietly deleted five phone shots from the matrix.
  *
  * Deliberately keyed off the panel class rather than off any particular
  * control: later stages fold more of the strip in, and each one would otherwise
@@ -578,7 +578,7 @@ async function revealControl(page, locator, step) {
 
   const triggerIndex = await locator.evaluate(overflowTriggerIndexOf, selectors);
   if (triggerIndex < 0) {
-    // Not folded away — just hidden. Give it the benefit of the original wait
+    // Not folded away, just hidden. Give it the benefit of the original wait
     // (a control could still be on its way in) and report honestly if not.
     try {
       await locator.waitFor({ state: 'visible', timeout: stepTimeoutMs });
@@ -624,7 +624,7 @@ async function captureShot(browser, options, shot, outPath) {
   const notes = [];
   try {
     // The demo (and its pre-hydration guard in index.html) reads the VitePress
-    // appearance key, so setting it before load themes the very first paint —
+    // appearance key, so setting it before load themes the very first paint,
     // far steadier than clicking the toggle after mount.
     await context.addInitScript(theme => {
       try {
@@ -666,7 +666,7 @@ async function captureShot(browser, options, shot, outPath) {
         if (!await settle(page)) {
           warnings.push('did not settle after opening the overflow menu for ' + describeStep(step));
         }
-        // Not a warning — it is the expected route at this tier. Reported so a
+        // Not a warning: it is the expected route at this tier. Reported so a
         // shot that silently stopped going through the fold is visible in the
         // log rather than only in the pixels.
         notes.push('via overflow menu: ' + describeStep(step));
@@ -696,8 +696,8 @@ async function captureShot(browser, options, shot, outPath) {
     //
     // Both matter for the open-menu shots in particular: opening a
     // menu leaves the pointer on the trigger and focus in it, and the menu items
-    // carry a :hover background. (0, 0) is safe to park on — every panel is
-    // pinned at least one gap in from both edges it anchors to — and moving
+    // carry a :hover background. (0, 0) is safe to park on (every panel is
+    // pinned at least one gap in from both edges it anchors to), and moving
     // there fires no press, so the menu is not dismissed. Neither is blurring:
     // the openers dismiss on outside pointerdown, Escape, scroll and resize,
     // never on focus loss.
@@ -711,10 +711,10 @@ async function captureShot(browser, options, shot, outPath) {
     await settle(page);
 
     // A shot whose whole point is an open menu is worthless if the menu closed,
-    // and one with a stray :hover / :focus-visible would flicker between runs —
+    // and one with a stray :hover / :focus-visible would flicker between runs,
     // so check rather than trust, on every shot.
     const hoverState = await page.evaluate(() => {
-      // Parking at (0, 0) always leaves the pointer over *something* — the html,
+      // Parking at (0, 0) always leaves the pointer over *something*: the html,
       // body and shell containers under that corner are always in `:hover`. Only
       // the things the stylesheet actually restyles on hover can change a pixel,
       // so only those are worth failing over.
@@ -799,14 +799,14 @@ async function main() {
       rmSync(outPath, { force: true });
       const result = await captureShot(browser, options, shot, outPath);
       if (result.failed !== undefined) {
-        failures.push(shot.name + ' — ' + result.failed);
+        failures.push(shot.name + ': ' + result.failed);
         console.log('FAIL ' + shot.name + ' (' + result.failed + ')');
         continue;
       }
       captured++;
       const suffix = result.notes.length > 0 ? ' [' + result.notes.join('; ') + ']' : '';
       if (result.warnings.length > 0) {
-        warned.push(shot.name + ' — ' + result.warnings.join('; '));
+        warned.push(shot.name + ': ' + result.warnings.join('; '));
         console.log('WARN ' + shot.name + ' (' + result.warnings.join('; ') + ')' + suffix);
       }
       else {
@@ -823,7 +823,7 @@ async function main() {
       // run, not for coverage: the open-menu shots (whose hover/focus fallout
       // is the fragile part), the overflow panel (positioned from a measured
       // rect, and scrolled at 896x414), and a phone `chart-series` shot, whose
-      // control is only reachable by opening and dismissing a menu first —
+      // control is only reachable by opening and dismissing a menu first:
       // three extra state changes before the pixels are taken.
       const repeats = shots.filter(shot =>
         /^(1440x900|390x844)__single-.*chart-group__light$/.test(shot.name)
@@ -871,11 +871,11 @@ async function main() {
 
   // A missing shot is the failure this harness exists to prevent. A state that
   // could not be captured drops out of the comparison entirely and shows up as
-  // ONLY-IN-A rather than as a diff — i.e. a hole in the coverage that reads
+  // ONLY-IN-A rather than as a diff, i.e. a hole in the coverage that reads
   // like a pass. So: loud, and non-zero.
   if (failures.length > 0) {
     console.log('\n' + '!'.repeat(72));
-    console.log('!! CAPTURE FAILED — ' + failures.length + ' requested shot(s) were NOT captured.');
+    console.log('!! CAPTURE FAILED: ' + failures.length + ' requested shot(s) were NOT captured.');
     console.log('!! This reference set is INCOMPLETE and must not be used as a baseline.');
     for (const entry of failures) { console.log('!!   ' + entry); }
     console.log('!'.repeat(72));

@@ -1,7 +1,7 @@
 // Publishes every public package through pnpm (which applies publishConfig.exports;
 // npm publish would ship the development condition), in dependency order, skipping
-// versions already on the registry so a re-run after a partial failure — or the
-// release job running on a push with nothing to release — is a no-op.
+// versions already on the registry so a re-run after a partial failure (or the
+// release job running on a push with nothing to release) is a no-op.
 // Extra arguments pass through to `pnpm publish` (e.g. --dry-run, --otp=123456).
 // In changesets pre mode the pre.json tag becomes the npm dist-tag.
 import { execFileSync, spawnSync } from 'node:child_process';

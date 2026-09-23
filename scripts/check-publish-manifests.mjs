@@ -57,7 +57,7 @@ if (!errors.length) {
     execFileSync(pnpm, ['-C', join(packagesDir, 'movalid'), 'pack', '--out', join(scratch, 'movalid.tgz')], { stdio: 'inherit' });
     const packed = JSON.parse(execFileSync('tar', ['-xzOf', join(scratch, 'movalid.tgz'), 'package/package.json'], { encoding: 'utf8' }));
     if (JSON.stringify(packed.exports).includes('"development"')) {
-      errors.push('packed movalid tarball still has a development condition — pnpm did not apply publishConfig.exports');
+      errors.push('packed movalid tarball still has a development condition: pnpm did not apply publishConfig.exports');
     }
     const files = execFileSync('tar', ['-tzf', join(scratch, 'movalid.tgz')], { encoding: 'utf8' });
     if (!files.includes('package/dist/validators.js')) errors.push('packed movalid tarball is missing dist');

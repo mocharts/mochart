@@ -1,13 +1,13 @@
 // Serves the assembled site/ directory locally, mimicking GitHub Pages:
 // static files, directory index.html (301 to add the trailing slash),
 // extensionless .html lookup, and the root 404.html served with status 404
-// for anything missing — which is what makes deep links into the
+// for anything missing, which is what makes deep links into the
 // history-routed demos work (the injected redirect script runs from 404.html).
 //
 // Usage: node scripts/preview-pages.mjs
-//   PAGES_BASE — mount path, must match the base site/ was built with
-//                (defaults to /, i.e. `PAGES_BASE=/ npm run build:pages`)
-//   PORT      — listen port (defaults to 4321)
+//   PAGES_BASE: mount path, must match the base site/ was built with
+//               (defaults to /, i.e. `PAGES_BASE=/ npm run build:pages`)
+//   PORT:       listen port (defaults to 4321)
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import http from 'node:http';
 import { extname, join, resolve, sep } from 'node:path';
@@ -20,7 +20,7 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
 const port = process.env.PORT !== undefined ? Number(process.env.PORT) : 4321;
 
 if (!existsSync(join(siteDir, 'index.html'))) {
-  console.error('site/ has not been assembled yet — run this first:');
+  console.error('site/ has not been assembled yet. Run this first:');
   console.error(`  PAGES_BASE=${base} npm run build:pages`);
   process.exit(1);
 }
@@ -120,6 +120,6 @@ const server = http.createServer((req, res) => {
 server.listen(port, () => {
   console.log(`previewing site/ at http://localhost:${port}${base}`);
   if (base !== '/') {
-    console.log(`(mounted at ${base} — make sure site/ was built with PAGES_BASE=${base})`);
+    console.log(`(mounted at ${base}, so make sure site/ was built with PAGES_BASE=${base})`);
   }
 });

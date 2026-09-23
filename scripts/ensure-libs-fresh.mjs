@@ -27,7 +27,7 @@ function distMtime(pkgDir) {
     return newestMtime(join(pkgDir, 'dist'));
   }
   catch {
-    return 0; // no dist yet — stale by definition
+    return 0; // no dist yet, so stale by definition
   }
 }
 
@@ -44,7 +44,7 @@ export function staleLibs() {
 export function ensureLibsFresh() {
   const stale = staleLibs();
   if (stale.length > 0) {
-    console.log(`library dist is older than src for: ${stale.join(', ')} — running build:libs first`);
+    console.log(`library dist is older than src for: ${stale.join(', ')}. Running build:libs first`);
     execSync('npm run build:libs', { cwd: rootDir, stdio: 'inherit' });
   }
 }

@@ -1,7 +1,7 @@
 // Release dry run: packs every public package with pnpm (the publish path) into
 // pack/, checks each tarball's manifest and contents, and with --smoke installs
 // the tarballs plus their framework peers into a scratch project and imports
-// each package under Node — the closest local stand-in for a consumer install.
+// each package under Node, the closest local stand-in for a consumer install.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
