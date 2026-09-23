@@ -23,8 +23,8 @@ export { expect };
 
 /**
  * Tag for the cross-engine smoke subset: tagged tests run on firefox and webkit
- * as well as chromium (see the projects in playwright.config.ts). Keep it small
- * — one render, one pointer interaction, one keyboard traversal, one export each.
+ * as well as chromium (see the projects in playwright.config.ts). Keep it small:
+ * one render, one pointer interaction, one keyboard traversal, one export each.
  */
 export const smokeTag = '@smoke';
 

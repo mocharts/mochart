@@ -118,7 +118,7 @@ test.describe('donut demo', () => {
     await expect(safariRow).toContainText('20.0%'); // Safari's share of all six slices
     await page.keyboard.press('Escape');
 
-    // filter Chrome (62), the largest slice — Safari's share must grow
+    // filter Chrome (62), the largest slice, and Safari's share must grow
     await page.locator(legendItemSelector).first().click();
     await openTooltip();
     await expect(safariRow).toContainText('52.6%');

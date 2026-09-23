@@ -9,7 +9,7 @@ function artifactPath(subpath: string): string {
   try {
     return require.resolve(subpath);
   } catch {
-    throw new Error(subpath + ' did not resolve — build the library packages first (root npm ci or build:libs)');
+    throw new Error(subpath + ' did not resolve. Build the library packages first (root npm ci or build:libs)');
   }
 }
 

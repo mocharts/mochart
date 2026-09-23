@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// The showcase's smoke suite, separate from the galleries' (own port); Chromium only — clipboard reads need it, and demo-basic already runs the engine matrix.
+// The showcase's smoke suite, separate from the galleries' (own port); Chromium only, because clipboard reads need it and demo-basic already runs the engine matrix.
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
