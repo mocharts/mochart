@@ -373,7 +373,7 @@ changes.
 In this repository's manifest, the `exports` map has a `development` entry
 pointing at this package's TypeScript sources; the repo's own dev servers, tests
 and `tsx` scripts run the library from source through it. It never reaches npm:
-publishing goes through `pnpm publish`, which replaces the map with the
+`pnpm pack` builds the published package and replaces the map with the
 dist-only `publishConfig.exports`, so installed copies of this package always
 resolve the built `dist/`.
 

@@ -16,12 +16,14 @@ npm token exists anywhere.
   ([`.changeset/config.json`](.changeset/config.json) `fixed` group). A release
   bumps and republishes all of them, and rewrites the internal `^` ranges
   (including the bindings' `@mochart/core` peer range) to the new version.
-- **Publishing goes through pnpm**, never `npm publish` or `changeset publish`:
-  pnpm swaps in each package's `publishConfig.exports` at pack time, which
-  strips the monorepo-only `development` export condition. `npm run
-  check:publish` guards this and `scripts/publish-libs.mjs` does the
-  publishing. Both `changeset publish` and `changeset pack` would use `npm`
-  in this npm-workspaces repo, so they are not used.
+- **Packing goes through pnpm**, never `npm pack` or `npm publish` on a
+  package directory: pnpm swaps in each package's `publishConfig.exports` at
+  pack time, which strips the monorepo-only `development` export condition.
+  `scripts/publish-libs.mjs` packs each package with pnpm and publishes the
+  tarball with `npm publish`, so npm handles auth, including trusted
+  publishing. `npm run check:publish` guards the swap. Both `changeset
+  publish` and `changeset pack` would use `npm` in this npm-workspaces repo,
+  so they are not used.
 - **Tags** are per package (`@mochart/core@1.2.0`, …), created by
   `changeset git-tag`; the action turns them into one GitHub Release per
   package with that package's changelog section as the body.
@@ -88,7 +90,7 @@ installing into a real project. Locally:
 
 ```sh
 npm run pack:libs -- --smoke     # tarballs land in pack/
-node scripts/publish-libs.mjs --dry-run   # full pnpm publish --dry-run per package
+node scripts/publish-libs.mjs --dry-run   # pnpm pack + npm publish --dry-run
 ```
 
 ## Pre-releases
@@ -99,7 +101,7 @@ npx changeset pre exit
 ```
 
 `publish-libs.mjs` reads `.changeset/pre.json` and passes the tag to
-`pnpm publish --tag`. Merge the pre-mode toggle like any other change; the
+`npm publish --tag`. Merge the pre-mode toggle like any other change; the
 Version Packages PR follows.
 
 ## Adding a new published package

@@ -249,8 +249,9 @@ jobs:
       - run: npm --version
       # full install: prepare builds every library before publishing
       - run: npm ci
-      # release:publish publishes through pnpm (npm publish would ship the
-      # development export condition) and then runs `changeset git-tag`, whose
+      # release:publish packs with pnpm (npm pack would ship the development
+      # export condition), publishes each tarball with npm (which handles trusted
+      # publishing) and then runs `changeset git-tag`, whose
       # CHANGESETS_OUTPUT events tell the action which tags and GitHub releases
       # to create.
       - uses: changesets/action/publish@v2

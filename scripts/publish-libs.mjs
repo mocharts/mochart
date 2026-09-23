@@ -1,11 +1,13 @@
-// Publishes every public package through pnpm (which applies publishConfig.exports;
-// npm publish would ship the development condition), in dependency order, skipping
-// versions already on the registry so a re-run after a partial failure (or the
-// release job running on a push with nothing to release) is a no-op.
-// Extra arguments pass through to `pnpm publish` (e.g. --dry-run, --otp=123456).
+// Publishes every public package in dependency order: pnpm packs it (applying
+// publishConfig.exports; npm pack would ship the development condition) and npm
+// publishes the tarball, so npm keeps handling auth, including trusted publishing.
+// Versions already on the registry are skipped so a re-run after a partial failure
+// (or the release job running on a push with nothing to release) is a no-op.
+// Extra arguments pass through to `npm publish` (e.g. --dry-run, --otp=123456).
 // In changesets pre mode the pre.json tag becomes the npm dist-tag.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const root = join(import.meta.dirname, '..');
@@ -29,6 +31,9 @@ function isPublished(name, version) {
   }
 }
 
+const packDir = mkdtempSync(join(tmpdir(), 'publish-libs-'));
+process.on('exit', () => rmSync(packDir, { recursive: true, force: true }));
+
 let published = 0;
 for (const dir of packageDirs) {
   const pkgDir = join(root, 'packages', dir);
@@ -39,8 +44,12 @@ for (const dir of packageDirs) {
     continue;
   }
   console.log(`publish-libs: publishing ${name}@${version}`);
-  // cwd rather than `pnpm -C`: pnpm 10.34 forwards -C's directory to npm publish as a stray positional
-  const result = spawnSync(pnpm, ['publish', '--no-git-checks', ...distTag, ...passthrough], { cwd: pkgDir, stdio: 'inherit' });
+  const tarball = join(packDir, `${dir}.tgz`);
+  // stdout is pnpm's full file listing; only failures are worth the log space
+  const packResult = spawnSync(pnpm, ['-C', pkgDir, 'pack', '--out', tarball], { stdio: ['ignore', 'ignore', 'inherit'] });
+  const result = packResult.status === 0
+    ? spawnSync('npm', ['publish', '--ignore-scripts', tarball, ...distTag, ...passthrough], { stdio: 'inherit' })
+    : packResult;
   if (result.status !== 0) {
     console.error(`publish-libs: ${name}@${version} failed; re-run to resume from here`);
     process.exit(result.status ?? 1);

@@ -1,8 +1,9 @@
 name: Release dry run
 
 # Manual rehearsal of the publish path without touching npm: packs all nine
-# public packages exactly as `pnpm publish` would, checks the tarballs, and
-# installs them into a scratch project to import each one. See RELEASE.md.
+# public packages with pnpm exactly as publish-libs.mjs does, checks the
+# tarballs, and installs them into a scratch project to import each one. See
+# RELEASE.md.
 on:
   workflow_dispatch:
 
