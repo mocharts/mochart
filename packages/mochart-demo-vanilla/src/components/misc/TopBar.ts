@@ -122,9 +122,9 @@ export function topBar(props: TopBarProps): TopBarHandle {
    * is, then where else to see it, then how it looks, then the two ways out.
    *
    * Each optional section carries its own trailing divider rather than the list
-   * putting dividers between fixed slots, because `setItems` drops nulls but keeps
-   * dividers, so a demo without notes would otherwise open its menu with a rule
-   * above the first row.
+   * putting dividers between fixed slots, because `setItems` drops nulls but
+   * keeps dividers, so a demo without notes would otherwise open its menu with a
+   * rule above the first row.
    */
   function menuItems(): MenuItem[] {
     // The about row drops its trailing divider when the mode section follows:

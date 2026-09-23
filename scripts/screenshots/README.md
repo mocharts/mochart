@@ -151,8 +151,8 @@ Multi mode is hidden on phones. The export/share menu keeps its own trigger ever
 - **44px touch targets, phone tier only.** WCAG 2.2 **2.5.8 (AA) asks 24×24 and was already met**;
   44×44 is **2.5.5 (AAA)** and the iOS/Material minimum. Costs ~24px of chrome, buys back ~119px of
   wrapped rows. They are affordable *because* of the fold; they would not be on their own.
-- Notes render as an inline disclosure *inside* the overflow panel, not a nested popover, because a panel
-  nested in `.demo-menu` dies when the menu closes.
+- Notes render as an inline disclosure *inside* the overflow panel, not a nested popover, because a
+  panel nested in `.demo-menu` dies when the menu closes.
 
 ## Gotchas that cost real time
 
@@ -194,8 +194,8 @@ Multi mode is hidden on phones. The export/share menu keeps its own trigger ever
    media query measures.
 8. **Close-on-scroll and outside-close.** The reflow listener is capture-phase, so it must ignore
    scroll events originating inside an `overflow-y: auto` panel or the menu closes as you scroll it.
-   Outside-close is bound to `pointerdown`, not `mousedown`, because touch does not synthesise `mousedown`
-   if the chart's interaction layer calls `preventDefault()` on `touchstart`.
+   Outside-close is bound to `pointerdown`, not `mousedown`, because touch does not synthesise
+   `mousedown` if the chart's interaction layer calls `preventDefault()` on `touchstart`.
 9. **Inactive tab panes are `inert`.** They sit offset by `margin-left: -100%`; without `inert` you
    can tab into a hidden pane's `⋯`, and opening it measures a trigger a full viewport-width to the
    left, so the panel lands off-screen.
@@ -204,8 +204,8 @@ Multi mode is hidden on phones. The export/share menu keeps its own trigger ever
 
 Everything reusable lives in `@mochart/demo-common` and needs no per-port work: `menu.ts` (geometry,
 dismissal, controller), `demoText.overflowMenu.*` and the `menuLabel` keys, and every CSS rule. What
-each port re-expresses is markup and the item lists. Those cover the top bar (**6 files each**: `single/`,
-`multi/`, `random/`, `transition/`, `rotation/`, `sparkline/` each build
+each port re-expresses is markup and the item lists. Those cover the top bar (**6 files each**:
+`single/`, `multi/`, `random/`, `transition/`, `rotation/`, `sparkline/` each build
 `.mochart-demo-tabs-container` by hand, and they are *not* identical), plus `single/EditableChart.*`,
 `random/RandomChartTab.*` and `single/{ConfigTab,DataTab}.*`.
 
@@ -223,8 +223,8 @@ Single-sourcing the folded controls is expressed five ways, all equivalent: JSX 
 snippets (svelte), `h()` functional components (vue, whose SFC templates cannot single-source a
 fragment), `<ng-template>` + `ngTemplateOutlet` (angular), and private methods returning
 `TemplateResult` (lit). Content passing likewise: `children` (react), children snippet (svelte),
-named slot (vue), `<ng-content>` (angular), and a **thunk property** (lit, which renders into the light
-DOM via its shared `LightElement`, where `<slot>` does nothing, so a thunk is the package's
+named slot (vue), `<ng-content>` (angular), and a **thunk property** (lit, which renders into the
+light DOM via its shared `LightElement`, where `<slot>` does nothing, so a thunk is the package's
 established idiom, cf. `error-tab`'s `.content`).
 
 Vanilla is the reference implementation: read `misc/TopBar.ts`, `misc/OverflowMenu.ts` and
@@ -247,9 +247,9 @@ re-ran the effect, which closed it again. It worked before the fold only because
 its own **write-only** local `close()`; extracting the shared `Menu` class is what armed it.
 
 Fixed in the class (`close()`'s body is wrapped in `untrack`) rather than at the call site, because
-all three svelte components call `close()` from an effect, and `ExportShareMenu` and `OverflowMenu` were
-previously safe only by accident, via their `if (disabled || !active)` guard. Writes still notify;
-only the reads are hidden. React and vue are immune by construction (neither `useEffect` nor
+all three svelte components call `close()` from an effect, and `ExportShareMenu` and `OverflowMenu`
+were previously safe only by accident, via their `if (disabled || !active)` guard. Writes still
+notify; only the reads are hidden. React and vue are immune by construction (neither `useEffect` nor
 `watch`'s callback auto-tracks), and the imperative ports have no reactive tracking at all.
 
 ### Angular
@@ -258,8 +258,8 @@ only the reads are hidden. React and vue are immune by construction (neither `us
   writes `.open` / `.active` / the `aria-*` / the inline position styles itself; a `[class]` or
   `[style]` binding on the same element is re-applied on the next change-detection pass and wipes
   them. `[disabled]` is safe.
-- The old `ChangeDetectorRef.detectChanges()` dance in both menus is **gone** for open/close, since that
-  never goes through Angular now. It survives only where a signal still drives the template.
+- The old `ChangeDetectorRef.detectChanges()` dance in both menus is **gone** for open/close, since
+  that never goes through Angular now. It survives only where a signal still drives the template.
 - `misc/phone-viewport.ts` wraps `isPhoneViewport`/`watchPhoneViewport` behind `DestroyRef`, so the
   six consumers don't each re-implement teardown.
 

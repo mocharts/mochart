@@ -99,9 +99,10 @@ colors per theme.
 ## What does not follow the page
 
 - **Series colors.** The palette and the color-ramp fields produce concrete
-  colors by design, because chart data should look the same on every page. Restyle
-  them per theme by passing a different config (for example a different
-  [`colorPalette`](/reference/colorPalette)) when your theme changes.
+  colors by design, because chart data should look the same on every page.
+  Restyle them per theme by passing a different config (for example a
+  different [`colorPalette`](/reference/colorPalette)) when your theme
+  changes.
 - **Colors you set yourself.** Any literal color in your config is used
   exactly as written, in every theme.
 - **The tooltip surface**: see below.

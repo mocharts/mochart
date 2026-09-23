@@ -322,8 +322,8 @@ ring switches to `Highlight`.
 
 Series fills and strokes are left as configured. They are SVG presentation
 attributes from the palette, and forcing them to the system palette would
-collapse every series to one color, which is worse than keeping hues the mode did not
-ask about. A chart that has to stay readable there should carry a non-color
+collapse every series to one color, which is worse than keeping hues the mode did
+not ask about. A chart that has to stay readable there should carry a non-color
 encoding as well: distinct
 [`marker.shape`](/reference/series#series.marker.shape) values per series, or
 `strokeDashArray` on lines.
@@ -407,6 +407,6 @@ by the chart's name. With
 `false` or
 [`hidden`](/reference/accessibility#accessibility.hidden) `true` there is no
 `aria-label` to keep, so the export is marked `aria-hidden="true"` instead,
-because an unnamed `role="img"` would be a worse result than the unroled svg it came
-from. Add your own `aria-label`, `figcaption` or adjacent text where you
+because an unnamed `role="img"` would be a worse result than the unroled svg it
+came from. Add your own `aria-label`, `figcaption` or adjacent text where you
 place the image if it needs a name in that case.

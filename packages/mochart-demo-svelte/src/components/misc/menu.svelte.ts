@@ -20,10 +20,10 @@ import type { MenuPlacement } from '@mochart/demo-common';
 //   `aria-controls` / `aria-labelledby`): these are disclosures, not
 //   `role="menu"` menus, for the reasons in demo-common/src/menu.ts.
 //
-// Construct in a component's init (`const menu = new Menu({ … })`), because the
-// dismissal `$effect` needs the component's effect context. Wire the elements
-// with `bind:this={menu.trigger}` / `bind:this={menu.panel}` and spread
-// `{...menu.triggerProps}` / `{...menu.panelProps}`.
+// Construct in a component's init (`const menu = new Menu({ … })`), because
+// the dismissal `$effect` needs the component's effect context. Wire the
+// elements with `bind:this={menu.trigger}` / `bind:this={menu.panel}` and
+// spread `{...menu.triggerProps}` / `{...menu.panelProps}`.
 
 export interface MenuOptions {
   placement?: MenuPlacement;

@@ -66,8 +66,8 @@ export function el<K extends keyof HTMLElementTagNameMap>(
  *
  * It also matters more since the phone fold: each strip now carries its own `…`
  * trigger, so an offscreen pane contributed a focusable button whose measured
- * rect is a full viewport-width to the left, so opening it positioned a panel off
- * the screen entirely.
+ * rect is a full viewport-width to the left, so opening it positioned a panel
+ * off the screen entirely.
  *
  * Do NOT add `aria-hidden` alongside it: `inert` already implies it, and the
  * pair is redundant at best and contradictory at worst.
@@ -255,7 +255,8 @@ export function buttonWithTooltip(options: ButtonOptions): ButtonHandle {
 
   // Equivalent content bails out (compare setChildren): sync passes call this
   // unconditionally with freshly minted icons, and replacing equal children
-  // detaches the pressed node mid-press, and the browser then never fires `click`.
+  // detaches the pressed node mid-press, and the browser then never fires
+  // `click`.
   function contentMatches(desired: readonly (Node | string)[]): boolean {
     const current = button.childNodes;
     if (current.length !== desired.length) {

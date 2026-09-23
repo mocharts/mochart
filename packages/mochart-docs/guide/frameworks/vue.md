@@ -170,11 +170,12 @@ A placeholder is rendered as its own Vue root that carries the chart
 component's **app context**, so it can use globally registered components and
 directives and can `inject()` a value passed to `app.provide()`. It has no
 parent component, so a value an ancestor component supplied with `provide()` is
-not reachable, so `inject()` returns its default (and warns when there is none).
-If a placeholder needs such a value, either move it to `app.provide()`, or
-`inject()` it in the host component and define the placeholder there as a
-component that closes over it. This is narrower than React, where a placeholder
-reads any ancestor's context; see [React](/guide/frameworks/react).
+not reachable, so `inject()` returns its default (and warns when there is
+none). If a placeholder needs such a value, either move it to
+`app.provide()`, or `inject()` it in the host component and define the
+placeholder there as a component that closes over it. This is narrower than
+React, where a placeholder reads any ancestor's context; see
+[React](/guide/frameworks/react).
 
 A placeholder component is also mounted once and kept for the life of the
 chart. Leaving the state removes its markup, but the component instance stays

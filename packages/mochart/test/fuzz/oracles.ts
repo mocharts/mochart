@@ -1,6 +1,7 @@
 // The four tier-1 oracles' primitives: a canonical DOM serialization for comparison, a geometry scan
 // for impossible attribute values, and a deep compare that reports where two objects diverge.
-// Only the leaf ChartDom module is imported here, because the library entry must load after the clock.
+// Only the leaf ChartDom module is imported here, because the library entry must load after the
+// clock.
 import { mochartVersionAttribute } from '../../src/utils/ChartDom';
 
 const UNIQUE_ID_PREFIXES = [

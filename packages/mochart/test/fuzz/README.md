@@ -29,10 +29,10 @@ seconds, so a long run can be read while it is still going.
 ## Shape changes
 
 Alongside the property sweep, each base also runs a small set of cases that change the chart's shape
-rather than a value, because the property sweep can only ever move a value *inside* an entry that already
-exists. Per base: drop each list entry in turn, duplicate the last one, swap the first two, and add or
-remove a data row. About 100 cases in total, a minute of a multi-hour run, checked by the same four
-oracles: reaching a shape by update must match building it directly.
+rather than a value, because the property sweep can only ever move a value *inside* an entry that
+already exists. Per base: drop each list entry in turn, duplicate the last one, swap the first two,
+and add or remove a data row. About 100 cases in total, a minute of a multi-hour run, checked by the
+same four oracles: reaching a shape by update must match building it directly.
 
 Turned off with `--no-structural`. List length and entry order are otherwise never varied, and the
 data is otherwise fixed for the whole run.
@@ -50,11 +50,12 @@ For a base config A and a candidate value producing config B:
 7. compare every input object against its pre-call copy
 
 A case only runs when the mutated config passes `validateConfig` and the config/data pair passes
-`getDataErrors`, because an invalid value is a different experiment (that the validator rejects it is what
-should be checked, and that is not this tier). The `getDataErrors` gate matters because `createChart`
-trusts its input: `DefaultChartInput` runs the same check and swaps in an error provider before the
-controller sees the data, so a pair that fails it is out of contract rather than a bug. Without the
-gate, moving `categoryAxis.type` to `number` over string categories renders `NaN` tick labels.
+`getDataErrors`, because an invalid value is a different experiment (that the validator rejects it is
+what should be checked, and that is not this tier). The `getDataErrors` gate matters because
+`createChart` trusts its input: `DefaultChartInput` runs the same check and swaps in an error provider
+before the controller sees the data, so a pair that fails it is out of contract rather than a bug.
+Without the gate, moving `categoryAxis.type` to `number` over string categories renders `NaN` tick
+labels.
 
 ## Options
 

@@ -83,10 +83,10 @@ export function notesMenu(props: NotesMenuProps): NotesMenuHandle {
   const menuTitleEl = el('span', { className: 'demo-menu-notes-title' });
   const menuBodyEl = el('span', { className: 'demo-menu-notes-body' });
   // `.demo-field` is the overflow panel's existing hook for a row that is not a
-  // `.demo-btn`, and the only thing that gives such a row the same inset the button
-  // rows get from their own padding (see the rule beside it in demo.css). It
-  // carries no layout of its own outside a form, so the title and body keep the
-  // block flow their own classes give them and their text wraps as prose.
+  // `.demo-btn`, and the only thing that gives such a row the same inset the
+  // button rows get from their own padding (see the rule beside it in demo.css).
+  // It carries no layout of its own outside a form, so the title and body keep
+  // the block flow their own classes give them and their text wraps as prose.
   const disclosureEl = el('div', { className: 'demo-field', id: disclosureId }, [menuTitleEl, menuBodyEl]);
   disclosureEl.hidden = true;
 

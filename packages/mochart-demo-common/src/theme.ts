@@ -43,8 +43,8 @@ function writeStoredPreference(value: 'light' | 'dark' | 'auto'): void {
 /**
  * Export background for the current theme. In dark mode @mochart/export
  * inlines the chart's computed (dark-restyled) colors, so the default white
- * background would leave light text unreadable, so paint the demos' dark chart
- * surface instead so exports stay WYSIWYG.
+ * background would leave light text unreadable, so paint the demos' dark
+ * chart surface instead so exports stay WYSIWYG.
  */
 export function getChartExportOptions(): { backgroundColor: string } {
   const dark = document.documentElement.classList.contains(darkClass);

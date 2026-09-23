@@ -104,7 +104,8 @@ const uniqueIdPattern = new RegExp('(' + UNIQUE_ID_PREFIXES.join('|') + ')(\\d+)
 
 /**
  * Normalize markup for stable snapshots: per-instance id counters, version stamps, and comment
- * nodes (vdom empty-child placeholders vs retained-renderer anchors, neither of which affects rendering).
+ * nodes (vdom empty-child placeholders vs retained-renderer anchors, neither of which affects
+ * rendering).
  */
 function normalizeHtml(html: string) {
   return html
@@ -149,8 +150,8 @@ function makeProvider(rows: Row[]): DataProvider {
 
 /**
  * The app's random-mode data for a generator demo at `randomId`: every step re-runs the core chart
- * helper, so it stays a valid chart of its type, because the per-property transforms below would corrupt
- * these demos' structural range/color properties.
+ * helper, so it stays a valid chart of its type, because the per-property transforms below would
+ * corrupt these demos' structural range/color properties.
  */
 function generatorProvider(demo: Demo, mochartConfig: EnhancedMochartConfig, randomId: number): DataProvider {
   return generateDemoDataProvider(demo.generator, mochartConfig, loadJson(randomPaths[demo.random!]), randomId);

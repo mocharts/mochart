@@ -46,8 +46,8 @@
 
 /* Inline color icons inside tooltip rows. Resets commonly force
  * `svg { display: block }`, which wraps the icon's spacer onto a second line.
- * Only `display` is re-asserted, because the default baseline alignment is what puts
- * the icon on the row text. */
+ * Only `display` is re-asserted, because the default baseline alignment is
+ * what puts the icon on the row text. */
 .mochart-tooltip-container svg {
   display: inline-block;
 }

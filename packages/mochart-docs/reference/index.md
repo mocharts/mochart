@@ -9,8 +9,8 @@ The reference has three parts:
   [config validation](/guide/config-model#validation) produce these pages, so
   they cannot drift from the code.
 - **Props and callbacks**: what a chart *instance* takes, as opposed to what
-  its config says. See [Chart props](/reference/props) (sizing, `loading`/`error`,
-  controlled focus and filtering, the state factories),
+  its config says. See [Chart props](/reference/props) (sizing,
+  `loading`/`error`, controlled focus and filtering, the state factories),
   [Callbacks and payloads](/reference/callbacks), and
   [Framework props](/reference/framework-props) for the name each framework
   binding gives those props. Generated from the packages' type declarations.

@@ -1,7 +1,7 @@
 // Without stacks the axis base defaults to the domain minimum, so mixed-sign
-// bars would all grow up from the most negative value. Setting base: 0 makes them
-// grow out of zero instead. The outside labels flip on their own: above
-// positive bars, below negative ones.
+// bars would all grow up from the most negative value. Setting base: 0
+// makes them grow out of zero instead. The outside labels flip on their
+// own: above positive bars, below negative ones.
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {

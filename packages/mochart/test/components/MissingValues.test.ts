@@ -104,8 +104,9 @@ describe('missingValueMode connect category-index remapping', () => {
   });
 
   // Regression: shapes were keyed by the compacted index, so a category appearing earlier in the
-  // series shifted every later shape's key, and the retained list then handed one category's node to
-  // its neighbour and tweened the geometry across, instead of leaving it alone and adding a node.
+  // series shifted every later shape's key, and the retained list then handed one category's node
+  // to its neighbour and tweened the geometry across, instead of leaving it alone and adding a
+  // node.
   it('keeps a category on its own node when an earlier category gains a value', () => {
     const { container, handle } = mountChart(
       makeConfig({ renderer: 'bar', missingValueMode: 'connect' }),

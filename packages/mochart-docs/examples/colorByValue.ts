@@ -30,6 +30,7 @@ export const data = [
   { product: 'Monitors', revenue: 260, margin: 21 },
   { product: 'Audio', revenue: 190, margin: 28 },
   { product: 'Accessories', revenue: 130, margin: 34 },
-  // No margin reported, so colorScale.missing (default gray) colors this bar.
+  // No margin reported, so colorScale.missing (default gray) colors this
+  // bar.
   { product: 'Services', revenue: 110 }
 ];

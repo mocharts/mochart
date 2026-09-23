@@ -80,9 +80,9 @@ there.
 Three ways to handle it:
 
 1. **Render the chart in a font every machine has.** Give the chart text a
-   system font stack in your own CSS, for example `.mochart-chart text { font-family:
-   ui-sans-serif, system-ui, Arial, sans-serif }`. Screen and export then
-   agree, and there is nothing to pass to the export.
+   system font stack in your own CSS, for example `.mochart-chart text {
+   font-family: ui-sans-serif, system-ui, Arial, sans-serif }`. Screen and
+   export then agree, and there is nothing to pass to the export.
 2. **Accept the substitution**, if the chart's typeface does not matter.
 3. **Embed the font** with `fontFaceCss`.
 
@@ -151,8 +151,8 @@ const gridMarkup = getStitchedChartsSvgText([elementA, elementB], { cols: 2 }); 
 ```
 
 `getChartSvgText` and `getStitchedChartsSvgText` return the standalone svg
-markup without triggering a download, which is useful for tests or for piping the
-markup elsewhere.
+markup without triggering a download, which is useful for tests or for piping
+the markup elsewhere.
 
 For TypeScript hosts, the option shapes are exported as `ExportSvgOptions`,
 `ExportPngOptions`, `StitchOptions`, and `StitchPngOptions`.
