@@ -1,4 +1,4 @@
-// Flat ESLint config for the whole monorepo — one config, 20 workspaces.
+// Flat ESLint config for the whole monorepo: one config, 20 workspaces.
 //
 // Scope, deliberately: this catches BUGS, not style. There are no formatting
 // rules (indent/quotes/semi/spacing) because the repo already has a consistent
@@ -68,7 +68,7 @@ export default tseslint.config(
       // A dropped await on a rejected promise is an unhandled rejection that
       // surfaces far from its cause. The highest-value rule in the config.
       '@typescript-eslint/no-floating-promises': 'error',
-      // An async callback passed where a void one is expected — the same bug
+      // An async callback passed where a void one is expected: the same bug
       // wearing a different hat (e.g. an async event handler nobody awaits).
       '@typescript-eslint/no-misused-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',
@@ -107,7 +107,7 @@ export default tseslint.config(
       // editors, and DOM event payloads narrowed by hand. 362 findings that
       // are all the same known decision is not a signal.
       '@typescript-eslint/no-explicit-any': 'off',
-      // The demos log to the console on purpose — invalid config warnings are
+      // The demos log to the console on purpose: invalid config warnings are
       // part of what they demonstrate.
       'no-console': 'off',
       'no-empty': ['error', { allowEmptyCatch: true }],
@@ -125,14 +125,14 @@ export default tseslint.config(
     }
   },
 
-  // React — the hooks rules catch genuine bugs (conditional hooks, stale
+  // React. The hooks rules catch genuine bugs (conditional hooks, stale
   // closures in deps) that no type checker sees.
   {
     files: ['packages/mochart-react/**/*.{ts,tsx}', 'packages/mochart-demo-react/**/*.{ts,tsx}'],
     extends: [reactHooks.configs.flat.recommended],
     rules: {
       // Off because it is wrong here, not because it is inconvenient. ~100 of
-      // its 102 findings were `ref={menu.triggerRef}` — handing a ref object to
+      // its 102 findings were `ref={menu.triggerRef}`, handing a ref object to
       // the `ref` prop, which is the entire purpose of a ref. The rule treats
       // any property read off a custom hook's returned object as a ref *access*
       // during render, and `useMenu()` returns its refs bundled in one object.
@@ -140,7 +140,7 @@ export default tseslint.config(
       // "derive-from-prop-change" patterns, both sanctioned by the React docs.
       'react-hooks/refs': 'off',
       // OFF for now, but unlike `refs` these 5 findings are worth revisiting.
-      // They are real "reset state when a prop/tab changes" effects — the
+      // They are real "reset state when a prop/tab changes" effects, the
       // pattern React would rather see done during render. Rewriting them is a
       // behavioural refactor of components the screenshot gate pins, so it
       // belongs in its own pass, not in a lint rollout.
@@ -170,7 +170,7 @@ export default tseslint.config(
       // The directives are doing real work; ESLint simply cannot reproduce the
       // compiler's analysis, so every finding here is a false positive.
       'svelte/no-unused-svelte-ignore': 'off',
-      // `{' · '}` is a deliberate string literal, not a useless mustache — it
+      // `{' · '}` is a deliberate string literal, not a useless mustache. It
       // pins the exact spacing that raw template text would collapse, and the
       // demos are gated on pixel-identical rendering.
       'svelte/no-useless-mustaches': 'off',
@@ -193,7 +193,7 @@ export default tseslint.config(
     },
     rules: {
       // The demos deliberately use single-word component names that mirror the
-      // other five ports (ChartTab, DataTab) — renaming them for the linter
+      // other five ports (ChartTab, DataTab), and renaming them for the linter
       // would break the cross-port symmetry the screenshot gate depends on.
       'vue/multi-word-component-names': 'off'
     }

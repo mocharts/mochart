@@ -21,33 +21,33 @@ gaps between segments mid-transition.
 Charts are also accessible by default: the keyboard drives the same tooltip,
 legend filtering, and pie-slice interaction as the mouse, assistive tech
 hears roles, labels, and live value announcements, and the reduced-motion
-system preference is honored — all tunable through the `accessibility`
+system preference is honored. All of it is tunable through the `accessibility`
 config section.
 
 ## Packages
 
 | Package | Description |
 | --- | --- |
-| [@mochart/core](packages/mochart/README.md) | The core charting library — animated, interactive SVG charts rendered with a retained-mode renderer (no vdom, no framework). |
+| [@mochart/core](packages/mochart/README.md) | The core charting library: animated, interactive SVG charts rendered with a retained-mode renderer (no vdom, no framework). |
 | [@mochart/angular](packages/mochart-angular/README.md) | Angular components wrapping mochart. |
 | [@mochart/lit](packages/mochart-lit/README.md) | lit-html directives wrapping mochart. |
 | [@mochart/react](packages/mochart-react/README.md) | React components wrapping mochart. |
 | [@mochart/svelte](packages/mochart-svelte/README.md) | Svelte 5 components wrapping mochart. |
 | [@mochart/vue](packages/mochart-vue/README.md) | Vue 3 components wrapping mochart. |
 | [@mochart/export](packages/mochart-export/README.md) | SVG and PNG image export for rendered mochart charts. |
-| [@mochart/editor](packages/mochart-editor/README.md) | Framework-neutral JSON editor with mochart config intelligence — powers the config/data editors in the demo apps. |
-| [@mochart/showcase](packages/mochart-showcase/README.md) | Curated mobile-first feature showcase (private) — charts organized by feature with seeded random data, live editing, share links, and export. |
-| [@mochart/demo-vanilla](packages/mochart-demo-vanilla/README.md) | Full-featured demo gallery in plain TypeScript (private) — the no-framework peer of the framework demo apps. |
-| [@mochart/demo-basic](packages/mochart-demo-basic/README.md) | Minimal no-framework demo harness (private) — smallest integration example; home of the core Playwright e2e suite (the vanilla gallery has its own). |
+| [@mochart/editor](packages/mochart-editor/README.md) | Framework-neutral JSON editor with mochart config intelligence, which powers the config/data editors in the demo apps. |
+| [@mochart/showcase](packages/mochart-showcase/README.md) | Curated mobile-first feature showcase (private): charts organized by feature with seeded random data, live editing, share links, and export. |
+| [@mochart/demo-vanilla](packages/mochart-demo-vanilla/README.md) | Full-featured demo gallery in plain TypeScript (private), the no-framework peer of the framework demo apps. |
+| [@mochart/demo-basic](packages/mochart-demo-basic/README.md) | Minimal no-framework demo harness (private): the smallest integration example, and home of the core Playwright e2e suite (the vanilla gallery has its own). |
 | [@mochart/demo-data](packages/mochart-demo-data/README.md) | Shared demo configs, datasets, and random specs (private) used by every demo app. |
-| [@mochart/demo-common](packages/mochart-demo-common/README.md) | Shared framework-agnostic demo logic (private) — config/data editing helpers, random data generator, and shared types used by every demo app. |
-| [@mochart/benchmark](packages/mochart-benchmark/README.md) | Performance benchmark harness (private) — measures mount/update/frame-time cost of generated charts at configurable sizes. |
-| [@mochart/docs](packages/mochart-docs/README.md) | Documentation site (private) — VitePress guide, recipes with live charts, and a config reference generated from the library's own validators and defaults. |
+| [@mochart/demo-common](packages/mochart-demo-common/README.md) | Shared framework-agnostic demo logic (private): config/data editing helpers, random data generator, and shared types used by every demo app. |
+| [@mochart/benchmark](packages/mochart-benchmark/README.md) | Performance benchmark harness (private) that measures mount/update/frame-time cost of generated charts at configurable sizes. |
+| [@mochart/docs](packages/mochart-docs/README.md) | Documentation site (private): VitePress guide, recipes with live charts, and a config reference generated from the library's own validators and defaults. |
 | [@mochart/movalid](packages/movalid/README.md) | Simple yet powerful chainable JavaScript validators with human-readable error messages. |
 
-Each wrapper framework also has a full-featured demo gallery —
-`@mochart/demo-angular`, `@mochart/demo-lit`, `@mochart/demo-react`,
-`@mochart/demo-svelte`, and `@mochart/demo-vue` (all private) — with three
+Each wrapper framework also has a full-featured demo gallery
+(`@mochart/demo-angular`, `@mochart/demo-lit`, `@mochart/demo-react`,
+`@mochart/demo-svelte`, and `@mochart/demo-vue`, all private) with three
 demo modes (single edits one chart's config and data as JSON, multi steps a
 configurable grid of charts through dataset sizes together, and random
 generates whole seeded random datasets) plus transition, rotation, and
@@ -114,7 +114,7 @@ Target a single package with `-w`, e.g. `npm test -w @mochart/core`. `lint` and
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how the repo fits together — the
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how the repo fits together: the
 config metadata pipeline that feeds validation, the generated docs, and IDE
 hovers; the golden snapshot tests; the demo gallery conventions; and how the
 documentation site is assembled and deployed.

@@ -1,7 +1,7 @@
 # Contributing to mochart
 
 This guide covers how the repo fits together for people changing mochart
-itself — especially the two generated-documentation pipelines: the config
+itself, especially the two generated-documentation pipelines: the config
 metadata one, whose sources feed validation, the reference pages, and IDE
 hovers all at once, and the props one, read straight from the chart type
 declarations. For using the library, start at the
@@ -66,7 +66,7 @@ can never drift from the code:
 - `scripts/configReferenceModel.ts` assembles the structured model;
   `scripts/generator.ts` (`npm run generate-docs -w @mochart/core`) emits
   `generated/config-reference.json`. It **exits
-  non-zero when the three sources disagree** on a section's keys — at every
+  non-zero when the three sources disagree** on a section's keys, at every
   level of nesting, and inside the shape of an array's elements, whose
   defaults come from the `itemDefaults` the section descriptor declares. The
   same script emits the API model described
@@ -75,7 +75,7 @@ can never drift from the code:
 - `scripts/generateJsdoc.ts` (`npm run generate-jsdoc -w @mochart/core`)
   rewrites the JSDoc on the config interfaces in `src/types/config.ts` from
   the same model. `test/config/jsdocSync.test.ts` fails whenever the file is
-  out of date — regenerate rather than hand-edit those comments.
+  out of date, so regenerate rather than hand-edit those comments.
 - The docs site renders its config reference from
   `generated/config-reference.json` at build time, and adds per-property
   "Used in" links from a build-time scan of the docs examples and demo
@@ -87,14 +87,14 @@ can never drift from the code:
 2. Add the default in `src/config/defaults/<section>.ts` (conditional
    defaults live there too; a property that intentionally has no default must
    be whitelisted in `scripts/configReferenceModel.ts`).
-3. Add the description in `src/config/docs/<section>.ts` — and a `getDetails()`
+3. Add the description in `src/config/docs/<section>.ts`, and a `getDetails()`
    entry if one line isn't enough.
 4. Add the typed property to the matching interface in `src/types/config.ts`
-   (just the type — its JSDoc is generated).
+   (just the type, since its JSDoc is generated).
 5. Implement the behavior, then run
    `npm run generate-docs -w @mochart/core` and
    `npm run generate-jsdoc -w @mochart/core`.
-6. `npm test -w @mochart/core` — the parity checks and the JSDoc sync test
+6. Run `npm test -w @mochart/core`. The parity checks and the JSDoc sync test
    confirm the sources agree, and the golden tests catch rendering changes.
 
 ### Adding a new config section
@@ -117,7 +117,7 @@ few generated-docs consumers (each is a simple list):
 Chart props, callbacks, and callback payloads are generated too, from a
 different single source: the **JSDoc on the exported interfaces in
 `packages/mochart/src/types/chart.ts`**. Unlike the config JSDoc, these
-comments are hand-written — they are what ships in the `.d.ts` and what editors
+comments are hand-written. They are what ships in the `.d.ts` and what editors
 show on hover, so the hovers and the reference pages cannot disagree.
 
 - `packages/mochart/scripts/apiReferenceModel.ts` reads those interfaces into
@@ -128,13 +128,13 @@ show on hover, so the hovers and the reference pages cannot disagree.
   model and writes **either both or neither**, so a run that fails its checks
   leaves the previous artifacts in place rather than half-regenerated ones.
 - `packages/mochart-docs/scripts/generateBindings.ts` reads the five binding
-  packages' prop declarations — the `types.ts` prop interfaces, Angular's
-  `@Input`/`@Output` members, and Vue's runtime prop objects in `props.ts` —
+  packages' prop declarations (the `types.ts` prop interfaces, Angular's
+  `@Input`/`@Output` members, and Vue's runtime prop objects in `props.ts`),
   together with `api-reference.json`, into
   `packages/mochart-docs/generated/binding-reference.json`, the model behind
   `/reference/framework-props`. Each binding prop's description is inherited
   from the core prop it maps to, so the prose has one home; a binding prop
-  needs its own JSDoc only when it has no core counterpart — the container
+  needs its own JSDoc only when it has no core counterpart: the container
   props a binding owns itself, such as `className`, `class`, `style`,
   `dataTestId`, and Lit's `chartRef`.
 - All three models render through one dynamic route,
@@ -142,7 +142,7 @@ show on hover, so the hovers and the reference pages cannot disagree.
 
 All three JSON models are gitignored build artifacts. `npm run gen -w @mochart/docs`
 rebuilds all three, and the docs `dev`, `build`, and `test` scripts each run it
-first — so these generators gate the docs build *and* root `npm test`.
+first, so these generators gate the docs build *and* root `npm test`.
 `generator.ts` can also render the model as one standalone html page, by passing
 an output path as its first argument; nothing in the repo asks for it.
 
@@ -151,27 +151,27 @@ an output path as its first argument; nothing in the repo asks for it.
 Besides the config key parity above, each of these is reported as an integrity
 error naming the interface, prop, or package at fault:
 
-- an interface exported from `types/chart.ts` that no page group covers — add
-  a group to `pageSources`, or an entry to `internalInterfaces` with the
-  reason it needs no page (and delete the `internalInterfaces` entry when the
-  interface goes away);
+- an interface exported from `types/chart.ts` that no page group covers,
+  which needs a group added to `pageSources`, or an entry added to
+  `internalInterfaces` with the reason it needs no page (and delete the
+  `internalInterfaces` entry when the interface goes away);
 - a member of a documented interface with no JSDoc description;
 - a binding prop that neither maps to a core prop nor documents itself;
 - a core prop with no counterpart in one of the bindings, unless that
-  binding's `expectedMissing` gives a reason — and a stale `expectedMissing`
+  binding's `expectedMissing` gives a reason. A stale `expectedMissing`
   entry, for a prop the binding has now or that core no longer has, fails the
   same way;
 - Vue's `props.ts` and `types.ts` declaring different prop keys.
 
 `packages/mochart-docs/scripts/checkApiCoverage.ts` is the backstop the
-generators cannot be — it catches a member quietly moving to an interface
+generators cannot be: it catches a member quietly moving to an interface
 nothing documents. It requires that every public export of `@mochart/core`,
 `@mochart/export`, and `@mochart/editor` (resolved through the TypeScript
 checker, so no export syntax hides one) is named on some guide, reference, or
 recipe page; that every `ChartHandle` method appears as a call, `` `method( ``,
 so a rename breaks the check; that every prop-interface member reached the
-api-reference model; and that the non-JS surface — the optional stylesheet
-subpath exports and the script-tag IIFE artifact — is mentioned as well.
+api-reference model; and that the non-JS surface (the optional stylesheet
+subpath exports and the script-tag IIFE artifact) is mentioned as well.
 Exports declared under `src/types/` are exempt: that surface is the generated
 config reference and the shipped `.d.ts`. A name that should stay
 undocumented goes in the script's `undocumented` map with a reason.
@@ -179,11 +179,11 @@ undocumented goes in the script's `undocumented` map with a reason.
 ### Adding a chart prop, callback, or payload field, end to end
 
 1. Add the member to its interface in `packages/mochart/src/types/chart.ts`
-   **with a JSDoc description** — the generator fails without one, and that
+   **with a JSDoc description**. The generator fails without one, and that
    comment is the only place the description is written.
 2. A new payload or props interface also needs a group in `pageSources`
    (`packages/mochart/scripts/apiReferenceModel.ts`), with the title, page,
-   and description the reference should show — or an `internalInterfaces`
+   and description the reference should show, or an `internalInterfaces`
    entry saying why it is not documented.
 3. Implement the behavior in core.
 4. Give all five bindings a counterpart, or a reason not to. The mapper
@@ -196,7 +196,7 @@ undocumented goes in the script's `undocumented` map with a reason.
    reason. Vue declares its props twice, in `src/props.ts` and `src/types.ts`,
    and both must carry the key.
 5. A new public export or `ChartHandle` method also needs a mention on a docs
-   page — a prop or callback does not, since its reference page is generated.
+   page. A prop or callback does not, since its reference page is generated.
 6. Run `npm run gen -w @mochart/docs`, then `npm test -w @mochart/docs` for
    the coverage checks and `npm test -w @mochart/core` for the rest.
 
@@ -210,8 +210,8 @@ undocumented goes in the script's `undocumented` map with a reason.
    guide mention counts too. A literal union type declared in
    `src/config/core/constants.ts` (`MarkerShape`, `DomainChange`, …) is
    instead documented by the generated `/reference/enumerations` page: give it
-   a description in `packages/mochart/scripts/enumerationsModel.ts` — the
-   generator fails without one — and its values and uses are read from the
+   a description in `packages/mochart/scripts/enumerationsModel.ts` (the
+   generator fails without one), and its values and uses are read from the
    source. A name that should stay undocumented goes in the `undocumented`
    map of `packages/mochart-docs/scripts/checkApiCoverage.ts` with a reason.
 3. Run `npm test -w @mochart/docs`; `checkApiCoverage.ts` fails on any export
@@ -230,7 +230,7 @@ npm test -w @mochart/core                 # includes the golden suite
 npx vitest run -u                          # (in packages/mochart) update snapshots
 ```
 
-Review golden diffs like code — an unexpected snapshot change usually means
+Review golden diffs like code. An unexpected snapshot change usually means
 an unintended rendering change.
 
 ## The config fuzzer
@@ -240,7 +240,7 @@ candidate values on a spread of base configs, checking each result against
 four oracles: nothing throws or fails to settle, no `NaN` or negative extent
 reaches a rendered attribute, building config B directly matches updating to
 it from config A, and the inputs come back unmutated. It is not part of the
-gate — reach for it after changing config validation, defaults, or renderer
+gate. Reach for it after changing config validation, defaults, or renderer
 state:
 
 ```sh
@@ -259,7 +259,7 @@ Six feature-equivalent galleries (vanilla + five framework ports) share their
 logic through `@mochart/demo-common` and their configs/datasets through
 `@mochart/demo-data`:
 
-- All user-facing copy lives in demo-common's `demoText` — edit it there
+- All user-facing copy lives in demo-common's `demoText`, so edit it there
   only.
 - A feature added to one gallery's UI is expected in all six (see the share
   button or Config-tab docs links for the pattern: shared logic in
@@ -291,7 +291,7 @@ Points worth knowing when contributing:
 
 - Example configs in `examples/` power the live charts and are validated in
   CI with the library's own `validateConfig`/`getDataErrors`
-  (`npm test -w @mochart/docs`) — a broken example fails the build.
+  (`npm test -w @mochart/docs`), so a broken example fails the build.
 - The config reference pages and their "Used in" links are generated, as are
   the props, callbacks, enumerated-values, and framework-props pages; edit
   the sources (above), not the pages. Two reference pages are still written
@@ -312,7 +312,7 @@ injected into the docs 404.html (GitHub Pages has no rewrites), and a
 `_redirects` file for Cloudflare Pages. `PAGES_BASE` sets the base path
 (defaults to `/mochart/`; CI builds a `/` variant for Cloudflare). Deploys
 are gated behind the `ENABLE_PAGES_DEPLOY` / `ENABLE_CLOUDFLARE_DEPLOY`
-repository variables — see `.github/workflows/ci.yml`.
+repository variables (see `.github/workflows/ci.yml`).
 
 One variable gates two Cloudflare sites. `main` deploys to the `mochart` Pages
 project, which serves www.mochart.org, and `develop` deploys to `mochart-dev`,
@@ -369,5 +369,5 @@ configs, and update the version in the demo configs and docs examples.
 
 The package version is a separate thing: `scripts/stampVersion.ts` copies it
 from `package.json` into the tracked `src/version.ts`. The core build only
-*checks* that copy, so an install never dirties a tracked file — after bumping
+*checks* that copy, so an install never dirties a tracked file. After bumping
 `package.json`, run `npm run stamp-version -w @mochart/core`.

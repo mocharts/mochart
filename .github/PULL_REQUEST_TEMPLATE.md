@@ -19,7 +19,7 @@ CI runs these in this order and stops at the first failure
 - [ ] Config or chart-prop change: regenerated with
       `npm run generate-docs -w @mochart/core`,
       `npm run generate-jsdoc -w @mochart/core` and `npm run gen -w @mochart/docs`
-      — the JSDoc on `src/types/config.ts` is generated, not hand-edited
+      (the JSDoc on `src/types/config.ts` is generated, not hand-edited)
 - [ ] Golden snapshot diffs read like code, and every rendering change in them
       was intended
 - [ ] A demo UI change landed in all six galleries, with the logic in
