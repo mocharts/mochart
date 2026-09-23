@@ -65,16 +65,16 @@ Actions to create and approve pull requests**.
 
 ### If the publish job fails
 
-- **`check:publish` failed** — a package's `publishConfig.exports` drifted from
+- **`check:publish` failed**: a package's `publishConfig.exports` drifted from
   its `exports`; fix the manifest.
-- **`stampVersion: src/version.ts is out of date`** — the version PR was edited
+- **`stampVersion: src/version.ts is out of date`**: the version PR was edited
   by hand after generation; run `npm run stamp-version -w @mochart/core`.
-- **npm 403 / OIDC error** — the trusted publisher on npmjs.com for that
+- **npm 403 / OIDC error**: the trusted publisher on npmjs.com for that
   package must be `mocharts/mochart`, workflow `ci.yml`, no environment, with
   `npm publish` in its allowed actions. Also
   the job needs npm ≥ 11.5 (the job prints `npm --version`; Node 24 bundles a
   compatible one).
-- **A package published, the rest did not** — just re-run the job; published
+- **A package published, the rest did not**: just re-run the job; published
   versions are skipped and tags are created only where missing.
 
 ## Dry run

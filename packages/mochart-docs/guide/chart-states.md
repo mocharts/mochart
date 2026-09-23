@@ -22,12 +22,12 @@ chart.update({ loading: false });          // back to the chart
 chart.update({ error: 'Request failed' }); // show the error state
 ```
 
-- **Loading** — the `loading` prop is `true`
-- **Error** — the `error` prop is set to anything but `null` or `undefined`
+- **Loading**: the `loading` prop is `true`
+- **Error**: the `error` prop is set to anything but `null` or `undefined`
   (`''` and `0` count)
-- **Config error** — the config failed [validation](/guide/config-model#validation)
-- **No data / no series** — the dataset is empty or no series are configured
-- **No size** — width or height is not a positive number (e.g. 0, before the
+- **Config error**: the config failed [validation](/guide/config-model#validation)
+- **No data / no series**: the dataset is empty or no series are configured
+- **No size**: width or height is not a positive number (e.g. 0, before the
   container has been laid out)
 
 A [data provider](/guide/data-providers#the-provider-interface) can drive

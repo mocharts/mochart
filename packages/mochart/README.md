@@ -125,18 +125,18 @@ const chart = createChart(container, { mochartConfig, dataProvider, width: 640, 
 
 Both return a `ChartHandle`:
 
-- `update(nextProps)` — merge new props into the chart; config and data
+- `update(nextProps)`: merge new props into the chart; config and data
   changes animate when animation is enabled, width/height changes re-layout
   instantly. Change detection is by object identity — pass new references,
   or use `refresh` after mutating in place
-- `replace(nextProps)` — replace the props wholesale; a key absent from
+- `replace(nextProps)`: replace the props wholesale; a key absent from
   `nextProps` is unset and returns to chart-managed behavior, where `update`
   would keep its previous value
-- `refresh()` — re-read the current data without a new reference: a default
-  chart rebuilds its provider over `data`, a `createChart` chart calls the
-  provider's optional `refresh()` hook and re-reads it — the escape hatch
-  for hosts that mutate data in place
-- `destroy()` — cancel running tweens and remove the chart's DOM
+- `refresh()`: re-read the current data without a new reference. A default
+  chart rebuilds its provider over `data`, and a `createChart` chart calls the
+  provider's optional `refresh()` hook and re-reads it. This is the escape
+  hatch for hosts that mutate data in place
+- `destroy()`: cancel running tweens and remove the chart's DOM
 
 ## Configuration
 
@@ -176,24 +176,24 @@ writes nothing at all when it fails.
 
 ### Config helpers
 
-- `validateConfig(config, getDefaults(config))` — validate a raw config, returns readable errors
-- `getDefaults(config)` — the per-section defaults `validateConfig` needs as its second argument
-- `migrateConfig(config)` — migrate configs from older versions
-- `enhanceConfig(config)` — validate/default/normalize into a `mochartConfig`
-- `getDataErrors(mochartConfig, dataProvider)` — validate data against a config
+- `validateConfig(config, getDefaults(config))`: validate a raw config, returns readable errors
+- `getDefaults(config)`: the per-section defaults `validateConfig` needs as its second argument
+- `migrateConfig(config)`: migrate configs from older versions
+- `enhanceConfig(config)`: validate/default/normalize into a `mochartConfig`
+- `getDataErrors(mochartConfig, dataProvider)`: validate data against a config
 
 ### Chart helpers
 
 Each returns config fragments and rows to spread into your own config, so the
 chart stays an ordinary xy or pie chart rather than a special mode.
 
-- `createHistogram(values, options)` — bins values into a histogram; `binValues` returns just the bins
-- `createWaterfall(steps, options)` — a running total with rise/fall/total bars; `computeWaterfallSteps` returns just the steps
-- `createHeatmap(rows, options)` — a coloured grid; `createHeatmapColorScale` builds the matching colour ramp
-- `createCandlestick(rows, options)` — open/high/low/close candles; `computeCandlesticks` returns just the derived values
-- `createOhlc(rows, options)` — the same data drawn as open/close ticks on a high/low bar
-- `createPie(slices, options)` — a pie or donut; `computePieFractions` returns just the slice shares
-- `createSparklineConfig(config, options)` — strips a chart config down to a tiny inline chart: axes, legend, tooltip and markers off, margins collapsed
+- `createHistogram(values, options)`: bins values into a histogram; `binValues` returns just the bins
+- `createWaterfall(steps, options)`: a running total with rise/fall/total bars; `computeWaterfallSteps` returns just the steps
+- `createHeatmap(rows, options)`: a coloured grid; `createHeatmapColorScale` builds the matching colour ramp
+- `createCandlestick(rows, options)`: open/high/low/close candles; `computeCandlesticks` returns just the derived values
+- `createOhlc(rows, options)`: the same data drawn as open/close ticks on a high/low bar
+- `createPie(slices, options)`: a pie or donut; `computePieFractions` returns just the slice shares
+- `createSparklineConfig(config, options)`: strips a chart config down to a tiny inline chart: axes, legend, tooltip and markers off, margins collapsed
 
 See the [chart helpers reference](https://mochart.org/reference/api) for the full options.
 
@@ -201,8 +201,8 @@ See the [chart helpers reference](https://mochart.org/reference/api) for the ful
 
 Two dataset shapes are supported out of the box:
 
-- `ArrayOfObjectsDataProvider` — `[{ month: 'Jan', revenue: 10 }, …]`
-- `ObjectOfArraysDataProvider` — `{ month: ['Jan', …], revenue: [10, …] }`
+- `ArrayOfObjectsDataProvider`: `[{ month: 'Jan', revenue: 10 }, …]`
+- `ObjectOfArraysDataProvider`: `{ month: ['Jan', …], revenue: [10, …] }`
 
 `createDefaultChart` wraps its `data` in whichever built-in provider matches
 its shape automatically; `createChart` accepts any object implementing the
@@ -234,21 +234,21 @@ createDefaultChart(container, {
 });
 ```
 
-- `onFocus(focus)` — the focused series/category/axis changed (pointer over/out or
+- `onFocus(focus)`: the focused series/category/axis changed (pointer over/out or
   click, per the series' `focusOnHover`/`focusOnClick` config)
-- `onSeriesFilter(filter)` — a legend click toggled a series in/out of the
+- `onSeriesFilter(filter)`: a legend click toggled a series in/out of the
   filtered set
 - `onChartClick` / `onChartMouseEnter` / `onChartMouseMove` /
   `onChartMouseLeave` — plot-area pointer events with chart coordinates and
   the nearest category index
-- `onSliceClick(payload)` — a slice of a pie or donut chart was clicked
+- `onSliceClick(payload)`: a slice of a pie or donut chart was clicked
   (fires only on click, unlike `onFocus`, so it can anchor selection)
-- `onSeriesClick(payload)` — a cartesian series shape (bar, marker, label, or
+- `onSeriesClick(payload)`: a cartesian series shape (bar, marker, label, or
   line/area path) was clicked; reports the series id, the shape's category
   index (`-1` for a whole-series path), and the nearest category index. Fires
   whether or not `focusOnClick` is set — the cartesian counterpart of
   `onSliceClick`
-- `onSeriesLayoutBoundsChange(bounds)` — the plot area was re-laid-out
+- `onSeriesLayoutBoundsChange(bounds)`: the plot area was re-laid-out
 
 ## Loading, error, and empty states
 
@@ -301,11 +301,11 @@ see which property is at fault.
 
 ## Framework wrappers
 
-- [@mochart/angular](https://github.com/mocharts/mochart/tree/main/packages/mochart-angular) — Angular components
-- [@mochart/lit](https://github.com/mocharts/mochart/tree/main/packages/mochart-lit) — lit-html directives
-- [@mochart/react](https://github.com/mocharts/mochart/tree/main/packages/mochart-react) — React components
-- [@mochart/svelte](https://github.com/mocharts/mochart/tree/main/packages/mochart-svelte) — Svelte 5 components
-- [@mochart/vue](https://github.com/mocharts/mochart/tree/main/packages/mochart-vue) — Vue 3 components
+- [@mochart/angular](https://github.com/mocharts/mochart/tree/main/packages/mochart-angular): Angular components
+- [@mochart/lit](https://github.com/mocharts/mochart/tree/main/packages/mochart-lit): lit-html directives
+- [@mochart/react](https://github.com/mocharts/mochart/tree/main/packages/mochart-react): React components
+- [@mochart/svelte](https://github.com/mocharts/mochart/tree/main/packages/mochart-svelte): Svelte 5 components
+- [@mochart/vue](https://github.com/mocharts/mochart/tree/main/packages/mochart-vue): Vue 3 components
 
 Each wrapper adds automatic container sizing (omit `width`/`height` to track
 the container) on top of the same chart props.

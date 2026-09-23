@@ -104,7 +104,7 @@ colors per theme.
   [`colorPalette`](/reference/colorPalette)) when your theme changes.
 - **Colors you set yourself.** Any literal color in your config is used
   exactly as written, in every theme.
-- **The tooltip surface** — see below.
+- **The tooltip surface**: see below.
 
 ## Dark mode
 

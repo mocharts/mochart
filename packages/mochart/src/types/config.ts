@@ -583,8 +583,8 @@ export interface ClipIndicatorConfig {
    * happens when an axis min or max excludes some of the values.
    *
    * Default:
-   * - `false` — when chart.type is pie
-   * - `true` — when chart.type is xy
+   * - `false`: when chart.type is pie
+   * - `true`: when chart.type is xy
    */
   visible: boolean;
   /**
@@ -629,10 +629,10 @@ export interface ClipIndicatorConfig {
    *
    * Default:
    * - `{ strokeColor: "currentColor", strokeOpacity: 0.4, strokeWidth: 1,
-   *   strokeDashArray: null, fillColor: "currentColor", fillOpacity: 0.4 }` —
+   *   strokeDashArray: null, fillColor: "currentColor", fillOpacity: 0.4 }`:
    *   when hatch is set
    * - `{ strokeColor: null, strokeOpacity: 0, strokeWidth: null,
-   *   strokeDashArray: null, fillColor: "currentColor", fillOpacity: 0.15 }` —
+   *   strokeDashArray: null, fillColor: "currentColor", fillOpacity: 0.15 }`:
    *   when hatch is null
    */
   style: Style;
@@ -1367,8 +1367,8 @@ export interface LegendConfig {
    * Whether the legend should be visible.
    *
    * Default:
-   * - `true` — when series.length is > 1
-   * - `false` — when series.length is <= 1
+   * - `true`: when series.length is > 1
+   * - `false`: when series.length is <= 1
    */
   visible: boolean;
   /**
@@ -1522,8 +1522,8 @@ export interface TooltipConfig {
    * or at the click/tap position (false).
    *
    * Default:
-   * - `false` — when chart.type is pie
-   * - `true` — when chart.type is xy
+   * - `false`: when chart.type is pie
+   * - `true`: when chart.type is xy
    */
   snapToCategory: boolean;
   /**
@@ -1582,8 +1582,8 @@ export interface TooltipConfig {
    * tooltip.
    *
    * Default:
-   * - `false` — when chart.type is pie
-   * - `true` — when chart.type is xy
+   * - `false`: when chart.type is pie
+   * - `true`: when chart.type is xy
    */
   showCategory: boolean;
   /**
@@ -2228,11 +2228,11 @@ export interface AxisGridLineConfig {
    * ("major" uses the value of gridLine.visible).
    *
    * Category axis defaults:
-   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
-   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   * - `false`: when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"`: when tickLabel.minorFormat is set or ticks is set
    * Value axis defaults:
-   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
-   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   * - `false`: when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"`: when tickLabel.minorFormat is set or ticks is set
    */
   minorVisible: boolean | Major;
   /**
@@ -2290,11 +2290,11 @@ export interface AxisTickMarkConfig {
    * ("major" uses the value of tickMark.visible).
    *
    * Category axis defaults:
-   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
-   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   * - `false`: when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"`: when tickLabel.minorFormat is set or ticks is set
    * Value axis defaults:
-   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
-   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   * - `false`: when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"`: when tickLabel.minorFormat is set or ticks is set
    */
   minorVisible: boolean | Major;
   /**
@@ -2457,11 +2457,11 @@ export interface AxisTickLabelConfig {
    * the layout, and `visible: false` hides the minor labels whatever this says.
    *
    * Category axis defaults:
-   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
-   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   * - `false`: when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"`: when tickLabel.minorFormat is set or ticks is set
    * Value axis defaults:
-   * - `false` — when tickLabel.minorFormat is "major" and ticks is null
-   * - `"major"` — when tickLabel.minorFormat is set or ticks is set
+   * - `false`: when tickLabel.minorFormat is "major" and ticks is null
+   * - `"major"`: when tickLabel.minorFormat is set or ticks is set
    */
   minorVisible: boolean | Major;
   /**
@@ -2755,8 +2755,8 @@ export interface AxisConfigBase {
    * the chart.
    *
    * Category axis defaults:
-   * - `"start"` — when plot.inverted is true
-   * - `"end"` — when plot.inverted is false
+   * - `"start"`: when plot.inverted is true
+   * - `"end"`: when plot.inverted is false
    * Value axis default: `"start"`.
    */
   side: AxisSide;
@@ -2837,8 +2837,8 @@ export interface AxisConfigBase {
    * disable the maximum).
    *
    * Category axis defaults:
-   * - `10` — when scale is linear
-   * - `0` — when scale is ordinal
+   * - `10`: when scale is linear
+   * - `0`: when scale is ordinal
    * Value axis default: `10`.
    */
   maxTickCount: number;
@@ -2867,8 +2867,8 @@ export interface AxisConfigBase {
    * text.
    *
    * Category axis defaults:
-   * - `12` — when scale is linear
-   * - `4` — when scale is ordinal
+   * - `12`: when scale is linear
+   * - `4`: when scale is ordinal
    * Value axis default: `12`.
    */
   minTickSpacing: number;
@@ -3029,11 +3029,11 @@ export interface AxisConfigBase {
    * visibility properties, and can remain visible when the axis is hidden.
    *
    * Category axis defaults:
-   * - `false` — when chart.type is pie
-   * - `true` — when chart.type is xy
+   * - `false`: when chart.type is pie
+   * - `true`: when chart.type is xy
    * Value axis defaults:
-   * - `false` — when chart.type is pie
-   * - `true` — when chart.type is xy
+   * - `false`: when chart.type is pie
+   * - `true`: when chart.type is xy
    */
   visible: boolean;
 }
@@ -3451,9 +3451,9 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * is set, otherwise the smallest value in the data.
    *
    * Default:
-   * - `0` — when chart.type is pie
-   * - `0` — value axis has stacks
-   * - `null` — value axis has no stacks
+   * - `0`: when chart.type is pie
+   * - `0`: value axis has stacks
+   * - `null`: value axis has no stacks
    */
   base: number | null;
   /**
@@ -3906,10 +3906,10 @@ export interface SeriesMarkerConfig {
    * square, star, triangle, wye) (use null for none).
    *
    * Default:
-   * - `null` — when renderer is bar
-   * - `"circle"` — when renderer is line
-   * - `"circle"` — when renderer is area
-   * - `"circle"` — when renderer is none
+   * - `null`: when renderer is bar
+   * - `"circle"`: when renderer is line
+   * - `"circle"`: when renderer is area
+   * - `"circle"`: when renderer is none
    */
   shape: MarkerShape | null;
   /**
@@ -4082,8 +4082,8 @@ export interface SeriesConfig {
    * The color ramp the series color values are mapped through.
    *
    * Default:
-   * - `null` — when chart type is not xy or renderer is not bar
-   * - `the members below` — when chart type is xy and renderer is bar
+   * - `null`: when chart type is not xy or renderer is not bar
+   * - `the members below`: when chart type is xy and renderer is bar
    */
   colorScale: SeriesColorScale | null;
   /**
@@ -4131,7 +4131,7 @@ export interface SeriesConfig {
    * colorProperty).
    *
    * Default:
-   * - `sole gradient id` — when chart type is pie or renderer is area or bar,
+   * - `sole gradient id`: when chart type is pie or renderer is area or bar,
    *   colorProperty is null, and no shapeStyle fillColor is categoryIndex
    */
   gradient: string | null;
@@ -4140,7 +4140,7 @@ export interface SeriesConfig {
    * a pie slice (use null for none; cannot be combined with gradient).
    *
    * Default:
-   * - `sole pattern id` — when chart type is pie or renderer is area or bar
+   * - `sole pattern id`: when chart type is pie or renderer is area or bar
    */
   pattern: string | null;
   /**
@@ -4197,10 +4197,10 @@ export interface SeriesConfig {
    * at its category position.
    *
    * Default:
-   * - `false` — when renderer is bar
-   * - `true` — when renderer is line
-   * - `true` — when renderer is area
-   * - `false` — when renderer is none
+   * - `false`: when renderer is bar
+   * - `true`: when renderer is line
+   * - `true`: when renderer is area
+   * - `false`: when renderer is none
    */
   animateBaseFromAdjacent: boolean;
   /**
@@ -4303,8 +4303,8 @@ export interface SeriesConfig {
    * Whether to show the series in the legend.
    *
    * Default:
-   * - `false` — when followSeries is not null
-   * - `true` — when followSeries is null
+   * - `false`: when followSeries is not null
+   * - `true`: when followSeries is null
    */
   showInLegend: boolean;
   /**
@@ -4671,21 +4671,21 @@ export interface PatternConfig {
    * pattern.
    *
    * Default:
-   * - `45` — when type is lines or crosshatch
+   * - `45`: when type is lines or crosshatch
    */
   rotation?: number;
   /**
    * The width (in pixels) of the strokes in a lines or crosshatch pattern.
    *
    * Default:
-   * - `2` — when type is lines or crosshatch
+   * - `2`: when type is lines or crosshatch
    */
   lineWidth?: number;
   /**
    * The radius (in pixels) of each dot in a dots pattern.
    *
    * Default:
-   * - `2` — when type is dots
+   * - `2`: when type is dots
    */
   radius?: number;
 }

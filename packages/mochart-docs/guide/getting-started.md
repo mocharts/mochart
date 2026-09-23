@@ -169,7 +169,7 @@ A few boundaries:
   track the container when `width`/`height` are omitted. It is
   feature-detected: without it, charts with explicit sizes are unaffected —
   omitted dimensions just stop tracking the container.
-- **Server-side rendering** — the core `createChart`/`createDefaultChart`
+- **Server-side rendering**: the core `createChart`/`createDefaultChart`
   need a real DOM; do not call them during server rendering. The five
   framework bindings can be rendered on the server without guards: they emit
   only their container (or nothing) there and mount the chart in the browser
@@ -177,11 +177,11 @@ A few boundaries:
   falls back to its no-DOM render path, and Vue/Svelte mount hooks are
   client-only). Nothing of the chart itself is server-rendered; each
   framework guide has the details.
-- **Test environments** — jsdom has no SVG layout engine; shim
+- **Test environments**: jsdom has no SVG layout engine; shim
   `getBBox`/`getComputedTextLength`/`getSubStringLength` to return zero
   sizes and the chart takes its documented default-bounds fallbacks (the
   binding test suites show the shims).
-- **Export** — [`@mochart/export`](/guide/export) additionally uses
+- **Export**: [`@mochart/export`](/guide/export) additionally uses
   `XMLSerializer`, `Blob`/`URL.createObjectURL`, and (for PNG) a 2D canvas
   decoding an SVG image — all baseline in the supported browsers. Exports
   inline the chart's computed styles but do not embed font files: an
@@ -190,22 +190,22 @@ A few boundaries:
 
 ## Where to go next
 
-- [The config model](/guide/config-model) — how config sections, shared
+- [The config model](/guide/config-model): how config sections, shared
   `*Defaults` sections, defaults, and validation fit together
-- [Staged animation](/guide/staged-animation) — what animates, in what order,
+- [Staged animation](/guide/staged-animation): what animates, in what order,
   and how to tune it
-- [Interaction](/guide/interaction) — focus, legend filtering, tooltip,
+- [Interaction](/guide/interaction): focus, legend filtering, tooltip,
   crosshair, and the callback props
-- [Accessibility](/guide/accessibility) — the keyboard map, screen-reader
+- [Accessibility](/guide/accessibility): the keyboard map, screen-reader
   behavior, and reduced-motion support, on by default and tuned via the
   `accessibility` config section
-- [Colors, theming, and dark mode](/guide/theming) — customize series
+- [Colors, theming, and dark mode](/guide/theming): customize series
   palettes; chart chrome follows your page's CSS `color`, dark mode included
-- [Exporting images](/guide/export) — download any chart as a standalone
+- [Exporting images](/guide/export): download any chart as a standalone
   SVG or PNG file
-- [Recipes](/recipes/stacked-bars) — working configs for common chart shapes
-- The [Showcase](/showcase/) — a mobile-first tour of the library's features,
+- [Recipes](/recipes/stacked-bars): working configs for common chart shapes
+- [Showcase](/showcase/): a mobile-first tour of the library's features,
   curated chart by chart with seeded random data and live editing
-- The demo galleries ([Vanilla](/vanilla/demos), [Angular](/angular/demos),
-  [Lit](/lit/demos), [React](/react/demos), [Svelte](/svelte/demos), [Vue](/vue/demos)) — browse
-  dozens of demo charts and edit their configs and data live
+- Demo galleries: browse dozens of demo charts and edit their configs and
+  data live, in [Vanilla](/vanilla/demos), [Angular](/angular/demos),
+  [Lit](/lit/demos), [React](/react/demos), [Svelte](/svelte/demos), or [Vue](/vue/demos)

@@ -190,7 +190,7 @@ function conditionalDefaultLines(conditionals: ConditionalDefaultValue[]): strin
   const lines = ['Default:'];
   for (const conditional of conditionals) {
     const text = defaultValueText(conditional.value);
-    lines.push('- `' + (text ?? 'none') + '` — ' + conditional.condition);
+    lines.push('- `' + (text ?? 'none') + '`: ' + conditional.condition);
   }
   return lines;
 }

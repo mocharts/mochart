@@ -71,9 +71,9 @@ and it is *not* the same thing as a difference.
 Gitignored (`scripts/screenshots/refs`, ~12MB of PNGs). The harness itself is tracked; only the
 images are not.
 
-- **`refs/baseline-prework`** — 69 shots from before any of the mobile-fold work changed a line.
+- **`refs/baseline-prework`**: 69 shots from before any of the mobile-fold work changed a line.
   Irreplaceable: it cannot be re-captured, because the code that produced it no longer exists.
-- **`refs/current`** — 147 shots of the finished vanilla state. Diff against this after any change to
+- **`refs/current`**: 147 shots of the finished vanilla state. Diff against this after any change to
   shared code, and to verify a port.
 
 **The claim worth preserving:** every shot at 1440×900, 901×800, 700×900, 820×1180 and 641×800 that
@@ -273,20 +273,20 @@ the first render commits.
 
 React and lit landed 147/147 on the first complete run. The other three did not:
 
-- **Vue** — the notes-disclosure chevron was wrapped in a positioning span instead of being
+- **Vue**: the notes-disclosure chevron was wrapped in a positioning span instead of being
   positioned itself (13×9px). De-wrapped in all three reactive ports.
-- **Svelte** — captured 142/147, and the 5 missing shots were the runes trap above: the find of the
+- **Svelte**: captured 142/147, and the 5 missing shots were the runes trap above, the find of the
   whole exercise. A functional DOM probe had passed, because it asserted the trigger *exists*, not
   that clicking it opens anything. The harness caught it because it waits for `.demo-menu.open` to be
   visible before shooting, and fails loudly when it never arrives.
-- **Angular** — two defects that *predate* this work: (1) every button had a **duplicate `id`**,
+- **Angular**: two defects that *predate* this work. (1) Every button had a **duplicate `id`**,
   because a static `id="edit-mode"` attribute binds to `ButtonWithTooltip`'s input *and* renders onto
   the host, so the id existed on both a `display: contents` wrapper and the real `<button>`
-  (`getElementById` returned the wrapper). Fixed with `host: { '[attr.id]': 'null' }` — one line,
-  ~40 call sites. (2) Tab labels rendered as `" Chart"` / `" Config "`, because Angular collapses a
-  template's newline+indent to a single space rather than dropping it. Visually harmless, but it
-  broke the harness's exact-match tab selector and cost 30 shots. Fixed by putting the interpolation
-  flush against the tags.
+  (`getElementById` returned the wrapper). Fixed with `host: { '[attr.id]': 'null' }`, a one-line
+  change covering ~40 call sites. (2) Tab labels rendered as `" Chart"` / `" Config "`, because
+  Angular collapses a template's newline+indent to a single space rather than dropping it. Visually
+  harmless, but it broke the harness's exact-match tab selector and cost 30 shots. Fixed by putting
+  the interpolation flush against the tags.
 
 Three of five runs turned up something a green functional check had passed over. Run the pixels.
 

@@ -2,21 +2,21 @@
 
 The reference has three parts:
 
-- **Config sections** — this page and the pages it links to, one per section
-  of a mochart config (`chart`, `series`, `categoryAxis`, …): every property,
-  its rules, and its default. Generated from the library source — the same
-  descriptions, validators, and defaults that power
+- **Config sections**: this page and the pages it links to, one per section
+  of a mochart config (`chart`, `series`, `categoryAxis`, …). Each lists every
+  property, its rules, and its default. Generated from the library source.
+  The same descriptions, validators, and defaults that power
   [config validation](/guide/config-model#validation) produce these pages, so
   they cannot drift from the code.
-- **Props and callbacks** — what a chart *instance* takes, as opposed to what
-  its config says: [Chart props](/reference/props) (sizing, `loading`/`error`,
+- **Props and callbacks**: what a chart *instance* takes, as opposed to what
+  its config says. See [Chart props](/reference/props) (sizing, `loading`/`error`,
   controlled focus and filtering, the state factories),
-  [Callbacks and payloads](/reference/callbacks), and the name each framework
-  binding gives those props in [Framework props](/reference/framework-props).
-  Generated from the packages' type declarations.
-- **[API](/reference/api)** — the functions and classes `@mochart/core`
-  exports: the entry points and `ChartHandle`, the data providers, the config
-  and chart helpers, constants, and `mochartCssClasses`. The literal types
+  [Callbacks and payloads](/reference/callbacks), and
+  [Framework props](/reference/framework-props) for the name each framework
+  binding gives those props. Generated from the packages' type declarations.
+- **[API](/reference/api)**: the functions and classes `@mochart/core`
+  exports (the entry points and `ChartHandle`, the data providers, the config
+  and chart helpers, constants, and `mochartCssClasses`). The literal types
   behind the enumerated config values (`RendererType`, `CurveType`, …) have
   their own generated page, [Enumerated values](/reference/enumerations).
 

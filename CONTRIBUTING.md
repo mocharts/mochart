@@ -102,13 +102,13 @@ can never drift from the code:
 Beyond the three sources and the type, a new section must be registered in a
 few generated-docs consumers (each is a simple list):
 
-- `scripts/configReferenceModel.ts` — the `getSectionSources()` descriptor
+- `scripts/configReferenceModel.ts`: the `getSectionSources()` descriptor
   list (and `sectionKeyAllMap` handling if it has a companion `*Defaults` section).
-- `scripts/generateJsdoc.ts` — `sectionInterfaceMap`.
-- `packages/mochart-demo-common/src/docsLinks.ts` — the section id list that
+- `scripts/generateJsdoc.ts`: `sectionInterfaceMap`.
+- `packages/mochart-demo-common/src/docsLinks.ts`: the section id list that
   drives the demo Config tab's reference links (enforced by that package's
   `docsLinks.test.ts` coverage guard).
-- `packages/mochart-docs/.vitepress/lib/usageIndex.ts` — the object/list
+- `packages/mochart-docs/.vitepress/lib/usageIndex.ts`: the object/list
   section id sets (enforced by the docs `scripts/checkSectionCoverage.ts`
   check in its test script).
 

@@ -140,27 +140,27 @@ createDefaultChart(container, {
 });
 ```
 
-- `onFocus(focus)` — the focused series/category/value axis changed (see
-  [Focus](#focus): series and legend focus are opt-in, tooltip-driven category
-  focus is on by default)
-- `onSeriesFilter(filter)` — a legend click toggled a series in or out of
+- `onFocus(focus)`: the focused series/category/value axis changed. Series
+  and legend focus are opt-in, and tooltip-driven category focus is on by
+  default (see [Focus](#focus))
+- `onSeriesFilter(filter)`: a legend click toggled a series in or out of
   the filtered set
 - `onChartClick` / `onChartMouseEnter` / `onChartMouseMove` /
   `onChartMouseLeave` — plot-area pointer events with chart coordinates and
   the nearest category index
-- `onSliceClick(payload)` — a slice of a [pie or donut](/recipes/pie) chart
+- `onSliceClick(payload)`: a slice of a [pie or donut](/recipes/pie) chart
   was clicked
-- `onSeriesClick(payload)` — a cartesian series shape (bar, marker, label, or
+- `onSeriesClick(payload)`: a cartesian series shape (bar, marker, label, or
   line/area path) was clicked; reports the series id, the shape's category
   index (`-1` for a whole-series path), and the category index nearest the
   pointer. Fires whether or not the series' `focusOnClick` config is set, and
   only on click — the cartesian counterpart of `onSliceClick`
-- `onTitleClick()` — the chart title was clicked or activated from the
+- `onTitleClick()`: the chart title was clicked or activated from the
   keyboard. Supplying it makes the title a button — tab stop, `role="button"`,
   an accessible name from the title text, Enter and Space — unless
   [`title.link`](/reference/title#title.link) is set, where the anchor already
   provides that (see also `linkDisabled`)
-- `onSeriesLayoutBoundsChange(bounds)` — the plot area was re-laid-out
+- `onSeriesLayoutBoundsChange(bounds)`: the plot area was re-laid-out
 
 The four pointer callbacks share one payload
 ([`ChartEventPayload`](/reference/callbacks#chartEventPayload): pointer
@@ -198,7 +198,7 @@ what the callbacks report to keep several charts in sync:
   none), [`focusedSeriesId`](/reference/props#props.focusedSeriesId) and
   [`focusedValueAxisId`](/reference/props#props.focusedValueAxisId)
   (`null` = none) — the controlled form of `onFocus`
-- [`filteredSeriesIds`](/reference/props#props.filteredSeriesIds) — the
+- [`filteredSeriesIds`](/reference/props#props.filteredSeriesIds): the
   controlled form of `onSeriesFilter`
 
 `focusedSeriesId`, and every key of `filteredSeriesIds`, should be the id of a

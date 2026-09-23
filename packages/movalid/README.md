@@ -28,30 +28,30 @@ isRenderer.getErrorMessage('pie');
 
 All are called as `validators.name(...args)`:
 
-- **Types** — `boolean`, `number`, `string`, `array`, `object`, `any`
-- **Custom types** — `numeric`, `integer`, `color` (hex/rgb/rgba),
+- **Types**: `boolean`, `number`, `string`, `array`, `object`, `any`
+- **Custom types**: `numeric`, `integer`, `color` (hex/rgb/rgba),
   `dateInstance` (a valid `Date` object), `dateISO` (iso date string),
   `datePrimitive` (iso date string or epoch number), `dateAny` (any of the three)
-- **Instances** — `instanceOf(Class)`, `typeOf('object')`, `custom(fn)` (give
+- **Instances**: `instanceOf(Class)`, `typeOf('object')`, `custom(fn)` (give
   `fn` a `message` property)
-- **Ranges** — `numberMin/Max/MinMax`, `numericMin/Max/MinMax`,
+- **Ranges**: `numberMin/Max/MinMax`, `numericMin/Max/MinMax`,
   `integerMin/Max/MinMax`
-- **Strings** — `regexp(re)` (a number is stringified and matched too),
+- **Strings**: `regexp(re)` (a number is stringified and matched too),
   `stringRegexp(re)` (text only), `stringWithLength(n)`,
   `stringWithLengthMin/Max/MinMax`
-- **Values** — `equal(v)`, `oneOf([...])`, `oneIn({...})`, `notEqual(v)`,
+- **Values**: `equal(v)`, `oneOf([...])`, `oneIn({...})`, `notEqual(v)`,
   `notOneOf([...])`, `notOneIn({...})`
-- **Arrays** — `arrayWithLength(n)`, `arrayWithLengthMin/Max/MinMax`,
+- **Arrays**: `arrayWithLength(n)`, `arrayWithLengthMin/Max/MinMax`,
   `arrayOf(validator, allowEmpty)`
-- **Objects** — `objectWith(properties, validator)`,
+- **Objects**: `objectWith(properties, validator)`,
   `objectWithSome(properties, validator)`,
   `objectWithShape({ prop: validator, … }, allowExtraProperties)`,
   `partialObjectWithShape({ prop: validator, … }, allowExtraProperties)` (only
   the properties actually present have to pass, so it is the one to use for
   optional config objects)
-- **Combinators** — `or([...validators])`, `and([...validators])`,
+- **Combinators**: `or([...validators])`, `and([...validators])`,
   `not(validator)`
-- **Conditional** — `validators.conditional(rules, object)` picks the first
+- **Conditional**: `validators.conditional(rules, object)` picks the first
   rule whose `condition(object)` matches and uses its `validator`. A rule's
   optional `suffix` is appended to that validator's message, so it can say
   when the rule applies (`should be a number when type is a`). When no rule
@@ -79,7 +79,7 @@ a new validator that can be extended in turn:
   passes and extend the error message
 - `.withMessage(msg)` / `.appendMessage(msg)` / `.prependMessage(msg)` —
   override or decorate the error message without changing behavior
-- `.withCustomName(name)` — set the `customName` metadata field, leaving both
+- `.withCustomName(name)`: set the `customName` metadata field, leaving both
   behavior and error message unchanged
 
 ```js

@@ -57,21 +57,21 @@ of them.
 
 The returned `JsonEditorHandle` drives the editor imperatively:
 
-- `element` — the `.mochart-editor` element the editor was mounted into.
+- `element`: the `.mochart-editor` element the editor was mounted into.
 - `getValue()` / `setValue(value)` — read and replace the document.
   Controlled `setValue` updates do not fire `onChange`; only user edits and
   a `format()` that changes the text do.
-- `format()` — pretty-print the current JSON; returns `false` (leaving the
+- `format()`: pretty-print the current JSON; returns `false` (leaving the
   text alone) while the editor is read-only, and when the text does not parse
   or repeats a key, since a round-trip through `JSON.parse` would silently
   drop the earlier copy.
-- `setTheme('light' | 'dark')` — switch the color treatment without
+- `setTheme('light' | 'dark')`: switch the color treatment without
   replacing the document or its undo history.
-- `setReadOnly(readOnly)` — toggle editing.
+- `setReadOnly(readOnly)`: toggle editing.
 - `focus()` and `showFocusRange(from, to)` — move keyboard focus into the
   editor, optionally selecting and revealing a source range (pair it with
   diagnostic offsets to jump to a problem).
-- `destroy()` — tear down the editor and remove its element.
+- `destroy()`: tear down the editor and remove its element.
 
 ## Mochart config intelligence
 
