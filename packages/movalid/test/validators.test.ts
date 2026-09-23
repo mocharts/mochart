@@ -28,8 +28,9 @@ const isEqual = (a: any, b: any): boolean => {
 };
 
 declare module "vitest" {
-  interface Matchers<T = any> {
-    toIsEqual(expected: any, context?: string): T;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Matchers<R extends void | Promise<void> = void | Promise<void>, T = unknown> {
+    toIsEqual(expected: any, context?: string): R;
   }
 }
 

@@ -92,7 +92,7 @@
   },
   "devDependencies": {
     "@mochart/core": "^1.0.1",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^5.0.1",
     "tsx": "^4.23.15"
   }
 }

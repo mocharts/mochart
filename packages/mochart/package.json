@@ -76,7 +76,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^5.0.1",
     "d3-color": "^3.1.0",
     "d3-format": "^3.1.2",
     "d3-interpolate": "^3.0.1",
