@@ -198,7 +198,7 @@ describe('placeholder templates', () => {
   });
 
   // Regression: a template change only reached the slot on the next factory call, which the core's
-  // factory gate skips while nothing else about the state changed — so an inline template closing
+  // factory gate skips while nothing else about the state changed, so an inline template closing
   // over host state kept showing its first render
   it('re-renders an inline template that closes over changed host state', async () => {
     const el = mountPoint();
@@ -371,7 +371,7 @@ describe('refresh', () => {
   });
 });
 
-// The callback maps are string-to-string plumbing — a dropped or misspelled row ships and the callback never fires — and core switches behaviour on callback presence, so every row gets a delivery case.
+// The callback maps are string-to-string plumbing (a dropped or misspelled row ships and the callback never fires), and core switches behaviour on callback presence, so every row gets a delivery case.
 describe('interaction callbacks', () => {
   async function mountCallbacks(callbacks: Record<string, unknown>, config = rawConfig()) {
     const el = mountPoint();

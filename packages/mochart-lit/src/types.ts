@@ -41,8 +41,7 @@ export interface ChartCallbackProps {
 /**
  * The imperative handle a `chartRef` callback receives. `refresh()` re-reads
  * the current config/data (rebuilding or re-indexing the data provider)
- * without needing new references — the escape hatch for hosts that mutate
- * data in place.
+ * without needing new references, for hosts that mutate data in place.
  */
 export interface ChartRef {
   refresh(): void;
@@ -60,7 +59,7 @@ export interface BaseChartProps extends ChartCallbackProps {
   /** Explicit pixel height; omit to track the container element's height. */
   height?: number;
   /**
-   * CSS class for the container div the chart mounts into — the directive
+   * CSS class for the container div the chart mounts into. This is the directive
    * equivalent of the class/style fallthrough the component wrappers get.
    */
   className?: string;
@@ -95,7 +94,7 @@ export interface ChartProps extends BaseChartProps {
   dataProvider: DataProvider | null;
 }
 
-/** Props for the `defaultChart` directive: a raw config plus a plain dataset — an array of objects or an object of arrays. */
+/** Props for the `defaultChart` directive: a raw config plus a plain dataset (an array of objects or an object of arrays). */
 export interface DefaultChartProps extends BaseChartProps {
   config: MochartInputConfig;
   data: ArrayOfObjectsData | ObjectOfArraysData;

@@ -133,7 +133,7 @@ export const chart = directive(ChartDirective);
 
 /**
  * lit-html directive around mochart's `createDefaultChart`: takes a raw
- * `config` (enhanced internally) and a plain `data` — an array of objects or an object of arrays. Omit
+ * `config` (enhanced internally) and a plain `data` (an array of objects or an object of arrays). Omit
  * `width`/`height` to have the chart track the container div's size.
  */
 export const defaultChart = directive(DefaultChartDirective);

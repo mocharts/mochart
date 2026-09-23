@@ -4,13 +4,13 @@
 the [@mochart/core](https://github.com/mocharts/mochart) charting library. Works in
 standalone lit-html templates and inside `LitElement` render methods alike.
 
-Docs: [mochart.org](https://mochart.org) — start with the
+Docs: [mochart.org](https://mochart.org). Start with the
 [Lit guide](https://mochart.org/guide/frameworks/lit).
 
 Config and data changes get mochart's
 [staged animations](https://github.com/mocharts/mochart/tree/main/packages/mochart#staged-animation)
-for free — axis expansion, value change (with category and series transitions),
-axis contraction, and gapless stacked transitions — no extra wiring needed.
+with no extra wiring: axis expansion, value change (with category and series
+transitions), axis contraction, and gapless stacked transitions.
 
 ## Install
 
@@ -24,7 +24,7 @@ lit-html 3.
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's optional
-stylesheet — it re-asserts the browser defaults the chart's tooltip and
+stylesheet. It re-asserts the browser defaults the chart's tooltip and
 message overlays rely on, and never overrides the chart's own styling:
 
 ```js
@@ -33,8 +33,8 @@ import '@mochart/core/mochart.css';
 
 ## Usage
 
-`defaultChart` is the simplest entry point — give it a raw config and a plain
-dataset — an array of objects or an object of arrays:
+`defaultChart` is the simplest entry point. Give it a raw config and a plain
+dataset (an array of objects or an object of arrays):
 
 ```js
 import { html, render } from 'lit-html';
@@ -68,8 +68,8 @@ const dataProvider = new ArrayOfObjectsDataProvider(data);
 render(html`${chart({ mochartConfig, dataProvider, width: 640, height: 400 })}`, document.body);
 ```
 
-Both directives have to sit in **child position** — an `${…}` slot between
-tags, as in the snippets above — because each one renders a container div and
+Both directives have to sit in **child position** (an `${…}` slot between
+tags, as in the snippets above), because each one renders a container div and
 mounts the chart into it. In an attribute, property, or event binding
 (`<div class=${chart({ … })}>`) the directive's constructor throws
 `mochart-lit chart directives can only be used in child position`.
@@ -85,8 +85,8 @@ chart follows it:
 html`<div style="width: 100%; height: 400px">${chart({ mochartConfig, dataProvider })}</div>`
 ```
 
-The optional `className` and `style` props land on the container div itself —
-the directive equivalent of the class/style fallthrough the component
+The optional `className` and `style` props land on the container div itself.
+This is the directive equivalent of the class/style fallthrough the component
 wrappers get (explicit `width`/`height` props still win over `style`):
 
 ```js
@@ -101,19 +101,19 @@ container div, for test selectors.
 Config and data changes are detected **by reference identity**: the chart
 compares the values it receives, not their contents. That matches Lit's own
 change detection (`hasChanged` is identity-based too), so the familiar Lit
-rule applies doubly here — reassign instead of mutate:
+rule applies doubly here. Reassign instead of mutate:
 
 ```ts
-// ✓ a new array — Lit re-renders and the chart animates to it
+// ✓ a new array, so Lit re-renders and the chart animates to it
 this.data = [...this.data, { month: 'Mar', revenue: 30 }];
 
-// ✗ invisible — same reference: neither Lit nor the chart sees it
+// ✗ the same reference, so neither Lit nor the chart sees it
 this.data.push({ month: 'Mar', revenue: 30 });
 ```
 
 The same rule applies to `config` and to `mochartConfig`/`dataProvider`.
-For hosts that do mutate data in place, the `chartRef` prop — a callback
-ref, like Lit's own `ref()` directive — receives a `ChartRef` handle whose
+For hosts that do mutate data in place, the `chartRef` prop (a callback
+ref, like Lit's own `ref()` directive) receives a `ChartRef` handle whose
 `refresh()` re-reads the current data. The built-in providers read live, so
 any in-place change is seen:
 
