@@ -23,15 +23,15 @@ The reference has three parts:
 ## Config sections
 
 A mochart config is a plain object made of per-concern sections. Every
-section — and almost every property inside one — is optional and falls back to
+section (and almost every property inside one) is optional and falls back to
 a sensible default, so a minimal config only names the data properties to plot
 (see [Getting started](/guide/getting-started)).
 
 The list sections (`series`, `valueAxes`, `seriesGroups`, `seriesStacks`,
 `linearGradients`, `radialGradients`, `patterns`) take an array of config
 objects and have a companion `*Defaults` section for values shared by every
-entry — see [The config model](/guide/config-model) for how sharing and
-defaulting work. `id` and `version` are the only top-level keys that are not
+entry (see [The config model](/guide/config-model) for how sharing and
+defaulting work). `id` and `version` are the only top-level keys that are not
 sections.
 
 <script setup>

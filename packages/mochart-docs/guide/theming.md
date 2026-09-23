@@ -1,16 +1,16 @@
 # Colors, theming, and dark mode
 
-A chart has two kinds of color. **Series colors** — bars, lines, markers,
-slices — come from the config: the
+A chart has two kinds of color. **Series colors** (bars, lines, markers,
+slices) come from the config: the
 [color palette](/reference/colorPalette), per-series style overrides, or a
-color ramp. **Chrome** — the title, axis lines, tick marks and labels, grid
-lines, the legend, the crosshair — defaults to the CSS keyword
+color ramp. **Chrome** (the title, axis lines, tick marks and labels, grid
+lines, the legend, the crosshair) defaults to the CSS keyword
 `currentColor`, so it resolves to whatever CSS `color` the chart's container
 inherits from your page.
 
 That split is most of the theming story. Put the chart on a page whose text
 color flips with the theme and every piece of chrome follows along, with no
-config and no second stylesheet — the live examples on this site restyle
+config and no second stylesheet: the live examples on this site restyle
 when you toggle the site theme (try it). Series colors never follow the
 page; they stay whatever the palette or your config says.
 
@@ -41,8 +41,8 @@ forms of color-vision deficiency. A default series shape takes the color at
 its series index; a style set to `categoryIndex` instead takes the color at
 the datum's category index. Indices wrap, so index 7 reuses index 0. If that
 would make two things that readers must identify share a color, add another
-visual encoding or choose a suitable palette with more entries — see
-[Color and visual encoding](/guide/accessibility#color-and-visual-encoding).
+visual encoding or choose a suitable palette with more entries (see
+[Color and visual encoding](/guide/accessibility#color-and-visual-encoding)).
 A series styled with `categoryIndex` has no single color, so its legend and
 tooltip icons show the palette's first colors as a striped swatch.
 
@@ -77,7 +77,7 @@ numeric magnitude through a continuous or diverging ramp, use
 ## Chrome and `currentColor`
 
 Chrome style fields default to `'currentColor'`, which is written to the
-rendered SVG as-is — the browser resolves it against the inherited `color`,
+rendered SVG as-is, and the browser resolves it against the inherited `color`,
 so mochart never computes a theme itself. The defaults that resolve this
 way:
 
@@ -91,7 +91,7 @@ way:
 - the clip indicator band and its label
 
 Each comes with a tuned default opacity so a single value reads correctly
-over both light and dark backgrounds — grid lines at `strokeOpacity` 0.13,
+over both light and dark backgrounds: grid lines at `strokeOpacity` 0.13,
 axis lines and tick marks at 0.65, the crosshair at 0.3, text at or near 1.
 Chrome contrast is therefore adjusted through opacities, not by picking new
 colors per theme.
@@ -99,7 +99,7 @@ colors per theme.
 ## What does not follow the page
 
 - **Series colors.** The palette and the color-ramp fields produce concrete
-  colors by design — chart data should look the same on every page. Restyle
+  colors by design, because chart data should look the same on every page. Restyle
   them per theme by passing a different config (for example a different
   [`colorPalette`](/reference/colorPalette)) when your theme changes.
 - **Colors you set yourself.** Any literal color in your config is used
@@ -112,7 +112,7 @@ For chrome there is nothing to configure: when your page (or the chart's
 container) sets a light text color on a dark background, the chart follows.
 
 The chart's own surfaces are transparent, so whatever sits behind the chart on
-your page shows through and follows the theme with it — no config needed. To
+your page shows through and follows the theme with it. No config is needed. To
 give a surface its own background, every part that has one takes a
 `backgroundStyle`: [`chart`](/reference/chart#chart.backgroundStyle),
 [`plot`](/reference/plot#plot.backgroundStyle),
@@ -123,8 +123,8 @@ variant.
 
 The tooltip is the one exception. It is an HTML overlay, and its background
 and border form a *surface* that must sit at the opposite end of the
-contrast pair from the text on top of it — something no inherited text
-color can express — so its defaults are a translucent white background with
+contrast pair from the text on top of it (something no inherited text
+color can express), so its defaults are a translucent white background with
 a dark border. Its text does inherit the page color, which is right for a
 light surface in both themes; if you keep the light surface on a dark page,
 scope a `color` override to the tooltip instead. To flip the surface
@@ -148,7 +148,7 @@ when your theme changes.
 Every style color field accepts `'currentColor'`
 ([the config model](/guide/config-model#styles-and-focus-states) covers the
 style shape), so any element you restyle can opt back into following the
-page — for example a series drawn in the page's text color:
+page, for example a series drawn in the page's text color:
 
 ```js
 series: [{
@@ -219,6 +219,6 @@ the focus does.
 ## Exports
 
 Exported images inline the chart's *resolved* colors, so a chart exported
-from a dark page has light chrome — pass the export a background color that
+from a dark page has light chrome, so pass the export a background color that
 matches the page, or export transparent. See
 [Exporting images](/guide/export#dark-pages).

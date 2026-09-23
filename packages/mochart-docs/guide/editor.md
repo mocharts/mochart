@@ -21,7 +21,7 @@ import '@mochart/editor/editor.css';
 ```
 
 CodeMirror is a substantial dependency, so the demos load the package
-through a dynamic `import()` — it makes a natural code-split point.
+through a dynamic `import()`, which makes a natural code-split point.
 
 ## Creating an editor
 
@@ -58,7 +58,7 @@ of them.
 The returned `JsonEditorHandle` drives the editor imperatively:
 
 - `element`: the `.mochart-editor` element the editor was mounted into.
-- `getValue()` / `setValue(value)` — read and replace the document.
+- `getValue()` / `setValue(value)`: read and replace the document.
   Controlled `setValue` updates do not fire `onChange`; only user edits and
   a `format()` that changes the text do.
 - `format()`: pretty-print the current JSON; returns `false` (leaving the
@@ -68,7 +68,7 @@ The returned `JsonEditorHandle` drives the editor imperatively:
 - `setTheme('light' | 'dark')`: switch the color treatment without
   replacing the document or its undo history.
 - `setReadOnly(readOnly)`: toggle editing.
-- `focus()` and `showFocusRange(from, to)` — move keyboard focus into the
+- `focus()` and `showFocusRange(from, to)`: move keyboard focus into the
   editor, optionally selecting and revealing a source range (pair it with
   diagnostic offsets to jump to a problem).
 - `destroy()`: tear down the editor and remove its element.
@@ -112,7 +112,7 @@ occurrence (`Duplicate key "property" in series[0]`), even though
 `JSON.parse` accepts it: JSON.parse keeps only the last value, so the
 first block of settings would vanish without a word. The same rule is
 available without loading the editor from the `@mochart/editor/json`
-entry — `parseJson(text)` is `JSON.parse` that throws a
+entry: `parseJson(text)` is `JSON.parse` that throws a
 `JsonDuplicateKeyError` (a `SyntaxError` naming every repeat) instead of
 keeping the last one, and `findDuplicateJsonKeys(text)` lists the repeats
 as `DuplicateJsonKey` records (the `key`, the `path` of the object repeating
@@ -129,7 +129,7 @@ Pass `theme: 'dark'` for the bundled dark treatment and switch later with
 (`--mochart-editor-background`, `--mochart-editor-foreground`,
 `--mochart-editor-border`, `--mochart-editor-focus`,
 `--mochart-editor-focus-soft`, `--mochart-editor-gutter`,
-`--mochart-editor-selection`, and `--mochart-editor-match` — the tint on
+`--mochart-editor-selection`, and `--mochart-editor-match`, the tint on
 other occurrences of the selected text), so a host page can restyle the surface without touching the
 stylesheet. The element also
 carries `data-theme` and `data-validity` attributes for host CSS to key on.

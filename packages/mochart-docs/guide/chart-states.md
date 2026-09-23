@@ -1,8 +1,8 @@
 # Chart states
 
 Charts have explicit states for the moments when there is nothing (or nothing
-valid) to draw — loading, error, no data, no size, no series, and invalid
-config — and each state's rendering can be replaced.
+valid) to draw (loading, error, no data, no size, no series, and invalid
+config), and each state's rendering can be replaced.
 
 <script setup>
 import * as states from '../examples/chart-states'
@@ -35,7 +35,7 @@ the first two as well: `getLoading()` returning `true` shows the loading
 state, and `getError()` returning anything but `null`/`undefined` shows the
 error state, with the `error` prop taking precedence when both are set.
 
-The loading placeholder also shows before a chart has any data to draw — a
+The loading placeholder also shows before a chart has any data to draw: a
 `null` `dataProvider`, or one without `getPropertyValues`. That is the state
 the framework bindings sit in until their provider arrives, so a chart stuck
 on "Loading…" with `loading` never set means the provider is missing or does
@@ -49,33 +49,33 @@ loading overlay, and the loading overlay paints over an empty dataset.
 
 Each state below renders with its built-in placeholder.
 
-**Loading** — the `loading` prop is `true`:
+**Loading**: the `loading` prop is `true`:
 
 <LiveChart :config="states.config" :data="states.data" :chart-props="{ loading: true }" toggle="loading" :height="180" :demo-link="false" />
 
-**Error** — the `error` prop is set; the built-in placeholder shows the
+**Error**: the `error` prop is set; the built-in placeholder shows the
 error value (an `Error`'s message, or the value as text):
 
 <LiveChart :config="states.config" :data="states.data" :chart-props="{ error: 'Request failed (503)' }" toggle="error" :height="180" :demo-link="false" />
 
-**Config error** — the config failed validation (here, a series pointing at
+**Config error**: the config failed validation (here, a series pointing at
 a value axis that does not exist); the built-in placeholder shows a generic
 message, while the validation errors themselves come from
 [`validateConfig`](/guide/config-model#validation):
 
 <LiveChart :config="states.invalidConfig" :data="states.data" :height="180" :demo-link="false" />
 
-**No data** — the dataset is empty:
+**No data**: the dataset is empty:
 
 <LiveChart :config="states.config" :data="states.noData" :height="180" :demo-link="false" />
 
-**No series** — no series are configured. Filtering every series out from the
+**No series**: no series are configured. Filtering every series out from the
 legend does *not* produce this state: filtering hides series but leaves the
 configured list intact.
 
 <LiveChart :config="states.noSeriesConfig" :data="states.data" :height="180" :demo-link="false" />
 
-**No size** — the chart's width or height is 0, as before a container has
+**No size**: the chart's width or height is 0, as before a container has
 been laid out (this chart is told `width: 0` while its box stays visible):
 
 <LiveChart :config="states.config" :data="states.data" :chart-props="{ width: 0 }" :height="180" :demo-link="false" />
@@ -83,7 +83,7 @@ been laid out (this chart is told `width: 0` while its box stays visible):
 ## Interaction while loading
 
 Loading is the only state that draws a working chart and then holds part of it
-back — with no data or an error there is no plot to interact with in the first
+back: with no data or an error there is no plot to interact with in the first
 place. The rule is that **the chart reports but does not commit**:
 
 - Anything keyed to a **series or axis id** keeps working, because ids come from
@@ -92,7 +92,7 @@ place. The rule is that **the chart reports but does not commit**:
 - Anything keyed to a **category position** is suppressed, because it may name
   something that no longer exists once the new data lands. Plot clicks and the
   plot's arrow keys are ignored, `onSeriesClick` does not fire, and no new
-  tooltip opens — including the one `tooltip.followPointer` would otherwise
+  tooltip opens, including the one `tooltip.followPointer` would otherwise
   open on hover.
 - Whatever is **already open** can still be dismissed. A tooltip opened before
   the load stays put, and Escape and its close button keep working.
@@ -139,7 +139,7 @@ because the content is placed in a different box:
 
 | Factory | `width`/`height` measure |
 | --- | --- |
-| `getNoSizeComponent`, `getConfigErrorComponent` | The chart — there is no plot yet |
+| `getNoSizeComponent`, `getConfigErrorComponent` | The chart, because there is no plot yet |
 | `getLoadingComponent`, `getErrorComponent` | The chart before a config arrives, the plot area once the chart is laid out |
 | `getNoSeriesComponent`, `getNoDataComponent` | The plot area, with the axes drawn around it |
 
@@ -161,7 +161,7 @@ states, which replace the whole chart). The loading, error and no-data states
 share one container inside the plot, but it carries the class of whichever one
 is showing, so each can be styled on its own.
 
-The framework bindings do not take these DOM factories — each exposes a
+The framework bindings do not take these DOM factories: each exposes a
 framework-native placeholder prop per state instead. `loadingComponent` and
 friends take an Angular, React, Svelte, or Vue **component** that receives
 the same context as props; the Lit binding's `loadingTemplate` and friends

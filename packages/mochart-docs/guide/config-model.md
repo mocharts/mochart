@@ -1,7 +1,7 @@
 # The config model
 
 A mochart config is a plain, JSON-serializable object made of per-concern
-**sections**. Every section — and almost every property inside one — is
+**sections**. Every section (and almost every property inside one) is
 optional and falls back to a default, so configs only say what differs from
 the defaults.
 
@@ -21,7 +21,7 @@ const config = {
 ```
 
 The [config reference](/reference/) lists every section and is generated from
-the library's own validators, defaults, and descriptions — it can't drift
+the library's own validators, defaults, and descriptions, so it can't drift
 from the code.
 
 ## Object sections and list sections
@@ -40,8 +40,8 @@ Sections come in two shapes:
 
 ## Shared `*Defaults` sections
 
-Every list section has a companion `*Defaults` section — `seriesDefaults`,
-`valueAxisDefaults`, and so on — whose values apply to **every** entry of
+Every list section has a companion `*Defaults` section (`seriesDefaults`,
+`valueAxisDefaults`, and so on) whose values apply to **every** entry of
 the list. A value set on an individual entry wins over the shared one:
 
 ```js
@@ -64,8 +64,8 @@ apply.
 Everything the chart draws is styled by a **style** object rather than by a
 flat set of color properties. A style holds `strokeColor`, `strokeOpacity`,
 `strokeWidth` and `strokeDashArray`, plus `fillColor` and `fillOpacity` for
-shapes that have an interior. Lines — grid lines, tick marks, thresholds,
-crosshairs, error-bar whiskers — take the stroke half only.
+shapes that have an interior. Lines (grid lines, tick marks, thresholds,
+crosshairs, error-bar whiskers) take the stroke half only.
 
 Most elements are drawn differently depending on what has focus, so their
 style is nested one level deeper, under `normal`, `focused` and `defocused`:
@@ -90,20 +90,20 @@ are numbers, so a style that only changes its `normal` opacity still takes the
 default `focused` and `defocused` opacities unless those are set too.
 
 Series styles additionally accept the palette modes `'seriesIndex'` and
-`'categoryIndex'` in place of a color, and — everywhere but `shapeStyle`,
-which defines the series color itself — `'series'` for the series' own
+`'categoryIndex'` in place of a color, and (everywhere but `shapeStyle`,
+which defines the series color itself) `'series'` for the series' own
 color; see [`colorPalette`](/reference/colorPalette). Any style color also
 accepts `'currentColor'` to follow the host page's CSS `color` (how chart
-chrome themes itself — see
+chrome themes itself: see
 [Colors, theming, and dark mode](/guide/theming)), and `'none'` to switch
 that half of the style off.
 
 Style colors are written straight to the DOM, so any CSS color the browser
-understands works — named (`red`), hex 3/4/6/8, `rgb()`/`hsl()` in either
+understands works: named (`red`), hex 3/4/6/8, `rgb()`/`hsl()` in either
 syntax, `oklch()`, `var(--brand)`. The exception is the series color-scale
 bounds (`colorScale.min`, `colorScale.max`, `colorScale.missing`,
 `colorScale.base.*`), `colorPalette` entries, and gradient stop colors: mochart
-interpolates those itself, so they must be concrete colors — no keywords, no
+interpolates those itself, so they must be concrete colors: no keywords, no
 `var()`.
 
 Text is styled by a `textStyle` like any other shape, and its font is a
@@ -123,7 +123,7 @@ is addressable in its own right.
 
 Config layers are merged member by member at every depth, so a config only
 names what it changes. In the example above `shapeStyle.normal.strokeColor`,
-`strokeWidth` and both other states' colors keep their defaults — writing one
+`strokeWidth` and both other states' colors keep their defaults: writing one
 member never blanks out its siblings. The same holds when a `*Defaults` section
 merges into an individual list entry.
 
@@ -138,7 +138,7 @@ Two values do not merge:
 
   Inside a `normal` / `focused` / `defocused` state this applies to
   `strokeWidth` and `strokeDashArray` only: a state always writes its color
-  and opacity attributes, so those must be concrete values — use `'none'` to
+  and opacity attributes, so those must be concrete values. Use `'none'` to
   switch a half of the style off.
 
 ## Cross-references and id defaulting
@@ -149,7 +149,7 @@ axis via [`axis`](/reference/series#series.axis), its stack via
 [`group`](/reference/series#series.group), each matching an
 `id` in the corresponding section.
 
-When exactly one target exists, the reference defaults to it — with a single
+When exactly one target exists, the reference defaults to it: with a single
 `valueAxes` entry (or none at all) you never need to mention axis
 ids, and with a single `seriesStacks` entry every series joins that
 stack automatically (see the [stacked bars recipe](/recipes/stacked-bars)).
@@ -194,7 +194,7 @@ Two things validation insists on:
   format it was written against. `migrateConfig(config)` returns the
   upgraded config on its own, without building a chart.
 - **Unknown properties** produce warnings, and a config with warnings is
-  rejected in strict mode — typos surface immediately instead of being
+  rejected in strict mode, so typos surface immediately instead of being
   silently ignored. Strict mode is the default and is what the chart entry
   points use; `validateConfig(config, getDefaults(config), false)` and the
   same third argument on `validateConfigDetailed` collect the warnings
@@ -216,14 +216,14 @@ const mochartConfig = enhanceConfig(config);
 // validated, defaults applied, *Defaults sections merged, references resolved
 ```
 
-`enhanceConfig` returns a `MochartConfig` — the fully-built form with every
-default applied and cross-references resolved — which is what the renderer
+`enhanceConfig` returns a `MochartConfig`, the fully-built form with every
+default applied and cross-references resolved, which is what the renderer
 consumes. Data can then be checked against it with
 `getDataErrors(mochartConfig, dataProvider)` (see
 [Data providers](/guide/data-providers)).
 
-To work with defaults on the *raw* config — a config editor showing or
-hiding them, for instance — use the
+To work with defaults on the *raw* config (a config editor showing or
+hiding them, for instance), use the
 [`getConfigWithDefaults` / `getConfigWithoutDefaults`](/reference/api#config-helpers)
 pair instead: the first fills every default in, the second strips every value
 that only restates one, and both return plain serializable configs that share

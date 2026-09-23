@@ -2,8 +2,8 @@
 
 The [@mochart/export](https://github.com/mocharts/mochart/tree/main/packages/mochart-export)
 companion package downloads a rendered chart as a standalone SVG or PNG
-file. The export captures everything inside the chart svg — title, plot,
-axes, and legend, in their current state — with the chart's computed styles
+file. The export captures everything inside the chart svg (title, plot,
+axes, and legend, in their current state), with the chart's computed styles
 inlined, so the image renders the same outside your page's stylesheets. The
 export shows the chart as it is on screen, focus included: the crosshair and
 axis focus marks stay unless you pass `showFocusElements: false`, and series
@@ -23,7 +23,7 @@ import * as basic from '../examples/basic'
 npm install @mochart/export @mochart/core
 ```
 
-The package is framework-free, like the core library — the same functions
+The package is framework-free, like the core library: the same functions
 work with every [framework binding](/guide/frameworks/react).
 
 ## Downloading a chart
@@ -36,7 +36,7 @@ await exportPNG(element);
 ```
 
 `element` can be the chart's container, the `div.mochart-chart` root itself,
-or the chart `<svg>` — the functions find the chart svg from any of them.
+or the chart `<svg>`: the functions find the chart svg from any of them.
 With a framework binding, a ref to the element wrapping the chart component
 works. The filename is derived from the chart title with whitespace replaced
 by underscores (`Monthly Revenue` → `Monthly_Revenue.svg`), falling back to
@@ -66,7 +66,7 @@ await exportPNG(element, {
 ```
 
 The PNG is rasterized through an offscreen canvas at `scale` times the
-chart's on-screen pixel size — the default of `2` keeps exports crisp on
+chart's on-screen pixel size. The default of `2` keeps exports crisp on
 high-DPI displays.
 
 ### Dark pages
@@ -85,7 +85,7 @@ export `transparent` and let the destination supply the background.
 ### Web fonts
 
 The chart sets no font of its own, so its text uses whatever font your page
-gives it, and the export inlines `font-family` as a *name* — no font data goes
+gives it, and the export inlines `font-family` as a *name*: no font data goes
 into the file. A font installed on the machine still resolves by name; a web
 font the page loaded over the network does not. For a PNG, the rasterizer
 loads the svg as an image, and an svg loaded as an image cannot fetch anything
@@ -118,7 +118,7 @@ Three ways to handle it:
    ```
 
 The string is injected verbatim into one `<style>` element in the exported
-file — a stitched grid gets a single one that covers every tile. Producing it
+file. A stitched grid gets a single one that covers every tile. Producing it
 is the host's job:
 
 - The `src` must be **base64 data**, not a url. A url is an external fetch,
@@ -128,7 +128,7 @@ is the host's job:
 - Fetching and encoding the font file is yours to do. Only you know which file
   and weights to use, whether the font's license permits shipping it inside an
   exported image, and whether the font server allows reading the bytes with
-  `fetch` — a third-party font CDN often does not, so a self-hosted font is
+  `fetch`: a third-party font CDN often does not, so a self-hosted font is
   simplest.
 - One full woff2 weight adds tens to hundreds of kilobytes to every exported
   file. Subset it to the glyphs the chart uses.
@@ -163,7 +163,7 @@ const gridMarkup = getStitchedChartsSvgText([elementA, elementB], { cols: 2 }); 
 ```
 
 `getChartSvgText` and `getStitchedChartsSvgText` return the same standalone
-svg markup the download functions produce — useful for tests, server-side
+svg markup the download functions produce, which is useful for tests, server-side
 storage, or piping the markup into another tool.
 
 For TypeScript hosts, the option shapes are exported as `ExportSvgOptions`,
@@ -184,4 +184,4 @@ no name to keep, so the export is marked `aria-hidden="true"` instead. See
 ## Try it in the demos
 
 Every [demo gallery](/vanilla/demos) has a share menu with these exports
-wired up — including the tiled multi-chart export on the Multi tab.
+wired up, including the tiled multi-chart export on the Multi tab.
