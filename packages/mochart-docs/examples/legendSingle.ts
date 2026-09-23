@@ -1,6 +1,6 @@
 // One series: the legend only defaults to visible above one series, so
 // visible is set explicitly. With filtering and focus switched off it is a
-// plain key — clicking or hovering the item does nothing — and the icon
+// plain key (clicking or hovering the item does nothing), and the icon
 // drops its border to read as a colour swatch.
 import type { MochartInputConfig } from '@mochart/core';
 

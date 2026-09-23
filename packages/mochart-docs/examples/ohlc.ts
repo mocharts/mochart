@@ -1,5 +1,5 @@
 // createOhlc turns OHLC items into tick bars: a thin low/high line per period
-// with a left open tick and a right close tick — six ordinary bar series.
+// with a left open tick and a right close tick, six ordinary bar series.
 import { createOhlc } from '@mochart/core';
 import type { MochartInputConfig } from '@mochart/core';
 

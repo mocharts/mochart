@@ -1,4 +1,4 @@
-// A date window sliding forward by five days — more than half its width — under
+// A date window sliding forward by five days (more than half its width) under
 // the two category-domain modes. The default ('staged') zooms out over both
 // windows and back in; 'auto' classifies the barely-overlapping change as a
 // translation and slides the window during the value phase instead.

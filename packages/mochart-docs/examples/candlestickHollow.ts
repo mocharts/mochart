@@ -1,4 +1,4 @@
-// The hollow option outlines up candles instead of filling them — the classic
+// The hollow option outlines up candles instead of filling them, the classic
 // hollow-candle style where a filled body means down. The wicks split into
 // segments around the body so they don't show through the hollow interior.
 import { createCandlestick } from '@mochart/core';

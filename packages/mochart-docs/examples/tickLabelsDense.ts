@@ -1,6 +1,6 @@
 // Thirty daily readings on an ordinal date axis. The labels stay flat and
-// truncation is off, so the axis keeps only as many ticks as fit — one label
-// width plus minTickSpacing per tick, at most maxTickCount — and draws the
+// truncation is off, so the axis keeps only as many ticks as fit (one label
+// width plus minTickSpacing per tick, at most maxTickCount) and draws the
 // surviving labels in full. format sets the label text.
 import type { MochartInputConfig } from '@mochart/core';
 

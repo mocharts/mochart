@@ -1,5 +1,5 @@
 // colorProperty reads a color value per data row and maps it through the
-// series colorScale ramp — here bar height is revenue while fill encodes
+// series colorScale ramp: here bar height is revenue while fill encodes
 // margin, a second measure on the same bars. The row without a margin value
 // falls back to colorScale.missing.
 import type { MochartInputConfig } from '@mochart/core';
@@ -30,6 +30,6 @@ export const data = [
   { product: 'Monitors', revenue: 260, margin: 21 },
   { product: 'Audio', revenue: 190, margin: 28 },
   { product: 'Accessories', revenue: 130, margin: 34 },
-  // No margin reported — colorScale.missing (default gray) colors this bar.
+  // No margin reported, so colorScale.missing (default gray) colors this bar.
   { product: 'Services', revenue: 110 }
 ];

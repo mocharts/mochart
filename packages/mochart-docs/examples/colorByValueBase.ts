@@ -1,6 +1,6 @@
 // colorScale.base.value splits the ramp in two: values above the base
 // interpolate through the above pair, values below through the below pair.
-// Each min/max anchors to its half's data domain — belowMin sits at the most
+// Each min/max anchors to its half's data domain: belowMin sits at the most
 // negative value, so the saturated color goes there for the classic
 // palest-at-the-base diverging look.
 import type { MochartInputConfig } from '@mochart/core';

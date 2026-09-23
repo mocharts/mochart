@@ -1,5 +1,5 @@
-// startAngle/endAngle confine the slices to a partial span — here a half
-// donut — and the pie center can carry a label plus a live total that counts
+// startAngle/endAngle confine the slices to a partial span (here a half
+// donut) and the pie center can carry a label plus a live total that counts
 // along with value changes and filtering.
 import { createPie } from '@mochart/core';
 import type { MochartInputConfig } from '@mochart/core';

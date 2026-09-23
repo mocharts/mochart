@@ -25,7 +25,7 @@ export const invalidConfig = {
   series: [{ property: 'subscriptions', axis: 'missing' }]
 } as MochartInputConfig;
 
-// An empty series list is valid config — it renders the no-series state.
+// An empty series list is valid config, and it renders the no-series state.
 export const noSeriesConfig: MochartInputConfig = {
   version: '1.0.0',
   categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },

@@ -1,5 +1,5 @@
 // With exactly one entry in seriesStacks, every series defaults its
-// `stack` to that stack's id — no per-series wiring needed.
+// `stack` to that stack's id, so no per-series wiring is needed.
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {

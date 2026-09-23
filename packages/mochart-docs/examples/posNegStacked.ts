@@ -1,6 +1,6 @@
 // In a stack, each sign accumulates separately from the shared zero base:
 // positive segments stack upward, negative segments stack downward. An axis
-// with stacks defaults its base to 0 — no pinning needed.
+// with stacks defaults its base to 0, so no pinning is needed.
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {

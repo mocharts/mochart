@@ -1,4 +1,4 @@
-// On a stack, capping every segment looks broken — the stack's outerCap.type
+// On a stack, capping every segment looks broken, so the stack's outerCap.type
 // caps only its outer end instead. No per-series cap config needed: any
 // series without its own cap.type wears the stack cap when it is the outer
 // segment, so the cap follows legend filtering.

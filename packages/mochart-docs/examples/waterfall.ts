@@ -1,4 +1,4 @@
-// createWaterfall accumulates signed steps into floating bars — one series
+// createWaterfall accumulates signed steps into floating bars: one series
 // per direction (increase / decrease / total), each row filling exactly one.
 import { createWaterfall } from '@mochart/core';
 import type { MochartInputConfig } from '@mochart/core';

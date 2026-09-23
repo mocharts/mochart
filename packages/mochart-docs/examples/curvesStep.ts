@@ -1,4 +1,4 @@
-// stepAfter holds each value until the next reading — the right semantics
+// stepAfter holds each value until the next reading, the right semantics
 // for state that persists between observations, like stock on hand. The
 // default circle markers mark the actual readings at the step corners.
 import type { MochartInputConfig } from '@mochart/core';

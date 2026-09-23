@@ -1,5 +1,5 @@
 // Markers draw a shape at each value of a line series; labels render the
-// value of labelProperty next to each shape — point it at the series'
+// value of labelProperty next to each shape. Point it at the series'
 // own property to show value labels.
 import type { MochartInputConfig } from '@mochart/core';
 
@@ -16,7 +16,7 @@ export const config: MochartInputConfig = {
       label: {
         format: ',.0f',
         position: 'inside',
-        // Only the colors of the normal state are overridden — the opacities,
+        // Only the colors of the normal state are overridden: the opacities,
         // the stroke width, and the focused/defocused states keep their defaults.
         textStyle: { normal: { strokeColor: '#ffffff', fillColor: '#ffffff' } },
         minRangeFraction: 0.05

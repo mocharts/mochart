@@ -1,5 +1,5 @@
 // createCandlestick turns OHLC items into direction-colored open/close body
-// bars drawn over thin low/high wick bars — four ordinary bar series.
+// bars drawn over thin low/high wick bars: four ordinary bar series.
 import { createCandlestick } from '@mochart/core';
 import type { MochartInputConfig } from '@mochart/core';
 
