@@ -3,8 +3,8 @@ import { describe, it, expect } from "vitest";
 import baseValidators from "../src/validators";
 import type { CustomValidator, Validator, ConditionalRule } from "../src/validators";
 
-// Deep equality that treats structurally identical functions as equal —
-// vitest's toEqual compares functions by reference, which would fail the
+// Deep equality that treats structurally identical functions as equal.
+// Vitest's toEqual compares functions by reference, which would fail the
 // nestedValues comparisons against freshly created validators.
 const isEqual = (a: any, b: any): boolean => {
   if (Object.is(a, b)) {

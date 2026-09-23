@@ -209,7 +209,7 @@ describe('getChartSvgText', () => {
     for (const focusClass of focusClasses) {
       expect(shown).toContain(focusClass);
       expect(stripped).not.toContain(focusClass);
-      // the live chart keeps its focus chrome — only the clone is stripped
+      // the live chart keeps its focus chrome, since only the clone is stripped
       expect(svg.querySelector('.' + focusClass)).not.toBeNull();
     }
   });
@@ -726,7 +726,7 @@ describe('png export success paths', () => {
       const svgText = getStitchedChartsSvgText([container, second], { cols: 2 })!;
       const stitchedWidth = Number.parseFloat(/\bwidth="([\d.]+)"/.exec(svgText)![1]);
       const stitchedHeight = Number.parseFloat(/\bheight="([\d.]+)"/.exec(svgText)![1]);
-      // two charts side by side, so this must exceed one chart's width — the assertion that
+      // two charts side by side, so this must exceed one chart's width. This assertion
       // pins getStitchedSize rather than a per-chart size sneaking through
       expect(stitchedWidth).toBeGreaterThan(400);
 

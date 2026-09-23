@@ -3,18 +3,18 @@
 SVG and PNG image export for the
 [@mochart/core](https://github.com/mocharts/mochart) charting library. Give it any
 element containing a rendered chart and it downloads the chart as a
-standalone image — computed styles inlined, the on-screen focus state kept
+standalone image, with computed styles inlined, the on-screen focus state kept
 unless `showFocusElements: false`, and an optional solid background painted
 beneath the chart.
 
-Docs: [mochart.org](https://mochart.org) — start with the
+Docs: [mochart.org](https://mochart.org). Start with the
 [export guide](https://mochart.org/guide/export).
 
 The export captures everything inside the chart svg (title, plot, axes,
 legend); the HTML tooltip is never included. Fonts are the one thing that does
-not travel with the file — see [web fonts](#web-fonts). Several charts can
-also be tiled into a single image — see
-[multiple charts in one image](#multiple-charts-in-one-image).
+not travel with the file (see [web fonts](#web-fonts)). Several charts can
+also be tiled into a single image (see
+[multiple charts in one image](#multiple-charts-in-one-image)).
 
 ## Install
 
@@ -80,7 +80,7 @@ there.
 Three ways to handle it:
 
 1. **Render the chart in a font every machine has.** Give the chart text a
-   system font stack in your own CSS — `.mochart-chart text { font-family:
+   system font stack in your own CSS, for example `.mochart-chart text { font-family:
    ui-sans-serif, system-ui, Arial, sans-serif }`. Screen and export then
    agree, and there is nothing to pass to the export.
 2. **Accept the substitution**, if the chart's typeface does not matter.
@@ -93,7 +93,7 @@ await exportPNG(element, {
 ```
 
 The string is injected verbatim into one `<style>` element in the exported
-file — a stitched grid gets a single one that covers every tile. What it has
+file. A stitched grid gets a single one that covers every tile. What it has
 to contain is up to the host:
 
 - The `src` must be **base64 data**, not a url. A url is an external fetch,
@@ -103,7 +103,7 @@ to contain is up to the host:
 - Fetching and encoding the font file is the host's job. Only the host knows
   which file and weights to use, whether the font's license permits shipping
   it inside an exported image, and whether the font server allows reading the
-  bytes with `fetch` (a third-party font CDN often does not — a self-hosted
+  bytes with `fetch` (a third-party font CDN often does not, so a self-hosted
   font is simplest).
 - A single full woff2 weight adds tens to hundreds of kilobytes to every
   exported file. Subset it to the glyphs the chart uses.
@@ -122,8 +122,8 @@ The charts are tiled left to right, top to bottom into `cols` columns (rows
 follow from the count). Every cell is sized to the largest chart and smaller
 charts are centered within their cells, so mixed sizes stay aligned.
 
-All the single-chart options apply — the filename is derived from the first
-chart found — plus:
+All the single-chart options apply (the filename is derived from the first
+chart found), plus:
 
 ```js
 exportChartsSVG(elements, {
@@ -151,7 +151,7 @@ const gridMarkup = getStitchedChartsSvgText([elementA, elementB], { cols: 2 }); 
 ```
 
 `getChartSvgText` and `getStitchedChartsSvgText` return the standalone svg
-markup without triggering a download — useful for tests or for piping the
+markup without triggering a download, which is useful for tests or for piping the
 markup elsewhere.
 
 For TypeScript hosts, the option shapes are exported as `ExportSvgOptions`,

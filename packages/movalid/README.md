@@ -4,9 +4,9 @@ Simple yet powerful TypeScript validators with chainable extensions and
 human-readable error messages.
 
 Every validator is a factory: calling `validators.number()` returns a plain
-predicate function `(value) => boolean` that also carries metadata —
-`errorMessage`, `getErrorMessage(value)`, `allowedValues`, `rangeValues`,
-`nestedValues`, and `isEnum` — so callers can both check values and report
+predicate function `(value) => boolean` that also carries metadata
+(`errorMessage`, `getErrorMessage(value)`, `allowedValues`, `rangeValues`,
+`nestedValues`, and `isEnum`), so callers can both check values and report
 readable errors. [@mochart/core](https://github.com/mocharts/mochart/tree/main/packages/mochart) uses it for config
 validation.
 
@@ -75,9 +75,9 @@ shape returned by every factory), `Validators`, `CustomValidator`,
 Every validator can be extended, `conditional` included. Each extension returns
 a new validator that can be extended in turn:
 
-- `.orEqual(value)` / `.orOneOf([...])` / `.or(otherValidator)` — widen what
+- `.orEqual(value)` / `.orOneOf([...])` / `.or(otherValidator)`: widen what
   passes and extend the error message
-- `.withMessage(msg)` / `.appendMessage(msg)` / `.prependMessage(msg)` —
+- `.withMessage(msg)` / `.appendMessage(msg)` / `.prependMessage(msg)`:
   override or decorate the error message without changing behavior
 - `.withCustomName(name)`: set the `customName` metadata field, leaving both
   behavior and error message unchanged

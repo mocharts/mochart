@@ -102,7 +102,7 @@ const editor = createJsonEditor(editorHost, {
   theme: initialTheme,
   support: createMochartConfigSupport(),
   onChange: () => {
-    status.textContent = 'Edited — apply when ready';
+    status.textContent = 'Edited. Apply when ready';
     status.dataset.state = 'edited';
   },
   onDiagnostics: showDiagnostics
@@ -133,7 +133,7 @@ const chart = createDefaultChart(chartHost, {
 
 document.querySelector<HTMLButtonElement>('#format')!.addEventListener('click', () => {
   if (editor.format()) {
-    status.textContent = 'Formatted — apply when ready';
+    status.textContent = 'Formatted. Apply when ready';
     status.dataset.state = 'edited';
   }
   else {

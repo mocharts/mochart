@@ -251,8 +251,8 @@ function resultsAsMarkdown(): string {
     formatMs(result.frames.maxMs),
     result.frames.over33
   ].join(' | ') + ' |');
-  const environment = navigator.userAgent + ' — dpr ' + window.devicePixelRatio +
-    ' — ' + new Date().toISOString();
+  const environment = 'dpr ' + window.devicePixelRatio + ', ' + new Date().toISOString() +
+    ', ' + navigator.userAgent;
   return [environment, '', header, divider, ...rows].join('\n');
 }
 

@@ -3,7 +3,7 @@
 A framework-neutral, strict JSON editor with optional Mochart config intelligence.
 It powers the JSON editing tabs in the Mochart demos.
 
-Docs: [mochart.org](https://mochart.org) — start with the
+Docs: [mochart.org](https://mochart.org). Start with the
 [editor guide](https://mochart.org/guide/editor).
 
 ## Install
@@ -20,8 +20,8 @@ model generated from `@mochart/core` when this package is built, so they
 describe the config surface of the core release the editor was built against.
 Pair the editor with a newer core and a section that core added validates
 cleanly but has no completions and no hover text. The model records the core
-version it was generated from — read it as `mochartConfigEditorModel.coreVersion`
-— and `createMochartConfigSupport()` logs one `console.warn` naming both
+version it was generated from (read it as `mochartConfigEditorModel.coreVersion`),
+and `createMochartConfigSupport()` logs one `console.warn` naming both
 versions when the installed core reports a different major or minor version. A
 patch difference is not reported, because a patch release cannot add or remove
 config properties. Installing the `@mochart/editor` release built against your

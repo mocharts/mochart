@@ -37,9 +37,9 @@ export interface ExportSvgOptions {
   transparent?: boolean;
   /** Background color painted behind the chart when not transparent. Defaults to the effective page background behind the chart (white when untraceable). */
   backgroundColor?: string;
-  /** CSS injected verbatim into a `<style>` element in the exported svg, once per file. For `@font-face` rules whose `src` is base64 data — the only way a web font survives the export (see the web fonts section of the README). */
+  /** CSS injected verbatim into a `<style>` element in the exported svg, once per file. For `@font-face` rules whose `src` is base64 data, which is the only way a web font survives the export (see the web fonts section of the README). */
   fontFaceCss?: string;
-  /** Keep the focus chrome — crosshair, axis focus range and focus tick marks — as shown on screen. Defaults to true; false strips them (series drawn focused or defocused keep their on-screen styling either way). */
+  /** Keep the focus chrome (crosshair, axis focus range and focus tick marks) as shown on screen. Defaults to true; false strips them (series drawn focused or defocused keep their on-screen styling either way). */
   showFocusElements?: boolean;
 }
 
@@ -180,7 +180,7 @@ function flattenColorLayers(layers: ColorLayer[], backdrop: ColorLayer): string 
  * background with any translucent ones in front of it composited onto it, since
  * an exported file has nothing behind it to blend with. The export inlines the
  * page's computed (theme-resolved) chart colors, so this default keeps exports
- * WYSIWYG — a chart on a dark page exports onto its dark background, not white.
+ * WYSIWYG: a chart on a dark page exports onto its dark background, not white.
  */
 function getEffectiveBackgroundColor(element: Element): string {
   const layers: ColorLayer[] = [];
@@ -225,7 +225,7 @@ function makeBackgroundRect(width: number, height: number, backgroundColor: stri
 /**
  * Clone a live chart svg with its computed presentation styles inlined (and
  * the focus chrome removed unless showFocusElements), so it serializes/renders
- * the same off-page. No background is painted here — callers add one to the
+ * the same off-page. No background is painted here. Callers add one to the
  * (possibly composed) outer svg.
  */
 function cloneChartSvg(svgElement: SVGSVGElement, showFocusElements: boolean): SVGSVGElement {

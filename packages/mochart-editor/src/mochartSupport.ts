@@ -269,7 +269,7 @@ function referencedValues(document: unknown, property: EditorPropertyModel, path
 
 // Insertions carry their own quotes, so the change must swallow the quotes at
 // the cursor: the typed opening quote before the match and the rest of the
-// token — including its auto-closed/closing quote — after it.
+// token (including its auto-closed/closing quote) after it.
 function applyJsonText(text: string) {
   return (view: EditorView, completion: Completion, from: number, to: number) => {
     const start = view.state.sliceDoc(from - 1, from) === '"' ? from - 1 : from;

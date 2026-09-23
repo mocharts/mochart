@@ -6,8 +6,8 @@ charting library (private, not published).
 A minimal vanilla-TypeScript Vite app that mounts generated charts at
 configurable sizes and measures what SVG rendering actually costs. It exists
 to answer a concrete question: at what data sizes would a canvas rendering
-backend pay off? Charts are created with the plain `createChart` API — no
-framework binding — so the numbers reflect mochart itself.
+backend pay off? Charts are created with the plain `createChart` API (no
+framework binding), so the numbers reflect mochart itself.
 
 ## Install
 
@@ -70,7 +70,7 @@ animation for the stress pass.
 
 - Generated configs may omit `version` (omitted means the current format);
   when present it must equal the current `CONFIG_VERSION` (see
-  `src/config/core/constants.ts` in the mochart package) — `enhanceConfig`
+  `src/config/core/constants.ts` in the mochart package). `enhanceConfig`
   rejects older versions unless they go through `migrateConfig` first.
 - The update metric includes waiting for the next paint, so it has a floor of
   roughly one to two frame intervals; relative growth across sizes is the

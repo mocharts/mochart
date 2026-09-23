@@ -49,7 +49,7 @@ export interface EditorSectionModel {
   description: string;
   shape: 'object' | 'array';
   allKey?: string;
-  /** Per-entry unique properties — not settable on the all config. */
+  /** Per-entry unique properties, not settable on the all config. */
   uniqueKeys?: string[];
   allExcludedKeys?: string[];
   properties: EditorPropertyModel[];
