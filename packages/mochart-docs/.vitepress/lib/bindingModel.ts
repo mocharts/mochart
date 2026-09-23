@@ -23,7 +23,7 @@ export function loadBindingReference(): BindingReferenceModel {
   if (!fs.existsSync(bindingModelPath)) {
     throw new Error(
       'binding-reference.json not found at ' + bindingModelPath +
-      ' — run "npm run gen -w @mochart/docs" first.'
+      '. Run "npm run gen -w @mochart/docs" first.'
     );
   }
   return JSON.parse(fs.readFileSync(bindingModelPath, 'utf-8')) as BindingReferenceModel;

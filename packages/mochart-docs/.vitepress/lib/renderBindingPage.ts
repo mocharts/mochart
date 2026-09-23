@@ -23,18 +23,18 @@ function renderMapping(model: BindingReferenceModel): string {
   lines.push('');
   lines.push(
     'Every core prop and the name each binding gives it. Names match the core' +
-    ' reference unless the framework\'s conventions call for something else —' +
+    ' reference unless the framework\'s conventions call for something else:' +
     ' Angular exposes callbacks as outputs (no `on` prefix), and the state' +
     ' factories become placeholder components (templates in Lit).'
   );
   lines.push('');
   const styleLink = model.mapping.find(row => row.coreKey === 'style')?.coreLink ?? '/reference/props';
   lines.push(
-    'A `—` means no binding prop maps to that core prop. Only [`style`](' + styleLink + ')' +
+    'A cell reading *none* means no binding prop maps to that core prop. Only [`style`](' + styleLink + ')' +
     ' sits there, and the reason is worth knowing: it sets inline styles on the' +
     ' chart\'s own root element (`div.mochart-chart`), which the bindings do not' +
     ' forward. The `style` and `class`/`className` props listed per binding below' +
-    ' are a **different** prop — they target the container element the binding' +
+    ' are a **different** prop. They target the container element the binding' +
     ' creates and mounts the chart into, which is the element that also carries' +
     ' the size:'
   );
@@ -49,7 +49,7 @@ function renderMapping(model: BindingReferenceModel): string {
   lines.push('');
   lines.push(
     'Vue and Angular list no container props because their frameworks already' +
-    ' cover it — Vue passes stray attributes (`class`, `style`) through to the' +
+    ' cover it: Vue passes stray attributes (`class`, `style`) through to the' +
     ' container, and Angular styles the component\'s own host element.'
   );
   lines.push('');
@@ -58,7 +58,7 @@ function renderMapping(model: BindingReferenceModel): string {
   for (const row of model.mapping) {
     const cells = model.bindings.map(binding => {
       const name = row.names[binding.id];
-      return name === null || name === undefined ? '—' : code(name);
+      return name === null || name === undefined ? 'none' : code(name);
     });
     lines.push('| [' + code(row.coreKey) + '](' + row.coreLink + ') | ' + cells.join(' | ') + ' |');
   }
@@ -76,7 +76,7 @@ function renderGroup(group: BindingGroupDoc): string {
   lines.push('| --- | --- | --- | --- |');
   for (const property of group.properties) {
     const core = property.coreKey === undefined || property.coreLink === undefined
-      ? '—'
+      ? 'none'
       : '[' + code(property.coreKey) + '](' + property.coreLink + ')';
     lines.push(
       '| ' + code(property.key) +
@@ -94,7 +94,7 @@ function renderBinding(binding: BindingDoc): string {
   lines.push('## ' + binding.title + ' {#' + binding.id + '}');
   lines.push('');
   lines.push(
-    '`' + binding.packageName + '` — ' + binding.surface +
+    '`' + binding.packageName + '`: ' + binding.surface +
     '. See the [' + binding.title + ' guide](' + binding.guideLink + ') for setup and examples.'
   );
   lines.push('');
@@ -116,7 +116,7 @@ export function renderBindingPage(model: BindingReferenceModel): string {
   lines.push('');
   lines.push(
     'The framework bindings wrap the same two chart entry points, so they take' +
-    ' the same props — spelled the way each framework expects. Every prop below' +
+    ' the same props, spelled the way each framework expects. Every prop below' +
     ' links to its counterpart in [Chart props](/reference/props) and' +
     ' [Callbacks and payloads](/reference/callbacks), which describe the' +
     ' behaviour and the payloads in full.'

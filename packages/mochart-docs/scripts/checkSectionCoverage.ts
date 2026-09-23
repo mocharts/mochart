@@ -30,27 +30,27 @@ for (const sectionId of sectionIds) {
   const expected = isList ? listSectionIds : objectSectionIds;
   const other = isList ? objectSectionIds : listSectionIds;
   if (!expected.has(sectionId)) {
-    problems.push(`${sectionId} — missing from ${isList ? 'listSectionIds' : 'objectSectionIds'}`);
+    problems.push(`${sectionId}: missing from ${isList ? 'listSectionIds' : 'objectSectionIds'}`);
   }
   if (other.has(sectionId)) {
-    problems.push(`${sectionId} — in ${isList ? 'objectSectionIds' : 'listSectionIds'} but is a ${isList ? 'list' : 'object'} section`);
+    problems.push(`${sectionId}: in ${isList ? 'objectSectionIds' : 'listSectionIds'} but is a ${isList ? 'list' : 'object'} section`);
   }
 }
 
 for (const id of [...objectSectionIds, ...listSectionIds]) {
   if (!sectionIds.includes(id)) {
-    problems.push(`${id} — registered but the enhancer emits no such section`);
+    problems.push(`${id}: registered but the enhancer emits no such section`);
   }
 }
 
 for (const [sectionId, defaultsKey] of Object.entries(sectionKeyAllMap)) {
   if (allKeySectionMap[defaultsKey] !== sectionId) {
-    problems.push(`${defaultsKey} — allKeySectionMap maps it to ${allKeySectionMap[defaultsKey] ?? 'nothing'}, expected ${sectionId}`);
+    problems.push(`${defaultsKey}: allKeySectionMap maps it to ${allKeySectionMap[defaultsKey] ?? 'nothing'}, expected ${sectionId}`);
   }
 }
 for (const defaultsKey of Object.keys(allKeySectionMap)) {
   if (Object.values(sectionKeyAllMap).indexOf(defaultsKey) === -1) {
-    problems.push(`${defaultsKey} — in allKeySectionMap but core has no such *Defaults key`);
+    problems.push(`${defaultsKey}: in allKeySectionMap but core has no such *Defaults key`);
   }
 }
 
@@ -65,7 +65,7 @@ for (const file of exampleFiles) {
   }
   exampleCount++;
   if (!registered.has(exported.config)) {
-    problems.push(`examples/${file} — exports a config but is not in docsExamples, so its properties get no "Used in" link`);
+    problems.push(`examples/${file}: exports a config but is not in docsExamples, so its properties get no "Used in" link`);
   }
 }
 

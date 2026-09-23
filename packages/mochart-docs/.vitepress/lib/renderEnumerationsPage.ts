@@ -24,8 +24,8 @@ export function renderEnumerationsPage(page: EnumerationsPageDoc): string {
   lines.push(page.lead);
   lines.push('');
   lines.push(
-    'This page is generated from the library source — the values from the constants' +
-    ' each type is built from, the uses from the config type declarations — so it lists' +
+    'This page is generated from the library source (the values from the constants' +
+    ' each type is built from, the uses from the config type declarations), so it lists' +
     ' exactly what the shipped `.d.ts` accepts. Anchors are stable: link to any type as `#TypeName`.'
   );
   lines.push('');

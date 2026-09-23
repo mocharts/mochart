@@ -5,8 +5,8 @@
 // back to its core counterpart (`loadingComponent` → `getLoadingComponent`,
 // Angular's `chartClick` output → `onChartClick`), so the prose has exactly
 // one home; a binding prop only needs its own JSDoc when it has no core
-// counterpart (`className`, `class`, `style`). Integrity errors — reported by
-// scripts/generateBindings.ts, which fails the docs build and `npm test` —
+// counterpart (`className`, `class`, `style`). Integrity errors (reported by
+// scripts/generateBindings.ts, which fails the docs build and `npm test`)
 // cover the three ways this drifts:
 //
 //   1. a binding prop that neither maps to core nor documents itself;
@@ -370,7 +370,7 @@ export function buildBindingReference(coreModel: CoreApiModel): BindingReference
   }
   const coreKeys = new Set(orderedCoreKeys);
   if (coreKeys.size === 0) {
-    integrityErrors.push('the core api-reference model has no prop groups — run the core generator first');
+    integrityErrors.push('the core api-reference model has no prop groups. Run the core generator first');
   }
 
   const bindings: BindingDoc[] = [];
@@ -382,7 +382,7 @@ export function buildBindingReference(coreModel: CoreApiModel): BindingReference
   for (const source of bindingSources) {
     const members = source.style === 'angular' ? readAngularBinding(source) : readInterfaceBinding(source);
     if (members.length === 0) {
-      integrityErrors.push(`${source.packageName}: no props found — did its source layout change?`);
+      integrityErrors.push(`${source.packageName}: no props found. Did its source layout change?`);
     }
 
     const properties: BindingPropDoc[] = members.map(member => {
@@ -391,7 +391,7 @@ export function buildBindingReference(coreModel: CoreApiModel): BindingReference
       const description = member.description !== '' ? member.description : inherited;
       if (description === '') {
         integrityErrors.push(
-          `${source.packageName}: ${member.key} maps to no core prop and has no JSDoc —` +
+          `${source.packageName}: ${member.key} maps to no core prop and has no JSDoc:` +
           ' document it in the binding, or name it after the core prop it mirrors'
         );
       }
@@ -422,7 +422,7 @@ export function buildBindingReference(coreModel: CoreApiModel): BindingReference
         continue;
       }
       integrityErrors.push(
-        `${source.packageName}: core prop ${coreKey} has no counterpart —` +
+        `${source.packageName}: core prop ${coreKey} has no counterpart:` +
         ' add it to the binding, or to its expectedMissing with a reason'
       );
     }

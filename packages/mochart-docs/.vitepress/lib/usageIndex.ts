@@ -1,7 +1,7 @@
 // Build-time index of where each config property is exercised: the docs
 // site's own example configs (guide + recipe pages) and the demo gallery
 // configs from @mochart/demo-data. Reference pages render the result as
-// "Used in" links per property, so the links can never go stale — they are
+// "Used in" links per property, so the links can never go stale: they are
 // recomputed from the same JSON/TS sources on every build.
 
 import fs from 'node:fs';
@@ -244,7 +244,7 @@ export function buildUsageIndex(): UsageIndex {
       if (links === undefined) {
         demoLinks.set(key, links = []);
       }
-      // Trailing slash keeps VitePress from appending .html — the path is a
+      // Trailing slash keeps VitePress from appending .html, because the path is a
       // history route inside the vanilla gallery, not a docs page.
       links.push({ text: demo.title, link: '/vanilla/single/' + demo.id + '/' });
     }

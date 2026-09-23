@@ -57,7 +57,7 @@ function headingPrefix(depth: number): string {
   return '#'.repeat(2 + depth);
 }
 
-/** Render one property, then each member of the object — or of each array element — it holds; a member's anchor extends its parent's. */
+/** Render one property, then each member of the object (or of each array element) it holds; a member's anchor extends its parent's. */
 function renderProperty(sectionId: string, property: PropertyDoc, usage: UsageIndex, parentPath: string[] = [], parentLabels: string[] = []): string {
   const path = [...parentPath, property.key];
   const labels = [...parentLabels, property.key];
@@ -79,12 +79,12 @@ function renderProperty(sectionId: string, property: PropertyDoc, usage: UsageIn
   else if (property.conditionalDefaults) {
     const [soleConditional] = property.conditionalDefaults;
     if (property.conditionalDefaults.length === 1 && soleConditional !== undefined) {
-      lines.push('- **Default:** ' + renderDefaultValue(soleConditional.value) + ' — ' + soleConditional.condition);
+      lines.push('- **Default:** ' + renderDefaultValue(soleConditional.value) + ' (' + soleConditional.condition + ')');
     }
     else {
       lines.push('- **Default:**');
       for (const conditional of property.conditionalDefaults) {
-        lines.push('  - ' + renderDefaultValue(conditional.value) + ' — ' + conditional.condition);
+        lines.push('  - ' + renderDefaultValue(conditional.value) + ': ' + conditional.condition);
       }
     }
   }

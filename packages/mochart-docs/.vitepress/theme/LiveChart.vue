@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<{
   showcase?: ShowcaseMode;
   /** Show Download SVG / Download PNG buttons (the export guide's live demo). */
   exportButtons?: boolean;
-  /** CSS color set on the chart host — shows chrome following `currentColor`. */
+  /** CSS color set on the chart host, to show chrome following `currentColor`. */
   color?: string;
   /** Wire the click/focus/filter callbacks and log the last few events under the chart. */
   events?: boolean;
@@ -49,7 +49,7 @@ const props = withDefaults(defineProps<{
 });
 
 // Deep link into the vanilla gallery with this chart's config/data as the
-// share payload (see demo-common shareState) — the payload overrides the
+// share payload (see demo-common shareState). The payload overrides the
 // host demo's config and data, so the chart shown is exactly this example.
 // Pages should pass the closest matching demo slug via `demo` so the URL
 // reads right and stripping the hash lands somewhere sensible. Resolves only
@@ -90,13 +90,13 @@ const eventList = ref<HTMLElement | null>(null);
 let eventKey = 0;
 
 function logEvent(name: string, payload?: unknown) {
-  // follow the tail like a console — unless the reader scrolled up to older entries
+  // follow the tail like a console, unless the reader scrolled up to older entries
   const list = eventList.value;
   const following = list === null || list.scrollHeight - list.scrollTop - list.clientHeight < 8;
   eventLog.value = [
     ...eventLog.value,
     { key: eventKey++, name, payload: payload === undefined ? null : JSON.stringify(payload) }
-    // safety valve only — hover focus events accumulate fast on a long-lived page
+    // safety valve only: hover focus events accumulate fast on a long-lived page
   ].slice(-100);
   if (following) {
     void nextTick(() => {
@@ -224,7 +224,7 @@ async function download(format: 'svg' | 'png') {
         </div>
       </template>
       <div v-else class="live-chart-events-hint">
-        Interact with the chart — its events appear here.
+        Interact with the chart and its events appear here.
       </div>
     </div>
     <div v-if="altData || exportButtons || demoUrl || toggle || easingPicker" class="live-chart-controls">

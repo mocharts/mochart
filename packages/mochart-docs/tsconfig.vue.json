@@ -1,11 +1,12 @@
 {
-  // vue-tsc project for the theme's SFCs — plain tsc can't see inside .vue
-  // files (the env.d.ts wildcard shim satisfies their imports), so these are
-  // checked separately. SFC imports pull in @mochart/demo-common's SOURCE
-  // (its exports point at src), so this project mirrors the demo apps'
-  // options: no noUncheckedIndexedAccess (demo-common isn't written to it)
-  // and vite/client types for import.meta.env/glob. The docs' own .ts files
-  // keep the stricter tsconfig.json.
+  // vue-tsc project for the theme's SFCs, because plain tsc can't see
+  // inside .vue files (the env.d.ts wildcard shim satisfies their imports),
+  // so these are checked separately. SFC imports pull in
+  // @mochart/demo-common's SOURCE (its exports point at src), so this
+  // project mirrors the demo apps' options: no noUncheckedIndexedAccess
+  // (demo-common isn't written to it) and vite/client types for
+  // import.meta.env/glob. The docs' own .ts files keep the stricter
+  // tsconfig.json.
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noUncheckedIndexedAccess": false,

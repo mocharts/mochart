@@ -5,19 +5,19 @@
 //   api-reference model (the generator itself fails when a member has no
 //   JSDoc or its interface has no page group, so this is the backstop for a
 //   member quietly moving to an undocumented interface);
-// - public exports from core's index.ts — values and named types alike, in
-//   any export syntax, resolved through the TypeScript checker — must appear
+// - public exports from core's index.ts (values and named types alike, in
+//   any export syntax, resolved through the TypeScript checker) must appear
 //   in a docs page's code (a span or fenced block, so a word in prose is not
 //   mistaken for a reference). Exports declared under src/types/ are the
 //   exception: that surface is the generated config reference / the .d.ts;
-// - `ChartHandle` methods must appear in a docs page as a call —
-//   `` `name(` `` — so renaming a method breaks the check;
+// - `ChartHandle` methods must appear in a docs page as a call
+//   (`` `name(` ``), so renaming a method breaks the check;
 // - @mochart/export's and @mochart/editor's exports (checker-resolved, like
 //   core's) must appear in a docs page's code too (the binding packages are
 //   covered by the framework-props generator). The editor's model.ts types
 //   are the exception: that surface is the shipped .d.ts;
-// - the non-JS surface — core's and the editor's subpath exports (the
-//   optional stylesheets) and the IIFE script-tag artifact — must be
+// - the non-JS surface (core's and the editor's subpath exports, the
+//   optional stylesheets, and the IIFE script-tag artifact) must be
 //   mentioned in a docs page.
 //
 // Names that are deliberately undocumented go in `undocumented` below, with a
@@ -69,7 +69,7 @@ function readDocsText(): string {
 // enumerated-value types the generated enumerations page names.
 function readApiReference(): { propInterfaces: string[]; propKeys: Set<string>; enumerationNames: Set<string> } {
   if (!fs.existsSync(apiModelPath)) {
-    console.error(`✗ ${apiModelPath} not found — run "npm run gen" first`);
+    console.error(`✗ ${apiModelPath} not found. Run "npm run gen" first`);
     process.exit(1);
   }
   const model = JSON.parse(fs.readFileSync(apiModelPath, 'utf8')) as ApiReferenceModel;
@@ -84,7 +84,7 @@ function readApiReference(): { propInterfaces: string[]; propKeys: Set<string>; 
     }
   }
   if (interfaceNames.size === 0) {
-    console.error(`✗ ${apiModelPath} declares no interface groups — the prop check would be vacuous`);
+    console.error(`✗ ${apiModelPath} declares no interface groups, so the prop check would be vacuous`);
     process.exit(1);
   }
   return { propInterfaces: [...interfaceNames], propKeys, enumerationNames: new Set(model.enumerations.entries.map(entry => entry.name)) };
@@ -120,7 +120,7 @@ function moduleExports(entryPath: string): { name: string; declarationFiles: str
     };
   });
   if (exports.length === 0) {
-    console.error(`✗ found no exports at ${entryPath} — the coverage check would be vacuous`);
+    console.error(`✗ found no exports at ${entryPath}, so the coverage check would be vacuous`);
     process.exit(1);
   }
   return exports.sort((a, b) => a.name.localeCompare(b.name));
@@ -190,7 +190,7 @@ for (const interfaceName of propInterfaces) {
 for (const member of interfaceMemberNames(createChartPath, 'ChartHandle')) {
   check('ChartHandle', member, docsText.includes('`' + member + '('), 'any docs page as a `' + member + '(…)` call');
 }
-// Types declared under src/types are the `export type *` wildcard surface —
+// Types declared under src/types are the `export type *` wildcard surface:
 // the generated config reference / shipped .d.ts, not docs-page material.
 const coreTypesDir = path.join(coreSrcDir, 'types') + path.sep;
 for (const { name, declarationFiles } of moduleExports(path.join(coreSrcDir, 'index.ts'))) {
@@ -200,7 +200,7 @@ for (const { name, declarationFiles } of moduleExports(path.join(coreSrcDir, 'in
 for (const { name } of moduleExports(path.join(docsDir, '..', 'mochart-export', 'src', 'index.ts'))) {
   check('@mochart/export', name, documentedInCode(name), 'any docs page');
 }
-// The editor's model.ts types are the generated-model surface — the shipped
+// The editor's model.ts types are the generated-model surface: the shipped
 // .d.ts, not docs-page material.
 const editorPackageDir = path.join(docsDir, '..', 'mochart-editor');
 const editorModelPath = path.join(editorPackageDir, 'src', 'model.ts');
@@ -234,13 +234,13 @@ check('script-tag artifact', iifeArtifact, docsText.includes(iifeArtifact), 'any
 const stale = Object.keys(undocumented).filter(name => !seenNames.has(name));
 
 if (missing.length > 0) {
-  console.error('✗ undocumented public API — document it, or add it to `undocumented` with a reason:\n');
+  console.error('✗ undocumented public API: document it, or add it to `undocumented` with a reason:\n');
   for (const { kind, name, where } of missing) {
-    console.error(`    ${name}  (${kind}) — not in ${where}`);
+    console.error(`    ${name}  (${kind}): not in ${where}`);
   }
 }
 if (stale.length > 0) {
-  console.error('\n✗ stale `undocumented` entries — these names no longer exist:\n');
+  console.error('\n✗ stale `undocumented` entries: these names no longer exist:\n');
   for (const name of stale) {
     console.error(`    ${name}`);
   }

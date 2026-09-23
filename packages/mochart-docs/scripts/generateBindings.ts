@@ -17,7 +17,7 @@ const coreApiModelPath = path.join(docsDir, '..', 'mochart', 'generated', 'api-r
 const outputPath = process.argv[2] ?? path.join(docsDir, 'generated', 'binding-reference.json');
 
 if (!fs.existsSync(coreApiModelPath)) {
-  console.error(`✗ ${coreApiModelPath} not found — run the core generator first`);
+  console.error(`✗ ${coreApiModelPath} not found. Run the core generator first`);
   process.exit(1);
 }
 
@@ -33,8 +33,8 @@ if (integrityErrors.length > 0) {
   }
   // nothing is written on failure, so name what the docs build is left with
   console.error(fs.existsSync(outputPath)
-    ? `✗ nothing written — ${outputPath} still holds the previous model`
-    : `✗ nothing written — ${outputPath} does not exist yet, so the docs build has no model to render`);
+    ? `✗ nothing written: ${outputPath} still holds the previous model`
+    : `✗ nothing written: ${outputPath} does not exist yet, so the docs build has no model to render`);
   process.exit(1);
 }
 

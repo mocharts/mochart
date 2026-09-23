@@ -1,6 +1,6 @@
 // Loads the config-reference model emitted by @mochart/core's generator
 // (npm run gen in this package). Types mirror
-// packages/mochart/scripts/configReferenceModel.ts — kept local so the
+// packages/mochart/scripts/configReferenceModel.ts, kept local so the
 // VitePress config and loaders don't pull the core config modules into their
 // module graph.
 
@@ -82,7 +82,7 @@ export function loadConfigReference(): ConfigReferenceModel {
   if (!fs.existsSync(modelPath)) {
     throw new Error(
       'config-reference.json not found at ' + modelPath +
-      ' — run "npm run gen -w @mochart/docs" (or generate-docs in @mochart/core) first.'
+      '. Run "npm run gen -w @mochart/docs" (or generate-docs in @mochart/core) first.'
     );
   }
   return JSON.parse(fs.readFileSync(modelPath, 'utf-8')) as ConfigReferenceModel;
