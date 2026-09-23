@@ -2,9 +2,8 @@
 
 `@mochart/vue` wraps [@mochart/core](https://github.com/mocharts/mochart/tree/main/packages/mochart)
 in Vue 3 components. Config and data changes get mochart's
-[staged animations](/guide/staged-animation) for free — axis expansion, value
-change, axis contraction, and gapless stacked transitions — no extra wiring
-needed.
+[staged animations](/guide/staged-animation) with no extra wiring: axis
+expansion, value change, axis contraction, and gapless stacked transitions.
 
 ## Install
 
@@ -19,7 +18,7 @@ dependencies).
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's
-[optional stylesheet](/guide/getting-started#the-optional-stylesheet) — it
+[optional stylesheet](/guide/getting-started#the-optional-stylesheet). It
 re-asserts the browser defaults the chart's tooltip and message overlays
 rely on, and never overrides the chart's own styling:
 
@@ -29,8 +28,8 @@ import '@mochart/core/mochart.css';
 
 ## Quick start
 
-`DefaultChart` is the simplest entry point — give it a raw config and a plain
-dataset — an array of objects or an object of arrays:
+`DefaultChart` is the simplest entry point. Give it a raw config and a plain
+dataset (an array of objects or an object of arrays):
 
 ```vue
 <script setup>
@@ -91,7 +90,7 @@ Explicit `width`/`height` props win over conflicting `style` values.
 
 Other attributes (`id`, `data-testid`, …) fall through to the container div
 the same way. The optional `dataTestId` prop is the same surface the other
-bindings offer — it also sets `data-testid` and wins over a fallthrough
+bindings offer. It also sets `data-testid` and wins over a fallthrough
 attribute when both are given.
 
 ## When the data changes
@@ -99,28 +98,28 @@ attribute when both are given.
 Config and data changes are detected **by reference identity**: the chart
 compares the props it receives, not their contents. Vue's deep reactivity
 re-renders your own template after an in-place `push`, but the chart still
-sees the same array — replace instead of mutate:
+sees the same array. Replace instead of mutate:
 
 ```js
 import { ref } from 'vue';
 
 const data = ref(initialData);
 
-// ✓ a new array — the chart animates to it
+// ✓ a new array, so the chart animates to it
 data.value = [...data.value, { month: 'Mar', revenue: 30 }];
 
-// ✗ invisible to the chart — same array identity
+// ✗ the same reference, so the chart does not see it
 data.value.push({ month: 'Mar', revenue: 30 });
 ```
 
 The same rule applies to `config` on `DefaultChart` and to
-`mochartConfig`/`dataProvider` on `Chart` — pass a new object (or provider)
+`mochartConfig`/`dataProvider` on `Chart`. Pass a new object (or provider)
 to change them.
 
 For hosts that do mutate data in place, a template ref on either component
 exposes the core
-[`refresh()`](/guide/data-providers#when-the-data-changes) escape hatch —
-it re-reads the current data (the built-in providers read live, so
+[`refresh()`](/guide/data-providers#when-the-data-changes) escape hatch.
+It re-reads the current data (the built-in providers read live, so
 any in-place change is seen):
 
 ```vue
@@ -155,7 +154,7 @@ under their core names (`onChartClick`, `onFocus`, `onSeriesFilter`,
 in templates they are usable as `@chart-click`, `@series-filter`, and so on.
 They are declared as props, so they reach the chart rather than falling
 through to the container div. Only the callbacks you pass are wired into the chart,
-which matters where the core switches behavior on a callback's presence —
+which matters where the core switches behavior on a callback's presence:
 an `onTitleClick` makes the title a button, for instance.
 
 Both components also accept `loading` and `error` to force the
@@ -171,7 +170,7 @@ A placeholder is rendered as its own Vue root that carries the chart
 component's **app context**, so it can use globally registered components and
 directives and can `inject()` a value passed to `app.provide()`. It has no
 parent component, so a value an ancestor component supplied with `provide()` is
-not reachable — `inject()` returns its default (and warns when there is none).
+not reachable, so `inject()` returns its default (and warns when there is none).
 If a placeholder needs such a value, either move it to `app.provide()`, or
 `inject()` it in the host component and define the placeholder there as a
 component that closes over it. This is narrower than React, where a placeholder
@@ -216,8 +215,8 @@ come from `@mochart/core`; see [Callbacks and payloads](/reference/callbacks).
 The chart mounts in `onMounted`, which Vue does not run on the server: SSR
 emits only the container div, and the chart is created in the browser after
 hydration. No `typeof window` guards are needed in your own code. Nothing of
-the chart itself is server-rendered — the page shows an empty container until
-the client mounts — so a chart contributes no SEO or first-paint content, and
+the chart itself is server-rendered (the page shows an empty container until
+the client mounts), so a chart contributes no SEO or first-paint content, and
 a size measured from the container is only known in the browser. See
 [Browser support](/guide/getting-started#browser-support) for what the core
 itself needs.

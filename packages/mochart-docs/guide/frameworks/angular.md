@@ -2,9 +2,8 @@
 
 `@mochart/angular` wraps [@mochart/core](https://github.com/mocharts/mochart/tree/main/packages/mochart)
 in standalone Angular components. Config and data changes get mochart's
-[staged animations](/guide/staged-animation) for free — axis expansion, value
-change, axis contraction, and gapless stacked transitions — no extra wiring
-needed.
+[staged animations](/guide/staged-animation) with no extra wiring: axis
+expansion, value change, axis contraction, and gapless stacked transitions.
 
 ## Install
 
@@ -19,7 +18,7 @@ peer dependencies).
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's
-[optional stylesheet](/guide/getting-started#the-optional-stylesheet) — it
+[optional stylesheet](/guide/getting-started#the-optional-stylesheet). It
 re-asserts the browser defaults the chart's tooltip and message overlays
 rely on, and never overrides the chart's own styling:
 
@@ -29,8 +28,8 @@ import '@mochart/core/mochart.css';
 
 ## Quick start
 
-`DefaultChart` is the simplest entry point — give it a raw config and a plain
-dataset — an array of objects or an object of arrays:
+`DefaultChart` is the simplest entry point. Give it a raw config and a plain
+dataset (an array of objects or an object of arrays):
 
 ```ts
 import { Component } from '@angular/core';
@@ -98,7 +97,7 @@ Explicit `width`/`height` inputs win over conflicting `style` values.
 
 Any other attribute written on the element (`id`, `data-testid`, `aria-…`)
 naturally lands on that same container. The optional `dataTestId` input is
-the same surface the other bindings offer — it sets and removes
+the same surface the other bindings offer. It sets and removes
 `data-testid` dynamically, and a static `data-testid` attribute is left
 untouched when the input is never used.
 
@@ -107,23 +106,23 @@ untouched when the input is never used.
 Config and data changes are detected **by reference identity**: the chart
 compares the inputs it receives, not their contents. An in-place `push`
 leaves the input reference unchanged, so change detection has nothing new
-to pass on — reassign instead of mutate:
+to pass on. Reassign instead of mutate:
 
 ```ts
-// ✓ a new array — the chart animates to it
+// ✓ a new array, so the chart animates to it
 this.data = [...this.data, { month: 'Mar', revenue: 30 }];
 
-// ✗ invisible — same reference, the input never changes
+// ✗ the same reference, so the input never changes
 this.data.push({ month: 'Mar', revenue: 30 });
 ```
 
 The same rule applies to `config` on `mochart-default-chart` and to
-`mochartConfig`/`dataProvider` on `mochart-chart` — pass a new object (or
+`mochartConfig`/`dataProvider` on `mochart-chart`. Pass a new object (or
 provider) to change them.
 
 For hosts that do mutate data in place, the components expose the core
 [`refresh()`](/guide/data-providers#when-the-data-changes) escape hatch as
-a public method — it re-reads the current data (the built-in
+a public method that re-reads the current data (the built-in
 providers read live, so any in-place change is seen). Reach it through a
 template reference variable or `@ViewChild`:
 
@@ -143,12 +142,12 @@ addRow(row: DataObject) {
 ## Inputs, outputs, and states
 
 Both components emit the [chart callbacks](/guide/interaction#callbacks) as
-outputs with the core payloads, dropping the core `on` prefix —
-`onChartClick` becomes `chartClick`, `onSliceClick` becomes `sliceClick` —
+outputs with the core payloads, dropping the core `on` prefix
+(`onChartClick` becomes `chartClick`, `onSliceClick` becomes `sliceClick`),
 usable as `(chartClick)="..."` in templates. The one exception is `onFocus`,
 exposed as `focusChange`: a bare `(focus)` would collide with the native
 focus event. Only subscribed outputs are wired into the chart, which matters
-where the core switches behavior on a callback's presence — subscribing to
+where the core switches behavior on a callback's presence: subscribing to
 `titleClick` makes the title a button, for instance. A subscription made
 after mount (through a `@ViewChild`, say) is picked up too.
 
@@ -163,12 +162,12 @@ while the chart is in that state. Leave an input off to keep the built-in
 placeholder.
 
 A placeholder is created with the chart's `EnvironmentInjector`, so it can
-inject anything the application injector provides — `providedIn: 'root'`
+inject anything the application injector provides: `providedIn: 'root'`
 services, application providers, and the environment providers of the route the
 chart sits in. It is not created under the chart's element injector, so a
 provider declared in an ancestor component's `providers` or `viewProviders`
-array is not reachable: injecting it throws `NullInjectorError`, or — for a
-service that also has `providedIn: 'root'` — hands back the root instance
+array is not reachable: injecting it throws `NullInjectorError`, or (for a
+service that also has `providedIn: 'root'`) hands back the root instance
 instead of the component-scoped one. Register such a provider at application or
 route level, or keep the value in a service both the host and the placeholder
 inject. This is narrower than React, where a placeholder reads any ancestor's
@@ -192,7 +191,7 @@ leave an input `undefined` to let the chart keep managing that piece itself.
 ## TypeScript
 
 The package ships its own declarations. Both components extend the exported
-abstract `BaseChart`, which carries everything except the config/data inputs —
+abstract `BaseChart`, which carries everything except the config/data inputs:
 sizing, the state and placeholder inputs, the controlled focus/filter inputs,
 every output, and `refresh()`. Type a `@ViewChild` (or a helper accepting
 either component) as `BaseChart` when it shouldn't care which chart it gets.
@@ -210,8 +209,8 @@ The chart mounts in `ngAfterViewInit`, which Angular also runs on the server,
 so the components check `PLATFORM_ID` themselves and skip the mount there:
 SSR emits only the host element, and the chart is created once the app runs
 in the browser. No `isPlatformBrowser` guards are needed in your own code.
-Nothing of the chart itself is server-rendered — the page shows an empty host
-element until the client mounts — so a chart contributes no SEO or first-paint
+Nothing of the chart itself is server-rendered (the page shows an empty host
+element until the client mounts), so a chart contributes no SEO or first-paint
 content, and a size measured from the container is only known in the browser.
 See [Browser support](/guide/getting-started#browser-support) for what the
 core itself needs.

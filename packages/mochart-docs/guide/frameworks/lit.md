@@ -5,9 +5,8 @@
 for [@mochart/core](https://github.com/mocharts/mochart/tree/main/packages/mochart).
 They work in standalone lit-html templates and inside `LitElement` render
 methods alike. Config and data changes get mochart's
-[staged animations](/guide/staged-animation) for free — axis expansion, value
-change, axis contraction, and gapless stacked transitions — no extra wiring
-needed.
+[staged animations](/guide/staged-animation) with no extra wiring: axis
+expansion, value change, axis contraction, and gapless stacked transitions.
 
 ## Install
 
@@ -22,7 +21,7 @@ dependencies); the `lit` package brings it in as well.
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's
-[optional stylesheet](/guide/getting-started#the-optional-stylesheet) — it
+[optional stylesheet](/guide/getting-started#the-optional-stylesheet). It
 re-asserts the browser defaults the chart's tooltip and message overlays
 rely on, and never overrides the chart's own styling:
 
@@ -32,8 +31,8 @@ import '@mochart/core/mochart.css';
 
 ## Quick start
 
-`defaultChart` is the simplest entry point — give it a raw config and a plain
-dataset — an array of objects or an object of arrays:
+`defaultChart` is the simplest entry point. Give it a raw config and a plain
+dataset (an array of objects or an object of arrays):
 
 ```js
 import { html, render } from 'lit-html';
@@ -72,8 +71,8 @@ render(html`${chart({ mochartConfig, dataProvider, width: 640, height: 400 })}`,
 is still loading them; pair it with the `loading` prop to show the loading
 state until they arrive.
 
-Both directives have to sit in **child position** — an `${…}` slot between
-tags, as in the snippets above — because each one renders a container div and
+Both directives have to sit in **child position** (an `${…}` slot between
+tags, as in the snippets above), because each one renders a container div and
 mounts the chart into it. In an attribute, property, or event binding
 (`<div class=${chart({ … })}>`) the directive's constructor throws
 `mochart-lit chart directives can only be used in child position`.
@@ -93,8 +92,8 @@ chart follows it:
 html`<div style="width: 100%; height: 400px">${chart({ mochartConfig, dataProvider })}</div>`
 ```
 
-The optional `className` and `style` props land on the container div itself —
-the directive equivalent of the class/style fallthrough the component
+The optional `className` and `style` props land on the container div itself.
+This is the directive equivalent of the class/style fallthrough the component
 wrappers get. Explicit `width`/`height` props win over conflicting `style`
 values:
 
@@ -110,21 +109,21 @@ container div, for test selectors.
 Config and data changes are detected **by reference identity**: the chart
 compares the values it receives, not their contents. That matches Lit's own
 change detection (`hasChanged` is identity-based too), so the familiar Lit
-rule applies doubly here — reassign instead of mutate:
+rule applies doubly here. Reassign instead of mutate:
 
 ```ts
-// ✓ a new array — Lit re-renders and the chart animates to it
+// ✓ a new array, so Lit re-renders and the chart animates to it
 this.data = [...this.data, { month: 'Mar', revenue: 30 }];
 
-// ✗ invisible — same reference: neither Lit nor the chart sees it
+// ✗ the same reference, so neither Lit nor the chart sees it
 this.data.push({ month: 'Mar', revenue: 30 });
 ```
 
-The same rule applies to `config` and to `mochartConfig`/`dataProvider` —
-pass a new object (or provider) to change them.
+The same rule applies to `config` and to `mochartConfig`/`dataProvider`.
+Pass a new object (or provider) to change them.
 
-For hosts that do mutate data in place, the `chartRef` prop — a callback
-ref, like Lit's own `ref()` directive — receives a `ChartRef` handle with
+For hosts that do mutate data in place, the `chartRef` prop (a callback
+ref, like Lit's own `ref()` directive) receives a `ChartRef` handle with
 the core [`refresh()`](/guide/data-providers#when-the-data-changes) escape
 hatch. It re-reads the current data (the built-in providers read
 live, so any in-place change is seen):
@@ -167,12 +166,12 @@ Both directives accept the [chart callbacks](/guide/interaction#callbacks)
 under their core names (`onChartClick`, `onFocus`, `onSeriesFilter`,
 `onSeriesClick`, `onSliceClick`, `onTitleClick`, …) with the core payloads.
 Only the callbacks you pass are wired into the chart, which matters where
-the core switches behavior on a callback's presence — an `onTitleClick`
+the core switches behavior on a callback's presence: an `onTitleClick`
 makes the title a button, for instance.
 
 Both directives also accept `loading` and `error` to force the
 [loading or error state](/guide/chart-states), and a placeholder prop per
-state — named `*Template` rather than `*Component`, since each takes a
+state, named `*Template` rather than `*Component`, since each takes a
 **lit-html template function** rather than a component class:
 `loadingTemplate`, `errorTemplate`, `noDataTemplate`, `noSizeTemplate`,
 `noSeriesTemplate`, and `configErrorTemplate`. The function receives the
@@ -190,7 +189,7 @@ A placeholder template is a plain function the binding calls itself and renders
 with lit-html, not a component the framework instantiates, so nothing is
 injected into it: it sees the chart state context it is called with plus
 whatever its own closure captures. Define it where the values it needs are in
-scope — inside the host element's `render()`, or in a method that reads `this`.
+scope: inside the host element's `render()`, or in a method that reads `this`.
 Directives inside the template work as in any other lit-html render, and are
 disconnected when the template prop is removed. The component-based bindings
 inherit framework context to varying degrees; see
@@ -228,8 +227,8 @@ The directives do all their DOM work in `update()`, which lit-html only calls
 in the browser; the server-side `render()` path returns `noChange`, so
 nothing is emitted for the chart on the server and both the container div
 and the chart are created client-side. Nothing of the chart is
-server-rendered — the page shows nothing where the chart goes until the client
-mounts — so a chart contributes no SEO or first-paint content, and a size
+server-rendered (the page shows nothing where the chart goes until the client
+mounts), so a chart contributes no SEO or first-paint content, and a size
 measured from the container is only known in the browser. See
 [Browser support](/guide/getting-started#browser-support) for what the core
 itself needs.

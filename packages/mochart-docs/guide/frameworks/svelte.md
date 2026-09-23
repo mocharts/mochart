@@ -2,9 +2,8 @@
 
 `@mochart/svelte` wraps [@mochart/core](https://github.com/mocharts/mochart/tree/main/packages/mochart)
 in Svelte 5 components. Config and data changes get mochart's
-[staged animations](/guide/staged-animation) for free — axis expansion, value
-change, axis contraction, and gapless stacked transitions — no extra wiring
-needed.
+[staged animations](/guide/staged-animation) with no extra wiring: axis
+expansion, value change, axis contraction, and gapless stacked transitions.
 
 ## Install
 
@@ -19,7 +18,7 @@ the components are written with runes.
 
 If your app uses a global CSS reset (Tailwind's preflight, a
 `normalize.css`-style reset), also import the core package's
-[optional stylesheet](/guide/getting-started#the-optional-stylesheet) — it
+[optional stylesheet](/guide/getting-started#the-optional-stylesheet). It
 re-asserts the browser defaults the chart's tooltip and message overlays
 rely on, and never overrides the chart's own styling:
 
@@ -29,8 +28,8 @@ import '@mochart/core/mochart.css';
 
 ## Quick start
 
-`DefaultChart` is the simplest entry point — give it a raw config and a plain
-dataset — an array of objects or an object of arrays:
+`DefaultChart` is the simplest entry point. Give it a raw config and a plain
+dataset (an array of objects or an object of arrays):
 
 ```svelte
 <script>
@@ -93,27 +92,27 @@ container div, for test selectors.
 Config and data changes are detected **by reference identity**: the chart
 compares the props it receives, not their contents. `$state`'s deep
 reactivity updates your own markup after an in-place `push`, but the chart
-still sees the same array — reassign instead of mutate:
+still sees the same array. Reassign instead of mutate:
 
 ```js
 let data = $state(initialData);
 
-// ✓ a new array — the chart animates to it
+// ✓ a new array, so the chart animates to it
 data = [...data, { month: 'Mar', revenue: 30 }];
 
-// ✗ invisible to the chart — same array identity
+// ✗ the same reference, so the chart does not see it
 data.push({ month: 'Mar', revenue: 30 });
 ```
 
 The same rule applies to `config` on `DefaultChart` and to
-`mochartConfig`/`dataProvider` on `Chart` — pass a new object (or provider)
+`mochartConfig`/`dataProvider` on `Chart`. Pass a new object (or provider)
 to change them. A prop change made before the component's first effect run
 (in a parent's `onMount`, say) is applied too.
 
 For hosts that do mutate data in place, `bind:this` exposes a `ChartRef`
 handle with the core
-[`refresh()`](/guide/data-providers#when-the-data-changes) escape hatch —
-it re-reads the current data (the built-in providers read live, so
+[`refresh()`](/guide/data-providers#when-the-data-changes) escape hatch.
+It re-reads the current data (the built-in providers read live, so
 any in-place change is seen):
 
 ```svelte
@@ -138,7 +137,7 @@ Both components accept the [chart callbacks](/guide/interaction#callbacks)
 under their core names (`onChartClick`, `onFocus`, `onSeriesFilter`,
 `onSeriesClick`, `onSliceClick`, `onTitleClick`, …) with the core payloads.
 Only the callbacks you pass are wired into the chart, which matters where
-the core switches behavior on a callback's presence — an `onTitleClick`
+the core switches behavior on a callback's presence: an `onTitleClick`
 makes the title a button, for instance.
 
 Both components also accept `loading` and `error` to force the
@@ -187,8 +186,8 @@ see [Callbacks and payloads](/reference/callbacks).
 The chart mounts in `onMount`, which Svelte does not run on the server: SSR
 emits only the container div, and the chart is created in the browser after
 hydration. No `browser` guards are needed in your own code. Nothing of the
-chart itself is server-rendered — the page shows an empty container until the
-client mounts — so a chart contributes no SEO or first-paint content, and a
+chart itself is server-rendered (the page shows an empty container until the
+client mounts), so a chart contributes no SEO or first-paint content, and a
 size measured from the container is only known in the browser. See
 [Browser support](/guide/getting-started#browser-support) for what the core
 itself needs.
