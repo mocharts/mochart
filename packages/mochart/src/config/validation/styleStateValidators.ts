@@ -22,7 +22,7 @@ export function createStyleValidators(color: StyleColorValidator) {
       case 'fillOpacity':
         return allowSame ? validators.opacity().orEqual(STYLE_SAME) : validators.opacity();
       case 'strokeWidth':
-        // null (leave the attribute unset) is a supported width — getFocusStrokeWidth handles it
+        // null (leave the attribute unset) is a supported width: getFocusStrokeWidth handles it
         return allowSame ? validators.numberMin(0).orOneOf([NONE, STYLE_SAME]) : validators.numberMin(0).orEqual(NONE);
       case 'strokeDashArray':
         return allowSame ? validators.dashArray().orOneOf([NONE, STYLE_SAME]) : validators.dashArray().orEqual(NONE);

@@ -24,7 +24,7 @@ const uniform = (value: number): MarginPadding => ({ top: value, right: value, b
  * Turns a chart input config into a sparkline preset: axes, legend, tooltip,
  * crosshairs and per-point markers hidden and margins collapsed, leaving only
  * the plotted shapes for tiny inline charts. The preset only fills in
- * defaults — any value set on the passed config wins, so individual pieces
+ * defaults: any value set on the passed config wins, so individual pieces
  * (e.g. the tooltip) can be opted back in per chart.
  */
 export function createSparklineConfig(config: MochartInputConfig, options: CreateSparklineConfigOptions = {}): MochartInputConfig {

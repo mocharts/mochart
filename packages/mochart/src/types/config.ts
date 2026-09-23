@@ -74,8 +74,8 @@ export interface Style<C = string, S = never> extends StrokeStyle<C, S> {
 
 /**
  * One focus state of a stroke style. Unlike a plain `StrokeStyle`, a style
- * state always writes its color and opacity attributes — so a host-css stroke
- * cannot bleed onto chart chrome and focus animation can interpolate — which
+ * state always writes its color and opacity attributes (so a host-css stroke
+ * cannot bleed onto chart chrome and focus animation can interpolate), which
  * is why the colors and opacities are never null. Width and dash array stay
  * nullable. `S` widens the opacities, width and dash array in the focused and
  * defocused states, where `'same'` means "inherit the normal state's value".
@@ -117,7 +117,7 @@ export interface StyleState<C = string, S = never> extends StrokeStyleState<C, S
 
 /**
  * A line style in each of its three focus states. `'same'` in the focused /
- * defocused states means "inherit the normal state's value" — for the colors,
+ * defocused states means "inherit the normal state's value" for the colors,
  * the opacities, the stroke width and the dash array.
  */
 export interface StrokeStyleStates<C = string> {
@@ -128,7 +128,7 @@ export interface StrokeStyleStates<C = string> {
 
 /**
  * A full style in each of its three focus states. `'same'` in the focused /
- * defocused states means "inherit the normal state's value" — for the colors,
+ * defocused states means "inherit the normal state's value" for the colors,
  * the opacities, the stroke width and the dash array.
  */
 export interface StyleStates<C = string> {
@@ -173,7 +173,7 @@ export interface AccessibilityConfig {
    * through a hidden live region), legend items and interactive pie slices are
    * roving tab stops, and the svg carries roles, labels and `aria-hidden`
    * markers for assistive tech. Set to `false` to render the chart without any
-   * of these attributes or key handlers — for example when the host page
+   * of these attributes or key handlers, for example when the host page
    * provides its own accessible alternative. `respectReducedMotion` is not
    * gated by this switch.
    *
@@ -184,7 +184,7 @@ export interface AccessibilityConfig {
    * Whether the chart is hidden from assistive tech and keyboard navigation,
    * for purely decorative charts.
    *
-   * Set to `true` for a purely decorative chart — for example a sparkline that
+   * Set to `true` for a purely decorative chart, for example a sparkline that
    * repeats a value already shown as text. The chart’s container is marked
    * `aria-hidden` so screen readers skip it entirely, and every keyboard tab
    * stop (plot area, legend items, pie slices, tooltip rows and controls) is
@@ -217,13 +217,13 @@ export interface AccessibilityConfig {
    * tooltip controls’ buttons, and interactive tooltip rows are laid out at
    * least this many pixels in each direction the chart controls. The default of
    * `24` is the WCAG 2.5.8 minimum, which these targets otherwise miss at
-   * ordinary font sizes — a legend item is about 22px tall at a 16px host font,
+   * ordinary font sizes: a legend item is about 22px tall at a 16px host font,
    * and they sit one pixel apart, so a mis-hit filters the series next to it.
    * The floor applies to a target only while clicking it does something
    * (`legend.filterOnClick` / `focusOnClick`, the tooltip controls, the
    * tooltip’s click config), so a legend nothing responds to stays compact, and
    * it is not gated by `enabled` or `hidden`: it is about pointers and touch,
-   * not assistive tech. Series shapes — bars, markers, pie slices — are
+   * not assistive tech. Series shapes (bars, markers, pie slices) are
    * deliberately not padded: their size is the data, and growing their hit area
    * would change which value the pointer lands on. Set to `0` to lay every
    * target out at its content size.
@@ -264,7 +264,7 @@ export interface AccessibilityConfig {
    * slices.
    *
    * The accessible name of the group that contains the keyboard-reachable
-   * series — cartesian series or pie slices, whichever the chart draws. Like
+   * series (cartesian series or pie slices, whichever the chart draws). Like
    * the legend group, it is present only while the series are roving tab stops,
    * which is when clicking a series does something (`series.focusOnClick`, or
    * an `onSeriesClick`/`onSliceClick` callback). Replace to localize it.
@@ -349,12 +349,12 @@ export interface AnimationConfig {
    *
    * The master switch for staged animation. When `false`, config and data
    * changes apply instantly. When `true`, each update plays up to three
-   * sequential phases — axis expansion, value change, axis contraction —
+   * sequential phases (axis expansion, value change, axis contraction),
    * skipping phases it does not need, and each phase’s duration scales with the
    * size of its change (small updates play faster than the configured maximum).
    * Width/height changes re-layout the chart instantly either way. The user’s
-   * reduced-motion preference can also disable animation — see
-   * `accessibility.respectReducedMotion`.
+   * reduced-motion preference can also disable animation (see
+   * `accessibility.respectReducedMotion`).
    *
    * @default true
    */
@@ -367,8 +367,8 @@ export interface AnimationConfig {
    * the old and new domains, values tween, then axes contract. `'combined'`
    * interpolates every changed value axis domain together with the value
    * changes in a single phase. `'auto'` (the default) combines only when a
-   * domain translates — the old and new domains barely overlap, as with flat
-   * data changing level — and stages everything else. Combined domain changes
+   * domain translates (the old and new domains barely overlap, as with flat
+   * data changing level) and stages everything else. Combined domain changes
    * are paced by `valueChangeDuration`; `expansionDuration` and
    * `contractionDuration` do not apply to them.
    *
@@ -382,7 +382,7 @@ export interface AnimationConfig {
    * The category axis counterpart of `valueDomainChange`, with the same modes.
    * The default is `'staged'` rather than `'auto'`: a category domain change
    * usually also changes the category set (a sliding time window), and the
-   * staged union — zoom out over both windows, tween, zoom in — shows where the
+   * staged union (zoom out over both windows, tween, zoom in) shows where the
    * data moved, where a combined slide draws entering and leaving points
    * connected mid-flight. Set `'auto'` to slide barely-overlapping windows
    * during the value phase instead, or `'combined'` to merge every category
@@ -454,7 +454,7 @@ export interface AnimationConfig {
    * The duration (in milliseconds) of the transition when focus moves to or
    * from a series or category value.
    *
-   * Duration (in milliseconds) of focus transitions — the emphasis change
+   * Duration (in milliseconds) of focus transitions: the emphasis change
    * between focused/defocused styling when a series or category gains or loses
    * focus via hover, click, or the legend.
    *
@@ -1436,7 +1436,7 @@ export interface LegendConfig {
    * When `true`, the item text of a series that has been filtered out of the
    * chart is drawn with a line through it, so the legend shows at a glance
    * which series are filtered. The strike-through covers the item text only,
-   * never its color icon — the icon already says the same thing by going
+   * never its color icon, because the icon already says the same thing by going
    * hollow.
    *
    * @default false
@@ -1457,7 +1457,7 @@ export interface LegendConfig {
    * Whether to focus a series when the series icon or title is clicked.
    *
    * When `true`, clicking a legend item focuses its series (see
-   * `focusOnHover`). Combine with `filterOnClick` deliberately — with both
+   * `focusOnHover`). Combine with `filterOnClick` deliberately: with both
    * enabled a click filters and focuses.
    *
    * @default false
@@ -1571,8 +1571,8 @@ export interface TooltipConfig {
    * Whether series should be focused when the user hovers the pointer over them
    * in the tooltip.
    *
-   * Ignored while `showControls` is on — there the controls’ mode decides: a
-   * row’s series focuses on hover while filter mode is active.
+   * Ignored while `showControls` is on, because there the controls’ mode
+   * decides: a row’s series focuses on hover while filter mode is active.
    *
    * @default false
    */
@@ -1596,7 +1596,7 @@ export interface TooltipConfig {
    * its series out of the chart like a legend click (`filterable` permitting),
    * and hovering a series row focuses its series like hovering its legend item;
    * in focus mode a row click pins focus on its series or category. With the
-   * controls shown, the mode decides click and series-hover behavior — the
+   * controls shown, the mode decides click and series-hover behavior: the
    * `focus…OnClick` / `filterSeriesOnClick` / `focusSeriesOnHover` settings are
    * not consulted (`focusCategoryOnHover` still is). The mode button shows the
    * active mode via `filterModeText` / `focusModeText`, and the step buttons
@@ -1691,9 +1691,8 @@ export interface TooltipConfig {
    *
    * When `true`, the label of a series that has been filtered out of the chart
    * is drawn with a line through it. The strike-through covers the label only,
-   * so the value beside it stays legible — except when `valueAlign` is
-   * `'left'`, where the label and the value are one piece of text and both are
-   * struck.
+   * so the value beside it stays legible, except when `valueAlign` is `'left'`,
+   * where the label and the value are one piece of text and both are struck.
    *
    * @default false
    */
@@ -2819,8 +2818,8 @@ export interface AxisConfigBase {
    *
    * The form the bound takes follows `type` on a linear axis: a number when
    * `type` is `number`, and either a millisecond timestamp or an ISO date
-   * string (`"2020-01-01"`) when `type` is `date` — the two forms
-   * `thresholds[].value` takes. An ordinal axis places its categories in data
+   * string (`"2020-01-01"`) when `type` is `date` (the two forms
+   * `thresholds[].value` takes). An ordinal axis places its categories in data
    * order, so it accepts only `"auto"`.
    *
    * @default "auto"
@@ -2849,8 +2848,8 @@ export interface AxisConfigBase {
    *
    * The form the bound takes follows `type` on a linear axis: a number when
    * `type` is `number`, and either a millisecond timestamp or an ISO date
-   * string (`"2020-01-01"`) when `type` is `date` — the two forms
-   * `thresholds[].value` takes. An ordinal axis places its categories in data
+   * string (`"2020-01-01"`) when `type` is `date` (the two forms
+   * `thresholds[].value` takes). An ordinal axis places its categories in data
    * order, so it accepts only `"auto"`.
    *
    * @default "auto"
@@ -2895,9 +2894,9 @@ export interface AxisConfigBase {
    * The minimum value for the axis to cover while no data value is less than
    * it, taking the same forms as min (use null to disable).
    *
-   * Takes the same forms as `min` — a number, or a timestamp or ISO date string
-   * on a date axis — but only applies while no category value falls below it,
-   * so real data still expands the domain. An ordinal axis accepts only `null`.
+   * Takes the same forms as `min` (a number, or a timestamp or ISO date string
+   * on a date axis) but only applies while no category value falls below it, so
+   * real data still expands the domain. An ordinal axis accepts only `null`.
    *
    * @default null
    */
@@ -2906,9 +2905,9 @@ export interface AxisConfigBase {
    * The maximum value for the axis to cover while no data value is greater than
    * it, taking the same forms as max (use null to disable).
    *
-   * Takes the same forms as `max` — a number, or a timestamp or ISO date string
-   * on a date axis — but only applies while no category value rises above it,
-   * so real data still expands the domain. An ordinal axis accepts only `null`.
+   * Takes the same forms as `max` (a number, or a timestamp or ISO date string
+   * on a date axis) but only applies while no category value rises above it, so
+   * real data still expands the domain. An ordinal axis accepts only `null`.
    *
    * @default null
    */
@@ -3045,7 +3044,7 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * The chart reads this property from each entry of the data provider to get
    * the category value: the values must match `type`, they position a linear
    * axis, and they are what tick labels and the tooltip show. They must be
-   * unique unless `keyProperty` is set. It is required — the only category axis
+   * unique unless `keyProperty` is set. It is required: the only category axis
    * property without a default.
    */
   property?: string;
@@ -3063,8 +3062,8 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * identify the categories instead of the category values themselves: they
    * must be unique, and they are what animation, focus and filtering match
    * categories by across data changes. Use it when the category values would
-   * otherwise repeat — a label keyed by an id, or a wall-clock date whose real
-   * instants repeat.
+   * otherwise repeat, such as a label keyed by an id, or a wall-clock date
+   * whose real instants repeat.
    *
    * @default null
    */
@@ -3509,7 +3508,7 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * The maximum value for the axis to cover while no data value is greater than
    * it, taking the same forms as max (use null to disable).
    *
-   * An upper bound that only applies while no data value is above it — the axis
+   * An upper bound that only applies while no data value is above it: the axis
    * covers at least this value, but real data larger than it still expands the
    * domain. Unlike `max`, it never clips data.
    *
@@ -3520,7 +3519,7 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * The minimum value for the axis to cover while no data value is less than
    * it, taking the same forms as min (use null to disable).
    *
-   * A lower bound that only applies while no data value is below it — the axis
+   * A lower bound that only applies while no data value is below it: the axis
    * covers at least this value, but real data smaller than it still expands the
    * domain. Unlike `min`, it never clips data.
    *
@@ -3534,7 +3533,7 @@ export interface ValueAxisConfig extends AxisConfigBase {
    *
    * The margin is relative to the pre-margin domain, so values above 1 are
    * allowed and confine the data to a band of the plot: a margin of 4 leaves
-   * the data in the bottom fifth — how the candlestick/OHLC volume pane
+   * the data in the bottom fifth, which is how the candlestick/OHLC volume pane
    * reserves the upper plot for the price axis.
    *
    * @default 0.05
@@ -3647,7 +3646,7 @@ export interface SeriesColorScaleBase {
  * `base.value` is set, a ramp either side of that threshold.
  *
  * These colors are handed to d3 scale ranges, so unlike a style's colors they
- * must be real colors — `'currentColor'` would interpolate to `NaN`.
+ * must be real colors, because `'currentColor'` would interpolate to `NaN`.
  */
 export interface SeriesColorScale {
   /**
@@ -3685,7 +3684,7 @@ export interface SeriesBarConfig {
    *
    * Only affects the `bar` renderer. Narrows each bar within its layout slot
    * (the full category slot, or the series’ sub-slot when grouped), so a narrow
-   * bar can overlay a full-width one from another series — e.g. a candlestick
+   * bar can overlay a full-width one from another series, e.g. a candlestick
    * wick behind its body, or a bullet-chart measure over its backing range. The
    * narrowed bar is centered by default; `alignFraction` moves it within the
    * slot.
@@ -3699,7 +3698,7 @@ export interface SeriesBarConfig {
    * with the slot end).
    *
    * Only affects the `bar` renderer, and only when `widthFraction` is less than
-   * 1. Lets narrowed bars from different series share one slot side by side —
+   * 1. Lets narrowed bars from different series share one slot side by side,
    * e.g. the left open tick and right close tick of an OHLC bar.
    *
    * @default 0.5
@@ -3710,11 +3709,11 @@ export interface SeriesBarConfig {
    * direction.
    *
    * Only affects the `bar` renderer. A bar whose two ends resolve to (nearly)
-   * the same position — e.g. a ranged bar whose `property` and `rangeProperty`
-   * values are equal — is expanded to this extent, centered on its position, so
+   * the same position (e.g. a ranged bar whose `property` and `rangeProperty`
+   * values are equal) is expanded to this extent, centered on its position, so
    * it stays visible as a tick mark: e.g. the open/close ticks of an OHLC bar,
-   * or a candlestick doji body. At the default `0` such a bar — including a
-   * plain bar whose value equals the axis base — draws nothing and has no hit
+   * or a candlestick doji body. At the default `0` such a bar (including a
+   * plain bar whose value equals the axis base) draws nothing and has no hit
    * area.
    *
    * @default 0
@@ -3919,8 +3918,8 @@ export interface SeriesMarkerConfig {
    * Without a `markerProperty` every marker is drawn at exactly this size, and
    * `minSize` is not used. With one, the series value with the largest marker
    * property value gets this size and the others scale down toward `minSize` by
-   * `sizeScale`, so `size` is the top of the range and `minSize` the bottom —
-   * there is no separate maximum.
+   * `sizeScale`, so `size` is the top of the range and `minSize` the bottom.
+   * There is no separate maximum.
    *
    * @default 6
    */
@@ -3975,7 +3974,7 @@ export interface SeriesConfig {
    * The property to retrieve from the data provider for the series values.
    *
    * The chart reads this property from each category of the data provider to
-   * get the series value — it is the only series property without a default, so
+   * get the series value. It is the only series property without a default, so
    * every series must set it. The values retrieved for this property must be
    * numbers; `null`, `undefined` or `NaN` reads as a missing value. Use
    * `getDataErrors` to check a dataset against the configured properties.
@@ -3987,7 +3986,7 @@ export interface SeriesConfig {
    *
    * The values retrieved for this property must be numbers, like `property`.
    * When set, the series shape spans from the `rangeProperty` value to the
-   * `property` value instead of starting at the axis base — producing floating
+   * `property` value instead of starting at the axis base, producing floating
    * bars, a banded (low/high) area, or a pair of lines with the `line`
    * renderer.
    *
@@ -4004,9 +4003,9 @@ export interface SeriesConfig {
    * clip. Either bound can be used alone for a one-sided error bar; a category
    * whose bound is undefined just omits that side of the whisker. Error bars
    * draw on `bar`, `line`, `area` and `none` renderer series (centered on each
-   * bar — including grouped sub-slot bars — or on each point), but not on
-   * stacked series, where absolute bounds have no meaning against the
-   * cumulative stack position.
+   * bar, including grouped sub-slot bars, or on each point), but not on stacked
+   * series, where absolute bounds have no meaning against the cumulative stack
+   * position.
    *
    * @default null
    */
@@ -4015,7 +4014,7 @@ export interface SeriesConfig {
    * The property to retrieve from the data provider for the absolute upper
    * error bound values used to draw error bars (use null for none).
    *
-   * See `errorLowProperty` — the same rules apply to the upper bound.
+   * See `errorLowProperty`. The same rules apply to the upper bound.
    *
    * @default null
    */
@@ -4034,7 +4033,7 @@ export interface SeriesConfig {
    * The property to retrieve from the data provider for the series label values
    * (use null for none).
    *
-   * The values retrieved for this property must be numbers, like `property` —
+   * The values retrieved for this property must be numbers, like `property`,
    * formatted by `label.format`, not label text; a missing value draws no label
    * for that category.
    *
@@ -4067,7 +4066,7 @@ export interface SeriesConfig {
    * Whether a series data property absent from the data provider is read as
    * all-missing values instead of a data error.
    *
-   * Covers every data property the series names — `property`, `rangeProperty`,
+   * Covers every data property the series names: `property`, `rangeProperty`,
    * `errorLowProperty`, `errorHighProperty`, `markerProperty`, `labelProperty`,
    * `tooltipProperty` and `colorProperty`. Kept `false` by default so a
    * misspelled property name is still reported by `getDataErrors`; enable it
@@ -4090,7 +4089,7 @@ export interface SeriesConfig {
    * The unique identifier of the value axis that the series belongs to.
    *
    * Assigns the series to the value axis in `valueAxes` whose `id` matches.
-   * With a single configured axis this can be omitted — it defaults to that
+   * With a single configured axis this can be omitted, as it defaults to that
    * axis id.
    *
    * @default sole axis id
@@ -4103,7 +4102,7 @@ export interface SeriesConfig {
    * Series sharing the same stack id (an `id` from `seriesStacks`) are drawn
    * stacked on one another and animate as a single unit, so the stack stays
    * gapless mid-transition. All series of a stack must share the same `axis`
-   * and the same `group` (or all be ungrouped) — a stack cannot span groups,
+   * and the same `group` (or all be ungrouped). A stack cannot span groups,
    * since each group lays its stacks out in its own sub-slots. Defaults to the
    * sole stack id when exactly one stack is configured; use `null` to opt a
    * series out.
@@ -4116,7 +4115,7 @@ export interface SeriesConfig {
    * null for none).
    *
    * Series sharing the same group id (an `id` from `seriesGroups`) are laid out
-   * side by side within each category slot — grouped/clustered bars. Series in
+   * side by side within each category slot (grouped/clustered bars). Series in
    * the group that also share a `stack` share one sub-slot, so stacks placed in
    * the same group become side-by-side stacked columns. Defaults to the sole
    * group id when exactly one series group is configured; use `null` to opt a
@@ -4154,8 +4153,8 @@ export interface SeriesConfig {
    * none).
    *
    * `bar` draws a rectangle per category value, `line` connects the values with
-   * a path, `area` fills between the value line and the value axis `base` — or,
-   * when no base is set, the minimum end of the axis — and `none` draws no
+   * a path, `area` fills between the value line and the value axis `base` (or,
+   * when no base is set, the minimum end of the axis), and `none` draws no
    * shape. Different series in the same chart can use different renderers, e.g.
    * bars with a line overlay.
    *
@@ -4184,7 +4183,7 @@ export interface SeriesConfig {
    * between the neighbouring defined values; with `"base"` the point is drawn
    * at the value axis base value; the default `"break"` leaves a gap in the
    * shape. For a series with a `rangeProperty`, a category counts as missing
-   * only when both properties are undefined — see `partialRangeIsMissing`.
+   * only when both properties are undefined (see `partialRangeIsMissing`).
    *
    * @default "break"
    */
@@ -4209,8 +4208,8 @@ export interface SeriesConfig {
    * Only affects the `line` and `area` renderers. `type` selects the d3-shape
    * curve (`linear`, `monotoneX`, `natural`, `step`, `cardinal`, `catmullRom`,
    * …) and `param` sets the tension of a `cardinal` curve or the alpha of a
-   * `catmullRom` one — the only two types with a configurator, so the others
-   * reject it.
+   * `catmullRom` one. These are the only two types with a configurator, so the
+   * others reject it.
    *
    * @default { type: "linear" }
    */
@@ -4343,8 +4342,8 @@ export interface SeriesConfig {
    * the legend, this series follows it, and it shares the referenced series’
    * focus state both ways: focusing the leader highlights this series too, and
    * focus interactions on this series target the leader. For companion series
-   * that visually belong to a legend series — e.g. a candlestick wick following
-   * its body — so filtering or focusing treats the whole mark as one. It has no
+   * that visually belong to a legend series (e.g. a candlestick wick following
+   * its body), so filtering or focusing treats the whole mark as one. It has no
    * focus or filter state of its own for either: `focusedSeriesId` and the
    * `filteredSeriesIds` keys should be ids of series that do not set
    * `followSeries`, and this series’ own id has no effect there. It is kept out
@@ -4387,7 +4386,7 @@ export interface SeriesConfig {
    * shapes in the chart.
    *
    * Sets `cursor: pointer` on the series’ shapes (bars, markers, labels and
-   * line/area paths — or its pie slices), advertising that clicking does
+   * line/area paths, or its pie slices), advertising that clicking does
    * something. Typically paired with the `onSeriesClick`/`onSliceClick`
    * callbacks or `focusOnClick`, which make the shapes clickable but leave the
    * cursor unchanged by default.
@@ -4445,7 +4444,7 @@ export interface SeriesStackConfig {
    * series that belong to it.
    *
    * Referenced by `series[].stack` to place series in this stack. Stacked
-   * series draw on top of one another and animate as a single gapless unit —
+   * series draw on top of one another and animate as a single gapless unit:
    * each segment’s baseline follows the tweened top of the segment below it
    * throughout a transition.
    *
@@ -4726,7 +4725,7 @@ export interface DetailedConfigValidation extends ConfigValidation {
 export interface MochartConfig {
   /**
    * An optional identifier for the config (any value; the chart only compares
-   * it — a changed id resets the chart)
+   * it, and a changed id resets the chart)
    */
   id?: unknown;
   /** Carried through from the input config when it supplied one; defaults never add it. */
@@ -4792,7 +4791,7 @@ type ConfigLeaf = string | number | boolean | bigint | symbol | null | undefined
  * only the members that differ from the default, because the config machinery
  * deep-merges each layer.
  *
- * Arrays are left alone rather than becoming arrays of partials — a `stops` or
+ * Arrays are left alone rather than becoming arrays of partials: a `stops` or
  * `ticks` array replaces the default wholesale, so its entries are whole
  * entries. Primitives are left alone too, which is what keeps `SeriesColor`'s
  * `ColorMode | (string & {})` from being mangled into `{}`.
@@ -4811,7 +4810,7 @@ type DeepPartialEntry<T> = T extends { type: unknown } ? DeepPartial<T> & Pick<T
 export interface MochartInputConfig {
   /**
    * An optional identifier for the config (any value; the chart only compares
-   * it — a changed id resets the chart)
+   * it, and a changed id resets the chart)
    */
   id?: unknown;
   /**

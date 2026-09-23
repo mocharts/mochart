@@ -79,7 +79,7 @@ export interface ChartFactoryContext {
   mochartConfig: MochartConfig | null;
   /** The current data provider, or null when there is none. */
   dataProvider: DataProvider | null;
-  /** The active error — the `error` prop or the provider's; undefined outside the error state. */
+  /** The active error (the `error` prop or the provider's); undefined outside the error state. */
   error: unknown;
   /** True when the committed dataset holds at least one category. */
   hasData: boolean;
@@ -125,7 +125,7 @@ export interface ChartCallbacks {
   /** The chart title was clicked (see `title.link`/`title.linkDisabled`). */
   onTitleClick?: () => void;
   /**
-   * The focused series/category/value axis — via pointer over/click on the
+   * The focused series/category/value axis, set via pointer over/click on the
    * plot or the legend, per the `focusOnHover`/`focusOnClick` config.
    */
   onFocus?: (focus: ChartFocus) => void;
@@ -165,14 +165,14 @@ export interface BaseChartProps extends ChartCallbacks, ChartFactories {
   height: number;
   /**
    * Inline style on the chart's root element, over the default `position: relative`
-   * (the tooltip and live region anchor to the root — keep `position` non-`static`).
+   * (the tooltip and live region anchor to the root, so keep `position` non-`static`).
    * Object keys are camelCase and bare numbers get `px` (unitless properties
    * excepted); the string form is regular kebab-case CSS text.
    */
   style?: string | Record<string, string | number | null | undefined>;
   /** Switches the chart into its loading state (see `getLoadingComponent`). */
   loading?: boolean;
-  /** Switches the chart into its error state when set to anything but null/undefined — `''` and `0` count (see `getErrorComponent`). */
+  /** Switches the chart into its error state when set to anything but null/undefined, including `''` and `0` (see `getErrorComponent`). */
   error?: unknown;
   /**
    * Externally-controlled focused category index (-1 = none; undefined = chart manages focus).
@@ -189,7 +189,7 @@ export interface BaseChartProps extends ChartCallbacks, ChartFactories {
   /**
    * Externally-controlled filter map (series id → true = filtered out). When set it
    * overrides internal filter state on every update; pass back `onSeriesFilter` maps to sync.
-   * Key it by series that do not set `followSeries` — a series that follows another filters with the
+   * Key it by series that do not set `followSeries`: a series that follows another filters with the
    * series it follows, and its own id has no effect.
    */
   filteredSeriesIds?: Record<string, boolean>;
@@ -208,7 +208,7 @@ export interface DefaultChartProps extends BaseChartProps {
   /** The raw config; validated and enhanced internally on every change. */
   config: MochartInputConfig;
   /**
-   * The dataset in either built-in shape — array of objects (one per category)
+   * The dataset in either built-in shape: array of objects (one per category)
    * or object of arrays (one per property); wrapped in the matching provider.
    */
   data: ArrayOfObjectsData | ObjectOfArraysData;

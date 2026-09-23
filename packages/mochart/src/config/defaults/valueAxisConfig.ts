@@ -54,7 +54,7 @@ export function getConditionalDefaults(configWithRegularDefaults: ValueAxisConfi
     ], configWithRegularDefaults, index),
     base: conditionalDefault([
       // pie slices collapse to nothing when filtered, so their values must
-      // animate to 0 — a domain-min base would strand the shrink partway
+      // animate to 0, because a domain-min base would strand the shrink partway
       { condition: () => pieMode, suffix: 'when chart.type is pie', default: 0, defaultText: '0' },
       { condition: (_config, _index) => hasStack, suffix: 'value axis has stacks', default: 0, defaultText: '0' },
       { condition: (_config, _index) => !hasStack, suffix: 'value axis has no stacks', default: NONE, defaultText: NONE },

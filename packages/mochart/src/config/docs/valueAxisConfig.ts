@@ -63,8 +63,8 @@ export function getDetails() {
     id: 'Referenced by `series[].axis` (and `seriesStacks[].axis`) to assign series to this axis. With a single axis the ids can be omitted everywhere.',
     min: 'With `"auto"` the minimum is computed from the data (including stacking) on every update, and changes animate through the staged axis expansion/contraction phases. Set a number to pin the bound instead. Values outside of the defined range are clipped rather than allowed to overflow the plot area of the chart.',
     max: 'With `"auto"` the maximum is computed from the data (including stacking) on every update, and changes animate through the staged axis expansion/contraction phases. Set a number to pin the bound instead. Values outside of the defined range are clipped rather than allowed to overflow the plot area of the chart.',
-    softMin: 'A lower bound that only applies while no data value is below it — the axis covers at least this value, but real data smaller than it still expands the domain. Unlike `min`, it never clips data.',
-    softMax: 'An upper bound that only applies while no data value is above it — the axis covers at least this value, but real data larger than it still expands the domain. Unlike `max`, it never clips data.',
+    softMin: 'A lower bound that only applies while no data value is below it: the axis covers at least this value, but real data smaller than it still expands the domain. Unlike `min`, it never clips data.',
+    softMax: 'An upper bound that only applies while no data value is above it: the axis covers at least this value, but real data larger than it still expands the domain. Unlike `max`, it never clips data.',
     base: 'The value shapes are measured from: bars and areas grow from it, `missingValueMode: \'base\'` puts missing values on it, and shapes animate from it when series enter or leave. With mixed positive/negative data it separates the two directions. When left unspecified, un-ranged bar and area series use the minimum end of the axis, and other series use `min` when it is set, otherwise the smallest value in the data.',
     tickStep: {
       description: 'Chooses the ticks by rule rather than by a list, so the choice holds as the data changes; explicit `ticks` take precedence. An `interval` places the ticks on its multiples, `count` and `offset` keep every count-th of them counted from 0, and `minorSteps` places minor ticks between them; without an interval the axis keeps the ticks it picks. The minor tick marks, grid lines and labels carry the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes, and the `tickLabel`, `tickMark` and `gridLine` minor settings say how they are drawn.',
@@ -99,7 +99,7 @@ export function getDetails() {
         minor: 'A minor entry is drawn with the `tickLabel`, `tickMark` and `gridLine` minor settings, and its label shows only when every minor label fits beside its neighbours; an entry with a `label` keeps it whatever `minorFormat` says.'
       }
     },
-    maxMarginFraction: 'The margin is relative to the pre-margin domain, so values above 1 are allowed and confine the data to a band of the plot: a margin of 4 leaves the data in the bottom fifth — how the candlestick/OHLC volume pane reserves the upper plot for the price axis.',
+    maxMarginFraction: 'The margin is relative to the pre-margin domain, so values above 1 are allowed and confine the data to a band of the plot: a margin of 4 leaves the data in the bottom fifth, which is how the candlestick/OHLC volume pane reserves the upper plot for the price axis.',
     minMarginFraction: 'The margin is relative to the pre-margin domain, so values above 1 are allowed and confine the data to a band of the plot: a price axis with margin 1/3 keeps its data in the top three quarters, leaving the bottom for a volume pane.'
   };
 }

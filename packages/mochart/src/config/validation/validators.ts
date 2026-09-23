@@ -125,7 +125,7 @@ const svgColor = () => svgColorValidator;
 const cssColor = () => cssColorValidator;
 
 // Object.assign (not object spread) so TypeScript keeps the keys of movalid's
-// mapped Validators type — spreading it into a literal collapses them.
+// mapped Validators type. Spreading it into a literal collapses them.
 const configValidators = Object.assign({}, validators, {
   color,
   id,

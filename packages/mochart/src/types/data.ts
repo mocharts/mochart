@@ -192,7 +192,7 @@ export interface DataProvider {
    * snapshots what it needs and never mutates the array.
    */
   getPropertyValues(property: string): readonly DataValue[] | undefined;
-  /** When it returns anything but null/undefined, the chart shows its error state — `''` and `0` count. */
+  /** When it returns anything but null/undefined, including `''` and `0`, the chart shows its error state. */
   getError?(): unknown;
   /** When set and true, the chart shows its loading state. */
   getLoading?(): boolean;

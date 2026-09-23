@@ -1,7 +1,7 @@
 export default function getDescriptions() {
   return {
     version: 'The version of the configuration format (optional: omitted means the current format; include it in stored or shared configs so future releases can migrate them)',
-    id: 'An optional identifier for the config (any value; the chart only compares it — a changed id resets the chart)',
+    id: 'An optional identifier for the config (any value; the chart only compares it, and a changed id resets the chart)',
     accessibility: 'Configure the chart accessibility features and screen-reader labels',
     animation: 'Configure the chart animation settings',
     chart: 'Configure general settings of the chart',
