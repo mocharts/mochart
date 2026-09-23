@@ -29,10 +29,10 @@
     "@mochart/export": "*"
   },
   "devDependencies": {
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "vitepress": "2.0.0-alpha.20",
-    "vue": "^3.5.41",
-    "vue-tsc": "^3.3.9"
+    "vue": "^3.5.43",
+    "vue-tsc": "^3.3.11"
   }
 }
