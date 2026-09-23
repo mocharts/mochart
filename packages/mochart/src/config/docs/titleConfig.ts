@@ -11,7 +11,7 @@ export default function getDescriptions() {
       properties: {
         enabled: 'whether to use text truncation when the title width exceeds the width of the chart',
         text: 'the truncation text to append when text is truncated',
-        tooltipEnabled: 'whether truncated text shows its full string as the browser’s native tooltip while a pointer rests on it'
+        tooltipEnabled: 'whether truncated text shows its full string as the browser\'s native tooltip while a pointer rests on it'
       }
     },
     alignedToAxes: 'whether the title should be aligned between the axes (true) or the chart bounds (false)',
@@ -52,6 +52,6 @@ export default function getDescriptions() {
 }
 export function getDetails() {
   return {
-    truncation: { properties: { tooltipEnabled: 'When `true`, a truncated title carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; the chart’s accessible name already uses the full text.' } }
+    truncation: { properties: { tooltipEnabled: 'When `true`, a truncated title carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; the chart\'s accessible name already uses the full text.' } }
   };
 }

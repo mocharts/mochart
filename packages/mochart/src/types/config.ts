@@ -185,7 +185,7 @@ export interface AccessibilityConfig {
    * for purely decorative charts.
    *
    * Set to `true` for a purely decorative chart, for example a sparkline that
-   * repeats a value already shown as text. The chart’s container is marked
+   * repeats a value already shown as text. The chart's container is marked
    * `aria-hidden` so screen readers skip it entirely, and every keyboard tab
    * stop (plot area, legend items, pie slices, tooltip rows and controls) is
    * removed, so keyboard users cannot land on content assistive tech cannot
@@ -196,9 +196,9 @@ export interface AccessibilityConfig {
    */
   hidden: boolean;
   /**
-   * Whether to respect the user’s reduced-motion system preference.
+   * Whether to respect the user's reduced-motion system preference.
    *
-   * When `true` and the user’s system requests reduced motion (the
+   * When `true` and the user's system requests reduced motion (the
    * `prefers-reduced-motion: reduce` accessibility setting, for users sensitive
    * to movement), the chart behaves as if `animation.enabled` were `false`:
    * config, data, and focus changes apply instantly. The preference is watched
@@ -214,14 +214,14 @@ export interface AccessibilityConfig {
    * itself.
    *
    * The floor for the chart chrome a pointer can click: legend item boxes, the
-   * tooltip controls’ buttons, and interactive tooltip rows are laid out at
+   * tooltip controls' buttons, and interactive tooltip rows are laid out at
    * least this many pixels in each direction the chart controls. The default of
    * `24` is the WCAG 2.5.8 minimum, which these targets otherwise miss at
    * ordinary font sizes: a legend item is about 22px tall at a 16px host font,
    * and they sit one pixel apart, so a mis-hit filters the series next to it.
    * The floor applies to a target only while clicking it does something
    * (`legend.filterOnClick` / `focusOnClick`, the tooltip controls, the
-   * tooltip’s click config), so a legend nothing responds to stays compact, and
+   * tooltip's click config), so a legend nothing responds to stays compact, and
    * it is not gated by `enabled` or `hidden`: it is about pointers and touch,
    * not assistive tech. Series shapes (bars, markers, pie slices) are
    * deliberately not padded: their size is the data, and growing their hit area
@@ -276,7 +276,7 @@ export interface AccessibilityConfig {
    * The screen-reader name for the category axis group when the axis has no
    * title.
    *
-   * The accessible name of the group that wraps the category axis’ tick labels,
+   * The accessible name of the group that wraps the category axis' tick labels,
    * used when `categoryAxis.title` is unset; a set title always wins, and it is
    * the untruncated title even when the drawn one is truncated. The group is
    * what tells a screen reader which axis the run of tick labels belongs to, so
@@ -289,8 +289,8 @@ export interface AccessibilityConfig {
   /**
    * The screen-reader name for a value axis group when the axis has no title.
    *
-   * The accessible name of the group that wraps a value axis’ tick labels, used
-   * when that axis’ `title` is unset; a set title always wins, and it is the
+   * The accessible name of the group that wraps a value axis' tick labels, used
+   * when that axis' `title` is unset; a set title always wins, and it is the
    * untruncated title even when the drawn one is truncated. Every untitled
    * value axis gets this same name, so give the axes titles when a chart has
    * more than one and the distinction matters. Replace to localize it.
@@ -310,9 +310,9 @@ export interface AccessibilityConfig {
   /**
    * The screen-reader label for the group of keyboard-reachable tooltip rows.
    *
-   * The accessible name of the group that contains an open tooltip’s
+   * The accessible name of the group that contains an open tooltip's
    * keyboard-reachable rows. Present only while the rows are roving tab stops,
-   * which is when clicking a row does something (the tooltip controls’ current
+   * which is when clicking a row does something (the tooltip controls' current
    * mode, or `tooltip.focusCategoryOnClick` / `focusSeriesOnClick` /
    * `filterSeriesOnClick`). Replace to localize it.
    *
@@ -320,7 +320,7 @@ export interface AccessibilityConfig {
    */
   tooltipLabel: string;
   /**
-   * The label for the tooltip controls’ previous-category button (aria-label
+   * The label for the tooltip controls' previous-category button (aria-label
    * and hover title).
    *
    * The accessible name and hover title of the ‹ button shown when
@@ -331,7 +331,7 @@ export interface AccessibilityConfig {
    */
   tooltipPreviousLabel: string;
   /**
-   * The label for the tooltip controls’ next-category button (aria-label and
+   * The label for the tooltip controls' next-category button (aria-label and
    * hover title).
    *
    * The accessible name and hover title of the › button shown when
@@ -350,9 +350,9 @@ export interface AnimationConfig {
    * The master switch for staged animation. When `false`, config and data
    * changes apply instantly. When `true`, each update plays up to three
    * sequential phases (axis expansion, value change, axis contraction),
-   * skipping phases it does not need, and each phase’s duration scales with the
+   * skipping phases it does not need, and each phase's duration scales with the
    * size of its change (small updates play faster than the configured maximum).
-   * Width/height changes re-layout the chart instantly either way. The user’s
+   * Width/height changes re-layout the chart instantly either way. The user's
    * reduced-motion preference can also disable animation (see
    * `accessibility.respectReducedMotion`).
    *
@@ -1028,13 +1028,13 @@ export interface TruncationConfig {
    */
   text: string;
   /**
-   * Whether truncated text shows its full string as the browser’s native
+   * Whether truncated text shows its full string as the browser's native
    * tooltip while a pointer rests on it.
    *
    * When `true`, a truncated title carries an svg `<title>` holding the full
    * text, which browsers show as their native tooltip (not the chart `tooltip`)
    * while a mouse or pen rests on it. Touch has no hover, so nothing shows
-   * there; the chart’s accessible name already uses the full text.
+   * there; the chart's accessible name already uses the full text.
    *
    * @default true
    */
@@ -1351,7 +1351,7 @@ export interface LegendTruncationConfig extends TruncationConfig {
    *
    * At the default `1` a single item may take the whole legend width, so a long
    * title wraps onto a row of its own and the legend grows downward at the
-   * plot’s expense. A lower fraction limits every item to that share of the
+   * plot's expense. A lower fraction limits every item to that share of the
    * width available to the legend (the plot width when `alignedToAxes` is on)
    * and truncates the titles that exceed it, so `0.5` fits two items to a row
    * and a third fits three. The limit never takes an item below the
@@ -1571,8 +1571,8 @@ export interface TooltipConfig {
    * Whether series should be focused when the user hovers the pointer over them
    * in the tooltip.
    *
-   * Ignored while `showControls` is on, because there the controls’ mode
-   * decides: a row’s series focuses on hover while filter mode is active.
+   * Ignored while `showControls` is on, because there the controls' mode
+   * decides: a row's series focuses on hover while filter mode is active.
    *
    * @default false
    */
@@ -1607,7 +1607,7 @@ export interface TooltipConfig {
    */
   showControls: boolean;
   /**
-   * The text shown on the tooltip controls’ mode button while filter mode is
+   * The text shown on the tooltip controls' mode button while filter mode is
    * active.
    *
    * The visible text of the mode button while clicking a series row filters its
@@ -1617,7 +1617,7 @@ export interface TooltipConfig {
    */
   filterModeText: string;
   /**
-   * The text shown on the tooltip controls’ mode button while focus mode is
+   * The text shown on the tooltip controls' mode button while focus mode is
    * active.
    *
    * The visible text of the mode button while clicking a row focuses its series
@@ -2173,7 +2173,7 @@ export interface MinorTickLabelTruncationConfig {
   text: string;
   /**
    * Whether truncated minor tick label text shows its full string as the
-   * browser’s native tooltip while a pointer rests on it ("major" uses the
+   * browser's native tooltip while a pointer rests on it ("major" uses the
    * value of tickLabel.truncation.tooltipEnabled).
    *
    * When `true`, a truncated minor tick label carries an svg `<title>` holding
@@ -3058,7 +3058,7 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * The property to retrieve from the data provider for the category keys, when
    * the category values may repeat (use null for none).
    *
-   * When set, this property’s values (strings or numbers, one per category)
+   * When set, this property's values (strings or numbers, one per category)
    * identify the categories instead of the category values themselves: they
    * must be unique, and they are what animation, focus and filtering match
    * categories by across data changes. Use it when the category values would
@@ -3683,7 +3683,7 @@ export interface SeriesBarConfig {
    * in the series.
    *
    * Only affects the `bar` renderer. Narrows each bar within its layout slot
-   * (the full category slot, or the series’ sub-slot when grouped), so a narrow
+   * (the full category slot, or the series' sub-slot when grouped), so a narrow
    * bar can overlay a full-width one from another series, e.g. a candlestick
    * wick behind its body, or a bullet-chart measure over its backing range. The
    * narrowed bar is centered by default; `alignFraction` moves it within the
@@ -4328,7 +4328,7 @@ export interface SeriesConfig {
   showColorInTooltip: boolean;
   /**
    * Whether or not the series can be filtered out of the chart via the legend
-   * or tooltip (no effect when `followSeries` is set: the followed series’
+   * or tooltip (no effect when `followSeries` is set: the followed series'
    * `filterable` decides).
    *
    * @default true
@@ -4339,16 +4339,16 @@ export interface SeriesConfig {
    * this series follows (use null for none).
    *
    * When the referenced series is toggled out of (or back into) the chart via
-   * the legend, this series follows it, and it shares the referenced series’
+   * the legend, this series follows it, and it shares the referenced series'
    * focus state both ways: focusing the leader highlights this series too, and
    * focus interactions on this series target the leader. For companion series
    * that visually belong to a legend series (e.g. a candlestick wick following
    * its body), so filtering or focusing treats the whole mark as one. It has no
    * focus or filter state of its own for either: `focusedSeriesId` and the
    * `filteredSeriesIds` keys should be ids of series that do not set
-   * `followSeries`, and this series’ own id has no effect there. It is kept out
+   * `followSeries`, and this series' own id has no effect there. It is kept out
    * of the legend by default (`showInLegend`), since its item could only repeat
-   * the followed series’ own.
+   * the followed series' own.
    *
    * @default null
    */
@@ -4385,7 +4385,7 @@ export interface SeriesConfig {
    * Whether to show the pointer cursor when the user mouses over the series
    * shapes in the chart.
    *
-   * Sets `cursor: pointer` on the series’ shapes (bars, markers, labels and
+   * Sets `cursor: pointer` on the series' shapes (bars, markers, labels and
    * line/area paths, or its pie slices), advertising that clicking does
    * something. Typically paired with the `onSeriesClick`/`onSliceClick`
    * callbacks or `focusOnClick`, which make the shapes clickable but leave the
@@ -4445,7 +4445,7 @@ export interface SeriesStackConfig {
    *
    * Referenced by `series[].stack` to place series in this stack. Stacked
    * series draw on top of one another and animate as a single gapless unit:
-   * each segment’s baseline follows the tweened top of the segment below it
+   * each segment's baseline follows the tweened top of the segment below it
    * throughout a transition.
    *
    * @default SS${index}

@@ -308,7 +308,7 @@ function statesEntry(): ShowcaseEntry {
   return local({
     slug: 'states',
     title: 'Loading, Error & Empty States',
-    blurb: 'The chart’s built-in loading, error, empty-data and invalid-config states, switchable live.',
+    blurb: 'The chart\'s built-in loading, error, empty-data and invalid-config states, switchable live.',
     notes: 'Charts rarely live alone: data arrives late, requests fail, filters empty the set. The loading and error props switch the chart into its corresponding state, an empty dataset renders the no-data state, and every one of them is customizable through factory props (getLoadingComponent, getErrorComponent, getNoDataComponent, …) that return any DOM node.',
     config: statesConfig,
     data: statesData,
@@ -457,7 +457,7 @@ export function getSections(): ShowcaseSection[] {
           slug: 'focus-styles',
           title: 'Focus Styles',
           blurb: 'Hover a series (or its legend entry) and watch the focused/defocused style states restyle the whole chart.',
-          notes: 'Every styled element carries a style in three focus states: normal, focused, defocused. Here seriesDefaults.shapeStyle gives every series a thicker focused outline and fades defocused fills to 15%, so pointing at any series makes the others step back. "same" in a focused/defocused color means "inherit the normal state’s color", so states usually only need to override opacities and widths.',
+          notes: 'Every styled element carries a style in three focus states: normal, focused, defocused. Here seriesDefaults.shapeStyle gives every series a thicker focused outline and fades defocused fills to 15%, so pointing at any series makes the others step back. "same" in a focused/defocused color means "inherit the normal state\'s color", so states usually only need to override opacities and widths.',
           config: focusStylesConfig,
           data: focusStylesData,
           random: focusStylesRandom
@@ -468,7 +468,7 @@ export function getSections(): ShowcaseSection[] {
     {
       id: 'styling',
       title: 'Styling & theming',
-      tagline: 'Gradients, patterns, data-driven color ramps, marker and label styling, and chrome that follows your page’s ink.',
+      tagline: 'Gradients, patterns, data-driven color ramps, marker and label styling, and chrome that follows your page\'s ink.',
       entries: [
         reuse('gradients'),
         // half the demo's year: 12 months of grouped bars leave each bar about 7px on a phone, too narrow for the 9px pattern spacing to repeat
@@ -493,7 +493,7 @@ export function getSections(): ShowcaseSection[] {
           slug: 'currentcolor',
           title: 'currentColor Chrome',
           blurb: 'Axes, ticks and title default to currentColor, and series can too. Toggle the theme and the chart follows.',
-          notes: 'The chart’s structural chrome (axis lines, tick labels, title, legend text) defaults to currentColor, so it inherits whatever color the surrounding page sets, which is how the dark theme restyles every chart without a single config change. This demo goes further: the bar series sets its shapeStyle fillColor and strokeColor to currentColor as well. Flip the theme toggle and watch both follow the page’s ink.',
+          notes: 'The chart\'s structural chrome (axis lines, tick labels, title, legend text) defaults to currentColor, so it inherits whatever color the surrounding page sets, which is how the dark theme restyles every chart without a single config change. This demo goes further: the bar series sets its shapeStyle fillColor and strokeColor to currentColor as well. Flip the theme toggle and watch both follow the page\'s ink.',
           config: currentColorConfig,
           data: currentColorData,
           random: currentColorRandom
@@ -520,7 +520,7 @@ export function getSections(): ShowcaseSection[] {
           slug: 'editor',
           title: 'Config Editor Playground',
           blurb: 'Edit a config with completions, hover docs and live validation. Invalid configs explain themselves.',
-          notes: 'The config tab on every showcase page is powered by @mochart/editor with mochart intelligence: completions for every section and property, hover documentation with defaults, and live diagnostics that combine JSON syntax errors with @mochart/movalid’s validation messages. Break something on purpose (change a renderer to "pie chart", or point a series at a missing axis) and the chart renders its config-error state with the same message the editor underlines.',
+          notes: 'The config tab on every showcase page is powered by @mochart/editor with mochart intelligence: completions for every section and property, hover documentation with defaults, and live diagnostics that combine JSON syntax errors with @mochart/movalid\'s validation messages. Break something on purpose (change a renderer to "pie chart", or point a series at a missing axis) and the chart renders its config-error state with the same message the editor underlines.',
           config: editorConfig,
           data: editorData,
           random: editorRandom

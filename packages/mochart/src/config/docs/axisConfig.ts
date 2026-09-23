@@ -331,7 +331,7 @@ export default function getDescriptions() {
           properties: {
             enabled: 'whether to apply text truncation to the contents of the axis title when it would overflow the axis bounds',
             text: 'the truncation text to append when text is truncated',
-            tooltipEnabled: 'whether truncated text shows its full string as the browser’s native tooltip while a pointer rests on it'
+            tooltipEnabled: 'whether truncated text shows its full string as the browser\'s native tooltip while a pointer rests on it'
           }
         },
         size: 'the space (in pixels) perpendicular to the axis direction to allocate for the axis title (use "auto" to derive from the font size)',

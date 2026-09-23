@@ -63,7 +63,7 @@ export default function getDescriptions() {
           properties: {
             enabled: 'whether or not to use text truncation (true) when the axis tick labels would overlap each other instead of skipping ticks (false)',
             text: 'the truncation text to append when text is truncated',
-            tooltipEnabled: 'whether truncated text shows its full string as the browser’s native tooltip while a pointer rests on it',
+            tooltipEnabled: 'whether truncated text shows its full string as the browser\'s native tooltip while a pointer rests on it',
             minLength: 'the minimum length (in pixels) to allow tick label text perpendicular to the axis, applied when maxFraction would allow less',
             maxFraction: 'the maximum fraction (0 - 1) of the plot bounds to allow any tick label text to occupy when they are perpendicular to the axis'
           }
@@ -73,7 +73,7 @@ export default function getDescriptions() {
           properties: {
             enabled: 'whether or not to use text truncation (true) when the minor tick labels would overlap each other instead of hiding them (false)' + majorNote('tickLabel.truncation.enabled'),
             text: 'the truncation text to append when minor tick label text is truncated',
-            tooltipEnabled: 'whether truncated minor tick label text shows its full string as the browser’s native tooltip while a pointer rests on it' + majorNote('tickLabel.truncation.tooltipEnabled'),
+            tooltipEnabled: 'whether truncated minor tick label text shows its full string as the browser\'s native tooltip while a pointer rests on it' + majorNote('tickLabel.truncation.tooltipEnabled'),
             minLength: 'the minimum length (in pixels) to allow minor tick label text perpendicular to the axis, applied when maxFraction would allow less' + majorNote('tickLabel.truncation.minLength'),
             maxFraction: 'the maximum fraction (0 - 1) of the plot bounds to allow any minor tick label text to occupy when they are perpendicular to the axis' + majorNote('tickLabel.truncation.maxFraction')
           }
@@ -88,7 +88,7 @@ export function getDetails() {
     property: 'The chart reads this property from each entry of the data provider to get the category value: the values must match `type`, they position a linear axis, and they are what tick labels and the tooltip show. They must be unique unless `keyProperty` is set. It is required: the only category axis property without a default.',
     type: 'How category values are interpreted: `string` for labels, `number` for numeric values, and `date` for date values (`dateUTC` controls their timezone handling). The type drives parsing, tick label formatting, and which `scale` options make sense.',
     scale: '`ordinal` places the categories at evenly spaced positions in data order regardless of their values; `linear` positions `number`/`date` category values proportionally along the axis, so uneven spacing in the data shows as uneven spacing in the chart.',
-    keyProperty: 'When set, this property’s values (strings or numbers, one per category) identify the categories instead of the category values themselves: they must be unique, and they are what animation, focus and filtering match categories by across data changes. Use it when the category values would otherwise repeat, such as a label keyed by an id, or a wall-clock date whose real instants repeat.',
+    keyProperty: 'When set, this property\'s values (strings or numbers, one per category) identify the categories instead of the category values themselves: they must be unique, and they are what animation, focus and filtering match categories by across data changes. Use it when the category values would otherwise repeat, such as a label keyed by an id, or a wall-clock date whose real instants repeat.',
     min: 'The form the bound takes follows `type` on a linear axis: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string (`"2020-01-01"`) when `type` is `date` (the two forms `thresholds[].value` takes). An ordinal axis places its categories in data order, so it accepts only `"auto"`.',
     max: 'The form the bound takes follows `type` on a linear axis: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string (`"2020-01-01"`) when `type` is `date` (the two forms `thresholds[].value` takes). An ordinal axis places its categories in data order, so it accepts only `"auto"`.',
     softMin: 'Takes the same forms as `min` (a number, or a timestamp or ISO date string on a date axis) but only applies while no category value falls below it, so real data still expands the domain. An ordinal axis accepts only `null`.',

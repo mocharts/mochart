@@ -29,8 +29,8 @@ export default function getDescriptions() {
     focusSeriesOnHover: 'whether series should be focused when the user hovers the pointer over them in the tooltip',
     showCategory: 'whether the category value should be shown as the first line of the tooltip',
     showControls: 'whether the focus/filter controls should be shown at the top of the tooltip',
-    filterModeText: 'the text shown on the tooltip controls’ mode button while filter mode is active',
-    focusModeText: 'the text shown on the tooltip controls’ mode button while focus mode is active',
+    filterModeText: 'the text shown on the tooltip controls\' mode button while filter mode is active',
+    focusModeText: 'the text shown on the tooltip controls\' mode button while focus mode is active',
     keepInside: 'whether to keep the tooltip within the series drawing area (true) or allow it to overlap the axes (false)',
     padding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the tooltip'),
     lineSpacing: 'the space (in pixels) between each line of the tooltip',
@@ -66,7 +66,7 @@ export default function getDescriptions() {
 export function getDetails() {
   return {
     showControls: 'When `true`, a control strip renders above the tooltip lines: ‹ and › buttons step the shown category, and a mode button toggles what clicking a tooltip row does. In filter mode (the initial mode) a series row toggles its series out of the chart like a legend click (`filterable` permitting), and hovering a series row focuses its series like hovering its legend item; in focus mode a row click pins focus on its series or category. With the controls shown, the mode decides click and series-hover behavior: the `focus…OnClick` / `filterSeriesOnClick` / `focusSeriesOnHover` settings are not consulted (`focusCategoryOnHover` still is). The mode button shows the active mode via `filterModeText` / `focusModeText`, and the step buttons are labeled for assistive tech by `accessibility.tooltipPreviousLabel` / `tooltipNextLabel`.',
-    focusSeriesOnHover: 'Ignored while `showControls` is on, because there the controls’ mode decides: a row’s series focuses on hover while filter mode is active.',
+    focusSeriesOnHover: 'Ignored while `showControls` is on, because there the controls\' mode decides: a row\'s series focuses on hover while filter mode is active.',
     filterModeText: 'The visible text of the mode button while clicking a series row filters its series. Replace to localize it.',
     focusModeText: 'The visible text of the mode button while clicking a row focuses its series or category. Replace to localize it.',
     strikeThroughFiltered: 'When `true`, the label of a series that has been filtered out of the chart is drawn with a line through it. The strike-through covers the label only, so the value beside it stays legible, except when `valueAlign` is `\'left\'`, where the label and the value are one piece of text and both are struck.'
