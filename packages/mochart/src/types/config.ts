@@ -323,8 +323,8 @@ export interface AccessibilityConfig {
    * The label for the tooltip controls' previous-category button (aria-label
    * and hover title).
    *
-   * The accessible name and hover title of the ‹ button shown when
-   * `tooltip.showControls` is on; the button itself shows only the glyph.
+   * The accessible name and hover title of the previous-category button shown
+   * when `tooltip.showControls` is on; the button itself shows only a glyph.
    * Replace to localize it.
    *
    * @default "Previous category"
@@ -334,9 +334,9 @@ export interface AccessibilityConfig {
    * The label for the tooltip controls' next-category button (aria-label and
    * hover title).
    *
-   * The accessible name and hover title of the › button shown when
-   * `tooltip.showControls` is on; the button itself shows only the glyph.
-   * Replace to localize it.
+   * The accessible name and hover title of the next-category button shown when
+   * `tooltip.showControls` is on; the button itself shows only a glyph. Replace
+   * to localize it.
    *
    * @default "Next category"
    */
@@ -1590,18 +1590,18 @@ export interface TooltipConfig {
    * Whether the focus/filter controls should be shown at the top of the
    * tooltip.
    *
-   * When `true`, a control strip renders above the tooltip lines: ‹ and ›
-   * buttons step the shown category, and a mode button toggles what clicking a
-   * tooltip row does. In filter mode (the initial mode) a series row toggles
-   * its series out of the chart like a legend click (`filterable` permitting),
-   * and hovering a series row focuses its series like hovering its legend item;
-   * in focus mode a row click pins focus on its series or category. With the
-   * controls shown, the mode decides click and series-hover behavior: the
-   * `focus…OnClick` / `filterSeriesOnClick` / `focusSeriesOnHover` settings are
-   * not consulted (`focusCategoryOnHover` still is). The mode button shows the
-   * active mode via `filterModeText` / `focusModeText`, and the step buttons
-   * are labeled for assistive tech by `accessibility.tooltipPreviousLabel` /
-   * `tooltipNextLabel`.
+   * When `true`, a control strip renders above the tooltip lines: previous- and
+   * next-category buttons step the shown category, and a mode button toggles
+   * what clicking a tooltip row does. In filter mode (the initial mode) a
+   * series row toggles its series out of the chart like a legend click
+   * (`filterable` permitting), and hovering a series row focuses its series
+   * like hovering its legend item; in focus mode a row click pins focus on its
+   * series or category. With the controls shown, the mode decides click and
+   * series-hover behavior: the `focus...OnClick` / `filterSeriesOnClick` /
+   * `focusSeriesOnHover` settings are not consulted (`focusCategoryOnHover`
+   * still is). The mode button shows the active mode via `filterModeText` /
+   * `focusModeText`, and the step buttons are labeled for assistive tech by
+   * `accessibility.tooltipPreviousLabel` / `tooltipNextLabel`.
    *
    * @default false
    */
@@ -4207,7 +4207,7 @@ export interface SeriesConfig {
    *
    * Only affects the `line` and `area` renderers. `type` selects the d3-shape
    * curve (`linear`, `monotoneX`, `natural`, `step`, `cardinal`, `catmullRom`,
-   * …) and `param` sets the tension of a `cardinal` curve or the alpha of a
+   * ...) and `param` sets the tension of a `cardinal` curve or the alpha of a
    * `catmullRom` one. These are the only two types with a configurator, so the
    * others reject it.
    *

@@ -31,7 +31,7 @@ export function getDetails() {
     valueAxisLabel: 'The accessible name of the group that wraps a value axis\' tick labels, used when that axis\' `title` is unset; a set title always wins, and it is the untruncated title even when the drawn one is truncated. Every untitled value axis gets this same name, so give the axes titles when a chart has more than one and the distinction matters. Replace to localize it.',
     legendLabel: 'The accessible name of the legend group that contains the keyboard-reachable legend items. Replace to localize it.',
     tooltipLabel: 'The accessible name of the group that contains an open tooltip\'s keyboard-reachable rows. Present only while the rows are roving tab stops, which is when clicking a row does something (the tooltip controls\' current mode, or `tooltip.focusCategoryOnClick` / `focusSeriesOnClick` / `filterSeriesOnClick`). Replace to localize it.',
-    tooltipPreviousLabel: 'The accessible name and hover title of the ‹ button shown when `tooltip.showControls` is on; the button itself shows only the glyph. Replace to localize it.',
-    tooltipNextLabel: 'The accessible name and hover title of the › button shown when `tooltip.showControls` is on; the button itself shows only the glyph. Replace to localize it.'
+    tooltipPreviousLabel: 'The accessible name and hover title of the previous-category button shown when `tooltip.showControls` is on; the button itself shows only a glyph. Replace to localize it.',
+    tooltipNextLabel: 'The accessible name and hover title of the next-category button shown when `tooltip.showControls` is on; the button itself shows only a glyph. Replace to localize it.'
   };
 }
