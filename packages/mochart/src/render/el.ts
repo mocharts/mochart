@@ -5,7 +5,7 @@ export type ElProps = Record<string, unknown>;
 /**
  * A retained DOM element. `set(props)` diffs against the previously written
  * props and only touches what changed (setProperty's attribute contract).
- * Pass props in the old JSX attribute order — initial attribute order sets
+ * Pass props in the old JSX attribute order, because initial attribute order sets
  * serialization order, which the golden snapshot tests compare.
  */
 export class El {

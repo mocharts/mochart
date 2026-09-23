@@ -56,7 +56,7 @@ export class FocusController {
   focusedValueAxisId: string | null = null;
   focusedSeriesId: string | null = null;
   filteredSeriesIds: Record<string, boolean> = {};
-  /** Bumped when the filters change by a toggle, a reset or a host-changed value — not by a host re-asserting the value it already passed — so a pending filter report can tell it has been superseded. */
+  /** Bumped when the filters change by a toggle, a reset or a host-changed value (not by a host re-asserting the value it already passed), so a pending filter report can tell it has been superseded. */
   filterGeneration = 0;
 
   private reset(): void {
@@ -74,7 +74,7 @@ export class FocusController {
 
   /**
    * Reconcile focus/filter state with a config or provider change: structural resets everything, a
-   * data change remaps the focused category by value (dropped when gone). `renderedCategoryValues` is the last committed ordering — the old
+   * data change remaps the focused category by value (dropped when gone). `renderedCategoryValues` is the last committed ordering, because the old
    * provider can't be re-read after an in-place refresh(). A controlled value the host changed in
    * this same update supersedes the remap/reset of its field and is not reported back (it came from
    * the host); one carried along unchanged gives way to the reset/remap, which is committed and
@@ -156,7 +156,7 @@ export class FocusController {
 
   /**
    * Apply the host's controlled focus/filter props: set fields override internal state, undefined
-   * fields stay chart-managed. No callbacks fire — the values came from the host.
+   * fields stay chart-managed. No callbacks fire, because the values came from the host.
    */
   applyExternal(input: ExternalFocusInput): void {
     const { focusedCategoryIndex, focusedValueAxisId, focusedSeriesId, filteredSeriesIds } = input;

@@ -113,7 +113,7 @@ export interface CreateCandlestickOptions {
    */
   volume?: boolean | CandlestickVolumeOptions;
   /**
-   * Draw up candles hollow — outlined open/close bodies instead of filled —
+   * Draw up candles hollow (outlined open/close bodies instead of filled),
    * the classic hollow-candle style where a filled body means down. The wicks
    * split into segments above and below each body so they don't show through
    * the hollow interior, the tooltip keeps its single low–high range row, and
@@ -129,7 +129,7 @@ export interface CandlestickData {
   /**
    * One row per candle: `label` (the category value), the raw `open`/`high`/
    * `low`/`close` plus `change` and `direction`, and the close under the
-   * property matching its direction (`up` or `down` — the other stays
+   * property matching its direction (`up` or `down`, and the other stays
    * undefined) with the high mirrored the same way (`upHigh`/`downHigh`) so
    * the wicks split by direction too.
    */
@@ -147,7 +147,7 @@ export interface CandlestickData {
    */
   series: DeepPartial<SeriesConfig>[];
   /**
-   * Fragments to spread into the chart config's `valueAxes` — only
+   * Fragments to spread into the chart config's `valueAxes`, only
    * present with the `volume` option: the `price` axis the price series
    * reference and the hidden `volume` axis whose margins split the plot into
    * the two panes.
@@ -375,7 +375,7 @@ export function createCandlestick(items: readonly CandlestickItem[], options: Cr
   const data = buildDirectionRows('createCandlestick', candles, hollow ? ['up'] : [], volumeOptions);
 
   // An ordinal scale so the candles keep even spacing when labels are dates
-  // with gaps (weekends, holidays) — a linear/time scale would leave holes.
+  // with gaps (weekends, holidays), where a linear/time scale would leave holes.
   const categoryAxis: Partial<CategoryAxisConfig> = {
     property: CATEGORY_PROPERTY,
     type: axisType,

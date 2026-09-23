@@ -133,7 +133,7 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
     if (key === 'Enter' || key === ' ') {
       event.preventDefault();
       // the slice half only (focus toggle / selection); the container forwards the keydown to the
-      // plot handler for the tooltip half — a synthesized click can miss the chart rect on exploded edge slices
+      // plot handler for the tooltip half, because a synthesized click can miss the chart rect on exploded edge slices
       this.state.onSeriesClick();
     }
   }
@@ -182,7 +182,7 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
     }
 
     this.setPresent(true);
-    // keyboard focus shows only the ring — mirroring hover would reorder the DOM under the focused node
+    // keyboard focus shows only the ring, because mirroring hover would reorder the DOM under the focused node
     const interactive = sliceIsInteractive(accessibility, seriesConfig, onSliceClick);
     const labelFormats = getPieLabelFormats(pieConfig);
     this.root.set({ className: mochartCssClasses['series'] + seriesConfig.id,

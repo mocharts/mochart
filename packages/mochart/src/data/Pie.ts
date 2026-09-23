@@ -21,8 +21,8 @@ export interface CreatePieOptions {
   /**
    * What the tooltip shows for each slice: the slice value, its percentage of
    * the total, or both. Percentages are computed by the chart from the current
-   * slice shares — like the slice labels, they renormalize as slices are
-   * filtered — so this is forwarded as `pie.tooltip.valueType` rather than
+   * slice shares (like the slice labels, they renormalize as slices are
+   * filtered), so this is forwarded as `pie.tooltip.valueType` rather than
    * baked into the data.
    *
    * @default 'value'

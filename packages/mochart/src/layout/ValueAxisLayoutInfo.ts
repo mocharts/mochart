@@ -53,7 +53,7 @@ export function createValueAxisLayoutInfos(mochartConfig: EnhancedMochartConfig,
     const before = side === SIDE_START;
     // a collapsed axis reads like the opposite side's axis, so its inner/outer margins swap with its text
     const notAfter = before !== collapsed;
-    // Hidden/filtered axes still get a full layout info — their size is already
+    // Hidden/filtered axes still get a full layout info: their size is already
     // 0 (getValueAxisSizes), but their series scales need setExtraAxisInfo.
     let valueAxisOffset = categoryY;
     if (collapsed) {

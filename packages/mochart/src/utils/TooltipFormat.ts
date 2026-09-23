@@ -83,7 +83,7 @@ export interface PieTooltipValues {
   fraction: number;
   /** The slice's fraction of the full total, sizing a filtered placeholder. */
   rawFraction: number;
-  /** Whether the slice is filtered — from the row's filtered flag, since a percentage
+  /** Whether the slice is filtered, read from the row's filtered flag, since a percentage
    * is derived rather than stored per value key like the values getValueText tests. */
   filtered: boolean;
 }
@@ -92,7 +92,7 @@ function getPieValueText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSer
   valueFormat: ValueFormatter, series: CategorySeriesSlice, pieValues: PieTooltipValues): string | null {
   const { valueType, percentFormat, fraction, rawFraction, filtered } = pieValues;
 
-  // No value means no row, whichever parts the type asks for — a bare "0.0%"
+  // No value means no row, whichever parts the type asks for, because a bare "0.0%"
   // for a slice that has no value would read as a real zero share.
   const valueText = getValueText(tooltipConfig, seriesConfig, adjustForFiltering, valueFormat, series, 'plain');
   if (valueText === null) {
@@ -184,8 +184,8 @@ export function getSeriesText(tooltipConfig: TooltipConfig, seriesConfig: Enhanc
 }
 
 /**
- * The tooltip's content as one plain sentence for the keyboard aria-live announcer — "Jan: Sales:
- * 42, Costs: 17" — mirroring TooltipContent's rows (category line, then every showInTooltip series
+ * The tooltip's content as one plain sentence for the keyboard aria-live announcer ("Jan: Sales:
+ * 42, Costs: 17"), mirroring TooltipContent's rows (category line, then every showInTooltip series
  * whose row has a value), with pie percent values normalized like the slice labels.
  */
 export function getTooltipAnnouncement(mochartConfig: EnhancedMochartConfig, tooltipValueObject: ChartCategorySeriesValueObject): string {

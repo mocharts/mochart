@@ -684,14 +684,14 @@ function createRawValueDeltaData(mochartConfig: EnhancedMochartConfig, startValu
 }
 
 // A ranged series (rangeProperty, unstacked) draws one shape between plain and range, so the
-// two keys share a duration (like stacks do) — otherwise the nearer edge arrives first.
+// two keys share a duration (like stacks do). Otherwise the nearer edge arrives first.
 function adjustDeltaPercentagesForRangedSeries(seriesConfigs: EnhancedSeriesConfig[], deltaObjects: Record<string, ValueDeltaObject>): void {
   for (const seriesConfig of seriesConfigs) {
     if (seriesConfig.rangeProperty !== NONE && seriesConfig.stack === NONE) {
       const deltaObject = deltaObjects[seriesConfig.id];
       const plainDelta = deltaObject.plain;
       const rangeDelta = deltaObject.range;
-      // zero-delta and copied entries are shared constants — never mutated
+      // zero-delta and copied entries are shared constants, never mutated
       if (plainDelta.deltaPercentage !== 0 && rangeDelta.deltaPercentage !== 0 &&
         plainDelta.deltaCopied !== true && rangeDelta.deltaCopied !== true) {
         const maxDeltaPercentage = Math.max(plainDelta.deltaPercentage, rangeDelta.deltaPercentage);
@@ -703,7 +703,7 @@ function adjustDeltaPercentagesForRangedSeries(seriesConfigs: EnhancedSeriesConf
 }
 
 // An error-bar series anchors its whisker to the plain/range shape, so all animated keys share
-// a duration — otherwise the bar slides out from under its whisker mid-tween.
+// a duration. Otherwise the bar slides out from under its whisker mid-tween.
 function adjustDeltaPercentagesForErrorBarSeries(seriesConfigs: EnhancedSeriesConfig[], deltaObjects: Record<string, ValueDeltaObject>): void {
   const syncKeys = ['plain', 'range', 'errorLow', 'errorHigh'] as const;
   for (const seriesConfig of seriesConfigs) {
@@ -721,7 +721,7 @@ function adjustDeltaPercentagesForErrorBarSeries(seriesConfigs: EnhancedSeriesCo
       }
       for (const key of syncKeys) {
         const delta = deltaObject[key];
-        // zero-delta and copied entries are shared constants — never mutated
+        // zero-delta and copied entries are shared constants, never mutated
         if (delta.deltaPercentage !== 0 && delta.deltaCopied !== true) {
           delta.deltaPercentage = maxDeltaPercentage;
         }
@@ -731,7 +731,7 @@ function adjustDeltaPercentagesForErrorBarSeries(seriesConfigs: EnhancedSeriesCo
 }
 
 // A followSeries group (leader + followers, e.g. hollow candle body + wick segments) renders one
-// visual mark, so the group shares a duration like a stack — coincident edges stay glued each frame.
+// visual mark, so the group shares a duration like a stack, so coincident edges stay glued each frame.
 function adjustDeltaPercentagesForFollowerCategories(seriesConfigs: EnhancedSeriesConfig[], deltaObjects: Record<string, ValueDeltaObject>): void {
   let followerCategories: Record<string, EnhancedSeriesConfig[]> | null = null;
   for (const seriesConfig of seriesConfigs) {
@@ -768,7 +768,7 @@ function adjustDeltaPercentagesForFollowerCategories(seriesConfigs: EnhancedSeri
       let adjusted = false;
       for (const key of syncKeys) {
         const delta = deltaObject[key];
-        // zero-delta and copied entries are shared constants — never mutated
+        // zero-delta and copied entries are shared constants, never mutated
         if (delta.deltaPercentage !== 0 && delta.deltaCopied !== true) {
           delta.deltaPercentage = maxDeltaPercentage;
           adjusted = true;
@@ -782,7 +782,7 @@ function adjustDeltaPercentagesForFollowerCategories(seriesConfigs: EnhancedSeri
 }
 
 // A stack renders from both maps at once (series below a toggled one stay raw copies), so the
-// raw and filtered maps share one duration per stack — otherwise the edges detach mid-tween.
+// raw and filtered maps share one duration per stack. Otherwise the edges detach mid-tween.
 function adjustDeltaPercentagesForStackedCategories(seriesStackConfigs: EnhancedSeriesStackConfig[], deltaMaps: SeriesValueDeltaMap[]): void {
   let maxDeltaPercentage;
   let currentDeltaObject;

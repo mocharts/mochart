@@ -98,7 +98,7 @@ export interface OhlcData {
    */
   series: DeepPartial<SeriesConfig>[];
   /**
-   * Fragments to spread into the chart config's `valueAxes` — only
+   * Fragments to spread into the chart config's `valueAxes`, only
    * present with the `volume` option: the `price` axis the price series
    * reference and the hidden `volume` axis whose margins split the plot into
    * the two panes.
@@ -126,7 +126,7 @@ export function createOhlc(items: readonly CandlestickItem[], options: CreateOhl
   const data = buildDirectionRows('createOhlc', candles, DIRECTIONS, volumeOptions);
 
   // An ordinal scale so the bars keep even spacing when labels are dates with
-  // gaps (weekends, holidays) — a linear/time scale would leave holes.
+  // gaps (weekends, holidays), where a linear/time scale would leave holes.
   const categoryAxis: Partial<CategoryAxisConfig> = {
     property: CATEGORY_PROPERTY,
     type: axisType,

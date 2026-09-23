@@ -1,7 +1,7 @@
 /** Shared label guards for the chart-shape helpers. */
 
 /**
- * Category values must be unique — `getDataErrors` rejects duplicates, which would blank the whole chart.
+ * Category values must be unique: `getDataErrors` rejects duplicates, which would blank the whole chart.
  * `key` decides which labels count as the same category (a date axis keys by instant); `text` names them in the error.
  */
 export function checkUniqueLabels<T>(helperName: string, what: string, labels: readonly T[], key: (label: T) => string = String, text: (label: T) => string = String): void {

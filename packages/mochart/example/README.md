@@ -18,6 +18,6 @@ npm run build -w @mochart/core
   # then open http://localhost:3000/example/example-esm.html
   ```
 - **example-histogram.html**, **example-waterfall.html**, **example-sparkline.html**,
-  **example-heatmap.html** — the `createHistogram`, `createWaterfall`,
+  **example-heatmap.html**: the `createHistogram`, `createWaterfall`,
   `createSparklineConfig` and `createHeatmap` helpers.
   Same setup as example-esm.html (serve over HTTP).

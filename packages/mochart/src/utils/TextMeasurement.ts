@@ -165,7 +165,7 @@ export function getBoundsWithMutations<T extends Size>(oldBounds: T | null, newB
   return getWithMutations(oldBounds, newBounds);
 }
 
-/** Text width is the advance TextTruncation fits to, never `getBBox().width` — Gecko inflates text boxes 2px per side. */
+/** Text width is the advance TextTruncation fits to, never `getBBox().width`, because Gecko inflates text boxes 2px per side. */
 function getSvgWidth(domElement: SVGGraphicsElement, boundingBox: { width: number }): number {
   const textElement = domElement as SVGTextContentElement;
   return typeof textElement.getComputedTextLength === 'function' ? textElement.getComputedTextLength() : boundingBox.width;
@@ -450,7 +450,7 @@ export function getLegendBounds(mochartConfig: EnhancedMochartConfig, domAccesso
   return legendBounds;
 }
 
-// The DOM only holds legend items for showInLegend series, so the expected list must match — a full
+// The DOM only holds legend items for showInLegend series, so the expected list must match. A full
 // seriesConfigs list would never match the element count, defaulting every bound (phantom slots).
 export function getLegendSeriesConfigs(mochartConfig: EnhancedMochartConfig) {
   return mochartConfig.series.filter(seriesConfig => seriesConfig.showInLegend);

@@ -55,8 +55,8 @@ function getSpanUnitBounds(startAngle: number, endAngle: number): UnitBounds {
 /**
  * Fits the pie's configured span into the series rect: the span's bounding box
  * is scaled to fill the rect and centered, so partial pies use the space their
- * missing slices would waste. The span comes from the config — never the
- * current slice angles — so the layout holds still while values animate.
+ * missing slices would waste. The span comes from the config, never the
+ * current slice angles, so the layout holds still while values animate.
  * The radius also leaves room for focusOffsetFraction, so an exploded slice stays inside the rect.
  */
 export function getRadialLayoutInfo(seriesLayoutInfo: LayoutInfo, pieConfig: PieConfig): RadialLayoutInfo {

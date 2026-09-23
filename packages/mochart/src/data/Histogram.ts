@@ -18,7 +18,7 @@ export interface HistogramBin {
 export interface BinValuesOptions {
   /**
    * Approximate number of bins, rounded down to a whole count of at least one.
-   * Ignored when `binWidth` is set. When omitted — or when non-finite — the
+   * Ignored when `binWidth` is set. When omitted (or when non-finite), the
    * count is derived from the data via Sturges' formula. With `nice`
    * enabled (the default) the actual count may differ slightly so that bin
    * edges land on round numbers. Asking for more than 10000 bins throws.
@@ -225,7 +225,7 @@ function getBinLayout(
   if (width <= 0) {
     const targetCount = getTargetBinCount(options.binCount, valueCount);
     if (extent === 0) {
-      // All values identical — a single unit-width (or nice-width) bin.
+      // All values identical: a single unit-width (or nice-width) bin.
       width = nice ? getNiceStep(1) : 1;
     } else if (nice) {
       width = getNiceStep(extent / Math.max(1, targetCount));

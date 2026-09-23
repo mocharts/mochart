@@ -1,5 +1,5 @@
 // The ambient d3 shims must ride along for consumers typechecking from source (development export
-// condition); a global declaration file can only be referenced, not imported — hence the exception.
+// condition); a global declaration file can only be referenced, not imported, hence the exception.
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./types/d3.d.ts" />
 export type * from './types';

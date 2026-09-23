@@ -61,7 +61,7 @@ export default class PieSeriesContainer extends Renderer<PieSeriesContainerProps
     }
     if (key === 'Escape' || key === 'Enter' || key === ' ') {
       // mirror the plot rect: Enter/Space toggles the tooltip (and announces),
-      // Escape closes it — the slice itself handles only focus/selection
+      // Escape closes it, while the slice itself handles only focus/selection
       // a pie has one category, so unlike a cartesian series no category is invented here
       this.props.a11yProps?.onKeyDown(event);
       return;
@@ -79,7 +79,7 @@ export default class PieSeriesContainer extends Renderer<PieSeriesContainerProps
     const { values: filteredValues } = seriesData.filtered;
 
     // Angles come from the config-order slice map (focus reordering must not move geometry);
-    // recomputing every sync is what animates them — filtered values are tweened mid-animation.
+    // recomputing every sync is what animates them, since filtered values are tweened mid-animation.
     let sliceAngles = getPieSliceAngles(mochartConfig.series, filteredValues, pieConfig);
     const radialLayoutInfo = getRadialLayoutInfo(seriesLayoutInfo, pieConfig);
 
@@ -138,7 +138,7 @@ export default class PieSeriesContainer extends Renderer<PieSeriesContainerProps
     restoreSeriesFocus(this.root.node, focusedSlice, effectiveRovingId);
 
     // The center total sums the current (possibly mid-tween) values, counting along with value
-    // changes — and with filtering, unless centerTotal.adjustForFiltering turns that off.
+    // changes, and with filtering, unless centerTotal.adjustForFiltering turns that off.
     const totalAngles = pieConfig.centerTotal.adjustForFiltering ? sliceAngles : rawSliceAngles!;
     let total = 0;
     for (const id of Object.keys(totalAngles)) {

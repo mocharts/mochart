@@ -21,7 +21,7 @@ export function getTooltipLayoutInfo(mochartConfig: EnhancedMochartConfig, toolt
   }
   const { chartContentLayoutInfo, seriesLayoutInfo, containerLayoutInfo } = layoutInfo!;
   let { width, height } = tooltipBounds;
-  // A null border width leaves the css unset, so the border occupies nothing — and neither does a border with no color.
+  // A null border width leaves the css unset, so the border occupies nothing, and neither does a border with no color.
   const { strokeColor, strokeWidth } = tooltipConfig.backgroundStyle;
   const borderWidth = cssBorderWidth(strokeColor, strokeWidth);
   const { padding } = tooltipConfig;

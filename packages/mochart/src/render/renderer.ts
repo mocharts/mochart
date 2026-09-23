@@ -229,7 +229,7 @@ export abstract class Renderer<P extends object, S extends object = Record<strin
   }
 
   // ---------------------------------------------------------------------
-  // child region factories — registered so destroy() cascades automatically
+  // child region factories: registered so destroy() cascades automatically
   // ---------------------------------------------------------------------
 
   /** Marks the span start before creating a self-anchored region, whose DOM lands ahead of the element/anchor. */

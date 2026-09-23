@@ -30,8 +30,8 @@ export function computeSliceFractions(values: readonly (number | null | undefine
 /**
  * Each slice's clamped value and fraction of the total, from whichever value
  * the accessor returns. The slice geometry and the pie tooltip both normalize
- * through here — the tooltip reads scalars off a single category while the
- * slices read per-category arrays — so a percentage can never mean one thing
+ * through here (the tooltip reads scalars off a single category while the
+ * slices read per-category arrays), so a percentage can never mean one thing
  * in a label and another in the tooltip.
  */
 export function getPieSliceFractions(seriesConfigs: SeriesConfig[], valueOf: (seriesId: string) => number | null | undefined):
@@ -55,7 +55,7 @@ export function getPieSliceFractionMap(seriesConfigs: SeriesConfig[], valueOf: (
 
 /**
  * Computes each slice's angles from the current (possibly mid-tween) filtered
- * values. Slices follow the series config order — never the focus draw order —
+ * values. Slices follow the series config order, never the focus draw order,
  * so focusing a slice cannot move it. Filtered series (null plain values)
  * and non-positive values contribute nothing; a non-positive total yields an
  * empty map (no slices). Recomputing per sync from tweened values is what

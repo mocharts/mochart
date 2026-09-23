@@ -5,7 +5,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     // Golden demos with 2000ms animations re-render hundreds of frames; slow CI runners exceed the 5s default.
-    // The golden suites raise this further for themselves (test/golden/goldenSuite.ts) — coverage runs starve them.
+    // The golden suites raise this further for themselves (test/golden/goldenSuite.ts), because coverage runs starve them.
     testTimeout: 30000,
     coverage: {
       provider: 'v8',

@@ -3,7 +3,7 @@ import type { ErasedRenderer, RendererClass } from './renderer';
 /**
  * A single dynamic child position: holds one child renderer (or nothing).
  * Same-class updates flow through renderer.update(); a class change (or null)
- * destroys and remounts — mirroring how the vdom reconciled a child vnode
+ * destroys and remounts, mirroring how the vdom reconciled a child vnode
  * position by type. The comment anchor keeps the position stable.
  */
 export class Slot {

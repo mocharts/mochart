@@ -64,7 +64,7 @@ export default class SeriesContainer extends Renderer<SeriesContainerProps, Seri
     }
     if (key === 'Enter' || key === ' ') {
       // the series handles its own activation; a series spans every category, so
-      // there is no category for it to open the tooltip at — the plot rect owns that
+      // there is no category for it to open the tooltip at, and the plot rect owns that
       return;
     }
     moveRovingFocus(event, seriesNodesInConfigOrder(this.root.node, this.props.mochartConfig.series));

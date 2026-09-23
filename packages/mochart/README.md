@@ -9,7 +9,7 @@ Animated interactive SVG charting library with zero framework dependencies.
 
 Full documentation with live examples: [mochart.org](https://mochart.org).
 
-Charts are drawn with a retained-mode renderer — updates write only the DOM
+Charts are drawn with a retained-mode renderer: updates write only the DOM
 attributes that actually changed; there is no vdom and no framework runtime.
 Data and config changes animate smoothly, and charts respond to hover, focus,
 and series filtering out of the box.
@@ -18,14 +18,14 @@ and series filtering out of the box.
 
 - **Renderers**: `bar`, `line`, and `area` series, mixable in one chart, plus pie and donut charts
 - **Scales**: ordinal and linear category axes over string, number, and date values (via d3-scale)
-- **Animation**: [staged transitions](#staged-animation) — axis expansion,
-  value change (with category and series transitions), axis contraction — and
+- **Animation**: [staged transitions](#staged-animation) through axis expansion,
+  value change (with category and series transitions) and axis contraction, and
   gapless stacked animation
 - **Interaction**: crosshair, tooltip, legend with series filtering, click and
   hover callbacks
 - **Accessibility**: keyboard-driven tooltip, legend filtering, and pie-slice
-  interaction, with screen-reader roles, labels, and live value announcements
-  — on by default; the `accessibility` config section localizes or disables
+  interaction, with screen-reader roles, labels, and live value announcements,
+  on by default; the `accessibility` config section localizes or disables
   it, and honors the reduced-motion system preference
 - **Extras**: axis thresholds and ranges, linear/radial gradients, built-in
   pattern fills, series markers and labels, stacked and grouped series
@@ -39,14 +39,14 @@ a single step, which makes updates that change both the data and the axis
 domains hard to follow. mochart instead splits each update into sequential
 phases, so only one kind of change is in motion at a time:
 
-1. **Axis expansion** — if the new data needs more room (new categories, larger
+1. **Axis expansion**: if the new data needs more room (new categories, larger
    values), the axis domains grow first and the existing shapes reflow into
    the wider domains, so incoming data has a place to land.
-2. **Value change** — values tween to their new positions. This phase also
+2. **Value change**: values tween to their new positions. This phase also
    plays **category transitions** (categories added, removed, or reordered are merged
    into one display sequence so old and new categories animate coherently) and
    **series transitions** (series added, removed, or filtered via the legend).
-3. **Axis contraction** — once the values settle, the axis domains collapse to
+3. **Axis contraction**: once the values settle, the axis domains collapse to
    fit the remaining data.
 
 Phases that a given update doesn't need are skipped, and each phase's duration
@@ -61,8 +61,8 @@ transitions) are set in `animation`.
 Stacked series animate as a single unit: throughout a transition, each
 segment's baseline is derived from the tweened top of the segment below it,
 rather than each segment tweening independently toward its final position. The
-stack therefore stays contiguous for the whole animation — no gaps or overlaps
-between segments — even while series are being added to or removed from the
+stack therefore stays contiguous for the whole animation (no gaps or overlaps
+between segments), even while series are being added to or removed from the
 stack.
 
 ## Install
@@ -71,7 +71,7 @@ stack.
 npm install @mochart/core
 ```
 
-Charts style themselves with inline styles — no CSS import is required. If
+Charts style themselves with inline styles, so no CSS import is required. If
 your page uses a global CSS reset (Tailwind preflight, VitePress base styles,
 normalize.css), also import the optional stylesheet, which re-asserts the
 browser defaults the chart's HTML overlays (tooltip, message states) rely on:
@@ -82,8 +82,8 @@ import '@mochart/core/mochart.css';
 
 ## Quick start
 
-`createDefaultChart` is the simplest entry point — give it a raw config and a
-plain dataset — an array of objects or an object of arrays:
+`createDefaultChart` is the simplest entry point. Give it a raw config and a
+plain dataset (an array of objects or an object of arrays):
 
 ```js
 import { createDefaultChart } from '@mochart/core';
@@ -127,7 +127,7 @@ Both return a `ChartHandle`:
 
 - `update(nextProps)`: merge new props into the chart; config and data
   changes animate when animation is enabled, width/height changes re-layout
-  instantly. Change detection is by object identity — pass new references,
+  instantly. Change detection is by object identity, so pass new references,
   or use `refresh` after mutating in place
 - `replace(nextProps)`: replace the props wholesale; a key absent from
   `nextProps` is unset and returns to chart-managed behavior, where `update`
@@ -141,7 +141,7 @@ Both return a `ChartHandle`:
 ## Configuration
 
 A config is a plain object made of per-concern sections. Nearly every section
-and property is optional and falls back to a sensible default — only
+and property is optional and falls back to a sensible default. Only
 `categoryAxis.property` and each series entry's `property` are required:
 
 | Section | Configures |
@@ -171,7 +171,7 @@ validation schema: `npm run generate-docs -w @mochart/core` writes
 reference pages, and `generated/api-reference.json`, the model behind that
 site's props and callbacks pages. The command fails if the descriptions,
 validators, and defaults ever disagree on a section's keys, or if a prop
-interface has no reference page group or an undocumented member — and it
+interface has no reference page group or an undocumented member, and it
 writes nothing at all when it fails.
 
 ### Config helpers
@@ -206,7 +206,7 @@ Two dataset shapes are supported out of the box:
 
 `createDefaultChart` wraps its `data` in whichever built-in provider matches
 its shape automatically; `createChart` accepts any object implementing the
-`DataProvider` interface. One member is required —
+`DataProvider` interface. One member is required:
 `getPropertyValues(property)` returns all values of one named data property,
 index-aligned with every other property's values, or `undefined` when the
 property isn't in the data. Every property the config names arrives through
@@ -239,14 +239,14 @@ createDefaultChart(container, {
 - `onSeriesFilter(filter)`: a legend click toggled a series in/out of the
   filtered set
 - `onChartClick` / `onChartMouseEnter` / `onChartMouseMove` /
-  `onChartMouseLeave` — plot-area pointer events with chart coordinates and
+  `onChartMouseLeave`: plot-area pointer events with chart coordinates and
   the nearest category index
 - `onSliceClick(payload)`: a slice of a pie or donut chart was clicked
   (fires only on click, unlike `onFocus`, so it can anchor selection)
 - `onSeriesClick(payload)`: a cartesian series shape (bar, marker, label, or
   line/area path) was clicked; reports the series id, the shape's category
   index (`-1` for a whole-series path), and the nearest category index. Fires
-  whether or not `focusOnClick` is set — the cartesian counterpart of
+  whether or not `focusOnClick` is set, and is the cartesian counterpart of
   `onSliceClick`
 - `onSeriesLayoutBoundsChange(bounds)`: the plot area was re-laid-out
 
@@ -268,7 +268,7 @@ createDefaultChart(container, {
 });
 ```
 
-Every factory is called with the same context object — all six members are
+Every factory is called with the same context object, and all six members are
 always present:
 
 | Member | Value |
@@ -292,8 +292,8 @@ The plot-area states place their content over the plot with the axes drawn, so
 sizing a placeholder from `width`/`height` fits the box it actually occupies.
 
 `createDefaultChart` also validates the data against the config on every start,
-update and refresh. When they do not match — a series `property` that is not in
-the data, or columns of differing lengths — it replaces the provider with one
+update and refresh. When they do not match (a series `property` that is not in
+the data, or columns of differing lengths), it replaces the provider with one
 reporting the error `'Invalid Data'`, so the chart enters the error state and
 `getErrorComponent` receives that bare string. The specific messages are not
 carried through; call `getDataErrors(mochartConfig, dataProvider)` yourself to
@@ -317,7 +317,7 @@ the published builds are ES modules (plus an IIFE bundle for script
 tags) pinned to ES2020, and no polyfills are
 required. The core renders SVG, measures text with the SVG APIs
 (`getBBox`, `getComputedTextLength`), and animates with
-`requestAnimationFrame` — it needs a real DOM, so do not call
+`requestAnimationFrame`. It needs a real DOM, so do not call
 `createChart`/`createDefaultChart` during server rendering (the framework
 wrappers are SSR-safe and mount only in the browser). `ResizeObserver` is
 used only by the wrappers, feature-detected, and only when
@@ -350,7 +350,7 @@ sources.
 
 The golden snapshot tests in `test/golden/` render whole charts (initial
 mount, static update, mid-tween, and settled states) and compare serialized
-SVG against checked-in snapshots — they are the primary regression oracle for
+SVG against checked-in snapshots. They are the primary regression oracle for
 renderer changes.
 
 ## The `development` export condition

@@ -4,7 +4,7 @@ import type { Style, StrokeStyleStates, StyleStates } from '../types/config';
 import type { EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
 
 export function getFocusValue(focusPercentage: FocusPercentage, normalValue: number, focusedValue: number, defocusedValue: number): number {
-  // piecewise linear interpolation through (-1, defocused), (0, normal), (1, focused) — exact for any value ordering
+  // piecewise linear interpolation through (-1, defocused), (0, normal), (1, focused), exact for any value ordering
   if (focusPercentage === null || focusPercentage === 0) {
     return normalValue;
   }
@@ -38,7 +38,7 @@ export function getCombinedFocusPercentage(percentageA: FocusPercentage, percent
     return Math.max(percentageA, percentageB);
   }
   else {
-    // opposite signs: bilinear blend — ±1 endpoints resolve positive like the Math.max this
+    // opposite signs: bilinear blend. ±1 endpoints resolve positive like the Math.max this
     // replaced, but a focus tweening up under a steady defocus animates -1 → 1 without snapping
     return percentageA + percentageB - percentageA * percentageB;
   }

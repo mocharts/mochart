@@ -5,7 +5,7 @@
  * (tooltip, message states) also rely on browser default
  * styles for everything they don't set. Host-page CSS resets (Tailwind
  * preflight, VitePress base styles, normalize.css) override those defaults
- * and can break overlay layout — e.g. `svg { display: block }` pushes the
+ * and can break overlay layout, e.g. `svg { display: block }` pushes the
  * tooltip's color icon onto its own line.
  *
  * This file re-asserts the browser defaults the overlays depend on, keyed to
@@ -46,7 +46,7 @@
 
 /* Inline color icons inside tooltip rows. Resets commonly force
  * `svg { display: block }`, which wraps the icon's spacer onto a second line.
- * Only `display` is re-asserted — the default baseline alignment is what puts
+ * Only `display` is re-asserted, because the default baseline alignment is what puts
  * the icon on the row text. */
 .mochart-tooltip-container svg {
   display: inline-block;
@@ -98,7 +98,7 @@
   outline-offset: 1px;
 }
 
-/* Forced-colors modes: system palette on the tooltip buttons, series colors left as configured — see the accessibility guide. */
+/* Forced-colors modes: system palette on the tooltip buttons, series colors left as configured (see the accessibility guide). */
 @media (forced-colors: active) {
   .mochart-tooltip-container .mochart-tooltip-controls button {
     forced-color-adjust: none;

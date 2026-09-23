@@ -24,7 +24,7 @@ function hasFollowSeriesChange(previous: EnhancedMochartConfig, next: EnhancedMo
  */
 export class AnimatedDataSource implements ChartDataSource {
   readonly animated = true;
-  /** Rendered output — null until the data tween's first frame. */
+  /** Rendered output, null until the data tween's first frame. */
   chartData: ChartData | null = null;
   focusData: FocusData | null = null;
   /** 0..1 while the initial animation's value tween runs, else null. */
@@ -80,7 +80,7 @@ export class AnimatedDataSource implements ChartDataSource {
       this.startDataTween(mochartConfig, this.chartAnimationData);
 
       // keep the chart data null until the animation starts, unless the chart already has a frame on
-      // screen — an animate flag flip carries it over rather than blanking and replaying the entrance
+      // screen: an animate flag flip carries it over rather than blanking and replaying the entrance
       this.chartData = fromChartData;
       // don't bother animating focus when initializing the data...
       this.focusData = getFocusData(mochartConfig, newChartData, focusedCategoryIndex, focusedValueAxisId, focusedSeriesId);
@@ -152,7 +152,7 @@ export class AnimatedDataSource implements ChartDataSource {
       }
       else if (focusChanged || categoriesChanged || focusConfigChanged) {
         // The category target always derives from the input (mapped into the running tween's index
-        // space), never this.focusData — the cancel-window delay can leave it holding a stale pre-pin index.
+        // space), never this.focusData, because the cancel-window delay can leave it holding a stale pre-pin index.
         if (focusedCategoryIndex >= 0 && this.dataTweening && !this.valuesTweened) {
           if (this.valuesTweening) {
             this.startFocusTween(mochartConfig, input, mergedIndexForNewIndex(this.chartAnimationData!.categoryDeltaData, focusedCategoryIndex));
@@ -221,7 +221,7 @@ export class AnimatedDataSource implements ChartDataSource {
     const mochartConfig = this.input.mochartConfig!;
     this.chartData = chartData;
     // Expose the initial value tween's progress (chart types with entrance
-    // effects — the pie sweep-in — consume it); cleared once values settle.
+    // effects, such as the pie sweep-in, consume it); cleared once values settle.
     if (this.chartAnimationData !== null && this.chartAnimationData.initialAnimation) {
       const offset = this.initialAnimationOffset;
       if (updateType === dataTweenValueStart) {

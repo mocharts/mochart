@@ -507,7 +507,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
 
     const accessibility = accessibilityActive(mochartConfig.accessibility);
     // a row is a tab stop only when clicking it would do something (the click handlers'
-    // conditions), and only on the shown copy — the hidden sizer must not carry tab stops
+    // conditions), and only on the shown copy, because the hidden sizer must not carry tab stops
     const a11yRows = accessibility && visible;
     const categoryRowInteractive = a11yRows && (tooltipConfig.showControls ? mode === MODE_FOCUS : tooltipConfig.focusCategoryOnClick);
     const seriesRowFocuses = tooltipConfig.showControls ? mode === MODE_FOCUS : tooltipConfig.focusSeriesOnClick;
@@ -561,7 +561,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
       const seriesIsFiltered = filteredFlags[seriesId];
       const seriesFocusPercentage = getSeriesFocusPercentage(seriesConfig, valueAxisFocusPercentages, seriesFocusPercentages);
       // the sizer keeps a row the visible box drops so the width stays put, but collapses it so the
-      // measured height — which positions the box — is the height the visible box will have
+      // measured height (which positions the box) is the height the visible box will have
       const rowCollapsed = seriesIsFiltered && !tooltipConfig.showFiltered;
       if (!adjustForFiltering || !rowCollapsed) {
         const valueFormat = valueFormats[seriesId];

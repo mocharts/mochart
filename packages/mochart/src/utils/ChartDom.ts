@@ -1,6 +1,6 @@
 export const mochartCssClasses = {
   chart: 'mochart-chart',
-  // state class: present only while accessibility.enabled — gates the css focus rules
+  // state class: present only while accessibility.enabled, and gates the css focus rules
   accessible: 'mochart-accessible',
     background: 'mochart-background',
     title: 'mochart-title',
@@ -149,7 +149,7 @@ export function getCssClassMatchSelector(cssClass: string) {
   return '[class*="' + cssClass + '"]';
 }
 
-/** Selector matching the chart root in every state — only the root carries the version attribute. */
+/** Selector matching the chart root in every state, because only the root carries the version attribute. */
 export function getChartRootCssSelector() {
   return '[' + mochartVersionAttribute + ']';
 }

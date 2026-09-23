@@ -175,7 +175,7 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
       onCategoryLeave = (_categoryIndex: number) => { onFocus({ categoryIndex: null }); };
     }
     // clicks toggle focus per the focus*OnClick configs, and (independently)
-    // report up to onSeriesClick when it is set — same pattern as PieSeries
+    // report up to onSeriesClick when it is set (the same pattern as PieSeries)
     if (seriesConfig.focusOnClick || onSeriesShapeClick !== null) {
       onSeriesClick = (event: Event) => {
         if (seriesConfig.focusOnClick) {
@@ -357,7 +357,7 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
       }
 
       this.setPresent(true);
-      // followers stay pointer-only — their clicks route to the leader
+      // followers stay pointer-only, because their clicks route to the leader
       const interactive = seriesIsInteractive(this.props.accessibility, seriesConfig, this.props.onSeriesShapeClick);
       this.root.set({ className: mochartCssClasses['series'] + seriesId,
         ariaHidden: this.props.accessibility && !interactive ? 'true' : null,

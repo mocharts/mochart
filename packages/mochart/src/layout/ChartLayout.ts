@@ -8,7 +8,7 @@ import type { Bounds } from '../types/geometry';
 import type { EnhancedMochartConfig } from '../types/enhanced';
 import type { ChartDataForLayout, ChartLayoutInfo, ChartTextBoundsData, LegendLayoutResult, PlotLayoutResult, TitleLayoutResult } from '../types/layout';
 
-// Margin and padding always apply, including for standalone charts — locked in
+// Margin and padding always apply, including for standalone charts, locked in
 // by the goldens (`standalone` now only gates config warnings in Chart).
 export function getChartLayoutInfo(mochartConfig: EnhancedMochartConfig, chartData: ChartDataForLayout | null, chartTextBoundsData: ChartTextBoundsData, width: number, height: number): ChartLayoutInfo {
   const { chart: chartConfig } = mochartConfig;

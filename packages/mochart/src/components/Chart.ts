@@ -479,7 +479,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     return { x, y, withinPlot: x > 0 && y > 0 && x < width && y < height };
   }
 
-  /** Non-null whenever chartRef, the chart body or a computed layout exist — sync() and init() gate all three on a valid config. */
+  /** Non-null whenever chartRef, the chart body or a computed layout exist, because sync() and init() gate all three on a valid config. */
   private renderedConfig(): EnhancedMochartConfig {
     return this.props.mochartConfig!;
   }
@@ -1177,7 +1177,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   onPlotKeyDown = (event: Event) => {
     const { key } = event as KeyboardEvent;
     // loading pauses stepping like it pauses pointer events, but Escape still
-    // closes the tooltip — its close button stays clickable during loading too
+    // closes the tooltip, and its close button stays clickable during loading too
     if (this.isLoading() && key !== 'Escape') {
       return;
     }
@@ -1203,7 +1203,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     }
     else if (key === 'ArrowRight' || key === 'ArrowDown' || key === 'ArrowLeft' || key === 'ArrowUp' || key === 'Home' || key === 'End') {
       // arrows exist to step categories; with a single category (a pie) they
-      // stay inert instead of popping the tooltip — Enter/Space still toggles
+      // stay inert instead of popping the tooltip, while Enter/Space still toggles
       if (categoryCount <= 1) {
         return;
       }
@@ -1435,7 +1435,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     body.patterns.sync(patterns);
   }
 
-  /** Fill in the ChartBody's slots — called from ChartBody.sync with the body renderer. */
+  /** Fill in the ChartBody's slots. Called from ChartBody.sync with the body renderer. */
   syncBody(body: ChartBody): void {
     const {
       chartData, focusData, onFocus, onSeriesFilter, width, height,
@@ -1547,7 +1547,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       const { valueData: categoryValueData } = categoryAxisData!;
 
       // keyboard tab stop on the series-area rect: Enter/Space toggles the tooltip, arrows step, Escape closes;
-      // kept during loading — dropping tabindex would dump keyboard focus to <body>
+      // kept during loading, because dropping tabindex would dump keyboard focus to <body>
       const plotInteractive = mochartConfig.tooltip.visible ||
         (mochartConfig.chart.type !== CHART_TYPE_PIE && mochartConfig.crosshair.visible);
       const plotA11yProps = accessibility && plotInteractive

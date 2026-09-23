@@ -116,7 +116,7 @@ interface ElListEntry<H> {
 }
 
 /**
- * A keyed list of retained element subtrees (no component lifecycle) — the
+ * A keyed list of retained element subtrees (no component lifecycle): the
  * old keyed vdom reconciler's enter/update/exit.
  */
 export class ElList<T, H extends ElBlock = ElBlock> extends KeyedList<T, ElListEntry<H>> {

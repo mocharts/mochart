@@ -2,8 +2,8 @@ import { defineConfig } from 'vite';
 
 // Library build: bundles mochart together with everything it imports
 // (d3-*, movalid) into self-contained browser artifacts, so d3-* are dev-only.
-//   dist/mochart.js      — ES module, for <script type="module"> / bundlers
-//   dist/mochart.iife.js — classic script, exposes the global `mochart`
+//   dist/mochart.js:      ES module, for <script type="module"> / bundlers
+//   dist/mochart.iife.js: classic script, exposes the global `mochart`
 export default defineConfig({
   build: {
     // pinned, not left to Vite's default: that default tracks current browser

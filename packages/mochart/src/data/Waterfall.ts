@@ -56,7 +56,7 @@ export interface WaterfallData {
   /**
    * One row per step: `label` (the category value), `start` (the shared range
    * property) and the step's `end` under the property matching its direction
-   * (`increase`, `decrease` or `total` — the other two stay undefined), plus
+   * (`increase`, `decrease` or `total`, and the other two stay undefined), plus
    * `delta`, `cumulative` and `direction`.
    */
   data: Record<string, number | string | undefined>[];

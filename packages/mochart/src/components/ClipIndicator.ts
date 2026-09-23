@@ -75,7 +75,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     this.root.set({ className: mochartCssClasses['clipIndicator'], style: resolveFontStyle(this.props.mochartConfig.clipIndicator.font, this.props.mochartConfig.chart.font) });
 
     // The library's only <title>: one string serves as both the accessible name and the hidden
-    // label's fallback text — aria-label would win for AT and let the two drift apart.
+    // label's fallback text, since aria-label would win for AT and let the two drift apart.
     const label = clipIndicatorConfig.label;
     if (label !== NONE) {
       this.root.append(this.title);
@@ -251,7 +251,7 @@ function getLabelRun(seriesLayoutInfo: LayoutInfo, depths: BandDepths, edge: Edg
   return Math.max(0, 2 * Math.min(centre - near * fraction, extent - far * fraction - centre));
 }
 
-/** The band's usable rectangle — the part clear of its neighbours, where the label is centred. */
+/** The band's usable rectangle: the part clear of its neighbours, where the label is centred. */
 function getLabelBounds(seriesLayoutInfo: LayoutInfo, depths: BandDepths, edge: EdgeKey): Bounds {
   const { x, y, width, height } = seriesLayoutInfo;
   const innerWidth = Math.max(0, width - depths.left - depths.right);

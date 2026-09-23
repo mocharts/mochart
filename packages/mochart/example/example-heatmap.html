@@ -13,7 +13,7 @@
     </style>
 </head>
 <body>
-    <h1>mochart — heatmap helper</h1>
+    <h1>mochart: heatmap helper</h1>
     <p>Turns a grid of values into per-row <code>rangeProperty</code> bar bands colored through a shared
        sequential ramp via <code>colorProperty</code> with <code>createHeatmap</code>. A couple of cells are
        left empty on purpose. Serve this directory over HTTP.</p>
@@ -49,7 +49,7 @@
                 label,
                 values: MONTHS.map((month, c) => {
                     if ((r === 5 && c === 3) || (r === 6 && c === 8)) {
-                        return null; // no data collected — leaves a gap
+                        return null; // no data collected, which leaves a gap
                     }
                     const weekday = r < 5 ? 1 : 0.35;
                     const season = 1 + 0.5 * Math.cos((c / 12) * 2 * Math.PI);

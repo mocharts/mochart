@@ -6,7 +6,7 @@ import type { DataProvider } from './types/data';
 /** Handle returned by `createChart`/`createDefaultChart` for a mounted chart. */
 export interface ChartHandle<TProps extends object = ManagedChartProps> {
   /**
-   * Merge new props into the chart. Change detection is by object identity — in-place mutation is
+   * Merge new props into the chart. Change detection is by object identity, so in-place mutation is
    * not seen (use `refresh` for that). Changes animate when animation is enabled, except structural
    * config changes (rebuild + initial animation replay); width/height re-layout instantly.
    */
@@ -18,7 +18,7 @@ export interface ChartHandle<TProps extends object = ManagedChartProps> {
    */
   replace(nextProps: TProps): void;
   /**
-   * Re-read the current data without a new reference — the escape hatch for in-place mutation: a
+   * Re-read the current data without a new reference, for in-place mutation. A
    * default chart rebuilds its provider over `data`; a managed chart calls the provider's optional
    * `refresh()` hook, then re-reads it (the built-in providers are stateless, so the re-read alone
    * suffices; a caching custom provider should implement `refresh()` to invalidate).
@@ -26,7 +26,7 @@ export interface ChartHandle<TProps extends object = ManagedChartProps> {
   refresh(): void;
   /**
    * Cancel running tweens and remove the chart's DOM from the container. Safe to call more than
-   * once, and the other methods no-op afterwards — a late `update`/`replace`/`refresh` from a
+   * once, and the other methods no-op afterwards: a late `update`/`replace`/`refresh` from a
    * pending timer or an unmounted component does nothing at all, not even re-read the data.
    */
   destroy(): void;
@@ -49,7 +49,7 @@ function withFreshIdentity(dataProvider: DataProvider): DataProvider {
 
 /**
  * Imperative entry point: mount a managed chart into a DOM element from an enhanced config
- * (`mochartConfig`) and a data provider. Retained-mode rendering — updates write only changed
+ * (`mochartConfig`) and a data provider. Retained-mode rendering: updates write only changed
  * DOM attributes; there is no vdom.
  */
 export function createChart(container: Element, props: ManagedChartProps): ChartHandle<ManagedChartProps> {
@@ -114,7 +114,7 @@ function wrapForReads(dataProvider: DataProvider | null | undefined): DataProvid
 
 /**
  * Convenience entry point for plain-JavaScript hosts: takes a raw `config` (enhanced internally)
- * and a plain `data` dataset — an array of objects or an object of arrays.
+ * and a plain `data` dataset (an array of objects or an object of arrays).
  */
 export function createDefaultChart(container: Element, props: DefaultChartProps): ChartHandle<DefaultChartProps> {
   let currentProps = { ...props };

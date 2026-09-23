@@ -129,12 +129,12 @@ export function createHeatmapColorScale(domain: [number, number], options: Creat
  * top), columns become ordinal category values, and each cell's `colorProperty`
  * value colors it from a shared sequential ramp. Spread the fragments into a
  * chart config and chart the `data`. The row series stay out of the legend
- * (`showInLegend: false`) — the axis names the rows and a color-scale strip
+ * (`showInLegend: false`), because the axis names the rows and a color-scale strip
  * built from `colorScale` makes the better legend.
  *
  * The core color scale spans each series' own color-value extent, so each
  * row's `colorScale.min`/`colorScale.max` is the global ramp sampled at that row's
- * min/max — linear interpolation restricted to a sub-interval reproduces the
+ * min/max. Linear interpolation restricted to a sub-interval reproduces the
  * global scale, keeping cell colors comparable across rows. With an explicit
  * domain the per-cell color values are domain-clamped (`row{r}Color`) so that
  * sub-interval stays inside the ramp.

@@ -30,7 +30,7 @@ const styleAttributeOrder: [keyof Style, keyof StyleAttributes][] = [
  * A keyword with an opacity goes through `color-mix`, which the browser resolves
  * after `currentColor` does.
  */
-/** A border with no color draws nothing, so it occupies nothing either — the same as a null width. */
+/** A border with no color draws nothing, so it occupies nothing either, the same as a null width. */
 export function cssBorderWidth(styleColor: string | null | undefined, strokeWidth: number | null | undefined): number {
   return styleColor === null || styleColor === undefined ? 0 : strokeWidth ?? 0;
 }
