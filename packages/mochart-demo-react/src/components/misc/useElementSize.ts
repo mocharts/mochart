@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 /**
- * Measures an element's client size with a ResizeObserver — the React
+ * Measures an element's client size with a ResizeObserver, the React
  * equivalent of the vue demo's useElementSize composable and Svelte's
  * bind:clientWidth/bind:clientHeight.
  */

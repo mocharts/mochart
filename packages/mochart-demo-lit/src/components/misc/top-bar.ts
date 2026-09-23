@@ -17,11 +17,11 @@ import './theme-toggle-button';
  * The bar across the top of every demo view: the site-root link, the back link
  * to the gallery, the view's tab strip, the "about this demo" popover, the
  * Single/Multi/Random mode switcher and the theme toggle. It was hand-written
- * six times (and in two shapes) before this — the same consolidation the
+ * six times (and in two shapes) before this, the same consolidation the
  * vanilla port made in its TopBar.ts, whose header documents the design.
  *
  * The phone fold: below the phone breakpoint a bar that can fold keeps exactly
- * one thing directly tappable — the tab strip — and renders everything else
+ * one thing directly tappable (the tab strip) and renders everything else
  * inside a single `…` menu at the far end. Each control renders in exactly ONE
  * of the two branches, so nothing is duplicated (see overflow-menu.ts). A bar
  * folds only when it has tabs, notes or a mode switcher: rotation and
@@ -60,7 +60,7 @@ export class TopBar extends LightElement {
     const { notes, modes } = this;
     // In the order a thumb should meet them: what this demo is, then where
     // else to see it, then how it looks, then the two ways out. The about row
-    // has no trailing divider when the Mode section follows — the section
+    // has no trailing divider when the Mode section follows, because the section
     // label draws its own rule above itself whenever it is not the panel's
     // first child.
     return html`${this.hasNotes
@@ -75,7 +75,7 @@ export class TopBar extends LightElement {
   override render(): unknown {
     const { folded } = this;
     // `demo-has-overflow` gates the stylesheet's `flex-wrap: nowrap` chain,
-    // which is only safe while the row's surplus has somewhere to go — the
+    // which is only safe while the row's surplus has somewhere to go, so the
     // class and the trigger that justifies it render together or not at all.
     return html`<div class=${'mochart-demo-tabs-container' + (folded ? ' demo-has-overflow' : '')}>
       <div class="mochart-demo-nav-group">

@@ -37,7 +37,7 @@ export interface DemoNavigation {
 }
 
 /**
- * The gallery/mode navigation callbacks shared by the routed pages — the
+ * The gallery/mode navigation callbacks shared by the routed pages: the
  * gallery lives at /demos and a demo is always viewed at /<mode>/<demoId>,
  * driven by @angular/router.
  */
@@ -61,7 +61,7 @@ export function createDemoNavigation(router: Router): DemoNavigation {
 /**
  * Multi mode isn't offered on a phone, so /multi/:demoId lands on the same demo
  * in the fallback mode there. The redirect keeps the query string and the
- * fragment, so the ?siteRoot switch and a #share= payload both survive it — a
+ * fragment, so the ?siteRoot switch and a #share= payload both survive it. A
  * multi payload is then dropped by the mode check in consumeShareState.
  */
 export const multiPhoneFallbackGuard: CanActivateFn = (route) => {

@@ -52,7 +52,7 @@ const dataCount = ref(initialDataCount);
 const sliceIds = shallowRef(mochartDemoConfig.value.pieMode ? getPieSlices(mochartDemoConfig.value.mochartConfig).map(slice => slice.id) : []);
 const stepCycle = () => mochartDemoConfig.value.pieMode ? getPieStepCycle(sliceIds.value) : dataCount.value;
 // A shared step seeks the playback position; otherwise start on the full set
-// (pie mode starts at step 0 — the grid's staggered initial view).
+// (pie mode starts at step 0, the grid's staggered initial view).
 const initialCurrentDataCount = shared && stepCycle() > 0
   ? ((Math.round(shared.step) % stepCycle()) + stepCycle()) % stepCycle()
   : (mochartDemoConfig.value.pieMode ? 0 : initialDataCount);

@@ -9,7 +9,7 @@ export interface ElementSize {
 }
 
 /**
- * Measures an element's client size with a ResizeObserver — the Angular
+ * Measures an element's client size with a ResizeObserver, the Angular
  * equivalent of the Vue demo's useElementSize composable. Call `observe`
  * from ngAfterViewInit and `disconnect` from ngOnDestroy.
  */

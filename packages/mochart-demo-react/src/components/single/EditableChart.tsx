@@ -716,8 +716,8 @@ export default function EditableChart(props: Props) {
     }
   };
 
-  // The phone fold. Which panel folds — and what each sends to the overflow
-  // menu — mirrors the vanilla port's placeControls; the react expression of
+  // The phone fold. Which panel folds (and what each sends to the overflow
+  // menu) mirrors the vanilla port's placeControls; the react expression of
   // "reparent, never duplicate" is that every control renders in exactly one
   // of the two places from the same element (see OverflowMenu.tsx).
   const isPhone = usePhoneViewport();
@@ -820,7 +820,7 @@ export default function EditableChart(props: Props) {
 
   let controlContent: React.ReactNode;
   if (mochartDemoConfig.pieMode) {
-    // Pie-mode slice panel — replaces both panels (and the mode toggle) when
+    // Pie-mode slice panel. It replaces both panels (and the mode toggle) when
     // slices are the series: click a slice (or step prev/next) to select it,
     // edit its value, or play the filter/restore sequence.
     //
@@ -856,7 +856,7 @@ export default function EditableChart(props: Props) {
         <div className="chart-controls-buttons">
           <form>
             {foldSlice ? null : (
-              // Kept on desktop even when empty — the empty field's gap is
+              // Kept on desktop even when empty, because the empty field's gap is
               // part of the unfolded layout.
               <div className="demo-field">
                 <div className="demo-toolbar">
@@ -921,8 +921,8 @@ export default function EditableChart(props: Props) {
     );
   }
   else if (selectionMode === 'category') {
-    // The fold keeps Add and Remove — they act on what is typed in the input
-    // beside them — plus the input; everything else goes to the menu, split
+    // The fold keeps Add and Remove (they act on what is typed in the input
+    // beside them) plus the input; everything else goes to the menu, split
     // into the same sections the vanilla port uses (order edits, then the
     // sequence transport, then the shared controls).
     const resetCategoriesButton = (
@@ -1031,14 +1031,14 @@ export default function EditableChart(props: Props) {
     const hasPrevSeries = seriesIndex > 0;
     const hasNextSeries = seriesIndex < mochartDemoConfig.seriesCount - 1;
 
-    // The fold keeps the steppers and their readouts — they are how a category
+    // The fold keeps the steppers and their readouts, because they are how a category
     // and a series get picked at all. Apply stays visible too, but moves DOWN,
     // onto the input row beside the JSON it applies: with it out of the
     // stepper row the panel holds two rows even at 320x568. Reset is the one
     // button with no partner anywhere, so it folds into the menu. The readout
     // prefixes shrink to their one-letter, aria-hidden stand-ins there (the
     // full prefixes are sr-only clipped by the phone tier and keep carrying
-    // the accessible name), and the labels drop their 5px side margins — the
+    // the accessible name), and the labels drop their 5px side margins, because the
     // phone tier's 6px field gap is separation enough, and the margins' 20px
     // would wrap the ▲ stepper onto a second row at 320px.
     const resetSeriesButton = (

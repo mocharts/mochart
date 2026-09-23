@@ -6,8 +6,8 @@ import type { MenuPlacement } from '@mochart/demo-common';
 
 // The react half of demo-common's menu machinery. The imperative ports use
 // `createMenuController`; a react component owns its own open state, so this
-// hook takes only the two shared layers — `getMenuPosition` (where the fixed
-// panel goes) and `watchMenuDismiss` (when it closes) — and re-expresses the
+// hook takes only the two shared layers, `getMenuPosition` (where the fixed
+// panel goes) and `watchMenuDismiss` (when it closes), and re-expresses the
 // controller's remaining behaviour in react idiom:
 //
 // - the panel is positioned in a layout effect BEFORE it gets the `open`
@@ -17,13 +17,13 @@ import type { MenuPlacement } from '@mochart/demo-common';
 // - closing with focus inside the panel hands focus back to the trigger, so a
 //   keyboard user is not dumped at the top of the document;
 // - the trigger/panel pair gets disclosure ARIA (`aria-expanded` +
-//   `aria-controls` / `aria-labelledby`) — these are disclosures, not
+//   `aria-controls` / `aria-labelledby`): these are disclosures, not
 //   `role="menu"` menus, for the reasons in demo-common/src/menu.ts.
 
 export interface UseMenuOptions {
   placement?: MenuPlacement;
   /**
-   * Measure from something other than the trigger — e.g. a whole controls row,
+   * Measure from something other than the trigger, e.g. a whole controls row,
    * when the trigger is not the last thing in it and `align: 'end'` must reach
    * the row's true right edge.
    */
@@ -37,7 +37,7 @@ export interface MenuState {
   // Declared as properties, not method shorthands: these are `useCallback`
   // arrows with no `this`, and components destructure them off the returned
   // object. Method shorthand would promise a `this` binding that does not
-  // exist — which is what `@typescript-eslint/unbound-method` flags.
+  // exist, which is what `@typescript-eslint/unbound-method` flags.
   toggle: () => void;
   close: () => void;
   triggerRef: RefObject<HTMLButtonElement | null>;
@@ -55,7 +55,7 @@ export interface MenuState {
     'aria-labelledby': string;
     style: CSSProperties | undefined;
   };
-  /** True once the panel is positioned — append the `open` class on this. */
+  /** True once the panel is positioned. Append the `open` class on this. */
   isPositioned: boolean;
 }
 

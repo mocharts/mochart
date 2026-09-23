@@ -98,7 +98,7 @@ export class ChartsTab implements OnInit, OnChanges, AfterViewInit, OnDestroy {
     this.dataCount.set(dataCount);
     this.sliceIds.set(this.computeSliceIds(mochartDemoConfig));
     // A shared step seeks the playback position; otherwise start on the full
-    // set (pie mode starts at step 0 — the grid's staggered initial view).
+    // set (pie mode starts at step 0, the grid's staggered initial view).
     const cycle = this.stepCycle();
     const currentDataCount = shared !== null && cycle > 0
       ? ((Math.round(shared.step) % cycle) + cycle) % cycle

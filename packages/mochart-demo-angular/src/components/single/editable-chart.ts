@@ -41,7 +41,7 @@ const selectACategoryText = demoText.editableChart.selectACategoryText;
   styles: [':host { display: contents; }'],
   template: `
     <!-- The phone fold's foldable controls, each defined ONCE and rendered
-         through an outlet in exactly one place — the strip above the phone
+         through an outlet in exactly one place: the strip above the phone
          tier, the overflow panel below it. Angular's answer to the react
          port's JSX consts and the svelte port's snippets; it also retires the
          triple duplication these three branches used to carry. -->
@@ -165,7 +165,7 @@ const selectACategoryText = demoText.editableChart.selectACategoryText;
                          (sliceClick)="onChartSliceClick($event)" />
         </div>
         <div class="editable-chart-controls">
-          <!-- Pie-mode slice panel — replaces both panels when slices are the
+          <!-- Pie-mode slice panel. It replaces both panels when slices are the
                series: click a slice (or step prev/next) to select it, edit its
                value, or play the filter/restore sequence. -->
           @if (mochartDemoConfig.pieMode) {
@@ -176,7 +176,7 @@ const selectACategoryText = demoText.editableChart.selectACategoryText;
               <div class="chart-controls-buttons">
                 <form>
                   @if (!foldSlice()) {
-                    <!-- Kept on desktop even when empty — the empty field's
+                    <!-- Kept on desktop even when empty, because the empty field's
                          gap is part of the unfolded layout. -->
                     <div class="demo-field">
                       <div class="demo-toolbar">
@@ -246,8 +246,8 @@ const selectACategoryText = demoText.editableChart.selectACategoryText;
               </span>
             </div>
           } @else if (selectionMode() === 'category') {
-            <!-- The fold keeps Add and Remove — they act on what is typed in
-                 the input beside them — plus the input; everything else goes
+            <!-- The fold keeps Add and Remove (they act on what is typed in
+                 the input beside them) plus the input; everything else goes
                  to the menu, split into the same sections the vanilla port
                  uses (order edits, then the sequence transport, then the
                  shared controls). -->
@@ -311,7 +311,7 @@ const selectACategoryText = demoText.editableChart.selectACategoryText;
               </span>
             </div>
           } @else {
-            <!-- The fold keeps the steppers and their readouts — they are how
+            <!-- The fold keeps the steppers and their readouts, because they are how
                  a category and a series get picked at all. Apply stays visible
                  too, but moves DOWN, onto the input row beside the JSON it
                  applies: with it out of the stepper row the panel holds two
@@ -320,7 +320,7 @@ const selectACategoryText = demoText.editableChart.selectACategoryText;
                  shrink to their one-letter, aria-hidden stand-ins (the full
                  prefixes are sr-only clipped by the phone tier and keep
                  carrying the accessible name), and the labels drop their 5px
-                 side margins — the phone tier's 6px field gap is separation
+                 side margins, because the phone tier's 6px field gap is separation
                  enough, and the margins' 20px would wrap the ▲ stepper onto a
                  second row at 320px. -->
             <div class="chart-controls-container">
@@ -443,8 +443,8 @@ export class EditableChart implements OnInit, OnChanges, OnDestroy {
   @ViewChild('chartContent', { static: true }) chartContentElement!: ElementRef<HTMLDivElement>;
 
   // ------------------------------------------------------------------------
-  // The phone fold. Which panel folds — and what each sends to the overflow
-  // menu — mirrors the vanilla port's placeControls.
+  // The phone fold. Which panel folds (and what each sends to the overflow
+  // menu) mirrors the vanilla port's placeControls.
   // ------------------------------------------------------------------------
   readonly overflowText = demoText.overflowMenu.chart;
   readonly chartPlacement = controlsMenuPlacement;
@@ -454,7 +454,7 @@ export class EditableChart implements OnInit, OnChanges, OnDestroy {
   /**
    * Only one of the three branches renders, so this query resolves to that
    * branch's `.chart-controls-menu`. The ⋯ anchors to the whole span because
-   * the export trigger sits to its right — aligning to the ⋯ alone would stop
+   * the export trigger sits to its right: aligning to the ⋯ alone would stop
    * the panel short of the row's end and hang it off the left edge.
    */
   @ViewChild('menuSpan') menuSpanElement?: ElementRef<HTMLElement>;

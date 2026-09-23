@@ -11,14 +11,14 @@ import { Icon } from './icon';
  * that opens the demo's `notes` (the detail kept out of its one-sentence
  * gallery description) in a popover panel. This is the desktop shape; below
  * the phone breakpoint the navigation row folds into an overflow menu, where a
- * popover cannot come along — its panel would be a descendant of an element
- * the menu hides with `display: none` — so TopBar renders NotesMenuItem (a
+ * popover cannot come along (its panel would be a descendant of an element
+ * the menu hides with `display: none`), so TopBar renders NotesMenuItem (a
  * disclosure row inside the panel) instead of this.
  *
  * Open/close, positioning, dismissal, focus return and the disclosure ARIA all
  * come from demo-common's `createMenuController`. Note what that means for the
  * template: the trigger and panel carry STATIC classes and no `aria-expanded`,
- * because the controller writes those itself — a binding on the same element
+ * because the controller writes those itself, and a binding on the same element
  * would be re-applied by change detection and wipe them. It also means the
  * `ChangeDetectorRef.detectChanges()` dance this component used to need is
  * gone: open/close never goes through Angular at all.

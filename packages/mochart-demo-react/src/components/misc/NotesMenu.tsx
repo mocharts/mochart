@@ -11,8 +11,8 @@ import { useMenu } from './useMenu';
 // opens the notes in a popover panel (positioning, dismissal, focus return and
 // the disclosure ARIA come from `useMenu`). `NotesMenuItem` is the phone
 // shape: the navigation row folds into an overflow menu, and a popover CANNOT
-// come along — its panel would be a descendant of an element the menu hides
-// with `display: none` — so the notes render instead as a disclosure row
+// come along (its panel would be a descendant of an element the menu hides
+// with `display: none`), so the notes render instead as a disclosure row
 // expanding inline inside the panel that is already open. TopBar renders
 // exactly one of the two.
 interface Props {

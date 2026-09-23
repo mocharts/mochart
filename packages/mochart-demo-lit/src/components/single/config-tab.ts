@@ -116,7 +116,7 @@ export class ConfigTab extends LightElement {
     this.querySelector('json-editor-content')?.format();
   };
 
-  // Live JSON validity — disables Apply and shows an inline hint while the
+  // Live JSON validity: disables Apply and shows an inline hint while the
   // editor holds unparseable text.
   private get jsonError(): string | null {
     return getJsonError(this.configText);
@@ -130,7 +130,7 @@ export class ConfigTab extends LightElement {
     const jsonError = this.jsonError;
     const footerError = jsonError ?? this.errorMessage;
     // The phone fold. Apply stays beside the editor it applies, and the
-    // `role="alert"` error span stays inline — a message that has to be read
+    // `role="alert"` error span stays inline, because a message that has to be read
     // cannot live behind a tap. Everything else, including the reference
     // links, goes to the `⋯` menu.
     const folded = this.viewport.isPhone;
@@ -171,7 +171,7 @@ export class ConfigTab extends LightElement {
             ? html`${applyButton}
               <!-- \`.editor\`, not \`.chart\`: what folds here edits the JSON,
                    and "more chart controls" would tell a screen-reader user
-                   the wrong thing. Anchored to the full-width footer — the
+                   the wrong thing. Anchored to the full-width footer, because the
                    trigger sits mid-row, left of an error span that comes and
                    goes. -->
               <overflow-menu .text=${demoText.overflowMenu.editor} .placement=${controlsMenuPlacement}

@@ -16,12 +16,12 @@ import { usePhoneViewport } from './usePhoneViewport';
 // The bar across the top of every demo view: the site-root link, the back
 // link to the gallery, the view's tab strip (the `#tabs` slot), the "about
 // this demo" popover, the Single/Multi/Random mode switcher and the theme
-// toggle. It was hand-written six times (and in two shapes) before this — the
+// toggle. It was hand-written six times (and in two shapes) before this, the
 // same consolidation the vanilla port made in its TopBar.ts, whose header
 // documents the design.
 //
 // The phone fold: below the phone breakpoint a bar that can fold keeps
-// exactly one thing directly tappable — the tab strip — and renders
+// exactly one thing directly tappable (the tab strip) and renders
 // everything else inside a single `…` menu at the far end. Each control
 // renders in exactly ONE of the two places, from the same definition, so
 // nothing is duplicated (see OverflowMenu.vue). A bar folds only when it has
@@ -56,7 +56,7 @@ const hasNotes = computed(() => props.notes !== undefined && props.notes.notes !
 
 <template>
   <!-- `demo-has-overflow` gates the stylesheet's `flex-wrap: nowrap` chain,
-       which is only safe while the row's surplus has somewhere to go — the
+       which is only safe while the row's surplus has somewhere to go, so the
        class and the trigger that justifies it render together or not at all. -->
   <div v-if="folded" class="mochart-demo-tabs-container demo-has-overflow">
     <div class="mochart-demo-nav-group">
@@ -66,7 +66,7 @@ const hasNotes = computed(() => props.notes !== undefined && props.notes.notes !
       <!-- The menu's contents, in the order a thumb should meet them: what
            this demo is, then where else to see it, then how it looks, then the
            two ways out. The about row has no trailing divider when the Mode
-           section follows — the section label draws its own rule above itself
+           section follows, because the section label draws its own rule above itself
            whenever it is not the panel's first child. -->
       <NotesMenuItem v-if="props.notes !== undefined" :title="props.notes.title" :notes="props.notes.notes" />
       <div v-if="hasNotes && props.modes === undefined" class="demo-menu-divider"></div>

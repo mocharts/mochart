@@ -16,7 +16,7 @@ const theme = initTheme();
  * The `.btn-menu-label` span is text for the phone fold only: folded into the
  * navigation row's overflow menu this would be the one row with nothing to
  * read, and the class is `display: none` everywhere except inside a
- * `.demo-menu` — so it costs the bars neither a box nor one of the button's
+ * `.demo-menu`, so it costs the bars neither a box nor one of the button's
  * gaps.
  */
 @customElement('theme-toggle-button')

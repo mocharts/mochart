@@ -56,7 +56,7 @@
   let sliceIds = $state.raw(mochartDemoConfig.pieMode ? getPieSlices(mochartDemoConfig.mochartConfig).map(slice => slice.id) : []);
   const stepCycle = () => mochartDemoConfig.pieMode ? getPieStepCycle(sliceIds) : dataCount;
   // A shared step seeks the playback position; otherwise start on the full set
-  // (pie mode starts at step 0 — the grid's staggered initial view).
+  // (pie mode starts at step 0, the grid's staggered initial view).
   // svelte-ignore state_referenced_locally
   let currentDataCount = $state(shared && stepCycle() > 0
     ? ((Math.round(shared.step) % stepCycle()) + stepCycle()) % stepCycle()

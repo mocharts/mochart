@@ -99,8 +99,8 @@ function getRandomShareState(): ShareState {
 }
 
 // ---------------------------------------------------------------------------
-// The phone fold keeps the dice pair (Back / Randomize) inline — stepping by
-// hand is the mode's primary interaction — and demotes the automation
+// The phone fold keeps the dice pair (Back / Randomize) inline (stepping by
+// hand is the mode's primary interaction) and demotes the automation
 // transport (Play / Stop) with the Reuse toggle and the interval field. Each
 // foldable control is a functional component rendered in exactly one of the
 // two places (see OverflowMenu.vue).
@@ -129,8 +129,8 @@ const ReuseButton = () => h(ButtonWithTooltip, {
   onClick: props.toggleApplyReuse, 'aria-label': demoText.randomChartTab.reuse.aria
 }, iconChild('recycle'));
 
-// `.demo-menu-keep-open` so a press inside the field — the number input's own
-// spinners in particular — cannot dismiss the panel it is hosted in. The class
+// `.demo-menu-keep-open` so a press inside the field (the number input's own
+// spinners in particular) cannot dismiss the panel it is hosted in. The class
 // paints nothing, so it is unconditional.
 const RateField = () => h('div', { class: 'demo-field ' + menuKeepOpenClassName }, [
   h('label', { class: 'demo-label', for: 'random-rate' }, demoText.randomChartTab.intervalLabel),

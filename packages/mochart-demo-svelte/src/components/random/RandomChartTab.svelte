@@ -146,8 +146,8 @@
   </ButtonWithTooltip>
 {/snippet}
 
-<!-- `.demo-menu-keep-open` so a press inside the field — the number input's
-     own spinners in particular — cannot dismiss the panel it is hosted in.
+<!-- `.demo-menu-keep-open` so a press inside the field (the number input's
+     own spinners in particular) cannot dismiss the panel it is hosted in.
      The class paints nothing, so it is unconditional. -->
 {#snippet rateField()}
   <div class="demo-field {menuKeepOpenClassName}">
@@ -161,8 +161,8 @@
   <ExportShareMenu active={active !== false} exportPng={onExportPng} exportSvg={onExportSvg} {getShareState} />
 {/snippet}
 
-<!-- The phone fold keeps the dice pair (Back / Randomize) inline — stepping by
-     hand is the mode's primary interaction — and demotes the automation
+<!-- The phone fold keeps the dice pair (Back / Randomize) inline (stepping by
+     hand is the mode's primary interaction) and demotes the automation
      transport (Play / Stop) with the Reuse toggle and the interval field. Each
      control renders in exactly one of the two places (see OverflowMenu.svelte). -->
 <div {...getDemoTabPanelAttrs('chart')} class={"mochart-demo-tab-container demo-layout-col chart" + (active ? " active" : "")} inert={!active}>

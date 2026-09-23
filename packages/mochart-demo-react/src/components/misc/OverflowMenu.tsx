@@ -11,9 +11,9 @@ import { useMenu } from './useMenu';
 // controls that did not fit in the strip beside it.
 //
 // The vanilla port MOVES its retained DOM nodes into the panel (hosts, not
-// mirrors — see the header of vanilla's OverflowMenu.ts). React owns its DOM,
+// mirrors: see the header of vanilla's OverflowMenu.ts). React owns its DOM,
 // so the equivalent contract here is: every folded control is RENDERED in
-// exactly one place — the strip above the phone tier, this panel below it —
+// exactly one place (the strip above the phone tier, this panel below it)
 // from the same JSX, driven by the same props. Same outcome: no duplicate ids,
 // no second accessible name, no mirrored disabled/pressed state. A port that
 // renders a control twice and hides one with CSS has missed the design.
@@ -29,7 +29,7 @@ import { useMenu } from './useMenu';
 // closing after every press would make the control unusable).
 
 interface OverflowMenuProps {
-  /** Trigger copy — one of `demoText.overflowMenu.*`, so each trigger names what it holds. */
+  /** Trigger copy: one of `demoText.overflowMenu.*`, so each trigger names what it holds. */
   text: { tooltip: string; aria: string };
   placement?: MenuPlacement;
   /** Anchor the panel to a whole row when the trigger is not the row's end. */
@@ -37,7 +37,7 @@ interface OverflowMenuProps {
   disabled?: boolean;
   /**
    * The hosting pane's active state. A deactivated pane is only marked inert
-   * and shifted offscreen, and an open panel is `position: fixed` — it would
+   * and shifted offscreen, and an open panel is `position: fixed`, so it would
    * keep painting over whichever pane replaced this one. False closes it.
    */
   active?: boolean;
@@ -49,7 +49,7 @@ export default function OverflowMenu(props: OverflowMenuProps) {
   const menu = useMenu({ placement, anchorRef });
   const { close } = menu;
 
-  // A disabled trigger fires no click, so the menu cannot be opened — but one
+  // A disabled trigger fires no click, so the menu cannot be opened, but one
   // already open when its trigger is disabled would be stranded.
   useEffect(() => {
     if (disabled || !active) {

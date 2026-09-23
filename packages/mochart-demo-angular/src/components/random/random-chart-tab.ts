@@ -45,8 +45,8 @@ const defaultRate = 2000;
         <app-icon size="lg" [fixedWidth]="true" name="recycle" />
       </app-button-with-tooltip>
     </ng-template>
-    <!-- \`.demo-menu-keep-open\` so a press inside the field — the number
-         input's own spinners in particular — cannot dismiss the panel it is
+    <!-- \`.demo-menu-keep-open\` so a press inside the field (the number
+         input's own spinners in particular) cannot dismiss the panel it is
          hosted in. The class paints nothing, so it is unconditional. -->
     <ng-template #rateField>
       <div class="demo-field {{ keepOpenClass }}">
@@ -56,8 +56,8 @@ const defaultRate = 2000;
       </div>
     </ng-template>
 
-    <!-- The phone fold keeps the dice pair (Back / Randomize) inline —
-         stepping by hand is the mode's primary interaction — and demotes the
+    <!-- The phone fold keeps the dice pair (Back / Randomize) inline
+         (stepping by hand is the mode's primary interaction) and demotes the
          automation transport (Play / Stop) with the Reuse toggle and the
          interval field. -->
     <div [id]="panelAttrs.id" [attr.role]="panelAttrs.role" [attr.aria-labelledby]="panelAttrs['aria-labelledby']"

@@ -67,7 +67,7 @@ const route = computed((): Route => {
   }
   if ((mode === 'single' || mode === 'multi') && segments.length === 2) {
     // A phone cannot show the multi grid, so its URL redirects to the fallback
-    // mode instead — including on a rotation into phone width, since the flag is
+    // mode instead, including on a rotation into phone width, since the flag is
     // reactive. The fallback never redirects in turn, so this settles in one pass.
     if (mode === 'multi' && isPhone.value) {
       return { redirect: `/${phoneFallbackDemoMode}/${demoId}` };

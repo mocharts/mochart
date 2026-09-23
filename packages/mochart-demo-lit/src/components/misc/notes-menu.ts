@@ -13,8 +13,8 @@ import { icon } from './templates';
  * that opens the demo's `notes` (the detail kept out of its one-sentence
  * gallery description) in a popover panel. This is the desktop shape; below
  * the phone breakpoint the navigation row folds into an overflow menu, where a
- * popover cannot come along — its panel would be a descendant of an element
- * the menu hides with `display: none` — so TopBar renders `<notes-menu-item>`
+ * popover cannot come along (its panel would be a descendant of an element
+ * the menu hides with `display: none`), so TopBar renders `<notes-menu-item>`
  * (a disclosure row inside the panel) instead.
  *
  * Open/close, positioning, dismissal, focus return and the disclosure ARIA all
@@ -27,7 +27,7 @@ import { icon } from './templates';
  *
  * Whether there are notes to show is the caller's business (TopBar guards),
  * but this keeps its own `nothing` guard for the same reason it always had
- * one — a demo without notes must render no trigger.
+ * one: a demo without notes must render no trigger.
  */
 @customElement('notes-menu')
 export class NotesMenu extends LightElement {

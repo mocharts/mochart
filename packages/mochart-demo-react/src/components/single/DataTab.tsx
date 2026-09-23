@@ -95,7 +95,7 @@ export default function MochartDataTab({ active, config = null, data = null, onD
   const jsonError = useMemo(() => getJsonError(dataText), [dataText]);
   const footerError = jsonError ?? errorMessage;
 
-  // Same fold as the config footer — Apply and the `role="alert"` error stay
+  // Same fold as the config footer: Apply and the `role="alert"` error stay
   // inline, the rest goes to the `⋯`; the reasons live on ConfigTab's fold.
   const isPhone = usePhoneViewport();
 

@@ -2,7 +2,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue';
 import type { Ref } from 'vue';
 
 /**
- * Measures an element's client size with a ResizeObserver — the Vue
+ * Measures an element's client size with a ResizeObserver, the Vue
  * equivalent of Svelte's `bind:clientWidth`/`bind:clientHeight`.
  */
 export function useElementSize(): { elementRef: Ref<HTMLElement | null>; width: Ref<number>; height: Ref<number> } {

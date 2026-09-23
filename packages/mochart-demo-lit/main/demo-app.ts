@@ -62,8 +62,8 @@ function resolveRoute(path: string): Route {
   return { notFound: path };
 }
 
-// A phone is not offered Multi mode, so a /multi/<demoId> URL — a shared link,
-// or the width crossing the breakpoint while multi is showing — resolves to the
+// A phone is not offered Multi mode, so a /multi/<demoId> URL (a shared link,
+// or the width crossing the breakpoint while multi is showing) resolves to the
 // fallback mode for the same demo, and redirects so the address bar agrees.
 function applyViewportPolicy(route: Route, isPhone: boolean): Route {
   if (route.mode === 'multi' && !isDemoModeAvailable('multi', isPhone)) {

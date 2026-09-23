@@ -102,7 +102,7 @@ export class DataTab extends LightElement {
   override render(): unknown {
     const jsonError = getJsonError(this.dataText);
     const footerError = jsonError ?? this.errorMessage;
-    // Same fold as the config footer — Apply and the `role="alert"` error stay
+    // Same fold as the config footer: Apply and the `role="alert"` error stay
     // inline, the rest goes to the `⋯`; the reasons live on config-tab.
     const folded = this.viewport.isPhone;
     const resetButton = buttonWithTooltip(

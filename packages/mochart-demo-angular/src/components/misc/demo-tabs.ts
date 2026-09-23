@@ -58,7 +58,7 @@ export class DemoTabs {
       return;
     }
     // Home/End would scroll the pane, and the arrows are ours once focus is on a
-    // tab — the tabs are the only focusable things in the strip.
+    // tab, since the tabs are the only focusable things in the strip.
     event.preventDefault();
     const list = event.currentTarget as HTMLElement;
     this.onSelect(this.tabs[nextIndex].key);
@@ -68,7 +68,7 @@ export class DemoTabs {
   }
 }
 
-/** The strip for a view with only one pane (Multi) — a caption with no tab roles, since there is nothing to switch to. */
+/** The strip for a view with only one pane (Multi): a caption with no tab roles, since there is nothing to switch to. */
 @Component({
   selector: 'app-static-demo-tabs',
   styles: [':host { display: contents; }'],

@@ -106,7 +106,7 @@
   updateDataProvider(initialResolvedRandomConfig);
 
   // The routed demo changing swaps both config references at once; a
-  // randomize step only changes randomId — regenerate accordingly.
+  // randomize step only changes randomId, so regenerate accordingly.
   // svelte-ignore state_referenced_locally
   let previousInitialRandomConfig = initialRandomConfig;
   // svelte-ignore state_referenced_locally

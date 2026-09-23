@@ -658,13 +658,13 @@ function getSingleShareState(): ShareState {
 }
 
 // ---------------------------------------------------------------------------
-// The phone fold. Which panel folds — and what each sends to the overflow
-// menu — mirrors the vanilla port's placeControls.
+// The phone fold. Which panel folds (and what each sends to the overflow
+// menu) mirrors the vanilla port's placeControls.
 //
 // SFC templates cannot render one template fragment in two alternative places,
 // so every foldable control is defined ONCE below as a small functional
 // component (h() is already house idiom in the vue binding) and rendered in
-// exactly one of the two places — the strip above the phone tier, the overflow
+// exactly one of the two places: the strip above the phone tier, the overflow
 // panel below it. Same contract as the other ports: no duplicate ids, no
 // second accessible name, no mirrored state (see OverflowMenu.vue).
 // ---------------------------------------------------------------------------
@@ -809,7 +809,7 @@ const ApplySeriesButton = () => h(ButtonWithTooltip, {
                :on-focus="onChartFocus" :on-series-filter="props.onSeriesFilter" :on-chart-click="onChartClick" :on-slice-click="onChartSliceClick" />
       </div>
       <div class="editable-chart-controls">
-        <!-- Pie-mode slice panel — replaces both panels when slices are the
+        <!-- Pie-mode slice panel. It replaces both panels when slices are the
              series: click a slice (or step prev/next) to select it, edit its
              value, or play the filter/restore sequence. -->
         <!-- The fold keeps the steppers, the readout, Apply and the input;
@@ -818,7 +818,7 @@ const ApplySeriesButton = () => h(ButtonWithTooltip, {
         <div v-if="pieMode" class="chart-controls-container">
           <div class="chart-controls-buttons">
             <form>
-              <!-- Kept on desktop even when empty — the empty field's gap is
+              <!-- Kept on desktop even when empty, because the empty field's gap is
                    part of the unfolded layout. -->
               <div v-if="!foldSlice" class="demo-field">
                 <div class="demo-toolbar">
@@ -881,8 +881,8 @@ const ApplySeriesButton = () => h(ButtonWithTooltip, {
                              :get-share-state="props.showShareButton ? getSingleShareState : undefined" />
           </span>
         </div>
-        <!-- The fold keeps Add and Remove — they act on what is typed in the
-             input beside them — plus the input; everything else goes to the
+        <!-- The fold keeps Add and Remove (they act on what is typed in the
+             input beside them) plus the input; everything else goes to the
              menu, split into the same sections the vanilla port uses (order
              edits, then the sequence transport, then the shared controls). -->
         <div v-else-if="selectionMode === 'category'" class="chart-controls-container">
@@ -936,7 +936,7 @@ const ApplySeriesButton = () => h(ButtonWithTooltip, {
                              :get-share-state="props.showShareButton ? getSingleShareState : undefined" />
           </span>
         </div>
-        <!-- The fold keeps the steppers and their readouts — they are how a
+        <!-- The fold keeps the steppers and their readouts, because they are how a
              category and a series get picked at all. Apply stays visible too, but
              moves DOWN, onto the input row beside the JSON it applies: with it
              out of the stepper row the panel holds two rows even at 320x568.

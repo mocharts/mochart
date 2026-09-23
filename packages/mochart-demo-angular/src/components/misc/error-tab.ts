@@ -6,12 +6,12 @@ import { DemoErrorService } from './demo-error-handler';
 
 /**
  * Fallback-UI stand-in for the react demo's ErrorTab error boundary. Angular
- * has no subtree error capture, so this catches mount-time errors itself —
+ * has no subtree error capture, so this catches mount-time errors itself:
  * the content `ng-template` (see the call sites) is instantiated manually and
  * its first change detection runs inside a try/catch, so a crashing tab can't
  * abort the surrounding creation pass. Later errors surface through the
  * global DemoErrorHandler, which notifies every error tab and the active one
- * claims the failure — the closest attribution the global handler allows.
+ * claims the failure, the closest attribution the global handler allows.
  * Flipping to the fallback destroys the @else view and the crashed subtree
  * with it, like the react boundary unmounting its children. The :host
  * display keeps the rendered pane a direct flex child of the surrounding

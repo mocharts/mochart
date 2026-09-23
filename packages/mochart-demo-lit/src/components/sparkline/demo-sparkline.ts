@@ -26,7 +26,7 @@ export class DemoSparkline extends LightElement {
     this.step++;
   };
 
-  // Charts mount at the metric's explicit word/cell size — never auto-sized.
+  // Charts mount at the metric's explicit word/cell size, never auto-sized.
   private renderMetricChart(metric: SparklineMetric, data: ReturnType<SparklineMetric['generate']>): unknown {
     return defaultChart({ config: metric.config, data, width: metric.width, height: metric.height });
   }

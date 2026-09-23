@@ -13,10 +13,10 @@ import { icon } from './templates';
  * controls that did not fit in the strip beside it.
  *
  * The vanilla port MOVES its retained DOM nodes into the panel (hosts, not
- * mirrors — see the header of vanilla's OverflowMenu.ts). Lit owns its DOM, so
+ * mirrors: see the header of vanilla's OverflowMenu.ts). Lit owns its DOM, so
  * the contract here is the same as the other framework ports': every folded
- * control is RENDERED in exactly one place — the strip above the phone tier,
- * this panel below it — from the same template function, driven by the same
+ * control is RENDERED in exactly one place (the strip above the phone tier,
+ * this panel below it) from the same template function, driven by the same
  * state. Same outcome: no duplicate ids, no second accessible name, no
  * mirrored disabled/pressed state. A port that renders a control twice and
  * hides one with CSS has missed the design.
@@ -25,21 +25,21 @@ import { icon } from './templates';
  * the DOM rather than a template binding:
  *
  *  1. **`bindTrigger: false`.** The controller binds the trigger's click to
- *     `toggle()` by default. This template declares its own `@click` — the
- *     lit-idiomatic place for it — so the controller must not bind a second
+ *     `toggle()` by default. This template declares its own `@click` (the
+ *     lit-idiomatic place for it), so the controller must not bind a second
  *     one, or the two fire per press and cancel out.
  *  2. **The trigger and panel carry STATIC `class` attributes**, and no
  *     `aria-expanded` or `style` binding. The controller writes `.open` /
  *     `.active` / the `aria-*` / the inline position styles straight onto
  *     those elements; an interpolated `class=${...}` would clobber them on the
- *     next render where its expression changed. `?disabled` is safe — the
+ *     next render where its expression changed. `?disabled` is safe: the
  *     controller never touches it.
  *  3. **The controller is built in `firstUpdated`,** not `connectedCallback`:
  *     `@query` is a lazy `querySelector` over this element's light-DOM output,
  *     so the trigger and panel do not exist until the first render has
  *     committed.
  *
- * Items arrive as a thunk property rather than a slot — this element renders
+ * Items arrive as a thunk property rather than a slot, because this element renders
  * into the light DOM, where `<slot>` does nothing, and a thunk is already the
  * package's idiom for passing markup (see `error-tab`'s `.content`).
  *
@@ -49,7 +49,7 @@ import { icon } from './templates';
  */
 @customElement('overflow-menu')
 export class OverflowMenu extends LightElement {
-  /** Trigger copy — one of `demoText.overflowMenu.*`, so each trigger names what it holds. */
+  /** Trigger copy: one of `demoText.overflowMenu.*`, so each trigger names what it holds. */
   @property({ attribute: false }) text!: { tooltip: string; aria: string };
   @property({ attribute: false }) placement?: MenuPlacement;
   /** Anchor the panel to a whole row when the trigger is not the row's end. */
@@ -57,7 +57,7 @@ export class OverflowMenu extends LightElement {
   @property({ attribute: false }) disabled = false;
   /**
    * The hosting pane's active state. A deactivated pane is only marked inert
-   * and shifted offscreen, and an open panel is `position: fixed` — it would
+   * and shifted offscreen, and an open panel is `position: fixed`, so it would
    * keep painting over whichever pane replaced this one. False closes it.
    */
   @property({ attribute: false }) active = true;
@@ -87,7 +87,7 @@ export class OverflowMenu extends LightElement {
     });
   }
 
-  // A disabled trigger fires no click, so the menu cannot be opened — but one
+  // A disabled trigger fires no click, so the menu cannot be opened, but one
   // already open when its trigger is disabled would be stranded.
   override willUpdate(changed: PropertyValues<this>): void {
     if ((changed.has('disabled') || changed.has('active')) && (this.disabled || !this.active)) {

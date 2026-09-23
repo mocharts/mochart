@@ -636,8 +636,8 @@ export class EditableChart extends LightElement {
   }
 
   // ------------------------------------------------------------------------
-  // The phone fold. Which panel folds — and what each sends to the overflow
-  // menu — mirrors the vanilla port's placeControls. Every foldable control is
+  // The phone fold. Which panel folds (and what each sends to the overflow
+  // menu) mirrors the vanilla port's placeControls. Every foldable control is
   // a render method below, called from exactly one of the two places (the
   // strip or the panel), never both.
   // ------------------------------------------------------------------------
@@ -771,8 +771,8 @@ export class EditableChart extends LightElement {
     );
   }
 
-  // The fold keeps Add and Remove — they act on what is typed in the input
-  // beside them — plus the input; everything else goes to the menu, split into
+  // The fold keeps Add and Remove (they act on what is typed in the input
+  // beside them) plus the input; everything else goes to the menu, split into
   // the same sections the vanilla port uses (order edits, then the sequence
   // transport, then the shared controls).
   private renderCategoryControls(error: boolean, disableAdd: boolean, disableRemove: boolean): unknown {
@@ -816,7 +816,7 @@ export class EditableChart extends LightElement {
     const isLastCategory = this.categoryIndex === filteredCategoryValuesCount - 1;
     const hasPrevSeries = this.seriesIndex > 0;
     const hasNextSeries = this.seriesIndex < this.mochartDemoConfig.seriesCount - 1;
-    // The fold keeps the steppers and their readouts — they are how a category
+    // The fold keeps the steppers and their readouts, because they are how a category
     // and a series get picked at all. Apply stays visible too, but moves DOWN,
     // onto the input row beside the JSON it applies: with it out of the
     // stepper row the panel holds two rows even at 320x568. Reset is the one
@@ -898,7 +898,7 @@ export class EditableChart extends LightElement {
     </div>`;
   }
 
-  // Pie-mode slice panel — replaces both panels when slices are the series:
+  // Pie-mode slice panel. It replaces both panels when slices are the series:
   // click a slice (or step prev/next) to select it, edit its value, or play
   // the filter/restore sequence.
   private renderSliceControls(error: boolean): unknown {

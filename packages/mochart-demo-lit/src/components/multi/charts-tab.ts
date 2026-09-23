@@ -65,7 +65,7 @@ export class ChartsTab extends LightElement {
   }
 
   // A shared `step` seeks the playback position; otherwise start on the full
-  // set (pie mode starts at step 0 — the grid's staggered initial view).
+  // set (pie mode starts at step 0, the grid's staggered initial view).
   private initForDemoObject(step?: number): void {
     this.mochartDemoConfig = buildMochartDemoConfig(this.demoObject.config);
     this.initFocusAndFiltered();

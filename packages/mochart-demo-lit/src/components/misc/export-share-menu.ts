@@ -15,7 +15,7 @@ import { icon } from './templates';
  * export actions so this element stays agnostic about single vs. tiled charts.
  *
  * Open/close, positioning, dismissal, focus return and the disclosure ARIA all
- * come from demo-common's `createMenuController` — including the reason any of
+ * come from demo-common's `createMenuController`, including the reason any of
  * it is hand-rolled (the controls strips clip an absolutely-positioned
  * dropdown, and the chart's interaction rect eats clicks through anything
  * stacked below it). What stays here is what the controller does not know
@@ -35,7 +35,7 @@ export class ExportShareMenu extends LightElement {
   @property({ attribute: false }) disabled = false;
   /**
    * The hosting pane's active state. A deactivated pane is only marked inert,
-   * and an open panel is `position: fixed` — it would keep painting over the
+   * and an open panel is `position: fixed`, so it would keep painting over the
    * pane that replaced this one. False closes the menu.
    */
   @property({ attribute: false }) active = true;
@@ -62,7 +62,7 @@ export class ExportShareMenu extends LightElement {
     });
   }
 
-  // A disabled trigger fires no click, so the menu cannot be opened — but one
+  // A disabled trigger fires no click, so the menu cannot be opened, but one
   // already open when its trigger is disabled would be stranded.
   override willUpdate(changed: PropertyValues<this>): void {
     if ((changed.has('disabled') || changed.has('active')) && (this.disabled || !this.active)) {

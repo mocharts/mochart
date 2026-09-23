@@ -13,8 +13,8 @@ let disclosureIdCounter = 0;
 /**
  * The phone fold's stand-in for the NotesMenu popover: a `.demo-menu-item` row
  * that expands the same title and body inline, inside the navigation row's
- * overflow panel. A popover cannot come along into the fold — its panel would
- * be a descendant of an element the menu hides with `display: none` — so
+ * overflow panel. A popover cannot come along into the fold (its panel would
+ * be a descendant of an element the menu hides with `display: none`), so
  * TopBar renders this instead below the breakpoint.
  *
  * `.demo-menu-keep-open` so revealing the note does not also dismiss the menu

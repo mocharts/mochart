@@ -59,7 +59,7 @@ export default function DemoTabs({ tabs, activeKey, onSelect }: DemoTabsProps) {
   );
 }
 
-/** The strip for a view with only one pane (Multi) — a caption with no tab roles, since there is nothing to switch to. */
+/** The strip for a view with only one pane (Multi): a caption with no tab roles, since there is nothing to switch to. */
 export function StaticDemoTabs({ label }: { label: string }) {
   return (
     <ul className="demo-tabs">

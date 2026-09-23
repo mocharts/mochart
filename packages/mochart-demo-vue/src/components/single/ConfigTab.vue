@@ -114,14 +114,14 @@ const invertedIcon = computed(() => inverted.value ? 'chart-bar' : 'chart-column
 const slow = computed(() => isConfigSectionActive(demoConfig.value, 'animation', slowAnimationConfig));
 const slowIcon = computed(() => slow.value ? 'hourglass' : 'hourglass-end');
 
-// Live JSON validity — disables Apply and shows an inline hint while the
+// Live JSON validity: disables Apply and shows an inline hint while the
 // editor holds unparseable text.
 const jsonError = computed(() => getJsonError(configText.value));
 const footerError = computed(() => jsonError.value ?? errorMessage.value);
 
 // ---------------------------------------------------------------------------
 // The phone fold. Apply stays beside the editor it applies, and the
-// `role="alert"` error span stays inline — a message that has to be read
+// `role="alert"` error span stays inline, because a message that has to be read
 // cannot live behind a tap. Everything else, including the reference links,
 // goes to the `⋯` menu. Each foldable control is a functional component
 // rendered in exactly one of the two places (see OverflowMenu.vue).
@@ -184,7 +184,7 @@ const panelAttrs = getDemoTabPanelAttrs('config');
           <ApplyButton />
           <!-- `.editor`, not `.chart`: what folds here edits the JSON, and
                "more chart controls" would tell a screen-reader user the wrong
-               thing. Anchored to the full-width footer — the trigger sits
+               thing. Anchored to the full-width footer, because the trigger sits
                mid-row, left of an error span that comes and goes. -->
           <OverflowMenu :text="demoText.overflowMenu.editor"
                         :placement="controlsMenuPlacement"

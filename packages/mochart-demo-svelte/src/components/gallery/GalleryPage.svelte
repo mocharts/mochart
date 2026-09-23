@@ -54,7 +54,7 @@
 
 <!-- A demo's `notes` hang off the card behind a toggle. The toggle and the notes
      prose are siblings of the open-demo button rather than children of it, since
-     a <button> may not contain interactive content — so the card chrome lives on
+     a <button> may not contain interactive content, so the card chrome lives on
      the .demo-list-entry wrapper (see demo.css). -->
 {#snippet sectionItems(section: GallerySection)}
   <div class="demo-list">

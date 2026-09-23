@@ -4,11 +4,11 @@ import type { ComponentPublicInstance, CSSProperties, ComputedRef, Ref } from 'v
 import { getMenuPosition, menuZIndex, watchMenuDismiss } from '@mochart/demo-common';
 import type { MenuPlacement } from '@mochart/demo-common';
 
-// The vue half of demo-common's menu machinery — the composition-API
+// The vue half of demo-common's menu machinery, the composition-API
 // counterpart of the react port's useMenu and the svelte port's Menu class.
 // The imperative ports use `createMenuController`; a vue component owns its
-// own open state, so this takes only the two shared layers — `getMenuPosition`
-// (where the fixed panel goes) and `watchMenuDismiss` (when it closes) — and
+// own open state, so this takes only the two shared layers, `getMenuPosition`
+// (where the fixed panel goes) and `watchMenuDismiss` (when it closes), and
 // re-expresses the controller's remaining behaviour:
 //
 // - the panel is positioned synchronously on open, BEFORE the `open` class
@@ -18,7 +18,7 @@ import type { MenuPlacement } from '@mochart/demo-common';
 // - closing with focus inside the panel hands focus back to the trigger, so a
 //   keyboard user is not dumped at the top of the document;
 // - the trigger/panel pair gets disclosure ARIA (`aria-expanded` +
-//   `aria-controls` / `aria-labelledby`) — these are disclosures, not
+//   `aria-controls` / `aria-labelledby`): these are disclosures, not
 //   `role="menu"` menus, for the reasons in demo-common/src/menu.ts.
 //
 // Wire the elements with `ref="trigger"` / `ref="panel"` (destructure the
@@ -27,7 +27,7 @@ import type { MenuPlacement } from '@mochart/demo-common';
 export interface UseMenuOptions {
   placement?: MenuPlacement;
   /**
-   * Measure from something other than the trigger — e.g. a whole controls row,
+   * Measure from something other than the trigger, e.g. a whole controls row,
    * when the trigger is not the last thing in it and `align: 'end'` must reach
    * the row's true right edge.
    */
@@ -38,13 +38,13 @@ export interface UseMenuOptions {
 
 export interface MenuState {
   open: Ref<boolean>;
-  // Properties rather than method shorthands — see the note in the react port:
+  // Properties rather than method shorthands (see the note in the react port):
   // these have no `this`, and shorthand would claim otherwise.
   toggle: () => void;
   close: () => void;
   trigger: Ref<HTMLButtonElement | null>;
   panel: Ref<HTMLElement | null>;
-  /** Bind with `:ref="setTrigger"` — templates unwrap a bare ref to its value. */
+  /** Bind with `:ref="setTrigger"`, because templates unwrap a bare ref to its value. */
   setTrigger(el: Element | ComponentPublicInstance | null): void;
   /** Bind with `:ref="setPanel"`. */
   setPanel(el: Element | ComponentPublicInstance | null): void;
@@ -52,7 +52,7 @@ export interface MenuState {
   triggerProps: ComputedRef<Record<string, unknown>>;
   /** `v-bind` onto the panel element. `style` is undefined until positioned. */
   panelProps: ComputedRef<{ id: string; 'aria-labelledby': string; style: CSSProperties | undefined }>;
-  /** True once the panel is positioned — append the `open` class on this. */
+  /** True once the panel is positioned. Append the `open` class on this. */
   isPositioned: ComputedRef<boolean>;
 }
 

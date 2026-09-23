@@ -10,8 +10,8 @@ import { useMenu } from './useMenu';
 // that opens the demo's `notes` (the detail kept out of its one-sentence
 // gallery description) in a popover panel. This is the desktop shape; below
 // the phone breakpoint the navigation row folds into an overflow menu, where
-// a popover cannot come along — its panel would be a descendant of an element
-// the menu hides with `display: none` — so TopBar renders NotesMenuItem (a
+// a popover cannot come along (its panel would be a descendant of an element
+// the menu hides with `display: none`), so TopBar renders NotesMenuItem (a
 // disclosure row inside the panel) instead of this.
 //
 // Positioning, dismissal, focus return and the disclosure ARIA come from

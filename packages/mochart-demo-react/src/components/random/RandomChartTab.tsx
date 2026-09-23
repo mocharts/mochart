@@ -60,7 +60,7 @@ export default function RandomMochartChartsTab({ active, mochartConfig, dataProv
   }, []);
 
   // The routed randomId is baked into each render's onRandomizeNext, so the
-  // interval must read the latest one via a ref — freezing the play-time
+  // interval must read the latest one via a ref, because freezing the play-time
   // closure would navigate to the same randomId on every tick after the first.
   const onRandomizeNextRef = useRef(onRandomizeNext);
   onRandomizeNextRef.current = onRandomizeNext;
@@ -103,8 +103,8 @@ export default function RandomMochartChartsTab({ active, mochartConfig, dataProv
     mode: 'random', randomConfig, applyReuse, interval: rate
   });
 
-  // The phone fold keeps the dice pair (Back / Randomize) inline — stepping by
-  // hand is the mode's primary interaction — and demotes the automation
+  // The phone fold keeps the dice pair (Back / Randomize) inline (stepping by
+  // hand is the mode's primary interaction) and demotes the automation
   // transport (Play / Stop) with the Reuse toggle and the interval field. Each
   // control renders in exactly one of the two places (see OverflowMenu.tsx).
   const isPhone = usePhoneViewport();
@@ -145,8 +145,8 @@ export default function RandomMochartChartsTab({ active, mochartConfig, dataProv
       <Icon size="lg" fixedWidth={true} name="recycle" />
     </ButtonWithTooltip>
   );
-  // `.demo-menu-keep-open` so a press inside the field — the number input's
-  // own spinners in particular — cannot dismiss the panel it is hosted in.
+  // `.demo-menu-keep-open` so a press inside the field (the number input's
+  // own spinners in particular) cannot dismiss the panel it is hosted in.
   // The class paints nothing, so it is unconditional.
   const rateField = (
     <div className={'demo-field ' + menuKeepOpenClassName}>

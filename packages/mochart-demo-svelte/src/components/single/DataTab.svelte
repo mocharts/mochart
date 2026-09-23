@@ -118,7 +118,7 @@
   const jsonError = $derived(getJsonError(dataText));
   const footerError = $derived(jsonError ?? errorMessage);
 
-  // Same fold as the config footer — Apply and the `role="alert"` error stay
+  // Same fold as the config footer: Apply and the `role="alert"` error stay
   // inline, the rest goes to the `⋯`; the reasons live on ConfigTab's fold.
   const phone = createPhoneViewport();
   let footerElement = $state<HTMLElement | null>(null);

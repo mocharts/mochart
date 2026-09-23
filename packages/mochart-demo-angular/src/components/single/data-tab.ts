@@ -39,7 +39,7 @@ import type { DemoConfig, DataObject } from '../../types';
       </app-button-with-tooltip>
     </ng-template>
 
-    <!-- Same fold as the config footer — Apply and the \`role="alert"\` error
+    <!-- Same fold as the config footer: Apply and the \`role="alert"\` error
          stay inline, the rest goes to the \`⋯\`; the reasons live on ConfigTab. -->
     <div [id]="panelAttrs.id" [attr.role]="panelAttrs.role" [attr.aria-labelledby]="panelAttrs['aria-labelledby']"
          [class]="'mochart-demo-tab-container demo-layout-col data' + (active ? ' active' : '')" [attr.inert]="active ? null : ''">

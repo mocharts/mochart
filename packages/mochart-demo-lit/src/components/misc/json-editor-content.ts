@@ -15,7 +15,7 @@ import { LightElement } from './LightElement';
 @customElement('json-editor-content')
 export class JsonEditorContent extends LightElement {
   @property({ attribute: false }) value = '';
-  /** Not `ariaLabel` — that name is the element's own ARIAMixin property. */
+  /** Not `ariaLabel`: that name is the element's own ARIAMixin property. */
   @property({ attribute: false }) ariaLabelText = '';
   @property({ attribute: false }) readOnly = false;
   @property({ attribute: false }) formatOnSet = false;

@@ -76,7 +76,7 @@ function useDemoNavigate() {
 // A share link's payload lives in the URL hash; the mounted view decodes it on
 // its first render (consumeShareState). React Router owns the location and
 // re-asserts the hash-bearing URL during mount, so clearing it must go through
-// the router — do it once, after the child has consumed the payload. Replacing
+// the router. Do it once, after the child has consumed the payload. Replacing
 // only the hash keeps the same route, so the view isn't remounted and its
 // restored state survives.
 function useClearShareHash() {

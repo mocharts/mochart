@@ -4,7 +4,7 @@ import type { TemplateResult } from 'lit';
 import { demoText, getReferenceSectionIds, getReferenceSectionUrl } from '@mochart/demo-common';
 
 // Stateless building blocks kept as plain lit-html template functions rather
-// than custom elements — the natural Lit altitude for the Vue demo's Icon /
+// than custom elements, the natural Lit altitude for the Vue demo's Icon /
 // ButtonWithTooltip components.
 
 interface IconProps {

@@ -5,7 +5,7 @@ import { demoTabId, demoTabPanelId, demoTabPendingId, demoText, nextDemoTabIndex
 import type { DemoTab } from '@mochart/demo-common';
 
 // The Chart / Config / Data strip in the top bar, as an ARIA tablist; the keyboard contract lives with `nextDemoTabIndex` in @mochart/demo-common.
-// A plain template function, not a custom element — the strip holds no state (see `misc/templates.ts` for the same altitude choice).
+// A plain template function, not a custom element, because the strip holds no state (see `misc/templates.ts` for the same altitude choice).
 
 interface DemoTabsProps {
   tabs: readonly DemoTab[];
@@ -21,7 +21,7 @@ export function demoTabs({ tabs, activeKey, onSelect }: DemoTabsProps): Template
       return;
     }
     // Home/End would scroll the pane, and the arrows are ours once focus is on a
-    // tab — the tabs are the only focusable things in the strip.
+    // tab, since the tabs are the only focusable things in the strip.
     event.preventDefault();
     const list = event.currentTarget as HTMLElement;
     onSelect(tabs[nextIndex].key);
@@ -57,7 +57,7 @@ export function demoTabs({ tabs, activeKey, onSelect }: DemoTabsProps): Template
   </ul>`;
 }
 
-/** The strip for a view with only one pane (Multi) — a caption with no tab roles, since there is nothing to switch to. */
+/** The strip for a view with only one pane (Multi): a caption with no tab roles, since there is nothing to switch to. */
 export function staticDemoTabs(label: string): TemplateResult {
   return html`<ul class="demo-tabs">
     <li class="demo-tab-item"><span class="demo-tab active">${label}</span></li>

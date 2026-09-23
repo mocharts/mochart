@@ -3,11 +3,11 @@ import { untrack } from 'svelte';
 import { getMenuPosition, menuZIndex, watchMenuDismiss } from '@mochart/demo-common';
 import type { MenuPlacement } from '@mochart/demo-common';
 
-// The svelte half of demo-common's menu machinery — the runes counterpart of
+// The svelte half of demo-common's menu machinery, the runes counterpart of
 // the react port's useMenu. The imperative ports use `createMenuController`; a
 // svelte component owns its own open state, so this takes only the two shared
-// layers — `getMenuPosition` (where the fixed panel goes) and
-// `watchMenuDismiss` (when it closes) — and re-expresses the controller's
+// layers, `getMenuPosition` (where the fixed panel goes) and
+// `watchMenuDismiss` (when it closes), and re-expresses the controller's
 // remaining behaviour:
 //
 // - the panel is positioned synchronously on open, BEFORE the `open` class
@@ -17,10 +17,10 @@ import type { MenuPlacement } from '@mochart/demo-common';
 // - closing with focus inside the panel hands focus back to the trigger, so a
 //   keyboard user is not dumped at the top of the document;
 // - the trigger/panel pair gets disclosure ARIA (`aria-expanded` +
-//   `aria-controls` / `aria-labelledby`) — these are disclosures, not
+//   `aria-controls` / `aria-labelledby`): these are disclosures, not
 //   `role="menu"` menus, for the reasons in demo-common/src/menu.ts.
 //
-// Construct in a component's init (`const menu = new Menu({ … })`) — the
+// Construct in a component's init (`const menu = new Menu({ … })`), because the
 // dismissal `$effect` needs the component's effect context. Wire the elements
 // with `bind:this={menu.trigger}` / `bind:this={menu.panel}` and spread
 // `{...menu.triggerProps}` / `{...menu.panelProps}`.
@@ -28,7 +28,7 @@ import type { MenuPlacement } from '@mochart/demo-common';
 export interface MenuOptions {
   placement?: MenuPlacement;
   /**
-   * Measure from something other than the trigger — e.g. a whole controls row,
+   * Measure from something other than the trigger, e.g. a whole controls row,
    * when the trigger is not the last thing in it and `align: 'end'` must reach
    * the row's true right edge.
    */
@@ -83,11 +83,11 @@ export class Menu {
   };
 
   /**
-   * `untrack`, and it is required — this is the one method components call
+   * `untrack`, and it is required: this is the one method components call
    * from inside an `$effect` (NotesMenu closes the popover when the demo
    * changes under it; ExportShareMenu and OverflowMenu close on `disabled` /
    * `active`). `open`, `panel` and `trigger` are all `$state`, so *reading*
-   * them here would register them as dependencies of the CALLER's effect —
+   * them here would register them as dependencies of the CALLER's effect,
    * and an effect that depends on `open` and calls `close()` is a trap that
    * springs the moment the menu opens: the write re-runs the effect, which
    * closes the menu again before it is ever painted. That is exactly what
@@ -152,7 +152,7 @@ export class Menu {
     };
   }
 
-  /** True once the panel is positioned — append the `open` class on this. */
+  /** True once the panel is positioned. Append the `open` class on this. */
   get isPositioned(): boolean {
     return this.open && this.#style !== undefined;
   }

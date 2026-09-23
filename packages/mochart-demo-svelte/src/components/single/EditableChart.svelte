@@ -73,7 +73,7 @@
 
   // Working copies of the demo data; mutated in place by the category/series
   // editing controls (same pattern as the react demo's instance fields). The
-  // rows are raw state (never a proxy — the data provider holds the same array)
+  // rows are raw state (never a proxy, because the data provider holds the same array)
   // so the category index label's tooltip re-reads them when the set is replaced.
   let filteredData = $state.raw<Row[]>([]);
   let removedData: Row[] = [];
@@ -671,8 +671,8 @@
 
   const sliceControlsDisabled = $derived(error || sequencePlaying || slices.length === 0);
 
-  // The phone fold. Which panel folds — and what each sends to the overflow
-  // menu — mirrors the vanilla port's placeControls; the svelte expression of
+  // The phone fold. Which panel folds (and what each sends to the overflow
+  // menu) mirrors the vanilla port's placeControls; the svelte expression of
   // "reparent, never duplicate" is that every control renders in exactly one
   // of the two places from the same snippet (see OverflowMenu.svelte).
   const phone = createPhoneViewport();
@@ -893,14 +893,14 @@
     </div>
     <div class="editable-chart-controls">
       {#if mochartDemoConfig.pieMode}
-        <!-- Pie-mode slice panel — replaces both panels when slices are the
+        <!-- Pie-mode slice panel. It replaces both panels when slices are the
              series: click a slice (or step prev/next) to select it, edit its
              value, or play the filter/restore sequence. -->
         <div class="chart-controls-container">
           <div class="chart-controls-buttons">
             <form>
               {#if !foldSlice}
-                <!-- Kept on desktop even when empty — the empty field's gap is
+                <!-- Kept on desktop even when empty, because the empty field's gap is
                      part of the unfolded layout. -->
                 <div class="demo-field">
                   <div class="demo-toolbar">
@@ -952,8 +952,8 @@
           {@render controlsMenu(foldSlice ? sliceMenuItems : null)}
         </div>
       {:else if selectionMode === 'category'}
-        <!-- The fold keeps Add and Remove — they act on what is typed in the
-             input beside them — plus the input; everything else goes to the
+        <!-- The fold keeps Add and Remove (they act on what is typed in the
+             input beside them) plus the input; everything else goes to the
              menu, split into the same sections the vanilla port uses (order
              edits, then the sequence transport, then the shared controls). -->
         <div class="chart-controls-container">
@@ -981,7 +981,7 @@
           {@render controlsMenu(foldCategory ? categoryMenuItems : null)}
         </div>
       {:else}
-        <!-- The fold keeps the steppers and their readouts — they are how a
+        <!-- The fold keeps the steppers and their readouts, because they are how a
              category and a series get picked at all. Apply stays visible too, but
              moves DOWN, onto the input row beside the JSON it applies: with it
              out of the stepper row the panel holds two rows even at 320x568.

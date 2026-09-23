@@ -20,7 +20,7 @@ export class Icon {
    *
    * Not spelled `style`: a plain `style` on `<app-icon>` lands on the host,
    * and this component's host is `display: contents`, which generates no box
-   * for a margin to act on. The other ports have no such indirection — their
+   * for a margin to act on. The other ports have no such indirection: their
    * icon component's root element *is* the glyph span.
    */
   @Input() iconStyle?: string;

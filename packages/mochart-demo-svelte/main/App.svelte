@@ -76,8 +76,8 @@
   let isPhone = $state(isPhoneViewport());
   $effect(() => watchPhoneViewport(value => { isPhone = value; }));
 
-  // Multi mode is not offered on a phone, so a /multi/<demoId> URL — a shared
-  // link, or a rotation to portrait while multi is open — redirects to the
+  // Multi mode is not offered on a phone, so a /multi/<demoId> URL (a shared
+  // link, or a rotation to portrait while multi is open) redirects to the
   // fallback mode for the same demo like any other unshowable route.
   function resolveForViewport(resolved: Route): Route {
     if (resolved.mode === 'multi' && resolved.demoId !== undefined && isPhone) {

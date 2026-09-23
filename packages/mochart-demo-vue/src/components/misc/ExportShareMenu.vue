@@ -13,7 +13,7 @@ import { useMenu } from './useMenu';
 // export actions so this component stays agnostic about single vs. tiled charts.
 //
 // Positioning, dismissal, focus return and the disclosure ARIA come from
-// `useMenu` (demo-common's menu geometry + dismissal under vue state) —
+// `useMenu` (demo-common's menu geometry + dismissal under vue state),
 // including the reason any of it is hand-rolled (the controls strips clip an
 // absolutely-positioned dropdown, and the chart's interaction rect eats clicks
 // through anything stacked below it). What stays here is what the composable
@@ -26,7 +26,7 @@ interface Props {
   disabled?: boolean;
   /**
    * The hosting pane's active state. A deactivated pane is only marked inert,
-   * and an open panel is `position: fixed` — it would keep painting over the
+   * and an open panel is `position: fixed`, so it would keep painting over the
    * pane that replaced this one. False closes the menu.
    */
   active?: boolean;
@@ -45,7 +45,7 @@ const { open, close, setTrigger, setPanel, triggerProps, panelProps, isPositione
   placement: controlsMenuPlacement
 });
 
-// A disabled trigger fires no click, so the menu cannot be opened — but one
+// A disabled trigger fires no click, so the menu cannot be opened, but one
 // already open when its trigger is disabled would be stranded.
 watch(() => [props.disabled, props.active], () => {
   if (props.disabled || !props.active) {

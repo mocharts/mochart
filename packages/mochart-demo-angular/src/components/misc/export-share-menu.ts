@@ -13,7 +13,7 @@ import { Icon } from './icon';
  * export actions so this component stays agnostic about single vs. tiled charts.
  *
  * Open/close, positioning, dismissal, focus return and the disclosure ARIA all
- * come from demo-common's `createMenuController` — including the reason any of
+ * come from demo-common's `createMenuController`, including the reason any of
  * it is hand-rolled (the controls strips clip an absolutely-positioned dropdown,
  * and the chart's interaction rect eats clicks through anything stacked below
  * it). What stays here is what the controller does not know about: the items,
@@ -22,7 +22,7 @@ import { Icon } from './icon';
  * The trigger and panel carry STATIC classes and no `aria-expanded`, because
  * the controller writes those itself; a binding on the same element would be
  * re-applied by change detection and wipe them. `copied()` is still a signal,
- * so that one *does* need the zoneless `detectChanges()` flush — see `onShare`.
+ * so that one *does* need the zoneless `detectChanges()` flush (see `onShare`).
  */
 @Component({
   selector: 'app-export-share-menu',
@@ -69,7 +69,7 @@ export class ExportShareMenu implements OnInit, OnChanges, OnDestroy {
   @Input() disabled = false;
   /**
    * The hosting pane's active state. A deactivated pane is only marked inert,
-   * and an open panel is `position: fixed` — it would keep painting over the
+   * and an open panel is `position: fixed`, so it would keep painting over the
    * pane that replaced this one. False closes the menu.
    */
   @Input() active = true;
@@ -84,7 +84,7 @@ export class ExportShareMenu implements OnInit, OnChanges, OnDestroy {
   private readonly changeDetector = inject(ChangeDetectorRef);
   // The clipboard promise and the revert timer both resolve outside Angular, and
   // this is a zoneless app, so a signal write there only *schedules* change
-  // detection — flush it so the label swap lands on the spot.
+  // detection. Flush it so the label swap lands on the spot.
   private readonly shareLinkCopier: ShareLinkCopier = createShareLinkCopier(copied => {
     this.copied.set(copied);
     this.changeDetector.detectChanges();
@@ -100,7 +100,7 @@ export class ExportShareMenu implements OnInit, OnChanges, OnDestroy {
     });
   }
 
-  // A disabled trigger fires no click, so the menu cannot be opened — but one
+  // A disabled trigger fires no click, so the menu cannot be opened, but one
   // already open when its trigger is disabled would be stranded.
   ngOnChanges(): void {
     if (this.disabled || !this.active) {

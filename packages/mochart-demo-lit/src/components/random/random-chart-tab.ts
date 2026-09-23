@@ -112,8 +112,8 @@ export class RandomChartTab extends LightElement {
     );
   }
 
-  // `.demo-menu-keep-open` so a press inside the field — the number input's
-  // own spinners in particular — cannot dismiss the panel it is hosted in. The
+  // `.demo-menu-keep-open` so a press inside the field (the number input's
+  // own spinners in particular) cannot dismiss the panel it is hosted in. The
   // class paints nothing, so it is unconditional.
   private renderRateField(): unknown {
     return html`<div class="demo-field ${menuKeepOpenClassName}">
@@ -132,8 +132,8 @@ export class RandomChartTab extends LightElement {
   private getControlsAnchor = (): HTMLElement | null => this.querySelector('.random-controls');
 
   override render(): unknown {
-    // The phone fold keeps the dice pair (Back / Randomize) inline — stepping
-    // by hand is the mode's primary interaction — and demotes the automation
+    // The phone fold keeps the dice pair (Back / Randomize) inline (stepping
+    // by hand is the mode's primary interaction) and demotes the automation
     // transport (Play / Stop) with the Reuse toggle and the interval field.
     const folded = this.viewport.isPhone;
     return html`<div id=${panelAttrs.id} role=${panelAttrs.role} aria-labelledby=${panelAttrs['aria-labelledby']}
