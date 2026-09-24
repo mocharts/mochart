@@ -1362,3 +1362,20 @@ describe('categoryValueInterval validation', () => {
     expect(errorsFor(ordinal(2))).toContain('categoryAxis - categoryValueInterval - should be equal to "auto": 2');
   });
 });
+
+describe('follow-pointer tooltip validation', () => {
+  const base = { version: V, categoryAxis: { property: 'p' }, series: [{ property: 'v' }] };
+  const unreachable = ['showControls', 'filterSeriesOnClick', 'focusCategoryOnClick', 'focusSeriesOnClick', 'focusCategoryOnHover', 'focusSeriesOnHover'];
+
+  it('rejects the row and control interactions a following tooltip cannot reach', () => {
+    for (const member of unreachable) {
+      expect(errorsFor({ ...base, tooltip: { followPointer: true, [member]: true } }), member)
+        .toEqual(['tooltip - ' + member + ' - should be equal to false when followPointer is true: true']);
+      expect(errorsFor({ ...base, tooltip: { followPointer: false, [member]: true } }), member).toEqual([]);
+    }
+  });
+
+  it('keeps closeOnClick, which the plot click behind the box still honours', () => {
+    expect(errorsFor({ ...base, tooltip: { followPointer: true, closeOnClick: true } })).toEqual([]);
+  });
+});

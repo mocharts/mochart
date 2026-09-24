@@ -228,7 +228,7 @@ export const configWithoutAllValidators: Record<string, ConfigSectionValidator> 
   },
   tooltip: {
     validator: objectValidator,
-    validators: () => tooltipValidators()
+    validators: (configSection: ConfigRecord) => tooltipValidators(configSection)
   }
 };
 

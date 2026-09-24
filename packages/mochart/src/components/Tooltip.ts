@@ -110,6 +110,8 @@ export default class Tooltip extends Renderer<TooltipProps, TooltipState> {
         borderRadius: tooltipConfig.cornerRadius,
         boxShadow: boxShadowStyle,
         visibility: tooltipBounds !== null ? 'visible' : 'hidden',
+        // a following box sits under the pointer, so it must not take the plot's hover and clicks
+        pointerEvents: tooltipConfig.followPointer ? 'none' : null,
         ...fontStyle
       };
 

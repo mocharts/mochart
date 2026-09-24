@@ -2,21 +2,30 @@ import validators from './validators';
 import getSeriesIconValidators from './seriesIconConfig';
 
 import { NONE, TOOLTIP_VALUE_ALIGNS } from '../core/constants';
+import type { DeepPartial, TooltipConfig } from '../../types/config';
 
-export default function getValidators() {
+// a following tooltip ignores the pointer, so nothing inside it can be clicked or hovered
+const followPointerRule = { condition: ({ followPointer }: DeepPartial<TooltipConfig>) => followPointer === true, suffix: 'when followPointer is true' };
+const defaultRule = { condition: () => true };
+
+export default function getValidators(config: DeepPartial<TooltipConfig> = {}) {
+  const unreachableUnderFollow = () => validators.conditional([
+    { ...followPointerRule, validator: validators.equal(false) },
+    { ...defaultRule, validator: validators.boolean() }
+  ], config);
   return {
     visible: validators.boolean(),
     applyFocus: validators.boolean(),
     snapToCategory: validators.boolean(),
     followPointer: validators.boolean(),
     closeOnClick: validators.boolean(),
-    filterSeriesOnClick: validators.boolean(),
-    focusCategoryOnClick: validators.boolean(),
-    focusSeriesOnClick: validators.boolean(),
-    focusCategoryOnHover: validators.boolean(),
-    focusSeriesOnHover: validators.boolean(),
+    filterSeriesOnClick: unreachableUnderFollow(),
+    focusCategoryOnClick: unreachableUnderFollow(),
+    focusSeriesOnClick: unreachableUnderFollow(),
+    focusCategoryOnHover: unreachableUnderFollow(),
+    focusSeriesOnHover: unreachableUnderFollow(),
     showCategory: validators.boolean(),
-    showControls: validators.boolean(),
+    showControls: unreachableUnderFollow(),
     filterModeText: validators.string(),
     focusModeText: validators.string(),
     keepInside: validators.boolean(),

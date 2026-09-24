@@ -1528,7 +1528,17 @@ export interface TooltipConfig {
   snapToCategory: boolean;
   /**
    * Whether the tooltip should track the mouse position in the chart drawing
-   * area.
+   * area; a following tooltip ignores the pointer, so its rows and controls
+   * cannot be used and the on-click and on-hover settings and showControls must
+   * stay false.
+   *
+   * A following tooltip moves with the pointer, so the pointer can never rest
+   * on it: the box is drawn with `pointer-events: none`, which lets series
+   * hover focus, clicks on the plot and its shapes, and `closeOnClick` work
+   * through it. Its rows and controls are unreachable, so `showControls`,
+   * `filterSeriesOnClick`, `focusCategoryOnClick`, `focusSeriesOnClick`,
+   * `focusCategoryOnHover` and `focusSeriesOnHover` are validation errors while
+   * it is on.
    *
    * @default false
    */
@@ -1541,35 +1551,35 @@ export interface TooltipConfig {
   closeOnClick: boolean;
   /**
    * Whether series should be filtered when the user clicks/taps on them in the
-   * tooltip.
+   * tooltip (must be false when followPointer is true).
    *
    * @default false
    */
   filterSeriesOnClick: boolean;
   /**
    * Whether category values should be focused when the user clicks/taps on them
-   * in the tooltip.
+   * in the tooltip (must be false when followPointer is true).
    *
    * @default false
    */
   focusCategoryOnClick: boolean;
   /**
    * Whether series should be focused when the user clicks/taps on them in the
-   * tooltip.
+   * tooltip (must be false when followPointer is true).
    *
    * @default false
    */
   focusSeriesOnClick: boolean;
   /**
    * Whether category values should be focused when the user hovers the pointer
-   * over them in the tooltip.
+   * over them in the tooltip (must be false when followPointer is true).
    *
    * @default false
    */
   focusCategoryOnHover: boolean;
   /**
    * Whether series should be focused when the user hovers the pointer over them
-   * in the tooltip.
+   * in the tooltip (must be false when followPointer is true).
    *
    * Ignored while `showControls` is on, because there the controls' mode
    * decides: a row's series focuses on hover while filter mode is active.
@@ -1587,8 +1597,8 @@ export interface TooltipConfig {
    */
   showCategory: boolean;
   /**
-   * Whether the focus/filter controls should be shown at the top of the
-   * tooltip.
+   * Whether the focus/filter controls should be shown at the top of the tooltip
+   * (must be false when followPointer is true).
    *
    * When `true`, a control strip renders above the tooltip lines: previous- and
    * next-category buttons step the shown category, and a mode button toggles

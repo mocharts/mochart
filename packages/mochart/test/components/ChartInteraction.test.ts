@@ -85,6 +85,22 @@ beforeAll(() => {
   });
 });
 
+describe('a follow-pointer tooltip', () => {
+  // the box sat under the pointer and took the plot's hover, clicks and closeOnClick
+  it('ignores the pointer, so a click under it reaches the plot', () => {
+    const clicks: ChartEventPayload[] = [];
+    const container = mountChart(makeConfig({ tooltip: { followPointer: true } }), { onChartClick: payload => { clicks.push(payload); } });
+    const root = chartRoot(container);
+    mouse(root, 'mouseenter', 100, 100);
+    mouse(root, 'mousemove', 400, 100);
+    const box = container.querySelector<HTMLElement>(getCssSelector('tooltip'))!;
+    expect(box.style.pointerEvents).toBe('none');
+    // the box never sees the click in a browser; here it is dispatched on the root as the browser would
+    mouse(root, 'click', 400, 100);
+    expect(clicks.length).toBe(1);
+  });
+});
+
 describe('follow-pointer focus reports', () => {
   // every mousemove reported and re-rendered the same focused category
   it('fire onFocus once per category the pointer crosses, not once per move', () => {
