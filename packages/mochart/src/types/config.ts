@@ -3379,7 +3379,7 @@ export interface CategoryAxisTickStepConfig extends AxisTickStepConfig {
   minorPeriod: StepPeriod | null;
   /**
    * Whether the first category always gets a tick, even when count and offset
-   * would skip it.
+   * would skip it (ordinal scale only; a linear axis accepts only false).
    *
    * @default false
    */

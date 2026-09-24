@@ -71,7 +71,7 @@ holidays and as the data window slides:
 - `count` and `offset` step through the candidates: `period: 'week'` with
   `count: 2` labels every second week, and on a string axis
   `count: 5, offset: 3` shows the fourth category and every fifth after it.
-  `includeFirst` always keeps the first category.
+  On an ordinal axis, `includeFirst` always keeps the first category.
 - When more ticks survive than fit, every k-th survivor is kept from the first,
   so a thinned weekly rule still lands on Mondays.
 - The categories between the rule's ticks are minor ticks.

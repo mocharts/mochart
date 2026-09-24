@@ -50,7 +50,7 @@ export default function getDescriptions() {
         ...getTickStepDescriptions(),
         period: 'the calendar period the ticks step by on a date axis (second, minute, hour, day, week, month, year; use null for none)',
         minorPeriod: 'the calendar period of the minor ticks placed between the period ticks on a linear date axis (second, minute, hour, day, week, month, year, shorter than period; use null for none)',
-        includeFirst: 'whether the first category always gets a tick, even when count and offset would skip it'
+        includeFirst: 'whether the first category always gets a tick, even when count and offset would skip it (ordinal scale only; a linear axis accepts only false)'
       }
     },
     tickLabel: {
