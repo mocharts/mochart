@@ -51,9 +51,14 @@ import * as titleCaption from '../examples/titleCaption'
   the title above is that background.
 - [`textStyle`](/reference/title#title.textStyle) colors the text and defaults
   to a `currentColor` fill, so the title follows the host page (see
-  [theming](/guide/theming)). No config property sets the font: the text
-  inherits the page's font and size, which you can override in CSS on
-  `.mochart-title-text`, and the chart measures whatever it renders.
+  [theming](/guide/theming)).
+- [`font`](/reference/title#title.font) sets the title text's family, size,
+  weight and style, and `prefix.font` and `suffix.font` set theirs, each member
+  falling back to [`chart.font`](/reference/chart#chart.font) when `null` (see
+  [typography](/guide/theming#typography)). A configured member is written
+  inline and wins over page CSS; a member left `null` in both places is
+  inherited from the page, where CSS on `.mochart-title-text` can set it. The
+  chart measures whatever it renders.
 
 ## Placing the title
 
