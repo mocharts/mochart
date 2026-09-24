@@ -168,6 +168,7 @@ the three components are published as `.svelte` files that are their own source,
 `placeholders.svelte.js` are the `.ts` sources with the type annotations
 stripped. They are unbundled and unminified, with comments intact.
 
-The `development` export condition above is the supported route for stepping
-through the real TypeScript sources: enable it and the debugger runs `src/`
-directly, so no mapping is involved.
+So an installed copy is debugged through those unminified `dist/` files, with
+`src/` and the `.d.ts.map` files for reading the TypeScript. The `development`
+export condition above, which runs `src/` directly, works only inside this
+repository, since the published manifest has no such entry.
