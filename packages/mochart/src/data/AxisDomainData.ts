@@ -134,10 +134,10 @@ function getAxisDomainWithMinAndMax(axisConfig: AxisDomainConfig, axisDomainCalc
     if (axisExtent > 0) {
       const { minMarginFraction = 0, maxMarginFraction = 0 } = axisConfig;
       if (min === AUTO && axisDomain[0] !== null && (base === NONE || axisDomain[0] !== base) && minMarginFraction > 0) {
-        axisDomain[0] = adjustAxisValue(axisConfig, axisDomain[0], -minMarginFraction * axisExtent);
+        adjustAxisBound(axisConfig, axisDomain, 0, -minMarginFraction * axisExtent);
       }
       if (max === AUTO && axisDomain[1] !== null && (base === NONE || axisDomain[1] !== base) && maxMarginFraction > 0) {
-        axisDomain[1] = adjustAxisValue(axisConfig, axisDomain[1], maxMarginFraction * axisExtent);
+        adjustAxisBound(axisConfig, axisDomain, 1, maxMarginFraction * axisExtent);
       }
     }
   }
@@ -147,10 +147,19 @@ function getAxisDomainWithMinAndMax(axisConfig: AxisDomainConfig, axisDomainCalc
 function adjustAxisDomainForOffsets(axisConfig: AxisDomainConfig, axisDomain: CategoryAxisDomain): void {
   const { min, minOffset, max, maxOffset } = axisConfig;
   if (min === AUTO && minOffset !== 0 && axisDomain[0] !== null) {
-    axisDomain[0] = adjustAxisValue(axisConfig, axisDomain[0], minOffset);
+    adjustAxisBound(axisConfig, axisDomain, 0, minOffset);
   }
   if (max === AUTO && maxOffset !== 0 && axisDomain[1] !== null) {
-    axisDomain[1] = adjustAxisValue(axisConfig, axisDomain[1], maxOffset);
+    adjustAxisBound(axisConfig, axisDomain, 1, maxOffset);
+  }
+}
+
+// skipped when it would take the domain's extent past Number.MAX_VALUE, which no scale can tick (data near the limit)
+function adjustAxisBound(axisConfig: AxisDomainConfig, axisDomain: CategoryAxisDomain, index: 0 | 1, adjustment: number): void {
+  const adjusted = adjustAxisValue(axisConfig, axisDomain[index]!, adjustment);
+  const other = axisDomain[1 - index];
+  if (other === null || Number.isFinite(numericValue(adjusted) - numericValue(other))) {
+    axisDomain[index] = adjusted;
   }
 }
 

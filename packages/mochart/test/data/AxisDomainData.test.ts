@@ -67,6 +67,11 @@ describe('getAxisDomain', () => {
       .toEqual([2, 98]);
   });
 
+  it('skips a margin that would take the extent past Number.MAX_VALUE', () => {
+    expect(getAxisDomain(cfg({ minMarginFraction: 0.1, maxMarginFraction: 0.1 }), () => [1e300, 1.7e308]))
+      .toEqual([1e300, 1.7e308]);
+  });
+
   it('does not add the min margin when the min equals the base', () => {
     // min (10) === base (10) => no bottom margin, top still grows
     expect(getAxisDomain(cfg({ base: 10, minMarginFraction: 0.1, maxMarginFraction: 0.1 }), () => [10, 90]))
