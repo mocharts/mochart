@@ -86,6 +86,32 @@ beforeAll(() => {
 });
 
 describe('chart mouse events', () => {
+  // the leave was decided from the coordinates alone, so a mouseleave onto an element overlapping the plot read as a move
+  it('treats a mouseleave as a leave even when its coordinates are still inside the plot', () => {
+    const enters: ChartEventPayload[] = [];
+    const moves: ChartEventPayload[] = [];
+    const leaves: ChartEventPayload[] = [];
+    const container = mountChart(makeConfig({ tooltip: { followPointer: true } }), {
+      onChartMouseEnter: payload => { enters.push(payload); },
+      onChartMouseMove: payload => { moves.push(payload); },
+      onChartMouseLeave: payload => { leaves.push(payload); }
+    });
+    const root = chartRoot(container);
+    mouse(root, 'mouseenter', 100, 100);
+    mouse(root, 'mousemove', 400, 100);
+    expect(container.querySelector(getCssSelector('tooltip'))).not.toBeNull();
+
+    mouse(root, 'mouseleave', 400, 100);
+    expect(leaves.length).toBe(1);
+    expect(moves.length).toBe(1);
+    expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
+
+    // the next in-plot motion is an enter again, not a move
+    mouse(root, 'mousemove', 400, 100);
+    expect(enters.length).toBe(2);
+    expect(moves.length).toBe(1);
+  });
+
   it('fires enter, move, leave and click callbacks with a category index payload', () => {
     const enters: ChartEventPayload[] = [];
     const moves: ChartEventPayload[] = [];

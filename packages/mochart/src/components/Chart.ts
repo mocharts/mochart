@@ -439,10 +439,12 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
   processChartMotionEvent(event: ChartPointerEvent): void {
     if (this.isMouseWithinChart) {
-      this.processChartEvent(event, this.onChartMouseMove, (chartX, chartY) => {
+      const leave = (chartX: number, chartY: number) => {
         this.isMouseWithinChart = false;
         this.onChartMouseLeave(chartX, chartY);
-      });
+      };
+      // a mouseleave onto an element overlapping the plot (a popover, a sticky header) still carries in-plot coordinates
+      this.processChartEvent(event, event.type === 'mouseleave' ? leave : this.onChartMouseMove, leave);
     }
     else {
       this.processChartEvent(event, (chartX, chartY) => {
@@ -987,27 +989,27 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     if (mochartConfig.tooltip.followPointer && !this.isLoading()) {
       const { tooltip: tooltipConfig, crosshair: crosshairConfig } = mochartConfig;
       const { valueFraction: seriesPercentage, categoryFraction, categoryIndex } = eventPayload;
+      // a closed follow tooltip opens on the move, as it does on entry: the pointer entered during a load, or a click closed it
+      if (tooltipConfig.visible && !this.state.tooltipVisible) {
+        this.setTooltipOpen(true, eventPayload);
+        return;
+      }
       // same applyFocus gate as setTooltipOpen: enter, move and leave must agree on whether pointer interactions may change the focused category
       if ((tooltipConfig.visible && tooltipConfig.applyFocus) || (crosshairConfig.visible && crosshairConfig.applyFocus)) {
         onFocus?.({ categoryIndex });
       }
       if (tooltipConfig.visible) {
-        if (this.state.tooltipVisible) {
-          // track the pointer: content follows the nearest category, position
-          // follows the pointer percentages (measure() remeasures on index change)
-          const tooltipCategoryIndex = categoryIndex;
-          const tooltipValueObject = tooltipCategoryIndex !== this.state.tooltipCategoryIndex
-            ? getCategorySeriesValueObject(chartData!, tooltipCategoryIndex)
-            : this.state.tooltipValueObject;
-          const tooltipCategoryPercentage = categoryFraction;
-          const tooltipSeriesPercentage = seriesPercentage;
-          const tooltipLayoutInfo = this.getTooltipLayoutInfo(mochartConfig,
-            { ...this.state, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipSeriesPercentage });
-          this.setState({ tooltipCategoryIndex, tooltipValueObject, tooltipCategoryPercentage, tooltipSeriesPercentage, tooltipLayoutInfo });
-        }
-        else {
-          this.setState({ tooltipSeriesPercentage: seriesPercentage });
-        }
+        // track the pointer: content follows the nearest category, position
+        // follows the pointer percentages (measure() remeasures on index change)
+        const tooltipCategoryIndex = categoryIndex;
+        const tooltipValueObject = tooltipCategoryIndex !== this.state.tooltipCategoryIndex
+          ? getCategorySeriesValueObject(chartData!, tooltipCategoryIndex)
+          : this.state.tooltipValueObject;
+        const tooltipCategoryPercentage = categoryFraction;
+        const tooltipSeriesPercentage = seriesPercentage;
+        const tooltipLayoutInfo = this.getTooltipLayoutInfo(mochartConfig,
+          { ...this.state, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipSeriesPercentage });
+        this.setState({ tooltipCategoryIndex, tooltipValueObject, tooltipCategoryPercentage, tooltipSeriesPercentage, tooltipLayoutInfo });
       }
       else {
         this.setState({ tooltipBounds: null });

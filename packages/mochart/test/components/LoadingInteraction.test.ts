@@ -107,6 +107,20 @@ describe('while loading, the chart does not commit', () => {
     expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
   });
 
+  // the move path only tracked an open tooltip, so a pointer that entered during the load never got one
+  it('opens a follow-pointer tooltip on the first move after the load ends', () => {
+    const { container, handle } = mountChart(makeConfig({ tooltip: { followPointer: true } }));
+    handle.update({ loading: true } as Partial<DefaultChartProps>);
+    const chartRoot = root(container);
+    mouse(chartRoot, 'mouseenter', 100, 300);
+    mouse(chartRoot, 'mousemove', 120, 300);
+    expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
+
+    handle.update({ loading: false } as Partial<DefaultChartProps>);
+    mouse(chartRoot, 'mousemove', 700, 300);
+    expect(container.querySelector(getCssSelector('tooltip'))).not.toBeNull();
+  });
+
   it('leaves an already-open follow-pointer tooltip on its category', () => {
     const focuses: ChartFocus[] = [];
     const { container, handle } = mountChart(
