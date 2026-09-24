@@ -133,4 +133,29 @@ describe('accessibility.respectReducedMotion', () => {
 
     chart.destroy();
   });
+
+  it('plays a fresh entrance when animation is switched on by the same update that changes the series', () => {
+    const container = mountContainer();
+    const chart = mochart.createDefaultChart(container, {
+      config: { ...(config as object), animation: { enabled: false }, series: [{ id: 's1', property: 'v1', renderer: 'bar' }] } as MochartInputConfig,
+      data: [{ label: 'a', v1: 1, v2: 2 }, { label: 'b', v1: 3, v2: 4 }],
+      width: 300, height: 200
+    });
+    runFrames();
+    expect(barPaths(container).length).toBeGreaterThan(0);
+
+    // the old frame has series s1 only: it cannot seed a tween to s2, so the new source starts from nothing
+    expect(() => chart.update({
+      config: {
+        ...(config as object),
+        animation: { enabled: true },
+        series: [{ id: 's2', property: 'v2', renderer: 'bar' }]
+      } as MochartInputConfig
+    })).not.toThrow();
+    runFrames();
+    expect(barPaths(container).length).toBeGreaterThan(0);
+    expect(container.querySelector(getCssSelector('noData'))).toBeNull();
+
+    chart.destroy();
+  });
 });

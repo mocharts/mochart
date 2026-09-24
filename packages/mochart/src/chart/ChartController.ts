@@ -2,6 +2,7 @@ import Chart from '../components/Chart';
 import { isDataProviderValid } from '../data/ChartData';
 import { readCategoryValues } from '../data/PropertyData';
 import { getCategoryKeyProperty } from '../data/CategoryData';
+import { hasConfigStructureChange } from '../config/core/mochartConfig';
 import { FocusController } from './FocusController';
 import { StaticDataSource } from './StaticDataSource';
 import { AnimatedDataSource } from './AnimatedDataSource';
@@ -137,8 +138,11 @@ export class ChartController {
       this.captureCategoryValues();
     }
     if (this.source.animated !== this.isAnimated()) {
-      // hand the settled frame to the new source: flipping the flag is not a reason to replay the entrance
-      const renderedChartData = this.source.chartData;
+      // hand the settled frame to the new source: flipping the flag is not a reason to replay the entrance,
+      // unless the same update changed the data structure, when the frame's series and categories may not exist in the new data
+      const carryFrame = input.dataProvider === prevInput.dataProvider &&
+        !hasConfigStructureChange(prevInput.mochartConfig, input.mochartConfig);
+      const renderedChartData = carryFrame ? this.source.chartData : null;
       this.source.dispose();
       this.source = this.createSource();
       this.source.start(input, renderedChartData);
