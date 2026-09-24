@@ -318,7 +318,10 @@ describe('explicit minor ticks', () => {
 });
 
 describe('tick step on linear axes', () => {
-  const numberRows = [{ label: 0, value: 1 }, { label: 40, value: 2 }];
+  // categories 10 apart: the slot padding then insets the ticks by a twentieth of the plot on each side
+  const numberRows = [0, 10, 20, 30, 40].map(label => ({ label, value: 1 + (label / 10) % 3 }));
+  // two categories make one slot, whose categoryCountPadding would inset the ticks by a quarter of the plot on each side
+  const noPadding = { categoryCountPadding: 0 };
 
   it('places ticks on the multiples of an interval, keeps every count-th, and splits each interval into minor steps', () => {
     const { container, chart } = renderChart({ type: 'number', scale: 'linear', min: 0, max: 40, tickLabel: { minorFormat: 'auto' }, tickStep: { interval: 10, count: 2, minorSteps: 5 } }, numberRows);
@@ -344,7 +347,7 @@ describe('tick step on linear axes', () => {
 
   it('hides a minor period tick closer to a period tick than a whole minor period', () => {
     const rows = [{ label: '2026-06-01', value: 1 }, { label: '2026-08-31', value: 2 }];
-    const { container, chart } = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%b', minorFormat: '%b %d' }, tickStep: { period: 'month', minorPeriod: 'week' } }, rows, 2400);
+    const { container, chart } = renderChart({ type: 'date', scale: 'linear', ...noPadding, tickLabel: { format: '%b', minorFormat: '%b %d' }, tickStep: { period: 'month', minorPeriod: 'week' } }, rows, 2400);
     expect(getKindLabels(container, categoryTickLabels, false)).toEqual(['Jul', 'Aug']);
     const minors = getKindLabels(container, categoryTickLabels, true);
     // the Mondays a few days after the 1st of July and August are hidden, the rest of the Mondays show

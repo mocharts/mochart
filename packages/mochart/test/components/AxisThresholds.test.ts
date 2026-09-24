@@ -185,15 +185,18 @@ describe('titleSnapToValue', () => {
     expect(snapped.y).toBeGreaterThan(clamped.y);
   });
 
+  // the three linear rows make two slots, whose categoryCountPadding would move the lines a sixth of the plot in from the edges
+  const edgeToEdge = { categoryCountPadding: 0 };
+
   it('flips a horizontal low title right of a line near the plot start', () => {
-    const snapped = titlePosition(categoryThreshold({ value: 2, title: { text: 'T', side: 'low', snapToValue: true } }));
-    const clamped = titlePosition(categoryThreshold({ value: 2, title: { text: 'T', side: 'low', snapToValue: false } }));
+    const snapped = titlePosition(categoryThreshold({ value: 2, title: { text: 'T', side: 'low', snapToValue: true } }, edgeToEdge));
+    const clamped = titlePosition(categoryThreshold({ value: 2, title: { text: 'T', side: 'low', snapToValue: false } }, edgeToEdge));
     expect(snapped.x).toBeGreaterThan(clamped.x);
   });
 
   it('flips a horizontal high title left of a line near the plot end', () => {
-    const snapped = titlePosition(categoryThreshold({ value: 99, title: { text: 'T', side: 'high', snapToValue: true } }));
-    const clamped = titlePosition(categoryThreshold({ value: 99, title: { text: 'T', side: 'high', snapToValue: false } }));
+    const snapped = titlePosition(categoryThreshold({ value: 99, title: { text: 'T', side: 'high', snapToValue: true } }, edgeToEdge));
+    const clamped = titlePosition(categoryThreshold({ value: 99, title: { text: 'T', side: 'high', snapToValue: false } }, edgeToEdge));
     expect(snapped.x).toBeLessThan(clamped.x);
   });
 
