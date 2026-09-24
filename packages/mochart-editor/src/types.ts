@@ -10,6 +10,10 @@ export interface JsonEditorDiagnostic {
   source: 'json' | 'mochart';
 }
 
+/**
+ * An opaque handle for domain intelligence. The only accepted value is what
+ * createMochartConfigSupport() returns: createJsonEditor throws on any other object.
+ */
 export interface JsonEditorSupport {
   readonly name: string;
 }
@@ -27,7 +31,7 @@ export interface JsonEditorOptions {
   theme?: 'light' | 'dark';
   readOnly?: boolean;
   lineNumbers?: boolean;
-  /** Optional domain intelligence, such as `createMochartConfigSupport()`. */
+  /** Optional domain intelligence: what `createMochartConfigSupport()` returns, alone or in an array. */
   support?: JsonEditorSupport | JsonEditorSupport[];
   /** Called for user edits and formatting, but not controlled `setValue` updates. */
   onChange?: (value: string) => void;

@@ -51,7 +51,9 @@ toggle those behaviors, `indentation` sets what `format()` inserts, read the way
 default) or a string's first ten characters, where `0` or an empty string lays
 the document out on one line. `theme` picks the initial color treatment
 (`'light'` by default), and `ariaDescribedBy` links the editable element to help
-text. `support` accepts one `JsonEditorSupport` or an array of them.
+text. `support` takes what `createMochartConfigSupport()` returns, alone or in
+an array. `JsonEditorSupport` is an opaque handle rather than an interface to
+implement: `createJsonEditor` throws on any other object.
 
 ## The handle
 
