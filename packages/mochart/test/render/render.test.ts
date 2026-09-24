@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { svgEl, htmlEl, textEl, Renderer, ElList, ElSlot, shallowEqual, El } from '../../src/render';
 import { setProperty } from '../../src/render/dom';
+import { beginWork, endWork, enqueue } from '../../src/render/shared';
 
 function host(): HTMLElement {
   const div = document.createElement('div');
@@ -405,6 +406,18 @@ describe('shallowEqual', () => {
     expect(shallowEqual(1, 2)).toBe(false);
     expect(shallowEqual(null, {})).toBe(false);
     expect(shallowEqual({}, null)).toBe(false);
+  });
+});
+
+describe('commit queue', () => {
+  it('runs every queued callback when one throws, then rethrows the first error', () => {
+    const calls: string[] = [];
+    beginWork();
+    enqueue(() => { calls.push('a'); throw new Error('first'); });
+    enqueue(() => { calls.push('b'); throw new Error('second'); });
+    enqueue(() => calls.push('c'));
+    expect(() => endWork()).toThrow('first');
+    expect(calls).toEqual(['a', 'b', 'c']);
   });
 });
 

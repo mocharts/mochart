@@ -471,6 +471,24 @@ describe('tweenFocus', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('a throwing afterUpdate callback does not drop the ones queued after it in the same frame', () => {
+    const throwing = makeManager();
+    const manager = makeManager();
+    const later = vi.fn();
+    throwing.tweenFocus(makeConfig(), makeFocusData().animationData, () => {
+      throwing.afterUpdate(() => { throw new Error('render failed'); });
+    });
+    manager.tweenFocus(makeConfig(), makeFocusData().animationData, () => {
+      manager.afterUpdate(later);
+    });
+    let thrown: unknown = null;
+    while (thrown === null && vi.getTimerCount() > 0) {
+      try { vi.advanceTimersByTime(FRAME_MS); } catch (error) { thrown = error; }
+    }
+    expect(thrown).toEqual(new Error('render failed'));
+    expect(later).toHaveBeenCalled();
+  });
+
   // Regression: a tween started from the final frame's updateCallback was clobbered by the
   // completing tween's wrapper and the replaced tween reported complete; now identity-guarded.
   it('keeps a tween started from the final frame cancelable, without completing the replaced tween', () => {

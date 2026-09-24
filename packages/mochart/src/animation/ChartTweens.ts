@@ -158,11 +158,19 @@ function initMochartTween(): TweenEngine {
     }
     finally {
       _updating = false;
-      // the frame's last state still renders when a tween threw
+      // the frame's last state still renders when a tween threw, and one chart's throwing render leaves the others' queued
       const callbacks = [..._afterUpdate];
       _afterUpdate.clear();
       for (const callback of callbacks) {
-        callback();
+        try {
+          callback();
+        }
+        catch (error) {
+          if (!threw) {
+            threw = true;
+            firstError = error;
+          }
+        }
       }
     }
     if (threw) {

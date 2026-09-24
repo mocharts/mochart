@@ -33,13 +33,27 @@ export function enqueue(callback: () => void): void {
   commitQueue.push(callback);
 }
 
+// a throwing callback does not drop the ones queued after it; the first error is rethrown once all have run
 function flushCommitQueue(): void {
+  let firstError: unknown = null;
+  let threw = false;
   while (commitQueue.length > 0) {
     const callbacks = commitQueue;
     commitQueue = [];
     for (const callback of callbacks) {
-      callback();
+      try {
+        callback();
+      }
+      catch (error) {
+        if (!threw) {
+          threw = true;
+          firstError = error;
+        }
+      }
     }
+  }
+  if (threw) {
+    throw firstError;
   }
 }
 
