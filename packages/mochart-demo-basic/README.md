@@ -43,7 +43,8 @@ From the repo root:
 
 ```sh
 npm run dev:basic  # vite dev server on http://localhost:5173
-npm run test:e2e   # this suite (see e2e/), then the vanilla gallery's
+npm run test:e2e   # every Playwright suite: this one (see e2e/), the vanilla
+                   # gallery's, the framework smoke suite and the showcase's
 ```
 
 Or from this package: `npm run dev`, `npm run build`, `npm run preview`, and

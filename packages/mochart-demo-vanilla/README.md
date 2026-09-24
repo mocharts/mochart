@@ -44,7 +44,8 @@ From the repo root (`npm run dev` targets this package):
 ```sh
 npm run dev        # vite dev server on http://localhost:5179
 npm run build      # production build to dist/
-npm run test:e2e   # demo-basic's playwright suite, then this package's
+npm run test:e2e   # every Playwright suite: demo-basic's, this package's, the
+                   # framework smoke suite and the showcase's
 ```
 
 Or from this package: `npm run dev`, `npm run build`, `npm run preview` (port
