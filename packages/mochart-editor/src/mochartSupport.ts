@@ -1,7 +1,7 @@
 import { acceptCompletion, autocompletion, pickedCompletion, type Completion, type CompletionContext } from '@codemirror/autocomplete';
 import { StateField, type EditorState } from '@codemirror/state';
 import { hoverTooltip, keymap, type EditorView } from '@codemirror/view';
-import { getDefaults, getVersionString, validateConfigDetailed } from '@mochart/core';
+import { getConfigWithDefaults, getDefaults, getVersionString, validateConfigDetailed } from '@mochart/core';
 import type { Diagnostic } from '@codemirror/lint';
 import model from './mochartConfigModel.generated.js';
 import type { EditorDefaultValue, EditorPropertyModel, EditorSectionModel, EditorValueModel } from './model.js';
@@ -235,14 +235,31 @@ function valueAtPath(document: unknown, path: JsonPath): unknown {
   return value;
 }
 
+// the config core would run, *Defaults sections merged, so a member left to its default compares by its effective value
+function configWithDefaults(document: unknown): Record<string, unknown> | null {
+  try {
+    return getConfigWithDefaults(document as Parameters<typeof getConfigWithDefaults>[0]) as unknown as Record<string, unknown>;
+  }
+  catch {
+    return null;
+  }
+}
+
+// a member's written value, or when it is absent, the value core gives it
+function effectiveValue(withDefaults: Record<string, unknown> | null, document: unknown, memberPath: JsonPath): unknown {
+  const written = valueAtPath(document, memberPath);
+  if (written !== undefined || !withDefaults) return written;
+  const resolvedPath = defaultsPath(withDefaults, document, memberPath);
+  return resolvedPath === null ? undefined : valueAtPath(withDefaults, resolvedPath);
+}
+
 function referencedValues(document: unknown, property: EditorPropertyModel, path: JsonPath): unknown[] {
   if (!property.reference || document === null || typeof document !== 'object') return [];
   const config = document as Record<string, unknown>;
   const values: unknown[] = [];
-  const target = valueAtPath(document, path.slice(0, -1));
-  const commonValue = property.reference.commonKey && target && typeof target === 'object'
-    ? (target as Record<string, unknown>)[property.reference.commonKey]
-    : undefined;
+  const { commonKey } = property.reference;
+  const withDefaults = commonKey ? configWithDefaults(document) : null;
+  const commonValue = commonKey ? effectiveValue(withDefaults, document, [...path.slice(0, -1), commonKey]) : undefined;
   // a defaults section such as seriesDefaults belongs to the section it defaults, with no entry of its own
   const ownSectionId = sectionForPath(path)?.id;
   for (const sectionKey of property.reference.sections) {
@@ -255,8 +272,8 @@ function referencedValues(document: unknown, property: EditorPropertyModel, path
         const record = entry as Record<string, unknown>;
         // core builds its sections without ignored entries, so their ids match nothing
         if (record['ignore'] === true) continue;
-        if (property.reference.commonKey && commonValue !== undefined &&
-            record[property.reference.commonKey] !== commonValue) continue;
+        if (commonKey && commonValue !== undefined &&
+            effectiveValue(withDefaults, document, Array.isArray(raw) ? [sectionKey, index, commonKey] : [sectionKey, commonKey]) !== commonValue) continue;
         // within its own section an entry cannot name itself, and core rejects a followSeries target that itself follows
         if (ownSection && (index === ownIndex || (record[property.key] !== undefined && record[property.key] !== null))) continue;
         const value = record[property.reference.key];

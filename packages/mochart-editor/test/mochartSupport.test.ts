@@ -257,6 +257,30 @@ describe('Mochart support completions', () => {
     expect(labels(options)).toContain('"stack-a"');
     expect(labels(options)).not.toContain('"stack-b"');
   });
+
+  it('compares a common reference left to its default by the value core gives it', async () => {
+    // the stack's axis defaults to the sole value axis, which the series names
+    const soleAxis = await completionOptions(`{
+      "version": "1.0.0",
+      "categoryAxis": { "property": "month" },
+      "valueAxes": [{ "id": "L" }],
+      "seriesStacks": [{ "id": "S" }],
+      "series": [{ "property": "revenue", "axis": "L", "stack": "|" }]
+    }`);
+    expect(labels(soleAxis)).toContain('"S"');
+
+    // the series takes its axis from seriesDefaults
+    const inherited = await completionOptions(`{
+      "version": "1.0.0",
+      "categoryAxis": { "property": "month" },
+      "valueAxes": [{ "id": "A" }, { "id": "B" }],
+      "seriesStacks": [{ "id": "stack-a", "axis": "A" }, { "id": "stack-b", "axis": "B" }],
+      "seriesDefaults": { "axis": "B" },
+      "series": [{ "property": "revenue", "stack": "|" }]
+    }`);
+    expect(labels(inherited)).toContain('"stack-b"');
+    expect(labels(inherited)).not.toContain('"stack-a"');
+  });
 });
 
 describe('property insertion layout', () => {
