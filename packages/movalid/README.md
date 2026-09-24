@@ -11,6 +11,12 @@ readable errors.
 [@mochart/core](https://github.com/mocharts/mochart/tree/main/packages/mochart)
 uses it for config validation.
 
+## Install
+
+```sh
+npm install @mochart/movalid
+```
+
 ## Usage
 
 ```js
