@@ -205,6 +205,9 @@ live-preview editor wants.
 - Both return fully independent copies sharing no object with their arguments,
   so the results can be serialized, diffed, or edited freely without reaching
   into a mounted chart.
+- Both leave out list section entries marked `ignore: true`, as the built
+  chart does, so an editor that must keep entries a user switched off has to
+  store the raw config.
 - `getDataErrors` checks a dataset against an enhanced config: non-numeric
   series values, category values that don't match the configured type, duplicate
   category values, a value count that differs from the category count, and
