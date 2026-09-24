@@ -123,9 +123,6 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
     if (!demoConfig.valid) {
       return null;
     }
-    if (stateMode === 'error') {
-      return { getError: () => 'Example upstream failure: the data service returned 503.' };
-    }
     if (stateMode === 'empty') {
       return new ArrayOfObjectsDataProvider([]);
     }
@@ -164,6 +161,8 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
       mochartConfig: demoConfig.mochartConfig,
       dataProvider: buildDataProvider(),
       loading: stateMode === 'loading',
+      // null, not undefined, so the update that leaves the error mode clears it
+      error: stateMode === 'error' ? 'Example upstream failure: the data service returned 503.' : null,
       filteredSeriesIds,
       focusedValueAxisId,
       focusedSeriesId,
