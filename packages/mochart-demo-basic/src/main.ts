@@ -1,6 +1,5 @@
 import {
   createChart,
-  migrateConfig,
   enhanceConfig,
   ArrayOfObjectsDataProvider
 } from '@mochart/core';
@@ -56,7 +55,7 @@ function computeSeriesBounds(config: any, randomSpec: any): Record<string, Serie
   const { min = -500, max = 500, round = true, limitToAxisConfig = true } = numberSpec;
   const bounds: Record<string, SeriesBounds> = {};
   for (const seriesConfig of config.series || []) {
-    const axisConfig = seriesConfig.valueAxisConfig || {};
+    const axisConfig = (config.valueAxes || []).find((candidate: any) => candidate.id === seriesConfig.axis) || {};
     for (const key of ['property', 'rangeProperty']) {
       const property = seriesConfig[key];
       if (!property) {
@@ -85,8 +84,7 @@ function mountDemo(demo: Demo): void {
   demoTitle.textContent = demo.title;
   stopAutoplay();
 
-  const config = migrateConfig(JSON.parse(JSON.stringify(demo.config)));
-  mochartConfig = enhanceConfig(config);
+  mochartConfig = enhanceConfig(demo.config);
   const { valid, errors, warnings } = mochartConfig.validation;
   showErrors(valid ? [] : [...errors, ...warnings]);
 
