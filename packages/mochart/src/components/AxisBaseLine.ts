@@ -1,13 +1,13 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { translate } from '../utils/utils';
-import { getAxisFocusStyle } from '../utils/FocusValue';
-import { styleToAttributes } from '../utils/style';
-import { NONE } from '../config/core/constants';
-import type { PlotConfig } from '../types/config';
-import type { EnhancedValueAxisConfig } from '../types/enhanced';
-import type { LayoutInfo } from '../types/layout';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { translate } from '../utils/utils.js';
+import { getAxisFocusStyle } from '../utils/FocusValue.js';
+import { styleToAttributes } from '../utils/style.js';
+import { NONE } from '../config/core/constants.js';
+import type { PlotConfig } from '../types/config.js';
+import type { EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 interface AxisBaseLineProps {
   valueAxisConfig: EnhancedValueAxisConfig;

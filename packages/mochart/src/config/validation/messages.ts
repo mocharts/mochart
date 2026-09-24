@@ -1,5 +1,5 @@
-import validators from './validators';
-import { isPlainObject } from '../core/deepMerge';
+import validators from './validators.js';
+import { isPlainObject } from '../core/deepMerge.js';
 import type { Validator } from '@mochart/movalid';
 
 export type ConfigObject = Record<string, unknown>;

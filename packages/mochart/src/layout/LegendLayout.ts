@@ -1,11 +1,11 @@
-import { ALIGN_LEFT, ALIGN_CENTER, AUTO } from '../config/core/constants';
-import { getLegendItemBoundsList, getLegendSeriesConfigs } from '../utils/TextMeasurement';
-import { leaderSeriesId } from '../utils/SeriesFocus';
-import { createSpacingLayoutInfo, getSpacingLeft, getSpacingWidth, getSpacingTop, getSpacingHeight } from './SpacingLayoutInfo';
-import type { Bounds, TextBounds } from '../types/geometry';
-import type { LegendConfig } from '../types/config';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced';
-import type { ChartTextBoundsData, LayoutInfo, LegendLayoutResult, SpacingLayoutInfo } from '../types/layout';
+import { ALIGN_LEFT, ALIGN_CENTER, AUTO } from '../config/core/constants.js';
+import { getLegendItemBoundsList, getLegendSeriesConfigs } from '../utils/TextMeasurement.js';
+import { leaderSeriesId } from '../utils/SeriesFocus.js';
+import { createSpacingLayoutInfo, getSpacingLeft, getSpacingWidth, getSpacingTop, getSpacingHeight } from './SpacingLayoutInfo.js';
+import type { Bounds, TextBounds } from '../types/geometry.js';
+import type { LegendConfig } from '../types/config.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { ChartTextBoundsData, LayoutInfo, LegendLayoutResult, SpacingLayoutInfo } from '../types/layout.js';
 
 const fallbackLegendIconSize = 14;
 

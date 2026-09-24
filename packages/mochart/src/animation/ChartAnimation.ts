@@ -1,19 +1,19 @@
-import { getChartDataWithData, getChartDataWithCategoryData, getChartDataWithValues, getChartDataWithSeriesDomains, getChartDataWithRenderAxisDomains, getChartDataWithSeriesData } from '../data/ChartData';
+import { getChartDataWithData, getChartDataWithCategoryData, getChartDataWithValues, getChartDataWithSeriesDomains, getChartDataWithRenderAxisDomains, getChartDataWithSeriesData } from '../data/ChartData.js';
 
-import { getCategoryDataWithNumericValues, getCategoryDataWithRenderAxisDomain } from '../data/CategoryData';
+import { getCategoryDataWithNumericValues, getCategoryDataWithRenderAxisDomain } from '../data/CategoryData.js';
 
-import { getSeriesDataWithSeriesValues, getSeriesDataWithRenderAxisDomains } from '../data/SeriesData';
+import { getSeriesDataWithSeriesValues, getSeriesDataWithRenderAxisDomains } from '../data/SeriesData.js';
 
-import { domainKeys, positionOrComputedKeys, extraAndCopyKeys } from '../data/constants';
+import { domainKeys, positionOrComputedKeys, extraAndCopyKeys } from '../data/constants.js';
 
-import { TYPE_DATE, SCALE_LINEAR } from '../config/core/constants';
+import { TYPE_DATE, SCALE_LINEAR } from '../config/core/constants.js';
 
-import { enhanceValueObjects } from './SeriesAnimationData';
+import { enhanceValueObjects } from './SeriesAnimationData.js';
 
-import type { CategoryAxisConfig } from '../types/config';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { DomainKey, ExtraCopyKey, ExtraKey, PositionOrComputedKey } from '../data/constants';
-import type { SeriesValueObjects as DataSeriesValueObjects } from '../types/data';
+import type { CategoryAxisConfig } from '../types/config.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { DomainKey, ExtraCopyKey, ExtraKey, PositionOrComputedKey } from '../data/constants.js';
+import type { SeriesValueObjects as DataSeriesValueObjects } from '../types/data.js';
 import type {
   AnimationChartData,
   AxisDeltaData,
@@ -34,7 +34,7 @@ import type {
   SeriesValueDeltaMap,
   SeriesValueObject,
   SeriesValueObjects
-} from '../types/animation';
+} from '../types/animation.js';
 
 function requireAxisDeltaData(axisDeltaData: ChartAnimationData['axisExpansionData']): AxisDeltaData {
   if (axisDeltaData.start === null || axisDeltaData.end === null || axisDeltaData.deltas === null) {

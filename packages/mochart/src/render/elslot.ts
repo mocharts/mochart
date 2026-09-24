@@ -1,4 +1,4 @@
-import { El } from './el';
+import { El } from './el.js';
 
 /**
  * A single conditional/polymorphic element position (the `{cond && <rect/>}`

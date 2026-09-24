@@ -1,6 +1,6 @@
-import { checkUniqueLabels } from './labels';
-import { roundToSignificant } from '../utils/utils';
-import type { CategoryAxisConfig, SeriesConfig } from '../types/config';
+import { checkUniqueLabels } from './labels.js';
+import { roundToSignificant } from '../utils/utils.js';
+import type { CategoryAxisConfig, SeriesConfig } from '../types/config.js';
 
 export interface HistogramBin {
   /** Inclusive lower edge of the bin. */

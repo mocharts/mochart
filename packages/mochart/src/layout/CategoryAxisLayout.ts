@@ -1,10 +1,10 @@
-import { SIDE_START } from '../config/core/constants';
-import { setExtraAxisInfo, getAxisSize, getRotatedTickBounds } from './PlotLayout';
-import { createInnerOuterSpacingLayoutInfo } from './SpacingLayoutInfo';
-import type { Bounds, TextBounds } from '../types/geometry';
-import type { CategoryAxisConfig } from '../types/config';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { AxisTickInfos, BeforeAfter, ChartTextBoundsData, CategoryAxisLayoutInfo } from '../types/layout';
+import { SIDE_START } from '../config/core/constants.js';
+import { setExtraAxisInfo, getAxisSize, getRotatedTickBounds } from './PlotLayout.js';
+import { createInnerOuterSpacingLayoutInfo } from './SpacingLayoutInfo.js';
+import type { Bounds, TextBounds } from '../types/geometry.js';
+import type { CategoryAxisConfig } from '../types/config.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { AxisTickInfos, BeforeAfter, ChartTextBoundsData, CategoryAxisLayoutInfo } from '../types/layout.js';
 
 function getCategoryAxisSizeConsumption(axisConfig: CategoryAxisConfig, axisSize: number, isBefore: boolean): number {
   if (axisConfig.collapsed === false && (axisConfig.side === SIDE_START) === isBefore) {

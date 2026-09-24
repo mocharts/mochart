@@ -1,31 +1,31 @@
-import { isObject } from './utils';
-import { CHART_TYPE_PIE, NONE } from '../core/constants';
-import { deepMergeAll } from '../core/deepMerge';
-import { configWithAll, filterConfigs, filterConfig, getConfigKey } from '../core/configUtils';
+import { isObject } from './utils.js';
+import { CHART_TYPE_PIE, NONE } from '../core/constants.js';
+import { deepMergeAll } from '../core/deepMerge.js';
+import { configWithAll, filterConfigs, filterConfig, getConfigKey } from '../core/configUtils.js';
 
-import getAccessibilityDefaults from './accessibilityConfig';
-import getAnimationDefaults from './animationConfig';
-import getChartDefaults from './chartConfig';
-import getColorPaletteDefaults from './colorPaletteConfig';
-import getClipIndicatorDefaults from './clipIndicatorConfig';
-import getCrosshairDefaults from './crosshairConfig';
-import getCategoryAxisDefaults from './categoryAxisConfig';
-import getLegendDefaults from './legendConfig';
-import getLinearGradientDefaults from './linearGradientConfig';
-import getPatternDefaults from './patternConfig';
-import getPieDefaults from './pieConfig';
-import getPlotDefaults from './plotConfig';
-import getRadialGradientDefaults from './radialGradientConfig';
-import getValueAxisDefaults from './valueAxisConfig';
-import getSeriesDefaults from './seriesConfig';
-import getSeriesGroupDefaults from './seriesGroupConfig';
-import getSeriesStackDefaults from './seriesStackConfig';
-import getTitleDefaults from './titleConfig';
-import getTooltipDefaults from './tooltipConfig';
+import getAccessibilityDefaults from './accessibilityConfig.js';
+import getAnimationDefaults from './animationConfig.js';
+import getChartDefaults from './chartConfig.js';
+import getColorPaletteDefaults from './colorPaletteConfig.js';
+import getClipIndicatorDefaults from './clipIndicatorConfig.js';
+import getCrosshairDefaults from './crosshairConfig.js';
+import getCategoryAxisDefaults from './categoryAxisConfig.js';
+import getLegendDefaults from './legendConfig.js';
+import getLinearGradientDefaults from './linearGradientConfig.js';
+import getPatternDefaults from './patternConfig.js';
+import getPieDefaults from './pieConfig.js';
+import getPlotDefaults from './plotConfig.js';
+import getRadialGradientDefaults from './radialGradientConfig.js';
+import getValueAxisDefaults from './valueAxisConfig.js';
+import getSeriesDefaults from './seriesConfig.js';
+import getSeriesGroupDefaults from './seriesGroupConfig.js';
+import getSeriesStackDefaults from './seriesStackConfig.js';
+import getTitleDefaults from './titleConfig.js';
+import getTooltipDefaults from './tooltipConfig.js';
 import type {
   DeepPartial, LinearGradientConfig, MochartInputConfig, PatternConfig, PatternInputConfig, RadialGradientConfig,
   ValueAxisConfig, SeriesConfig, SeriesGroupConfig, SeriesStackConfig
-} from '../../types/config';
+} from '../../types/config.js';
 
 function getWithDefault<T extends object>(config: unknown, configAll: unknown, defaults: T): T {
   return deepMergeAll<T>(defaults, isObject(configAll) ? configAll : {}, isObject(config) ? config : {});

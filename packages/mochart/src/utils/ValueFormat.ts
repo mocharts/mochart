@@ -2,11 +2,11 @@ import { format } from 'd3-format';
 import { timeFormat, utcFormat } from 'd3-time-format';
 import { scaleLinear } from 'd3-scale';
 
-import { arrayToMap, idAccessor } from './utils';
-import { NONE, AUTO, TYPE_DATE, TYPE_NUMBER } from '../config/core/constants';
-import type { CategoryAxisConfig } from '../types/config';
-import type { EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
-import type { AxisDomains, AxisScale, CategoryValue } from '../types/data';
+import { arrayToMap, idAccessor } from './utils.js';
+import { NONE, AUTO, TYPE_DATE, TYPE_NUMBER } from '../config/core/constants.js';
+import type { CategoryAxisConfig } from '../types/config.js';
+import type { EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { AxisDomains, AxisScale, CategoryValue } from '../types/data.js';
 
 export type ValueFormatter = (value: number | Date) => CategoryValue;
 

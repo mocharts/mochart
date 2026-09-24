@@ -1,5 +1,5 @@
 declare module 'd3-scale' {
-  import type { AxisScale } from './data';
+  import type { AxisScale } from './data.js';
 
   export function scaleLinear(): AxisScale;
   export function scaleSqrt(): AxisScale;

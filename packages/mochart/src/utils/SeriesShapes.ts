@@ -2,13 +2,13 @@ import { line, area, curveMonotoneX, curveMonotoneY, curveBasis, curveCardinal,
   curveCatmullRom, curveNatural, curveStep, curveStepBefore, curveStepAfter } from 'd3-shape';
 import { path } from 'd3-path';
 
-import { NONE, CAP_TYPE_POINT, CAP_TYPE_CURVE, CAP_TYPE_ROUND } from '../config/core/constants';
+import { NONE, CAP_TYPE_POINT, CAP_TYPE_CURVE, CAP_TYPE_ROUND } from '../config/core/constants.js';
 import type { CurveFactory, ShapeGenerator } from 'd3-shape';
 import type { Path } from 'd3-path';
-import type { CapType, CurveType } from '../config/core/constants';
-import type { SeriesCurve } from '../types/config';
-import type { EnhancedSeriesConfig } from '../types/enhanced';
-import type { SeriesPositionData, StackData } from '../types/data';
+import type { CapType, CurveType } from '../config/core/constants.js';
+import type { SeriesCurve } from '../types/config.js';
+import type { EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { SeriesPositionData, StackData } from '../types/data.js';
 
 type Connector = (pathGenerator: Path, first: number, second: number, third: number, extent: number, offsetSign: number, offset: number, expand: boolean, size: number) => void;
 type OffsetInvertedCalculator = (first: number, second: number, third: number, extent: number, offsetSign: number, offset: number, expand: boolean, size: number) => { x: number; y: number; yOffset: number };

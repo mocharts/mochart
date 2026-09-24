@@ -1,4 +1,4 @@
-import { style, font } from './shared';
+import { style, font } from './shared.js';
 
 export default function getDescriptions() {
   return {

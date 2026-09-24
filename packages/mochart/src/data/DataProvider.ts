@@ -1,4 +1,4 @@
-import type { DataProvider, DataObject, DataValue, ObjectOfArraysData } from '../types/data';
+import type { DataProvider, DataObject, DataValue, ObjectOfArraysData } from '../types/data.js';
 
 /** Stateless per-property reads over an array of objects. Objects added, removed, or
  * edited in place are seen whenever the chart re-reads; the chart handle's `refresh` triggers that. */

@@ -1,6 +1,6 @@
-import { NONE, POSITION_TOP, ALIGN_CENTER, VERTICAL_ALIGN_MIDDLE, COLOR_CURRENT } from '../core/constants';
-import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
-import { getFontDefaults } from './fontConfig';
+import { NONE, POSITION_TOP, ALIGN_CENTER, VERTICAL_ALIGN_MIDDLE, COLOR_CURRENT } from '../core/constants.js';
+import { getRegularDefaults as getTruncationDefaults } from './truncationConfig.js';
+import { getFontDefaults } from './fontConfig.js';
 
 export default function getDefaults() {
   return {

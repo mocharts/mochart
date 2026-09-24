@@ -1,4 +1,4 @@
-import { AUTO, COLOR_CURRENT } from '../core/constants';
+import { AUTO, COLOR_CURRENT } from '../core/constants.js';
 
 // The SeriesIconConfig members, the `icon` group of the legend and tooltip regular defaults.
 export function getRegularDefaults() {

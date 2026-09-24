@@ -1,8 +1,8 @@
-import { NONE, TYPE_NUMBER, SCALE_LINEAR, COLOR_CURRENT, STYLE_SAME } from '../core/constants';
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
+import { NONE, TYPE_NUMBER, SCALE_LINEAR, COLOR_CURRENT, STYLE_SAME } from '../core/constants.js';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
 
-import getAxisDefaults, { getMinorVisibleDefault } from './axisConfig';
-import type { DeepPartial, ValueAxisConfig } from '../../types/config';
+import getAxisDefaults, { getMinorVisibleDefault } from './axisConfig.js';
+import type { DeepPartial, ValueAxisConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<ValueAxisConfig> = {}, index: number, hasStack: boolean, pieMode = false): Partial<ValueAxisConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, index, hasStack, pieMode);

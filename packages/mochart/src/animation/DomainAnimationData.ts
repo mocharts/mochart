@@ -1,25 +1,25 @@
-import { getDomainExtents, getMaxDomain, copyDomain } from '../data/DomainData';
+import { getDomainExtents, getMaxDomain, copyDomain } from '../data/DomainData.js';
 
-import { getCategoryDataWithRenderAxisDomain, getCategoryDataWithNumericValues } from '../data/CategoryData';
+import { getCategoryDataWithRenderAxisDomain, getCategoryDataWithNumericValues } from '../data/CategoryData.js';
 
-import { getChartDataWithData, getChartDataWithRenderAxisDomains, getChartDataWithSeriesData } from '../data/ChartData';
+import { getChartDataWithData, getChartDataWithRenderAxisDomains, getChartDataWithSeriesData } from '../data/ChartData.js';
 
-import { getSeriesDataWithRenderAxisDomains, getSeriesDataWithSeriesBases, getSeriesDataWithDomains, getSeriesBases } from '../data/SeriesData';
+import { getSeriesDataWithRenderAxisDomains, getSeriesDataWithSeriesBases, getSeriesDataWithDomains, getSeriesBases } from '../data/SeriesData.js';
 
-import { domainKeys } from '../data/constants';
+import { domainKeys } from '../data/constants.js';
 
-import { hasCategoryAdditions, getExpansionCategoryValueDeltaData, getContractionCategoryValueDeltaData } from './CategoryAnimationData';
+import { hasCategoryAdditions, getExpansionCategoryValueDeltaData, getContractionCategoryValueDeltaData } from './CategoryAnimationData.js';
 
-import { mapMap } from '../utils/utils';
+import { mapMap } from '../utils/utils.js';
 
-import { SCALE_ORDINAL, DOMAIN_CHANGE_COMBINED, DOMAIN_CHANGE_STAGED } from '../config/core/constants';
-import type { DomainChange } from '../config/core/constants';
-import type { AxisDomains, ChartData, CategoryAxisDomain, DomainValue, NullableDomain, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObjects } from '../types/data';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
+import { SCALE_ORDINAL, DOMAIN_CHANGE_COMBINED, DOMAIN_CHANGE_STAGED } from '../config/core/constants.js';
+import type { DomainChange } from '../config/core/constants.js';
+import type { AxisDomains, ChartData, CategoryAxisDomain, DomainValue, NullableDomain, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObjects } from '../types/data.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
 import type {
   AxisDeltaData, CompleteNumericArrayDelta, DomainDelta, DomainDeltaMap, CategoryDeltaData,
   EmptyAxisDeltaData, NumericDomain, SeriesDomainDelta, SeriesDomainDeltaMap
-} from '../types/animation';
+} from '../types/animation.js';
 
 // Various constants
 

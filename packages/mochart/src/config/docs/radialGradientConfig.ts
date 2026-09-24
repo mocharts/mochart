@@ -1,4 +1,4 @@
-import { gradientStops } from './shared';
+import { gradientStops } from './shared.js';
 
 export default function getDescriptions() {
   return {

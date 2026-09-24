@@ -1,19 +1,19 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import AxisThresholdShape from './AxisThresholdShape';
-import { mochartCssClasses } from '../utils/ChartDom';
-import { getAxisFocusStyle } from '../utils/FocusValue';
-import { styleToAttributes } from '../utils/style';
-import { resolveFontStyle } from '../utils/font';
-import { resolveThresholds } from '../config/defaults/axisConfig';
-import { getSteppedThresholds, steppedThresholdsFit } from '../data/ThresholdSteps';
-import { getGradientReference, getPatternReference } from '../utils/svgUtils';
-import type { ResolvedThreshold } from '../config/defaults/axisConfig';
-import type { CategoryValue } from '../types/data';
-import { NONE } from '../config/core/constants';
-import type { AxisThresholdShapeProps, ThresholdAxisConfig, ThresholdCategoryPositions } from './AxisThresholdShape';
-import type { AxisLayoutInfo, LayoutInfo } from '../types/layout';
-import type { FontConfig, PlotConfig } from '../types/config';
+import AxisThresholdShape from './AxisThresholdShape.js';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { getAxisFocusStyle } from '../utils/FocusValue.js';
+import { styleToAttributes } from '../utils/style.js';
+import { resolveFontStyle } from '../utils/font.js';
+import { resolveThresholds } from '../config/defaults/axisConfig.js';
+import { getSteppedThresholds, steppedThresholdsFit } from '../data/ThresholdSteps.js';
+import { getGradientReference, getPatternReference } from '../utils/svgUtils.js';
+import type { ResolvedThreshold } from '../config/defaults/axisConfig.js';
+import type { CategoryValue } from '../types/data.js';
+import { NONE } from '../config/core/constants.js';
+import type { AxisThresholdShapeProps, ThresholdAxisConfig, ThresholdCategoryPositions } from './AxisThresholdShape.js';
+import type { AxisLayoutInfo, LayoutInfo } from '../types/layout.js';
+import type { FontConfig, PlotConfig } from '../types/config.js';
 
 interface AxisThresholdProps {
   hidden: boolean;

@@ -1,12 +1,12 @@
-import { getWithMutations } from '../utils/WithMutations';
-import { POSITION_TOP } from '../config/core/constants';
-import { createSpacingLayoutInfo } from './SpacingLayoutInfo';
-import { getTitleHeight, getTitleLayoutInfo } from './TitleLayout';
-import { getLegendHeight, getLegendLayoutInfo } from './LegendLayout';
-import { getAxisMetrics, getPlotWidthAndX, getPlotHeight, getPlotLayoutInfo } from './PlotLayout';
-import type { Bounds } from '../types/geometry';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { ChartDataForLayout, ChartLayoutInfo, ChartTextBoundsData, LegendLayoutResult, PlotLayoutResult, TitleLayoutResult } from '../types/layout';
+import { getWithMutations } from '../utils/WithMutations.js';
+import { POSITION_TOP } from '../config/core/constants.js';
+import { createSpacingLayoutInfo } from './SpacingLayoutInfo.js';
+import { getTitleHeight, getTitleLayoutInfo } from './TitleLayout.js';
+import { getLegendHeight, getLegendLayoutInfo } from './LegendLayout.js';
+import { getAxisMetrics, getPlotWidthAndX, getPlotHeight, getPlotLayoutInfo } from './PlotLayout.js';
+import type { Bounds } from '../types/geometry.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { ChartDataForLayout, ChartLayoutInfo, ChartTextBoundsData, LegendLayoutResult, PlotLayoutResult, TitleLayoutResult } from '../types/layout.js';
 
 // Margin and padding always apply, including for standalone charts, locked in
 // by the goldens (`standalone` now only gates config warnings in Chart).

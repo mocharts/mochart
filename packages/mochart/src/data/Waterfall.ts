@@ -1,5 +1,5 @@
-import { checkUniqueLabels } from './labels';
-import type { DeepPartial, CategoryAxisConfig, SeriesConfig, ValueAxisConfig } from '../types/config';
+import { checkUniqueLabels } from './labels.js';
+import type { DeepPartial, CategoryAxisConfig, SeriesConfig, ValueAxisConfig } from '../types/config.js';
 
 export type WaterfallDirection = 'increase' | 'decrease' | 'total';
 

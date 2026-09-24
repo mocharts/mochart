@@ -1,7 +1,7 @@
-import { mochartCssClasses } from './ChartDom';
-import { isHoverPointer } from './utils';
-import type { MochartCssClassKey } from './ChartDom';
-import type { ElProps } from '../render';
+import { mochartCssClasses } from './ChartDom.js';
+import { isHoverPointer } from './utils.js';
+import type { MochartCssClassKey } from './ChartDom.js';
+import type { ElProps } from '../render/index.js';
 
 /** The per-category callbacks a series component routes its shape events to. */
 export interface CategoryCallbacks {

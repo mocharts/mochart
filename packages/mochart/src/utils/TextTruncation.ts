@@ -1,5 +1,5 @@
-import { svgEl, textEl } from '../render';
-import type { El } from '../render';
+import { svgEl, textEl } from '../render/index.js';
+import type { El } from '../render/index.js';
 
 export interface TruncationData {
   text: string;

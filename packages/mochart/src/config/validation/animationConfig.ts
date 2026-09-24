@@ -1,5 +1,5 @@
-import validators from './validators';
-import { DOMAIN_CHANGES, EASINGS } from '../core/constants';
+import validators from './validators.js';
+import { DOMAIN_CHANGES, EASINGS } from '../core/constants.js';
 
 export default function getValidators() {
   return {

@@ -1,19 +1,19 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import AxisBackground from './AxisBackground';
-import AxisLine from './AxisLine';
-import AxisTitle from './AxisTitle';
-import AxisTickMarks from './AxisTickMarks';
-import AxisTickLabels from './AxisTickLabels';
-import AxisFocusTickMarks from './AxisFocusTickMarks';
-import AxisFocusRange from './AxisFocusRange';
+import AxisBackground from './AxisBackground.js';
+import AxisLine from './AxisLine.js';
+import AxisTitle from './AxisTitle.js';
+import AxisTickMarks from './AxisTickMarks.js';
+import AxisTickLabels from './AxisTickLabels.js';
+import AxisFocusTickMarks from './AxisFocusTickMarks.js';
+import AxisFocusRange from './AxisFocusRange.js';
 
-import { translateObject } from '../utils/utils';
-import { getMinorTickLabel, getMinorTickMark } from '../config/core/minorConfig';
-import type { CategoryAxisConfig, FontConfig } from '../types/config';
-import type { EnhancedValueAxisConfig } from '../types/enhanced';
-import type { AxisTick } from '../types/data';
-import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
+import { translateObject } from '../utils/utils.js';
+import { getMinorTickLabel, getMinorTickMark } from '../config/core/minorConfig.js';
+import type { CategoryAxisConfig, FontConfig } from '../types/config.js';
+import type { EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { AxisTick } from '../types/data.js';
+import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
 interface AxisProps {
   front: boolean;

@@ -1,21 +1,21 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { getSeriesConfigsOrderedByFocus } from '../data/FocusData';
-import { getPieSliceAngles, sweepPieSliceAngles } from '../data/PieData';
-import type { PieSliceAngles } from '../data/PieData';
-import { getRadialLayoutInfo } from '../layout/RadialLayout';
-import { mochartCssClasses } from '../utils/ChartDom';
-import { accessibilityActive } from '../utils/utils';
-import { moveRovingFocus, seriesNodesInConfigOrder, resolveRovingId, focusedSeriesNode, restoreSeriesFocus, sliceIsInteractive } from '../utils/RovingFocus';
+import { getSeriesConfigsOrderedByFocus } from '../data/FocusData.js';
+import { getPieSliceAngles, sweepPieSliceAngles } from '../data/PieData.js';
+import type { PieSliceAngles } from '../data/PieData.js';
+import { getRadialLayoutInfo } from '../layout/RadialLayout.js';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { accessibilityActive } from '../utils/utils.js';
+import { moveRovingFocus, seriesNodesInConfigOrder, resolveRovingId, focusedSeriesNode, restoreSeriesFocus, sliceIsInteractive } from '../utils/RovingFocus.js';
 
-import SeriesBackground from './SeriesBackground';
-import type { SeriesShapeA11yProps } from './SeriesBackground';
-import PieSeries from './PieSeries';
-import PieCenter from './PieCenter';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { SeriesData } from '../types/data';
-import type { FocusData } from '../types/animation';
-import type { LayoutInfo } from '../types/layout';
+import SeriesBackground from './SeriesBackground.js';
+import type { SeriesShapeA11yProps } from './SeriesBackground.js';
+import PieSeries from './PieSeries.js';
+import PieCenter from './PieCenter.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { SeriesData } from '../types/data.js';
+import type { FocusData } from '../types/animation.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 interface PieSeriesContainerProps {
   mochartConfig: EnhancedMochartConfig;

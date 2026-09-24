@@ -1,18 +1,18 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { getCategorySpacingInfo } from '../data/AxisData';
-import { getValueAxisFocusContexts } from '../utils/FocusValue';
-import { accessibilityActive } from '../utils/utils';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { getCategorySpacingInfo } from '../data/AxisData.js';
+import { getValueAxisFocusContexts } from '../utils/FocusValue.js';
+import { accessibilityActive } from '../utils/utils.js';
 
-import AxisThreshold from './AxisThreshold';
-import { SCALE_ORDINAL } from '../config/core/constants';
-import type { ThresholdCategoryPositions } from './AxisThresholdShape';
+import AxisThreshold from './AxisThreshold.js';
+import { SCALE_ORDINAL } from '../config/core/constants.js';
+import type { ThresholdCategoryPositions } from './AxisThresholdShape.js';
 
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { AxisData, CategoryAxisData, CategoryValue, ChartData } from '../types/data';
-import type { FocusData } from '../types/animation';
-import type { AxisLayoutInfo, CategoryAxisLayoutInfo, LayoutInfo } from '../types/layout';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { AxisData, CategoryAxisData, CategoryValue, ChartData } from '../types/data.js';
+import type { FocusData } from '../types/animation.js';
+import type { AxisLayoutInfo, CategoryAxisLayoutInfo, LayoutInfo } from '../types/layout.js';
 
 interface AxisThresholdContainerProps {
   front: boolean;

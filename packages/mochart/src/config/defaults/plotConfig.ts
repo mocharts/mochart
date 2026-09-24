@@ -1,4 +1,4 @@
-import { NONE, COLOR_CURRENT } from '../core/constants';
+import { NONE, COLOR_CURRENT } from '../core/constants.js';
 
 export default function getDefaults() {
   return {

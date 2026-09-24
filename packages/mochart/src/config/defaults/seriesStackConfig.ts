@@ -1,7 +1,7 @@
-import { NONE } from '../core/constants';
+import { NONE } from '../core/constants.js';
 
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
-import type { DeepPartial, SeriesStackConfig } from '../../types/config';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
+import type { DeepPartial, SeriesStackConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<SeriesStackConfig> = {}, index: number, soleValueAxisId: string | null): Partial<SeriesStackConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, index, soleValueAxisId);

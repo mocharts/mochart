@@ -1,22 +1,22 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
+import { mochartCssClasses } from '../utils/ChartDom.js';
 
-import Background from './Background';
-import AxisGridContainer from './AxisGridContainer';
-import AxisBaseContainer from './AxisBaseContainer';
-import AxisContainer from './AxisContainer';
-import AxisThresholdContainer from './AxisThresholdContainer';
-import SeriesContainer from './SeriesContainer';
-import type { SeriesShapeA11yProps } from './SeriesBackground';
-import Crosshair from './Crosshair';
-import ClipIndicator from './ClipIndicator';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { ClippedEdges } from '../types/data';
-import type { InternalFocus } from '../types/chart';
-import type { AxisData, ChartData, CategoryAxisData, ValueAxisData, StackData } from '../types/data';
-import type { FocusData } from '../types/animation';
-import type { AxisLayoutInfo, CategoryAxisLayoutInfo, LayoutInfo, SpacingLayoutInfo } from '../types/layout';
+import Background from './Background.js';
+import AxisGridContainer from './AxisGridContainer.js';
+import AxisBaseContainer from './AxisBaseContainer.js';
+import AxisContainer from './AxisContainer.js';
+import AxisThresholdContainer from './AxisThresholdContainer.js';
+import SeriesContainer from './SeriesContainer.js';
+import type { SeriesShapeA11yProps } from './SeriesBackground.js';
+import Crosshair from './Crosshair.js';
+import ClipIndicator from './ClipIndicator.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { ClippedEdges } from '../types/data.js';
+import type { InternalFocus } from '../types/chart.js';
+import type { AxisData, ChartData, CategoryAxisData, ValueAxisData, StackData } from '../types/data.js';
+import type { FocusData } from '../types/animation.js';
+import type { AxisLayoutInfo, CategoryAxisLayoutInfo, LayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
 type CompleteAxisData = AxisData & { category: CategoryAxisData; value: ValueAxisData };
 

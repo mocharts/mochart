@@ -1,7 +1,7 @@
-import validators from './validators';
-import getSeriesIconValidators from './seriesIconConfig';
-import getTruncationValidators from './truncationConfig';
-import { ALIGNS, POSITIONS } from '../core/constants';
+import validators from './validators.js';
+import getSeriesIconValidators from './seriesIconConfig.js';
+import getTruncationValidators from './truncationConfig.js';
+import { ALIGNS, POSITIONS } from '../core/constants.js';
 
 export default function getValidators() {
   return {

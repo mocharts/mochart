@@ -1,8 +1,8 @@
-import validators from './validators';
+import validators from './validators.js';
 
-import { AUTO, NONE, MAJOR, TYPE_NUMBER, SCALE_LINEAR } from '../core/constants';
+import { AUTO, NONE, MAJOR, TYPE_NUMBER, SCALE_LINEAR } from '../core/constants.js';
 
-import getAxisValidators, { axisStyleValidators, getTickLabelValidators } from './axisConfig';
+import getAxisValidators, { axisStyleValidators, getTickLabelValidators } from './axisConfig.js';
 
 export default function getValidators(pieMode = false) {
   return {

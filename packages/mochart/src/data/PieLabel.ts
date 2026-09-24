@@ -5,10 +5,10 @@ import {
   PIE_LABEL_TYPE_VALUE, PIE_LABEL_TYPE_PERCENT, PIE_LABEL_TYPE_TITLE,
   PIE_LABEL_TYPE_VALUE_PERCENT, PIE_LABEL_TYPE_PERCENT_VALUE,
   PIE_LABEL_TYPE_TITLE_VALUE, PIE_LABEL_TYPE_TITLE_PERCENT
-} from '../config/core/constants';
+} from '../config/core/constants.js';
 
-import type { PieLabelType } from '../config/core/constants';
-import type { PieConfig } from '../types/config';
+import type { PieLabelType } from '../config/core/constants.js';
+import type { PieConfig } from '../types/config.js';
 
 // Auto formats: whole percents and SI-abbreviated values for slice labels (little room there),
 // one decimal for tooltip percents, which have the room and are read for comparison.

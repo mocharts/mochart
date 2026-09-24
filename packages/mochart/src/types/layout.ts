@@ -1,5 +1,5 @@
-import type { Anchor } from '../config/core/constants';
-import type { Bounds, TextBounds } from './geometry';
+import type { Anchor } from '../config/core/constants.js';
+import type { Bounds, TextBounds } from './geometry.js';
 
 /** Bounds input accepted by createSpacingLayoutInfo; `default` marks placeholder text bounds. */
 export type SpacingBoundsInput = Bounds & { default?: boolean; fontSize?: number };

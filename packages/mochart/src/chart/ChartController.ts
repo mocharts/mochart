@@ -1,17 +1,17 @@
-import Chart from '../components/Chart';
-import { isDataProviderValid } from '../data/ChartData';
-import { readCategoryValues } from '../data/PropertyData';
-import { getCategoryKeyProperty } from '../data/CategoryData';
-import { hasConfigStructureChange } from '../config/core/mochartConfig';
-import { FocusController } from './FocusController';
-import { StaticDataSource } from './StaticDataSource';
-import { AnimatedDataSource } from './AnimatedDataSource';
-import type { ChartDataSource, ChartDataSourceInput, InternalFocus } from './ChartDataSource';
-import type { FocusControllerInput } from './FocusController';
-import type { ChartProps } from '../components/Chart';
-import type { ChartEventPayload, ChartSeriesClickPayload, ManagedChartProps } from '../types/chart';
-import type { CategoryValue, DataProvider } from '../types/data';
-import type { EnhancedMochartConfig } from '../types/enhanced';
+import Chart from '../components/Chart.js';
+import { isDataProviderValid } from '../data/ChartData.js';
+import { readCategoryValues } from '../data/PropertyData.js';
+import { getCategoryKeyProperty } from '../data/CategoryData.js';
+import { hasConfigStructureChange } from '../config/core/mochartConfig.js';
+import { FocusController } from './FocusController.js';
+import { StaticDataSource } from './StaticDataSource.js';
+import { AnimatedDataSource } from './AnimatedDataSource.js';
+import type { ChartDataSource, ChartDataSourceInput, InternalFocus } from './ChartDataSource.js';
+import type { FocusControllerInput } from './FocusController.js';
+import type { ChartProps } from '../components/Chart.js';
+import type { ChartEventPayload, ChartSeriesClickPayload, ManagedChartProps } from '../types/chart.js';
+import type { CategoryValue, DataProvider } from '../types/data.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
 
 /**
  * Composes a managed chart: FocusController holds focus/filter state, the data source (static or

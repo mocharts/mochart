@@ -1,5 +1,5 @@
 import { symbol, symbols } from 'd3-shape';
-import type { MarkerShape } from '../config/core/constants';
+import type { MarkerShape } from '../config/core/constants.js';
 
 // d3 no longer resolves a symbol from its string name, so map it ourselves
 // https://github.com/d3/d3-shape/issues/64

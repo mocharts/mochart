@@ -1,4 +1,4 @@
-import { AUTO, DOMAIN_CHANGE_STAGED, EASING_SINE_IN_OUT, EASING_CUBIC_OUT } from '../core/constants';
+import { AUTO, DOMAIN_CHANGE_STAGED, EASING_SINE_IN_OUT, EASING_CUBIC_OUT } from '../core/constants.js';
 
 export default function getDefaults() {
   return {

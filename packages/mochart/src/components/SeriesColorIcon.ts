@@ -1,19 +1,19 @@
-import { Renderer, svgEl, htmlEl } from '../render';
-import type { El, ElSlot, Slot } from '../render';
+import { Renderer, svgEl, htmlEl } from '../render/index.js';
+import type { El, ElSlot, Slot } from '../render/index.js';
 
-import LinearGradient from './LinearGradient';
-import RadialGradient from './RadialGradient';
-import SeriesColorGradient from './SeriesColorGradient';
-import Pattern from './Pattern';
+import LinearGradient from './LinearGradient.js';
+import RadialGradient from './RadialGradient.js';
+import SeriesColorGradient from './SeriesColorGradient.js';
+import Pattern from './Pattern.js';
 
-import { AUTO, NONE } from '../config/core/constants';
-import { getSeriesColor, getSeriesFillColor, getSeriesOpacities, getSeriesSwatchGradient } from '../utils/SeriesColors';
-import { getSymbolGenerator } from '../utils/shapeUtils';
-import { translate } from '../utils/utils';
-import { getGradientReference, getPatternReference } from '../utils/svgUtils';
-import { getFocusValue } from '../utils/FocusValue';
-import type { ColorPaletteConfig, LegendConfig, TooltipConfig } from '../types/config';
-import type { EnhancedSeriesConfig } from '../types/enhanced';
+import { AUTO, NONE } from '../config/core/constants.js';
+import { getSeriesColor, getSeriesFillColor, getSeriesOpacities, getSeriesSwatchGradient } from '../utils/SeriesColors.js';
+import { getSymbolGenerator } from '../utils/shapeUtils.js';
+import { translate } from '../utils/utils.js';
+import { getGradientReference, getPatternReference } from '../utils/svgUtils.js';
+import { getFocusValue } from '../utils/FocusValue.js';
+import type { ColorPaletteConfig, LegendConfig, TooltipConfig } from '../types/config.js';
+import type { EnhancedSeriesConfig } from '../types/enhanced.js';
 
 interface SeriesColorUniqueIds {
   seriesColorGradientUniqueIds: Record<string, string>;

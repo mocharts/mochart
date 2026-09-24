@@ -1,8 +1,8 @@
-import { NONE } from './constants';
-import { filterConfig, filterConfigs, getConfigKey } from './configUtils';
-import { deepClone, deepMerge, deepMergeAll, withoutUndefined } from './deepMerge';
-import { getDefaults, implicitEntrySectionKeys } from '../defaults/mochartConfig';
-import type { ConfigValidation, MochartConfig } from '../../types/config';
+import { NONE } from './constants.js';
+import { filterConfig, filterConfigs, getConfigKey } from './configUtils.js';
+import { deepClone, deepMerge, deepMergeAll, withoutUndefined } from './deepMerge.js';
+import { getDefaults, implicitEntrySectionKeys } from '../defaults/mochartConfig.js';
+import type { ConfigValidation, MochartConfig } from '../../types/config.js';
 
 type ConfigRecord = Record<string, unknown>;
 

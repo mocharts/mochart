@@ -1,6 +1,6 @@
-import { createBoundsLayoutInfo } from './LayoutInfo';
-import type { Bounds, MarginPadding } from '../types/geometry';
-import type { SpacingBoundsInput, SpacingLayoutInfo } from '../types/layout';
+import { createBoundsLayoutInfo } from './LayoutInfo.js';
+import type { Bounds, MarginPadding } from '../types/geometry.js';
+import type { SpacingBoundsInput, SpacingLayoutInfo } from '../types/layout.js';
 
 export const emptyMarginPadding: MarginPadding = { top: 0, right: 0, bottom: 0, left: 0 };
 export const emptyInnerOuter = 0;

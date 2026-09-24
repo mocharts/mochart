@@ -1,5 +1,5 @@
-import type { FontConfig } from '../types/config';
-import type { FontWeight, FontStyle } from '../config/core/constants';
+import type { FontConfig } from '../types/config.js';
+import type { FontWeight, FontStyle } from '../config/core/constants.js';
 
 /** The inline css a resolved font writes on a text element; a member is absent when nothing sets it. */
 export interface FontInlineStyle {

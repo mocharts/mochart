@@ -1,6 +1,6 @@
-import { MISSING_VALUE } from '../utils/utils';
+import { MISSING_VALUE } from '../utils/utils.js';
 
-import type { CategoryValue, DataProvider, DataValue, NumericValues } from '../types/data';
+import type { CategoryValue, DataProvider, DataValue, NumericValues } from '../types/data.js';
 
 const emptyValues: readonly CategoryValue[] = [];
 

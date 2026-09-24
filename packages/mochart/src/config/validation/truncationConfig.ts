@@ -1,4 +1,4 @@
-import validators from './validators';
+import validators from './validators.js';
 
 import type { Validator } from '@mochart/movalid';
 

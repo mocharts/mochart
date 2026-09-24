@@ -1,9 +1,9 @@
-import { AUTO, NONE, MAJOR, TYPE_STRING, SCALE_LINEAR, SCALE_ORDINAL, SIDE_START, SIDE_END } from '../core/constants';
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
+import { AUTO, NONE, MAJOR, TYPE_STRING, SCALE_LINEAR, SCALE_ORDINAL, SIDE_START, SIDE_END } from '../core/constants.js';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
 
-import getAxisDefaults, { getMinorVisibleDefault } from './axisConfig';
-import { getDefaultsWithoutEnabled as getTruncationDefaultsWithoutEnabled } from './truncationConfig';
-import type { DeepPartial, CategoryAxisConfig } from '../../types/config';
+import getAxisDefaults, { getMinorVisibleDefault } from './axisConfig.js';
+import { getDefaultsWithoutEnabled as getTruncationDefaultsWithoutEnabled } from './truncationConfig.js';
+import type { DeepPartial, CategoryAxisConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<CategoryAxisConfig> = {}, inverted: boolean, pieMode = false): Partial<CategoryAxisConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, inverted, pieMode);

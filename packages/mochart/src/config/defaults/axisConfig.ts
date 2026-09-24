@@ -1,11 +1,11 @@
-import { AUTO, NONE, MAJOR, COLOR_CURRENT, STYLE_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants';
-import { deepMerge } from '../core/deepMerge';
-import { conditionalDefault, defaultRule } from './conditionalDefault';
-import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
-import { getFontDefaults } from './fontConfig';
-import type { FontConfig, Style, StyleStates, ThresholdConfig } from '../../types/config';
-import type { MarginPadding } from '../../types/geometry';
-import type { Anchor, Auto, ThresholdTitleSide } from '../core/constants';
+import { AUTO, NONE, MAJOR, COLOR_CURRENT, STYLE_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants.js';
+import { deepMerge } from '../core/deepMerge.js';
+import { conditionalDefault, defaultRule } from './conditionalDefault.js';
+import { getRegularDefaults as getTruncationDefaults } from './truncationConfig.js';
+import { getFontDefaults } from './fontConfig.js';
+import type { FontConfig, Style, StyleStates, ThresholdConfig } from '../../types/config.js';
+import type { MarginPadding } from '../../types/geometry.js';
+import type { Anchor, Auto, ThresholdTitleSide } from '../core/constants.js';
 
 const majorStyle = { strokeColor: MAJOR, strokeOpacity: MAJOR, strokeWidth: MAJOR, strokeDashArray: MAJOR, fillColor: MAJOR, fillOpacity: MAJOR };
 const majorLineStyle = { strokeColor: MAJOR, strokeOpacity: MAJOR, strokeWidth: MAJOR, strokeDashArray: MAJOR };

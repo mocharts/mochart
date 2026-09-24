@@ -1,7 +1,7 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { LayoutInfo } from '../types/layout';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 interface SeriesClipProps {
   mochartConfig: EnhancedMochartConfig;

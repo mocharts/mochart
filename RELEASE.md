@@ -84,9 +84,11 @@ Actions to create and approve pull requests**.
 The **Release dry run** workflow (`workflow_dispatch`, [`release-dry-run.yml`](.github/workflows/release-dry-run.yml))
 packs all nine packages the way publishing would, checks each tarball
 (dist-only exports, README/LICENSE/CHANGELOG present, every exported path in
-the tarball) and installs them into a scratch project to import each one under
-Node. The tarballs are uploaded as the `release-tarballs` artifact for
-installing into a real project. Locally:
+the tarball), installs them into a scratch project to import each one under
+Node, and typechecks a consumer of the installed packages under `nodenext`
+module resolution, where a shipped declaration with an extensionless relative
+import would collapse its package's types to `any`. The tarballs are uploaded
+as the `release-tarballs` artifact for installing into a real project. Locally:
 
 ```sh
 npm run pack:libs -- --smoke     # tarballs land in pack/

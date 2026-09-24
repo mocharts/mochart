@@ -1,7 +1,7 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import type { LayoutInfo } from '../types/layout';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 type ShapeRef = (element: Element | null) => void;
 

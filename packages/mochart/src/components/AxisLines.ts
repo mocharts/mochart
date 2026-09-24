@@ -1,9 +1,9 @@
-import { svgEl } from '../render';
-import type { El, ElList } from '../render';
+import { svgEl } from '../render/index.js';
+import type { El, ElList } from '../render/index.js';
 
-import { translate } from '../utils/utils';
-import type { StyleAttributes } from '../utils/style';
-import type { AxisTick } from '../types/data';
+import { translate } from '../utils/utils.js';
+import type { StyleAttributes } from '../utils/style.js';
+import type { AxisTick } from '../types/data.js';
 
 /** A tick a pass draws, with its index in the axis's tick list, which names its class whichever ticks the pass leaves out. */
 export interface PassTick { tick: AxisTick; index: number }

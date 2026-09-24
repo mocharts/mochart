@@ -1,13 +1,13 @@
-import { getWithMutations } from './WithMutations';
-import { arrayToMap, idAccessor } from './utils';
-import { NONE, SCALE_ORDINAL } from '../config/core/constants';
-import { isObject } from '../config/defaults/utils';
-import { getMinorTickLabel } from '../config/core/minorConfig';
-import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced';
-import type { ChartDomAccessors } from '../types/chart';
-import type { ChartTextBoundsData } from '../types/layout';
-import { resolveThresholds } from '../config/defaults/axisConfig';
-import type { Size, TextBounds } from '../types/geometry';
+import { getWithMutations } from './WithMutations.js';
+import { arrayToMap, idAccessor } from './utils.js';
+import { NONE, SCALE_ORDINAL } from '../config/core/constants.js';
+import { isObject } from '../config/defaults/utils.js';
+import { getMinorTickLabel } from '../config/core/minorConfig.js';
+import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { ChartDomAccessors } from '../types/chart.js';
+import type { ChartTextBoundsData } from '../types/layout.js';
+import { resolveThresholds } from '../config/defaults/axisConfig.js';
+import type { Size, TextBounds } from '../types/geometry.js';
 
 type AccessorSpec = keyof ChartDomAccessors | [keyof ChartDomAccessors, string];
 type DomAccessor = (id?: string) => Element | ArrayLike<SVGGraphicsElement> | null;

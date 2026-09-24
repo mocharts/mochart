@@ -1,4 +1,4 @@
-import type { ErasedRenderer, RendererClass } from './renderer';
+import type { ErasedRenderer, RendererClass } from './renderer.js';
 
 /**
  * A single dynamic child position: holds one child renderer (or nothing).

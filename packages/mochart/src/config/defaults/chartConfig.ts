@@ -1,5 +1,5 @@
-import { CHART_TYPE_XY, NONE, COLOR_CURRENT } from '../core/constants';
-import { getFontDefaults } from './fontConfig';
+import { CHART_TYPE_XY, NONE, COLOR_CURRENT } from '../core/constants.js';
+import { getFontDefaults } from './fontConfig.js';
 
 // Background rects switch their stroke off with strokeOpacity 0, not by leaving the color unset, so a
 // config that turns the border back on with opacity alone gets the host page's color in every section.

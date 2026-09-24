@@ -235,4 +235,4 @@ export function getDomAccessors(chartElement: Element): ChartDomAccessors {
     getTooltipDomElement: () => chartElement.querySelector<HTMLElement>(getCssSelector('tooltipSizer'))
   };
 }
-import type { ChartDomAccessors } from '../types/chart';
+import type { ChartDomAccessors } from '../types/chart.js';

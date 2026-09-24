@@ -1,8 +1,8 @@
-import { isDataProviderValid, getChartData } from '../data/ChartData';
-import { getFocusData, getFocusDataWithMutations } from '../data/FocusData';
-import type { ChartData } from '../types/data';
-import type { FocusData } from '../types/animation';
-import type { ChartDataSource, ChartDataSourceInput, InternalFocus } from './ChartDataSource';
+import { isDataProviderValid, getChartData } from '../data/ChartData.js';
+import { getFocusData, getFocusDataWithMutations } from '../data/FocusData.js';
+import type { ChartData } from '../types/data.js';
+import type { FocusData } from '../types/animation.js';
+import type { ChartDataSource, ChartDataSourceInput, InternalFocus } from './ChartDataSource.js';
 
 /** Computes chartData/focusData directly, with no animation (was StaticChart). */
 export class StaticDataSource implements ChartDataSource {

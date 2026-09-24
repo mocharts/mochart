@@ -1,5 +1,5 @@
-import validators from './validators';
-import { AUTO, NONE, PIE_LABEL_TYPES, PIE_TOOLTIP_VALUE_TYPES } from '../core/constants';
+import validators from './validators.js';
+import { AUTO, NONE, PIE_LABEL_TYPES, PIE_TOOLTIP_VALUE_TYPES } from '../core/constants.js';
 
 export default function getValidators() {
   return {

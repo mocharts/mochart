@@ -1,9 +1,9 @@
 import validators from '@mochart/movalid';
-import { isDataProviderValid, getMissingDataProviderMembers } from './ChartData';
-import { getCategoryValueKey } from './CategoryValue';
-import { NONE, TYPE_DATE, TYPE_NUMBER, SCALE_LINEAR, RENDERER_LINE, RENDERER_AREA } from '../config/core/constants';
-import type { CategoryAxisConfig, MochartConfig } from '../types/config';
-import type { DataProvider, CategoryValue, DataValue } from '../types/data';
+import { isDataProviderValid, getMissingDataProviderMembers } from './ChartData.js';
+import { getCategoryValueKey } from './CategoryValue.js';
+import { NONE, TYPE_DATE, TYPE_NUMBER, SCALE_LINEAR, RENDERER_LINE, RENDERER_AREA } from '../config/core/constants.js';
+import type { CategoryAxisConfig, MochartConfig } from '../types/config.js';
+import type { DataProvider, CategoryValue, DataValue } from '../types/data.js';
 
 function getDuplicates(categoryAxisConfig: CategoryAxisConfig, values: readonly CategoryValue[]): CategoryValue[] {
   const valueMap: Record<string, number> = Object.create(null); // null proto: keyed by user data category values

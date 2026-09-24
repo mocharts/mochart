@@ -1,26 +1,26 @@
-import { Renderer, svgEl, textEl } from '../render';
-import type { RendererItem } from '../render';
+import { Renderer, svgEl, textEl } from '../render/index.js';
+import type { RendererItem } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { layoutInfoExtentChanged } from '../layout/LayoutInfo';
-import { resolveLegendIconSize, legendItemClickable } from '../layout/LegendLayout';
-import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation';
-import { accessibilityActive, translate, translateObject, centerTextY, isHoverPointer, isKeyboardFocus } from '../utils/utils';
-import { moveRovingFocus, resolveRovingId, focusedSeriesNode, restoreSeriesFocus } from '../utils/RovingFocus';
-import { getClipPathReference } from '../utils/svgUtils';
-import { getSeriesTitle } from '../utils/SeriesTitle';
-import { getSeriesFocusPercentage, leaderSeriesId } from '../utils/SeriesFocus';
-import { CHART_TYPE_PIE } from '../config/core/constants';
-import { styleToAttributes } from '../utils/style';
-import { resolveFontStyle } from '../utils/font';
-import Background from './Background';
-import SeriesColorIcon from './SeriesColorIcon';
-import type { ColorPaletteConfig, LegendConfig } from '../types/config';
-import type { FontInlineStyle } from '../utils/font';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced';
-import type { SpacingLayoutInfo } from '../types/layout';
-import type { TruncationState } from '../utils/TextTruncation';
-import type { FocusPercentageMap } from '../types/animation';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { layoutInfoExtentChanged } from '../layout/LayoutInfo.js';
+import { resolveLegendIconSize, legendItemClickable } from '../layout/LegendLayout.js';
+import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation.js';
+import { accessibilityActive, translate, translateObject, centerTextY, isHoverPointer, isKeyboardFocus } from '../utils/utils.js';
+import { moveRovingFocus, resolveRovingId, focusedSeriesNode, restoreSeriesFocus } from '../utils/RovingFocus.js';
+import { getClipPathReference } from '../utils/svgUtils.js';
+import { getSeriesTitle } from '../utils/SeriesTitle.js';
+import { getSeriesFocusPercentage, leaderSeriesId } from '../utils/SeriesFocus.js';
+import { CHART_TYPE_PIE } from '../config/core/constants.js';
+import { styleToAttributes } from '../utils/style.js';
+import { resolveFontStyle } from '../utils/font.js';
+import Background from './Background.js';
+import SeriesColorIcon from './SeriesColorIcon.js';
+import type { ColorPaletteConfig, LegendConfig } from '../types/config.js';
+import type { FontInlineStyle } from '../utils/font.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { SpacingLayoutInfo } from '../types/layout.js';
+import type { TruncationState } from '../utils/TextTruncation.js';
+import type { FocusPercentageMap } from '../types/animation.js';
 
 interface LegendItemUniqueIds {
   legendClipPathUniqueId: string;

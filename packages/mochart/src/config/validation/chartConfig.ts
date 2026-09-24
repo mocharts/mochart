@@ -1,5 +1,5 @@
-import validators from './validators';
-import { CHART_TYPES } from '../core/constants';
+import validators from './validators.js';
+import { CHART_TYPES } from '../core/constants.js';
 
 export default function getValidators() {
   return {

@@ -1,5 +1,5 @@
-import { mapMap } from '../utils/utils';
-import type { DomainValue, NullableDomain } from '../types/data';
+import { mapMap } from '../utils/utils.js';
+import type { DomainValue, NullableDomain } from '../types/data.js';
 
 export const nullDomain: NullableDomain = [null, null];
 

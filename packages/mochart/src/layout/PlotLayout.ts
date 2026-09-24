@@ -1,18 +1,18 @@
-import { NONE, AUTO, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE, SIDE_START } from '../config/core/constants';
-import { resolveThresholds } from '../config/defaults/axisConfig';
-import type { Anchor } from '../config/core/constants';
-import { arrayToMap, idAccessor } from '../utils/utils';
-import { createLayoutInfo } from './LayoutInfo';
-import { getRotatedBounds, getRotatedZeroBounds } from './RotatedLayoutInfo';
-import { createCategoryAxisLayoutInfo, getCategoryAxisRotatedTickBounds, getCategoryAxisBeforeAfter, getCategoryAxisSize } from './CategoryAxisLayout';
-import { createValueAxisLayoutInfos, getValueAxisRotatedTickBounds, getValueAxisBeforeAfter, getValueAxisSizes, emptyLayoutInfo } from './ValueAxisLayoutInfo';
-import { createInvertedSpacingLayoutInfo, getSpacingWidth, getSpacingHeight, getSpacingLeft, getSpacingTop, createInnerOuterSpacingLayoutInfo, createSpacingLayoutInfo } from './SpacingLayoutInfo';
-import type { Bounds, Size, TextBounds } from '../types/geometry';
-import type { AxisConfigBase, AxisTickLabelConfig, CategoryAxisConfig, PlotConfig } from '../types/config';
-import { getMinorTickLabel, getMinorTickMark } from '../config/core/minorConfig';
-import type { MinorTickLabel, MinorTickMark } from '../config/core/minorConfig';
-import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced';
-import type { AxisLayoutInfo, AxisTickInfo, AxisTickInfos, BeforeAfter, ChartDataForLayout, ChartTextBoundsData, PlotLayoutResult, SpacingLayoutInfo } from '../types/layout';
+import { NONE, AUTO, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE, SIDE_START } from '../config/core/constants.js';
+import { resolveThresholds } from '../config/defaults/axisConfig.js';
+import type { Anchor } from '../config/core/constants.js';
+import { arrayToMap, idAccessor } from '../utils/utils.js';
+import { createLayoutInfo } from './LayoutInfo.js';
+import { getRotatedBounds, getRotatedZeroBounds } from './RotatedLayoutInfo.js';
+import { createCategoryAxisLayoutInfo, getCategoryAxisRotatedTickBounds, getCategoryAxisBeforeAfter, getCategoryAxisSize } from './CategoryAxisLayout.js';
+import { createValueAxisLayoutInfos, getValueAxisRotatedTickBounds, getValueAxisBeforeAfter, getValueAxisSizes, emptyLayoutInfo } from './ValueAxisLayoutInfo.js';
+import { createInvertedSpacingLayoutInfo, getSpacingWidth, getSpacingHeight, getSpacingLeft, getSpacingTop, createInnerOuterSpacingLayoutInfo, createSpacingLayoutInfo } from './SpacingLayoutInfo.js';
+import type { Bounds, Size, TextBounds } from '../types/geometry.js';
+import type { AxisConfigBase, AxisTickLabelConfig, CategoryAxisConfig, PlotConfig } from '../types/config.js';
+import { getMinorTickLabel, getMinorTickMark } from '../config/core/minorConfig.js';
+import type { MinorTickLabel, MinorTickMark } from '../config/core/minorConfig.js';
+import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { AxisLayoutInfo, AxisTickInfo, AxisTickInfos, BeforeAfter, ChartDataForLayout, ChartTextBoundsData, PlotLayoutResult, SpacingLayoutInfo } from '../types/layout.js';
 
 /** The settings a kind of tick label is laid out from: the tick label settings, or the minor ones resolved. */
 export type TickLabelLayoutSettings = Pick<AxisTickLabelConfig, 'size' | 'marginInner' | 'marginOuter' | 'paddingInner' | 'paddingOuter' | 'rotation' | 'anchor'>;

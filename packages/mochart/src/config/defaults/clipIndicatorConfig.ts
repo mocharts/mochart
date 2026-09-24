@@ -1,7 +1,7 @@
-import { NONE, AUTO, COLOR_CURRENT } from '../core/constants';
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
-import { getFontDefaults } from './fontConfig';
-import type { DeepPartial, ClipIndicatorConfig } from '../../types/config';
+import { NONE, AUTO, COLOR_CURRENT } from '../core/constants.js';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
+import { getFontDefaults } from './fontConfig.js';
+import type { DeepPartial, ClipIndicatorConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<ClipIndicatorConfig> = {}, pieMode = false): Partial<ClipIndicatorConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, pieMode);

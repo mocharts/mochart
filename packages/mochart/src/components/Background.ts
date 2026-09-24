@@ -1,10 +1,10 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { styleToAttributes } from '../utils/style';
-import type { Style } from '../types/config';
-import type { SpacingLayoutInfo } from '../types/layout';
-import type { Bounds } from '../types/geometry';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { styleToAttributes } from '../utils/style.js';
+import type { Style } from '../types/config.js';
+import type { SpacingLayoutInfo } from '../types/layout.js';
+import type { Bounds } from '../types/geometry.js';
 
 type CssClassKey = keyof typeof mochartCssClasses;
 

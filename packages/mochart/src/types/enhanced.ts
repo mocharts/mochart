@@ -1,7 +1,7 @@
 import type {
   LinearGradientConfig, MochartConfig, PatternConfig, RadialGradientConfig,
   SeriesConfig, SeriesGroupConfig, SeriesStackConfig, ValueAxisConfig
-} from './config';
+} from './config.js';
 
 /**
  * Internal enhanced views of the public config types: buildMochartConfig adds

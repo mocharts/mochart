@@ -2,20 +2,20 @@ import { scaleLinear, scaleTime, scaleUtc } from 'd3-scale';
 import { format, formatPrefix, formatSpecifier } from 'd3-format';
 import { timeFormat, utcFormat } from 'd3-time-format';
 
-import { getWithMutations } from '../utils/WithMutations';
-import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData';
-import { getCategoryValueKey } from './CategoryValue';
-import { areArraysAndEqual, arrayToMap, idAccessor } from '../utils/utils';
-import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants';
-import type { Anchor } from '../config/core/constants';
-import { getMinorTickLabel } from '../config/core/minorConfig';
-import { getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps';
-import type { Auto, DataType } from '../config/core/constants';
-import type { MinorTickLabel } from '../config/core/minorConfig';
-import type { AxisConfigBase, AxisTickStepConfig, CategoryAxisConfig, CategoryAxisTick, CategoryAxisTickStepConfig, PlotConfig, ValueAxisTick } from '../types/config';
-import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced';
-import type { AxisData, AxisScale, AxisTick, AxisValue, ChartData, CategoryAxisData, CategoryAxisDomain, CategorySpacingInfo, CategoryValue, CategoryValues, NullableDomain, ValueAxisData, TickLabelFormatter } from '../types/data';
-import type { AxisLayoutInfo, ChartLayoutInfo, CategoryAxisLayoutInfo } from '../types/layout';
+import { getWithMutations } from '../utils/WithMutations.js';
+import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData.js';
+import { getCategoryValueKey } from './CategoryValue.js';
+import { areArraysAndEqual, arrayToMap, idAccessor } from '../utils/utils.js';
+import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
+import type { Anchor } from '../config/core/constants.js';
+import { getMinorTickLabel } from '../config/core/minorConfig.js';
+import { getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
+import type { Auto, DataType } from '../config/core/constants.js';
+import type { MinorTickLabel } from '../config/core/minorConfig.js';
+import type { AxisConfigBase, AxisTickStepConfig, CategoryAxisConfig, CategoryAxisTick, CategoryAxisTickStepConfig, PlotConfig, ValueAxisTick } from '../types/config.js';
+import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { AxisData, AxisScale, AxisTick, AxisValue, ChartData, CategoryAxisData, CategoryAxisDomain, CategorySpacingInfo, CategoryValue, CategoryValues, NullableDomain, ValueAxisData, TickLabelFormatter } from '../types/data.js';
+import type { AxisLayoutInfo, ChartLayoutInfo, CategoryAxisLayoutInfo } from '../types/layout.js';
 
 const autoTickLabelFormatNumber = 's';
 // per-value form: without a tick step to take the precision from, the trailing zeros must be trimmed

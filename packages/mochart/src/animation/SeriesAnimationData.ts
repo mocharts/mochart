@@ -1,41 +1,41 @@
-import { getChartDataWithSeriesData, getChartDataWithData } from '../data/ChartData';
+import { getChartDataWithSeriesData, getChartDataWithData } from '../data/ChartData.js';
 
-import { getCategoryDataWithRenderAxisDomain, getCategoryDataFromValues, getCategoryDataWithNumericValues } from '../data/CategoryData';
+import { getCategoryDataWithRenderAxisDomain, getCategoryDataFromValues, getCategoryDataWithNumericValues } from '../data/CategoryData.js';
 
-import { getMaxDomain, getSafeDomainExtent, getSafeDomainExtents } from '../data/DomainData';
+import { getMaxDomain, getSafeDomainExtent, getSafeDomainExtents } from '../data/DomainData.js';
 
 import { getSeriesContainerVisibleSeriesCounts, getSeriesDataWithRenderAxisDomains, getSeriesDataWithSeriesValues,
-  getSeriesDataWithDomains, setMinMax } from '../data/SeriesData';
+  getSeriesDataWithDomains, setMinMax } from '../data/SeriesData.js';
 
 import { createArrayFilledWithMissing, createArrayWithValueIfNotMissing, copyArrayWithValueIfNotMissing,
   areMapsEqual, setArrayValuesIfOneIsMissing,
   setArrayValuesFromSourcesIfOneIsMissing, setArrayValuesForRange, hasMissingForRange, getMaxAbsoluteValue,
-  getArrayDeltas, replaceArrayMissingWithValue, isMissingValue, MISSING_VALUE } from '../utils/utils';
+  getArrayDeltas, replaceArrayMissingWithValue, isMissingValue, MISSING_VALUE } from '../utils/utils.js';
 
 import {
   hasCategoryChanges, hasNumericValueOffsets, getNumericValuesWithoutOffsets,
-  getMergedNumericValues, createCategoryOrderDeltaData, setCategoryOrderDeltaFactors, getNumericValueOffsets } from './CategoryAnimationData';
+  getMergedNumericValues, createCategoryOrderDeltaData, setCategoryOrderDeltaFactors, getNumericValueOffsets } from './CategoryAnimationData.js';
 
 import { getMaxAxisDomains, getCombinedDomainAxisIds, getCombinedAxisDomainDeltas, getCombinedCategoryDomainDelta,
-  shouldCombineDomainChange, setAxisDeltaFactors, setDeltaFactor, withAxisDomainsForIds, withSeriesDomainsForAxes } from './DomainAnimationData';
+  shouldCombineDomainChange, setAxisDeltaFactors, setDeltaFactor, withAxisDomainsForIds, withSeriesDomainsForAxes } from './DomainAnimationData.js';
 
-import { keyPlain, keyRange, positionKeys, positionOrComputedKeys, valueKeys, extraAndCopyKeys } from '../data/constants';
-import type { PositionKey } from '../data/constants';
+import { keyPlain, keyRange, positionKeys, positionOrComputedKeys, valueKeys, extraAndCopyKeys } from '../data/constants.js';
+import type { PositionKey } from '../data/constants.js';
 
-import { NONE, SCALE_ORDINAL } from '../config/core/constants';
+import { NONE, SCALE_ORDINAL } from '../config/core/constants.js';
 
-import { mapMap } from '../utils/utils';
-import type { AnimationConfig } from '../types/config';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedSeriesStackConfig } from '../types/enhanced';
+import { mapMap } from '../utils/utils.js';
+import type { AnimationConfig } from '../types/config.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedSeriesStackConfig } from '../types/enhanced.js';
 import type {
   AxisDomains, ChartData, NullableDomain, NumericValues, SeriesData, SeriesDataSet, SeriesDomainObject,
   SeriesDomainObjects, SeriesValueObject, SeriesValueObjects
-} from '../types/data';
+} from '../types/data.js';
 import type {
   CategoryDeltaData, NumericValuesDelta, OuterChangeCounts,
   SeriesValueDelta, SeriesValueDeltaMap, ValueChangeData
-} from '../types/animation';
-import type { ExtraCopyKey, ExtraKey, PositionOrComputedKey, ValueKey } from '../data/constants';
+} from '../types/animation.js';
+import type { ExtraCopyKey, ExtraKey, PositionOrComputedKey, ValueKey } from '../data/constants.js';
 
 type AxisExtents = Record<string, number>;
 type ValueDeltaObject = Record<ValueKey, NumericValuesDelta> & { deltaPercentage: number; deltaCopied?: boolean };

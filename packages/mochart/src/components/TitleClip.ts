@@ -1,8 +1,8 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { NONE } from '../config/core/constants';
-import type { TitleConfig } from '../types/config';
-import type { SpacingLayoutInfo } from '../types/layout';
+import { NONE } from '../config/core/constants.js';
+import type { TitleConfig } from '../types/config.js';
+import type { SpacingLayoutInfo } from '../types/layout.js';
 
 interface TitleClipProps {
   titleConfig: TitleConfig;

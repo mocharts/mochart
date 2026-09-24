@@ -1,21 +1,21 @@
-import { Renderer, svgEl, textEl, Slot } from '../render';
+import { Renderer, svgEl, textEl, Slot } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { layoutInfoExtentChanged } from '../layout/LayoutInfo';
-import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation';
-import { NONE } from '../config/core/constants';
-import { onClickDisabled, centerTextY, translate, translateObject } from '../utils/utils';
-import { getClipPathReference } from '../utils/svgUtils';
-import { styleToAttributes } from '../utils/style';
-import { resolveFontStyle } from '../utils/font';
-import { getSpacingWidth } from '../layout/SpacingLayoutInfo';
-import Background from './Background';
-import type { El, TextEl } from '../render';
-import type { Style } from '../types/config';
-import type { FontInlineStyle } from '../utils/font';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { SpacingLayoutInfo } from '../types/layout';
-import type { TruncationState } from '../utils/TextTruncation';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { layoutInfoExtentChanged } from '../layout/LayoutInfo.js';
+import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation.js';
+import { NONE } from '../config/core/constants.js';
+import { onClickDisabled, centerTextY, translate, translateObject } from '../utils/utils.js';
+import { getClipPathReference } from '../utils/svgUtils.js';
+import { styleToAttributes } from '../utils/style.js';
+import { resolveFontStyle } from '../utils/font.js';
+import { getSpacingWidth } from '../layout/SpacingLayoutInfo.js';
+import Background from './Background.js';
+import type { El, TextEl } from '../render/index.js';
+import type { Style } from '../types/config.js';
+import type { FontInlineStyle } from '../utils/font.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { SpacingLayoutInfo } from '../types/layout.js';
+import type { TruncationState } from '../utils/TextTruncation.js';
 
 type TitleSectionKey = 'titlePrefix' | 'titleText' | 'titleTextRaw' | 'titleSuffix';
 type TitleBackgroundKey = 'titlePrefixBackground' | 'titleTextBackground' | 'titleSuffixBackground';

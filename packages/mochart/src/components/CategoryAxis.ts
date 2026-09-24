@@ -1,11 +1,11 @@
-import { Renderer, Slot } from '../render';
+import { Renderer, Slot } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
+import { mochartCssClasses } from '../utils/ChartDom.js';
 
-import Axis from './Axis';
-import type { CategoryAxisConfig, FontConfig } from '../types/config';
-import type { CategoryAxisData } from '../types/data';
-import type { CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
+import Axis from './Axis.js';
+import type { CategoryAxisConfig, FontConfig } from '../types/config.js';
+import type { CategoryAxisData } from '../types/data.js';
+import type { CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
 interface CategoryAxisProps {
   front: boolean;

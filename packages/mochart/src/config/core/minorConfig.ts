@@ -1,9 +1,9 @@
-import { MAJOR } from './constants';
-import type { Major } from './constants';
+import { MAJOR } from './constants.js';
+import type { Major } from './constants.js';
 import type {
   AxisGridLineConfig, AxisTickLabelConfig, AxisTickMarkConfig, CategoryAxisTickLabelConfig, FontConfig, Style, StyleStates,
   StrokeStyleStates, TickLabelTruncationConfig
-} from '../../types/config';
+} from '../../types/config.js';
 
 /** The minor tick labels' settings in the shape of the non-minor ones, every "major" replaced by the non-minor value. */
 export interface MinorTickLabel {

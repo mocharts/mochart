@@ -1,8 +1,8 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { NONE } from '../config/core/constants';
-import type { AxisConfigBase } from '../types/config';
-import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
+import { NONE } from '../config/core/constants.js';
+import type { AxisConfigBase } from '../types/config.js';
+import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
 interface AxisTitleClipProps {
   axisConfig: AxisConfigBase;

@@ -1,8 +1,8 @@
 import { interpolateRgb, interpolateHsl, interpolateLab, interpolateHcl } from 'd3-interpolate';
 
-import { checkUniqueLabels } from './labels';
-import type { ColorInterpolation } from '../config/core/constants';
-import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } from '../types/config';
+import { checkUniqueLabels } from './labels.js';
+import type { ColorInterpolation } from '../config/core/constants.js';
+import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } from '../types/config.js';
 
 export interface HeatmapRow {
   /** The row title, e.g. shown in the legend and tooltip. */

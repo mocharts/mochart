@@ -5,9 +5,9 @@ import {
   EASING_CUBIC_IN, EASING_CUBIC_OUT, EASING_CUBIC_IN_OUT,
   EASING_QUINT_IN, EASING_QUINT_OUT, EASING_QUINT_IN_OUT,
   EASING_BOUNCE_IN, EASING_BOUNCE_OUT, EASING_BOUNCE_IN_OUT
-} from '../config/core/constants';
+} from '../config/core/constants.js';
 
-import type { AnimationEasing } from '../config/core/constants';
+import type { AnimationEasing } from '../config/core/constants.js';
 
 /** Maps a tween's linear progress (0 to 1) onto eased progress; endpoints are exact and every easing stays within 0 to 1. */
 export type EasingFunction = (percentage: number) => number;

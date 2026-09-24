@@ -1,8 +1,8 @@
-export { El, TextEl, svgEl, htmlEl, textEl } from './el';
-export type { ElProps } from './el';
-export { Renderer } from './renderer';
-export { Slot } from './slot';
-export { ElSlot } from './elslot';
-export { ElList, RendererList } from './list';
-export type { ElListAdapter, RendererItem } from './list';
-export { shallowEqual } from './shared';
+export { El, TextEl, svgEl, htmlEl, textEl } from './el.js';
+export type { ElProps } from './el.js';
+export { Renderer } from './renderer.js';
+export { Slot } from './slot.js';
+export { ElSlot } from './elslot.js';
+export { ElList, RendererList } from './list.js';
+export type { ElListAdapter, RendererItem } from './list.js';
+export { shallowEqual } from './shared.js';

@@ -2,7 +2,7 @@ import { color as parseColor } from 'd3-color';
 
 import validators from '@mochart/movalid';
 import type { CustomValidator, Validator } from '@mochart/movalid';
-import { NONE, MAJOR, TOP_RIGHT_BOTTOM_LEFT, COLOR_CURRENT, FONT_WEIGHTS, FONT_STYLES } from '../core/constants';
+import { NONE, MAJOR, TOP_RIGHT_BOTTOM_LEFT, COLOR_CURRENT, FONT_WEIGHTS, FONT_STYLES } from '../core/constants.js';
 
 // an id is woven into dom ids and their url(#...) references, which have no escaping, so it is restricted to characters that need none
 const idRegexp = /^[A-Za-z0-9_-]+$/;

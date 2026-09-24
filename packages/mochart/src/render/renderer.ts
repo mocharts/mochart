@@ -1,9 +1,9 @@
-import { shallowEqual, enqueue, beginWork, endWork } from './shared';
-import { El } from './el';
-import { Slot } from './slot';
-import { ElSlot } from './elslot';
-import { ElList, RendererList } from './list';
-import type { ElBlock } from './list';
+import { shallowEqual, enqueue, beginWork, endWork } from './shared.js';
+import { El } from './el.js';
+import { Slot } from './slot.js';
+import { ElSlot } from './elslot.js';
+import { ElList, RendererList } from './list.js';
+import type { ElBlock } from './list.js';
 
 export type StateUpdate<P, S> = Partial<S> | ((state: S, props: P) => Partial<S> | null) | null;
 

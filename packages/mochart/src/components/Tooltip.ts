@@ -1,17 +1,17 @@
-import { Renderer, htmlEl } from '../render';
+import { Renderer, htmlEl } from '../render/index.js';
 
-import TooltipContent from './TooltipContent';
-import { MODE_FOCUS, MODE_FILTER } from './TooltipControls';
-import type { TooltipMode } from './TooltipControls';
+import TooltipContent from './TooltipContent.js';
+import { MODE_FOCUS, MODE_FILTER } from './TooltipControls.js';
+import type { TooltipMode } from './TooltipControls.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { cssBorderWidth, cssStyleColor } from '../utils/style';
-import { resolveFontStyle } from '../utils/font';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { FocusPercentageMap } from '../types/animation';
-import type { SpacingLayoutInfo } from '../types/layout';
-import type { Bounds } from '../types/geometry';
-import type { CategorySeriesValueObject } from '../data/ChartData';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { cssBorderWidth, cssStyleColor } from '../utils/style.js';
+import { resolveFontStyle } from '../utils/font.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { FocusPercentageMap } from '../types/animation.js';
+import type { SpacingLayoutInfo } from '../types/layout.js';
+import type { Bounds } from '../types/geometry.js';
+import type { CategorySeriesValueObject } from '../data/ChartData.js';
 
 interface TooltipProps {
   mochartConfig: EnhancedMochartConfig;

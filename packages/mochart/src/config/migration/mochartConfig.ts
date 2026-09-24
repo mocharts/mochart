@@ -1,5 +1,5 @@
-import { CONFIG_VERSION } from '../core/constants';
-import { deepClone } from '../core/deepMerge';
+import { CONFIG_VERSION } from '../core/constants.js';
+import { deepClone } from '../core/deepMerge.js';
 
 type LegacyConfig = Record<string, unknown>;
 

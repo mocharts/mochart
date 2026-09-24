@@ -1,10 +1,10 @@
 import { scaleLinear } from 'd3-scale';
 
-import { getDomainExtent, numericValue } from './DomainData';
-import { AUTO, NONE, TYPE_DATE } from '../config/core/constants';
-import type { AxisConfigBase } from '../types/config';
-import type { DataType } from '../config/core/constants';
-import type { DomainValue, CategoryAxisDomain } from '../types/data';
+import { getDomainExtent, numericValue } from './DomainData.js';
+import { AUTO, NONE, TYPE_DATE } from '../config/core/constants.js';
+import type { AxisConfigBase } from '../types/config.js';
+import type { DataType } from '../config/core/constants.js';
+import type { DomainValue, CategoryAxisDomain } from '../types/data.js';
 
 type AxisDomainConfig = AxisConfigBase & {
   type: DataType;

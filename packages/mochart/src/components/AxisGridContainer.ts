@@ -1,15 +1,15 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { getValueAxisFocusContexts } from '../utils/FocusValue';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { getValueAxisFocusContexts } from '../utils/FocusValue.js';
 
-import CategoryAxisGrid from './CategoryAxisGrid';
-import ValueAxisGrid from './ValueAxisGrid';
-import { gridLinesInPass } from './AxisGrid';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { AxisData, CategoryAxisData, ValueAxisData, SeriesData } from '../types/data';
-import type { FocusData } from '../types/animation';
-import type { LayoutInfo } from '../types/layout';
+import CategoryAxisGrid from './CategoryAxisGrid.js';
+import ValueAxisGrid from './ValueAxisGrid.js';
+import { gridLinesInPass } from './AxisGrid.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { AxisData, CategoryAxisData, ValueAxisData, SeriesData } from '../types/data.js';
+import type { FocusData } from '../types/animation.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 interface AxisGridContainerProps {
   front: boolean;

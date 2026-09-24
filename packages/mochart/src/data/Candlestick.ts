@@ -1,6 +1,6 @@
-import { checkUniqueLabels } from './labels';
-import { roundToSignificant } from '../utils/utils';
-import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } from '../types/config';
+import { checkUniqueLabels } from './labels.js';
+import { roundToSignificant } from '../utils/utils.js';
+import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } from '../types/config.js';
 
 export type CandlestickDirection = 'up' | 'down';
 

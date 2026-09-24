@@ -6,7 +6,7 @@ import type {
   FocusPercentage,
   FocusPercentageMap,
   MapFocusDeltaData
-} from '../types/animation';
+} from '../types/animation.js';
 
 export function getFocusDataForPercent(focusAnimationData: FocusAnimationData, percentage: number): FocusData {
   if (focusAnimationData.start === focusAnimationData.end) {

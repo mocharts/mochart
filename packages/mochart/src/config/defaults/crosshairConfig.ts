@@ -1,6 +1,6 @@
-import { COLOR_CURRENT } from '../core/constants';
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
-import type { DeepPartial, CrosshairConfig } from '../../types/config';
+import { COLOR_CURRENT } from '../core/constants.js';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
+import type { DeepPartial, CrosshairConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<CrosshairConfig> = {}, pieMode = false): Partial<CrosshairConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, pieMode);

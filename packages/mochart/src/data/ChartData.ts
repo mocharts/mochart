@@ -1,7 +1,7 @@
-import { getCategoryData, getCategoryDataWithRenderAxisDomain, getCategoryValueObject } from './CategoryData';
-import { getSeriesData, getSeriesDataWithRenderAxisDomains, getSeriesDataWithDomains, getSeriesDataWithSeriesValues, getSeriesValueObjects } from './SeriesData';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { AxisDomains, ChartData, DataProvider, CategoryAxisDomain, CategoryData, SeriesData, SeriesDomainObjects, SeriesValueObjects } from '../types/data';
+import { getCategoryData, getCategoryDataWithRenderAxisDomain, getCategoryValueObject } from './CategoryData.js';
+import { getSeriesData, getSeriesDataWithRenderAxisDomains, getSeriesDataWithDomains, getSeriesDataWithSeriesValues, getSeriesValueObjects } from './SeriesData.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { AxisDomains, ChartData, DataProvider, CategoryAxisDomain, CategoryData, SeriesData, SeriesDomainObjects, SeriesValueObjects } from '../types/data.js';
 
 /** The members every provider must implement; getError/getLoading/refresh are optional. */
 const requiredDataProviderMembers = ['getPropertyValues'] as const;

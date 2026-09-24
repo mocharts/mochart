@@ -1,8 +1,8 @@
-import validators from './validators';
+import validators from './validators.js';
 import {
   COLOR_SERIES, PATTERN_TYPES, PATTERN_TYPE_CROSSHATCH, PATTERN_TYPE_DOTS, PATTERN_TYPE_LINES
-} from '../core/constants';
-import type { PatternConfig } from '../../types/config';
+} from '../core/constants.js';
+import type { PatternConfig } from '../../types/config.js';
 
 const linePattern = ({ type }: Partial<PatternConfig>) => type === PATTERN_TYPE_LINES || type === PATTERN_TYPE_CROSSHATCH;
 const dotPattern = ({ type }: Partial<PatternConfig>) => type === PATTERN_TYPE_DOTS;

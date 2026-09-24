@@ -1,4 +1,4 @@
-import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, getTickLabelDetails, tickLabelDescription, minorTickLabelIntro, majorNote, tickStepDescription, getTickStepDescriptions, thresholdStepDescription, getThresholdStepDescriptions, tickStepMinorDetails, valueTickStepDetails, valueStepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails } from './axisConfig';
+import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, getTickLabelDetails, tickLabelDescription, minorTickLabelIntro, majorNote, tickStepDescription, getTickStepDescriptions, thresholdStepDescription, getThresholdStepDescriptions, tickStepMinorDetails, valueTickStepDetails, valueStepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails } from './axisConfig.js';
 
 export default function getDescriptions() {
   return {

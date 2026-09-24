@@ -1,19 +1,19 @@
-import { Renderer, svgEl, textEl } from '../render';
+import { Renderer, svgEl, textEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { layoutInfoExtentChanged } from '../layout/LayoutInfo';
-import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation';
-import { getClipPathReference } from '../utils/svgUtils';
-import { getAxisFocusStyle } from '../utils/FocusValue';
-import { styleToAttributes } from '../utils/style';
-import { fontStylesEqual, resolveFontStyle } from '../utils/font';
-import { NONE } from '../config/core/constants';
-import Background from './Background';
-import type { AxisConfigBase, FontConfig } from '../types/config';
-import type { EnhancedValueAxisConfig } from '../types/enhanced';
-import type { AxisLayoutInfo } from '../types/layout';
-import type { FocusPercentage } from '../types/animation';
-import type { TruncationState } from '../utils/TextTruncation';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { layoutInfoExtentChanged } from '../layout/LayoutInfo.js';
+import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation.js';
+import { getClipPathReference } from '../utils/svgUtils.js';
+import { getAxisFocusStyle } from '../utils/FocusValue.js';
+import { styleToAttributes } from '../utils/style.js';
+import { fontStylesEqual, resolveFontStyle } from '../utils/font.js';
+import { NONE } from '../config/core/constants.js';
+import Background from './Background.js';
+import type { AxisConfigBase, FontConfig } from '../types/config.js';
+import type { EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { AxisLayoutInfo } from '../types/layout.js';
+import type { FocusPercentage } from '../types/animation.js';
+import type { TruncationState } from '../utils/TextTruncation.js';
 
 type AxisTitleConfig = AxisConfigBase & Partial<Pick<EnhancedValueAxisConfig, 'useSeriesFocus'>>;
 

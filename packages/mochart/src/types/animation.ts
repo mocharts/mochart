@@ -3,7 +3,7 @@ import type {
   NumericValues as DataNumericValues,
   SeriesDomainObject as DataSeriesDomainObject, SeriesDomainObjects as DataSeriesDomainObjects,
   SeriesValueObject as DataSeriesValueObject, SeriesValueObjects as DataSeriesValueObjects
-} from './data';
+} from './data.js';
 
 export type FocusPercentage = number | null;
 export type FocusPercentageMap = Record<string, FocusPercentage>;

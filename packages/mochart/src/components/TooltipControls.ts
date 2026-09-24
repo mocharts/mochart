@@ -1,9 +1,9 @@
-import { tooltipFocusApplies } from '../utils/TooltipFocus';
-import { Renderer, htmlEl, textEl } from '../render';
+import { tooltipFocusApplies } from '../utils/TooltipFocus.js';
+import { Renderer, htmlEl, textEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { InternalFocus } from '../types/chart';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { InternalFocus } from '../types/chart.js';
 
 interface TooltipControlsProps {
   mochartConfig: EnhancedMochartConfig;

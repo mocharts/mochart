@@ -1,4 +1,4 @@
-import { areValuesEqual } from './utils';
+import { areValuesEqual } from './utils.js';
 
 export type CustomMutator = (oldValue: unknown, newValue: unknown) => unknown;
 

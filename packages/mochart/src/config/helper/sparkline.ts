@@ -1,6 +1,6 @@
-import { deepMerge } from '../core/deepMerge';
-import type { MochartInputConfig } from '../../types/config';
-import type { MarginPadding } from '../../types/geometry';
+import { deepMerge } from '../core/deepMerge.js';
+import type { MochartInputConfig } from '../../types/config.js';
+import type { MarginPadding } from '../../types/geometry.js';
 
 export interface CreateSparklineConfigOptions {
   /**

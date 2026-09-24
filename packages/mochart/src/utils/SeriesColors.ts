@@ -5,13 +5,13 @@ import {
   NONE, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, STYLE_SAME, COLOR_SERIES,
   COLOR_INTERPOLATION_HCL, COLOR_INTERPOLATION_HSL, COLOR_INTERPOLATION_LAB, COLOR_INTERPOLATION_RGB,
   RENDERER_AREA, RENDERER_BAR, RENDERER_LINE, STYLE_STATES
-} from '../config/core/constants';
-import { getFocusedDefocused } from './FocusValue';
-import { isMissingValue } from './utils';
-import type { FocusPercentage } from '../types/animation';
-import type { ColorPaletteConfig, SeriesColor } from '../types/config';
-import type { EnhancedSeriesConfig } from '../types/enhanced';
-import type { NumericValues, SeriesDomainObject, SeriesValueObject } from '../types/data';
+} from '../config/core/constants.js';
+import { getFocusedDefocused } from './FocusValue.js';
+import { isMissingValue } from './utils.js';
+import type { FocusPercentage } from '../types/animation.js';
+import type { ColorPaletteConfig, SeriesColor } from '../types/config.js';
+import type { EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { NumericValues, SeriesDomainObject, SeriesValueObject } from '../types/data.js';
 
 // 'series' hops the element axis (marker → shape), 'same' hops the focus axis (focused → normal);
 // chains are at most two hops. Each element's readStyle and paletteKey must stay in lockstep.

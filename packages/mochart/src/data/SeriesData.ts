@@ -1,14 +1,14 @@
-import { nullDomain, getDomainForValues, mergeDomain } from './DomainData';
-import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData';
-import { readNumericValues } from './PropertyData';
-import { AUTO, NONE, RENDERER_AREA, RENDERER_BAR } from '../config/core/constants';
+import { nullDomain, getDomainForValues, mergeDomain } from './DomainData.js';
+import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData.js';
+import { readNumericValues } from './PropertyData.js';
+import { AUTO, NONE, RENDERER_AREA, RENDERER_BAR } from '../config/core/constants.js';
 
-import { keyPlain, keyPrior, valueKeys, positionKeys, extraKeys, extraCopyKeys } from './constants';
+import { keyPlain, keyPrior, valueKeys, positionKeys, extraKeys, extraCopyKeys } from './constants.js';
 
-import { createArrayFilledWithZero, arrayToMap, mapMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils';
-import type { DataProvider, CategoryData, CategoryValue, NullableDomain, NumericValues, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObject, SeriesValueObjects } from '../types/data';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedSeriesGroupConfig, EnhancedSeriesStackConfig, EnhancedValueAxisConfig } from '../types/enhanced';
-import type { ExtraCopyKey, ExtraKey, PositionKey, ValueKey } from './constants';
+import { createArrayFilledWithZero, arrayToMap, mapMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils.js';
+import type { DataProvider, CategoryData, CategoryValue, NullableDomain, NumericValues, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObject, SeriesValueObjects } from '../types/data.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedSeriesGroupConfig, EnhancedSeriesStackConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { ExtraCopyKey, ExtraKey, PositionKey, ValueKey } from './constants.js';
 
 type SeriesContainerConfig = EnhancedValueAxisConfig | EnhancedSeriesStackConfig | EnhancedSeriesGroupConfig;
 type SeriesBundle = { data: SeriesDataSet };

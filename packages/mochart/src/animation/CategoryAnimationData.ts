@@ -1,9 +1,9 @@
-import { NONE, SCALE_ORDINAL, TYPE_DATE } from '../config/core/constants';
-import { getCategoryValueKey } from '../data/CategoryValue';
-import { getMaxAbsoluteValue } from '../utils/utils';
-import type { CategoryAxisConfig } from '../types/config';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { CategoryAxisDomain, CategoryData, CategoryValue } from '../types/data';
+import { NONE, SCALE_ORDINAL, TYPE_DATE } from '../config/core/constants.js';
+import { getCategoryValueKey } from '../data/CategoryValue.js';
+import { getMaxAbsoluteValue } from '../utils/utils.js';
+import type { CategoryAxisConfig } from '../types/config.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { CategoryAxisDomain, CategoryData, CategoryValue } from '../types/data.js';
 import type {
   CompleteNumericArrayDelta,
   CategoryDeltaData,
@@ -11,7 +11,7 @@ import type {
   CategoryMergedValuesData,
   NumericArrayDelta,
   OuterChangeCounts
-} from '../types/animation';
+} from '../types/animation.js';
 
 type CategoryMapKey = string;
 type CategoryMapKeyAccessor = (value: CategoryValue) => CategoryMapKey;

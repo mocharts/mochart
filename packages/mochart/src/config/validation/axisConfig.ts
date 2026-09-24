@@ -1,12 +1,12 @@
-import validators, { boundValue } from './validators';
-import getTruncationValidators from './truncationConfig';
-import { filterConfig, getRawIndices } from '../core/configUtils';
-import { getPropertyMessage, isConfigObject } from './messages';
-import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators';
+import validators, { boundValue } from './validators.js';
+import getTruncationValidators from './truncationConfig.js';
+import { filterConfig, getRawIndices } from '../core/configUtils.js';
+import { getPropertyMessage, isConfigObject } from './messages.js';
+import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators.js';
 
-import { AUTO, NONE, MAJOR, ANCHORS, STYLE_SAME, SIDES, SCALE_ORDINAL, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants';
+import { AUTO, NONE, MAJOR, ANCHORS, STYLE_SAME, SIDES, SCALE_ORDINAL, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants.js';
 
-import type { ConfigObject, LocatedValidationMessage } from './messages';
+import type { ConfigObject, LocatedValidationMessage } from './messages.js';
 import type { Validator } from '@mochart/movalid';
 
 // Never null: an axis writes stroke="none" so a host-css stroke cannot inherit onto its text.

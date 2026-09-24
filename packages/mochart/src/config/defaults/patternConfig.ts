@@ -1,8 +1,8 @@
 import {
   COLOR_SERIES, NONE, PATTERN_TYPE_CROSSHATCH, PATTERN_TYPE_DOTS, PATTERN_TYPE_LINES
-} from '../core/constants';
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
-import type { DeepPartial, PatternConfig, PatternInputConfig } from '../../types/config';
+} from '../core/constants.js';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
+import type { DeepPartial, PatternConfig, PatternInputConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<PatternInputConfig> = {}, index: number): Partial<PatternConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, index);

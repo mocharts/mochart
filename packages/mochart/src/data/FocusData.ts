@@ -1,11 +1,11 @@
-import { getDomainForValues, mergeDomain } from '../data/DomainData';
-import { getCategorySpacingInfo } from '../data/AxisData';
-import { getWithMutations } from '../utils/WithMutations';
-import { arrayToMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils';
-import { NONE } from '../config/core/constants';
-import type { FocusData, FocusPercentage, CategoryDeltaData } from '../types/animation';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced';
-import type { ChartData, CategoryData, NullableDomain, SeriesData } from '../types/data';
+import { getDomainForValues, mergeDomain } from '../data/DomainData.js';
+import { getCategorySpacingInfo } from '../data/AxisData.js';
+import { getWithMutations } from '../utils/WithMutations.js';
+import { arrayToMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils.js';
+import { NONE } from '../config/core/constants.js';
+import type { FocusData, FocusPercentage, CategoryDeltaData } from '../types/animation.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { ChartData, CategoryData, NullableDomain, SeriesData } from '../types/data.js';
 
 function isFocused(value: number | null | undefined): value is number;
 function isFocused(value: string | null | undefined): value is string;

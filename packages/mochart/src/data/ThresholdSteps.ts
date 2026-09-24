@@ -1,11 +1,11 @@
-import { deepMerge } from '../config/core/deepMerge';
-import { getThresholdEntryDefaults } from '../config/defaults/axisConfig';
-import { getFirstKeptStep, getNextPeriodStart, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps';
-import { NONE, SCALE_ORDINAL, TYPE_DATE } from '../config/core/constants';
-import type { ResolvedThreshold } from '../config/defaults/axisConfig';
-import type { AxisThresholdStepConfig, CategoryAxisThresholdStepConfig } from '../types/config';
-import type { DataType, Scale } from '../config/core/constants';
-import type { CategoryValue } from '../types/data';
+import { deepMerge } from '../config/core/deepMerge.js';
+import { getThresholdEntryDefaults } from '../config/defaults/axisConfig.js';
+import { getFirstKeptStep, getNextPeriodStart, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
+import { NONE, SCALE_ORDINAL, TYPE_DATE } from '../config/core/constants.js';
+import type { ResolvedThreshold } from '../config/defaults/axisConfig.js';
+import type { AxisThresholdStepConfig, CategoryAxisThresholdStepConfig } from '../types/config.js';
+import type { DataType, Scale } from '../config/core/constants.js';
+import type { CategoryValue } from '../types/data.js';
 
 export interface ThresholdStepAxisConfig {
   scale: Scale;

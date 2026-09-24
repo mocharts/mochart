@@ -1,5 +1,5 @@
 
-import validators from './validators';
+import validators from './validators.js';
 
 const palette = () => validators.partialObjectWith(['strokeColors', 'fillColors'], validators.arrayOf(validators.color(), false));
 

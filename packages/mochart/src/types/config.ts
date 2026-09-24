@@ -2,8 +2,8 @@ import type {
   Auto, Align, TooltipValueAlign, AxisSide, MissingValueMode, VerticalAlign, Anchor, Position, Scale, DataType, RendererType, ThresholdTitleSide,
   CurveType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, CategoryValueIntervalPeriod, PatternType,
   ChartType, PieLabelType, PieTooltipValueType, DomainChange, AnimationEasing, FontWeight, FontStyle, Major
-} from '../config/core/constants';
-import type { MarginPadding, InnerOuter } from './geometry';
+} from '../config/core/constants.js';
+import type { MarginPadding, InnerOuter } from './geometry.js';
 
 /**
  * A CSS color string, or one of the palette color modes

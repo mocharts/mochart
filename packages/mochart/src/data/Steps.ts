@@ -1,6 +1,6 @@
-import { AUTO, NONE, TYPE_DATE, STEP_PERIOD_YEAR, STEP_PERIOD_MONTH, STEP_PERIOD_WEEK, STEP_PERIOD_SECOND, STEP_PERIOD_MINUTE, STEP_PERIOD_HOUR } from '../config/core/constants';
-import type { Auto, DataType, StepPeriod } from '../config/core/constants';
-import type { CategoryValue } from '../types/data';
+import { AUTO, NONE, TYPE_DATE, STEP_PERIOD_YEAR, STEP_PERIOD_MONTH, STEP_PERIOD_WEEK, STEP_PERIOD_SECOND, STEP_PERIOD_MINUTE, STEP_PERIOD_HOUR } from '../config/core/constants.js';
+import type { Auto, DataType, StepPeriod } from '../config/core/constants.js';
+import type { CategoryValue } from '../types/data.js';
 
 /** The rule members the tick and threshold steps share: which candidates, and which of them are kept. */
 export interface StepRule {

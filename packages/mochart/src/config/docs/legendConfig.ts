@@ -1,5 +1,5 @@
-import { style, spacing, font } from './shared';
-import { getDescriptions as getSeriesIconDescriptions } from './seriesIconConfig';
+import { style, spacing, font } from './shared.js';
+import { getDescriptions as getSeriesIconDescriptions } from './seriesIconConfig.js';
 
 export default function getDescriptions() {
   return {

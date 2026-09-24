@@ -1,7 +1,7 @@
-import validators from './validators';
-import getTruncationValidators from './truncationConfig';
+import validators from './validators.js';
+import getTruncationValidators from './truncationConfig.js';
 
-import { NONE, POSITIONS, ALIGNS, VERTICAL_ALIGNS } from '../core/constants';
+import { NONE, POSITIONS, ALIGNS, VERTICAL_ALIGNS } from '../core/constants.js';
 
 // A prefix or suffix box: partial like every nested config; extras pass for the unknown-key walk.
 const affix = () => validators.partialObjectWithShape({

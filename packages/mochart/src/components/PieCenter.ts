@@ -1,16 +1,16 @@
 import { format } from 'd3-format';
 
-import { Renderer, svgEl, textEl } from '../render';
+import { Renderer, svgEl, textEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { translate, textDY } from '../utils/utils';
-import { styleToAttributes } from '../utils/style';
-import { resolveFontStyle } from '../utils/font';
-import { NONE, AUTO } from '../config/core/constants';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { translate, textDY } from '../utils/utils.js';
+import { styleToAttributes } from '../utils/style.js';
+import { resolveFontStyle } from '../utils/font.js';
+import { NONE, AUTO } from '../config/core/constants.js';
 
-import type { FontConfig, PieConfig } from '../types/config';
-import type { LayoutInfo } from '../types/layout';
-import type { RadialLayoutInfo } from '../layout/RadialLayout';
+import type { FontConfig, PieConfig } from '../types/config.js';
+import type { LayoutInfo } from '../types/layout.js';
+import type { RadialLayoutInfo } from '../layout/RadialLayout.js';
 
 // SI-abbreviated by default, like the auto slice value labels.
 const AUTO_TOTAL_FORMAT = '~s';

@@ -1,4 +1,4 @@
-import { NONE } from '../core/constants';
+import { NONE } from '../core/constants.js';
 
 /** Every font member starts null: the text keeps the host page's css until a config sets a member. */
 export function getFontDefaults() {

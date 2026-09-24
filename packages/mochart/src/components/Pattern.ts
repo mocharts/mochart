@@ -1,9 +1,9 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 import {
   COLOR_SERIES, PATTERN_TYPE_CROSSHATCH, PATTERN_TYPE_DOTS
-} from '../config/core/constants';
-import type { El } from '../render';
-import type { PatternColor, PatternConfig } from '../types/config';
+} from '../config/core/constants.js';
+import type { El } from '../render/index.js';
+import type { PatternColor, PatternConfig } from '../types/config.js';
 
 interface PatternProps {
   uniqueId: string;

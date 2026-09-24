@@ -1,27 +1,27 @@
-import { Renderer, htmlEl, textEl } from '../render';
-import type { El, RendererItem, Slot, TextEl } from '../render';
+import { Renderer, htmlEl, textEl } from '../render/index.js';
+import type { El, RendererItem, Slot, TextEl } from '../render/index.js';
 
-import { getCategoryFormat, getSeriesFormats } from '../utils/ValueFormat';
-import { getSeriesText } from '../utils/TooltipFormat';
-import type { PieTooltipValues } from '../utils/TooltipFormat';
-import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
-import { mochartCssClasses } from '../utils/ChartDom';
-import { accessibilityActive, activeElementIn, focusRestored, isHoverPointer, isKeyboardFocus } from '../utils/utils';
-import { moveRovingFocus, resolveRovingId } from '../utils/RovingFocus';
-import { getPieSliceFractionMap } from '../data/PieData';
-import { getPieTooltipPercentFormat, pieLabelTypeUsesPercent } from '../data/PieLabel';
-import { NONE, CHART_TYPE_PIE, ALIGN_RIGHT } from '../config/core/constants';
+import { getCategoryFormat, getSeriesFormats } from '../utils/ValueFormat.js';
+import { getSeriesText } from '../utils/TooltipFormat.js';
+import type { PieTooltipValues } from '../utils/TooltipFormat.js';
+import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { accessibilityActive, activeElementIn, focusRestored, isHoverPointer, isKeyboardFocus } from '../utils/utils.js';
+import { moveRovingFocus, resolveRovingId } from '../utils/RovingFocus.js';
+import { getPieSliceFractionMap } from '../data/PieData.js';
+import { getPieTooltipPercentFormat, pieLabelTypeUsesPercent } from '../data/PieLabel.js';
+import { NONE, CHART_TYPE_PIE, ALIGN_RIGHT } from '../config/core/constants.js';
 
-import TooltipControls, { MODE_FOCUS, MODE_FILTER } from './TooltipControls';
-import type { TooltipMode } from './TooltipControls';
-import SeriesColorIcon from './SeriesColorIcon';
-import type { ColorPaletteConfig } from '../types/config';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
-import type { AxisDomains } from '../types/data';
-import type { ValueFormatter } from '../utils/ValueFormat';
-import type { InternalFocus } from '../types/chart';
-import type { FocusPercentage, FocusPercentageMap } from '../types/animation';
-import type { CategorySeriesValueObject } from '../data/ChartData';
+import TooltipControls, { MODE_FOCUS, MODE_FILTER } from './TooltipControls.js';
+import type { TooltipMode } from './TooltipControls.js';
+import SeriesColorIcon from './SeriesColorIcon.js';
+import type { ColorPaletteConfig } from '../types/config.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { AxisDomains } from '../types/data.js';
+import type { ValueFormatter } from '../utils/ValueFormat.js';
+import type { InternalFocus } from '../types/chart.js';
+import type { FocusPercentage, FocusPercentageMap } from '../types/animation.js';
+import type { CategorySeriesValueObject } from '../data/ChartData.js';
 
 type LineStyle = Record<string, string | number>;
 

@@ -1,9 +1,9 @@
-import { enhanceConfig } from '../config/helper';
-import { ArrayOfObjectsDataProvider, ObjectOfArraysDataProvider } from '../data/DataProvider';
-import { getDataErrors } from '../data/DataValidator';
-import type { DefaultChartProps } from '../types/chart';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { ArrayOfObjectsData, DataProvider, ObjectOfArraysData } from '../types/data';
+import { enhanceConfig } from '../config/helper/index.js';
+import { ArrayOfObjectsDataProvider, ObjectOfArraysDataProvider } from '../data/DataProvider.js';
+import { getDataErrors } from '../data/DataValidator.js';
+import type { DefaultChartProps } from '../types/chart.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { ArrayOfObjectsData, DataProvider, ObjectOfArraysData } from '../types/data.js';
 
 function isObject(v: unknown): v is Record<string, unknown> {
   return v !== null && v !== undefined && typeof v === "object";

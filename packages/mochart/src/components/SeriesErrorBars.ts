@@ -1,16 +1,16 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { NONE, RENDERER_BAR } from '../config/core/constants';
-import { getSeriesErrorBarStrokeColor } from '../utils/SeriesColors';
-import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
-import { getFocusStrokeStyle, getCategoryFocusPercentage } from '../utils/FocusValue';
-import { isMissingValue } from '../utils/utils';
-import type { ElListAdapter, ElProps } from '../render';
-import type { FocusData } from '../types/animation';
-import type { ColorPaletteConfig } from '../types/config';
-import type { EnhancedSeriesConfig } from '../types/enhanced';
-import type { AxisScale, SeriesPositionData, SeriesValueObject } from '../types/data';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { NONE, RENDERER_BAR } from '../config/core/constants.js';
+import { getSeriesErrorBarStrokeColor } from '../utils/SeriesColors.js';
+import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
+import { getFocusStrokeStyle, getCategoryFocusPercentage } from '../utils/FocusValue.js';
+import { isMissingValue } from '../utils/utils.js';
+import type { ElListAdapter, ElProps } from '../render/index.js';
+import type { FocusData } from '../types/animation.js';
+import type { ColorPaletteConfig } from '../types/config.js';
+import type { EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { AxisScale, SeriesPositionData, SeriesValueObject } from '../types/data.js';
 
 interface ErrorBarItem {
   key: string;

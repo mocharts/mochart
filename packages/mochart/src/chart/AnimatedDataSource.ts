@@ -1,17 +1,17 @@
-import { hasConfigStructureChange } from '../config/core/mochartConfig';
-import { isDataProviderValid, getChartData } from '../data/ChartData';
-import { getFocusData, getFocusDataWithDomainPercentages, getFocusDataWithMutations, getFocusDataWithCategoryChanges } from '../data/FocusData';
-import { getChartAnimationData } from '../animation/ChartAnimationData';
+import { hasConfigStructureChange } from '../config/core/mochartConfig.js';
+import { isDataProviderValid, getChartData } from '../data/ChartData.js';
+import { getFocusData, getFocusDataWithDomainPercentages, getFocusDataWithMutations, getFocusDataWithCategoryChanges } from '../data/FocusData.js';
+import { getChartAnimationData } from '../animation/ChartAnimationData.js';
 import {
   mergedIndexForNewIndex, oldIndexForNewIndex, newIndexForMergedIndex, newIndexForOldIndex,
-  hasCategoryAdditions, hasCategoryRemovals, hasCategoryReorder } from '../animation/CategoryAnimationData';
-import { getFocusAnimationData } from '../animation/FocusAnimationData';
-import { getChartTweenManager, dataTweenValueStart, dataTweenValueUpdate, dataTweenValueComplete } from '../animation/ChartTweens';
-import type { ChartTweenManager, DataTweenEvent } from '../animation/ChartTweens';
-import type { ChartData } from '../types/data';
-import type { ChartAnimationData, FocusData } from '../types/animation';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { ChartDataSource, ChartDataSourceInput, InternalFocus } from './ChartDataSource';
+  hasCategoryAdditions, hasCategoryRemovals, hasCategoryReorder } from '../animation/CategoryAnimationData.js';
+import { getFocusAnimationData } from '../animation/FocusAnimationData.js';
+import { getChartTweenManager, dataTweenValueStart, dataTweenValueUpdate, dataTweenValueComplete } from '../animation/ChartTweens.js';
+import type { ChartTweenManager, DataTweenEvent } from '../animation/ChartTweens.js';
+import type { ChartData } from '../types/data.js';
+import type { ChartAnimationData, FocusData } from '../types/animation.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { ChartDataSource, ChartDataSourceInput, InternalFocus } from './ChartDataSource.js';
 
 function hasFollowSeriesChange(previous: EnhancedMochartConfig, next: EnhancedMochartConfig): boolean {
   return next.series.some((seriesConfig, seriesIndex) =>

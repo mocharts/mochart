@@ -1,28 +1,28 @@
 import { arc } from 'd3-shape';
 import type { ArcDatum } from 'd3-shape';
 
-import { Renderer, svgEl, textEl } from '../render';
+import { Renderer, svgEl, textEl } from '../render/index.js';
 
-import { degreesToRadians } from '../data/PieData';
-import { getSeriesFillColor, getSeriesStrokeColor, getSeriesLabelFillColor, getSeriesLabelStrokeColor } from '../utils/SeriesColors';
-import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
-import { getSeriesTitle } from '../utils/SeriesTitle';
-import { sliceIsInteractive } from '../utils/RovingFocus';
-import { getFocusStyle } from '../utils/FocusValue';
-import { resolveFontStyle } from '../utils/font';
-import { getGradientReference, getPatternReference } from '../utils/svgUtils';
-import { mochartCssClasses } from '../utils/ChartDom';
-import { translate, textDY, isHoverPointer } from '../utils/utils';
-import { NONE } from '../config/core/constants';
-import { formatPieLabelType, getPieLabelFormats } from '../data/PieLabel';
-import type { PieLabelFormats } from '../data/PieLabel';
+import { degreesToRadians } from '../data/PieData.js';
+import { getSeriesFillColor, getSeriesStrokeColor, getSeriesLabelFillColor, getSeriesLabelStrokeColor } from '../utils/SeriesColors.js';
+import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
+import { getSeriesTitle } from '../utils/SeriesTitle.js';
+import { sliceIsInteractive } from '../utils/RovingFocus.js';
+import { getFocusStyle } from '../utils/FocusValue.js';
+import { resolveFontStyle } from '../utils/font.js';
+import { getGradientReference, getPatternReference } from '../utils/svgUtils.js';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { translate, textDY, isHoverPointer } from '../utils/utils.js';
+import { NONE } from '../config/core/constants.js';
+import { formatPieLabelType, getPieLabelFormats } from '../data/PieLabel.js';
+import type { PieLabelFormats } from '../data/PieLabel.js';
 
-import type { ColorPaletteConfig, FontConfig, PieConfig } from '../types/config';
-import type { EnhancedSeriesConfig } from '../types/enhanced';
-import type { FocusData } from '../types/animation';
-import type { LayoutInfo } from '../types/layout';
-import type { PieSliceAngles } from '../data/PieData';
-import type { RadialLayoutInfo } from '../layout/RadialLayout';
+import type { ColorPaletteConfig, FontConfig, PieConfig } from '../types/config.js';
+import type { EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { FocusData } from '../types/animation.js';
+import type { LayoutInfo } from '../types/layout.js';
+import type { PieSliceAngles } from '../data/PieData.js';
+import type { RadialLayoutInfo } from '../layout/RadialLayout.js';
 
 const noOp = () => {};
 

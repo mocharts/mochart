@@ -1,10 +1,10 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { getAxisFocusStyle } from '../utils/FocusValue';
-import { styleToAttributes } from '../utils/style';
-import type { AxisConfigBase } from '../types/config';
-import type { AxisLayoutInfo } from '../types/layout';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { getAxisFocusStyle } from '../utils/FocusValue.js';
+import { styleToAttributes } from '../utils/style.js';
+import type { AxisConfigBase } from '../types/config.js';
+import type { AxisLayoutInfo } from '../types/layout.js';
 
 interface AxisLineProps {
   axisConfig: AxisConfigBase & { useSeriesFocus?: boolean };

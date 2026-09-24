@@ -1,14 +1,14 @@
-import { Renderer, svgEl } from '../render';
-import type { RendererList, Slot } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
+import type { RendererList, Slot } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
+import { mochartCssClasses } from '../utils/ChartDom.js';
 
-import Axis from './Axis';
-import { getAxisAccessibleLabel } from './AxisContainer';
-import { accessibilityActive } from '../utils/utils';
-import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced';
-import type { AxisTick } from '../types/data';
-import type { AxisLayoutInfo, CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
+import Axis from './Axis.js';
+import { getAxisAccessibleLabel } from './AxisContainer.js';
+import { accessibilityActive } from '../utils/utils.js';
+import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { AxisTick } from '../types/data.js';
+import type { AxisLayoutInfo, CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
 const emptyFocusPercentages: number[] = [];
 const emptyTicks: AxisTick[] = [];

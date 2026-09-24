@@ -1,9 +1,9 @@
-import { NONE, MISSING_VALUE_MODE_BASE, MISSING_VALUE_MODE_CONNECT, RENDERER_BAR } from '../config/core/constants';
-import { isMissingValue } from './utils';
-import type { CategoryAxisConfig } from '../types/config';
-import type { EnhancedSeriesConfig } from '../types/enhanced';
-import type { AxisScale, CategoryAxisData, SeriesPosition, SeriesPositionAccessor, SeriesPositionData, SeriesValueObject } from '../types/data';
-import type { LayoutInfo } from '../types/layout';
+import { NONE, MISSING_VALUE_MODE_BASE, MISSING_VALUE_MODE_CONNECT, RENDERER_BAR } from '../config/core/constants.js';
+import { isMissingValue } from './utils.js';
+import type { CategoryAxisConfig } from '../types/config.js';
+import type { EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { AxisScale, CategoryAxisData, SeriesPosition, SeriesPositionAccessor, SeriesPositionData, SeriesValueObject } from '../types/data.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 function normalizePriorPositions(seriesPositions: SeriesPosition[], seriesPriorPositions: SeriesPosition[] | null, seriesBasePosition: number, inverted: boolean, sort: boolean): void {
   const length = seriesPositions.length;

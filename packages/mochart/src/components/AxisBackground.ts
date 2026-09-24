@@ -1,8 +1,8 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import Background from './Background';
-import type { AxisConfigBase } from '../types/config';
-import type { AxisLayoutInfo } from '../types/layout';
+import Background from './Background.js';
+import type { AxisConfigBase } from '../types/config.js';
+import type { AxisLayoutInfo } from '../types/layout.js';
 
 interface AxisBackgroundProps {
   axisConfig: AxisConfigBase;

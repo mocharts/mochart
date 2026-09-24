@@ -1,4 +1,4 @@
-import { deepMerge } from '../core/deepMerge';
+import { deepMerge } from '../core/deepMerge.js';
 
 export interface ConditionalDefaultRule<C, E, T> {
   condition: { bivarianceHack(config: C, extraArg: E): boolean }['bivarianceHack'];

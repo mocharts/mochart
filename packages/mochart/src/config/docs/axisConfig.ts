@@ -1,5 +1,5 @@
-import { style, spacing, font, styleStateDescriptions, styleDescriptions, fontDescriptions } from './shared';
-import type { DescriptionMap, NestedDescription } from './shared';
+import { style, spacing, font, styleStateDescriptions, styleDescriptions, fontDescriptions } from './shared.js';
+import type { DescriptionMap, NestedDescription } from './shared.js';
 
 const strokeMembers = ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray'];
 const lineMembers = ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray'];

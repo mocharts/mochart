@@ -1,9 +1,9 @@
-import { NONE, POSITION_BOTTOM, ALIGN_CENTER, COLOR_CURRENT } from '../core/constants';
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
-import { getRegularDefaults as getSeriesIconRegularDefaults } from './seriesIconConfig';
-import { getRegularDefaults as getTruncationDefaults } from './truncationConfig';
-import { getFontDefaults } from './fontConfig';
-import type { DeepPartial, LegendConfig } from '../../types/config';
+import { NONE, POSITION_BOTTOM, ALIGN_CENTER, COLOR_CURRENT } from '../core/constants.js';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
+import { getRegularDefaults as getSeriesIconRegularDefaults } from './seriesIconConfig.js';
+import { getRegularDefaults as getTruncationDefaults } from './truncationConfig.js';
+import { getFontDefaults } from './fontConfig.js';
+import type { DeepPartial, LegendConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<LegendConfig> = {}, seriesCount: number): Partial<LegendConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, seriesCount);

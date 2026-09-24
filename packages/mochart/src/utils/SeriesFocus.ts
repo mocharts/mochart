@@ -1,7 +1,7 @@
-import { NONE } from '../config/core/constants';
-import { getCombinedFocusPercentage } from './FocusValue';
-import type { FocusPercentageMap } from '../types/animation';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced';
+import { NONE } from '../config/core/constants.js';
+import { getCombinedFocusPercentage } from './FocusValue.js';
+import type { FocusPercentageMap } from '../types/animation.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced.js';
 
 export function leaderSeriesId(mochartConfig: EnhancedMochartConfig, seriesId: string): string {
   const { followSeries } = mochartConfig.seriesById[seriesId];

@@ -1,15 +1,15 @@
-import { NONE, PIE_TOOLTIP_VALUE_TYPE_PERCENT, MISSING_VALUE_MODE_CONNECT, CHART_TYPE_PIE } from '../config/core/constants';
-import { getSeriesLabel } from './SeriesTitle';
-import { getCategoryFormat, getSeriesFormats } from './ValueFormat';
-import { formatPieLabelType, pieLabelTypeUsesPercent, getPieTooltipPercentFormat } from '../data/PieLabel';
-import { getPieSliceFractionMap } from '../data/PieData';
-import type { PieTooltipValueType } from '../config/core/constants';
-import type { TooltipConfig } from '../types/config';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced';
-import type { SeriesDomainObjects } from '../types/data';
-import type { CategorySeriesValueObject as ChartCategorySeriesValueObject } from '../data/ChartData';
-import type { ValueKey } from '../data/constants';
-import type { ValueFormatter } from './ValueFormat';
+import { NONE, PIE_TOOLTIP_VALUE_TYPE_PERCENT, MISSING_VALUE_MODE_CONNECT, CHART_TYPE_PIE } from '../config/core/constants.js';
+import { getSeriesLabel } from './SeriesTitle.js';
+import { getCategoryFormat, getSeriesFormats } from './ValueFormat.js';
+import { formatPieLabelType, pieLabelTypeUsesPercent, getPieTooltipPercentFormat } from '../data/PieLabel.js';
+import { getPieSliceFractionMap } from '../data/PieData.js';
+import type { PieTooltipValueType } from '../config/core/constants.js';
+import type { TooltipConfig } from '../types/config.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { SeriesDomainObjects } from '../types/data.js';
+import type { CategorySeriesValueObject as ChartCategorySeriesValueObject } from '../data/ChartData.js';
+import type { ValueKey } from '../data/constants.js';
+import type { ValueFormatter } from './ValueFormat.js';
 
 type CategorySeriesValueObject = Partial<Record<ValueKey, number | null | undefined>>;
 interface CategorySeriesSlice {

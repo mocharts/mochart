@@ -1,16 +1,16 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { getValueAxisFocusContexts } from '../utils/FocusValue';
-import { accessibilityActive } from '../utils/utils';
-import { NONE } from '../config/core/constants';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { getValueAxisFocusContexts } from '../utils/FocusValue.js';
+import { accessibilityActive } from '../utils/utils.js';
+import { NONE } from '../config/core/constants.js';
 
-import CategoryAxis from './CategoryAxis';
-import ValueAxis from './ValueAxis';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { AxisData, CategoryAxisData, ValueAxisData, SeriesData } from '../types/data';
-import type { FocusData } from '../types/animation';
-import type { AxisLayoutInfo, CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
+import CategoryAxis from './CategoryAxis.js';
+import ValueAxis from './ValueAxis.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { AxisData, CategoryAxisData, ValueAxisData, SeriesData } from '../types/data.js';
+import type { FocusData } from '../types/animation.js';
+import type { AxisLayoutInfo, CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
 interface AxisContainerProps {
   front: boolean;

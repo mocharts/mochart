@@ -1,8 +1,8 @@
-import { getWithMutations } from '../utils/WithMutations';
-import { cssBorderWidth } from '../utils/style';
-import type { Bounds, Size } from '../types/geometry';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { ChartLayoutInfo } from '../types/layout';
+import { getWithMutations } from '../utils/WithMutations.js';
+import { cssBorderWidth } from '../utils/style.js';
+import type { Bounds, Size } from '../types/geometry.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { ChartLayoutInfo } from '../types/layout.js';
 
 const defaultLayout: Bounds = { x: 0, y: 0, width: 50, height: 50 };
 

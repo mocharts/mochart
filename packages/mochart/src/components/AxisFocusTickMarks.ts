@@ -1,11 +1,11 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { styleToAttributes } from '../utils/style';
-import { syncAxisLines } from './AxisLines';
-import type { AxisLineHandle } from './AxisLines';
-import type { AxisConfigBase } from '../types/config';
-import type { AxisLayoutInfo } from '../types/layout';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { styleToAttributes } from '../utils/style.js';
+import { syncAxisLines } from './AxisLines.js';
+import type { AxisLineHandle } from './AxisLines.js';
+import type { AxisConfigBase } from '../types/config.js';
+import type { AxisLayoutInfo } from '../types/layout.js';
 
 interface AxisFocusTickMarksProps {
   axisConfig: AxisConfigBase;

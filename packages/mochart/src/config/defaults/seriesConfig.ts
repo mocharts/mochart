@@ -2,11 +2,11 @@ import {
   AUTO, NONE, RENDERER_AREA, RENDERER_BAR, RENDERER_LINE, RENDERER_NONE, MARKER_SHAPE_CIRCLE, MARKER_SIZE_SCALE_SQRT, CURVE_TYPE_LINEAR,
   STYLE_SAME, COLOR_SERIES, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, COLOR_CURRENT, LABEL_POSITION_CENTER,
   COLOR_INTERPOLATION_HCL, MISSING_VALUE_MODE_BREAK, STYLE_STATES
-} from '../core/constants';
+} from '../core/constants.js';
 
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
-import { getFontDefaults } from './fontConfig';
-import type { DeepPartial, SeriesConfig } from '../../types/config';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
+import { getFontDefaults } from './fontConfig.js';
+import type { DeepPartial, SeriesConfig } from '../../types/config.js';
 
 const colorPropertySuffix = 'when colorProperty is not ' + NONE;
 const colorPropertyNoneSuffix = 'when colorProperty is ' + NONE;

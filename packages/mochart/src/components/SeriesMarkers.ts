@@ -1,21 +1,21 @@
 import { scaleLinear, scaleSqrt } from 'd3-scale';
 
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { NONE, MARKER_SIZE_SCALE_SQRT, RENDERER_BAR } from '../config/core/constants';
-import { translate, isMissingValue } from '../utils/utils';
-import { getSymbolGenerator } from '../utils/shapeUtils';
-import { getSeriesMarkerFillColor, getSeriesMarkerStrokeColor } from '../utils/SeriesColors';
-import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
-import { getFocusStyle, getCategoryFocusPercentage } from '../utils/FocusValue';
-import type { ElListAdapter } from '../render';
-import type { ColorPaletteConfig } from '../types/config';
-import type { EnhancedSeriesConfig } from '../types/enhanced';
-import type { FocusData } from '../types/animation';
-import type { SeriesDomainObject, SeriesPositionData, SeriesValueObject } from '../types/data';
-import { CategoryShapeCache } from '../utils/CategoryShapes';
-import type { CategoryShape } from '../utils/CategoryShapes';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { NONE, MARKER_SIZE_SCALE_SQRT, RENDERER_BAR } from '../config/core/constants.js';
+import { translate, isMissingValue } from '../utils/utils.js';
+import { getSymbolGenerator } from '../utils/shapeUtils.js';
+import { getSeriesMarkerFillColor, getSeriesMarkerStrokeColor } from '../utils/SeriesColors.js';
+import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
+import { getFocusStyle, getCategoryFocusPercentage } from '../utils/FocusValue.js';
+import type { ElListAdapter } from '../render/index.js';
+import type { ColorPaletteConfig } from '../types/config.js';
+import type { EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { FocusData } from '../types/animation.js';
+import type { SeriesDomainObject, SeriesPositionData, SeriesValueObject } from '../types/data.js';
+import { CategoryShapeCache } from '../utils/CategoryShapes.js';
+import type { CategoryShape } from '../utils/CategoryShapes.js';
 
 const markerAdapter: ElListAdapter<CategoryShape, { root: ReturnType<typeof svgEl> }> = {
   key: (marker) => marker.key,

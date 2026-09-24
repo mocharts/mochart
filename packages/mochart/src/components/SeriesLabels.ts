@@ -1,21 +1,21 @@
-import { Renderer, svgEl, textEl } from '../render';
+import { Renderer, svgEl, textEl } from '../render/index.js';
 
-import { getSeriesLabelFormat } from '../utils/ValueFormat';
-import { mochartCssClasses } from '../utils/ChartDom';
-import { NONE, AUTO, LABEL_POSITION_CENTER, LABEL_POSITION_INSIDE, RENDERER_BAR } from '../config/core/constants';
-import { translate, isMissingValue } from '../utils/utils';
-import { getSeriesLabelFillColor, getSeriesLabelStrokeColor } from '../utils/SeriesColors';
-import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
-import { getFocusStyle, getCategoryFocusPercentage } from '../utils/FocusValue';
-import { resolveFontStyle } from '../utils/font';
-import type { El, ElListAdapter, TextEl } from '../render';
-import type { ColorPaletteConfig, FontConfig } from '../types/config';
-import type { EnhancedSeriesConfig } from '../types/enhanced';
-import type { FocusData } from '../types/animation';
-import type { AxisScale, NullableDomain, SeriesPositionData, SeriesValueObject } from '../types/data';
-import type { LabelPosition } from '../config/core/constants';
-import { CategoryShapeCache } from '../utils/CategoryShapes';
-import type { CategoryShape } from '../utils/CategoryShapes';
+import { getSeriesLabelFormat } from '../utils/ValueFormat.js';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { NONE, AUTO, LABEL_POSITION_CENTER, LABEL_POSITION_INSIDE, RENDERER_BAR } from '../config/core/constants.js';
+import { translate, isMissingValue } from '../utils/utils.js';
+import { getSeriesLabelFillColor, getSeriesLabelStrokeColor } from '../utils/SeriesColors.js';
+import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
+import { getFocusStyle, getCategoryFocusPercentage } from '../utils/FocusValue.js';
+import { resolveFontStyle } from '../utils/font.js';
+import type { El, ElListAdapter, TextEl } from '../render/index.js';
+import type { ColorPaletteConfig, FontConfig } from '../types/config.js';
+import type { EnhancedSeriesConfig } from '../types/enhanced.js';
+import type { FocusData } from '../types/animation.js';
+import type { AxisScale, NullableDomain, SeriesPositionData, SeriesValueObject } from '../types/data.js';
+import type { LabelPosition } from '../config/core/constants.js';
+import { CategoryShapeCache } from '../utils/CategoryShapes.js';
+import type { CategoryShape } from '../utils/CategoryShapes.js';
 
 const getLabelPosition = (isAboveBase: boolean, hasBase: boolean, seriesConfig: EnhancedSeriesConfig): LabelPosition => {
   let { position: labelPosition } = seriesConfig.label;

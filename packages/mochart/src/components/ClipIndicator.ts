@@ -1,17 +1,17 @@
 import { path } from 'd3-path';
 
-import { Renderer, svgEl, textEl } from '../render';
+import { Renderer, svgEl, textEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { styleToAttributes } from '../utils/style';
-import { resolveFontStyle } from '../utils/font';
-import { getSvgWidthAndHeight } from '../utils/TextMeasurement';
-import { AUTO, NONE } from '../config/core/constants';
-import type { El, TextEl } from '../render';
-import type { ClippedEdges } from '../types/data';
-import type { Bounds, Size } from '../types/geometry';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { LayoutInfo } from '../types/layout';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { styleToAttributes } from '../utils/style.js';
+import { resolveFontStyle } from '../utils/font.js';
+import { getSvgWidthAndHeight } from '../utils/TextMeasurement.js';
+import { AUTO, NONE } from '../config/core/constants.js';
+import type { El, TextEl } from '../render/index.js';
+import type { ClippedEdges } from '../types/data.js';
+import type { Bounds, Size } from '../types/geometry.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 interface ClipIndicatorProps {
   mochartConfig: EnhancedMochartConfig;

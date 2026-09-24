@@ -1,4 +1,4 @@
-import type { EnhancedMochartConfig } from '../types/enhanced';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
 import type {
   ArrayFocusDeltaData,
   FocusAnimationData,
@@ -7,7 +7,7 @@ import type {
   FocusPercentage,
   FocusPercentageMap,
   MapFocusDeltaData
-} from '../types/animation';
+} from '../types/animation.js';
 
 export function getFocusAnimationData(_mochartConfig: EnhancedMochartConfig, oldFocusData: FocusData, newFocusData: FocusData): FocusAnimationData {
   const startFocusData = oldFocusData;

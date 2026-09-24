@@ -1,12 +1,12 @@
-import validators from './validators';
-import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators';
+import validators from './validators.js';
+import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators.js';
 
 import {
   AUTO, NONE, RENDERERS, CURVE_TYPES, CAP_TYPES, LABEL_POSITIONS, COLOR_INTERPOLATIONS, MARKER_SHAPES, MARKER_SIZE_SCALES,
   COLOR_SERIES, STYLE_SAME, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, MISSING_VALUE_MODES, RENDERER_AREA, RENDERER_BAR,
   CURVE_TYPE_CARDINAL, CURVE_TYPE_CATMULL_ROM
-} from '../core/constants';
-import type { DeepPartial, SeriesConfig } from '../../types/config';
+} from '../core/constants.js';
+import type { DeepPartial, SeriesConfig } from '../../types/config.js';
 import type { Validator } from '@mochart/movalid';
 
 type ColorCondition = { colorProperty?: SeriesConfig['colorProperty'], colorScale?: DeepPartial<SeriesConfig['colorScale']> };

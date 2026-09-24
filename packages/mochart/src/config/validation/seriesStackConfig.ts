@@ -1,7 +1,7 @@
 import {
   NONE, CAP_TYPES
-} from '../core/constants';
-import validators from './validators';
+} from '../core/constants.js';
+import validators from './validators.js';
 
 export default function getValidators() {
   return {

@@ -1,6 +1,6 @@
-import { spacing, font } from './shared';
-import type { NestedDescription } from './shared';
-import { getDescriptions as getSeriesIconDescriptions } from './seriesIconConfig';
+import { spacing, font } from './shared.js';
+import type { NestedDescription } from './shared.js';
+import { getDescriptions as getSeriesIconDescriptions } from './seriesIconConfig.js';
 
 // Not the shared style prose: the tooltip is html, so an opacity is composited into its color rather
 // than written as a separate svg attribute.

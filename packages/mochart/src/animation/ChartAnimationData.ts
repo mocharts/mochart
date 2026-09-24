@@ -1,21 +1,21 @@
-import { getChartDataWithSeriesData, getChartDataCategoryCount } from '../data/ChartData';
+import { getChartDataWithSeriesData, getChartDataCategoryCount } from '../data/ChartData.js';
 
-import { getSeriesDataWithSeriesCounts, getSeriesDataWithFilteredFlags } from '../data/SeriesData';
+import { getSeriesDataWithSeriesCounts, getSeriesDataWithFilteredFlags } from '../data/SeriesData.js';
 
-import { getInitialCategoryDeltaData, getCategoryDeltaData } from './CategoryAnimationData';
+import { getInitialCategoryDeltaData, getCategoryDeltaData } from './CategoryAnimationData.js';
 
-import { emptyAxisDeltaData, getTransitionAxisExpansionData, getTransitionAxisContractionData } from './DomainAnimationData';
+import { emptyAxisDeltaData, getTransitionAxisExpansionData, getTransitionAxisContractionData } from './DomainAnimationData.js';
 
-import { getInitialValueChangeData, getFilterDeltaData, getTransitionValueChangeData } from './SeriesAnimationData';
+import { getInitialValueChangeData, getFilterDeltaData, getTransitionValueChangeData } from './SeriesAnimationData.js';
 
-import type { EnhancedMochartConfig } from '../types/enhanced';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
 import type {
   AnimationChartData,
   AxisTransitionData,
   ChartAnimationData,
   CategoryDeltaData,
   ValueChangeData
-} from '../types/animation';
+} from '../types/animation.js';
 
 // Main animation logic functions
 

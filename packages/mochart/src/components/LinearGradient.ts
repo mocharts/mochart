@@ -1,6 +1,6 @@
-import { Renderer, svgEl } from '../render';
-import type { ElListAdapter } from '../render';
-import type { GradientStop, LinearGradientConfig } from '../types/config';
+import { Renderer, svgEl } from '../render/index.js';
+import type { ElListAdapter } from '../render/index.js';
+import type { GradientStop, LinearGradientConfig } from '../types/config.js';
 
 interface LinearGradientProps {
   uniqueId: string;

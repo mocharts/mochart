@@ -1,4 +1,4 @@
-import { style, spacing } from './shared';
+import { style, spacing } from './shared.js';
 
 export default function getDescriptions() {
   return {

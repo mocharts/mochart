@@ -1,5 +1,5 @@
-import { NONE } from '../config/core/constants';
-import type { EnhancedSeriesConfig } from '../types/enhanced';
+import { NONE } from '../config/core/constants.js';
+import type { EnhancedSeriesConfig } from '../types/enhanced.js';
 
 export const getSeriesTitle = ({ id, title }: EnhancedSeriesConfig): string => title !== NONE ? title : `Series ${id}`;
 

@@ -1,10 +1,10 @@
-import validators from './validators';
+import validators from './validators.js';
 
-import { AUTO, NONE, MAJOR, SCALE_ORDINAL, SCALE_LINEAR, TYPE_STRING, TYPE_NUMBER, TYPE_DATE, STEP_PERIODS, CATEGORY_VALUE_INTERVAL_PERIODS } from '../core/constants';
+import { AUTO, NONE, MAJOR, SCALE_ORDINAL, SCALE_LINEAR, TYPE_STRING, TYPE_NUMBER, TYPE_DATE, STEP_PERIODS, CATEGORY_VALUE_INTERVAL_PERIODS } from '../core/constants.js';
 
-import getAxisValidators, { getTickLabelValidators, getThresholdStepValidators, getTickStepValidators, thresholdStepIntervalValidator, positiveNumber } from './axisConfig';
-import getTruncationValidators from './truncationConfig';
-import type { CategoryAxisConfig } from '../../types/config';
+import getAxisValidators, { getTickLabelValidators, getThresholdStepValidators, getTickStepValidators, thresholdStepIntervalValidator, positiveNumber } from './axisConfig.js';
+import getTruncationValidators from './truncationConfig.js';
+import type { CategoryAxisConfig } from '../../types/config.js';
 
 type CategoryAxisCondition = Pick<CategoryAxisConfig, 'type' | 'scale'> & { keyProperty?: string | null };
 

@@ -1,6 +1,6 @@
 import { color } from 'd3-color';
 
-import type { Style } from '../types/config';
+import type { Style } from '../types/config.js';
 
 /** The svg presentation attributes a style maps onto: the config's `strokeColor` / `fillColor` are svg's `stroke` / `fill`. */
 export interface StyleAttributes {

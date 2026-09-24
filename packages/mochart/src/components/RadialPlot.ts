@@ -1,15 +1,15 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
+import { mochartCssClasses } from '../utils/ChartDom.js';
 
-import Background from './Background';
-import PieSeriesContainer from './PieSeriesContainer';
-import type { SeriesShapeA11yProps } from './SeriesBackground';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { ChartSliceClickPayload, InternalFocus } from '../types/chart';
-import type { ChartData } from '../types/data';
-import type { FocusData } from '../types/animation';
-import type { LayoutInfo, SpacingLayoutInfo } from '../types/layout';
+import Background from './Background.js';
+import PieSeriesContainer from './PieSeriesContainer.js';
+import type { SeriesShapeA11yProps } from './SeriesBackground.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { ChartSliceClickPayload, InternalFocus } from '../types/chart.js';
+import type { ChartData } from '../types/data.js';
+import type { FocusData } from '../types/animation.js';
+import type { LayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
 interface RadialPlotProps {
   mochartConfig: EnhancedMochartConfig;

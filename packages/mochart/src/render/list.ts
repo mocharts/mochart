@@ -1,5 +1,5 @@
-import { El } from './el';
-import type { ErasedRenderer, RendererClass } from './renderer';
+import { El } from './el.js';
+import type { ErasedRenderer, RendererClass } from './renderer.js';
 
 export type ListKey = string | number;
 

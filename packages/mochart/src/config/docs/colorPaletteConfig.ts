@@ -1,5 +1,5 @@
-import { colorPaletteDescriptions } from './shared';
-import type { NestedDescription } from './shared';
+import { colorPaletteDescriptions } from './shared.js';
+import type { NestedDescription } from './shared.js';
 
 function palettes(element: string): NestedDescription {
   return {

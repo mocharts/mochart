@@ -1,5 +1,5 @@
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
-import type { DeepPartial, SeriesGroupConfig } from '../../types/config';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
+import type { DeepPartial, SeriesGroupConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<SeriesGroupConfig> = {}, index: number): Partial<SeriesGroupConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, index);

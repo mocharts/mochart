@@ -1,6 +1,6 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import type { SeriesSwatchGradient } from '../utils/SeriesColors';
+import type { SeriesSwatchGradient } from '../utils/SeriesColors.js';
 
 interface SeriesColorGradientProps {
   uniqueId: string;

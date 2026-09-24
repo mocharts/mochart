@@ -1,18 +1,18 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { getSeriesConfigsOrderedByFocus } from '../data/FocusData';
-import { mochartCssClasses } from '../utils/ChartDom';
-import { accessibilityActive } from '../utils/utils';
-import { getClipPathReference } from '../utils/svgUtils';
-import { moveRovingFocus, seriesNodesInConfigOrder, resolveRovingId, focusedSeriesNode, restoreSeriesFocus, seriesIsInteractive } from '../utils/RovingFocus';
+import { getSeriesConfigsOrderedByFocus } from '../data/FocusData.js';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { accessibilityActive } from '../utils/utils.js';
+import { getClipPathReference } from '../utils/svgUtils.js';
+import { moveRovingFocus, seriesNodesInConfigOrder, resolveRovingId, focusedSeriesNode, restoreSeriesFocus, seriesIsInteractive } from '../utils/RovingFocus.js';
 
-import SeriesBackground from './SeriesBackground';
-import type { SeriesShapeA11yProps } from './SeriesBackground';
-import Series from './Series';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { CategoryAxisData, ValueAxisData, SeriesData, StackData } from '../types/data';
-import type { FocusData } from '../types/animation';
-import type { LayoutInfo } from '../types/layout';
+import SeriesBackground from './SeriesBackground.js';
+import type { SeriesShapeA11yProps } from './SeriesBackground.js';
+import Series from './Series.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { CategoryAxisData, ValueAxisData, SeriesData, StackData } from '../types/data.js';
+import type { FocusData } from '../types/animation.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 interface SeriesContainerProps {
   mochartConfig: EnhancedMochartConfig;

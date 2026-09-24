@@ -1,5 +1,5 @@
-import validators from './validators';
-import { AUTO, NONE } from '../core/constants';
+import validators from './validators.js';
+import { AUTO, NONE } from '../core/constants.js';
 
 export default function getValidators() {
   return {

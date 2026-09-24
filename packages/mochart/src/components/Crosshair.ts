@@ -1,11 +1,11 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { accessibilityActive } from '../utils/utils';
-import { getClipPathReference } from '../utils/svgUtils';
-import { styleToAttributes } from '../utils/style';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { LayoutInfo } from '../types/layout';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { accessibilityActive } from '../utils/utils.js';
+import { getClipPathReference } from '../utils/svgUtils.js';
+import { styleToAttributes } from '../utils/style.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 const emptyPercentages: number[] = [];
 

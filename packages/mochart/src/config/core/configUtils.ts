@@ -1,4 +1,4 @@
-import { deepMerge } from './deepMerge';
+import { deepMerge } from './deepMerge.js';
 
 type ConfigRecord = Record<string, unknown>;
 

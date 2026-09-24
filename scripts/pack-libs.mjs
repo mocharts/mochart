@@ -85,6 +85,30 @@ if (smoke && !errors.length) {
     const result = spawnSync(process.execPath, ['--import', './register.mjs', '--input-type=module', '-e', script], { cwd: smokeDir, stdio: 'inherit' });
     if (result.status !== 0) errors.push(`${manifest.name}: import failed under Node`);
   }
+
+  // the shipped declarations under nodenext resolution: an extensionless relative import in a d.ts collapses
+  // that package's whole type surface to any there, which skipLibCheck hides, so a wrong assignment to one
+  // exported type per package must still be rejected
+  const typeProbes = [
+    ['@mochart/core', 'MochartConfig'], ['@mochart/react', 'DefaultChartProps'], ['@mochart/vue', 'DefaultChartProps'],
+    ['@mochart/lit', 'DefaultChartProps'], ['@mochart/angular', 'PlaceholderProps'], ['@mochart/editor', 'JsonEditorOptions'],
+    ['@mochart/export', 'ExportSvgOptions']
+  ].filter(([name]) => packed.some(({ manifest }) => manifest.name === name));
+  const typesDir = join(smokeDir, 'types');
+  mkdirSync(typesDir);
+  writeFileSync(join(typesDir, 'consumer.ts'),
+    typeProbes.map(([name, type], i) => `import type { ${type} as T${i} } from '${name}';\nexport const wrong${i}: T${i} = 42;`).join('\n') + '\n');
+  writeFileSync(join(typesDir, 'tsconfig.json'), JSON.stringify({
+    compilerOptions: { strict: true, noEmit: true, skipLibCheck: true, module: 'NodeNext', moduleResolution: 'NodeNext', target: 'es2022' },
+    files: ['consumer.ts']
+  }, null, 2));
+  console.log('pack-libs: typechecking a nodenext consumer of the tarballs');
+  const tsc = spawnSync(process.execPath, [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '-p', 'tsconfig.json'], { cwd: typesDir, encoding: 'utf8' });
+  // TS2322 for a type with required members, TS2559 for one whose members are all optional
+  const rejected = (tsc.stdout.match(/TS2322|TS2559/g) ?? []).length;
+  if (rejected !== typeProbes.length) {
+    errors.push(`nodenext type probe: ${rejected} of ${typeProbes.length} wrong assignments rejected, so a package's types resolve to any there\n${tsc.stdout}`);
+  }
 }
 
 if (errors.length) {

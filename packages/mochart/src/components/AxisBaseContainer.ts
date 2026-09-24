@@ -1,14 +1,14 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { getValueAxisFocusContexts } from '../utils/FocusValue';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { getValueAxisFocusContexts } from '../utils/FocusValue.js';
 
-import AxisBaseLine from './AxisBaseLine';
-import { NONE } from '../config/core/constants';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { SeriesData } from '../types/data';
-import type { FocusData } from '../types/animation';
-import type { LayoutInfo } from '../types/layout';
+import AxisBaseLine from './AxisBaseLine.js';
+import { NONE } from '../config/core/constants.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { SeriesData } from '../types/data.js';
+import type { FocusData } from '../types/animation.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 interface AxisBaseContainerProps {
   front: boolean;

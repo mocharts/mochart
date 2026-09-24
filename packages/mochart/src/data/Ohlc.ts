@@ -1,9 +1,9 @@
 import {
   computeCandlesticksFor, DIRECTIONS, DEFAULT_TITLES, DEFAULT_COLORS, CATEGORY_PROPERTY, DEFAULT_RANGE_TITLE,
   PRICE_AXIS_ID, getVolumeOptions, buildVolumeValueAxisConfigs, buildVolumeSeriesConfigs, buildDirectionRows
-} from './Candlestick';
-import type { Candlestick, CandlestickAxisType, CandlestickDirection, CandlestickItem, CandlestickVolumeOptions } from './Candlestick';
-import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } from '../types/config';
+} from './Candlestick.js';
+import type { Candlestick, CandlestickAxisType, CandlestickDirection, CandlestickItem, CandlestickVolumeOptions } from './Candlestick.js';
+import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } from '../types/config.js';
 
 export interface CreateOhlcOptions {
   /**

@@ -1,12 +1,12 @@
-import { Renderer, Slot } from '../render';
+import { Renderer, Slot } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
+import { mochartCssClasses } from '../utils/ChartDom.js';
 
-import AxisGrid from './AxisGrid';
-import type { PlotConfig } from '../types/config';
-import type { EnhancedValueAxisConfig } from '../types/enhanced';
-import type { ValueAxisData } from '../types/data';
-import type { LayoutInfo } from '../types/layout';
+import AxisGrid from './AxisGrid.js';
+import type { PlotConfig } from '../types/config.js';
+import type { EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { ValueAxisData } from '../types/data.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 interface ValueAxisGridProps {
   front: boolean;

@@ -1,10 +1,10 @@
-import { NONE, ALIGN_LEFT, ALIGN_CENTER, VERTICAL_ALIGN_TOP, VERTICAL_ALIGN_MIDDLE } from '../config/core/constants';
-import type { VerticalAlign } from '../config/core/constants';
-import { getSpacingWidth, getSpacingOuterWidth, getSpacingOuterHeight, getSpacingHeight, getMaxSpacingHeight } from './SpacingLayoutInfo';
-import { createSpacingLayoutInfo, getSpacingLeft } from './SpacingLayoutInfo';
-import type { MarginPadding, Bounds } from '../types/geometry';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { ChartTextBoundsData, LayoutInfo, SpacingLayoutInfo, TitleLayoutResult } from '../types/layout';
+import { NONE, ALIGN_LEFT, ALIGN_CENTER, VERTICAL_ALIGN_TOP, VERTICAL_ALIGN_MIDDLE } from '../config/core/constants.js';
+import type { VerticalAlign } from '../config/core/constants.js';
+import { getSpacingWidth, getSpacingOuterWidth, getSpacingOuterHeight, getSpacingHeight, getMaxSpacingHeight } from './SpacingLayoutInfo.js';
+import { createSpacingLayoutInfo, getSpacingLeft } from './SpacingLayoutInfo.js';
+import type { MarginPadding, Bounds } from '../types/geometry.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { ChartTextBoundsData, LayoutInfo, SpacingLayoutInfo, TitleLayoutResult } from '../types/layout.js';
 
 function createTitleLayoutInfo(x: number, y: number, width: number, height: number, margin: MarginPadding, padding: MarginPadding, titleHeight: number, titleMargin: MarginPadding, titlePadding: MarginPadding, verticalAlign: VerticalAlign, expand: number): SpacingLayoutInfo {
   const titleSpacingHeight = titleHeight - getSpacingHeight(titleMargin, titlePadding);

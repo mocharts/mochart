@@ -1,9 +1,9 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants';
-import { getMinorTickLabel } from '../config/core/minorConfig';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
+import { ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
+import { getMinorTickLabel } from '../config/core/minorConfig.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
 interface CategoryAxisTickLabelClipProps {
   mochartConfig: EnhancedMochartConfig;

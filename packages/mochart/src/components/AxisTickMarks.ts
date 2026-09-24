@@ -1,14 +1,14 @@
-import { Renderer, svgEl } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { getAxisFocusStyle } from '../utils/FocusValue';
-import { styleToAttributes } from '../utils/style';
-import { getMinorTickMark } from '../config/core/minorConfig';
-import { syncAxisLines, getPassTicks } from './AxisLines';
-import type { AxisLineHandle, PassTick } from './AxisLines';
-import type { AxisTick } from '../types/data';
-import type { AxisConfigBase } from '../types/config';
-import type { AxisLayoutInfo } from '../types/layout';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { getAxisFocusStyle } from '../utils/FocusValue.js';
+import { styleToAttributes } from '../utils/style.js';
+import { getMinorTickMark } from '../config/core/minorConfig.js';
+import { syncAxisLines, getPassTicks } from './AxisLines.js';
+import type { AxisLineHandle, PassTick } from './AxisLines.js';
+import type { AxisTick } from '../types/data.js';
+import type { AxisConfigBase } from '../types/config.js';
+import type { AxisLayoutInfo } from '../types/layout.js';
 
 interface AxisTickMarksProps {
   front: boolean;

@@ -1,4 +1,4 @@
-import { ELLIPSIS } from '../core/constants';
+import { ELLIPSIS } from '../core/constants.js';
 
 export function getRegularDefaults() {
   return {

@@ -1,13 +1,13 @@
-import { getCategoryDomainForValues } from './DomainData';
-import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData';
-import { readAlignedValues, readCategoryValues } from './PropertyData';
+import { getCategoryDomainForValues } from './DomainData.js';
+import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData.js';
+import { readAlignedValues, readCategoryValues } from './PropertyData.js';
 import {
   AUTO, NONE, TYPE_DATE, SCALE_ORDINAL,
   CATEGORY_VALUE_INTERVAL_PERIOD_SECOND, CATEGORY_VALUE_INTERVAL_PERIOD_MINUTE, CATEGORY_VALUE_INTERVAL_PERIOD_HOUR,
   CATEGORY_VALUE_INTERVAL_PERIOD_DAY, CATEGORY_VALUE_INTERVAL_PERIOD_WEEK
-} from '../config/core/constants';
-import type { CategoryValueIntervalPeriod } from '../config/core/constants';
-import type { CategoryAxisConfig } from '../types/config';
+} from '../config/core/constants.js';
+import type { CategoryValueIntervalPeriod } from '../config/core/constants.js';
+import type { CategoryAxisConfig } from '../types/config.js';
 import type {
   DataProvider,
   CategoryAxisDomain,
@@ -15,7 +15,7 @@ import type {
   CategoryValue,
   CategoryValueObject,
   CategoryValues
-} from '../types/data';
+} from '../types/data.js';
 
 export function getCategoryKeyProperty(categoryAxisConfig: CategoryAxisConfig): string {
   return categoryAxisConfig.keyProperty !== NONE ? categoryAxisConfig.keyProperty : categoryAxisConfig.property!;

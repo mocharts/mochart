@@ -1,7 +1,7 @@
-import { getWithMutations } from '../utils/WithMutations';
-import { keyPlain } from './constants';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedSeriesStackConfig } from '../types/enhanced';
-import type { ChartData, NumericValues, StackData } from '../types/data';
+import { getWithMutations } from '../utils/WithMutations.js';
+import { keyPlain } from './constants.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedSeriesStackConfig } from '../types/enhanced.js';
+import type { ChartData, NumericValues, StackData } from '../types/data.js';
 
 type OuterSeriesIds = Record<string, (string | undefined)[]>;
 

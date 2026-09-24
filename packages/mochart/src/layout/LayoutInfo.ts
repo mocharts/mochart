@@ -1,5 +1,5 @@
-import type { Bounds, Size } from '../types/geometry';
-import type { LayoutInfo } from '../types/layout';
+import type { Bounds, Size } from '../types/geometry.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 export function createLayoutInfo(categoryPosition: number, valuePosition: number, categoryExtent: number, valueExtent: number, inverted: boolean): LayoutInfo {
   const layoutInfo = {

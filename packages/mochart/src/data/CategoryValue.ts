@@ -1,5 +1,5 @@
-import { NONE, TYPE_DATE } from '../config/core/constants';
-import type { CategoryAxisConfig } from '../types/config';
+import { NONE, TYPE_DATE } from '../config/core/constants.js';
+import type { CategoryAxisConfig } from '../types/config.js';
 
 export type CategoryKeyAxisConfig = Pick<CategoryAxisConfig, 'type' | 'keyProperty'>;
 

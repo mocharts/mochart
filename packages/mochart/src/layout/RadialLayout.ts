@@ -1,6 +1,6 @@
-import { degreesToRadians } from '../data/PieData';
-import type { PieConfig } from '../types/config';
-import type { LayoutInfo } from '../types/layout';
+import { degreesToRadians } from '../data/PieData.js';
+import type { PieConfig } from '../types/config.js';
+import type { LayoutInfo } from '../types/layout.js';
 
 export interface RadialLayoutInfo {
   /** The circle center x, relative to the series layout origin. */

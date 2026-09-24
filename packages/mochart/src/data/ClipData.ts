@@ -1,9 +1,9 @@
-import { getCategoryDomainForValues } from './DomainData';
-import { calculateValueAxisDomain } from './SeriesData';
-import { getWithMutations } from '../utils/WithMutations';
-import { AUTO, SCALE_ORDINAL } from '../config/core/constants';
-import type { ChartData, ClippedEdges, DomainValue, NullableDomain } from '../types/data';
-import type { EnhancedMochartConfig } from '../types/enhanced';
+import { getCategoryDomainForValues } from './DomainData.js';
+import { calculateValueAxisDomain } from './SeriesData.js';
+import { getWithMutations } from '../utils/WithMutations.js';
+import { AUTO, SCALE_ORDINAL } from '../config/core/constants.js';
+import type { ChartData, ClippedEdges, DomainValue, NullableDomain } from '../types/data.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
 
 export const noClippedEdges: ClippedEdges = { top: false, right: false, bottom: false, left: false };
 

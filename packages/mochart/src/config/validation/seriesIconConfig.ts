@@ -1,5 +1,5 @@
-import validators from './validators';
-import { AUTO } from '../core/constants';
+import validators from './validators.js';
+import { AUTO } from '../core/constants.js';
 
 // The SeriesIconConfig members, the `icon` group of the legend and tooltip validators.
 export default function getValidators() {

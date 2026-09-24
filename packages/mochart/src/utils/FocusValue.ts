@@ -1,7 +1,7 @@
-import { STYLE_SAME } from '../config/core/constants';
-import type { FocusData, FocusPercentage, FocusPercentageMap } from '../types/animation';
-import type { Style, StrokeStyleStates, StyleStates } from '../types/config';
-import type { EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced';
+import { STYLE_SAME } from '../config/core/constants.js';
+import type { FocusData, FocusPercentage, FocusPercentageMap } from '../types/animation.js';
+import type { Style, StrokeStyleStates, StyleStates } from '../types/config.js';
+import type { EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
 
 export function getFocusValue(focusPercentage: FocusPercentage, normalValue: number, focusedValue: number, defocusedValue: number): number {
   // piecewise linear interpolation through (-1, defocused), (0, normal), (1, focused), exact for any value ordering

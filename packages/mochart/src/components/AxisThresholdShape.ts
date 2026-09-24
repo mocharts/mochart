@@ -1,17 +1,17 @@
-import { Renderer, svgEl, textEl } from '../render';
+import { Renderer, svgEl, textEl } from '../render/index.js';
 
-import { translate, translateRotate } from '../utils/utils';
-import { mochartCssClasses } from '../utils/ChartDom';
-import { styleToAttributes } from '../utils/style';
-import { getCategoryValueKey } from '../data/CategoryValue';
-import { ANCHOR_MIDDLE, ANCHOR_START, AUTO, NONE, SCALE_LINEAR, SCALE_ORDINAL, SIDE_START, TITLE_SIDE_INSIDE, TITLE_SIDE_LOW, TYPE_DATE } from '../config/core/constants';
-import type { El, TextEl } from '../render';
-import type { AxisConfigBase } from '../types/config';
-import type { FontInlineStyle } from '../utils/font';
-import type { CategoryValue } from '../types/data';
-import type { ResolvedThreshold } from '../config/defaults/axisConfig';
-import type { DataType, Scale } from '../config/core/constants';
-import type { AxisLayoutInfo, LayoutInfo } from '../types/layout';
+import { translate, translateRotate } from '../utils/utils.js';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { styleToAttributes } from '../utils/style.js';
+import { getCategoryValueKey } from '../data/CategoryValue.js';
+import { ANCHOR_MIDDLE, ANCHOR_START, AUTO, NONE, SCALE_LINEAR, SCALE_ORDINAL, SIDE_START, TITLE_SIDE_INSIDE, TITLE_SIDE_LOW, TYPE_DATE } from '../config/core/constants.js';
+import type { El, TextEl } from '../render/index.js';
+import type { AxisConfigBase } from '../types/config.js';
+import type { FontInlineStyle } from '../utils/font.js';
+import type { CategoryValue } from '../types/data.js';
+import type { ResolvedThreshold } from '../config/defaults/axisConfig.js';
+import type { DataType, Scale } from '../config/core/constants.js';
+import type { AxisLayoutInfo, LayoutInfo } from '../types/layout.js';
 
 type ThresholdTitleEl = El & { backgroundHandle: El; textHandle: El; valueHandle: TextEl };
 

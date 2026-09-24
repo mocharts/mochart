@@ -1,5 +1,5 @@
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
-import type { DeepPartial, RadialGradientConfig } from '../../types/config';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
+import type { DeepPartial, RadialGradientConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<RadialGradientConfig> = {}, index: number): Partial<RadialGradientConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, index);

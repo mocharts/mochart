@@ -1,5 +1,5 @@
-import type { Anchor } from '../config/core/constants';
-import type { Bounds, Size } from '../types/geometry';
+import type { Anchor } from '../config/core/constants.js';
+import type { Bounds, Size } from '../types/geometry.js';
 
 // Rotated bounds for axis tick labels; assumes centerY = height/2 and
 // centerX per anchor: 'start' 0, 'middle' width/2, 'end' width.

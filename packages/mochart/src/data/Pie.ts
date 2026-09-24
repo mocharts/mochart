@@ -1,6 +1,6 @@
-import type { PieTooltipValueType } from '../config/core/constants';
-import type { ChartConfig, DeepPartial, CategoryAxisConfig, PieConfig, SeriesConfig } from '../types/config';
-import { computeSliceFractions } from './PieData';
+import type { PieTooltipValueType } from '../config/core/constants.js';
+import type { ChartConfig, DeepPartial, CategoryAxisConfig, PieConfig, SeriesConfig } from '../types/config.js';
+import { computeSliceFractions } from './PieData.js';
 
 export interface PieItem {
   /** The slice title, e.g. shown in the legend and tooltip. */

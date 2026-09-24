@@ -1,6 +1,6 @@
-import { activeElementIn, focusRestored } from './utils';
-import { NONE } from '../config/core/constants';
-import type { EnhancedSeriesConfig } from '../types/enhanced';
+import { activeElementIn, focusRestored } from './utils.js';
+import { NONE } from '../config/core/constants.js';
+import type { EnhancedSeriesConfig } from '../types/enhanced.js';
 
 type FocusableNode = SVGElement | HTMLElement;
 

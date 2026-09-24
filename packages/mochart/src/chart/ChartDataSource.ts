@@ -1,7 +1,7 @@
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { ChartData, DataProvider } from '../types/data';
-import type { FocusData } from '../types/animation';
-import type { InternalFocus } from '../types/chart';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { ChartData, DataProvider } from '../types/data.js';
+import type { FocusData } from '../types/animation.js';
+import type { InternalFocus } from '../types/chart.js';
 
 export type { InternalFocus };
 

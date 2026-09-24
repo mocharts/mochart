@@ -1,8 +1,8 @@
-import { AUTO, NONE, PIE_LABEL_TYPE_PERCENT, PIE_TOOLTIP_VALUE_TYPE_VALUE, COLOR_CURRENT } from '../core/constants';
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
-import { getFontDefaults } from './fontConfig';
+import { AUTO, NONE, PIE_LABEL_TYPE_PERCENT, PIE_TOOLTIP_VALUE_TYPE_VALUE, COLOR_CURRENT } from '../core/constants.js';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
+import { getFontDefaults } from './fontConfig.js';
 
-import type { DeepPartial, PieConfig } from '../../types/config';
+import type { DeepPartial, PieConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<PieConfig> = {}): Partial<PieConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config);

@@ -1,6 +1,6 @@
-import validators from './validators';
+import validators from './validators.js';
 
-import { NONE, STYLE_SAME, MAJOR } from '../core/constants';
+import { NONE, STYLE_SAME, MAJOR } from '../core/constants.js';
 
 import type { Validator } from '@mochart/movalid';
 

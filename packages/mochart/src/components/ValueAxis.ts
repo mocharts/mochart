@@ -1,13 +1,13 @@
-import { Renderer, Slot } from '../render';
+import { Renderer, Slot } from '../render/index.js';
 
-import { mochartCssClasses } from '../utils/ChartDom';
-import { isHoverPointer } from '../utils/utils';
+import { mochartCssClasses } from '../utils/ChartDom.js';
+import { isHoverPointer } from '../utils/utils.js';
 
-import Axis from './Axis';
-import type { EnhancedValueAxisConfig } from '../types/enhanced';
-import type { FontConfig } from '../types/config';
-import type { AxisTick, ValueAxisData } from '../types/data';
-import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
+import Axis from './Axis.js';
+import type { EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { FontConfig } from '../types/config.js';
+import type { AxisTick, ValueAxisData } from '../types/data.js';
+import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
 interface ValueAxisFocus { valueAxisId: string | null; pin?: boolean }
 interface ValueAxisProps {

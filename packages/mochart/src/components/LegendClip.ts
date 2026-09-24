@@ -1,6 +1,6 @@
-import { Renderer, svgEl } from '../render';
-import type { LegendConfig } from '../types/config';
-import type { SpacingLayoutInfo } from '../types/layout';
+import { Renderer, svgEl } from '../render/index.js';
+import type { LegendConfig } from '../types/config.js';
+import type { SpacingLayoutInfo } from '../types/layout.js';
 
 interface LegendClipProps {
   legendConfig: LegendConfig;

@@ -1,13 +1,13 @@
 
-import { getFocusDataForPercent } from './FocusAnimation';
+import { getFocusDataForPercent } from './FocusAnimation.js';
 
-import { getChartDataForAxisDelta, getChartDataForValueDelta } from './ChartAnimation';
+import { getChartDataForAxisDelta, getChartDataForValueDelta } from './ChartAnimation.js';
 
-import { getEasingFunction } from './Easing';
+import { getEasingFunction } from './Easing.js';
 
-import type { EasingFunction } from './Easing';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { AnimationChartData, ChartAnimationData, FocusAnimationData, FocusData } from '../types/animation';
+import type { EasingFunction } from './Easing.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { AnimationChartData, ChartAnimationData, FocusAnimationData, FocusData } from '../types/animation.js';
 
 export const dataTweenExpandStart = 'dataTweenExpandStart' as const;
 export const dataTweenExpandUpdate = 'dataTweenExpandUpdate' as const;

@@ -1,5 +1,5 @@
-import type { PieConfig, SeriesConfig } from '../types/config';
-import type { SeriesValueObject } from '../types/data';
+import type { PieConfig, SeriesConfig } from '../types/config.js';
+import type { SeriesValueObject } from '../types/data.js';
 
 export interface PieSliceAngles {
   /** Radians, clockwise from the top (d3 arc convention). */

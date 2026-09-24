@@ -1,4 +1,4 @@
-import { partialStyle } from './shared';
+import { partialStyle } from './shared.js';
 
 const lineMembers = ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray'];
 

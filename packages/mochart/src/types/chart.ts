@@ -1,6 +1,6 @@
-import type { MochartConfig, MochartInputConfig } from './config';
-import type { Bounds } from './geometry';
-import type { ArrayOfObjectsData, DataProvider, ObjectOfArraysData } from './data';
+import type { MochartConfig, MochartInputConfig } from './config.js';
+import type { Bounds } from './geometry.js';
+import type { ArrayOfObjectsData, DataProvider, ObjectOfArraysData } from './data.js';
 
 /** Pointer event details reported by the plot-area callbacks. */
 export interface ChartEventPayload {

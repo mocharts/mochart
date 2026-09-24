@@ -1,7 +1,7 @@
-import { ChartController } from './chart/ChartController';
-import { DefaultChartInput } from './chart/DefaultChartInput';
-import type { DefaultChartProps, ManagedChartProps } from './types/chart';
-import type { DataProvider } from './types/data';
+import { ChartController } from './chart/ChartController.js';
+import { DefaultChartInput } from './chart/DefaultChartInput.js';
+import type { DefaultChartProps, ManagedChartProps } from './types/chart.js';
+import type { DataProvider } from './types/data.js';
 
 /** Handle returned by `createChart`/`createDefaultChart` for a mounted chart. */
 export interface ChartHandle<TProps extends object = ManagedChartProps> {

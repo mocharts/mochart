@@ -1,9 +1,9 @@
-import { NONE, ALIGN_RIGHT } from '../core/constants';
-import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault';
-import { getRegularDefaults as getSeriesIconRegularDefaults } from './seriesIconConfig';
-import { getFontDefaults } from './fontConfig';
+import { NONE, ALIGN_RIGHT } from '../core/constants.js';
+import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
+import { getRegularDefaults as getSeriesIconRegularDefaults } from './seriesIconConfig.js';
+import { getFontDefaults } from './fontConfig.js';
 
-import type { DeepPartial, TooltipConfig } from '../../types/config';
+import type { DeepPartial, TooltipConfig } from '../../types/config.js';
 
 export default function getDefaults(config: DeepPartial<TooltipConfig> = {}, pieMode = false): Partial<TooltipConfig> {
   return resolveDefaults(getRegularDefaults(), getConditionalDefaults, config, pieMode);

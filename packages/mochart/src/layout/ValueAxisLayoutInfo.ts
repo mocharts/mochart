@@ -1,10 +1,10 @@
-import { arrayToMap, idAccessor } from '../utils/utils';
-import { SIDE_START } from '../config/core/constants';
-import { getAxisSize, setExtraAxisInfo, getRotatedTickBounds } from './PlotLayout';
-import { createInnerOuterSpacingLayoutInfo } from './SpacingLayoutInfo';
-import type { Bounds, TextBounds } from '../types/geometry';
-import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced';
-import type { AxisLayoutInfo, AxisTickInfos, BeforeAfter, ChartDataForLayout, ChartTextBoundsData } from '../types/layout';
+import { arrayToMap, idAccessor } from '../utils/utils.js';
+import { SIDE_START } from '../config/core/constants.js';
+import { getAxisSize, setExtraAxisInfo, getRotatedTickBounds } from './PlotLayout.js';
+import { createInnerOuterSpacingLayoutInfo } from './SpacingLayoutInfo.js';
+import type { Bounds, TextBounds } from '../types/geometry.js';
+import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { AxisLayoutInfo, AxisTickInfos, BeforeAfter, ChartDataForLayout, ChartTextBoundsData } from '../types/layout.js';
 
 export const emptyLayoutInfo: Bounds = {
   x: 0, y: 0, width: 0, height: 0

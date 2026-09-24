@@ -1,10 +1,10 @@
-import { hasConfigStructureChange } from '../config/core/mochartConfig';
-import { indexOfCategoryValue } from '../animation/CategoryAnimationData';
-import { getCategoryKeyProperty } from '../data/CategoryData';
-import type { ChartFocus, ChartSeriesFilter } from '../types/chart';
-import type { MochartConfig } from '../types/config';
-import type { CategoryValue, DataProvider } from '../types/data';
-import type { InternalFocus } from './ChartDataSource';
+import { hasConfigStructureChange } from '../config/core/mochartConfig.js';
+import { indexOfCategoryValue } from '../animation/CategoryAnimationData.js';
+import { getCategoryKeyProperty } from '../data/CategoryData.js';
+import type { ChartFocus, ChartSeriesFilter } from '../types/chart.js';
+import type { MochartConfig } from '../types/config.js';
+import type { CategoryValue, DataProvider } from '../types/data.js';
+import type { InternalFocus } from './ChartDataSource.js';
 
 /** Externally-controlled focus/filter values (undefined = uncontrolled). */
 export interface ExternalFocusInput {

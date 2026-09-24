@@ -1,4 +1,4 @@
-import { SVG_NAMESPACE, setProperty } from './dom';
+import { SVG_NAMESPACE, setProperty } from './dom.js';
 
 export type ElProps = Record<string, unknown>;
 

@@ -1,8 +1,8 @@
-import validators from './validators';
-import getSeriesIconValidators from './seriesIconConfig';
+import validators from './validators.js';
+import getSeriesIconValidators from './seriesIconConfig.js';
 
-import { NONE, TOOLTIP_VALUE_ALIGNS } from '../core/constants';
-import type { DeepPartial, TooltipConfig } from '../../types/config';
+import { NONE, TOOLTIP_VALUE_ALIGNS } from '../core/constants.js';
+import type { DeepPartial, TooltipConfig } from '../../types/config.js';
 
 // a following tooltip ignores the pointer, so nothing inside it can be clicked or hovered
 const followPointerRule = { condition: ({ followPointer }: DeepPartial<TooltipConfig>) => followPointer === true, suffix: 'when followPointer is true' };

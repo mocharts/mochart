@@ -1,10 +1,10 @@
 // The public type surface: config.ts is wildcarded (all config-model types); every other name is a deliberate export reachable from a published signature
-export type * from './config';
+export type * from './config.js';
 
-export type { Size, Bounds, MarginPadding, InnerOuter } from './geometry';
+export type { Size, Bounds, MarginPadding, InnerOuter } from './geometry.js';
 
 // The DataProvider contract and the dataset shapes the default chart accepts.
-export type { DataProvider, DataObject, DataValue, ArrayOfObjectsData, ObjectOfArraysData } from './data';
+export type { DataProvider, DataObject, DataValue, ArrayOfObjectsData, ObjectOfArraysData } from './data.js';
 
 // InternalFocus stays internal: chart/ChartDataSource re-exports it for the sources and components only, never the package.
 export type {
@@ -12,5 +12,5 @@ export type {
   ChartSeriesClickPayload, ChartCallbacks, ChartFactories, ChartFactoryContext,
   ChartFactoryContent, ChartContentFactory, BaseChartProps, ManagedChartProps,
   DefaultChartProps
-} from './chart';
+} from './chart.js';
 

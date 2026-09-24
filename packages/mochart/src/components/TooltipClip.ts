@@ -1,9 +1,9 @@
-import { Renderer, svgEl } from '../render';
-import type { El } from '../render';
+import { Renderer, svgEl } from '../render/index.js';
+import type { El } from '../render/index.js';
 
-import { getCutoutRectanglePath } from '../utils/svgUtils';
-import type { EnhancedMochartConfig } from '../types/enhanced';
-import type { SpacingLayoutInfo } from '../types/layout';
+import { getCutoutRectanglePath } from '../utils/svgUtils.js';
+import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { SpacingLayoutInfo } from '../types/layout.js';
 
 interface TooltipClipProps {
   mochartConfig: EnhancedMochartConfig;

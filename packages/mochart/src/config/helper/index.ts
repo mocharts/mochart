@@ -1,8 +1,8 @@
-import { getDefaults } from '../defaults/mochartConfig';
-import { default as validateConfig } from '../validation/mochartConfig';
-import { default as buildMochartConfig } from '../core/mochartConfig';
-import { default as migrateConfig } from '../migration/mochartConfig';
-import type { MochartConfig, MochartInputConfig } from '../../types/config';
+import { getDefaults } from '../defaults/mochartConfig.js';
+import { default as validateConfig } from '../validation/mochartConfig.js';
+import { default as buildMochartConfig } from '../core/mochartConfig.js';
+import { default as migrateConfig } from '../migration/mochartConfig.js';
+import type { MochartConfig, MochartInputConfig } from '../../types/config.js';
 
 /** The parameter type names the current format; older formats are accepted and migrated. */
 export function enhanceConfig(config: MochartInputConfig): MochartConfig {
