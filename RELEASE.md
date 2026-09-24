@@ -98,6 +98,11 @@ npm run pack:libs -- --smoke     # tarballs land in pack/
 node scripts/publish-libs.mjs --dry-run   # pnpm pack + npm publish --dry-run
 ```
 
+`publish-libs.mjs` skips every package whose version is already on npm, with or
+without `--dry-run`, so between releases its dry run packs nothing. It only
+rehearses the publish after `changeset version` has bumped the manifests; use
+`npm run pack:libs -- --smoke` to rehearse an unbumped tree.
+
 ## Pre-releases
 
 ```sh
