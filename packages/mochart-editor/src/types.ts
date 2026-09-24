@@ -29,7 +29,9 @@ export interface JsonEditorOptions {
   indentation?: number | string;
   /** Color treatment for editor syntax and controls; defaults to light. */
   theme?: 'light' | 'dark';
+  /** Whether the document starts read-only; defaults to false. Change it later with `setReadOnly`. */
   readOnly?: boolean;
+  /** Whether the gutter with line numbers, fold and lint markers shows; defaults to true. editor.css hides it on viewports 600px wide or less either way. */
   lineNumbers?: boolean;
   /** Optional domain intelligence: what `createMochartConfigSupport()` returns, alone or in an array. */
   support?: JsonEditorSupport | JsonEditorSupport[];

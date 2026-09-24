@@ -45,15 +45,21 @@ const editor = createJsonEditor(host, {
 
 `createJsonEditor` appends a `.mochart-editor` element into `host` and returns a
 handle. `ariaLabel` is the one required option; it names the editable element
-for assistive tech. The other `JsonEditorOptions`: `readOnly` and `lineNumbers`
-toggle those behaviors, `indentation` sets what `format()` inserts, read the way
-`JSON.stringify` reads its space argument: a number of spaces up to ten (two by
-default) or a string's first ten characters, where `0` or an empty string lays
-the document out on one line. `theme` picks the initial color treatment
-(`'light'` by default), and `ariaDescribedBy` links the editable element to help
-text. `support` takes what `createMochartConfigSupport()` returns, alone or in
-an array. `JsonEditorSupport` is an opaque handle rather than an interface to
-implement: `createJsonEditor` throws on any other object.
+for assistive tech. The other `JsonEditorOptions`:
+
+- `readOnly` (off by default) and `lineNumbers` (on by default) toggle those
+  behaviors. The bundled stylesheet hides the whole gutter (line numbers, fold
+  and lint markers) on viewports 600px wide or less, whatever `lineNumbers`
+  says.
+- `indentation` sets what `format()` inserts, read the way `JSON.stringify`
+  reads its space argument: a number of spaces up to ten (two by default) or a
+  string's first ten characters, where `0` or an empty string lays the document
+  out on one line.
+- `theme` picks the initial color treatment (`'light'` by default).
+- `ariaDescribedBy` links the editable element to help text.
+- `support` takes what `createMochartConfigSupport()` returns, alone or in an
+  array. `JsonEditorSupport` is an opaque handle rather than an interface to
+  implement: `createJsonEditor` throws on any other object.
 
 ## The handle
 
