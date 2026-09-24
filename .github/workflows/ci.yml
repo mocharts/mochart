@@ -133,10 +133,10 @@ jobs:
           include-hidden-files: true
 
   deploy:
-    # Deploys are opt-in until the repo is public: GitHub Pages is unavailable
-    # on private repos (free plan), so the job is gated behind a repository
-    # variable. To enable: make the repo public, set Settings > Pages > Source
-    # to "GitHub Actions", then add ENABLE_PAGES_DEPLOY=true under
+    # The GitHub Pages deploy is optional and off by default, since the site
+    # deploys to Cloudflare (see deploy-cloudflare); a repository variable
+    # gates it. To enable: set Settings > Pages > Source to "GitHub Actions",
+    # then add ENABLE_PAGES_DEPLOY=true under
     # Settings > Secrets and variables > Actions > Variables.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ENABLE_PAGES_DEPLOY == 'true'
     needs: build-test
