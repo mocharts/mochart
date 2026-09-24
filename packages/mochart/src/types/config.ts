@@ -974,7 +974,9 @@ export interface CrosshairConfig {
    * Whether or not crosshairs should be shown when a category or series is
    * focused.
    *
-   * @default true
+   * Default:
+   * - `false`: when chart.type is pie
+   * - `true`: when chart.type is xy
    */
   visible: boolean;
   /**
