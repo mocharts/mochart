@@ -84,9 +84,10 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
   let focusedSeriesId: string | null = null;
   let focusedCategoryIndex = -1;
 
+  // a shared link keeps its edited config and data over the first rotation step
   if (entry.special === 'rotation') {
-    config = structuredClone(rotationConfigs[rotationIndex]) as DemoConfig;
-    rows = structuredClone(rotationData) as DataObject[];
+    config = share?.config ?? structuredClone(rotationConfigs[rotationIndex]) as DemoConfig;
+    rows = share?.data ?? structuredClone(rotationData) as DataObject[];
   }
 
   let demoConfig: MochartDemoConfig = buildDemoConfig();
