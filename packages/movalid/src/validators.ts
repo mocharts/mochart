@@ -13,26 +13,46 @@ export interface ConditionalRule {
   suffix?: string;
 }
 
+/** A predicate that returns true when a value passes, carrying metadata that describes what it accepts. */
 export interface Validator {
   (v?: any): boolean;
+  /** The name of the factory that made it, such as `number` or `oneOf`. */
   validatorName: string;
+  /** The name set by `withCustomName`, or null. */
   customName: string | null;
+  /** The extensions applied in order, such as `['orEqual']`, or null when there are none. */
   extensionNames: string[] | null;
+  /** The literal values it accepts, for `equal`, `oneOf`, `oneIn` and the `or` extensions, or null. */
   allowedValues: any[] | null;
+  /** The validator for each property, for the object shape validators, or null. */
   nestedValues: Record<string, Validator> | null;
+  /** The validator for each element, for `arrayOf`, or null. */
   itemValidator: Validator | null;
+  /** The validators it combines, for `or`, the `.or()` extension and `conditional`, or null. */
   alternativeValidators: Validator[] | null;
+  /** The numeric bounds, for the `*Min`, `*Max` and `*MinMax` validators, or null. */
   rangeValues: RangeValues | null;
+  /** True when it accepts only the listed `allowedValues`. */
   isEnum: boolean;
+  /** The readable message describing what it accepts, such as "should be a number". */
   errorMessage: string;
+  /** For `conditional`, one message per rule; otherwise just `errorMessage`. */
   errorMessages: string[];
+  /** The error message followed by the rejected value. */
   getErrorMessage(v?: any): string;
+  /** Also accept this exact value. */
   orEqual(value: any): Validator;
+  /** Also accept any of these values. */
   orOneOf(valueArray: any[]): Validator;
+  /** Also accept what this other validator accepts. */
   or(validator: Validator): Validator;
+  /** Replace the error message. */
   withMessage(message: string): Validator;
+  /** Add text to the end of the error message. */
   appendMessage(message: string): Validator;
+  /** Add text to the start of the error message. */
   prependMessage(message: string): Validator;
+  /** Set `customName`, leaving behavior and message unchanged. */
   withCustomName(customName: string): Validator;
 }
 

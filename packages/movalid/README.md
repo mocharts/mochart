@@ -4,10 +4,24 @@ Simple yet powerful TypeScript validators with chainable extensions and
 human-readable error messages.
 
 Every validator is a factory: calling `validators.number()` returns a plain
-predicate function `(value) => boolean` that also carries metadata
-(`errorMessage`, `getErrorMessage(value)`, `allowedValues`, `rangeValues`,
-`nestedValues`, and `isEnum`), so callers can both check values and report
-readable errors.
+predicate function `(value) => boolean` that also carries metadata, so callers
+can both check values and report readable errors:
+
+- `errorMessage` and `getErrorMessage(value)`: the readable message, and the
+  message followed by a rejected value
+- `errorMessages`: one message per rule for `conditional`, otherwise just
+  `errorMessage`
+- `validatorName`: the factory that made it, such as `number`
+- `extensionNames`: the extensions applied, such as `orEqual`
+- `customName`: the name set by `withCustomName`
+- `allowedValues` and `isEnum`: the literal values it accepts, and whether it
+  accepts only those
+- `rangeValues`: the numeric bounds of the `*Min` / `*Max` validators
+- `nestedValues`: the per-property validators of the object shape validators
+- `itemValidator`: the element validator of `arrayOf`
+- `alternativeValidators`: the validators `or` and `conditional` combine
+
+A member that does not apply to a validator is `null` (`isEnum` is `false`).
 [@mochart/core](https://github.com/mocharts/mochart/tree/main/packages/mochart)
 uses it for config validation.
 
