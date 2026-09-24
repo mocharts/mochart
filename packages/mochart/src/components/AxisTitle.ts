@@ -1,4 +1,5 @@
 import { Renderer, svgEl, textEl } from '../render/index.js';
+import { hasText } from '../utils/utils.js';
 
 import { mochartCssClasses } from '../utils/ChartDom.js';
 import { layoutInfoExtentChanged } from '../layout/LayoutInfo.js';
@@ -7,7 +8,6 @@ import { getClipPathReference } from '../utils/svgUtils.js';
 import { getAxisFocusStyle } from '../utils/FocusValue.js';
 import { styleToAttributes } from '../utils/style.js';
 import { fontStylesEqual, resolveFontStyle } from '../utils/font.js';
-import { NONE } from '../config/core/constants.js';
 import Background from './Background.js';
 import type { AxisConfigBase, FontConfig } from '../types/config.js';
 import type { EnhancedValueAxisConfig } from '../types/enhanced.js';
@@ -49,7 +49,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
     const { axisConfig, axisLayoutInfo, chartFont } = props;
     const { title: titleConfig } = axisConfig;
     const { title: prevTitleConfig } = prevProps.axisConfig;
-    const truncationEnabled = titleConfig.text !== NONE && titleConfig.truncation.enabled;
+    const truncationEnabled = hasText(titleConfig.text) && titleConfig.truncation.enabled;
     const truncationChanged = truncationEnabled && layoutInfoExtentChanged(prevProps.axisLayoutInfo, axisLayoutInfo);
     // a fitted prefix belongs to the font it was measured in and to the text that replaced its tail: either changing starts over
     const truncationReset = props.fontsVersion !== prevProps.fontsVersion ||
@@ -66,7 +66,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
 
   sync() {
     const { axisConfig } = this.props;
-    if (axisConfig.title.text !== NONE) {
+    if (hasText(axisConfig.title.text)) {
       const { axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, chartFont } = this.props;
       const { truncationData } = this.state;
       const title = getTruncatedText(axisConfig.title.truncation.enabled, axisConfig.title.truncation.text, axisConfig.title.text!, truncationData);

@@ -1,7 +1,7 @@
 import { NONE, AUTO, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE, SIDE_START } from '../config/core/constants.js';
 import { resolveThresholds } from '../config/defaults/axisConfig.js';
 import type { Anchor } from '../config/core/constants.js';
-import { arrayToMap, idAccessor } from '../utils/utils.js';
+import { arrayToMap, idAccessor, hasText } from '../utils/utils.js';
 import { createLayoutInfo } from './LayoutInfo.js';
 import { getRotatedBounds, getRotatedZeroBounds } from './RotatedLayoutInfo.js';
 import { createCategoryAxisLayoutInfo, getCategoryAxisRotatedTickBounds, getCategoryAxisBeforeAfter, getCategoryAxisSize } from './CategoryAxisLayout.js';
@@ -84,7 +84,7 @@ function getAxisTotalTickLabelSize(axisConfig: AxisConfigBase, rotatedTickBounds
 
 function getAxisTitleSize(axisConfig: AxisConfigBase, titleBounds: Size): number {
   let titleSize = 0;
-  if (axisConfig.title.text !== NONE) {
+  if (hasText(axisConfig.title.text)) {
     titleSize = axisConfig.title.size === AUTO ? titleBounds.height : axisConfig.title.size;
   }
   return titleSize;
@@ -92,7 +92,7 @@ function getAxisTitleSize(axisConfig: AxisConfigBase, titleBounds: Size): number
 
 function getAxisTotalTitleSize(axisConfig: AxisConfigBase, titleBounds: Size): number {
   let titleSize = 0;
-  if (axisConfig.title.text !== NONE) {
+  if (hasText(axisConfig.title.text)) {
     titleSize = axisConfig.title.marginInner + axisConfig.title.paddingInner + getAxisTitleSize(axisConfig, titleBounds) + axisConfig.title.marginOuter + axisConfig.title.paddingOuter;
   }
   return titleSize;
@@ -231,7 +231,7 @@ export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: Axi
   const focusLabelLayoutInfo = minor.totalSize > major.totalSize ? minor.layoutInfo : major.layoutInfo;
 
   const { applyToTitle: focusRangeApplyToTitle } = focusRange;
-  const focusRangeTitle = focusRangeApplyToTitle && title !== NONE;
+  const focusRangeTitle = focusRangeApplyToTitle && hasText(title);
   const focusMarginInner = tickLabelMarginInner;
   const focusMarginOuter = focusRangeApplyToTitle ? titleMarginOuter : tickLabelMarginOuter;
   const focusPaddingInner = tickLabelPaddingInner;
@@ -243,7 +243,7 @@ export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: Axi
     height: !vertical ? (focusRangeApplyToTitle ? titleLayoutInfo.height + focusLabelLayoutInfo.height : focusLabelLayoutInfo.height) : height,
   }, vertical, inverted, notAfter, focusMarginInner, focusMarginOuter, focusPaddingInner, focusPaddingOuter);
 
-  if (title !== NONE) {
+  if (hasText(title)) {
     const titleOffset = notAfter ? titleMarginOuter + titlePaddingOuter + axisLayoutInfo.titleSize / 2.0 : (totalTickLabelSize + totalTitleSize - titleMarginOuter - titlePaddingOuter - axisLayoutInfo.titleSize / 2.0);
     titleTextX = vertical ? titleOffset : width / 2.0;
     titleTextY = vertical ? height / 2.0 : titleOffset;
@@ -251,7 +251,7 @@ export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: Axi
   }
   axisLayoutInfo.thresholdTitleLayoutInfos = resolveThresholds(axisConfig.thresholds).map((threshold, thresholdIndex) => {
     const bounds = thresholdTitleBounds[thresholdIndex];
-    return !(threshold.title.text !== NONE && bounds !== undefined)
+    return !(hasText(threshold.title.text) && bounds !== undefined)
       ? emptyLayoutInfo
       : createSpacingLayoutInfo({ x: 0, y: 0, ...bounds }, threshold.title.margin, threshold.title.padding, false);
   });
@@ -303,7 +303,7 @@ export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: Axi
   let titleBoundsWidth = 0;
   let titleBoundsHeight = 0;
   // TODO - check axisConfig.visible higher up...
-  if (axisConfig.visible && axisConfig.title.text !== NONE && axisConfig.title.truncation.enabled) {
+  if (axisConfig.visible && hasText(axisConfig.title.text) && axisConfig.title.truncation.enabled) {
     const titleOffset = notAfter ? axisConfig.title.marginOuter + axisConfig.title.paddingOuter : totalTickLabelSize + axisConfig.title.marginInner + axisConfig.title.paddingInner;
 
     titleBoundsX = vertical ? titleOffset : 0;

@@ -1,6 +1,6 @@
 import { Renderer, svgEl, textEl } from '../render/index.js';
 
-import { translate, translateRotate } from '../utils/utils.js';
+import { translate, translateRotate, hasText } from '../utils/utils.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
 import { styleToAttributes } from '../utils/style.js';
 import { getCategoryValueKey } from '../data/CategoryValue.js';
@@ -205,7 +205,7 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
       this.rangeRect = null;
     }
 
-    if (threshold.title.text !== NONE) {
+    if (hasText(threshold.title.text)) {
       // a range title sits at the edge on its value side, or centered inside the range
       const { ascending } = this.props;
       const titleInside = isRange && threshold.title.side === TITLE_SIDE_INSIDE;

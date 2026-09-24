@@ -3,8 +3,7 @@ import { Renderer, svgEl, textEl, Slot } from '../render/index.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
 import { layoutInfoExtentChanged } from '../layout/LayoutInfo.js';
 import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation.js';
-import { NONE } from '../config/core/constants.js';
-import { onClickDisabled, centerTextY, translate, translateObject } from '../utils/utils.js';
+import { onClickDisabled, centerTextY, translate, translateObject, hasText } from '../utils/utils.js';
 import { getClipPathReference } from '../utils/svgUtils.js';
 import { styleToAttributes } from '../utils/style.js';
 import { resolveFontStyle } from '../utils/font.js';
@@ -79,7 +78,7 @@ export default class Title extends Renderer<TitleProps, TitleState> {
     }
     const { mochartConfig, titleLayoutInfo, titleTextLayoutInfo, titleTextRawLayoutInfo } = props;
     const { title: titleConfig } = mochartConfig;
-    const truncationEnabled = titleConfig.text !== NONE && titleConfig.truncation.enabled;
+    const truncationEnabled = hasText(titleConfig.text) && titleConfig.truncation.enabled;
     const truncationChanged = truncationEnabled &&
       (layoutInfoExtentChanged(prevProps.titleTextLayoutInfo, titleTextLayoutInfo) || layoutInfoExtentChanged(prevProps.titleTextRawLayoutInfo, titleTextRawLayoutInfo));
     // the raw extent covers a font change; the truncation text replaced the prefix's tail, so a new one starts over
@@ -145,7 +144,7 @@ export default class Title extends Renderer<TitleProps, TitleState> {
     const { mochartConfig, titleLayoutInfo, titlePrefixLayoutInfo, titleTextLayoutInfo, titleTextRawLayoutInfo, titleSuffixLayoutInfo, titleClipPathUniqueId, accessibility, onClick } = this.props;
     const { title: titleConfig } = mochartConfig;
 
-    if (titleConfig.text !== NONE) {
+    if (hasText(titleConfig.text)) {
       const { text: title, prefix, suffix, truncation, link, linkDisabled,
         textBackgroundStyle: titleBackgroundStyle, textStyle: titleTextStyle
       } = titleConfig;

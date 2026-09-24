@@ -1,4 +1,5 @@
 import { path } from 'd3-path';
+import { hasText } from '../utils/utils.js';
 
 import { Renderer, svgEl, textEl } from '../render/index.js';
 
@@ -77,7 +78,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     // The library's only <title>: one string serves as both the accessible name and the hidden
     // label's fallback text, since aria-label would win for AT and let the two drift apart.
     const label = clipIndicatorConfig.label;
-    if (label !== NONE) {
+    if (hasText(label)) {
       this.root.append(this.title);
       this.titleValue.set(label);
     }
@@ -189,7 +190,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     if (size !== AUTO) {
       return size;
     }
-    const measured = label !== NONE && this.state.textBounds !== null
+    const measured = hasText(label) && this.state.textBounds !== null
       ? this.state.textBounds.height
       : this.state.fontSize ?? defaultFontSize;
     return measured + labelPadding * 2;

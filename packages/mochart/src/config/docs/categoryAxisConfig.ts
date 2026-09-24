@@ -8,10 +8,10 @@ export default function getDescriptions() {
     type: 'the type of the category values (number, date, string)',
     scale: 'the scale to use for the category values (ordinal, linear)',
     dateUTC: 'whether dates should be treated as UTC (true) or local (false)',
-    valueLabel: 'the label to show before a category value in the tooltip (use null for none)',
+    valueLabel: 'the label to show before a category value in the tooltip (use null or an empty string for none)',
     valueFormat: 'the d3 format string (d3-format for number, d3-time-format for date) to be applied to the category value when displayed in the tooltip (use null for none, use "auto" to derive from data)',
-    valuePrefix: 'the text to prefix category values with when showing them in the tooltip (use null for none)',
-    valueSuffix: 'the text to append category values with when showing them in the tooltip (use null for none)',
+    valuePrefix: 'the text to prefix category values with when showing them in the tooltip (use null or an empty string for none)',
+    valueSuffix: 'the text to append category values with when showing them in the tooltip (use null or an empty string for none)',
     minCategoryValueExtent: 'the minimum extent (in pixels) of each category slot; for a non-inverted bar chart this is a minimum bar width',
     categoryPaddingFraction: {
       description: 'the padding fractions (0 - 1) of the category extent for all category values (outer) and grouped series (inner)',

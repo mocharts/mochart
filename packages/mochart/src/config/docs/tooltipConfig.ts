@@ -57,7 +57,7 @@ export default function getDescriptions() {
     showFiltered: 'whether to show series that have been filtered out of the chart in the tooltip',
     showMissingValues: 'whether to show series that do not have defined values in the tooltip',
     missingValueText: 'the text to show for series that do not have defined values',
-    filteredValueText: 'the text to show for series that have been filtered (use null for none)',
+    filteredValueText: 'the text to show for series that have been filtered (use null or an empty string for none)',
     filteredValueCharacter: 'the character to show in place of each digit of a series value that has been filtered (use null for none)',
     rangeValueSeparator: 'the text to use when joining the values for a series that has more than one value'
   };

@@ -1,6 +1,6 @@
 import { getWithMutations } from './WithMutations.js';
-import { arrayToMap, idAccessor } from './utils.js';
-import { NONE, SCALE_ORDINAL } from '../config/core/constants.js';
+import { arrayToMap, idAccessor, hasText } from './utils.js';
+import { SCALE_ORDINAL } from '../config/core/constants.js';
 import { isObject } from '../config/defaults/utils.js';
 import { getMinorTickLabel } from '../config/core/minorConfig.js';
 import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
@@ -266,7 +266,7 @@ export function getHtmlWidthAndHeight(domElement: Element | null): Size {
 
 export function getTitleTextBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
   let titleTextBounds: TextBounds = emptyBounds;
-  if (mochartConfig.title.text !== NONE) {
+  if (hasText(mochartConfig.title.text)) {
     titleTextBounds = getSvgBounds(domAccessors, 'getTitleTextDomElement', defaultBounds);
   }
   return titleTextBounds;
@@ -274,7 +274,7 @@ export function getTitleTextBounds(mochartConfig: EnhancedMochartConfig, domAcce
 
 export function getTitleTextRawBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
   let titleTextBounds: TextBounds = emptyBounds;
-  if (mochartConfig.title.text !== NONE) {
+  if (hasText(mochartConfig.title.text)) {
     titleTextBounds = getSvgBounds(domAccessors, 'getTitleTextRawDomElement', defaultBounds);
   }
   return titleTextBounds;
@@ -282,7 +282,7 @@ export function getTitleTextRawBounds(mochartConfig: EnhancedMochartConfig, domA
 
 export function getTitlePrefixBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
   let titlePrefixBounds: TextBounds = emptyBounds;
-  if (mochartConfig.title.text !== NONE && mochartConfig.title.prefix.text !== NONE) {
+  if (hasText(mochartConfig.title.text) && hasText(mochartConfig.title.prefix.text)) {
     titlePrefixBounds = getSvgBounds(domAccessors, 'getTitlePrefixDomElement', defaultBounds);
   }
   return titlePrefixBounds;
@@ -290,7 +290,7 @@ export function getTitlePrefixBounds(mochartConfig: EnhancedMochartConfig, domAc
 
 export function getTitleSuffixBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
   let titleSuffixBounds: TextBounds = emptyBounds;
-  if (mochartConfig.title.text !== NONE && mochartConfig.title.suffix.text !== NONE) {
+  if (hasText(mochartConfig.title.text) && hasText(mochartConfig.title.suffix.text)) {
     titleSuffixBounds = getSvgBounds(domAccessors, 'getTitleSuffixDomElement', defaultBounds);
   }
   return titleSuffixBounds;
@@ -347,7 +347,7 @@ function getCategoryAxisMinorSizeTickLabelBounds(mochartConfig: EnhancedMochartC
 export function getCategoryAxisTitleBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
   const { categoryAxis: categoryAxisConfig } = mochartConfig;
   let categoryAxisTitleBounds: TextBounds = emptyBounds;
-  if (categoryAxisConfig.visible && categoryAxisConfig.title.text !== NONE) {
+  if (categoryAxisConfig.visible && hasText(categoryAxisConfig.title.text)) {
     categoryAxisTitleBounds = getSvgBounds(domAccessors, 'getCategoryAxisTitleDomElement', defaultBounds);
   }
   return categoryAxisTitleBounds;
@@ -360,7 +360,7 @@ const thresholdTitleIndexPattern = /mochart-axis-threshold-title-(\d+)/;
 function getThresholdTitleBoundsByIndex(domAccessors: ChartDomAccessors | null | undefined, thresholds: readonly { title: { text: string | null } }[], accessor: () => NodeListOf<SVGGraphicsElement>): Record<number, TextBounds> {
   const boundsByIndex: Record<number, TextBounds> = {};
   const measured: Record<number, TextBounds> = {};
-  if (domAccessors && thresholds.some(threshold => threshold.title.text !== NONE)) {
+  if (domAccessors && thresholds.some(threshold => hasText(threshold.title.text))) {
     const elements = accessor();
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i]!;
@@ -375,7 +375,7 @@ function getThresholdTitleBoundsByIndex(domAccessors: ChartDomAccessors | null |
     }
   }
   thresholds.forEach((threshold, index) => {
-    if (threshold.title.text !== NONE) {
+    if (hasText(threshold.title.text)) {
       boundsByIndex[index] = measured[index] ?? defaultBounds;
     }
   });
@@ -422,7 +422,7 @@ export function getValueAxisTitleBounds(mochartConfig: EnhancedMochartConfig, do
   const { valueAxes: valueAxisConfigs } = mochartConfig;
   const valueAxisTitleBounds = arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => {
     let aValueAxisTitleBounds: TextBounds = emptyBounds;
-    if (axisIsDrawn(valueAxisConfig, axisSeriesCounts) && valueAxisConfig.title.text !== NONE) {
+    if (axisIsDrawn(valueAxisConfig, axisSeriesCounts) && hasText(valueAxisConfig.title.text)) {
       aValueAxisTitleBounds = getSvgBounds(domAccessors, ['getValueAxisTitleDomElementForId', valueAxisConfig.id], defaultBounds);
     }
     return aValueAxisTitleBounds;

@@ -1,4 +1,5 @@
 import { NONE, PIE_TOOLTIP_VALUE_TYPE_PERCENT, MISSING_VALUE_MODE_CONNECT, CHART_TYPE_PIE } from '../config/core/constants.js';
+import { hasText } from './utils.js';
 import { getSeriesLabel } from './SeriesTitle.js';
 import { getCategoryFormat, getSeriesFormats } from './ValueFormat.js';
 import { formatPieLabelType, pieLabelTypeUsesPercent, getPieTooltipPercentFormat } from '../data/PieLabel.js';
@@ -208,7 +209,7 @@ export function getTooltipAnnouncement(mochartConfig: EnhancedMochartConfig, too
   let categoryPart = '';
   if (tooltipConfig.showCategory) {
     const categoryFormat = getCategoryFormat(categoryAxisConfig);
-    const categoryLabel = categoryAxisConfig.valueLabel !== NONE ? categoryAxisConfig.valueLabel + ': ' : '';
+    const categoryLabel = hasText(categoryAxisConfig.valueLabel) ? categoryAxisConfig.valueLabel + ': ' : '';
     categoryPart = categoryLabel + String(categoryFormat(category.values.parsed!));
   }
 

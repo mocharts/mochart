@@ -1,6 +1,6 @@
 import { Renderer, svgEl } from '../render/index.js';
+import { hasText } from '../utils/utils.js';
 
-import { NONE } from '../config/core/constants.js';
 import type { AxisConfigBase } from '../types/config.js';
 import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
@@ -22,7 +22,7 @@ export default class AxisTitleClip extends Renderer<AxisTitleClipProps> {
 
   sync() {
     const { axisConfig, chartContentLayoutInfo, axisLayoutInfo, axisTitleClipPathUniqueId } = this.props;
-    if (axisConfig.visible && axisConfig.title.text !== NONE && axisConfig.title.truncation.enabled) {
+    if (axisConfig.visible && hasText(axisConfig.title.text) && axisConfig.title.truncation.enabled) {
       const { width: cWidth, height: cHeight } = chartContentLayoutInfo;
       const { titleBoundsX, titleBoundsY, titleBoundsWidth, titleBoundsHeight, vertical } = axisLayoutInfo;
 

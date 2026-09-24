@@ -25,6 +25,11 @@ export function onClickDisabled(e: Event): void {
   e.preventDefault();
 }
 
+/** Whether a text setting names any text: null and '' both mean none, wherever a text, label, prefix or suffix takes null for none. */
+export function hasText(value: string | null | undefined): value is string {
+  return value !== null && value !== undefined && value !== '';
+}
+
 /** Marks focus the library moved itself, which pointer paths reach too - :focus-visible never
  * matches there, so the stylesheet has nothing to ring without this. Cleared on blur. */
 export const focusRestoredAttribute = 'data-mochart-focus-restored';

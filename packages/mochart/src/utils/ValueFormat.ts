@@ -2,7 +2,7 @@ import { format } from 'd3-format';
 import { timeFormat, utcFormat } from 'd3-time-format';
 import { scaleLinear } from 'd3-scale';
 
-import { arrayToMap, idAccessor } from './utils.js';
+import { arrayToMap, idAccessor, hasText } from './utils.js';
 import { NONE, AUTO, TYPE_DATE, TYPE_NUMBER } from '../config/core/constants.js';
 import type { CategoryAxisConfig } from '../types/config.js';
 import type { EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
@@ -117,13 +117,13 @@ function applyPrefixAndSuffix<T>(formatConfig: Pick<CategoryAxisConfig, 'valuePr
 }
 
 function applyAffixes<T>(prefix: string | null, suffix: string | null, oldFormat: (value: T) => CategoryValue): (value: T) => CategoryValue {
-  if (prefix !== NONE && suffix !== NONE) {
+  if (hasText(prefix) && hasText(suffix)) {
     return value => (prefix + String(oldFormat(value)) + suffix);
   }
-  if (prefix !== NONE) {
+  if (hasText(prefix)) {
     return value => (prefix + String(oldFormat(value)));
   }
-  if (suffix !== NONE) {
+  if (hasText(suffix)) {
     return value => (String(oldFormat(value)) + suffix);
   }
   return oldFormat;

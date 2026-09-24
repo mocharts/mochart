@@ -2,7 +2,7 @@ import { style, spacing, font } from './shared.js';
 
 export default function getDescriptions() {
   return {
-    text: 'the text to display in the title (use null for none)',
+    text: 'the text to display in the title (use null or an empty string for none)',
     position: 'the position of the title relative to the chart (top or bottom)',
     link: 'the link to create for the title (use null for none)',
     linkDisabled: 'whether to prevent default navigation behaviour when the link is clicked',
@@ -29,7 +29,7 @@ export default function getDescriptions() {
     prefix: {
       description: 'the prefix box shown at the start of the title',
       properties: {
-        text: 'the text to display in the box (use null for none)',
+        text: 'the text to display in the box (use null or an empty string for none)',
         margin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the box'),
         padding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the box'),
         backgroundStyle: style('the styles to apply to the box background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
@@ -40,7 +40,7 @@ export default function getDescriptions() {
     suffix: {
       description: 'the suffix box shown at the end of the title',
       properties: {
-        text: 'the text to display in the box (use null for none)',
+        text: 'the text to display in the box (use null or an empty string for none)',
         margin: spacing('the margin (in pixels) for the top, right, bottom and left sides of the box'),
         padding: spacing('the padding (in pixels) for the top, right, bottom and left sides of the box'),
         backgroundStyle: style('the styles to apply to the box background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),

@@ -5,7 +5,7 @@ import { timeFormat, utcFormat } from 'd3-time-format';
 import { getWithMutations } from '../utils/WithMutations.js';
 import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData.js';
 import { getCategoryValueKey } from './CategoryValue.js';
-import { areArraysAndEqual, arrayToMap, idAccessor } from '../utils/utils.js';
+import { areArraysAndEqual, arrayToMap, idAccessor, hasText } from '../utils/utils.js';
 import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
 import type { Anchor } from '../config/core/constants.js';
 import { getMinorTickLabel } from '../config/core/minorConfig.js';
@@ -964,18 +964,18 @@ function getOrdinalScaleTickLabelFormatter(axisConfig: CategoryAxisConfig, tickL
 }
 
 function getTickLabelFormatterForPrefixAndSuffix(tickLabel: TickLabelSettings, tickLabelFormatter: TickLabelFormatter): TickLabelFormatter {
-  if (tickLabel.prefix !== NONE || tickLabel.suffix !== NONE) {
+  if (hasText(tickLabel.prefix) || hasText(tickLabel.suffix)) {
     const oldTickLabelFormatter = tickLabelFormatter;
-    if (tickLabel.prefix !== NONE && tickLabel.suffix !== NONE) {
+    if (hasText(tickLabel.prefix) && hasText(tickLabel.suffix)) {
       const prefix = tickLabel.prefix!;
       const suffix = tickLabel.suffix!;
       tickLabelFormatter = (tick: CategoryValue) => (prefix + oldTickLabelFormatter(tick) + suffix);
     }
-    else if (tickLabel.prefix !== NONE) {
+    else if (hasText(tickLabel.prefix)) {
       const prefix = tickLabel.prefix!;
       tickLabelFormatter = (tick: CategoryValue) => (prefix + oldTickLabelFormatter(tick));
     }
-    else if (tickLabel.suffix !== NONE) {
+    else if (hasText(tickLabel.suffix)) {
       const suffix = tickLabel.suffix!;
       tickLabelFormatter = (tick: CategoryValue) => (oldTickLabelFormatter(tick) + suffix);
     }

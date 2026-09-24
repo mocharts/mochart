@@ -31,7 +31,7 @@ export default function getDescriptions() {
     centerLabel: {
       description: 'the text label shown at the center of the pie (most useful for donut and gauge charts)',
       properties: {
-        text: 'the text to show at the center of the pie (use null for none)',
+        text: 'the text to show at the center of the pie (use null or an empty string for none)',
         textStyle: style('the styles to apply to the center label text (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none), use "currentColor" to follow the host page\'s css color and theme)'),
         font: font('the font of the center label text (family, size, weight, style), each member falling back to chart.font when null')
       }

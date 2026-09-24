@@ -3,10 +3,10 @@ import { format } from 'd3-format';
 import { Renderer, svgEl, textEl } from '../render/index.js';
 
 import { mochartCssClasses } from '../utils/ChartDom.js';
-import { translate, textDY } from '../utils/utils.js';
+import { translate, textDY, hasText } from '../utils/utils.js';
 import { styleToAttributes } from '../utils/style.js';
 import { resolveFontStyle } from '../utils/font.js';
-import { NONE, AUTO } from '../config/core/constants.js';
+import { AUTO } from '../config/core/constants.js';
 
 import type { FontConfig, PieConfig } from '../types/config.js';
 import type { LayoutInfo } from '../types/layout.js';
@@ -43,7 +43,7 @@ export default class PieCenter extends Renderer<PieCenterProps> {
     const { pieConfig, seriesLayoutInfo, radialLayoutInfo, total, accessibility, chartFont } = this.props;
     const { text: centerLabel, textStyle: centerLabelTextStyle } = pieConfig.centerLabel;
     const { visible: showCenterTotal, textStyle: centerTotalTextStyle } = pieConfig.centerTotal;
-    const showLabel = centerLabel !== NONE;
+    const showLabel = hasText(centerLabel);
 
     if (!showLabel && !showCenterTotal) {
       this.setPresent(false);

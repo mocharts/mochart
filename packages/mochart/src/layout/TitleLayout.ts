@@ -1,4 +1,5 @@
-import { NONE, ALIGN_LEFT, ALIGN_CENTER, VERTICAL_ALIGN_TOP, VERTICAL_ALIGN_MIDDLE } from '../config/core/constants.js';
+import { ALIGN_LEFT, ALIGN_CENTER, VERTICAL_ALIGN_TOP, VERTICAL_ALIGN_MIDDLE } from '../config/core/constants.js';
+import { hasText } from '../utils/utils.js';
 import type { VerticalAlign } from '../config/core/constants.js';
 import { getSpacingWidth, getSpacingOuterWidth, getSpacingOuterHeight, getSpacingHeight, getMaxSpacingHeight } from './SpacingLayoutInfo.js';
 import { createSpacingLayoutInfo, getSpacingLeft } from './SpacingLayoutInfo.js';
@@ -36,16 +37,16 @@ export function getTitleHeight(mochartConfig: EnhancedMochartConfig, chartTextBo
   const { title: titleConfig } = mochartConfig;
   const { titleTextRawBounds, titlePrefixBounds, titleSuffixBounds } = chartTextBoundsData;
   let titleHeight = 0;
-  if (titleConfig.text !== NONE) {
+  if (hasText(titleConfig.text)) {
     const { margin, padding, textMargin, textPadding } = titleConfig;
     const { text: prefix, margin: prefixMargin, padding: prefixPadding } = titleConfig.prefix;
     const { text: suffix, margin: suffixMargin, padding: suffixPadding } = titleConfig.suffix;
 
     titleHeight = getSpacingOuterHeight(titleTextRawBounds, textMargin, textPadding);
-    if (prefix !== NONE) {
+    if (hasText(prefix)) {
       titleHeight = getMaxSpacingHeight(titleHeight, titlePrefixBounds, prefixMargin, prefixPadding);
     }
-    if (suffix !== NONE) {
+    if (hasText(suffix)) {
       titleHeight = getMaxSpacingHeight(titleHeight, titleSuffixBounds, suffixMargin, suffixPadding);
     }
     titleHeight += getSpacingHeight(margin, padding);
@@ -62,9 +63,9 @@ export function getTitleLayoutInfo(mochartConfig: EnhancedMochartConfig, chartTe
   const { titlePrefixBounds, titleTextBounds, titleTextRawBounds, titleSuffixBounds } = chartTextBoundsData;
   const hasDefaultBounds = titlePrefixBounds.default || titleTextBounds.default || titleTextRawBounds.default || titleSuffixBounds.default;
   const { x, width } = contentBounds;
-  const hasTitle = title !== NONE;
-  const hasPrefix = hasTitle && titlePrefix !== NONE;
-  const hasSuffix = hasTitle && titleSuffix !== NONE
+  const hasTitle = hasText(title);
+  const hasPrefix = hasTitle && hasText(titlePrefix);
+  const hasSuffix = hasTitle && hasText(titleSuffix)
 
   const spacingWidth = hasTitle ? getSpacingWidth(margin, padding) : 0;
   const prefixWidth = hasPrefix ? getSpacingOuterWidth(titlePrefixBounds, prefixMargin, prefixPadding) : 0;

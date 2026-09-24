@@ -733,7 +733,8 @@ export interface PieTooltipConfig {
 /** The text label shown at the center of the pie. */
 export interface PieCenterLabelConfig {
   /**
-   * The text to show at the center of the pie (use null for none).
+   * The text to show at the center of the pie (use null or an empty string for
+   * none).
    *
    * @default null
    */
@@ -1043,7 +1044,7 @@ export interface TruncationConfig {
 
 /** A prefix or suffix box beside the title text: its text, spacing and styles. */
 export interface TitleAffixConfig {
-  /** The text to display in the box (use null for none). */
+  /** The text to display in the box (use null or an empty string for none). */
   text: string | null;
   /**
    * The margin (in pixels) for the top, right, bottom and left sides of the
@@ -1075,7 +1076,7 @@ export interface TitleAffixConfig {
 
 export interface TitleConfig {
   /**
-   * The text to display in the title (use null for none).
+   * The text to display in the title (use null or an empty string for none).
    *
    * @default null
    */
@@ -1746,7 +1747,8 @@ export interface TooltipConfig {
    */
   showMissingValues: boolean;
   /**
-   * The text to show for series that have been filtered (use null for none).
+   * The text to show for series that have been filtered (use null or an empty
+   * string for none).
    *
    * @default null
    */
@@ -1779,7 +1781,8 @@ export interface TooltipConfig {
  */
 export interface ThresholdTitleConfig {
   /**
-   * The title text shown beside the threshold (use null for none).
+   * The title text shown beside the threshold (use null or an empty string for
+   * none).
    *
    * @default null
    */
@@ -2415,15 +2418,15 @@ export interface AxisTickLabelConfig {
    */
   format: string | Auto | null;
   /**
-   * The string to prefix to the text of each axis tick label (use null for
-   * none).
+   * The string to prefix to the text of each axis tick label (use null or an
+   * empty string for none).
    *
    * @default null
    */
   prefix: string | null;
   /**
-   * The string to append to the text of each axis tick label (use null for
-   * none).
+   * The string to append to the text of each axis tick label (use null or an
+   * empty string for none).
    *
    * @default null
    */
@@ -2562,15 +2565,15 @@ export interface AxisTickLabelConfig {
    */
   minorFormat: string | Auto | Major | null;
   /**
-   * The string to prefix to the text of each minor tick label (use null for
-   * none).
+   * The string to prefix to the text of each minor tick label (use null or an
+   * empty string for none).
    *
    * @default null
    */
   minorPrefix: string | null;
   /**
-   * The string to append to the text of each minor tick label (use null for
-   * none).
+   * The string to append to the text of each minor tick label (use null or an
+   * empty string for none).
    *
    * @default null
    */
@@ -2651,7 +2654,8 @@ export interface ValueAxisTickLabelConfig extends AxisTickLabelConfig {
 /** The title shown alongside an axis. */
 export interface AxisTitleConfig {
   /**
-   * The title text to be shown alongside the axis (use null for no title).
+   * The title text to be shown alongside the axis (use null or an empty string
+   * for no title).
    *
    * @default null
    */
@@ -3234,22 +3238,22 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    */
   valueFormat: string | Auto | null;
   /**
-   * The label to show before a category value in the tooltip (use null for
-   * none).
+   * The label to show before a category value in the tooltip (use null or an
+   * empty string for none).
    *
    * @default null
    */
   valueLabel: string | null;
   /**
    * The text to prefix category values with when showing them in the tooltip
-   * (use null for none).
+   * (use null or an empty string for none).
    *
    * @default null
    */
   valuePrefix: string | null;
   /**
    * The text to append category values with when showing them in the tooltip
-   * (use null for none).
+   * (use null or an empty string for none).
    *
    * @default null
    */
@@ -3870,14 +3874,14 @@ export interface SeriesLabelConfig {
   format: string | Auto | null;
   /**
    * The text to prefix series label values with when drawing them on the plot
-   * (use null for none).
+   * (use null or an empty string for none).
    *
    * @default null
    */
   prefix: string | null;
   /**
    * The text to append series label values with when drawing them on the plot
-   * (use null for none).
+   * (use null or an empty string for none).
    *
    * @default null
    */
@@ -4304,14 +4308,14 @@ export interface SeriesConfig {
   valueFormat: string | Auto | null;
   /**
    * The text to prefix series values with when showing them in the tooltip (use
-   * null for none).
+   * null or an empty string for none).
    *
    * @default null
    */
   valuePrefix: string | null;
   /**
    * The text to append series values with when showing them in the tooltip (use
-   * null for none).
+   * null or an empty string for none).
    *
    * @default null
    */
@@ -4324,7 +4328,8 @@ export interface SeriesConfig {
    */
   useTitleForValueLabel: boolean;
   /**
-   * The title to display for the series in the legend (use null for none).
+   * The title to display for the series in the legend (use null or an empty
+   * string for none).
    *
    * @default null
    */

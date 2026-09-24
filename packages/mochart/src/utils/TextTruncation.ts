@@ -50,7 +50,7 @@ export function getTruncatedText(truncationEnabled: boolean, truncationText: str
       let aTruncationData;
       text = text.map((aText, i) => {
         aTruncationData = (truncationData as TruncationData[])[i];
-        if (aTruncationData.text !== aTruncationData.truncatedText) {
+        if (aTruncationData.truncatedText !== undefined && aTruncationData.text !== aTruncationData.truncatedText) {
           aText = aTruncationData.truncatedText + at(truncationText, i);
         }
         return aText;
@@ -58,7 +58,7 @@ export function getTruncatedText(truncationEnabled: boolean, truncationText: str
     }
     else {
       const singleTruncationData = truncationData as TruncationData;
-      if (singleTruncationData.text !== singleTruncationData.truncatedText) {
+      if (singleTruncationData.truncatedText !== undefined && singleTruncationData.text !== singleTruncationData.truncatedText) {
         text = singleTruncationData.truncatedText + at(truncationText, 0);
       }
     }

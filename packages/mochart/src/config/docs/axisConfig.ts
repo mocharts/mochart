@@ -87,8 +87,8 @@ export function getTickLabelDescriptions(): DescriptionMap {
     marginOuter: 'the margin (in pixels) to show between the tick labels and the outside of the axis',
     paddingInner: 'the padding (in pixels) to show between the tick labels and the inside of the axis',
     paddingOuter: 'the padding (in pixels) to show between the tick labels and the outside of the axis',
-    prefix: 'the string to prefix to the text of each axis tick label (use null for none)',
-    suffix: 'the string to append to the text of each axis tick label (use null for none)',
+    prefix: 'the string to prefix to the text of each axis tick label (use null or an empty string for none)',
+    suffix: 'the string to append to the text of each axis tick label (use null or an empty string for none)',
     rotation: 'the rotation (in degrees, -90 to 90) to apply to each axis tick label',
     anchor: 'the anchor to use for all axis tick labels (start, end, middle) (use "auto" to determine automatically)',
     textStyle: styleStates('the style of the axis tick label text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity']),
@@ -101,8 +101,8 @@ export function getTickLabelDescriptions(): DescriptionMap {
     minorMarginOuter: 'the margin (in pixels) to show between the minor tick labels and the outside of the axis' + majorNote('tickLabel.marginOuter'),
     minorPaddingInner: 'the padding (in pixels) to show between the minor tick labels and the inside of the axis' + majorNote('tickLabel.paddingInner'),
     minorPaddingOuter: 'the padding (in pixels) to show between the minor tick labels and the outside of the axis' + majorNote('tickLabel.paddingOuter'),
-    minorPrefix: 'the string to prefix to the text of each minor tick label (use null for none)',
-    minorSuffix: 'the string to append to the text of each minor tick label (use null for none)',
+    minorPrefix: 'the string to prefix to the text of each minor tick label (use null or an empty string for none)',
+    minorSuffix: 'the string to append to the text of each minor tick label (use null or an empty string for none)',
     minorRotation: 'the rotation (in degrees, -90 to 90) to apply to each minor tick label' + majorNote('tickLabel.rotation'),
     minorAnchor: 'the anchor to use for all minor tick labels (start, end, middle) (use "auto" to determine automatically)' + majorNote('tickLabel.anchor'),
     minorTextStyle: minorStyleStates('the style of the minor tick label text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity'], 'tickLabel.textStyle'),
@@ -139,7 +139,7 @@ export function getThresholdDescriptions(): DescriptionMap {
     title: {
       description: 'the title label shown beside the threshold',
       properties: {
-        text: 'the title text shown beside the threshold (use null for none)',
+        text: 'the title text shown beside the threshold (use null or an empty string for none)',
         side: 'the value side of the threshold the title sits on ("low", "high", or "inside" a range)',
         align: 'where the title sits along the threshold ("start", "middle", "end", or "auto" for the axis side)',
         snapToValue: 'whether the title flips to the other side of the threshold when its own side has no room, instead of being clamped inside the plot over it',
@@ -323,7 +323,7 @@ export default function getDescriptions() {
     title: {
       description: 'the title shown alongside the axis',
       properties: {
-        text: 'the title text to be shown alongside the axis (use null for no title)',
+        text: 'the title text to be shown alongside the axis (use null or an empty string for no title)',
         front: 'whether the axis title should be shown in front (true) or behind (false) the series shapes',
         backgroundStyle: style('the styles to apply to the axis title background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
         truncation: {
