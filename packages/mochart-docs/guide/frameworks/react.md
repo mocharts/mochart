@@ -197,5 +197,5 @@ for what the core itself needs.
 ## See it in action
 
 The [React demo gallery](/react/demos) is a full application built on
-`@mochart/react` (react-router 7); its source lives in
+`@mochart/react` (react-router 8); its source lives in
 [packages/mochart-demo-react](https://github.com/mocharts/mochart/tree/main/packages/mochart-demo-react).
