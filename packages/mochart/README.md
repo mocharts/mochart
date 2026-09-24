@@ -237,7 +237,7 @@ All callbacks are optional props on either entry point:
 createDefaultChart(container, {
   config, data, width, height,
   onFocus: ({ focusedSeriesId, focusedCategoryIndex }) => { /* hover/click focus changed */ },
-  onSeriesFilter: ({ filteredSeriesIds }) => { /* legend filtering changed */ },
+  onSeriesFilter: ({ filteredSeriesIds }) => { /* the filtered set changed */ },
   onChartClick: ({ categoryIndex, chartX, chartY }) => { /* plot area clicked */ },
   onSliceClick: ({ seriesId }) => { /* pie slice clicked */ },
   onSeriesClick: ({ seriesId, categoryIndex }) => { /* bar/point/line clicked */ },
@@ -247,8 +247,9 @@ createDefaultChart(container, {
 
 - `onFocus(focus)`: the focused series/category/axis changed (pointer over/out
   or click, per the series' `focusOnHover`/`focusOnClick` config)
-- `onSeriesFilter(filter)`: a legend click toggled a series in/out of the
-  filtered set
+- `onSeriesFilter(filter)`: the filtered set changed, because a legend or
+  tooltip-row click toggled a series in or out of it, or a structural config
+  change cleared it
 - `onChartClick` / `onChartMouseEnter` / `onChartMouseMove` /
   `onChartMouseLeave`: plot-area pointer events with chart coordinates and the
   nearest category index

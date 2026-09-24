@@ -132,8 +132,8 @@ export interface ChartCallbacks {
    */
   onFocus?: (focus: ChartFocus) => void;
   /**
-   * A legend click toggled a series in or out of the filtered set
-   * (requires `legend.filterOnClick`).
+   * The filtered set changed: a legend or tooltip-row click toggled a series in
+   * or out of it, or a structural config change cleared it.
    */
   onSeriesFilter?: (filter: ChartSeriesFilter) => void;
   /** The plot area was re-laid-out; reports its new bounds. */
