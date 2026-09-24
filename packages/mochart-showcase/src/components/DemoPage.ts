@@ -97,10 +97,7 @@ export function demoPage(props: DemoPageProps): DemoPageHandle {
   }
 
   function buildDemoConfig(): MochartDemoConfig {
-    // Always hand the builder a clone: buildMochartConfig wires back-references
-    // into the section objects it is given, and rebuilding from an already-
-    // built (circular) config would recurse forever.
-    return buildMochartDemoConfig(structuredClone(effectiveConfig()));
+    return buildMochartDemoConfig(effectiveConfig());
   }
 
   // Focus and filter updates reuse the provider: a rebuilt one counts as a
