@@ -57,19 +57,23 @@ function getSpanUnitBounds(startAngle: number, endAngle: number): UnitBounds {
  * is scaled to fill the rect and centered, so partial pies use the space their
  * missing slices would waste. The span comes from the config, never the
  * current slice angles, so the layout holds still while values animate.
- * The radius also leaves room for focusOffsetFraction, so an exploded slice stays inside the rect.
+ * The box fitted and centred is the exploded one: a focused slice moves out along its mid-angle by
+ * focusOffsetFraction of the outer radius, so the span's arc points scale by that factor while the
+ * centre stays put, and the pie sits so that an exploded slice still stays inside the rect on any span.
  */
 export function getRadialLayoutInfo(seriesLayoutInfo: LayoutInfo, pieConfig: PieConfig): RadialLayoutInfo {
   const { width, height } = seriesLayoutInfo;
   const bounds = getSpanUnitBounds(pieConfig.startAngle, pieConfig.endAngle);
-  const unitWidth = Math.max(bounds.maxX - bounds.minX, 1e-6);
-  const unitHeight = Math.max(bounds.maxY - bounds.minY, 1e-6);
-  const maxRadius = Math.max(Math.min(width / unitWidth, height / unitHeight), 0) / (1 + pieConfig.focusOffsetFraction);
+  // the bounds always hold the centre (0, 0), so scaling each of them scales the arc points and leaves the centre alone
+  const explodedExtent = 1 + pieConfig.focusOffsetFraction;
+  const unitWidth = Math.max((bounds.maxX - bounds.minX) * explodedExtent, 1e-6);
+  const unitHeight = Math.max((bounds.maxY - bounds.minY) * explodedExtent, 1e-6);
+  const maxRadius = Math.max(Math.min(width / unitWidth, height / unitHeight), 0);
   const outerRadius = maxRadius * pieConfig.outerRadiusFraction;
   const innerRadius = outerRadius * pieConfig.innerRadiusFraction;
   return {
-    cx: width / 2 - outerRadius * (bounds.minX + bounds.maxX) / 2,
-    cy: height / 2 - outerRadius * (bounds.minY + bounds.maxY) / 2,
+    cx: width / 2 - outerRadius * explodedExtent * (bounds.minX + bounds.maxX) / 2,
+    cy: height / 2 - outerRadius * explodedExtent * (bounds.minY + bounds.maxY) / 2,
     innerRadius,
     outerRadius
   };

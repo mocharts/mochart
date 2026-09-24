@@ -218,4 +218,26 @@ describe('getRadialLayoutInfo', () => {
     expect(info.cx).toBeCloseTo(0, 10);
     expect(info.cy).toBeCloseTo(300, 10);
   });
+
+  // the room for the explosion was split across both sides of the span, so on a partial span the
+  // exploded slice left the rect on the arc side while the flat side kept the same room empty
+  it('keeps an exploded slice of a half-pie span inside the rect', () => {
+    const info = getRadialLayoutInfo(layout(400, 200), pieConfig({ startAngle: -90, endAngle: 90, focusOffsetFraction: 0.2 }));
+    // the exploded arc reaches 1.2 radii above the centre: 400 / 2.4 and 200 / 1.2 both give 166.67
+    expect(info.outerRadius).toBeCloseTo(400 / 2.4, 10);
+    // the flat side sits on the bottom edge and the exploded top touches the top edge
+    expect(info.cy).toBeCloseTo(200, 10);
+    expect(info.cy - info.outerRadius * 1.2).toBeCloseTo(0, 10);
+    expect(info.cx).toBeCloseTo(200, 10);
+  });
+
+  it('keeps an exploded slice of a quarter span inside the rect', () => {
+    const info = getRadialLayoutInfo(layout(300, 300), pieConfig({ startAngle: 0, endAngle: 90, focusOffsetFraction: 0.5 }));
+    expect(info.outerRadius).toBeCloseTo(200, 10);
+    // the centre is the bottom-left corner: the exploded arc reaches the top and right edges
+    expect(info.cx).toBeCloseTo(0, 10);
+    expect(info.cy).toBeCloseTo(300, 10);
+    expect(info.cx + info.outerRadius * 1.5).toBeCloseTo(300, 10);
+    expect(info.cy - info.outerRadius * 1.5).toBeCloseTo(0, 10);
+  });
 });
