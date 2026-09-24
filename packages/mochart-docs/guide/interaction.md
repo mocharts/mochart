@@ -162,9 +162,9 @@ createDefaultChart(container, {
 });
 ```
 
-- `onFocus(focus)`: the focused series/category/value axis changed. Series and
-  legend focus are opt-in, and tooltip-driven category focus is on by default
-  (see [Focus](#focus))
+- `onFocus(focus)`: the focused series/category/value axis changed. Focus from
+  the series shapes is opt-in; legend hover, value axis hover and
+  tooltip-driven category focus are on by default (see [Focus](#focus))
 - `onSeriesFilter(filter)`: the filtered set changed, because a legend or
   tooltip-row click toggled a series in or out of it, or a structural config
   change cleared it
