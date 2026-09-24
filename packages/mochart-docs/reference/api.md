@@ -175,7 +175,9 @@ live-preview editor wants.
 - `enhanceConfig` produces the fully-built `MochartConfig` that `createChart`
   consumes: migrated to the current format, validated, every default applied,
   `*Defaults` sections merged, and cross-references resolved. It never mutates
-  the config it is given. The lower-level helpers below do not migrate: call
+  the config it is given. An invalid config is returned, not thrown: its
+  `validation` member holds `valid: false` with the `errors` and `warnings`,
+  and a chart given it shows the config error state. The lower-level helpers below do not migrate: call
   `migrateConfig` first if you use them directly on a stored config.
 - `validateConfig` checks a raw config against the same validators that generate
   this reference, returning human-readable `errors` and `warnings` (unknown

@@ -4759,23 +4759,33 @@ export type PatternInputConfig =
 export type PatternDefaultsConfig = Pick<PatternConfig,
   'spacing' | 'foregroundColor' | 'foregroundOpacity' | 'backgroundColor' | 'backgroundOpacity'>;
 
+/** The result of validateConfig, also attached to a built config as its validation member. */
 export interface ConfigValidation {
+  /** False when there is any error, or in strict mode any warning. */
   valid: boolean;
+  /** Readable messages for values the config rejects. */
   errors: string[];
+  /** Readable messages for unknown properties. */
   warnings: string[];
 }
 
+/** Whether a diagnostic came from the errors or the warnings list. */
 export type ConfigDiagnosticSeverity = 'error' | 'warning';
 
+/** One validation problem with its location in the config, for an editor to highlight. */
 export interface ConfigDiagnostic {
+  /** The keys and array indexes leading to the property responsible (for unknown properties, the section containing them). */
   path: (string | number)[];
   severity: ConfigDiagnosticSeverity;
+  /** The readable message, as it appears in errors or warnings. */
   message: string;
   /** The offending key names (capped) when the message reports invalid properties. */
   invalidProperties?: string[];
+  /** Always 'mochart', so an editor can tell these diagnostics from its own. */
   source: 'mochart';
 }
 
+/** The result of validateConfigDetailed: the validateConfig result plus one located diagnostic per problem. */
 export interface DetailedConfigValidation extends ConfigValidation {
   diagnostics: ConfigDiagnostic[];
 }

@@ -61,8 +61,10 @@ value (an `Error`'s message, or the value as text):
 
 **Config error**: the config failed validation (here, a series pointing at a
 value axis that does not exist); the built-in placeholder shows a generic
-message, while the validation errors themselves come from
-[`validateConfig`](/guide/config-model#validation):
+message. The validation errors themselves are on the enhanced config, in
+`mochartConfig.validation.errors` (see
+[`enhanceConfig`](/reference/api#config-helpers)), so a custom placeholder can
+list them from its `context` without validating again:
 
 <LiveChart :config="states.invalidConfig" :data="states.data" :height="180" :demo-link="false" />
 
