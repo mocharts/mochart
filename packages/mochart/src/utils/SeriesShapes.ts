@@ -267,7 +267,8 @@ export function getColumnGenerator(seriesConfig: EnhancedSeriesConfig, seriesPos
   const columnCapType = capType !== NONE ? capType : outerCapType ? outerCapType : NONE;
   const columnCapSize = capType !== NONE ? capSize : outerCapType ? (outerCapSize ?? 0) : 0;
   const columnCapExpand = capType !== NONE ? capExpand : outerCapType ? (outerCapExpand ?? false) : false;
-  const applyStackOuter = stack && (capType !== NONE && capOnlyStackOuter) || (capType === NONE && outerCapType && outerCapType !== NONE);
+  // both terms need a stack: without one there are no stack outer ids to check the bar against
+  const applyStackOuter = stack && ((capType !== NONE && capOnlyStackOuter) || (capType === NONE && outerCapType && outerCapType !== NONE));
 
   const connector = getConnector(columnCapType, inverted);
   const { skipped, skipCategoryIndexMap } = seriesPositionData;

@@ -70,7 +70,8 @@ const addToIdMap = (idMap: Record<string, ConfigRecord[]>, configs: ConfigRecord
 const assignConfigReferences = (configs: ConfigRecord[], referenceKey: string, referenceName: string, configMap: Record<string, ConfigRecord>, configDescriptor: string): void => {
   if (Array.isArray(configs)) {
     for (const config of configs) {
-      if (isObject(config) && config[referenceKey] !== undefined) {
+      // null is the documented opt-out, not a reference to an entry whose id is "null" (configsToIdMap skips a null id too)
+      if (isObject(config) && config[referenceKey] !== undefined && config[referenceKey] !== null) {
         if (config[referenceName] !== undefined) {
           console.warn('mochartConfig.' + configDescriptor + '[' + getConfigKey(config.id) + '] had a ' + referenceName + ' property that will be overriden');
         }
