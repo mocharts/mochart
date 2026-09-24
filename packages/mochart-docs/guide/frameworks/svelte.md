@@ -118,7 +118,7 @@ in-place change is seen):
 ```svelte
 <script lang="ts">
   import type { DataObject } from '@mochart/core';
-  import type { ChartRef } from '@mochart/svelte';
+  import { DefaultChart, type ChartRef } from '@mochart/svelte';
 
   let chart: ChartRef | undefined = $state();
 
