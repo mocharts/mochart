@@ -202,10 +202,10 @@ Making a shape clickable doesn't change the mouse cursor. Set
 `seriesDefaults`, as the example below does) to give its shapes (including pie
 slices) `cursor: pointer`, advertising that clicking does something.
 
-Watch them fire: click a bar, hover a series, or toggle a legend entry; the log
-records each event in order and follows the latest (scroll up for older ones).
-One interaction often fires several: with `focusOnClick` set, clicking a bar
-reports `onFocus` and `onSeriesClick` together.
+Watch them fire: click a bar, hover a legend entry, or click one to toggle it;
+the log records each event in order and follows the latest (scroll up for older
+ones). One interaction often fires several: with `focusOnClick` set, clicking a
+bar reports `onFocus` and `onSeriesClick` together.
 
 <LiveChart :config="interaction.clicksConfig" :data="interaction.data" events />
 
