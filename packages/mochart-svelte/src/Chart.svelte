@@ -4,7 +4,7 @@
   // chart track the container div's size. `bind:this` exposes `refresh()`.
   import { createChart } from '@mochart/core';
   import ChartHost from './ChartHost.svelte';
-  import type { ChartProps } from './types';
+  import type { ChartProps } from './types.js';
 
   let props: ChartProps = $props();
 

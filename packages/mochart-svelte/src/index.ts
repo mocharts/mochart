@@ -9,4 +9,4 @@ export type {
   BaseChartProps,
   ChartProps,
   DefaultChartProps
-} from './types';
+} from './types.js';

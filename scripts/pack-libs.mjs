@@ -58,17 +58,12 @@ if (smoke && !errors.length) {
     }
   }
   writeFileSync(join(smokeDir, 'package.json'), JSON.stringify({ name: 'mochart-smoke', private: true, type: 'module', dependencies }, null, 2));
-  // the svelte dist ships .svelte sources (with bundler-style extensionless relative
-  // imports) for the consumer's bundler; under Node these hooks stand in for it
+  // the svelte dist ships .svelte sources for the consumer's bundler to compile; under Node this hook stands in for it
   writeFileSync(join(smokeDir, 'register.mjs'), [
     "import { registerHooks } from 'node:module';",
     "import { readFileSync } from 'node:fs';",
     "import { compile } from 'svelte/compiler';",
     'registerHooks({',
-    '  resolve(specifier, context, next) {',
-    '    try { return next(specifier, context); }',
-    "    catch (error) { if (/^\\.\\.?\\//.test(specifier) && !/\\.\\w+$/.test(specifier)) return next(specifier + '.js', context); throw error; }",
-    '  },',
     '  load(url, context, next) {',
     "    if (!url.endsWith('.svelte')) return next(url, context);",
     "    const { js } = compile(readFileSync(new URL(url), 'utf8'), { filename: url, generate: 'server' });",
@@ -91,7 +86,8 @@ if (smoke && !errors.length) {
   // exported type per package must still be rejected
   const typeProbes = [
     ['@mochart/core', 'MochartConfig'], ['@mochart/react', 'DefaultChartProps'], ['@mochart/vue', 'DefaultChartProps'],
-    ['@mochart/lit', 'DefaultChartProps'], ['@mochart/angular', 'PlaceholderProps'], ['@mochart/editor', 'JsonEditorOptions'],
+    ['@mochart/lit', 'DefaultChartProps'], ['@mochart/svelte', 'DefaultChartProps'], ['@mochart/angular', 'PlaceholderProps'],
+    ['@mochart/editor', 'JsonEditorOptions'],
     ['@mochart/export', 'ExportSvgOptions']
   ].filter(([name]) => packed.some(({ manifest }) => manifest.name === name));
   const typesDir = join(smokeDir, 'types');

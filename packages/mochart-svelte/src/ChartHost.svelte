@@ -3,9 +3,9 @@
   // `create` into the div below, pushes prop changes through the chart handle,
   // and destroys the chart when the component is destroyed.
   import { getAllContexts, onMount } from 'svelte';
-  import { mountChartHost } from './host';
-  import type { CreateChartFn, HostHandle } from './host';
-  import type { BaseChartProps } from './types';
+  import { mountChartHost } from './host.js';
+  import type { CreateChartFn, HostHandle } from './host.js';
+  import type { BaseChartProps } from './types.js';
 
   type ChartHostProps = BaseChartProps & {
     create: CreateChartFn;

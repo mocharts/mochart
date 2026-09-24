@@ -5,7 +5,7 @@
   // `bind:this` exposes `refresh()`.
   import { createDefaultChart } from '@mochart/core';
   import ChartHost from './ChartHost.svelte';
-  import type { DefaultChartProps } from './types';
+  import type { DefaultChartProps } from './types.js';
 
   let props: DefaultChartProps = $props();
 
