@@ -158,7 +158,7 @@ export default function getDescriptions() {
     showInTooltip: 'whether to show the series in the tooltip',
     showColorInLegend: 'whether to show the series color as an icon next to the series title in the legend',
     showColorInTooltip: 'whether to show the series color as an icon next to the series title in the tooltip',
-    filterable: 'whether or not the series can be filtered out of the chart via the legend or tooltip (no effect when `followSeries` is set: the followed series\' `filterable` decides)',
+    filterable: 'whether or not the series can be filtered out of the chart via the legend or tooltip (no effect when `followSeries` is set: the followed series\' `filterable` decides). It gates the click only: a series already filtered stays filtered when this turns false, until the host clears it through the filteredSeriesIds prop or a structural config change resets the filters',
     followSeries: 'the unique identifier of another series whose legend filtering and focus this series follows (use null for none)',
     focusOnHover: 'whether the series should be focused while the user hovers the pointer over a part of it in the chart',
     focusOnClick: 'whether a click/tap on a part of the series should pin the focus on it, so it stays focused after the pointer leaves (a second click releases it)',

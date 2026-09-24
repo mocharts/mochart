@@ -4387,7 +4387,9 @@ export interface SeriesConfig {
   /**
    * Whether or not the series can be filtered out of the chart via the legend
    * or tooltip (no effect when `followSeries` is set: the followed series'
-   * `filterable` decides).
+   * `filterable` decides). It gates the click only: a series already filtered
+   * stays filtered when this turns false, until the host clears it through the
+   * filteredSeriesIds prop or a structural config change resets the filters.
    *
    * @default true
    */

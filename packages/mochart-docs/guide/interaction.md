@@ -108,6 +108,14 @@ it from legend (and tooltip) filtering entirely, and
 [`showColorInLegend: false`](/reference/series#series.showColorInLegend) to drop
 the color icon from its legend item.
 
+`filterable` and `legend.filterOnClick` decide only whether a click can toggle a
+series. A series that is already filtered stays filtered when a config update
+sets its `filterable` to `false`, turns `filterOnClick` off or hides the legend,
+even though no click can then bring it back. The host clears the filters with
+`update({ filteredSeriesIds: {} })`, and a
+[structural config change](/guide/config-model#structural-changes) clears them
+too.
+
 ## Tooltip and crosshair
 
 [`tooltip`](/reference/tooltip) and [`crosshair`](/reference/crosshair) style
