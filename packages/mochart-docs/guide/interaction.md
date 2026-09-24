@@ -143,12 +143,16 @@ createDefaultChart(container, {
   filtered set
 - `onChartClick` / `onChartMouseEnter` / `onChartMouseMove` /
   `onChartMouseLeave`: plot-area pointer events with chart coordinates and the
-  nearest category index
+  index of the nearest category in the data last supplied, the same index
+  space `onFocus` reports. While a data change that adds or removes categories
+  animates, the chart still draws the old ones, and a pointer over a category
+  the new data no longer has reports `-1`
 - `onSliceClick(payload)`: a slice of a [pie or donut](/recipes/pie) chart was
   clicked
 - `onSeriesClick(payload)`: a cartesian series shape (bar, marker, label, or
   line/area path) was clicked; reports the series id, the shape's category index
-  (`-1` for a whole-series path), and the category index nearest the pointer.
+  (`-1` for a whole-series path), and the category index nearest the pointer,
+  both in the data last supplied like the pointer events above.
   Fires whether or not the series' `focusOnClick` config is set, and only on
   click, as the cartesian counterpart of `onSliceClick`
 - `onTitleClick()`: the chart title was clicked or activated from the keyboard.

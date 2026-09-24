@@ -9,7 +9,7 @@ import { AnimatedDataSource } from './AnimatedDataSource';
 import type { ChartDataSource, ChartDataSourceInput, InternalFocus } from './ChartDataSource';
 import type { FocusControllerInput } from './FocusController';
 import type { ChartProps } from '../components/Chart';
-import type { ManagedChartProps } from '../types/chart';
+import type { ChartEventPayload, ChartSeriesClickPayload, ManagedChartProps } from '../types/chart';
 import type { CategoryValue, DataProvider } from '../types/data';
 import type { EnhancedMochartConfig } from '../types/enhanced';
 
@@ -168,12 +168,51 @@ export class ChartController {
       getLoadingComponent, getErrorComponent, getNoDataComponent, getNoSizeComponent, getNoSeriesComponent, getConfigErrorComponent
     } = this.props;
     // readDataProvider gets a fresh identity per refresh(), so the Chart re-syncs its loading/error reads even when chartData stays null
+    // the pointer callbacks are wrapped only when the host set them: the Chart reads their presence to decide what is interactive
     return { mochartConfig: this.enhancedConfig(), dataProvider, readDataProvider: this.readDataProvider, loading, error, style, width, height, standalone: true,
       chartData: this.source.chartData, focusData: this.source.focusData,
       initialAnimationPercentage: this.source.initialAnimationPercentage,
       onFocus: this.handleFocus, onSeriesFilter: this.handleSeriesFilter,
-      onChartClick, onSliceClick, onSeriesClick, onChartMouseEnter, onChartMouseMove, onChartMouseLeave, onTitleClick, onSeriesLayoutBoundsChange,
+      onChartClick: onChartClick && this.handleChartClick, onSliceClick,
+      onSeriesClick: onSeriesClick && this.handleSeriesClick,
+      onChartMouseEnter: onChartMouseEnter && this.handleChartMouseEnter,
+      onChartMouseMove: onChartMouseMove && this.handleChartMouseMove,
+      onChartMouseLeave: onChartMouseLeave && this.handleChartMouseLeave,
+      onTitleClick, onSeriesLayoutBoundsChange,
       getLoadingComponent, getErrorComponent, getNoDataComponent, getNoSizeComponent, getNoSeriesComponent, getConfigErrorComponent };
+  }
+
+  /** The Chart reports the category it draws; during a category add, remove or reorder that is the old or merged list, so the host gets the index in its own data, -1 for a departing category. */
+  private remapCategoryIndex(categoryIndex: number): number {
+    return categoryIndex === -1 ? -1 : (this.source.remapFocus({ categoryIndex }).categoryIndex ?? -1);
+  }
+
+  private remapEventPayload(payload: ChartEventPayload): ChartEventPayload {
+    const categoryIndex = this.remapCategoryIndex(payload.categoryIndex);
+    return categoryIndex === payload.categoryIndex ? payload : { ...payload, categoryIndex };
+  }
+
+  private handleChartClick = (payload: ChartEventPayload): void => {
+    this.props.onChartClick?.(this.remapEventPayload(payload));
+  }
+
+  private handleChartMouseEnter = (payload: ChartEventPayload): void => {
+    this.props.onChartMouseEnter?.(this.remapEventPayload(payload));
+  }
+
+  private handleChartMouseMove = (payload: ChartEventPayload): void => {
+    this.props.onChartMouseMove?.(this.remapEventPayload(payload));
+  }
+
+  private handleChartMouseLeave = (payload: ChartEventPayload): void => {
+    this.props.onChartMouseLeave?.(this.remapEventPayload(payload));
+  }
+
+  private handleSeriesClick = (payload: ChartSeriesClickPayload): void => {
+    const categoryIndex = this.remapCategoryIndex(payload.categoryIndex);
+    const nearestCategoryIndex = this.remapCategoryIndex(payload.nearestCategoryIndex);
+    this.props.onSeriesClick?.(categoryIndex === payload.categoryIndex && nearestCategoryIndex === payload.nearestCategoryIndex
+      ? payload : { ...payload, categoryIndex, nearestCategoryIndex });
   }
 
   private handleFocus = (focus: InternalFocus): void => {

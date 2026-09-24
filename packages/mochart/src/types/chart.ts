@@ -16,7 +16,7 @@ export interface ChartEventPayload {
   categoryFraction: number;
   /** Pointer position along the value axis as a 0–1 fraction of the plot. */
   valueFraction: number;
-  /** Index of the category nearest the pointer, -1 when none. */
+  /** Index of the category nearest the pointer in the data last supplied, as `onFocus` reports it; -1 when none, and for a category still drawn while it animates away. */
   categoryIndex: number;
 }
 
@@ -99,7 +99,7 @@ export interface ChartSliceClickPayload {
 export interface ChartSeriesClickPayload {
   /** Id of the clicked shape's series (the leader for follower series). */
   seriesId: string;
-  /** Index of the clicked bar/marker/label's category; -1 for a whole-series shape (line/area path). */
+  /** Index of the clicked bar/marker/label's category in the data last supplied; -1 for a whole-series shape (line/area path), and for a category still drawn while it animates away. */
   categoryIndex: number;
   /** Index of the category nearest the pointer, as `onChartClick` reports it; -1 when none. */
   nearestCategoryIndex: number;
