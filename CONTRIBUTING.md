@@ -10,8 +10,8 @@ declarations. For using the library, start at the
 
 ## Getting started
 
-The repo needs Node 22.22.3 or newer, the `engines.node` every published
-package declares. `.nvmrc` pins 24 and CI runs the matrix on both. An older
+The repo needs Node 22.22.3 or newer, the floor the root `package.json`
+declares in `engines.node`. `.nvmrc` pins 24 and CI runs the matrix on both. An older
 Node fails during `npm install`, in the `prepare` → `build:libs` chain.
 
 ```sh
