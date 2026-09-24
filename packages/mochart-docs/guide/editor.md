@@ -130,4 +130,8 @@ Pass `theme: 'dark'` for the bundled dark treatment and switch later with
 `--mochart-editor-selection`, and `--mochart-editor-match`, the tint on other
 occurrences of the selected text), so a host page can restyle the surface
 without touching the stylesheet. The element also carries `data-theme` and
-`data-validity` attributes for host CSS to key on.
+`data-validity` attributes for host CSS to key on. The font and corner radius
+are plain `font-family` and `border-radius` on `.mochart-editor`, and the
+invalid border is `--mochart-editor-border` set under
+`.mochart-editor[data-validity="invalid"]`; a host rule for either needs to
+outrank the stylesheet's own, for example by loading after it.

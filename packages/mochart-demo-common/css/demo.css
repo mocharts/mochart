@@ -91,6 +91,20 @@ html.dark {
     color-scheme: dark;
 }
 
+/* The JSON editor in the demo palette. The html selector outranks the
+   .mochart-editor rule of editor.css, which loads after this file; its dark
+   theme and invalid rules still win, as they carry more attributes. */
+html .mochart-editor {
+    --mochart-editor-background: var(--demo-surface-muted);
+    --mochart-editor-foreground: var(--demo-text);
+    --mochart-editor-border: var(--demo-border-strong);
+    --mochart-editor-focus: var(--demo-accent);
+    --mochart-editor-focus-soft: var(--demo-accent-soft);
+    --mochart-editor-gutter: var(--demo-surface);
+    border-radius: var(--demo-radius);
+    font-family: var(--demo-mono);
+}
+
 /* ============================================================
    Base (the essentials Bootstrap's reboot used to provide)
    ============================================================ */

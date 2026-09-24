@@ -1,10 +1,10 @@
 .mochart-editor {
-  --mochart-editor-background: var(--demo-surface-muted, #f7f8fa);
-  --mochart-editor-foreground: var(--demo-text, #20242b);
-  --mochart-editor-border: var(--demo-border-strong, #aeb6c2);
-  --mochart-editor-focus: var(--demo-accent, #2563eb);
-  --mochart-editor-focus-soft: var(--demo-accent-soft, rgb(37 99 235 / 18%));
-  --mochart-editor-gutter: var(--demo-surface, #fff);
+  --mochart-editor-background: #f7f8fa;
+  --mochart-editor-foreground: #20242b;
+  --mochart-editor-border: #aeb6c2;
+  --mochart-editor-focus: #2563eb;
+  --mochart-editor-focus-soft: rgb(37 99 235 / 18%);
+  --mochart-editor-gutter: #fff;
   --mochart-editor-selection: rgb(37 99 235 / 30%);
   --mochart-editor-match: rgb(32 36 43 / 9%);
   width: 100%;
@@ -15,8 +15,8 @@
   color: var(--mochart-editor-foreground);
   background: var(--mochart-editor-background);
   border: 1px solid var(--mochart-editor-border);
-  border-radius: var(--demo-radius, 6px);
-  font-family: var(--demo-mono, ui-monospace, SFMono-Regular, Consolas, monospace);
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 13px;
   line-height: 1.5;
   color-scheme: light;
@@ -44,7 +44,7 @@
 }
 
 .mochart-editor[data-validity="invalid"] {
-  --mochart-editor-border: var(--demo-danger, #b42335);
+  --mochart-editor-border: #b42335;
 }
 
 .mochart-editor[data-theme="dark"] {
