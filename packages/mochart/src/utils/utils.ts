@@ -29,6 +29,12 @@ export function onClickDisabled(e: Event): void {
  * matches there, so the stylesheet has nothing to ring without this. Cleared on blur. */
 export const focusRestoredAttribute = 'data-mochart-focus-restored';
 
+/** The element holding focus as seen from `node`'s tree: inside a shadow tree the document retargets its activeElement to the shadow host, and only the shadow root sees the real one. */
+export function activeElementIn(node: Node): Element | null {
+  const root = node.getRootNode();
+  return root instanceof Document || root instanceof ShadowRoot ? root.activeElement : document.activeElement;
+}
+
 export function focusRestored(node: SVGElement | HTMLElement | null | undefined): void {
   if (node === null || node === undefined) {
     return;

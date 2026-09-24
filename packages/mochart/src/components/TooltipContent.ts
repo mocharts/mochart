@@ -6,7 +6,7 @@ import { getSeriesText } from '../utils/TooltipFormat';
 import type { PieTooltipValues } from '../utils/TooltipFormat';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus';
 import { mochartCssClasses } from '../utils/ChartDom';
-import { accessibilityActive, focusRestored, isHoverPointer, isKeyboardFocus } from '../utils/utils';
+import { accessibilityActive, activeElementIn, focusRestored, isHoverPointer, isKeyboardFocus } from '../utils/utils';
 import { moveRovingFocus, resolveRovingId } from '../utils/RovingFocus';
 import { getPieSliceFractionMap } from '../data/PieData';
 import { getPieTooltipPercentFormat, pieLabelTypeUsesPercent } from '../data/PieLabel';
@@ -418,7 +418,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
       mochartConfig.seriesById[seriesId].filterable;
     if (shouldFocus || shouldFilter) {
       event.stopPropagation();
-      const activeElement = document.activeElement;
+      const activeElement = activeElementIn(this.root.node);
       // filter before focus, like the legend click: an explicit focus request
       // must land after the filter toggle's derived focus clear
       if (shouldFilter) {

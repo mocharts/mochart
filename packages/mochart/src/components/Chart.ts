@@ -33,7 +33,7 @@ import SeriesColorGradient from './SeriesColorGradient';
 import LinearGradient from './LinearGradient';
 import RadialGradient from './RadialGradient';
 import Pattern from './Pattern';
-import { accessibilityActive, focusRestored, translateObject } from '../utils/utils';
+import { accessibilityActive, activeElementIn, focusRestored, translateObject } from '../utils/utils';
 import { getSeriesFillColor, getSeriesSwatchGradient } from '../utils/SeriesColors';
 import { getTooltipAnnouncement } from '../utils/TooltipFormat';
 import type { ChartFactoryContent, ChartFactoryContext, ChartContentFactory, ChartEventPayload, ChartSeriesClickPayload, ChartSliceClickPayload, InternalFocus } from '../types/chart';
@@ -1236,7 +1236,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
   /** the chart element holding keyboard focus, if any */
   private getFocusedChartNode(): Element | null {
-    const activeElement = document.activeElement;
+    const activeElement = activeElementIn(this.root.node);
     return activeElement !== null && activeElement !== document.body && this.root.node.contains(activeElement) ? activeElement : null;
   }
 

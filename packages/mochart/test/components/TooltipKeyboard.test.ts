@@ -584,6 +584,25 @@ describe('closing the tooltip returns focus to the plot tab stop', () => {
     expect(document.activeElement).toBe(plotRect);
   });
 
+  // document.activeElement is retargeted to the shadow host inside a shadow tree, so the chart read nothing to restore
+  it('returns focus to the plot tab stop inside a shadow root', () => {
+    const host = mountContainer();
+    const shadow = host.attachShadow({ mode: 'open' });
+    const container = document.createElement('div');
+    shadow.appendChild(container);
+    trackHandle(createDefaultChart(container, { config: makeConfig({ showControls: true }), data: rows, width: WIDTH, height: HEIGHT } as DefaultChartProps));
+    openTooltip(container);
+
+    const first = tooltipRows(container)[0];
+    first.focus();
+    expect(document.activeElement).toBe(host);
+    key(first, 'Escape');
+
+    expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
+    const plotRect = container.querySelector(getCssSelector('seriesBackground') + ' rect[tabindex]');
+    expect(shadow.activeElement).toBe(plotRect);
+  });
+
   // only Escape used to restore focus, so every other close left it on <body>
   it('returns focus to the plot tab stop when a click inside closes the tooltip', () => {
     const container = mountChart(makeConfig({ showControls: true }));

@@ -1,4 +1,4 @@
-import { focusRestored } from './utils';
+import { activeElementIn, focusRestored } from './utils';
 import { NONE } from '../config/core/constants';
 import type { EnhancedSeriesConfig } from '../types/enhanced';
 
@@ -64,14 +64,14 @@ export function resolveRovingId(rovingId: string | null, interactiveIds: string[
 
 /** the focused series node under `root`, captured before a sync that may move or drop it */
 export function focusedSeriesNode(root: Element): SVGElement | null {
-  const activeElement = document.activeElement;
+  const activeElement = activeElementIn(root);
   return activeElement !== null && root.contains(activeElement) &&
     activeElement.getAttribute('data-series-id') !== null ? activeElement as SVGElement : null;
 }
 
 /** refocus the captured node if it was only moved; if it is gone, focus the node holding the tab stop */
 export function restoreSeriesFocus(root: Element, focusedNode: SVGElement | null, rovingId: string | null): void {
-  if (focusedNode === null || document.activeElement === focusedNode) {
+  if (focusedNode === null || activeElementIn(root) === focusedNode) {
     return;
   }
   if (focusedNode.isConnected) {
