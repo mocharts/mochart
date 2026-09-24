@@ -25,7 +25,9 @@ CI runs these in this order and stops at the first failure
       was intended
 - [ ] A demo UI change landed in all six galleries, with the logic in
       `@mochart/demo-common` and the copy in its `demoText`
-- [ ] A new public export or `ChartHandle` method is mentioned on a docs page
+- [ ] A new public export or `ChartHandle` method is mentioned on a docs page,
+      or a minor export has JSDoc and is listed in `checkApiCoverage.ts`'s
+      `jsdocOnly`
 - [ ] A bumped package version was stamped with
       `npm run stamp-version -w @mochart/core`
 - [ ] A config format change bumped `CONFIG_VERSION` and added a
