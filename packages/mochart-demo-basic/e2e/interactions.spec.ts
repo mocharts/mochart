@@ -121,7 +121,6 @@ test('the tooltip and crosshair are keyboard accessible from the plot area', {
 });
 
 test('pie slices are keyboard accessible', async ({ page }) => {
-  // a hash-only goto would not remount the app, so switch demos via the sidebar
   await page.locator('#demo-list button[data-id="pie"]').click();
   const slices = page.locator(sliceSelector);
   await expect(slices.first()).toBeAttached();
@@ -212,8 +211,7 @@ function barOverflow(page: Page): Promise<number> {
 
 test('randomized values stay within a fixed value axis range', async ({ page }) => {
   // the christmas demo pins the value axis at min 0 with all-positive data,
-  // so any randomized value below 0 renders outside the plot; navigate via
-  // the sidebar because the app only reads the location hash at startup
+  // so any randomized value below 0 renders outside the plot
   await page.locator('#demo-list button', { hasText: 'Christmas Tree Bars' }).click();
   await expect(page.locator('#demo-title')).toHaveText('Christmas Tree Bars');
   await expect(page.locator(seriesBarSelector).first()).toBeAttached();

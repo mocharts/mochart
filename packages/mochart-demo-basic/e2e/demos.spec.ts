@@ -29,3 +29,14 @@ test.describe('demo gallery', () => {
     }
   }
 });
+
+test('follows back and forward navigation through the demo hash', async ({ page }) => {
+  const [first, second] = manifest.demos;
+  await openDemo(page, first!.id);
+  await page.locator('#demo-list button[data-id="' + second!.id + '"]').click();
+  await expect(page.locator('#demo-title')).toHaveText(second!.title);
+  await page.goBack();
+  await expect(page.locator('#demo-title')).toHaveText(first!.title);
+  await page.goForward();
+  await expect(page.locator('#demo-title')).toHaveText(second!.title);
+});

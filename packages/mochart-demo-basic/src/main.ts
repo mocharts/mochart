@@ -80,7 +80,10 @@ function makeDataProvider(): any {
   return new ArrayOfObjectsDataProvider(currentData);
 }
 
+let mountedDemoId: string | null = null;
+
 function mountDemo(demo: Demo): void {
+  mountedDemoId = demo.id;
   demoTitle.textContent = demo.title;
   stopAutoplay();
 
@@ -240,3 +243,10 @@ const initial = allDemos.find((demo) => demo.id === location.hash.slice(1)) || a
 if (initial) {
   mountDemo(initial);
 }
+// Back, Forward and a typed hash; mountDemo's own hash write finds its demo already mounted
+window.addEventListener('hashchange', () => {
+  const demo = allDemos.find((candidate) => candidate.id === location.hash.slice(1));
+  if (demo && demo.id !== mountedDemoId) {
+    mountDemo(demo);
+  }
+});
