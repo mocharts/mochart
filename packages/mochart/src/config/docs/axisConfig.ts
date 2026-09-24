@@ -348,8 +348,8 @@ export default function getDescriptions() {
     max: 'the forced maximum value for the axis: a number, or a date on a date category axis (use "auto" to compute from the values); must be >= min unless either is "auto" (set reversed to run the axis backwards)',
     softMin: 'the minimum value for the axis to cover while no data value is less than it, taking the same forms as min (use null to disable)',
     softMax: 'the maximum value for the axis to cover while no data value is greater than it, taking the same forms as max (use null to disable)',
-    minOffset: 'the numeric offset to apply to the minimum value of the axis',
-    maxOffset: 'the numeric offset to apply to the maximum value of the axis',
+    minOffset: 'the offset to add to the minimum value of the axis while min is "auto" (no effect with a fixed min), in the axis\'s units: milliseconds on a date axis',
+    maxOffset: 'the offset to add to the maximum value of the axis while max is "auto" (no effect with a fixed max), in the axis\'s units: milliseconds on a date axis',
 
     visible: 'whether the axis should be visible (its line, tick marks, tick labels and title). Its grid, base and threshold lines are controlled by their own visibility properties, and can remain visible when the axis is hidden',
   };

@@ -2855,7 +2855,8 @@ export interface AxisConfigBase {
    */
   max: number | string | Auto;
   /**
-   * The numeric offset to apply to the maximum value of the axis.
+   * The offset to add to the maximum value of the axis while max is "auto" (no
+   * effect with a fixed max), in the axis's units: milliseconds on a date axis.
    *
    * @default 0
    */
@@ -2885,7 +2886,8 @@ export interface AxisConfigBase {
    */
   min: number | string | Auto;
   /**
-   * The numeric offset to apply to the minimum value of the axis.
+   * The offset to add to the minimum value of the axis while min is "auto" (no
+   * effect with a fixed min), in the axis's units: milliseconds on a date axis.
    *
    * @default 0
    */
