@@ -311,10 +311,12 @@ Points worth knowing when contributing:
   `reference/index.md` (the overview, whose section table reads the config
   model).
 - VitePress fails the build on dead internal links. Links into the demo
-  galleries (`/vanilla/…`) resolve only on the assembled site and are
-  exempted in `.vitepress/config.ts`; demo deep links need a trailing slash
-  so VitePress doesn't append `.html`, and anchors into non-VitePress pages
-  need `target="_self"` so its SPA router doesn't intercept them.
+  galleries (`/vanilla/…`) resolve only on the assembled site, so the
+  `demoLinkTargets` markdown rule in `.vitepress/config.ts` renders every
+  markdown link into a gallery itself: it prepends the base and sets
+  `target="_self"` so the SPA router doesn't intercept the click, which also
+  keeps VitePress from rewriting or dead-link checking it. Only a hand-written
+  HTML anchor into a gallery needs `target="_self"` added by hand.
 
 ## Site assembly and deployment
 
