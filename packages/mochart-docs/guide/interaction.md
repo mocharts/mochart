@@ -1,8 +1,12 @@
 # Interaction
 
 Charts respond to hover, click, and legend interaction out of the box, and
-report everything through optional callback props. Every interaction on this
-page also works from the keyboard (see [Accessibility](/guide/accessibility)).
+report everything through optional callback props. Almost every interaction on
+this page also works from the keyboard (see
+[Accessibility](/guide/accessibility)). The exceptions are value axis focus and
+a series' per-category focus (`focusCategoryOnHover` and
+`focusCategoryOnClick`), which need a pointer: a value axis is not a tab stop,
+and the keyboard activates a series as a whole.
 
 <script setup>
 import * as interaction from '../examples/interaction'
