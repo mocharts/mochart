@@ -30,6 +30,7 @@ interface LegendItemUniqueIds {
 }
 
 interface LegendProps {
+  fontsVersion: number;
   mochartConfig: EnhancedMochartConfig;
   // the layout leaves these undefined when there is nothing to place (no series), legend.visible notwithstanding
   legendLayoutInfo: SpacingLayoutInfo | undefined;
@@ -46,6 +47,7 @@ interface LegendProps {
 }
 
 interface LegendItemProps {
+  fontsVersion: number;
   legendConfig: LegendConfig;
   pieMode: boolean;
   seriesConfig: EnhancedSeriesConfig;
@@ -184,7 +186,7 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
           items.push({
             key: id,
             ctor: LegendItem,
-            props: { legendConfig, seriesConfig, legendLayoutInfo, pieMode: mochartConfig.chart.type === CHART_TYPE_PIE,
+            props: { fontsVersion: this.props.fontsVersion, legendConfig, seriesConfig, legendLayoutInfo, pieMode: mochartConfig.chart.type === CHART_TYPE_PIE,
               legendItemLayoutInfo: legendItemLayoutInfos[i],
               legendItemRawLayoutInfo: legendItemRawLayoutInfos[i], legendItemTextLayoutInfo,
               uniqueIds, colorPaletteConfig, seriesIndex,
@@ -298,7 +300,8 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
     const truncationChanged = truncationEnabled &&
       (layoutInfoExtentChanged(prevProps.legendItemLayoutInfo, legendItemLayoutInfo) || layoutInfoExtentChanged(prevProps.legendItemRawLayoutInfo, legendItemRawLayoutInfo));
     // the raw extent covers a font change; the truncation text replaced the prefix's tail, so a new one starts over
-    const seriesTitleChanged = prevProps.seriesConfig.title !== seriesConfig.title || prevProps.legendConfig.truncation.text !== legendConfig.truncation.text;
+    const seriesTitleChanged = props.fontsVersion !== prevProps.fontsVersion ||
+      prevProps.seriesConfig.title !== seriesConfig.title || prevProps.legendConfig.truncation.text !== legendConfig.truncation.text;
     // reset only on settling, not on every update while settled: each reset re-arms a forced-layout measure
     const truncationFinished = legendItemFits(legendLayoutInfo, legendItemLayoutInfo, legendItemRawLayoutInfo) &&
       !legendItemFits(prevProps.legendLayoutInfo, prevProps.legendItemLayoutInfo, prevProps.legendItemRawLayoutInfo);

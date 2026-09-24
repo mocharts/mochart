@@ -22,6 +22,7 @@ type CompleteAxisData = AxisData & { category: CategoryAxisData; value: ValueAxi
 
 interface PlotFrontBackProps {
   front: boolean;
+  fontsVersion: number;
   mochartConfig: EnhancedMochartConfig;
   categoryAxisLayoutInfo: CategoryAxisLayoutInfo;
   valueAxisLayoutInfos: Record<string, AxisLayoutInfo>;
@@ -79,7 +80,7 @@ class PlotFrontBack extends Renderer<PlotFrontBackProps> {
     this.baseContainer.set(AxisBaseContainer, { front, mochartConfig, seriesLayoutInfo,
       seriesData, focusData });
 
-    this.axisContainer.set(AxisContainer, { front, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos,
+    this.axisContainer.set(AxisContainer, { front, fontsVersion: this.props.fontsVersion, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos,
       plotLayoutInfo, seriesData, focusData, axisData,
       categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId, categoryAxisMinorTickLabelClipPathUniqueId,
       valueAxisTitleClipPathUniqueIds, onFocus });

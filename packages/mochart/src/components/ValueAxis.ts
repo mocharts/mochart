@@ -12,6 +12,7 @@ import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 interface ValueAxisFocus { valueAxisId: string | null; pin?: boolean }
 interface ValueAxisProps {
   front: boolean;
+  fontsVersion: number;
   valueAxisConfig: EnhancedValueAxisConfig;
   valueAxisLayoutInfo: AxisLayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
@@ -87,7 +88,7 @@ export default class ValueAxis extends Renderer<ValueAxisProps, ValueAxisState> 
     const { onValueAxisEnter, onValueAxisLeave, onValueAxisClick } = this.state;
     if (valueAxisConfig.visibleWhenAllFiltered || seriesCount > 0) {
       const axisId = valueAxisConfig.id;
-      this.axis!.set(Axis, { front, axisClass: mochartCssClasses['valueAxis'] + axisId, axisConfig: valueAxisConfig,
+      this.axis!.set(Axis, { front, fontsVersion: this.props.fontsVersion, axisClass: mochartCssClasses['valueAxis'] + axisId, axisConfig: valueAxisConfig,
         axisLayoutInfo: valueAxisLayoutInfo, plotLayoutInfo,
         focusPercentages, axisTicks: valueAxisData.axisTickData[axisId],
         axisFocusPercentage, seriesFocusPercentage,

@@ -27,6 +27,7 @@ interface TitleSection {
   value: TextEl;
 }
 interface TitleProps {
+  fontsVersion: number;
   mochartConfig: EnhancedMochartConfig;
   titleLayoutInfo: SpacingLayoutInfo;
   titlePrefixLayoutInfo: SpacingLayoutInfo;
@@ -82,7 +83,8 @@ export default class Title extends Renderer<TitleProps, TitleState> {
     const truncationChanged = truncationEnabled &&
       (layoutInfoExtentChanged(prevProps.titleTextLayoutInfo, titleTextLayoutInfo) || layoutInfoExtentChanged(prevProps.titleTextRawLayoutInfo, titleTextRawLayoutInfo));
     // the raw extent covers a font change; the truncation text replaced the prefix's tail, so a new one starts over
-    const titleChanged = prevProps.mochartConfig.title.text !== titleConfig.text || prevProps.mochartConfig.title.truncation.text !== titleConfig.truncation.text;
+    const titleChanged = props.fontsVersion !== prevProps.fontsVersion ||
+      prevProps.mochartConfig.title.text !== titleConfig.text || prevProps.mochartConfig.title.truncation.text !== titleConfig.truncation.text;
     // reset only on settling, not on every update while settled: each reset re-arms a forced-layout measure
     const truncationFinished = titleFits(titleLayoutInfo, titleTextLayoutInfo, titleTextRawLayoutInfo) &&
       !titleFits(prevProps.titleLayoutInfo, prevProps.titleTextLayoutInfo, prevProps.titleTextRawLayoutInfo);

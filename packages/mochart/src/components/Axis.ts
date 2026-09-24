@@ -17,6 +17,8 @@ import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
 
 interface AxisProps {
   front: boolean;
+  /** Bumped when a web font finishes loading: the fitted tick labels and title belong to the font they were measured in. */
+  fontsVersion: number;
   axisConfig: CategoryAxisConfig | EnhancedValueAxisConfig;
   axisLayoutInfo: AxisLayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
@@ -111,7 +113,7 @@ export default class Axis extends Renderer<AxisProps> {
         this.tickLabelsSlot.set(null);
       }
       else {
-        this.tickLabelsSlot.set(AxisTickLabels, { front, axisLayoutInfo, plotLayoutInfo,
+        this.tickLabelsSlot.set(AxisTickLabels, { front, fontsVersion: this.props.fontsVersion, axisLayoutInfo, plotLayoutInfo,
           axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null,
           axisConfig, axisTicks,
           tickSpacing: tickSpacing ?? null, minorTickSpacing: minorTickSpacing ?? null, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, accessibility, chartFont });
@@ -122,7 +124,7 @@ export default class Axis extends Renderer<AxisProps> {
       }
       else {
         // the named group (in whichever half) already reads the title, so the drawn title stays hidden even when it draws in the other half
-        this.titleSlot.set(AxisTitle, { axisConfig, axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null, ariaHidden: accessibility && labelFront !== null, chartFont });
+        this.titleSlot.set(AxisTitle, { fontsVersion: this.props.fontsVersion, axisConfig, axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null, ariaHidden: accessibility && labelFront !== null, chartFont });
       }
 
       if (front !== focusTickMarkFront) {

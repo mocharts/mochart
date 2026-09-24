@@ -36,6 +36,7 @@ type AxisDisplayConfig = Omit<AxisConfigBase, 'tickLabel'> &
 
 interface AxisTickLabelsProps {
   front: boolean;
+  fontsVersion: number;
   axisConfig: AxisDisplayConfig;
   axisLayoutInfo: AxisLayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
@@ -153,7 +154,8 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
         axisLayoutInfo.tickLabelParallel !== prevProps.axisLayoutInfo.tickLabelParallel || axisLayoutInfo.minorTickLabelParallel !== prevProps.axisLayoutInfo.minorTickLabelParallel ||
         tickSpacing !== prevProps.tickSpacing || minorTickSpacing !== prevProps.minorTickSpacing;
       // a fitted prefix belongs to the font it was measured in and to the text that replaced its tail: either changing starts over from the full label
-      if (axisConfig !== prevProps.axisConfig || props.chartFont !== prevProps.chartFont) {
+      truncationReset = props.fontsVersion !== prevProps.fontsVersion;
+      if (!truncationReset && (axisConfig !== prevProps.axisConfig || props.chartFont !== prevProps.chartFont)) {
         const { minorTickLabel: prevMinorTickLabel } = getPasses(prevProps);
         truncationReset = majorTruncation?.text !== prevProps.axisConfig.tickLabel.truncation?.text ||
           minorTruncation?.text !== prevMinorTickLabel.truncation?.text ||

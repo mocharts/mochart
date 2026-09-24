@@ -14,6 +14,7 @@ const emptyFocusPercentages: number[] = [];
 const emptyTicks: AxisTick[] = [];
 
 interface PlotEmptyProps {
+  fontsVersion: number;
   mochartConfig: EnhancedMochartConfig;
   categoryAxisLayoutInfo: CategoryAxisLayoutInfo;
   valueAxisLayoutInfos: Record<string, AxisLayoutInfo>;
@@ -49,7 +50,8 @@ export default class PlotEmpty extends Renderer<PlotEmptyProps> {
       tickSpacing: null,
       axisTicks: emptyTicks,
       accessibility: accessibilityActive(accessibilityConfig),
-      chartFont: mochartConfig.chart.font
+      chartFont: mochartConfig.chart.font,
+      fontsVersion: this.props.fontsVersion
     };
 
     this.root.set({ className: mochartCssClasses['plot'] });

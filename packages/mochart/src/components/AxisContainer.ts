@@ -14,6 +14,7 @@ import type { AxisLayoutInfo, CategoryAxisLayoutInfo, SpacingLayoutInfo } from '
 
 interface AxisContainerProps {
   front: boolean;
+  fontsVersion: number;
   mochartConfig: EnhancedMochartConfig;
   categoryAxisLayoutInfo: CategoryAxisLayoutInfo;
   valueAxisLayoutInfos: Record<string, AxisLayoutInfo>;
@@ -49,7 +50,7 @@ export default class AxisContainer extends Renderer<AxisContainerProps> {
 
     this.root.set({ className: mochartCssClasses['axisContainer'] });
 
-    this.categoryAxis.set(CategoryAxis, { front, categoryAxisConfig, categoryAxisLayoutInfo,
+    this.categoryAxis.set(CategoryAxis, { front, fontsVersion: this.props.fontsVersion, categoryAxisConfig, categoryAxisLayoutInfo,
       focusPercentages: categoryFocusDomainPercentages, categoryAxisData,
       titleClipPathUniqueId: categoryAxisTitleClipPathUniqueId,
       tickLabelClipPathUniqueId: categoryAxisTickLabelClipPathUniqueId,
@@ -61,7 +62,7 @@ export default class AxisContainer extends Renderer<AxisContainerProps> {
       return {
         key,
         ctor: ValueAxis,
-        props: { front, valueAxisConfig: axisConfig,
+        props: { front, fontsVersion: this.props.fontsVersion, valueAxisConfig: axisConfig,
           valueAxisLayoutInfo: valueAxisLayoutInfos[id], seriesCount: seriesData.axisSeriesCounts[id],
           focusPercentages: valueAxisComputedFocusDomainPercentages[id] ?? [], valueAxisData,
           axisFocusPercentage, seriesFocusPercentage,

@@ -12,9 +12,11 @@ import { getDescendantCssSelector } from '../../src/utils/ChartDom';
 const PX_PER_CHAR = 9.7;
 let measureCalls = 0;
 
-// a bold font measures wider, so a font-only update has a visible effect on the fit
+// a bold font measures wider, so a font-only update has a visible effect on the fit; the scale stands in for a
+// web font that measures differently from the fallback font it replaced
+let fontScale = 1;
 function pxPerChar(element: Element): number {
-  return (element as SVGElement).style.fontWeight === 'bold' ? PX_PER_CHAR * 1.5 : PX_PER_CHAR;
+  return ((element as SVGElement).style.fontWeight === 'bold' ? PX_PER_CHAR * 1.5 : PX_PER_CHAR) * fontScale;
 }
 
 function rows(offset: number): Record<string, unknown>[] {
@@ -175,3 +177,32 @@ describe('truncation narrower than the ellipsis', () => {
   });
 });
 
+
+// Regression: nothing listened for a web font arriving after mount, so the layout and the truncation kept the
+// fallback font's measurements until a config change or a resize
+describe('web font loading', () => {
+  it('measures again and refits the labels when the document reports a font load', () => {
+    const fonts = new EventTarget();
+    Object.defineProperty(document, 'fonts', { value: fonts, configurable: true });
+    try {
+      fontScale = 1;
+      const { container, handle } = mountChart();
+      handle.update({ focusedCategoryIndex: 0 } as Partial<DefaultChartProps>);
+      const fallback = labelTextsOf(container);
+
+      // the loaded font measures wider, so the same room holds fewer characters
+      fontScale = 1.5;
+      fonts.dispatchEvent(new Event('loadingdone'));
+      handle.update({ focusedCategoryIndex: 1 } as Partial<DefaultChartProps>);
+      const loaded = labelTextsOf(container);
+      expect(loaded.map(text => text.length < fallback[0].length)).toEqual([true, true, true]);
+      const fresh = mountChart();
+      fresh.handle.update({ focusedCategoryIndex: 0 } as Partial<DefaultChartProps>);
+      expect(loaded).toEqual(labelTextsOf(fresh.container));
+    }
+    finally {
+      fontScale = 1;
+      Object.defineProperty(document, 'fonts', { value: undefined, configurable: true });
+    }
+  });
+});

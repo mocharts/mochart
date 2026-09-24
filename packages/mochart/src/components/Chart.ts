@@ -61,6 +61,8 @@ export interface ChartProps {
   initialAnimationPercentage?: number | null;
   width: number;
   height: number;
+  /** Bumped by the controller when a web font finishes loading: the chart measures its text again and truncated parts refit. */
+  fontsVersion?: number;
   standalone?: boolean;
   style?: string | Record<string, string | number | null | undefined>;
   loading?: boolean;
@@ -837,8 +839,9 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       if (valid) {
         const { chartData: newChartData } = this.props;
         const { chartData, mochartConfig } = prevProps;
+        const fontsChanged = this.props.fontsVersion !== prevProps.fontsVersion;
         if (chartData === null || newChartData === null) {
-          if (newChartData !== chartData || newMochartConfig !== mochartConfig) {
+          if (newChartData !== chartData || newMochartConfig !== mochartConfig || fontsChanged) {
             this.remeasureAfterMount = true;
             this.calculateInitialTextSizes();
           }
@@ -863,7 +866,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
           // both identities cannot change measured text, so tween frames skip the DOM remeasure; hasDefault retries unmeasured bounds
           const textMayHaveChanged = axisDataChanged || this.state.chartTextBoundsData.hasDefault === true;
 
-          if (mochartConfigChanged || sizeChanged || (dataChanged && textMayHaveChanged)) {
+          if (mochartConfigChanged || sizeChanged || fontsChanged || (dataChanged && textMayHaveChanged)) {
             this.remeasureAfterMount = false;
             this.calculateInitialTextSizes();
           }
@@ -1540,7 +1543,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     this.setLiveRegionNode(liveRegion !== null ? liveRegion.node : null);
     body.clips.sync(clips);
     body.background.set(Background, { config: mochartConfig.chart, classKey: 'background', spacingRelative: false, spacingLayoutInfo: chartContentLayoutInfo });
-    body.title.set(Title, { mochartConfig, titleLayoutInfo, titlePrefixLayoutInfo,
+    body.title.set(Title, { fontsVersion: this.props.fontsVersion ?? 0, mochartConfig, titleLayoutInfo, titlePrefixLayoutInfo,
       titleTextLayoutInfo, titleTextRawLayoutInfo, titleSuffixLayoutInfo,
       titleClipPathUniqueId, accessibility, onClick: this.props.onTitleClick ? this.onTitleClick : undefined });
     body.contentGroup.set({ transform: chartTransform });
@@ -1565,7 +1568,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
           shapeRef: this.setChartRectRef, a11yProps: plotA11yProps });
       }
       else {
-        body.plot.set(Plot, { mochartConfig, gradientIdMap, patternIdMap, categoryAxisLayoutInfo,
+        body.plot.set(Plot, { fontsVersion: this.props.fontsVersion ?? 0, mochartConfig, gradientIdMap, patternIdMap, categoryAxisLayoutInfo,
           valueAxisLayoutInfos, seriesLayoutInfo,
           plotLayoutInfo, chartData: chartData!, focusData, axisData: axisData!,
           stackData: stackData!, categoryValueData, onFocus: onFocus ?? (() => {}),
@@ -1619,7 +1622,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       body.tooltip.set(null);
       body.noSeriesSlot.set(null);
 
-      body.plotEmpty.set(PlotEmpty, { mochartConfig, categoryAxisLayoutInfo,
+      body.plotEmpty.set(PlotEmpty, { fontsVersion: this.props.fontsVersion ?? 0, mochartConfig, categoryAxisLayoutInfo,
         valueAxisLayoutInfos, plotLayoutInfo,
         valueAxisSeriesCounts: hasChartData ? chartData.seriesData.axisSeriesCounts : emptyAxisSeriesCounts,
         categoryAxisTitleClipPathUniqueId,
@@ -1655,7 +1658,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       }
     }
 
-    body.legend.set(Legend, { mochartConfig, filteredFlags, focusedSeriesId,
+    body.legend.set(Legend, { fontsVersion: this.props.fontsVersion ?? 0, mochartConfig, filteredFlags, focusedSeriesId,
       valueAxisFocusPercentages, seriesFocusPercentages, onFocus: onFocus ?? (() => {}),
       uniqueIds: uniqueIds!, onSeriesFilter: onSeriesFilter ?? (() => {}), legendLayoutInfo, legendItemTextLayoutInfo,
       legendItemLayoutInfos, legendItemRawLayoutInfos });

@@ -30,6 +30,9 @@ export class ChartController {
   private lastCategoryValues: readonly CategoryValue[] | null = null;
   private destroyed = false;
   private reducedMotion: MediaQueryList | null;
+  /** The document's font set, when the environment has one: a web font arriving after mount changes every text measurement. */
+  private fonts: FontFaceSet | null;
+  private fontsVersion = 0;
 
   constructor(container: Element, props: ManagedChartProps, readDataProvider: DataProvider | null) {
     // environments without matchMedia (SSR) count as no preference
@@ -37,6 +40,8 @@ export class ChartController {
       ? window.matchMedia('(prefers-reduced-motion: reduce)')
       : null;
     this.reducedMotion?.addEventListener('change', this.handleReducedMotionChange);
+    this.fonts = typeof document !== 'undefined' && typeof document.fonts?.addEventListener === 'function' ? document.fonts : null;
+    this.fonts?.addEventListener('loadingdone', this.handleFontsLoaded);
     this.props = props;
     this.readDataProvider = readDataProvider;
     this.focus.applyExternal(props);
@@ -79,6 +84,7 @@ export class ChartController {
     }
     this.destroyed = true;
     this.reducedMotion?.removeEventListener('change', this.handleReducedMotionChange);
+    this.fonts?.removeEventListener('loadingdone', this.handleFontsLoaded);
     this.source.dispose();
     this.chart.destroy();
   }
@@ -92,6 +98,15 @@ export class ChartController {
   }
 
   /** applyInput swaps the data source when the effective animate flag flipped. */
+  /** A web font finished loading: text measured in the fallback font is measured again, and truncated text refitted. */
+  private handleFontsLoaded = (): void => {
+    if (this.destroyed) {
+      return;
+    }
+    this.fontsVersion++;
+    this.push();
+  }
+
   private handleReducedMotionChange = (): void => {
     if (!this.destroyed) {
       this.applyInput();
@@ -175,7 +190,7 @@ export class ChartController {
     // the pointer callbacks are wrapped only when the host set them: the Chart reads their presence to decide what is interactive
     return { mochartConfig: this.enhancedConfig(), dataProvider, readDataProvider: this.readDataProvider, loading, error, style, width, height, standalone: true,
       chartData: this.source.chartData, focusData: this.source.focusData,
-      initialAnimationPercentage: this.source.initialAnimationPercentage,
+      initialAnimationPercentage: this.source.initialAnimationPercentage, fontsVersion: this.fontsVersion,
       onFocus: this.handleFocus, onSeriesFilter: this.handleSeriesFilter,
       onChartClick: onChartClick && this.handleChartClick, onSliceClick,
       onSeriesClick: onSeriesClick && this.handleSeriesClick,

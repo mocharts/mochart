@@ -180,7 +180,16 @@ threshold titles, series labels, the pie center label and total, the clip
 indicator label and the tooltip each have a `font` of their own, a sibling of
 their `textStyle`. A part's member is used when it is set, otherwise the
 `chart.font` member, so a config can size everything once and single out one
-part:
+part.
+
+The chart measures its text in whatever font is in effect at the time, and
+measures again when the config object changes, when the chart is resized, and
+when the document reports a web font finishing loading (`document.fonts`), so a
+page font that arrives after the chart mounts, the ordinary case with
+`font-display: swap`, does not leave the axes sized and the labels truncated for
+the fallback font. A data change or `refresh()` alone measures nothing again.
+
+Setting fonts from the config looks like this:
 
 ```js
 chart: { font: { family: 'Georgia, serif', size: 12 } },

@@ -9,6 +9,7 @@ import type { CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.
 
 interface CategoryAxisProps {
   front: boolean;
+  fontsVersion: number;
   categoryAxisConfig: CategoryAxisConfig;
   categoryAxisLayoutInfo: CategoryAxisLayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
@@ -34,7 +35,7 @@ export default class CategoryAxis extends Renderer<CategoryAxisProps> {
     const { front, categoryAxisConfig, categoryAxisLayoutInfo, plotLayoutInfo, focusPercentages,
       categoryAxisData, titleClipPathUniqueId, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, accessibility, accessibleLabel, chartFont } = this.props;
 
-    this.axis!.set(Axis, { front, axisClass: mochartCssClasses['categoryAxis'], axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
+    this.axis!.set(Axis, { front, fontsVersion: this.props.fontsVersion, axisClass: mochartCssClasses['categoryAxis'], axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
       plotLayoutInfo, axisTicks: categoryAxisData.axisTickData,
       focusPercentages, tickSpacing: categoryAxisData.maxTickLabelLength, minorTickSpacing: categoryAxisData.maxMinorTickLabelLength,
       titleClipPathUniqueId, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, accessibility, accessibleLabel, chartFont });

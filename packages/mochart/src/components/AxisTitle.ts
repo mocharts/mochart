@@ -18,6 +18,7 @@ import type { TruncationState } from '../utils/TextTruncation.js';
 type AxisTitleConfig = AxisConfigBase & Partial<Pick<EnhancedValueAxisConfig, 'useSeriesFocus'>>;
 
 interface AxisTitleProps {
+  fontsVersion: number;
   axisConfig: AxisTitleConfig;
   axisLayoutInfo: AxisLayoutInfo;
   titleClipPathUniqueId: string;
@@ -51,7 +52,8 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
     const truncationEnabled = titleConfig.text !== NONE && titleConfig.truncation.enabled;
     const truncationChanged = truncationEnabled && layoutInfoExtentChanged(prevProps.axisLayoutInfo, axisLayoutInfo);
     // a fitted prefix belongs to the font it was measured in and to the text that replaced its tail: either changing starts over
-    const truncationReset = prevTitleConfig.text !== titleConfig.text || prevTitleConfig.truncation.text !== titleConfig.truncation.text ||
+    const truncationReset = props.fontsVersion !== prevProps.fontsVersion ||
+      prevTitleConfig.text !== titleConfig.text || prevTitleConfig.truncation.text !== titleConfig.truncation.text ||
       !fontStylesEqual(resolveFontStyle(titleConfig.font, chartFont), resolveFontStyle(prevTitleConfig.font, prevProps.chartFont));
     return this.truncation.prepare(truncationEnabled, truncationChanged, truncationReset);
   }
