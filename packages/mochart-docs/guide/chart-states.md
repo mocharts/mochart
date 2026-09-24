@@ -158,11 +158,17 @@ Web Animations API, sized from the factory context):
 The built-in placeholders are styled inline; the optional
 `@mochart/core/mochart.css` only resets the margin of content placed inside
 them. To style a state from your own CSS, target the container class the chart
-puts on it: `mochart-loading`, `mochart-error`, `mochart-no-data`,
-`mochart-no-series`, or `mochart-chart-error` (the no-size and config-error
-states, which replace the whole chart). The loading, error and no-data states
-share one container inside the plot, but it carries the class of whichever one
-is showing, so each can be styled on its own.
+puts on it:
+
+- Once a config has arrived, the loading, error and no-data states share one
+  container inside the plot, which carries the class of whichever one is
+  showing: `mochart-loading`, `mochart-error` or `mochart-no-data`.
+  `mochart-no-series` marks the no-series state.
+- Before a config arrives (`mochartConfig` is `null`, as the bindings pass while
+  loading), there is no plot, so the loading state puts `mochart-loading` on the
+  chart root, and the error state puts `mochart-chart-error` there.
+- The no-size and config-error states replace the whole chart, with
+  `mochart-chart-error` on the chart root.
 
 The framework bindings do not take these DOM factories: each exposes a
 framework-native placeholder prop per state instead. `loadingComponent` and
