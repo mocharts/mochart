@@ -268,6 +268,19 @@ describe('getConfigWithoutDefaults', () => {
       expect(getConfigWithDefaults(minimal), sectionKey).toEqual(getConfigWithDefaults(config));
     }
   });
+
+  // the single-object shorthand dropped any emptied entry, so a raw seriesStacks: {} lost the stack the series default to
+  it('keeps an all-empty single-object shorthand entry that would not come back on its own, and drops an implicit one', () => {
+    for (const section of [{ seriesStacks: {} }, { seriesGroups: {} }, { seriesStacks: { axis: 'VA0' } }]) {
+      const config = { categoryAxis: { property: 'x' }, series: [{ property: 'y', renderer: 'bar' }, { property: 'z', renderer: 'bar' }], ...section };
+      const minimal = getConfigWithoutDefaults(config);
+      const [sectionKey] = Object.keys(section);
+      expect(minimal[sectionKey], sectionKey).toEqual({});
+      expect(getConfigWithDefaults(minimal), sectionKey).toEqual(getConfigWithDefaults(config));
+    }
+    const implicit = { categoryAxis: { property: 'x' }, series: [{ property: 'y' }], valueAxes: {} };
+    expect(getConfigWithoutDefaults(implicit)).toEqual({ categoryAxis: { property: 'x' }, series: [{ property: 'y' }] });
+  });
 });
 
 // Regression: entries the given defaults did not cover were copied through with no defaults at all

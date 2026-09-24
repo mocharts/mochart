@@ -339,10 +339,13 @@ export function getConfigWithoutDefaults(config: unknown, defaults: ConfigRecord
           }
           else if (isObject(configSection)) {
             // a list section in single-object shorthand minimizes against its lone entry's defaults, keeping the shorthand shape;
-            // an entry left empty stays out, which is the list branch's implicitOnly drop for the one-entry case
+            // an entry left empty stays out only for the implicit sections, the list branch's implicitOnly drop for the
+            // one-entry case: a lone stack or group is what the series default their stack or group to, so it must stay
             const defaultSectionValue = Array.isArray(defaultsSection) ? defaultsSection[0] : defaultsSection;
             const newSection = removeSectionDefaults(defaultSectionValue, allSection, configSection);
-            if (isObject(newSection) && Object.keys(newSection).length > 0) {
+            const implicitOnly = Array.isArray(defaultsSection) && implicitEntrySectionKeys.indexOf(sectionKey) !== -1 &&
+              isObject(newSection) && Object.keys(newSection).length === 0;
+            if (isObject(newSection) && (Object.keys(newSection).length > 0 || (Array.isArray(defaultsSection) && !implicitOnly))) {
               minimal[sectionKey] = newSection;
             }
           }
