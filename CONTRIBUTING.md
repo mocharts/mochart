@@ -42,9 +42,11 @@ npm run test:e2e      # Playwright suites (demo-basic, demo-vanilla, the framewo
 Firefox and WebKit run only the `@smoke` subset. On Linux add `--with-deps`
 for WebKit's extra system libraries, as CI does.
 
-CI then runs `build:pages` twice, once per base path; the checks that step
-carries are listed under [CI guardrails, in one
-place](#ci-guardrails-in-one-place).
+CI then builds the site with `build:pages` once per run, with the base path of
+the deploy that follows (`/` when none does, as on every pull request). Only a
+`main` push that deploys to both GitHub Pages and Cloudflare builds twice, once
+per base path. The checks that step carries are listed under [CI guardrails, in
+one place](#ci-guardrails-in-one-place).
 
 The library packages ship built `dist/` output that is gitignored, so a fresh
 clone must `npm install` before anything imports `@mochart/core` by its
