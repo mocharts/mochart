@@ -257,4 +257,8 @@ createChart(el, {
 });
 ```
 
-Leave a prop `undefined` to let the chart keep managing that piece itself.
+Leave a prop `undefined` to let the chart keep managing that piece itself. The
+framework bindings hand the chart their whole prop set on every render, so this
+works there as written. With the core handle, `update` treats an `undefined` key
+as no change and keeps the old value, so release a controlled prop by calling
+[`replace()`](/reference/api#charthandle) with a prop set that leaves it out.
