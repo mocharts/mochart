@@ -40,7 +40,9 @@ generated `.changeset/*.md` with the code. Changes without a changeset still
 ship in the next release; they just get no line in the changelog.
 
 For a fix that only touches one binding, name that binding; its changelog gets
-the line and the others get "Updated dependencies".
+the line. The other packages still move to the new version: those that depend
+on a bumped package get an "Updated dependencies" line, and `@mochart/movalid`,
+which depends on none of them, gets a version heading with nothing under it.
 
 ## Cutting a release
 
