@@ -17,7 +17,8 @@
 // - @mochart/export's and @mochart/editor's exports (checker-resolved, like
 //   core's) must appear in a docs page's code too (the binding packages are
 //   covered by the framework-props generator). The editor's model.ts types
-//   are the exception: that surface is the shipped .d.ts;
+//   are the exception: they are documented by their JSDoc, which they must
+//   carry;
 // - the non-JS surface (core's and the editor's subpath exports, the
 //   optional stylesheets, and the IIFE script-tag artifact) must be
 //   mentioned in a docs page.
@@ -220,13 +221,16 @@ for (const { name, declarationFiles, hasJsdoc } of moduleExports(path.join(coreS
 for (const { name } of moduleExports(path.join(docsDir, '..', 'mochart-export', 'src', 'index.ts'))) {
   check('@mochart/export', name, documentedInCode(name), 'any docs page');
 }
-// The editor's model.ts types are the generated-model surface: the shipped
-// .d.ts, not docs-page material.
+// The editor's model.ts types are the generated-model surface, documented by their JSDoc rather than a page.
 const editorPackageDir = path.join(docsDir, '..', 'mochart-editor');
 const editorModelPath = path.join(editorPackageDir, 'src', 'model.ts');
-for (const { name, declarationFiles } of moduleExports(path.join(editorPackageDir, 'src', 'index.ts'))) {
-  if (declarationFiles.length > 0 && declarationFiles.every(file => file === editorModelPath)) continue;
-  check('@mochart/editor', name, documentedInCode(name), 'any docs page');
+for (const { name, declarationFiles, hasJsdoc } of moduleExports(path.join(editorPackageDir, 'src', 'index.ts'))) {
+  if (declarationFiles.length > 0 && declarationFiles.every(file => file === editorModelPath)) {
+    check('@mochart/editor model type', name, hasJsdoc, 'a JSDoc comment on its declaration');
+  }
+  else {
+    check('@mochart/editor', name, documentedInCode(name), 'any docs page');
+  }
 }
 
 // Non-JS surface: subpath exports (the optional stylesheet) and the IIFE
