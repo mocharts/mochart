@@ -111,6 +111,8 @@ jobs:
         run: npm run build:pages
         env:
           PAGES_BASE: /${{ github.event.repository.name }}/
+          # the link-preview og:image and og:url addresses name the Pages origin, not mochart.org
+          SITE_ORIGIN: https://${{ github.repository_owner }}.github.io
       - if: matrix.site && env.DEPLOY_PAGES == 'true'
         uses: actions/upload-pages-artifact@v5
         with:

@@ -11,7 +11,7 @@ export const card = {
   alt: 'mochart: animated interactive SVG charts, beside a stacked bar chart drawn by the library'
 };
 
-// The develop deploy sets SITE_ORIGIN to dev.mochart.org; every other build is the live site.
+// The develop deploy sets SITE_ORIGIN to dev.mochart.org and the GitHub Pages build to its github.io origin; every other build is the live site.
 export function resolveOrigin() {
   const fromEnv = process.env.SITE_ORIGIN;
   return fromEnv !== undefined && fromEnv !== '' ? fromEnv : 'https://mochart.org';
