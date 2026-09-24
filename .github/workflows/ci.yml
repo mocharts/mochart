@@ -89,7 +89,8 @@ jobs:
       # trace: 'on-first-retry' writes traces under test-results; without this
       # they die with the runner, which is the only place the failure happened.
       # Each suite writes its own: demo-basic's minimal harness, the vanilla
-      # gallery's (share links, editor tabs, phone fold) and the showcase's smoke.
+      # gallery's (share links, editor tabs, phone fold), demo-e2e's framework
+      # smoke over the five binding galleries, and the showcase's smoke.
       - if: failure() && steps.e2e.outcome == 'failure'
         uses: actions/upload-artifact@v7
         with:
@@ -97,6 +98,7 @@ jobs:
           path: |
             packages/mochart-demo-basic/test-results
             packages/mochart-demo-vanilla/test-results
+            packages/mochart-demo-e2e/test-results
             packages/mochart-showcase/test-results
           retention-days: 7
       - name: Build site
