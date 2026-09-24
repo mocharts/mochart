@@ -20,6 +20,10 @@ npm run dev     # demo gallery dev server (@mochart/demo-vanilla)
 npm run dev:docs  # documentation site dev server (port 5181)
 ```
 
+Pull requests target the `develop` branch, where the next release collects.
+`main` holds the released code (plus documentation-only fixes to the live site)
+and receives `develop` when a release is cut; see [RELEASE.md](RELEASE.md).
+
 Every pull request is gated on the root scripts below. CI runs them in this
 order and stops at the first failure, so running them in the same order locally
 is the quickest way to reproduce a red build:

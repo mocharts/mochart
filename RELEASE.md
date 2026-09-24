@@ -44,11 +44,12 @@ the line and the others get "Updated dependencies".
 
 ## Cutting a release
 
-1. Push (or merge) to `main`. Once the CI matrix is green the `release-mode`
-   job runs `changesets/action/select-mode`, and when changesets are pending
-   the `release-version` job opens or refreshes a **"Version Packages"** PR
-   containing the bumps, changelog entries, `packages/mochart/src/version.ts`
-   stamp and lockfile refresh (`npm run release:version`).
+1. Merge `develop`, with the changesets pending on it, into `main`. Once the CI
+   matrix is green the `release-mode` job runs `changesets/action/select-mode`,
+   and when changesets are pending the `release-version` job opens or
+   refreshes a **"Version Packages"** PR containing the bumps, changelog
+   entries, `packages/mochart/src/version.ts` stamp and lockfile refresh
+   (`npm run release:version`).
 2. Review and merge that PR. GitHub does not run CI on the PR itself (it is
    opened with the workflow token), which is fine: the merge commit runs the
    full matrix before anything is published.
