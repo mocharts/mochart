@@ -190,7 +190,7 @@ default name.
 
 A tick label the chart had to truncate to fit keeps its full text for assistive
 tech through an `aria-label`, so "Really long value that should be…" still reads
-in full. A tick label the chart suppressed to stop labels overlapping is
+in full. A tick label the chart hid to stop labels overlapping is
 `aria-hidden`, as is the hidden width probe an ordinal axis measures truncation
 against.
 

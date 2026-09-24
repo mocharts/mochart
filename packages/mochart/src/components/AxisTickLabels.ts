@@ -287,7 +287,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
         }
         handle.root.set({ className: minor ? mochartCssClasses['axisTickLabel'] + index + ' ' + mochartCssClasses['axisMinorTickLabel'] : mochartCssClasses['axisTickLabel'] + index,
           transform: translate(tickX + (minor ? minorTickTextX : tickTextX), tickY + (minor ? minorTickTextY : tickTextY)), clipPath: minor ? minorClipPath : clipPath });
-        // an overlap-suppressed label is not read, and a truncated one is read in full
+        // an overlap-hidden label is not read, and a truncated one is read in full
         const fullLabel = this.tickLabelStrings[i];
         const attributes = minor ? minorAttributes : { stroke, strokeOpacity, fill, fillOpacity, strokeWidth };
         handle.text.set({ style: tick.hidden ? (minor ? hiddenMinorTickTextStyle : hiddenTickTextStyle) : (minor ? minorTickTextStyle : tickTextStyle), dy: tickTextDY,
