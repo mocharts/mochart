@@ -12,7 +12,10 @@ expansion, value change, axis contraction, and gapless stacked transitions.
 npm install @mochart/vue @mochart/core vue
 ```
 
-Vue 3.3 or later is required (`vue` and `@mochart/core` are peer dependencies).
+Vue 3.5.2 or later is required (`vue` and `@mochart/core` are peer
+dependencies): the binding's type declarations name Vue's `DefineComponent`
+in the form that version introduced, so on an older Vue the `Chart` and
+`DefaultChart` types would not resolve.
 
 ## The optional stylesheet
 

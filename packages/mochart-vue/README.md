@@ -17,6 +17,10 @@ transitions), axis contraction, and gapless stacked transitions.
 npm install @mochart/vue @mochart/core vue
 ```
 
+Vue 3.5.2 or newer: the binding's type declarations name Vue's
+`DefineComponent` in the form that version introduced, so on an older Vue the
+`Chart` and `DefaultChart` types do not resolve.
+
 ## The optional stylesheet
 
 If your app uses a global CSS reset (Tailwind's preflight, a
