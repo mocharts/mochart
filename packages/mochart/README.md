@@ -178,10 +178,12 @@ or an undocumented member, and it writes nothing at all when it fails.
 
 ### Config helpers
 
-- `validateConfig(config, getDefaults(config))`: validate a raw config, returns
-  readable errors
-- `getDefaults(config)`: the per-section defaults `validateConfig` needs as its
-  second argument
+- `validateConfig(config, defaults?, strict?)`: validate a raw config, returns
+  readable errors and warnings; `strict: false` keeps a config with only
+  warnings valid
+- `getDefaults(config)`: the per-section defaults, which `validateConfig` and
+  the other helpers derive when not given, so pass them only to reuse one set
+  across several calls
 - `migrateConfig(config)`: migrate configs from older versions
 - `enhanceConfig(config)`: validate/default/normalize into a `mochartConfig`
 - `getDataErrors(mochartConfig, dataProvider)`: validate data against a config
