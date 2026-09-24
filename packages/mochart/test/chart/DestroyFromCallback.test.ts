@@ -61,6 +61,22 @@ describe('destroy() from a chart callback', () => {
     expect(runFrames()).toBe(0);
   });
 
+  // update() reported the focus its reconcile derived after applyInput, whose render's measure step had let the host destroy the chart
+  it('raises no focus after a destroy from onSeriesLayoutBoundsChange during an update', () => {
+    const { ArrayOfObjectsDataProvider } = mochart;
+    const onFocus = vi.fn();
+    let destroyOnBounds = false;
+    const mounted = mountChart({
+      onFocus, focusedCategoryIndex: 2,
+      onSeriesLayoutBoundsChange: () => { if (destroyOnBounds) { mounted.chart.destroy(); } }
+    });
+    onFocus.mockClear();
+    destroyOnBounds = true;
+    // the third category goes, so the controlled focus of 2 is reset, and the resize re-measures the plot
+    mounted.chart.update({ dataProvider: new ArrayOfObjectsDataProvider(data.slice(0, 2)), width: WIDTH + 50 } as never);
+    expect(onFocus).not.toHaveBeenCalled();
+  });
+
   it('keeps raising focus for a click that does not destroy the chart', () => {
     const onFocus = vi.fn();
     const { chart, container } = mountChart({ onFocus, onChartClick: () => {} });

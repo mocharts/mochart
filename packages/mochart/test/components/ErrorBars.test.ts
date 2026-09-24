@@ -205,10 +205,12 @@ describe('missing bounds and values', () => {
     const container = mountChart(makeConfig([
       { id: 'V', property: 'value', renderer: 'bar', missingValueMode: 'connect', errorLowProperty: 'low', errorHighProperty: 'high' }
     ]), data);
-    // A has no bounds and B has no point: only C gets an error bar, indexed
-    // by its compacted position
+    // A has no bounds and B has no point: only C gets an error bar, named by
+    // its category index like its bar, not by its compacted position
     const paths = errorBarPaths(container, 'V');
     expect(paths).toHaveLength(1);
+    expect(container.querySelector(getIdCssSelector('seriesErrorBar', 2))).not.toBeNull();
+    expect(container.querySelector(getIdCssSelector('seriesErrorBar', 1))).toBeNull();
     const valueBars = barRects(container, 'V');
     expect(valueBars).toHaveLength(2);
     const whisker = whiskers(container, 'V')[0];

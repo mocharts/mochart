@@ -3,6 +3,7 @@ import type { ElSlot, RendererItem, RendererList, Slot } from '../render';
 
 import { getVersionString } from '../version';
 import { hasConfigStructureChange } from '../config/core/mochartConfig';
+import { tooltipFocusApplies } from '../utils/TooltipFocus';
 import { isDataProviderValid, getCategorySeriesValueObject, getChartDataCategoryCount } from '../data/ChartData';
 import { indexOfCategoryValue } from '../animation/CategoryAnimationData';
 import type { CategorySeriesValueObject } from '../data/ChartData';
@@ -935,7 +936,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         this.announceTooltipCategory(null);
       }
       tooltipValueObject = tooltipVisible ? getCategorySeriesValueObject(chartData!, tooltipCategoryIndex) : null;
-      if ((tooltipConfig.visible && tooltipConfig.applyFocus) || (crosshairConfig.visible && crosshairConfig.applyFocus)) {
+      if (tooltipFocusApplies(mochartConfig)) {
         onFocus?.({ categoryIndex: tooltipCategoryIndex });
       }
       this.setState({ tooltipVisible, tooltipCategoryIndex, tooltipSeriesPercentage, tooltipCategoryPercentage, tooltipLayoutInfo, tooltipBounds, tooltipValueObject });
@@ -987,7 +988,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     onChartMouseMove?.(eventPayload);
     // the enter path is gated too: while loading, nothing may commit a category position that the new data may not have
     if (mochartConfig.tooltip.followPointer && !this.isLoading()) {
-      const { tooltip: tooltipConfig, crosshair: crosshairConfig } = mochartConfig;
+      const { tooltip: tooltipConfig } = mochartConfig;
       const { valueFraction: seriesPercentage, categoryFraction, categoryIndex } = eventPayload;
       // a closed follow tooltip opens on the move, as it does on entry: the pointer entered during a load, or a click closed it
       if (tooltipConfig.visible && !this.state.tooltipVisible) {
@@ -995,7 +996,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         return;
       }
       // same applyFocus gate as setTooltipOpen: enter, move and leave must agree on whether pointer interactions may change the focused category
-      if ((tooltipConfig.visible && tooltipConfig.applyFocus) || (crosshairConfig.visible && crosshairConfig.applyFocus)) {
+      if (tooltipFocusApplies(mochartConfig)) {
         onFocus?.({ categoryIndex });
       }
       if (tooltipConfig.visible) {
@@ -1009,6 +1010,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
         const tooltipSeriesPercentage = seriesPercentage;
         const tooltipLayoutInfo = this.getTooltipLayoutInfo(mochartConfig,
           { ...this.state, tooltipCategoryIndex, tooltipCategoryPercentage, tooltipSeriesPercentage });
+        this.lastTooltipCategoryIndex = tooltipCategoryIndex;
         this.setState({ tooltipCategoryIndex, tooltipValueObject, tooltipCategoryPercentage, tooltipSeriesPercentage, tooltipLayoutInfo });
       }
       else {
@@ -1157,8 +1159,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   /** step the open tooltip to a category, moving the focus like the pointer would */
   stepTooltipCategoryIndex(categoryIndex: number): void {
     const { onFocus } = this.props;
-    const { tooltip: tooltipConfig, crosshair: crosshairConfig } = this.renderedConfig();
-    if ((tooltipConfig.visible && tooltipConfig.applyFocus) || (crosshairConfig.visible && crosshairConfig.applyFocus)) {
+    if (tooltipFocusApplies(this.renderedConfig())) {
       onFocus?.({ categoryIndex });
     }
     this.updateTooltipCategoryIndex(categoryIndex);

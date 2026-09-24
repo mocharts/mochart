@@ -173,7 +173,8 @@ export default class Title extends Renderer<TitleProps, TitleState> {
         role: interactive ? 'button' : null,
         ariaLabel: interactive ? [titlePrefix, title, titleSuffix].filter(Boolean).join(' ') : null,
         onKeyDown: interactive ? this.onKeyDown : null,
-        cursor: interactive ? 'pointer' : null });
+        // the click works whatever accessibility says, so the cursor says so too
+        cursor: onClick !== undefined && !link ? 'pointer' : null });
       this.background.set(Background, { config: titleConfig, classKey: 'titleBackground', spacingRelative: true, spacingLayoutInfo: titleLayoutInfo });
 
       let wrapperEl: El;

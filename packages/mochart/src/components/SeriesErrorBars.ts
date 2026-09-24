@@ -108,8 +108,8 @@ export default class SeriesErrorBars extends Renderer<SeriesErrorBarsProps> {
           const { strokeWidth: errorBarStrokeWidth, strokeDashArray: errorBarStrokeDashArray, strokeOpacity } = getFocusStrokeStyle(focusPercentage, seriesConfig.errorBar.style);
 
           errorBars.push({
-            key: 'error-bar-' + i,
-            attrs: { className: mochartCssClasses['seriesErrorBar'] + i, d,
+            key: 'error-bar-' + skipI,
+            attrs: { className: mochartCssClasses['seriesErrorBar'] + skipI, d,
               stroke: strokeColor, strokeWidth: errorBarStrokeWidth, strokeDasharray: errorBarStrokeDashArray, strokeOpacity, fill: 'none',
               pointerEvents: 'none' }
           });

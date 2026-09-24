@@ -56,6 +56,10 @@ export class ChartController {
     this.props = props;
     this.readDataProvider = readDataProvider;
     this.applyInput();
+    // the render's measure step reaches the host through onSeriesLayoutBoundsChange, which may destroy the chart
+    if (this.destroyed) {
+      return;
+    }
     const filterGeneration = this.focus.filterGeneration;
     // notify after the commit, through the latest committed props: hosts replace callback
     // closures on every render, and a host may synchronously update() again from onFocus
@@ -219,8 +223,17 @@ export class ChartController {
     if (this.destroyed) {
       return;
     }
-    const snapshot = this.focus.applyFocus(this.source.remapFocus(focus));
+    const remappedFocus = this.source.remapFocus(focus);
+    // a follow-pointer move names the same category on every mousemove: no change, so no render and no report
+    if (this.focus.isCurrentFocus(remappedFocus)) {
+      return;
+    }
+    const snapshot = this.focus.applyFocus(remappedFocus);
     this.applyInput();
+    // the render's measure step reaches the host through onSeriesLayoutBoundsChange, which may destroy the chart
+    if (this.destroyed) {
+      return;
+    }
     this.props.onFocus?.(snapshot);
   }
 
@@ -231,6 +244,9 @@ export class ChartController {
     const prevFocusedSeriesId = this.focus.focusedSeriesId;
     const snapshot = this.focus.toggleSeriesFilter(seriesId);
     this.applyInput();
+    if (this.destroyed) {
+      return;
+    }
     this.props.onSeriesFilter?.(snapshot);
     if (this.focus.focusedSeriesId !== prevFocusedSeriesId && !this.destroyed) {
       this.props.onFocus?.(this.focus.focus());

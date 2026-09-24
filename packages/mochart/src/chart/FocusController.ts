@@ -175,6 +175,13 @@ export class FocusController {
     }
   }
 
+  /** Whether a partial focus update would leave every field it names as it is. */
+  isCurrentFocus({ valueAxisId, seriesId, categoryIndex }: InternalFocus): boolean {
+    return (valueAxisId === undefined || valueAxisId === this.focusedValueAxisId) &&
+      (seriesId === undefined || seriesId === this.focusedSeriesId) &&
+      (categoryIndex === undefined || (categoryIndex ?? -1) === this.focusedCategoryIndex);
+  }
+
   /** Apply a partial focus update raised from inside the chart. */
   applyFocus(focus: InternalFocus): ChartFocus {
     const { valueAxisId, seriesId, categoryIndex } = focus;

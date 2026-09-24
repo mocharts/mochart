@@ -1,3 +1,4 @@
+import { tooltipFocusApplies } from '../utils/TooltipFocus';
 import { Renderer, htmlEl, textEl } from '../render';
 
 import { mochartCssClasses } from '../utils/ChartDom';
@@ -66,7 +67,7 @@ export default class TooltipControls extends Renderer<TooltipControlsProps> {
     event.stopPropagation();
     if (tooltipCategoryIndex > 0) {
       const categoryIndex = tooltipCategoryIndex - 1;
-      if (mochartConfig.tooltip.applyFocus) {
+      if (tooltipFocusApplies(mochartConfig)) {
         onFocus({ categoryIndex });
       }
       updateTooltipCategoryIndex(categoryIndex);
@@ -78,7 +79,7 @@ export default class TooltipControls extends Renderer<TooltipControlsProps> {
     event.stopPropagation();
     if (tooltipCategoryIndex >= 0 && tooltipCategoryIndex < categoryCount - 1) {
       const categoryIndex = tooltipCategoryIndex + 1;
-      if (mochartConfig.tooltip.applyFocus) {
+      if (tooltipFocusApplies(mochartConfig)) {
         onFocus({ categoryIndex });
       }
       updateTooltipCategoryIndex(categoryIndex);

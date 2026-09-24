@@ -4882,11 +4882,11 @@ export interface MochartInputConfig {
   /** Configure linear gradients to be applied to series */
   linearGradients?: OneOrMany<DeepPartial<LinearGradientConfig>>;
   /** Configure common properties for all linear gradients */
-  linearGradientDefaults?: DeepPartial<LinearGradientConfig>;
+  linearGradientDefaults?: DeepPartial<Omit<LinearGradientConfig, 'id' | 'ignore'>>;
   /** Configure radial gradients to be applied to series */
   radialGradients?: OneOrMany<DeepPartial<RadialGradientConfig>>;
   /** Configure common properties for all radial gradients */
-  radialGradientDefaults?: DeepPartial<RadialGradientConfig>;
+  radialGradientDefaults?: DeepPartial<Omit<RadialGradientConfig, 'id' | 'ignore'>>;
   /** Configure built-in patterns to be applied to series fills */
   patterns?: OneOrMany<DeepPartialEntry<PatternInputConfig>>;
   /** Configure common properties for all patterns */
@@ -4894,17 +4894,17 @@ export interface MochartInputConfig {
   /** Configure the chart value axes content and styling */
   valueAxes?: OneOrMany<DeepPartial<ValueAxisConfig>>;
   /** Configure common properties for all value axes */
-  valueAxisDefaults?: DeepPartial<ValueAxisConfig>;
+  valueAxisDefaults?: DeepPartial<Omit<ValueAxisConfig, 'id' | 'ignore' | 'order'>>;
   /** Configure the chart series */
   series?: OneOrMany<DeepPartial<SeriesConfig>>;
   /** Configure common properties for all series */
-  seriesDefaults?: DeepPartial<SeriesConfig>;
+  seriesDefaults?: DeepPartial<Omit<SeriesConfig, 'id' | 'ignore' | 'order'>>;
   /** Configure the grouping of series */
   seriesGroups?: OneOrMany<DeepPartial<SeriesGroupConfig>>;
   /** Configure common properties for all series groups */
-  seriesGroupDefaults?: DeepPartial<SeriesGroupConfig>;
+  seriesGroupDefaults?: DeepPartial<Omit<SeriesGroupConfig, 'id' | 'ignore'>>;
   /** Configure the stacking of series */
   seriesStacks?: OneOrMany<DeepPartial<SeriesStackConfig>>;
   /** Configure common properties for all series stacks */
-  seriesStackDefaults?: DeepPartial<SeriesStackConfig>;
+  seriesStackDefaults?: DeepPartial<Omit<SeriesStackConfig, 'id' | 'ignore'>>;
 }

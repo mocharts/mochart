@@ -388,3 +388,28 @@ describe('types agree with the validators', () => {
     expect(mismatches).toEqual([]);
   });
 });
+
+describe('the *Defaults sections carry no entry-only members', () => {
+  it('rejects id, ignore and order at typecheck time, as the validators do at runtime', () => {
+    const config: MochartInputConfig = {
+      version: V,
+      categoryAxis: { property: 'c' },
+      // @ts-expect-error order belongs to an entry; validation rejects it on an all config
+      seriesDefaults: { renderer: 'bar', order: 1 },
+      // @ts-expect-error id belongs to an entry; validation rejects it on an all config
+      valueAxisDefaults: { id: 'v' },
+      // @ts-expect-error ignore belongs to an entry; validation rejects it on an all config
+      seriesStackDefaults: { ignore: false },
+      series: [{ property: 'v' }]
+    };
+    const accepted: MochartInputConfig = {
+      version: V,
+      categoryAxis: { property: 'c' },
+      seriesDefaults: { renderer: 'bar' },
+      valueAxisDefaults: { visible: false },
+      series: [{ property: 'v' }]
+    };
+    expect(errorsFor(accepted)).toEqual([]);
+    expect(errorsFor(config).length).toBeGreaterThan(0);
+  });
+});

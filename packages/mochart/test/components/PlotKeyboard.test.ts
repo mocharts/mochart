@@ -502,3 +502,19 @@ describe('plot keyboard semantics', () => {
     expect(tooltipText(container)).toContain('Feb');
   });
 });
+
+describe('reopening after a following tooltip', () => {
+  // the follow-pointer move changed the tooltip's category without remembering it, so Enter reopened on the first category
+  it('resumes on the last category the pointer reached', () => {
+    const container = mountChart(makeConfig({ tooltip: { followPointer: true } }));
+    const root = container.querySelector(getChartRootCssSelector())!;
+    mouse(root, 'mouseenter', 100, 300);
+    mouse(root, 'mousemove', 700, 300);
+    expect(tooltipText(container)).toContain('Mar');
+    mouse(root, 'mousemove', -10, 300);
+    expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
+
+    key(plotRect(container), 'Enter');
+    expect(tooltipText(container)).toContain('Mar');
+  });
+});

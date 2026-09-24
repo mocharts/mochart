@@ -27,9 +27,9 @@ function makeConfig(overrides: Record<string, unknown> = {}): MochartInputConfig
   } as unknown as MochartInputConfig;
 }
 
-function mountChart(config: MochartInputConfig): Element {
+function mountChart(config: MochartInputConfig, callbacks: Record<string, unknown> = {}): Element {
   const container = mountContainer();
-  trackHandle(createDefaultChart(container, { config, data: rows, width: WIDTH, height: HEIGHT }));
+  trackHandle(createDefaultChart(container, { config, data: rows, width: WIDTH, height: HEIGHT, ...callbacks }));
   return container;
 }
 
@@ -55,6 +55,16 @@ function categoryRow(container: Element): HTMLElement {
 beforeAll(() => {
   installSvgMeasurementShims();
   mockBoundingClientRect(WIDTH, HEIGHT);
+});
+
+describe('the title', () => {
+  // the cursor followed the accessibility gate while the click handler did not, so a clickable title showed the default cursor with accessibility off
+  it('shows the pointer whenever onTitleClick is set, with or without accessibility', () => {
+    const titleCursor = (container: Element) => container.querySelector(getCssSelector('title'))!.getAttribute('cursor');
+    expect(titleCursor(mountChart(makeConfig({ title: { text: 'Sales' } }), { onTitleClick: () => {} }))).toBe('pointer');
+    expect(titleCursor(mountChart(makeConfig({ title: { text: 'Sales' }, accessibility: { enabled: false } }), { onTitleClick: () => {} }))).toBe('pointer');
+    expect(titleCursor(mountChart(makeConfig({ title: { text: 'Sales' } })))).toBeNull();
+  });
 });
 
 describe('legend items', () => {

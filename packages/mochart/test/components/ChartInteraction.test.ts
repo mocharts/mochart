@@ -85,6 +85,23 @@ beforeAll(() => {
   });
 });
 
+describe('follow-pointer focus reports', () => {
+  // every mousemove reported and re-rendered the same focused category
+  it('fire onFocus once per category the pointer crosses, not once per move', () => {
+    const focuses: ChartFocus[] = [];
+    const container = mountChart(makeConfig({ tooltip: { followPointer: true } }), { onFocus: focus => { focuses.push(focus); } });
+    const root = chartRoot(container);
+    mouse(root, 'mouseenter', 100, 100);
+    focuses.length = 0;
+    for (let i = 0; i < 5; i++) {
+      mouse(root, 'mousemove', 100 + i, 100 + i);
+    }
+    expect(focuses).toEqual([]);
+    mouse(root, 'mousemove', 700, 100);
+    expect(focuses.length).toBe(1);
+  });
+});
+
 describe('chart mouse events', () => {
   // the leave was decided from the coordinates alone, so a mouseleave onto an element overlapping the plot read as a move
   it('treats a mouseleave as a leave even when its coordinates are still inside the plot', () => {

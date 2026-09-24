@@ -569,6 +569,44 @@ describe('tooltip rows a series can opt out of', () => {
   });
 });
 
+describe('tooltip control buttons', () => {
+  // the buttons gated the focus on tooltip.applyFocus alone, so with the crosshair applying focus they moved only the tooltip
+  it('move the focus the crosshair follows, like the arrow keys do', () => {
+    const focuses: ChartFocus[] = [];
+    const container = mountChart(
+      makeConfig({ showControls: true, applyFocus: false }, { crosshair: { visible: true, applyFocus: true } }),
+      { onFocus: focus => { focuses.push(focus); } }
+    );
+    openTooltip(container);
+    focuses.length = 0;
+    const buttons = Array.from(container.querySelectorAll<HTMLElement>(getCssSelector('tooltip') + ' button'));
+    buttons[buttons.length - 1].click();
+    expect(focuses[focuses.length - 1]).toMatchObject({ focusedCategoryIndex: 1 });
+  });
+});
+
+describe('a click on the tooltip box itself', () => {
+  // only the content root stopped the click, so the padding and border let it reach the chart root
+  it('never reaches the chart root from the padding or border', () => {
+    const clicks: unknown[] = [];
+    const container = mountChart(makeConfig({ closeOnClick: false }), { onChartClick: payload => { clicks.push(payload); } });
+    openTooltip(container);
+    clicks.length = 0;
+    const box = container.querySelector<HTMLElement>(getCssSelector('tooltip'))!;
+    box.dispatchEvent(new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true }));
+    expect(clicks).toEqual([]);
+    expect(container.querySelector(getCssSelector('tooltip'))).not.toBeNull();
+  });
+
+  it('closes the tooltip under closeOnClick like a click on the content', () => {
+    const container = mountChart(makeConfig({ closeOnClick: true }));
+    openTooltip(container);
+    const box = container.querySelector<HTMLElement>(getCssSelector('tooltip'))!;
+    box.dispatchEvent(new MouseEvent('click', { clientX: 100, clientY: 100, bubbles: true }));
+    expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
+  });
+});
+
 describe('closing the tooltip returns focus to the plot tab stop', () => {
   it('closes on Escape anywhere inside and returns focus to the plot tab stop', () => {
     const container = mountChart(makeConfig({ showControls: true }));

@@ -57,6 +57,16 @@ export default class Tooltip extends Renderer<TooltipProps, TooltipState> {
     return this.root.node;
   }
 
+  /** A click on the box's own padding or border: never the chart root's click, which would toggle the tooltip or report a plot click, and closeOnClick closes like a click on the content. */
+  onBoxClick = (event: Event) => {
+    const { mochartConfig, onClose } = this.props;
+    event.stopPropagation();
+    if (mochartConfig.tooltip.closeOnClick) {
+      event.preventDefault();
+      onClose();
+    }
+  }
+
   sync() {
     const { mochartConfig, tooltipVisible, tooltipCategoryIndex } = this.props;
     if (mochartConfig.tooltip.visible && tooltipVisible && tooltipCategoryIndex >= 0) {
@@ -117,7 +127,7 @@ export default class Tooltip extends Renderer<TooltipProps, TooltipState> {
       this.root.set({ className: mochartCssClasses['tooltipContainer'] });
       this.sizer.set({ className: mochartCssClasses['tooltipSizer'], style: tooltipSizerStyle });
       this.sizerContent.set(TooltipContent, { ...commonProps, adjustForFiltering: sizeForFiltering, visible: false });
-      this.tooltip.set({ className: mochartCssClasses['tooltip'], style: tooltipStyle });
+      this.tooltip.set({ className: mochartCssClasses['tooltip'], style: tooltipStyle, onClick: this.onBoxClick });
       this.tooltipContent.set(TooltipContent, { ...commonProps, minWidth: tooltipBounds ? tooltipBounds.width : null, visible: true });
     }
     else {
