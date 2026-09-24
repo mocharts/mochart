@@ -26,12 +26,14 @@
     <app-root id="root"></app-root>
     <script>
       // Vite replaces %BASE_URL% at build time. The Angular router derives its
-      // base from APP_BASE_HREF (main/index.ts reads import.meta.env.BASE_URL),
-      // and this script finishes the GitHub Pages 404 redirect (see
+      // base from APP_BASE_HREF (main/index.ts reads import.meta.env.BASE_URL);
+      // the docs links read it from window.__config, as in the other galleries.
+      // This script also finishes the GitHub Pages 404 redirect (see
       // scripts/build-pages.mjs) by restoring the originally requested URL
       // before the app boots.
       (function () {
         var base = '%BASE_URL%';
+        window.__config = { routerBasePath: base.length > 1 ? base.replace(/\/+$/, '') : base };
         var redirect = sessionStorage.getItem('mochart:redirect');
         if (redirect !== null) {
           sessionStorage.removeItem('mochart:redirect');
