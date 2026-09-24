@@ -1,4 +1,4 @@
-// Prebuild for every dist-bundling entry point: rebuilds any lib whose src is newer than its dist, so builds never ship stale code.
+// Prebuild for every dist-bundling entry point: rebuilds any lib whose build inputs are newer than its dist, so builds never ship stale code.
 import { execSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -31,12 +31,24 @@ function distMtime(pkgDir) {
   }
 }
 
+// a build reads its package's sources, build scripts and config files (tsconfig.build.json extends tsconfig.json)
+const buildInputs = ['src', 'scripts', 'package.json', 'tsconfig.json', 'tsconfig.build.json', 'vite.config.ts', 'svelte.config.js'];
+
+// inputs outside the package: the editor build generates its model from core's config sources with core's scripts
+const externalInputs = {
+  'mochart-editor': ['mochart/src', 'mochart/scripts']
+};
+
+function inputMtime(path) {
+  return existsSync(path) ? newestMtime(path) : 0;
+}
+
 export function staleLibs() {
   return libDirs.filter((dir) => {
     const pkgDir = join(rootDir, 'packages', dir);
-    const buildConfig = join(pkgDir, 'tsconfig.build.json');
-    const srcMtime = Math.max(newestMtime(join(pkgDir, 'src')), newestMtime(join(pkgDir, 'package.json')),
-      existsSync(buildConfig) ? newestMtime(buildConfig) : 0);
+    const inputs = [...buildInputs.map((input) => join(pkgDir, input)),
+      ...(externalInputs[dir] ?? []).map((input) => join(rootDir, 'packages', input))];
+    const srcMtime = Math.max(...inputs.map(inputMtime));
     return srcMtime > distMtime(pkgDir);
   });
 }
