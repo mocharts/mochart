@@ -41,7 +41,8 @@ export function makeConfig(type: ScenarioType, seriesCount: number, options: Sce
   if (type === 'line-markers') {
     seriesDefaults.marker = { shape: 'circle' };
   }
-  else if (renderer === 'line') {
+  else if (renderer !== 'bar') {
+    // line and area series draw a circle per point by default
     seriesDefaults.marker = { shape: null };
   }
   const series: any[] = [];
