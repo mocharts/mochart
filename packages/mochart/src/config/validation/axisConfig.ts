@@ -332,7 +332,7 @@ function getAxisReporter({ prefix, path, raw }: ValidationAxis, reportedDefaults
   };
 }
 
-const PERIOD_ORDER = ['day', 'week', 'month', 'year'];
+const PERIOD_ORDER = ['second', 'minute', 'hour', 'day', 'week', 'month', 'year'];
 const stepNeedsPlacementMessage = 'should be left at its default on a linear axis unless period or interval is set';
 const minorPeriodNeedsPeriodMessage = 'should be null unless period is set';
 const offsetNeedsCountMessage = 'should be 0 on a linear axis unless count is a number, since every step is kept and there is nothing to shift';

@@ -1,4 +1,4 @@
-import { AUTO, NONE, TYPE_DATE, STEP_PERIOD_YEAR, STEP_PERIOD_MONTH, STEP_PERIOD_WEEK } from '../config/core/constants';
+import { AUTO, NONE, TYPE_DATE, STEP_PERIOD_YEAR, STEP_PERIOD_MONTH, STEP_PERIOD_WEEK, STEP_PERIOD_SECOND, STEP_PERIOD_MINUTE, STEP_PERIOD_HOUR } from '../config/core/constants';
 import type { Auto, DataType, StepPeriod } from '../config/core/constants';
 import type { CategoryValue } from '../types/data';
 
@@ -10,9 +10,37 @@ export interface StepRule {
   includeFirst?: boolean;
 }
 
+const MS_SECOND = 1000;
+const MS_MINUTE = 60 * MS_SECOND;
+const MS_HOUR = 60 * MS_MINUTE;
+
+type ClockPeriod = typeof STEP_PERIOD_SECOND | typeof STEP_PERIOD_MINUTE | typeof STEP_PERIOD_HOUR;
+
+/** The periods of a fixed length: the clock periods within a day, unlike the calendar periods from day up. */
+const clockPeriodMillis: Record<ClockPeriod, number> = {
+  [STEP_PERIOD_SECOND]: MS_SECOND,
+  [STEP_PERIOD_MINUTE]: MS_MINUTE,
+  [STEP_PERIOD_HOUR]: MS_HOUR
+};
+
+function isClockPeriod(period: StepPeriod): period is ClockPeriod {
+  return period === STEP_PERIOD_SECOND || period === STEP_PERIOD_MINUTE || period === STEP_PERIOD_HOUR;
+}
+
+/** The zone offset to subtract from an instant to get its wall clock milliseconds: 0 in UTC, the local offset in force at that instant otherwise. */
+function zoneOffsetMillis(dateUTC: boolean, date: Date): number {
+  return dateUTC ? 0 : date.getTimezoneOffset() * MS_MINUTE;
+}
+
 // The start of the calendar period holding the date; a week starts on Monday, and the boundary
-// follows dateUTC like the tick label formatting does.
+// follows dateUTC like the tick label formatting does. A clock period starts on its wall clock
+// boundary, so a local hour starts on the hour in zones offset by a fraction of an hour too.
 export function getPeriodStart(period: StepPeriod, dateUTC: boolean, date: Date): Date {
+  if (isClockPeriod(period)) {
+    const unit = clockPeriodMillis[period];
+    const offset = zoneOffsetMillis(dateUTC, date);
+    return new Date(Math.floor((date.getTime() - offset) / unit) * unit + offset);
+  }
   const year = dateUTC ? date.getUTCFullYear() : date.getFullYear();
   const month = period === STEP_PERIOD_YEAR ? 0 : (dateUTC ? date.getUTCMonth() : date.getMonth());
   let day = 1;
@@ -26,6 +54,9 @@ export function getPeriodStart(period: StepPeriod, dateUTC: boolean, date: Date)
 }
 
 export function getNextPeriodStart(period: StepPeriod, dateUTC: boolean, periodStart: Date): Date {
+  if (isClockPeriod(period)) { // a fixed length, so a daylight saving change neither repeats nor skips a boundary
+    return new Date(periodStart.getTime() + clockPeriodMillis[period]);
+  }
   let year = dateUTC ? periodStart.getUTCFullYear() : periodStart.getFullYear();
   let month = dateUTC ? periodStart.getUTCMonth() : periodStart.getMonth();
   let day = dateUTC ? periodStart.getUTCDate() : periodStart.getDate();
@@ -44,11 +75,15 @@ export function getNextPeriodStart(period: StepPeriod, dateUTC: boolean, periodS
 const DAY_MILLIS = 86400000;
 
 /**
- * The period's index from a fixed calendar origin: days from the epoch, weeks from Monday January 5 1970,
- * months from January 1970, or the year itself, read in UTC or local time per dateUTC. A count and offset
- * phased on it keep the same periods whatever the domain.
+ * The period's index from a fixed origin: seconds, minutes and hours from the epoch (counted in UTC, so the
+ * index stays unique through a daylight saving change), days from the epoch, weeks from Monday January 5 1970,
+ * months from January 1970, or the year itself, the calendar ones read in UTC or local time per dateUTC.
+ * A count and offset phased on it keep the same periods whatever the domain.
  */
 export function getPeriodIndex(period: StepPeriod, dateUTC: boolean, periodStart: Date): number {
+  if (isClockPeriod(period)) {
+    return Math.floor(periodStart.getTime() / clockPeriodMillis[period]);
+  }
   const year = dateUTC ? periodStart.getUTCFullYear() : periodStart.getFullYear();
   const month = dateUTC ? periodStart.getUTCMonth() : periodStart.getMonth();
   if (period === STEP_PERIOD_YEAR) {

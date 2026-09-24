@@ -63,8 +63,9 @@ holidays and as the data window slides:
 
 <<< @/examples/tickStep.ts{15}
 
-- `period` is `day`, `week`, `month` or `year`; weeks start on Monday and the
-  boundaries follow [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC). A
+- `period` is `second`, `minute`, `hour`, `day`, `week`, `month` or `year`;
+  weeks start on Monday and the boundaries follow
+  [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC). A
   partial first week is a period of its own, so its first day gets a tick;
   `offset: 1` skips it.
 - `count` and `offset` step through the candidates: `period: 'week'` with

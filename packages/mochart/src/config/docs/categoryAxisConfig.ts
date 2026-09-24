@@ -34,7 +34,7 @@ export default function getDescriptions() {
       description: thresholdStepDescription,
       properties: {
         ...getThresholdStepDescriptions(),
-        period: 'the calendar period the thresholds step by on a date axis (day, week, month, year; use null for none)'
+        period: 'the calendar period the thresholds step by on a date axis (second, minute, hour, day, week, month, year; use null for none)'
       }
     },
     thresholds: {
@@ -48,8 +48,8 @@ export default function getDescriptions() {
       description: tickStepDescription,
       properties: {
         ...getTickStepDescriptions(),
-        period: 'the calendar period the ticks step by on a date axis (day, week, month, year; use null for none)',
-        minorPeriod: 'the calendar period of the minor ticks placed between the period ticks on a linear date axis (day, week, month, year, shorter than period; use null for none)',
+        period: 'the calendar period the ticks step by on a date axis (second, minute, hour, day, week, month, year; use null for none)',
+        minorPeriod: 'the calendar period of the minor ticks placed between the period ticks on a linear date axis (second, minute, hour, day, week, month, year, shorter than period; use null for none)',
         includeFirst: 'whether the first category always gets a tick, even when count and offset would skip it'
       }
     },
@@ -99,7 +99,7 @@ export function getDetails() {
       description: 'Chooses the ticks by rule rather than by a list, so the choice holds as the data changes; explicit `ticks` take precedence. On an ordinal axis the candidates are the categories in order, or under a `period` the first category of each period, `count` and `offset` step through them, and the categories between the ticks are minor ticks. On a linear axis a `period` (date) or `interval` (number) places the ticks on the period boundaries or the multiples of the interval, `count` and `offset` keep every count-th of them counted from a fixed starting point, and `minorPeriod` or `minorSteps` places minor ticks between them; without a period or interval the axis keeps the ticks it picks. The minor tick marks, grid lines and labels carry the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes, and the `tickLabel`, `tickMark` and `gridLine` minor settings say how they are drawn.',
       properties: {
         period: 'A week starts on Monday and the boundaries follow `dateUTC`, so a daily series with `"week"` gets a tick at each week\'s first trading day whatever the holidays. A partial first week is a period of its own, so its first category gets a tick too; `offset: 1` skips it. On a linear date axis the ticks sit on the period boundaries themselves.',
-        minorPeriod: 'Needs a `period`, and must be a shorter period than it: a week inside a month, or a day inside a week. A minor tick on a tick the step keeps is dropped, and a tick inside a minor period hides the minor ticks at both ends of that period, such as the Mondays either side of the 1st of a month, with their tick marks and grid lines; a tick on a minor boundary hides none.',
+        minorPeriod: 'Needs a `period`, and must be a shorter period than it: a week inside a month, a day inside a week, or an hour inside a day. A minor tick on a tick the step keeps is dropped, and a tick inside a minor period hides the minor ticks at both ends of that period, such as the Mondays either side of the 1st of a month, with their tick marks and grid lines; a tick on a minor boundary hides none.',
         count: 'Counts through the candidates, the categories or the period starts: `count: 5, offset: 3` shows the fourth category and every fifth after it, and `period: "week"` with `count: 2` gives every second week. When more ticks survive the rule than fit, every k-th survivor is kept starting from the first, so thinned Mondays stay Mondays; `tickLabel.truncation` still decides whether crowded labels truncate or skip. ' + tickStepMinorDetails.count,
         offset: 'Counted in candidates, so under a `period` an offset of 1 skips the first period rather than the first category. ' + tickStepMinorDetails.offset,
         interval: tickStepMinorDetails.interval,

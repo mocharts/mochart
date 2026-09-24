@@ -409,6 +409,41 @@ describe('category axis tick step on a linear date axis', () => {
     expect(getAxisLabels(container)).toEqual(['Jun 08', 'Jun 15']);
     chart.destroy();
   });
+
+  it('places hour ticks on the hour boundaries, every count-th from a fixed origin', () => {
+    const rows = dateRows(['2026-06-01T00:30:00Z', '2026-06-01T05:30:00Z']);
+    const hourly = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, tickStep: { period: 'hour' } }, rows);
+    expect(getAxisLabels(hourly.container)).toEqual(['01:00', '02:00', '03:00', '04:00', '05:00']);
+    hourly.chart.destroy();
+    // the even hours since the epoch, whatever the domain starts at
+    const everyOther = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, tickStep: { period: 'hour', count: 2 } }, rows);
+    expect(getAxisLabels(everyOther.container)).toEqual(['02:00', '04:00']);
+    everyOther.chart.destroy();
+  });
+
+  it('places minute minor ticks inside hour ticks', () => {
+    const rows = dateRows(['2026-06-01T00:00:00Z', '2026-06-01T02:00:00Z']);
+    const { container, chart } = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M', minorFormat: '%M' }, tickStep: { period: 'hour', minorPeriod: 'minute', count: 1 } }, rows, 3600);
+    expect(getKindLabels(container, categoryTickLabels, false)).toEqual(['00:00', '01:00', '02:00']);
+    expect(container.querySelectorAll(categoryTickMarks + minorMark).length).toBe(118);
+    chart.destroy();
+  });
+
+  it('keeps hour ticks on the local hours across a daylight saving change', () => {
+    const tz = process.env.TZ;
+    process.env.TZ = 'America/New_York';
+    try {
+      // the premise: the zone springs forward at 02:00 on March 8 2026, so the hour 02 does not exist
+      expect(new Date('2026-03-07T12:00:00').getTimezoneOffset()).not.toBe(new Date('2026-03-21T12:00:00').getTimezoneOffset());
+      const rows = dateRows(['2026-03-08T00:00:00', '2026-03-08T05:00:00']);
+      const { container, chart } = renderChart({ type: 'date', scale: 'linear', dateUTC: false, tickLabel: { format: '%H' }, tickStep: { period: 'hour' } }, rows);
+      expect(getAxisLabels(container)).toEqual(['00', '01', '03', '04', '05']);
+      chart.destroy();
+    }
+    finally {
+      process.env.TZ = tz;
+    }
+  });
 });
 
 describe('category axis tick step validation', () => {
@@ -459,6 +494,9 @@ describe('minor tick step validation', () => {
     expect(errors({ minorPeriod: 'day' })).toMatch(/tickStep\.minorPeriod - should be null unless period is set/);
     expect(errors({ period: 'week', minorPeriod: 'month' })).toMatch(/tickStep\.minorPeriod - should be a shorter period than period/);
     expect(errors({ period: 'week', minorPeriod: 'week' })).toMatch(/tickStep\.minorPeriod - should be a shorter period than period/);
+    expect(errors({ period: 'hour', minorPeriod: 'day' })).toMatch(/tickStep\.minorPeriod - should be a shorter period than period/);
+    expect(errors({ period: 'day', minorPeriod: 'hour' })).toBe('');
+    expect(errors({ period: 'minute', minorPeriod: 'second' })).toBe('');
     expect(errors({ period: 'week', minorPeriod: 'day' }, 'ordinal')).toMatch(/tickStep\.minorPeriod/);
     expect(enhanceConfig({
       version: '1.0.0',

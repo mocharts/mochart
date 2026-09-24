@@ -1921,8 +1921,8 @@ export interface AxisThresholdStepConfig {
 
 export interface CategoryAxisThresholdStepConfig extends AxisThresholdStepConfig {
   /**
-   * The calendar period the thresholds step by on a date axis (day, week,
-   * month, year; use null for none).
+   * The calendar period the thresholds step by on a date axis (second, minute,
+   * hour, day, week, month, year; use null for none).
    *
    * Weeks start on Monday and the boundaries follow `dateUTC`. On an ordinal
    * axis the steps are the first category of each period, so `"week"` with
@@ -3315,8 +3315,8 @@ export interface AxisTickStepConfig {
 
 export interface CategoryAxisTickStepConfig extends AxisTickStepConfig {
   /**
-   * The calendar period the ticks step by on a date axis (day, week, month,
-   * year; use null for none).
+   * The calendar period the ticks step by on a date axis (second, minute, hour,
+   * day, week, month, year; use null for none).
    *
    * A week starts on Monday and the boundaries follow `dateUTC`, so a daily
    * series with `"week"` gets a tick at each week's first trading day whatever
@@ -3329,15 +3329,15 @@ export interface CategoryAxisTickStepConfig extends AxisTickStepConfig {
   period: StepPeriod | null;
   /**
    * The calendar period of the minor ticks placed between the period ticks on a
-   * linear date axis (day, week, month, year, shorter than period; use null for
-   * none).
+   * linear date axis (second, minute, hour, day, week, month, year, shorter
+   * than period; use null for none).
    *
    * Needs a `period`, and must be a shorter period than it: a week inside a
-   * month, or a day inside a week. A minor tick on a tick the step keeps is
-   * dropped, and a tick inside a minor period hides the minor ticks at both
-   * ends of that period, such as the Mondays either side of the 1st of a month,
-   * with their tick marks and grid lines; a tick on a minor boundary hides
-   * none.
+   * month, a day inside a week, or an hour inside a day. A minor tick on a tick
+   * the step keeps is dropped, and a tick inside a minor period hides the minor
+   * ticks at both ends of that period, such as the Mondays either side of the
+   * 1st of a month, with their tick marks and grid lines; a tick on a minor
+   * boundary hides none.
    *
    * @default null
    */
