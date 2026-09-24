@@ -228,7 +228,13 @@ export class ChartController {
     if (this.focus.isCurrentFocus(remappedFocus)) {
       return;
     }
+    const before = this.focus.focus();
     const snapshot = this.focus.applyFocus(remappedFocus);
+    // a click that pins what hover already shows changes the pin alone: nothing to render or report
+    if (before.focusedSeriesId === snapshot.focusedSeriesId && before.focusedValueAxisId === snapshot.focusedValueAxisId &&
+        before.focusedCategoryIndex === snapshot.focusedCategoryIndex) {
+      return;
+    }
     this.applyInput();
     // the render's measure step reaches the host through onSeriesLayoutBoundsChange, which may destroy the chart
     if (this.destroyed) {

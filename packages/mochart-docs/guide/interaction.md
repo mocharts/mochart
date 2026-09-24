@@ -32,6 +32,32 @@ A value axis is focused by hovering it
 ([`valueAxes.focusOnHover`](/reference/valueAxes#valueAxes.focusOnHover), on by
 default) or clicking it
 ([`valueAxes.focusOnClick`](/reference/valueAxes#valueAxes.focusOnClick), off).
+
+Hover and click mean different things, and they work together. Hover focus is a
+preview: it lasts while the pointer is on the item and clears when the pointer
+leaves. A click pins the focus, so it outlives the pointer. The rules are the
+same for a series, a value axis and a category, whether the click lands on a
+series shape, a legend item, an axis or a tooltip row:
+
+- Hovering an item focuses it. Leaving clears the focus, or returns it to the
+  pinned item when there is one.
+- Clicking an item pins it, whether or not hover already focused it. Clicking
+  another item moves the pin there.
+- Clicking the pinned item releases the pin and clears the focus. Hovering it
+  again previews it again.
+- The keyboard follows the same rules: <kbd>Tab</kbd> onto a legend item or
+  tooltip row previews like hover, <kbd>Enter</kbd> or <kbd>Space</kbd> pins
+  like a click, and leaving with <kbd>Tab</kbd> clears like the pointer leaving.
+- A filtered series, or one a data change removes, loses its pin with its
+  focus.
+
+This is why enabling both settings makes sense: hover previews for mouse users,
+and a tap pins for touch users, who have no hover. With a
+[controlled focus prop](#controlled-focus-and-filtering) the pin only changes
+what the chart asks for through `onFocus` when the pointer leaves, the pinned
+item instead of nothing; a host that passes back a different value releases
+the pin.
+
 Series and axis focus feed each other: a series with
 [`useAxisFocus`](/reference/series#series.useAxisFocus) (on by default) shows as
 focused whenever the value axis it belongs to is, and an axis with

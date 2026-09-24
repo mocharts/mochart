@@ -38,6 +38,7 @@ const sliceArc = arc<SliceArcDatum>().cornerRadius(d => d.cornerRadius);
 
 interface PieSeriesFocusUpdate {
   seriesId?: string | null;
+  pin?: boolean;
 }
 
 interface PieSeriesProps {
@@ -108,7 +109,6 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
     }
     // a follower series (followSeries) focuses as its leader, matching Series
     const seriesId = seriesConfig.followSeries ?? seriesConfig.id;
-    const focusedSeriesId = focusData ? focusData.focusedSeriesId : null;
 
     let onSeriesEnter: PieSeriesState['onSeriesEnter'] = noOp;
     let onSeriesLeave = noOp;
@@ -120,7 +120,7 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
     if (seriesConfig.focusOnClick || onSliceClick) {
       onSeriesClick = () => {
         if (seriesConfig.focusOnClick) {
-          onFocus({ seriesId: seriesId === focusedSeriesId ? null : seriesId });
+          onFocus({ seriesId, pin: true }); // pins it, or releases the pinned one
         }
         onSliceClick?.({ seriesId });
       };

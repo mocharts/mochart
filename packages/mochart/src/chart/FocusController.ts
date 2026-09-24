@@ -55,6 +55,10 @@ export class FocusController {
   focusedCategoryIndex = -1;
   focusedValueAxisId: string | null = null;
   focusedSeriesId: string | null = null;
+  /** The values a click pinned: hover previews over them, and leaving the pointer returns to them instead of clearing. */
+  pinnedCategoryIndex = -1;
+  pinnedValueAxisId: string | null = null;
+  pinnedSeriesId: string | null = null;
   filteredSeriesIds: Record<string, boolean> = {};
   /** Bumped when the filters change by a toggle, a reset or a host-changed value (not by a host re-asserting the value it already passed), so a pending filter report can tell it has been superseded. */
   filterGeneration = 0;
@@ -63,6 +67,9 @@ export class FocusController {
     this.focusedCategoryIndex = -1;
     this.focusedValueAxisId = null;
     this.focusedSeriesId = null;
+    this.pinnedCategoryIndex = -1;
+    this.pinnedValueAxisId = null;
+    this.pinnedSeriesId = null;
     this.filteredSeriesIds = {};
     this.filterGeneration++;
   }
@@ -111,9 +118,14 @@ export class FocusController {
             if (renderedCategoryValues && newCategoryValues) {
               const categoryValue = renderedCategoryValues[this.focusedCategoryIndex];
               this.focusedCategoryIndex = indexOfCategoryValue(mochartConfig!.categoryAxis, newCategoryValues, categoryValue);
+              // the pin follows its category the same way, and goes with it
+              this.pinnedCategoryIndex = this.pinnedCategoryIndex >= 0
+                ? indexOfCategoryValue(mochartConfig!.categoryAxis, newCategoryValues, renderedCategoryValues[this.pinnedCategoryIndex])
+                : -1;
             }
             else {
               this.focusedCategoryIndex = -1;
+              this.pinnedCategoryIndex = -1;
             }
           }
         }
@@ -160,14 +172,24 @@ export class FocusController {
    */
   applyExternal(input: ExternalFocusInput): void {
     const { focusedCategoryIndex, focusedValueAxisId, focusedSeriesId, filteredSeriesIds } = input;
+    // a host value other than the pinned one releases the pin: the host decided against it
     if (focusedCategoryIndex !== undefined) {
       this.focusedCategoryIndex = focusedCategoryIndex;
+      if (focusedCategoryIndex !== this.pinnedCategoryIndex) {
+        this.pinnedCategoryIndex = -1;
+      }
     }
     if (focusedValueAxisId !== undefined) {
       this.focusedValueAxisId = focusedValueAxisId;
+      if (focusedValueAxisId !== this.pinnedValueAxisId) {
+        this.pinnedValueAxisId = null;
+      }
     }
     if (focusedSeriesId !== undefined) {
       this.focusedSeriesId = focusedSeriesId;
+      if (focusedSeriesId !== this.pinnedSeriesId) {
+        this.pinnedSeriesId = null;
+      }
     }
     // by value: a fresh but equal object (the framework norm) must not re-run the data pipeline
     if (filteredSeriesIds !== undefined && !sameFilteredSeriesIds(filteredSeriesIds, this.filteredSeriesIds)) {
@@ -175,24 +197,47 @@ export class FocusController {
     }
   }
 
-  /** Whether a partial focus update would leave every field it names as it is. */
-  isCurrentFocus({ valueAxisId, seriesId, categoryIndex }: InternalFocus): boolean {
-    return (valueAxisId === undefined || valueAxisId === this.focusedValueAxisId) &&
+  /** Whether a partial focus update would leave every field it names as it is; a pin toggle always changes something. */
+  isCurrentFocus({ valueAxisId, seriesId, categoryIndex, pin = false }: InternalFocus): boolean {
+    return !pin && (valueAxisId === undefined || valueAxisId === this.focusedValueAxisId) &&
       (seriesId === undefined || seriesId === this.focusedSeriesId) &&
       (categoryIndex === undefined || (categoryIndex ?? -1) === this.focusedCategoryIndex);
   }
 
-  /** Apply a partial focus update raised from inside the chart. */
+  /**
+   * Apply a partial focus update raised from inside the chart. A value previews (hover): it shows
+   * while the pointer holds it. A cleared value (the pointer left) returns to the pinned value, if
+   * any. A pin (click) toggles the pin on the value: pinning focuses it, unpinning clears it.
+   */
   applyFocus(focus: InternalFocus): ChartFocus {
-    const { valueAxisId, seriesId, categoryIndex } = focus;
+    const { valueAxisId, seriesId, categoryIndex, pin = false } = focus;
     if (valueAxisId !== undefined) {
-      this.focusedValueAxisId = valueAxisId;
+      if (pin) {
+        this.pinnedValueAxisId = valueAxisId === this.pinnedValueAxisId ? null : valueAxisId;
+        this.focusedValueAxisId = this.pinnedValueAxisId;
+      }
+      else {
+        this.focusedValueAxisId = valueAxisId ?? this.pinnedValueAxisId;
+      }
     }
     if (seriesId !== undefined) {
-      this.focusedSeriesId = seriesId;
+      if (pin) {
+        this.pinnedSeriesId = seriesId === this.pinnedSeriesId ? null : seriesId;
+        this.focusedSeriesId = this.pinnedSeriesId;
+      }
+      else {
+        this.focusedSeriesId = seriesId ?? this.pinnedSeriesId;
+      }
     }
     if (categoryIndex !== undefined) {
-      this.focusedCategoryIndex = categoryIndex ?? -1;
+      const index = categoryIndex ?? -1;
+      if (pin) {
+        this.pinnedCategoryIndex = index === this.pinnedCategoryIndex ? -1 : index;
+        this.focusedCategoryIndex = this.pinnedCategoryIndex;
+      }
+      else {
+        this.focusedCategoryIndex = index === -1 ? this.pinnedCategoryIndex : index;
+      }
     }
     return this.focus();
   }
@@ -211,9 +256,12 @@ export class FocusController {
     }
     this.filteredSeriesIds = filteredSeriesIds;
     this.filterGeneration++;
-    // a filtered series cannot stay focused
+    // a filtered series cannot stay focused, or pinned
     if (this.focusedSeriesId !== null && filteredSeriesIds[this.focusedSeriesId] === true) {
       this.focusedSeriesId = null;
+    }
+    if (this.pinnedSeriesId !== null && filteredSeriesIds[this.pinnedSeriesId] === true) {
+      this.pinnedSeriesId = null;
     }
     return { filteredSeriesIds };
   }

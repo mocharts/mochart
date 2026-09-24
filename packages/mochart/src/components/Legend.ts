@@ -41,7 +41,7 @@ interface LegendProps {
   focusedSeriesId: string | null;
   valueAxisFocusPercentages: FocusPercentageMap;
   seriesFocusPercentages: FocusPercentageMap;
-  onFocus: (focus: { seriesId: string | null }) => void;
+  onFocus: (focus: { seriesId: string | null; pin?: boolean }) => void;
   onSeriesFilter: (seriesId: string) => void;
 }
 
@@ -120,7 +120,7 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
   }
 
   legendItemClick = (seriesId: string) => {
-    const { mochartConfig, focusedSeriesId, onFocus, onSeriesFilter } = this.props;
+    const { mochartConfig, onFocus, onSeriesFilter } = this.props;
     // a following series acts as the one it follows, whose filterable decides
     const leaderId = leaderSeriesId(mochartConfig, seriesId);
     const legendConfig = mochartConfig.legend;
@@ -128,9 +128,8 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
       onSeriesFilter(leaderId);
     }
     if (legendConfig.focusOnClick) {
-      // toggle per series like the other click-to-focus sites: clicking the
-      // focused item clears, clicking any other item moves the focus
-      onFocus({ seriesId: leaderId === focusedSeriesId ? null : leaderId });
+      // a click pins the series (hover only previews it); a click on the pinned one releases it
+      onFocus({ seriesId: leaderId, pin: true });
     }
   }
 

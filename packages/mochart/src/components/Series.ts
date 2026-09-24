@@ -31,6 +31,7 @@ const noOpCategory = (_categoryIndex: number) => {};
 interface SeriesFocusUpdate {
   seriesId?: string | null;
   categoryIndex?: number | null;
+  pin?: boolean;
 }
 
 interface SeriesProps {
@@ -144,12 +145,10 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
   }
 
   buildEventListeners(props: SeriesProps): Pick<SeriesState, 'onSeriesEnter' | 'onSeriesLeave' | 'onSeriesClick' | 'onCategoryEnter' | 'onCategoryLeave' | 'onCategoryClick'> {
-    const { seriesConfig, focusData, onFocus, onSeriesShapeClick } = props;
+    const { seriesConfig, onFocus, onSeriesShapeClick } = props;
     // a follower series (followSeries) focuses as its leader, so clicking a
     // candlestick wick focuses (and toggles) the whole candle
     const seriesId = seriesConfig.followSeries ?? seriesConfig.id;
-    const focusedCategoryIndex = focusData ? focusData.focusedCategoryIndex : -1;
-    const focusedSeriesId = focusData ? focusData.focusedSeriesId : null;
 
     let onSeriesEnter: SeriesState['onSeriesEnter'] = noOp;
     let onSeriesLeave = noOp;
@@ -174,29 +173,27 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
       onCategoryEnter = (categoryIndex: number) => { onFocus({ categoryIndex }); };
       onCategoryLeave = (_categoryIndex: number) => { onFocus({ categoryIndex: null }); };
     }
-    // clicks toggle focus per the focus*OnClick configs, and (independently)
-    // report up to onSeriesClick when it is set (the same pattern as PieSeries)
+    // clicks pin the focus per the focus*OnClick configs (hover only previews it, and a click on the
+    // pinned value releases it), and (independently) report up to onSeriesClick when it is set (the same pattern as PieSeries)
     if (seriesConfig.focusOnClick || onSeriesShapeClick !== null) {
       onSeriesClick = (event: Event) => {
         if (seriesConfig.focusOnClick) {
-          onFocus({ seriesId: seriesId === focusedSeriesId ? null : seriesId });
+          onFocus({ seriesId, pin: true });
         }
         onSeriesShapeClick?.(seriesId, -1, event);
       };
       onCategoryClick = (categoryIndex: number, event: Event) => {
         if (seriesConfig.focusOnClick) {
-          onFocus(seriesConfig.focusCategoryOnClick
-            ? { seriesId: seriesId === focusedSeriesId ? null : seriesId, categoryIndex: categoryIndex === focusedCategoryIndex ? -1 : categoryIndex }
-            : { seriesId: seriesId === focusedSeriesId ? null : seriesId });
+          onFocus(seriesConfig.focusCategoryOnClick ? { seriesId, categoryIndex, pin: true } : { seriesId, pin: true });
         }
         else if (seriesConfig.focusCategoryOnClick) {
-          onFocus({ categoryIndex: categoryIndex === focusedCategoryIndex ? -1 : categoryIndex });
+          onFocus({ categoryIndex, pin: true });
         }
         onSeriesShapeClick?.(seriesId, categoryIndex, event);
       };
     }
     else if (seriesConfig.focusCategoryOnClick) {
-      onCategoryClick = (categoryIndex: number) => { onFocus({ categoryIndex: categoryIndex === focusedCategoryIndex ? -1 : categoryIndex }); };
+      onCategoryClick = (categoryIndex: number) => { onFocus({ categoryIndex, pin: true }); };
     }
 
     return { onSeriesEnter, onSeriesLeave, onSeriesClick, onCategoryEnter, onCategoryLeave, onCategoryClick };

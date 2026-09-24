@@ -34,8 +34,8 @@ export default function getDescriptions() {
       properties: getSeriesIconDescriptions('legend', 'the legend text font size')
     },
     strikeThroughFiltered: 'whether to strike through the item text of filtered series',
-    focusOnHover: 'whether to focus a series when the pointer hovers over the series icon or title',
-    focusOnClick: 'whether to focus a series when the series icon or title is clicked',
+    focusOnHover: 'whether to focus a series while the pointer hovers over the series icon or title',
+    focusOnClick: 'whether to pin the focus on a series when the series icon or title is clicked, so it stays focused after the pointer leaves (a second click releases it)',
     filterOnClick: 'whether to filter a series when the series icon or title is clicked'
   };
 }
@@ -44,7 +44,7 @@ export function getDetails() {
     truncation: { properties: { maxFraction: 'At the default `1` a single item may take the whole legend width, so a long title wraps onto a row of its own and the legend grows downward at the plot\'s expense. A lower fraction limits every item to that share of the width available to the legend (the plot width when `alignedToAxes` is on) and truncates the titles that exceed it, so `0.5` fits two items to a row and a third fits three. The limit never takes an item below the `accessibility.minTargetSize` floor.', tooltipEnabled: 'When `true`, a truncated legend item carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; a keyboard-reachable item is already named from the full series title.' } },
     strikeThroughFiltered: 'When `true`, the item text of a series that has been filtered out of the chart is drawn with a line through it, so the legend shows at a glance which series are filtered. The strike-through covers the item text only, never its color icon, because the icon already says the same thing by going hollow.',
     filterOnClick: 'When `true`, clicking a legend item toggles its series out of (and back into) the chart, playing the staged series transition; the item stays in the legend so it can be restored. `onSeriesFilter` reports every change.',
-    focusOnHover: 'When `true`, hovering a legend item focuses its series: the series gets its focused styling and every other series gets its defocused styling. `onFocus` reports focus changes.',
-    focusOnClick: 'When `true`, clicking a legend item focuses its series (see `focusOnHover`). Combine with `filterOnClick` deliberately: with both enabled a click filters and focuses.'
+    focusOnHover: 'When `true`, hovering a legend item focuses its series: the series gets its focused styling and every other series gets its defocused styling, and `onFocus` reports the change. Hover focus is a preview: leaving the item clears it, or returns to the series a click pinned. A keyboard-focused item previews the same way.',
+    focusOnClick: 'When `true`, a click on a legend item pins the focus on its series: the series stays focused after the pointer leaves, hovering another item previews that one and leaving it returns to the pinned series, and a click on the pinned item releases the pin and clears the focus. A click on another item moves the pin there. Enter and Space on a keyboard-focused item do the same. Hover focus and pinned focus work together, so a chart can preview on hover for mouse users and pin on tap for touch users. Combine with `filterOnClick` deliberately: with both enabled a click filters and pins.'
   };
 }

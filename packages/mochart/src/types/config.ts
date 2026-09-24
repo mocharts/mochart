@@ -1443,22 +1443,32 @@ export interface LegendConfig {
    */
   strikeThroughFiltered: boolean;
   /**
-   * Whether to focus a series when the pointer hovers over the series icon or
+   * Whether to focus a series while the pointer hovers over the series icon or
    * title.
    *
    * When `true`, hovering a legend item focuses its series: the series gets its
-   * focused styling and every other series gets its defocused styling.
-   * `onFocus` reports focus changes.
+   * focused styling and every other series gets its defocused styling, and
+   * `onFocus` reports the change. Hover focus is a preview: leaving the item
+   * clears it, or returns to the series a click pinned. A keyboard-focused item
+   * previews the same way.
    *
    * @default true
    */
   focusOnHover: boolean;
   /**
-   * Whether to focus a series when the series icon or title is clicked.
+   * Whether to pin the focus on a series when the series icon or title is
+   * clicked, so it stays focused after the pointer leaves (a second click
+   * releases it).
    *
-   * When `true`, clicking a legend item focuses its series (see
-   * `focusOnHover`). Combine with `filterOnClick` deliberately: with both
-   * enabled a click filters and focuses.
+   * When `true`, a click on a legend item pins the focus on its series: the
+   * series stays focused after the pointer leaves, hovering another item
+   * previews that one and leaving it returns to the pinned series, and a click
+   * on the pinned item releases the pin and clears the focus. A click on
+   * another item moves the pin there. Enter and Space on a keyboard-focused
+   * item do the same. Hover focus and pinned focus work together, so a chart
+   * can preview on hover for mouse users and pin on tap for touch users.
+   * Combine with `filterOnClick` deliberately: with both enabled a click
+   * filters and pins.
    *
    * @default false
    */
@@ -1557,15 +1567,17 @@ export interface TooltipConfig {
    */
   filterSeriesOnClick: boolean;
   /**
-   * Whether category values should be focused when the user clicks/taps on them
-   * in the tooltip (must be false when followPointer is true).
+   * Whether a click/tap on the category row of the tooltip should pin the focus
+   * on that category, so it stays focused after the tooltip closes (a second
+   * click releases it; must be false when followPointer is true).
    *
    * @default false
    */
   focusCategoryOnClick: boolean;
   /**
-   * Whether series should be focused when the user clicks/taps on them in the
-   * tooltip (must be false when followPointer is true).
+   * Whether a click/tap on a series row of the tooltip should pin the focus on
+   * that series, so it stays focused after the pointer leaves (a second click
+   * releases it; must be false when followPointer is true).
    *
    * @default false
    */
@@ -3499,15 +3511,15 @@ export interface ValueAxisConfig extends AxisConfigBase {
    */
   baseLine: AxisBaseLineConfig;
   /**
-   * Whether the value axis should be focused whenever the user hovers the
-   * pointer over a part of it in the chart.
+   * Whether the value axis should be focused while the user hovers the pointer
+   * over a part of it in the chart.
    *
    * @default true
    */
   focusOnHover: boolean;
   /**
-   * Whether the value axis should be focused whenever the user clicks/taps a
-   * part of it in the chart.
+   * Whether a click/tap on a part of the value axis should pin the focus on it,
+   * so it stays focused after the pointer leaves (a second click releases it).
    *
    * @default false
    */
@@ -4391,29 +4403,30 @@ export interface SeriesConfig {
    */
   followSeries: string | null;
   /**
-   * Whether the series should be focused whenever the user hovers the pointer
-   * over a part of it in the chart.
+   * Whether the series should be focused while the user hovers the pointer over
+   * a part of it in the chart.
    *
    * @default false
    */
   focusOnHover: boolean;
   /**
-   * Whether the series should be focused whenever the user clicks/taps a part
-   * of it in the chart.
+   * Whether a click/tap on a part of the series should pin the focus on it, so
+   * it stays focused after the pointer leaves (a second click releases it).
    *
    * @default false
    */
   focusOnClick: boolean;
   /**
-   * Whether the category should be focused whenever the user hovers the pointer
+   * Whether the category should be focused while the user hovers the pointer
    * over a category of the series in the chart.
    *
    * @default false
    */
   focusCategoryOnHover: boolean;
   /**
-   * Whether the category should be focused whenever the user clicks/taps a
-   * category of the series in the chart.
+   * Whether a click/tap on a category of the series should pin the focus on
+   * that category, so it stays focused after the pointer leaves (a second click
+   * releases it).
    *
    * @default false
    */

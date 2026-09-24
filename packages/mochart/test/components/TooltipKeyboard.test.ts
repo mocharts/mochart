@@ -200,8 +200,12 @@ describe('tooltip row keyboard semantics', () => {
     key(tooltipRows(container)[1], 'Enter');
     expect(focuses[focuses.length - 1].focusedSeriesId).toBe('S0');
 
+    // opening focused category 0 already: Enter pins it (no change to report), Enter again releases it
+    const before = focuses.length;
     key(tooltipRows(container)[0], 'Enter');
-    expect(focuses[focuses.length - 1].focusedCategoryIndex).toBe(-1); // toggled off (was focused category 0)
+    expect(focuses.length).toBe(before);
+    key(tooltipRows(container)[0], 'Enter');
+    expect(focuses[focuses.length - 1].focusedCategoryIndex).toBe(-1);
   });
 
   it('focuses the series from hover and keyboard focus in filter mode', () => {
@@ -345,6 +349,8 @@ describe('tooltip row keyboard semantics', () => {
     tooltipRows(container)[0].focus();
     expect(tooltipRows(container).map(row => row.getAttribute('tabindex'))).toEqual(['0', '-1', '-1']);
 
+    // Space pins the category the open focused, Space again releases it
+    key(tooltipRows(container)[0], ' ');
     key(tooltipRows(container)[0], ' ');
     expect(focuses[focuses.length - 1].focusedCategoryIndex).toBe(-1);
 
@@ -455,9 +461,11 @@ describe('tooltip row pointer focus', () => {
     });
     openTooltip(container);
 
-    // opening the tooltip focused category 0, so the click toggles it back off
+    // opening the tooltip focused category 0: the click pins it, so closing the tooltip keeps it focused
     categoryLine(container).dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(focuses[focuses.length - 1].focusedCategoryIndex).toBe(-1);
+    key(categoryLine(container), 'Escape');
+    expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
+    expect(focuses[focuses.length - 1].focusedCategoryIndex).toBe(0);
   });
 
   it('leaves the category alone on click in filter mode', () => {

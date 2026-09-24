@@ -9,7 +9,7 @@ import type { FontConfig } from '../types/config';
 import type { AxisTick, ValueAxisData } from '../types/data';
 import type { AxisLayoutInfo, SpacingLayoutInfo } from '../types/layout';
 
-interface ValueAxisFocus { valueAxisId: string | null }
+interface ValueAxisFocus { valueAxisId: string | null; pin?: boolean }
 interface ValueAxisProps {
   front: boolean;
   valueAxisConfig: EnhancedValueAxisConfig;
@@ -49,15 +49,15 @@ export default class ValueAxis extends Renderer<ValueAxisProps, ValueAxisState> 
     if (prevProps === null) {
       return this.buildEventListeners(props);
     }
-    const { valueAxisConfig, onFocus, focusedValueAxisId } = props;
-    if (valueAxisConfig !== prevProps.valueAxisConfig || onFocus !== prevProps.onFocus || focusedValueAxisId !== prevProps.focusedValueAxisId) {
+    const { valueAxisConfig, onFocus } = props;
+    if (valueAxisConfig !== prevProps.valueAxisConfig || onFocus !== prevProps.onFocus) {
       return this.buildEventListeners(props);
     }
     return null;
   }
 
   buildEventListeners(props: ValueAxisProps): ValueAxisState {
-    const { valueAxisConfig, onFocus, focusedValueAxisId } = props;
+    const { valueAxisConfig, onFocus } = props;
     const valueAxisId = valueAxisConfig.id;
 
     let onValueAxisEnter: ValueAxisState['onValueAxisEnter'] = noOp;
@@ -69,8 +69,8 @@ export default class ValueAxis extends Renderer<ValueAxisProps, ValueAxisState> 
       onValueAxisLeave = () => { if (this.hoverActive) { this.hoverActive = false; onFocus({ valueAxisId: null }); } };
     }
     if (valueAxisConfig.focusOnClick) {
-      // second click on the focused axis toggles the focus off, matching series/legend clicks
-      onValueAxisClick = () => { onFocus({ valueAxisId: valueAxisId === focusedValueAxisId ? null : valueAxisId }); };
+      // a click pins the axis (hover only previews it); a click on the pinned one releases it, matching series/legend clicks
+      onValueAxisClick = () => { onFocus({ valueAxisId, pin: true }); };
     }
 
     return { onValueAxisEnter, onValueAxisLeave, onValueAxisClick };

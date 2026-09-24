@@ -35,6 +35,8 @@ export interface InternalFocus {
   valueAxisId?: string | null;
   seriesId?: string | null;
   categoryIndex?: number | null;
+  /** A click: toggles the pin on the named values rather than previewing them, so the focus outlives the pointer. */
+  pin?: boolean;
 }
 
 /** The legend filtering state, reported by `onSeriesFilter`. */

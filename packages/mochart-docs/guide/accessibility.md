@@ -81,10 +81,12 @@ Legend items are keyboard-reachable whenever clicking them does something
 [`legend.focusOnClick`](/reference/legend#legend.focusOnClick)). They form a
 single tab stop with a roving focus: <kbd>Tab</kbd> enters the legend, the arrow
 keys and <kbd>Home</kbd>/<kbd>End</kbd> move between items, and
-<kbd>Enter</kbd>/<kbd>Space</kbd> acts exactly like a click, filtering or
-focusing the series. A keyboard-focused item highlights its series the same way
+<kbd>Enter</kbd>/<kbd>Space</kbd> acts exactly like a click, filtering the
+series or pinning the focus on it so it stays focused after the item loses
+keyboard focus. A keyboard-focused item highlights its series the same way
 hovering it does (with
-[`legend.focusOnHover`](/reference/legend#legend.focusOnHover), on by default).
+[`legend.focusOnHover`](/reference/legend#legend.focusOnHover), on by default),
+and a second <kbd>Enter</kbd> releases the pin like a second click.
 
 Pie and donut slices work the same way when they are interactive (the series has
 [`focusOnClick`](/reference/series#series.focusOnClick) or the chart has an

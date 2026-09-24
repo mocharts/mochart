@@ -370,14 +370,14 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
   }
 
   onCategoryClick = (event: Event) => {
-    const { mochartConfig, tooltipCategoryIndex, focusedCategoryIndex, onFocus } = this.props;
+    const { mochartConfig, tooltipCategoryIndex, onFocus } = this.props;
     const { mode } = this.props;
     const { tooltip: tooltipConfig } = mochartConfig;
     const { showControls, focusCategoryOnClick } = tooltipConfig;
     const shouldFocus = showControls ? mode === MODE_FOCUS : focusCategoryOnClick;
     if (shouldFocus) {
       event.stopPropagation();
-      onFocus({ categoryIndex: focusedCategoryIndex === tooltipCategoryIndex ? -1 : tooltipCategoryIndex });
+      onFocus({ categoryIndex: tooltipCategoryIndex, pin: true }); // pins it, or releases the pinned one
     }
   }
 
@@ -408,7 +408,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
 
   onSeriesClick = (event: Event, seriesId: string) => {
     const { mode } = this.props;
-    const { mochartConfig, focusedSeriesId, onFocus, onSeriesFilter } = this.props;
+    const { mochartConfig, onFocus, onSeriesFilter } = this.props;
     const { tooltip: tooltipConfig } = mochartConfig;
     const { showControls, focusSeriesOnClick, filterSeriesOnClick } = tooltipConfig;
     const shouldFocus = showControls ? mode === MODE_FOCUS : focusSeriesOnClick;
@@ -425,12 +425,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
         onSeriesFilter(seriesId);
       }
       if (shouldFocus) {
-        if (focusedSeriesId !== undefined && focusedSeriesId !== null) {
-          onFocus({ seriesId: seriesId === focusedSeriesId ? null : seriesId });
-        }
-        else {
-          onFocus({ seriesId });
-        }
+        onFocus({ seriesId, pin: true }); // pins it, or releases the pinned one
       }
       this.restoreRowFocus(activeElement);
     }

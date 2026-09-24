@@ -774,10 +774,14 @@ describe('tooltip', () => {
     modeButton().dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(modeButton().textContent).toBe('Focus');
 
-    // in focus mode a category line click toggles category focus
+    // in focus mode a category line click pins the category focus: the open focused 0 already, so the
+    // first click changes nothing to report, the second releases the pin
     const categoryLine = container.querySelector(getDescendantCssSelector('tooltip', 'tooltipCategoryLine'))!;
+    const before = focuses.length;
     categoryLine.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(focuses[focuses.length - 1].focusedCategoryIndex).toBe(-1); // toggled off (was focused category 0)
+    expect(focuses.length).toBe(before);
+    categoryLine.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(focuses[focuses.length - 1].focusedCategoryIndex).toBe(-1);
     categoryLine.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(focuses[focuses.length - 1].focusedCategoryIndex).toBe(0);
   });
@@ -1297,6 +1301,67 @@ describe('onSeriesClick', () => {
     expect(clicks[0].seriesId).toBe('body');
     // the configured focus toggle still fires alongside the report
     expect(focuses[focuses.length - 1].focusedSeriesId).toBe('body');
+  });
+});
+
+// Regression: a click on a hover-focused item toggled the focus off, so a mouse click could never
+// keep a series focused, and Enter on a keyboard-focused legend item cleared what Tab had focused.
+describe('focus pinning', () => {
+  const itemFor = (container: Element, id: string) => container.querySelector(getIdCssSelector('legendItem', id))!;
+  const pointer = (target: Element, type: string) => target.dispatchEvent(new MouseEvent(type, { bubbles: true }));
+
+  it('keeps a clicked legend series focused after the pointer leaves, until a second click releases it', () => {
+    const focuses: ChartFocus[] = [];
+    const container = mountChart(makeConfig({
+      legend: { focusOnClick: true },
+      series: [{ property: 'sales' }, { property: 'costs' }]
+    }), { onFocus: focus => { focuses.push(focus); } });
+    const last = () => focuses[focuses.length - 1].focusedSeriesId;
+
+    pointer(itemFor(container, 'S0'), 'pointerenter');
+    expect(last()).toBe('S0');
+    pointer(itemFor(container, 'S0'), 'click');
+    pointer(itemFor(container, 'S0'), 'pointerleave');
+    expect(last()).toBe('S0');
+
+    // hover previews another series and leaving returns to the pinned one
+    pointer(itemFor(container, 'S1'), 'pointerenter');
+    expect(last()).toBe('S1');
+    pointer(itemFor(container, 'S1'), 'pointerleave');
+    expect(last()).toBe('S0');
+
+    // a click on the pinned item releases it
+    pointer(itemFor(container, 'S0'), 'pointerenter');
+    pointer(itemFor(container, 'S0'), 'click');
+    expect(last()).toBeNull();
+    pointer(itemFor(container, 'S0'), 'pointerleave');
+    expect(last()).toBeNull();
+  });
+
+  it('moves the pin to another clicked series', () => {
+    const focuses: ChartFocus[] = [];
+    const container = mountChart(makeConfig({
+      legend: { focusOnClick: true },
+      series: [{ property: 'sales' }, { property: 'costs' }]
+    }), { onFocus: focus => { focuses.push(focus); } });
+    pointer(itemFor(container, 'S0'), 'click');
+    pointer(itemFor(container, 'S1'), 'click');
+    pointer(itemFor(container, 'S1'), 'pointerleave');
+    expect(focuses[focuses.length - 1].focusedSeriesId).toBe('S1');
+  });
+
+  it('releases a pinned series when the host controls the focus to something else', () => {
+    const focuses: ChartFocus[] = [];
+    const container = mountChart(makeConfig({
+      legend: { focusOnClick: true },
+      series: [{ property: 'sales' }, { property: 'costs' }]
+    }), { onFocus: focus => { focuses.push(focus); } });
+    pointer(itemFor(container, 'S0'), 'click');
+    lastHandle().update({ focusedSeriesId: null } as Partial<DefaultChartProps>);
+    pointer(itemFor(container, 'S1'), 'pointerenter');
+    pointer(itemFor(container, 'S1'), 'pointerleave');
+    // the pin is gone: leaving asks for no focus rather than S0
+    expect(focuses[focuses.length - 1].focusedSeriesId).toBeNull();
   });
 });
 

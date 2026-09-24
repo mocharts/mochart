@@ -52,8 +52,8 @@ export default function getDescriptions() {
     },
     maxMarginFraction: 'the margin, as a fraction (0 or greater) of the domain of the axis, to use at the maximum extent of the axis (only applied if max is "auto" and max value is not equal base)',
     minMarginFraction: 'the margin, as a fraction (0 or greater) of the domain of the axis, to use at the minimum extent of the axis (only applied if min is "auto" and min value is not equal base)',
-    focusOnHover: 'whether the value axis should be focused whenever the user hovers the pointer over a part of it in the chart',
-    focusOnClick: 'whether the value axis should be focused whenever the user clicks/taps a part of it in the chart',
+    focusOnHover: 'whether the value axis should be focused while the user hovers the pointer over a part of it in the chart',
+    focusOnClick: 'whether a click/tap on a part of the value axis should pin the focus on it, so it stays focused after the pointer leaves (a second click releases it)',
     useSeriesFocus: 'whether to show the axis as focused when any series belonging to it is focused',
   };
 }
