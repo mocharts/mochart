@@ -17,8 +17,9 @@ export default defineConfig({
       }
     ]
   },
+  // its own port, so it runs beside the showcase (5182) and the galleries
   server: {
-    port: 5182
+    port: 5183
   },
   build: {
     outDir: 'dist',
