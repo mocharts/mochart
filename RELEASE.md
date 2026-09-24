@@ -115,6 +115,12 @@ version is a manual publish (`npm run publish:libs` after adding it to
 account's 2FA in the browser). Then register the trusted publisher for it on
 npmjs.com: package Settings → Trusted Publisher → GitHub Actions, owner
 `mocharts`, repository `mochart`, workflow filename `ci.yml`, environment
-blank, with `npm publish` in the allowed actions. It also needs `publishConfig.exports`,
-`repository.directory`, `files` including `CHANGELOG.md`, and a `CHANGELOG.md`
-starting with `# <package name>`.
+blank, with `npm publish` in the allowed actions.
+
+The package itself also needs, or `pack:libs` and `check:publish` fail:
+
+- `publishConfig.exports` and `repository.directory` in its manifest
+- `files` including `CHANGELOG.md`, and a `CHANGELOG.md` starting with
+  `# <package name>`
+- a `LICENSE` file of its own, since the root one is not copied in
+- a `README.md` whose links are all absolute URLs or `#anchor` links
