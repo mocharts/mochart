@@ -298,7 +298,8 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
     const truncationEnabled = legendConfig.truncation.enabled;
     const truncationChanged = truncationEnabled &&
       (layoutInfoExtentChanged(prevProps.legendItemLayoutInfo, legendItemLayoutInfo) || layoutInfoExtentChanged(prevProps.legendItemRawLayoutInfo, legendItemRawLayoutInfo));
-    const seriesTitleChanged = prevProps.seriesConfig.title !== seriesConfig.title;
+    // the raw extent covers a font change; the truncation text replaced the prefix's tail, so a new one starts over
+    const seriesTitleChanged = prevProps.seriesConfig.title !== seriesConfig.title || prevProps.legendConfig.truncation.text !== legendConfig.truncation.text;
     // reset only on settling, not on every update while settled: each reset re-arms a forced-layout measure
     const truncationFinished = legendItemFits(legendLayoutInfo, legendItemLayoutInfo, legendItemRawLayoutInfo) &&
       !legendItemFits(prevProps.legendLayoutInfo, prevProps.legendItemLayoutInfo, prevProps.legendItemRawLayoutInfo);

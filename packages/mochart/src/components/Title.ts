@@ -81,7 +81,8 @@ export default class Title extends Renderer<TitleProps, TitleState> {
     const truncationEnabled = titleConfig.text !== NONE && titleConfig.truncation.enabled;
     const truncationChanged = truncationEnabled &&
       (layoutInfoExtentChanged(prevProps.titleTextLayoutInfo, titleTextLayoutInfo) || layoutInfoExtentChanged(prevProps.titleTextRawLayoutInfo, titleTextRawLayoutInfo));
-    const titleChanged = prevProps.mochartConfig.title.text !== titleConfig.text;
+    // the raw extent covers a font change; the truncation text replaced the prefix's tail, so a new one starts over
+    const titleChanged = prevProps.mochartConfig.title.text !== titleConfig.text || prevProps.mochartConfig.title.truncation.text !== titleConfig.truncation.text;
     // reset only on settling, not on every update while settled: each reset re-arms a forced-layout measure
     const truncationFinished = titleFits(titleLayoutInfo, titleTextLayoutInfo, titleTextRawLayoutInfo) &&
       !titleFits(prevProps.titleLayoutInfo, prevProps.titleTextLayoutInfo, prevProps.titleTextRawLayoutInfo);

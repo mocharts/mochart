@@ -12,6 +12,11 @@ import { getDescendantCssSelector } from '../../src/utils/ChartDom';
 const PX_PER_CHAR = 9.7;
 let measureCalls = 0;
 
+// a bold font measures wider, so a font-only update has a visible effect on the fit
+function pxPerChar(element: Element): number {
+  return (element as SVGElement).style.fontWeight === 'bold' ? PX_PER_CHAR * 1.5 : PX_PER_CHAR;
+}
+
 function rows(offset: number): Record<string, unknown>[] {
   return [
     { month: 'an-extremely-long-january-label-that-cannot-possibly-fit', sales: 10 + offset },
@@ -20,18 +25,27 @@ function rows(offset: number): Record<string, unknown>[] {
   ];
 }
 
-function mountChart(): { container: Element; handle: ChartHandle<DefaultChartProps> } {
+function config(categoryAxis: Record<string, unknown> = {}): MochartInputConfig {
+  return {
+    version: '1.0.0',
+    animation: { enabled: false },
+    categoryAxis: { property: 'month', type: 'string', scale: 'ordinal', ...categoryAxis },
+    series: [{ property: 'sales' }]
+  } as unknown as MochartInputConfig;
+}
+
+function mountChart(categoryAxis: Record<string, unknown> = {}): { container: Element; handle: ChartHandle<DefaultChartProps> } {
   const container = mountContainer();
   const handle = trackHandle(createDefaultChart(container, {
-    config: {
-      version: '1.0.0',
-      animation: { enabled: false },
-      categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
-      series: [{ property: 'sales' }]
-    } as unknown as MochartInputConfig,
+    config: config(categoryAxis),
     data: rows(0), width: 500, height: 400
   } as DefaultChartProps));
   return { container, handle };
+}
+
+function labelTextsOf(container: Element): string[] {
+  return [...container.querySelectorAll(getDescendantCssSelector('categoryAxis', 'axisTickLabel') + ' text')]
+    .map(label => getRenderedText(label));
 }
 
 beforeAll(() => {
@@ -40,16 +54,16 @@ beforeAll(() => {
   const svgProto = (globalThis as any).SVGElement.prototype;
   svgProto.getComputedTextLength = function (this: SVGTextContentElement) {
     measureCalls++;
-    return getRenderedText(this).length * PX_PER_CHAR;
+    return getRenderedText(this).length * pxPerChar(this);
   };
-  svgProto.getSubStringLength = (_start: number, count: number) => {
+  svgProto.getSubStringLength = function (this: SVGTextContentElement, _start: number, count: number) {
     measureCalls++;
-    return count * PX_PER_CHAR;
+    return count * pxPerChar(this);
   };
   // proportional like the text lengths: zero-size bboxes would keep the
   // default-bounds re-measure marker set, which wipes truncation every update
   svgProto.getBBox = function (this: SVGGraphicsElement) {
-    return { x: 0, y: 0, width: getRenderedText(this).length * PX_PER_CHAR, height: 12 };
+    return { x: 0, y: 0, width: getRenderedText(this).length * pxPerChar(this), height: 12 };
   };
 });
 
@@ -105,6 +119,41 @@ describe('tick-label truncation state across updates', () => {
     ] } as Partial<DefaultChartProps>);
     handle.update({ focusedCategoryIndex: 2 } as Partial<DefaultChartProps>);
     expect(labelTexts()).toEqual(['Jan', 'Feb', 'Mar']);
+  });
+});
+
+// Regression: the fitted prefix survived a config update that changed only the truncation text or the
+// font, so the old prefix got the new suffix, and a new font kept the old font's fit
+describe('tick-label truncation reset on a text or font change', () => {
+  it('fits the label again from the full text when the truncation text changes', () => {
+    const { container, handle } = mountChart();
+    handle.update({ focusedCategoryIndex: 0 } as Partial<DefaultChartProps>);
+    expect(labelTextsOf(container).every(text => text.endsWith('…'))).toBe(true);
+
+    handle.update({ config: config({ tickLabel: { truncation: { text: ' (more)' } } }) } as Partial<DefaultChartProps>);
+    handle.update({ focusedCategoryIndex: 1 } as Partial<DefaultChartProps>);
+    const updated = labelTextsOf(container);
+    expect(updated.every(text => text.endsWith(' (more)'))).toBe(true);
+
+    // the same labels as a chart mounted with that text: a shorter prefix, since the suffix is wider
+    const fresh = mountChart({ tickLabel: { truncation: { text: ' (more)' } } });
+    fresh.handle.update({ focusedCategoryIndex: 0 } as Partial<DefaultChartProps>);
+    expect(updated).toEqual(labelTextsOf(fresh.container));
+  });
+
+  it('fits the label again from the full text when only its font changes', () => {
+    const { container, handle } = mountChart();
+    handle.update({ focusedCategoryIndex: 0 } as Partial<DefaultChartProps>);
+    const regular = labelTextsOf(container);
+
+    // the bold font measures wider, so the same room holds fewer characters
+    handle.update({ config: config({ tickLabel: { font: { weight: 'bold' } } }) } as Partial<DefaultChartProps>);
+    handle.update({ focusedCategoryIndex: 1 } as Partial<DefaultChartProps>);
+    const bold = labelTextsOf(container);
+    expect(bold.map(text => text.length < regular[0].length)).toEqual([true, true, true]);
+    const fresh = mountChart({ tickLabel: { font: { weight: 'bold' } } });
+    fresh.handle.update({ focusedCategoryIndex: 0 } as Partial<DefaultChartProps>);
+    expect(bold).toEqual(labelTextsOf(fresh.container));
   });
 });
 

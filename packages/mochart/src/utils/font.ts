@@ -33,6 +33,17 @@ function resolveFontStyleUncached(font: Partial<FontConfig>, chartFont: FontConf
   return style;
 }
 
+/** Whether two resolved font styles set the same members to the same values: a new config resolves to a new object even when nothing about the font changed. */
+export function fontStylesEqual(a: FontInlineStyle | null, b: FontInlineStyle | null): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a === null || b === null) {
+    return false;
+  }
+  return fontMembers.every(([, property]) => a[property] === b[property]);
+}
+
 /**
  * The inline font style of a text element: each member is the part's own value when set, otherwise
  * the chart-wide `chart.font` value. Null when neither sets any member, so nothing is written and

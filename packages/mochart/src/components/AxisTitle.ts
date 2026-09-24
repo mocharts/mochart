@@ -6,7 +6,7 @@ import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils
 import { getClipPathReference } from '../utils/svgUtils';
 import { getAxisFocusStyle } from '../utils/FocusValue';
 import { styleToAttributes } from '../utils/style';
-import { resolveFontStyle } from '../utils/font';
+import { fontStylesEqual, resolveFontStyle } from '../utils/font';
 import { NONE } from '../config/core/constants';
 import Background from './Background';
 import type { AxisConfigBase, FontConfig } from '../types/config';
@@ -45,10 +45,15 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
     if (prevProps === null) {
       return this.truncation.mount(props.axisConfig.title.truncation.enabled);
     }
-    const { axisConfig, axisLayoutInfo } = props;
-    const truncationEnabled = axisConfig.title.text !== NONE && axisConfig.title.truncation.enabled;
+    const { axisConfig, axisLayoutInfo, chartFont } = props;
+    const { title: titleConfig } = axisConfig;
+    const { title: prevTitleConfig } = prevProps.axisConfig;
+    const truncationEnabled = titleConfig.text !== NONE && titleConfig.truncation.enabled;
     const truncationChanged = truncationEnabled && layoutInfoExtentChanged(prevProps.axisLayoutInfo, axisLayoutInfo);
-    return this.truncation.prepare(truncationEnabled, truncationChanged, prevProps.axisConfig.title.text !== axisConfig.title.text);
+    // a fitted prefix belongs to the font it was measured in and to the text that replaced its tail: either changing starts over
+    const truncationReset = prevTitleConfig.text !== titleConfig.text || prevTitleConfig.truncation.text !== titleConfig.truncation.text ||
+      !fontStylesEqual(resolveFontStyle(titleConfig.font, chartFont), resolveFontStyle(prevTitleConfig.font, prevProps.chartFont));
+    return this.truncation.prepare(truncationEnabled, truncationChanged, truncationReset);
   }
 
   create() {

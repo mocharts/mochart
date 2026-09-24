@@ -9,7 +9,7 @@ import { translate } from '../utils/utils';
 import { getClipPathReference } from '../utils/svgUtils';
 import { getAxisFocusStyle } from '../utils/FocusValue';
 import { styleToAttributes } from '../utils/style';
-import { resolveFontStyle } from '../utils/font';
+import { fontStylesEqual, resolveFontStyle } from '../utils/font';
 import Background from './Background';
 import { getPassTicks } from './AxisLines';
 import type { PassTick } from './AxisLines';
@@ -143,6 +143,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
     }
 
     let truncationChanged = false;
+    let truncationReset = false;
     let dataIntact = true;
     if (truncationEnabled) {
       const sizeChanged = layoutInfoExtentChanged(prevProps.axisLayoutInfo, axisLayoutInfo) ||
@@ -151,10 +152,18 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
         axisLayoutInfo.totalMinorTickLabelSize !== prevProps.axisLayoutInfo.totalMinorTickLabelSize ||
         axisLayoutInfo.tickLabelParallel !== prevProps.axisLayoutInfo.tickLabelParallel || axisLayoutInfo.minorTickLabelParallel !== prevProps.axisLayoutInfo.minorTickLabelParallel ||
         tickSpacing !== prevProps.tickSpacing || minorTickSpacing !== prevProps.minorTickSpacing;
-      truncationChanged = sizeChanged || (previousLabels !== this.tickLabelStrings && labelsChanged(previousLabels, this.tickLabelStrings));
+      // a fitted prefix belongs to the font it was measured in and to the text that replaced its tail: either changing starts over from the full label
+      if (axisConfig !== prevProps.axisConfig || props.chartFont !== prevProps.chartFont) {
+        const { minorTickLabel: prevMinorTickLabel } = getPasses(prevProps);
+        truncationReset = majorTruncation?.text !== prevProps.axisConfig.tickLabel.truncation?.text ||
+          minorTruncation?.text !== prevMinorTickLabel.truncation?.text ||
+          !fontStylesEqual(resolveFontStyle(axisConfig.tickLabel.font, props.chartFont), resolveFontStyle(prevProps.axisConfig.tickLabel.font, prevProps.chartFont)) ||
+          !fontStylesEqual(resolveFontStyle(minorTickLabel.font, props.chartFont), resolveFontStyle(prevMinorTickLabel.font, prevProps.chartFont));
+      }
+      truncationChanged = sizeChanged || truncationReset || (previousLabels !== this.tickLabelStrings && labelsChanged(previousLabels, this.tickLabelStrings));
       dataIntact = Array.isArray(this.truncation.data) && this.passTicks.length === this.truncation.data.length;
     }
-    return this.truncation.prepare(truncationEnabled, truncationChanged, false, dataIntact,
+    return this.truncation.prepare(truncationEnabled, truncationChanged, truncationReset, dataIntact,
       truncationChanged ? this.tickLabelStrings : undefined);
   }
 
