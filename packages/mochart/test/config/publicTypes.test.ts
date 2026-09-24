@@ -6,7 +6,7 @@ import type {
   CssStyle, MochartInputConfig, MochartConfig,
   Auto, Align, VerticalAlign, Anchor, Position, MissingValueMode, AxisSide, ThresholdTitleSide,
   ChartType, PieLabelType, PieTooltipValueType, Scale, DataType, RendererType, CurveType,
-  PatternType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, DomainChange,
+  PatternType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, CategoryValueIntervalPeriod, DomainChange,
   FontWeight, FontStyle, Major,
   ChartEventPayload, ChartFocus, ChartSeriesFilter, ChartSliceClickPayload, ChartSeriesClickPayload,
   ChartCallbacks, ChartFactories, ChartFactoryContext, ChartFactoryContent, ChartContentFactory,
@@ -28,7 +28,7 @@ interface EveryUnion {
   patternType: PatternType;
   capType: CapType; labelPosition: LabelPosition; colorMode: ColorMode;
   colorInterpolation: ColorInterpolation; markerShape: MarkerShape; markerSizeScale: MarkerSizeScale;
-  stepPeriod: StepPeriod; domainChange: DomainChange; fontWeight: FontWeight; fontStyle: FontStyle; major: Major;
+  stepPeriod: StepPeriod; categoryValueIntervalPeriod: CategoryValueIntervalPeriod; domainChange: DomainChange; fontWeight: FontWeight; fontStyle: FontStyle; major: Major;
 }
 
 describe('public config type surface', () => {
@@ -40,10 +40,10 @@ describe('public config type surface', () => {
       scale: 'linear', dataType: 'number', rendererType: 'bar', curveType: 'stepAfter',
       patternType: 'crosshatch',
       capType: 'round', labelPosition: 'inside', colorMode: 'seriesIndex',
-      colorInterpolation: 'hcl', markerShape: 'star', markerSizeScale: 'sqrt', stepPeriod: 'week', domainChange: 'staged',
+      colorInterpolation: 'hcl', markerShape: 'star', markerSizeScale: 'sqrt', stepPeriod: 'week', categoryValueIntervalPeriod: 'hour', domainChange: 'staged',
       fontWeight: 'bold', fontStyle: 'italic', major: 'major'
     };
-    expect(Object.keys(values)).toHaveLength(27);
+    expect(Object.keys(values)).toHaveLength(28);
     expect(describeSeries(values.rendererType, values.curveType, values.markerShape)).toBe('bar/stepAfter/star');
   });
 

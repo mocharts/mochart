@@ -43,6 +43,12 @@ import * as tickStep from '../examples/tickStep'
   set (the default for an axis without stacks, as here), it fills to the minimum
   end of the axis. Swap in `line` or `bar` per series via
   [`renderer`](/reference/series#series.renderer).
+- A `bar` series is one
+  [`categoryValueInterval`](/reference/categoryAxis#categoryAxis.categoryValueInterval)
+  wide. The default `'auto'` is the smallest gap between neighbouring dates, a
+  day in the data above, so the bars are a day wide and the missing days show
+  as empty slots. Set `'day'`, `'hour'` or another period, or a millisecond
+  count, when the data spacing is not the bar width you want.
 
 ## Labeling chosen dates
 

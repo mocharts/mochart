@@ -65,7 +65,7 @@ export function getTickStepValidators(): Record<string, Validator> {
 }
 
 // a threshold sits on the axis's value scale, so its value takes the axis's own primitive: number by default, date on a date category axis
-const positiveNumber = validators.custom((value: unknown) => typeof value === 'number' && Number.isFinite(value) && value > 0)
+export const positiveNumber = validators.custom((value: unknown) => typeof value === 'number' && Number.isFinite(value) && value > 0)
   .withCustomName('positiveNumber').withMessage('should be a number greater than 0');
 
 /** The thresholdStep interval: an axis value distance above 0, or null. */

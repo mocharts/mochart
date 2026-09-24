@@ -239,13 +239,13 @@ export function getSeriesConfigsOrderedByFocus(mochartConfig: EnhancedMochartCon
 function getCategoryFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, categoryData: CategoryData, focusedCategoryIndex: number): number[] {
   let categoryPercentages: number[] = [];
   if (isFocused(focusedCategoryIndex)) {
-    const { renderAxisDomain, values } = categoryData;
+    const { renderAxisDomain, categoryValueInterval, values } = categoryData;
     const { numeric } = values;
     const value = numeric[focusedCategoryIndex];
     const min = renderAxisDomain[0];
     const max = renderAxisDomain[1];
     if (min !== null && max !== null && value >= +min && value <= +max) {
-      const { categoryRange } = getCategorySpacingInfo(mochartConfig.categoryAxis, renderAxisDomain, 1);
+      const { categoryRange } = getCategorySpacingInfo(mochartConfig.categoryAxis, renderAxisDomain, 1, categoryValueInterval);
       const minPercentage = categoryRange[0];
       const maxPercentage = categoryRange[1];
       const extentPercentage = maxPercentage - minPercentage;

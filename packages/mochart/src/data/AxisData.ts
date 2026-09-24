@@ -81,7 +81,7 @@ function getCategoryAxisData(categoryAxisConfig: CategoryAxisConfig, axisLayoutI
   let categoryAxisData: CategoryAxisData | null = null;
   if (chartData) {
     const { categoryData } = chartData;
-    const spacingInfo = getCategorySpacingInfo(categoryAxisConfig, categoryData.renderAxisDomain, axisLayoutInfo.categoryExtent);
+    const spacingInfo = getCategorySpacingInfo(categoryAxisConfig, categoryData.renderAxisDomain, axisLayoutInfo.categoryExtent, categoryData.categoryValueInterval);
     const axisScale = getCategoryAxisScale(categoryAxisConfig, categoryData.renderAxisDomain, spacingInfo);
     const positions = getCategoryValuePositions(categoryAxisConfig, axisScale, categoryData.values);
     // a collapsed domain (one category, or explicit min === max) draws its single tick at the value, not at the widened render bounds
@@ -111,22 +111,24 @@ function getValueAxisData(plotConfig: PlotConfig, valueAxisConfigs: EnhancedValu
   return valueAxisData;
 }
 
-export function getCategorySpacingInfo(categoryAxisConfig: CategoryAxisConfig, categoryAxisDomain: CategoryAxisDomain, categoryAxisExtent: number): CategorySpacingInfo {
+export function getCategorySpacingInfo(categoryAxisConfig: CategoryAxisConfig, categoryAxisDomain: CategoryAxisDomain, categoryAxisExtent: number, categoryValueInterval: number | null): CategorySpacingInfo {
   let minPosition = 0;
   let maxPosition = categoryAxisExtent;
   const categoryAxisDomainExtent = categoryAxisDomain[0] === null || categoryAxisDomain[1] === null ? 0 : Math.abs(+categoryAxisDomain[1] - +categoryAxisDomain[0]);
+  // slots across the domain: one per category on an ordinal axis, one per categoryValueInterval on a linear axis, one when a single category has no interval
+  const categorySlotCount = categoryValueInterval !== null ? categoryAxisDomainExtent / categoryValueInterval : (categoryAxisDomainExtent === 0 ? 0 : 1);
   const categoryCountPadding = categoryAxisConfig.categoryCountPadding;
   let categoryValueExtent;
-  if (categoryAxisDomainExtent === 0 && categoryCountPadding === 0) {
+  if (categorySlotCount === 0 && categoryCountPadding === 0) {
     categoryValueExtent = maxPosition;
   }
   else if (categoryCountPadding > 0) {
-    categoryValueExtent = maxPosition / (categoryAxisDomainExtent + categoryCountPadding); // category extent is smaller, ex: to allow for bar widths
+    categoryValueExtent = maxPosition / (categorySlotCount + categoryCountPadding); // category extent is smaller, ex: to allow for bar widths
     minPosition+= categoryValueExtent / 2.0; // shift the visual range of the scale, ex: so the first and last bars aren't sliced in half
     maxPosition-= categoryValueExtent / 2.0;
   }
   else {
-    categoryValueExtent = maxPosition / categoryAxisDomainExtent;
+    categoryValueExtent = maxPosition / categorySlotCount;
   }
   categoryValueExtent =  Math.max(categoryAxisConfig.minCategoryValueExtent, Math.floor(categoryValueExtent * (1.0 - categoryAxisConfig.categoryPaddingFraction.outer)));
   const categoryValueOffset = Math.floor(categoryValueExtent / 2.0);

@@ -160,6 +160,10 @@ describe('getRenderAxisDomain', () => {
     expect(getRenderAxisDomain(cfg({}), [0, 0])).toEqual([0, 1]);
   });
 
+  it('widens zero symmetrically for a category axis, so the single category sits at the centre', () => {
+    expect(getRenderAxisDomain(cfg({}), [0, 0], false)).toEqual([-1, 1]);
+  });
+
   it('widens a collapsed date domain by one day on each side by default', () => {
     const t = Date.UTC(2020, 0, 1);
     expect(getRenderAxisDomain(cfg({ type: 'date' }), [new Date(t), new Date(t)]))

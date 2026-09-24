@@ -33,7 +33,7 @@ export function isExplicitCollapsedDomain(axisConfig: AxisDomainConfig, axisDoma
 
 /** The domain scales/ticks are built from: the semantic domain itself (same reference) unless collapsed,
  * then a widened copy so values render off the midline; clip detection keeps the domain itself. */
-export function getRenderAxisDomain(axisConfig: AxisDomainConfig, axisDomain: CategoryAxisDomain): CategoryAxisDomain {
+export function getRenderAxisDomain(axisConfig: AxisDomainConfig, axisDomain: CategoryAxisDomain, widenZeroUpward = true): CategoryAxisDomain {
   const [min, max] = axisDomain;
   if (min === null || max === null || numericValue(min) !== numericValue(max)) {
     return axisDomain;
@@ -43,8 +43,8 @@ export function getRenderAxisDomain(axisConfig: AxisDomainConfig, axisDomain: Ca
     const half = getDateHalfWidth(axisConfig);
     return [new Date(value - half), new Date(value + half)];
   }
-  if (value === 0) { // widen upward so a zero baseline stays on the axis
-    return [0, 1];
+  if (value === 0) { // a value axis widens upward so its zero baseline stays on the axis; a category axis centres the category
+    return widenZeroUpward ? [0, 1] : [-1, 1];
   }
   const half = Math.abs(value) * 0.05; // relative: a fixed span makes large-magnitude tick labels identical
   return scaleLinear().domain([value - half, value + half]).nice().domain() as CategoryAxisDomain;

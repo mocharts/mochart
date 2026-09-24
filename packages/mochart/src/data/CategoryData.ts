@@ -1,7 +1,12 @@
 import { getCategoryDomainForValues } from './DomainData';
 import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData';
 import { readAlignedValues, readCategoryValues } from './PropertyData';
-import { NONE, TYPE_DATE, SCALE_ORDINAL } from '../config/core/constants';
+import {
+  AUTO, NONE, TYPE_DATE, SCALE_ORDINAL,
+  CATEGORY_VALUE_INTERVAL_PERIOD_SECOND, CATEGORY_VALUE_INTERVAL_PERIOD_MINUTE, CATEGORY_VALUE_INTERVAL_PERIOD_HOUR,
+  CATEGORY_VALUE_INTERVAL_PERIOD_DAY, CATEGORY_VALUE_INTERVAL_PERIOD_WEEK
+} from '../config/core/constants';
+import type { CategoryValueIntervalPeriod } from '../config/core/constants';
 import type { CategoryAxisConfig } from '../types/config';
 import type {
   DataProvider,
@@ -38,13 +43,47 @@ export function getCategoryDataFromValues(
   const categoryValues = getCategoryValues(categoryAxisConfig, keyCategoryValues, displayCategoryValues, numericCategoryValueOffsets);
   const axisDomain = getCategoryAxisDomain(categoryAxisConfig, categoryValues.parsed);
   // an ordinal domain is index-based and already handled when collapsed, so it is never widened
-  const renderAxisDomain = categoryAxisConfig.scale === SCALE_ORDINAL ? axisDomain : getRenderAxisDomain(categoryAxisConfig, axisDomain);
+  const renderAxisDomain = categoryAxisConfig.scale === SCALE_ORDINAL ? axisDomain : getRenderAxisDomain(categoryAxisConfig, axisDomain, false);
 
   return {
     axisDomain,
     renderAxisDomain,
+    categoryValueInterval: getCategoryValueInterval(categoryAxisConfig, categoryValues.numeric),
     values: categoryValues
   };
+}
+
+const MS_SECOND = 1000;
+const MS_MINUTE = 60 * MS_SECOND;
+const MS_HOUR = 60 * MS_MINUTE;
+const MS_DAY = 24 * MS_HOUR;
+
+const categoryValueIntervalPeriodMillis: Record<CategoryValueIntervalPeriod, number> = {
+  [CATEGORY_VALUE_INTERVAL_PERIOD_SECOND]: MS_SECOND,
+  [CATEGORY_VALUE_INTERVAL_PERIOD_MINUTE]: MS_MINUTE,
+  [CATEGORY_VALUE_INTERVAL_PERIOD_HOUR]: MS_HOUR,
+  [CATEGORY_VALUE_INTERVAL_PERIOD_DAY]: MS_DAY,
+  [CATEGORY_VALUE_INTERVAL_PERIOD_WEEK]: 7 * MS_DAY
+};
+
+/** The slot width in axis values: one category on an ordinal axis, the configured interval or the smallest gap between neighbouring values on a linear one. */
+export function getCategoryValueInterval(categoryAxisConfig: CategoryAxisConfig, numericCategoryValues: readonly number[]): number | null {
+  if (categoryAxisConfig.scale === SCALE_ORDINAL) {
+    return 1;
+  }
+  const { categoryValueInterval } = categoryAxisConfig;
+  if (categoryValueInterval !== AUTO) {
+    return typeof categoryValueInterval === 'number' ? categoryValueInterval : categoryValueIntervalPeriodMillis[categoryValueInterval];
+  }
+  const sortedValues = numericCategoryValues.filter(value => Number.isFinite(value)).sort((a, b) => a - b);
+  let minGap: number | null = null;
+  for (let i = 1; i < sortedValues.length; i++) {
+    const gap = sortedValues[i] - sortedValues[i - 1];
+    if (gap > 0 && (minGap === null || gap < minGap)) {
+      minGap = gap;
+    }
+  }
+  return minGap;
 }
 
 export function getCategoryDataWithRenderAxisDomain(categoryData: CategoryData, renderAxisDomain: CategoryAxisDomain): CategoryData {

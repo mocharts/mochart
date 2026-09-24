@@ -41,12 +41,13 @@ export default class AxisThresholdContainer extends Renderer<AxisThresholdContai
   seriesThresholds = this.rendererList(this.root);
 
   /** kept while config and domain hold, so AxisThreshold's shallow-equal skip is not defeated by a fresh array */
-  private categoryRange: { axisConfig: unknown; axisDomain: unknown; range: [number, number] } | null = null;
+  private categoryRange: { axisConfig: unknown; axisDomain: unknown; categoryValueInterval: number | null; range: [number, number] } | null = null;
 
-  private getCategoryPositionRange(axisConfig: AxisThresholdContainerProps['mochartConfig']['categoryAxis'], axisDomain: ChartData['categoryData']['renderAxisDomain']): [number, number] {
+  private getCategoryPositionRange(axisConfig: AxisThresholdContainerProps['mochartConfig']['categoryAxis'], categoryData: ChartData['categoryData']): [number, number] {
     const cached = this.categoryRange;
-    if (cached === null || cached.axisConfig !== axisConfig || cached.axisDomain !== axisDomain) {
-      this.categoryRange = { axisConfig, axisDomain, range: getCategorySpacingInfo(axisConfig, axisDomain, 1).categoryRange };
+    const { renderAxisDomain: axisDomain, categoryValueInterval } = categoryData;
+    if (cached === null || cached.axisConfig !== axisConfig || cached.axisDomain !== axisDomain || cached.categoryValueInterval !== categoryValueInterval) {
+      this.categoryRange = { axisConfig, axisDomain, categoryValueInterval, range: getCategorySpacingInfo(axisConfig, axisDomain, 1, categoryValueInterval).categoryRange };
     }
     return this.categoryRange!.range;
   }
@@ -82,7 +83,7 @@ export default class AxisThresholdContainer extends Renderer<AxisThresholdContai
       ariaHidden: accessibilityActive(mochartConfig.accessibility) ? 'true' : null });
 
     // the category scale maps its domain onto the slot-inset range (like the focus range does), so thresholds line up with ticks and data
-    const categoryPositionRange = this.getCategoryPositionRange(categoryAxisConfig, categoryAxisDomain);
+    const categoryPositionRange = this.getCategoryPositionRange(categoryAxisConfig, categoryData);
     // an ordinal axis places thresholds by category slot: the positions the ticks and shapes already use
     let categoryPositions: ThresholdCategoryPositions | null = null;
     if (categoryAxisConfig.scale === SCALE_ORDINAL) {

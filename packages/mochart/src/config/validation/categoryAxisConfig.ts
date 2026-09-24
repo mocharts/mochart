@@ -1,8 +1,8 @@
 import validators from './validators';
 
-import { AUTO, NONE, MAJOR, SCALE_ORDINAL, SCALE_LINEAR, TYPE_STRING, TYPE_NUMBER, TYPE_DATE, STEP_PERIODS } from '../core/constants';
+import { AUTO, NONE, MAJOR, SCALE_ORDINAL, SCALE_LINEAR, TYPE_STRING, TYPE_NUMBER, TYPE_DATE, STEP_PERIODS, CATEGORY_VALUE_INTERVAL_PERIODS } from '../core/constants';
 
-import getAxisValidators, { getTickLabelValidators, getThresholdStepValidators, getTickStepValidators, thresholdStepIntervalValidator } from './axisConfig';
+import getAxisValidators, { getTickLabelValidators, getThresholdStepValidators, getTickStepValidators, thresholdStepIntervalValidator, positiveNumber } from './axisConfig';
 import getTruncationValidators from './truncationConfig';
 import type { CategoryAxisConfig } from '../../types/config';
 
@@ -117,6 +117,11 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
 
     categoryPaddingFraction: validators.partialObjectWith(['inner', 'outer'], validators.numberMinMax(0, 1)),
     categoryCountPadding: validators.numberMin(0),
+    categoryValueInterval: validators.conditional([
+      { ...linearDateRule, validator: positiveNumber.orOneOf([AUTO, ...CATEGORY_VALUE_INTERVAL_PERIODS]) },
+      { ...linearNumberRule, validator: positiveNumber.orEqual(AUTO) },
+      { ...defaultRule, validator: validators.equal(AUTO) }
+    ], config),
 
     max: validators.conditional([
       { ...linearDateRule, validator: validators.datePrimitive().orEqual(AUTO) },

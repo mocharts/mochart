@@ -23,6 +23,7 @@ export function getRegularDefaults() {
 
     categoryPaddingFraction: { inner: 0.1, outer: 0.1 },
     categoryCountPadding: 1,
+    categoryValueInterval: AUTO,
 
     minCategoryValueExtent: 1,
 

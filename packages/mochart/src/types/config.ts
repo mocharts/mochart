@@ -1,6 +1,6 @@
 import type {
   Auto, Align, TooltipValueAlign, AxisSide, MissingValueMode, VerticalAlign, Anchor, Position, Scale, DataType, RendererType, ThresholdTitleSide,
-  CurveType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, PatternType,
+  CurveType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, CategoryValueIntervalPeriod, PatternType,
   ChartType, PieLabelType, PieTooltipValueType, DomainChange, AnimationEasing, FontWeight, FontStyle, Major
 } from '../config/core/constants';
 import type { MarginPadding, InnerOuter } from './geometry';
@@ -3076,12 +3076,34 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    */
   categoryPaddingFraction: InnerOuter;
   /**
-   * The extra count to be added to the category value count when dividing the
-   * category extent for displaying category values.
+   * The extra slot count added to the number of category slots when dividing
+   * the category extent among them (one slot per category on an ordinal axis,
+   * one per categoryValueInterval on a linear axis).
    *
    * @default 1
    */
   categoryCountPadding: number;
+  /**
+   * The axis value distance one category slot covers on a linear scale: a
+   * number in axis values, or on a date axis a millisecond count or one of
+   * second, minute, hour, day, week (use "auto" for the smallest gap between
+   * neighbouring categories).
+   *
+   * The slot decides how much room a category takes: a bar spans one slot less
+   * the outer padding fraction, grouped series share one slot, and
+   * `categoryCountPadding` adds slots to the divided extent. With `"auto"` the
+   * slot is the smallest gap between neighbouring category values, so evenly
+   * spaced data fills the axis the way an ordinal axis does and a missing
+   * category shows as an empty slot; with one category the slot is the whole
+   * domain. Set it when the data spacing is not the slot you want: `"day"`
+   * keeps daily bars a day wide when one day carries two samples, and a value
+   * smaller than the spacing draws narrower bars with space between them. A
+   * value wider than the spacing overlaps the bars. An ordinal axis has one
+   * category per slot, so there it must stay `"auto"`.
+   *
+   * @default "auto"
+   */
+  categoryValueInterval: number | Auto | CategoryValueIntervalPeriod;
   /**
    * The minimum extent (in pixels) of each category slot; for a non-inverted
    * bar chart this is a minimum bar width.

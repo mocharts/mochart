@@ -5,6 +5,7 @@ import {
   getCategoryDataWithRenderAxisDomain,
   getCategoryDataWithNumericValues,
   getNumericCategoryValues,
+  getCategoryValueInterval,
   getCategoryValueObject
 } from '../../src/data/CategoryData';
 import { ordinalConfig, makeConfig, ArrayOfObjectsDataProvider } from './fixtures';
@@ -96,6 +97,51 @@ describe('getCategoryDataFromValues', () => {
     const config = ordinalConfig();
     const categoryData = getCategoryDataFromValues(config.categoryAxis, [], []);
     expect(categoryData.axisDomain).toEqual([0, 0]);
+  });
+});
+
+describe('getCategoryValueInterval', () => {
+  const linear = (overrides: Record<string, unknown> = {}) =>
+    makeConfig({ categoryAxis: { property: 'n', type: 'number', scale: 'linear', ...overrides } }).categoryAxis;
+  const linearDate = (overrides: Record<string, unknown> = {}) =>
+    makeConfig({ categoryAxis: { property: 'd', type: 'date', scale: 'linear', ...overrides } }).categoryAxis;
+
+  it('is one category on an ordinal axis', () => {
+    expect(getCategoryValueInterval(ordinalConfig().categoryAxis, [0, 1, 2])).toBe(1);
+  });
+
+  it('is the smallest gap between neighbouring values under "auto"', () => {
+    expect(getCategoryValueInterval(linear(), [0, 10, 20, 50])).toBe(10);
+  });
+
+  it('sorts the values before measuring the gaps', () => {
+    expect(getCategoryValueInterval(linear(), [50, 0, 20, 10])).toBe(10);
+  });
+
+  it('ignores repeated values and non-finite values when measuring the gaps', () => {
+    expect(getCategoryValueInterval(linear(), [0, 0, NaN, 30])).toBe(30);
+  });
+
+  it('is null with fewer than two distinct values', () => {
+    expect(getCategoryValueInterval(linear(), [1000])).toBeNull();
+    expect(getCategoryValueInterval(linear(), [])).toBeNull();
+  });
+
+  it('uses a configured number as the interval in axis values', () => {
+    expect(getCategoryValueInterval(linear({ categoryValueInterval: 5 }), [0, 10, 20])).toBe(5);
+  });
+
+  it('resolves a date period to its millisecond count', () => {
+    expect(getCategoryValueInterval(linearDate({ categoryValueInterval: 'second' }), [0, 5000])).toBe(1000);
+    expect(getCategoryValueInterval(linearDate({ categoryValueInterval: 'minute' }), [0, 5000])).toBe(60000);
+    expect(getCategoryValueInterval(linearDate({ categoryValueInterval: 'hour' }), [0, 5000])).toBe(3600000);
+    expect(getCategoryValueInterval(linearDate({ categoryValueInterval: 'day' }), [0, 5000])).toBe(86400000);
+    expect(getCategoryValueInterval(linearDate({ categoryValueInterval: 'week' }), [0, 5000])).toBe(7 * 86400000);
+  });
+
+  it('is carried on the category data', () => {
+    const categoryData = getCategoryDataFromValues(linear(), [0, 10, 25], [0, 10, 25]);
+    expect(categoryData.categoryValueInterval).toBe(10);
   });
 });
 

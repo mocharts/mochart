@@ -1329,3 +1329,36 @@ describe('axis bounds validation', () => {
     expect(boundsErrors(withCategoryAxis({ property: 'p', type: 'date', scale: 'linear', min: new Date('nope'), max: 0 }))).toEqual([]);
   });
 });
+
+describe('categoryValueInterval validation', () => {
+  const linearNumber = (categoryValueInterval: unknown) => ({
+    version: V, categoryAxis: { property: 'n', type: 'number', scale: 'linear', categoryValueInterval }, series: [{ property: 'v' }]
+  });
+  const linearDate = (categoryValueInterval: unknown) => ({
+    version: V, categoryAxis: { property: 'd', type: 'date', scale: 'linear', categoryValueInterval }, series: [{ property: 'v' }]
+  });
+  const ordinal = (categoryValueInterval: unknown) => ({
+    version: V, categoryAxis: { property: 'c', type: 'string', scale: 'ordinal', categoryValueInterval }, series: [{ property: 'v' }]
+  });
+
+  it('accepts "auto" or a number above 0 on a linear number axis', () => {
+    expect(errorsFor(linearNumber('auto'))).toEqual([]);
+    expect(errorsFor(linearNumber(2.5))).toEqual([]);
+    expect(errorsFor(linearNumber(0))).toContain('categoryAxis - categoryValueInterval - should be a number greater than 0 or be equal to "auto" when scale is linear and type is number: 0');
+    expect(errorsFor(linearNumber('day'))).toHaveLength(1);
+  });
+
+  it('accepts a period name as well on a linear date axis', () => {
+    for (const period of ['second', 'minute', 'hour', 'day', 'week']) {
+      expect(errorsFor(linearDate(period))).toEqual([]);
+    }
+    expect(errorsFor(linearDate(3600000))).toEqual([]);
+    expect(errorsFor(linearDate('month'))).toHaveLength(1);
+    expect(errorsFor(linearDate('month'))[0]).toMatch(/^categoryAxis - categoryValueInterval - .* when scale is linear and type is date: "month"$/);
+  });
+
+  it('rejects anything but "auto" on an ordinal axis', () => {
+    expect(errorsFor(ordinal('auto'))).toEqual([]);
+    expect(errorsFor(ordinal(2))).toContain('categoryAxis - categoryValueInterval - should be equal to "auto": 2');
+  });
+});

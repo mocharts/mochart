@@ -159,6 +159,8 @@ export interface CategoryData {
   axisDomain: CategoryAxisDomain;
   /** The domain the scale/ticks use: axisDomain, widened where collapsed (see getRenderAxisDomain). */
   renderAxisDomain: CategoryAxisDomain;
+  /** One category slot in axis values: 1 on an ordinal axis, the categoryAxis.categoryValueInterval on a linear one, null when "auto" finds fewer than two distinct values. */
+  categoryValueInterval: number | null;
   values: CategoryValues;
 }
 

@@ -18,7 +18,7 @@ const axis = (over: Partial<CategoryAxisConfig>): CategoryAxisConfig => ({
 
 describe('getCategorySpacingInfo', () => {
   it('spans the full extent when the domain is a single point and there is no padding', () => {
-    const info = getCategorySpacingInfo(axis({}), [5, 5] as CategoryAxisDomain, 200);
+    const info = getCategorySpacingInfo(axis({}), [5, 5] as CategoryAxisDomain, 200, 1);
     expect(info.categoryRange).toEqual([0, 200]);
     expect(info.categoryValueExtent).toBe(200);
     expect(info.categoryValueOffset).toBe(100);
@@ -26,32 +26,60 @@ describe('getCategorySpacingInfo', () => {
 
   it('divides the extent evenly across the domain when there is no padding', () => {
     // domain extent 4, pixel extent 200 => 50px per unit
-    const info = getCategorySpacingInfo(axis({}), [0, 4] as CategoryAxisDomain, 200);
+    const info = getCategorySpacingInfo(axis({}), [0, 4] as CategoryAxisDomain, 200, 1);
     expect(info.categoryValueExtent).toBe(50);
     expect(info.categoryRange).toEqual([0, 200]);
   });
 
   it('reserves half a slot on each end when categoryCountPadding is set', () => {
     // extent / (domainExtent + padding) = 200 / (4 + 1) = 40; range shrinks by 20 each side
-    const info = getCategorySpacingInfo(axis({ categoryCountPadding: 1 }), [0, 4] as CategoryAxisDomain, 200);
+    const info = getCategorySpacingInfo(axis({ categoryCountPadding: 1 }), [0, 4] as CategoryAxisDomain, 200, 1);
     expect(info.categoryValueExtent).toBe(40);
     expect(info.categoryRange).toEqual([20, 180]);
   });
 
   it('shrinks the category value extent by the outer padding fraction', () => {
     // 50px per unit, 20% outer padding => floor(50 * 0.8) = 40
-    const info = getCategorySpacingInfo(axis({ categoryPaddingFraction: { outer: 0.2 } as CategoryAxisConfig['categoryPaddingFraction'] }), [0, 4] as CategoryAxisDomain, 200);
+    const info = getCategorySpacingInfo(axis({ categoryPaddingFraction: { outer: 0.2 } as CategoryAxisConfig['categoryPaddingFraction'] }), [0, 4] as CategoryAxisDomain, 200, 1);
     expect(info.categoryValueExtent).toBe(40);
   });
 
   it('never drops below the configured minimum category value extent', () => {
-    const info = getCategorySpacingInfo(axis({ minCategoryValueExtent: 30 }), [0, 100] as CategoryAxisDomain, 200);
+    const info = getCategorySpacingInfo(axis({ minCategoryValueExtent: 30 }), [0, 100] as CategoryAxisDomain, 200, 1);
     expect(info.categoryValueExtent).toBe(30);
   });
 
   it('treats a null domain bound as a zero extent', () => {
-    const info = getCategorySpacingInfo(axis({}), [null, null] as CategoryAxisDomain, 120);
+    const info = getCategorySpacingInfo(axis({}), [null, null] as CategoryAxisDomain, 120, 1);
     expect(info.categoryValueExtent).toBe(120);
+  });
+
+  // a linear axis measures its slots in categoryValueInterval units, not domain units
+  it('divides a linear domain into slots one category value interval wide', () => {
+    // domain 0..50 with an interval of 10 is 5 slots => 40px each
+    const info = getCategorySpacingInfo(axis({}), [0, 50] as CategoryAxisDomain, 200, 10);
+    expect(info.categoryValueExtent).toBe(40);
+    expect(info.categoryRange).toEqual([0, 200]);
+  });
+
+  it('pads a linear domain by whole slots when categoryCountPadding is set', () => {
+    // 5 slots + 1 padding slot = 240 / 6; the range shrinks by half a slot each side
+    const info = getCategorySpacingInfo(axis({ categoryCountPadding: 1 }), [0, 50] as CategoryAxisDomain, 240, 10);
+    expect(info.categoryValueExtent).toBe(40);
+    expect(info.categoryRange).toEqual([20, 220]);
+  });
+
+  it('gives a widened single category one slot spanning the domain', () => {
+    // a null interval (fewer than two distinct values) is one slot over the widened domain
+    const info = getCategorySpacingInfo(axis({}), [950, 1050] as CategoryAxisDomain, 200, null);
+    expect(info.categoryValueExtent).toBe(200);
+    expect(info.categoryRange).toEqual([0, 200]);
+  });
+
+  it('sizes date slots from a millisecond interval', () => {
+    const day = 86400000;
+    const info = getCategorySpacingInfo(axis({}), [new Date(0), new Date(4 * day)] as CategoryAxisDomain, 200, day);
+    expect(info.categoryValueExtent).toBe(50);
   });
 });
 

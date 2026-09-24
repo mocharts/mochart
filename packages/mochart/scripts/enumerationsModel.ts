@@ -64,6 +64,7 @@ const descriptions: Record<string, string> = {
   MarkerShape: 'The symbol drawn at each series value.',
   MarkerSizeScale: 'How marker area scales with the marker size property.',
   StepPeriod: 'The calendar period a date axis steps its ticks or thresholds by: the first category of each period on an ordinal scale, the period boundaries on a linear one.',
+  CategoryValueIntervalPeriod: 'The fixed-width period a linear date axis accepts as its categoryValueInterval, the axis value distance one category slot covers.',
   ColorMode: 'The keywords a series style color accepts in place of a CSS color, resolved against the palette.',
   ColorInterpolation: 'The color space a series color scale interpolates in.',
   PatternType: 'The fill pattern a `patterns` entry draws.',
