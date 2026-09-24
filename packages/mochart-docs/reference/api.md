@@ -319,6 +319,22 @@ any value containing a space this way. The one exception to the base-plus-prefix
 reading is `chartError`, whose two tokens are both complete classes:
 `'mochart-chart mochart-chart-error'`.
 
+What each prefix is followed by:
+
+| Keys | Suffix |
+| --- | --- |
+| `series`, `legendItem`, `tooltipSeriesLine` | the series id |
+| `seriesBar`, `seriesMarker`, `seriesLabel`, `seriesErrorBar` | the category index |
+| `valueAxis`, `valueAxisGrid`, `valueAxisBaseLine`, `valueAxisThreshold` | the value axis id |
+| `axisTickMark`, `axisTickLabel`, `axisGridLine` | the tick's position in the axis's tick list |
+| `axisFocusTickMark` | the mark's position among the axis's focus tick marks |
+| `axisThresholdTitle` | the threshold's index in the axis's `thresholds` list |
+| `clipIndicatorBand` | the edge: `top`, `right`, `bottom` or `left` |
+
+A tick's position equals its category index only on an ordinal axis that ticks
+every category. With explicit ticks, a tick step, a linear scale or the hidden
+tick at an axis end, the positions and the category indexes differ.
+
 ## Version
 
 `getVersionString()` returns the library's package version, e.g. `'1.0.0'`.
