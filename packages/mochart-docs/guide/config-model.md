@@ -159,7 +159,7 @@ producing human-readable messages rather than schema jargon:
 import { validateConfig } from '@mochart/core';
 
 const { valid, errors, warnings } = validateConfig(config);
-// e.g. "series[1] - had 1 invalid properties: valueFormt"
+// e.g. warnings: ["series[1] - had 1 invalid property: valueFormt"]
 ```
 
 Editor and tooling integrations can ask for structured locations on top of the
