@@ -10,6 +10,7 @@ CI runs these in this order and stops at the first failure
 - [ ] `npm run lint`
 - [ ] `npm run deadcode`
 - [ ] `npm run typecheck`
+- [ ] `npm run check:publish`
 - [ ] `npm test`
 - [ ] `npm run test:e2e` (needs `npx playwright install chromium firefox
       webkit` once per machine)
