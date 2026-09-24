@@ -68,10 +68,10 @@ the stress pass.
 
 ## Notes
 
-- Generated configs may omit `version` (omitted means the current format); when
-  present it must equal the current `CONFIG_VERSION` (see
-  `src/config/core/constants.ts` in the mochart package). `enhanceConfig`
-  rejects older versions unless they go through `migrateConfig` first.
+- Generated configs may omit `version` (omitted means the current format); they
+  are written in the current format, `CONFIG_VERSION` (see
+  `src/config/core/constants.ts` in the mochart package). An older version
+  would still load, since `enhanceConfig` migrates it itself.
 - The update metric includes waiting for the next paint, so it has a floor of
   roughly one to two frame intervals; relative growth across sizes is the
   signal, not the absolute value.
