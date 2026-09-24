@@ -96,6 +96,19 @@ describe('createSparklineConfig', () => {
     expect(mochartConfig.chart.padding).toEqual({ top: 0, right: 2, bottom: 2, left: 2 });
   });
 
+  // spreading the config's sections over the preset let an explicitly undefined member replace the preset value
+  it('treats a member passed as undefined as not set', () => {
+    const config = enhanceConfig(createSparklineConfig({
+      ...baseConfig(),
+      tooltip: { visible: undefined },
+      chart: { margin: { top: undefined } },
+      seriesDefaults: { marker: { shape: undefined } }
+    } as MochartInputConfig));
+    expect(config.tooltip.visible).toBe(false);
+    expect(config.chart.margin.top).toBe(0);
+    expect(config.series[0].marker.shape).toBeNull();
+  });
+
   it('does not mutate the passed config', () => {
     const config = baseConfig();
     const snapshot = JSON.parse(JSON.stringify(config));

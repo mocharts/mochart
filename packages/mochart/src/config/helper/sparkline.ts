@@ -1,3 +1,4 @@
+import { deepMerge } from '../core/deepMerge';
 import type { MochartInputConfig } from '../../types/config';
 import type { MarginPadding } from '../../types/geometry';
 
@@ -25,21 +26,24 @@ const uniform = (value: number): MarginPadding => ({ top: value, right: value, b
  * crosshairs and per-point markers hidden and margins collapsed, leaving only
  * the plotted shapes for tiny inline charts. The preset only fills in
  * defaults: any value set on the passed config wins, so individual pieces
- * (e.g. the tooltip) can be opted back in per chart.
+ * (e.g. the tooltip) can be opted back in per chart. A member passed as
+ * undefined counts as not set, so a wrapper forwarding optional props does
+ * not cancel the preset.
  */
 export function createSparklineConfig(config: MochartInputConfig, options: CreateSparklineConfigOptions = {}): MochartInputConfig {
   const interactive = options.interactive ?? false;
   const padding = options.padding ?? 2;
-  return {
-    ...config,
+  const preset = {
     // per side, so a partial margin or padding falls back to the sparkline's sides, not the chart defaults'
-    chart: { ...config.chart, margin: { ...uniform(0), ...config.chart?.margin }, padding: { ...uniform(padding), ...config.chart?.padding } },
-    legend: { visible: false, ...config.legend },
-    tooltip: { visible: interactive, ...config.tooltip },
-    crosshair: { visible: interactive, ...config.crosshair },
-    categoryAxis: { visible: false, ...config.categoryAxis },
+    chart: { margin: uniform(0), padding: uniform(padding) },
+    legend: { visible: false },
+    tooltip: { visible: interactive },
+    crosshair: { visible: interactive },
+    categoryAxis: { visible: false },
     // the base line draws in the plot, not the axis band, so hiding the axis does not hide it
-    valueAxisDefaults: { visible: false, ...config.valueAxisDefaults, baseLine: { visible: false, ...config.valueAxisDefaults?.baseLine } },
-    seriesDefaults: { ...config.seriesDefaults, marker: { shape: null, ...config.seriesDefaults?.marker } }
+    valueAxisDefaults: { visible: false, baseLine: { visible: false } },
+    seriesDefaults: { marker: { shape: null } }
   };
+  // deepMerge skips undefined members and copies both sides, so neither the preset nor the config is mutated
+  return deepMerge<MochartInputConfig>(preset, config);
 }
