@@ -178,9 +178,11 @@ export abstract class BaseChart implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   /**
-   * Re-read the current config/data (rebuilding or re-indexing the data
-   * provider) without needing new references, for hosts that mutate data in
-   * place. Reach it through a template reference variable or `@ViewChild`.
+   * Re-read the current data without a new reference, for hosts that mutate
+   * data in place: `mochart-default-chart` rebuilds its provider over `data`,
+   * and `mochart-chart` calls the provider's optional `refresh()` hook, then
+   * re-reads it. A config change still needs a new config object. Reach it
+   * through a template reference variable or `@ViewChild`.
    */
   refresh(): void {
     this.host?.refresh();

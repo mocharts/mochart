@@ -11,7 +11,7 @@
 
   let chartHost: ChartHost;
 
-  /** Re-read the current config/data (rebuilding the provider over `data`) without new references. */
+  /** Re-read the current data without a new reference, rebuilding the provider over `data`. */
   export function refresh(): void {
     chartHost?.refresh();
   }

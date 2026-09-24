@@ -40,8 +40,10 @@ export interface ChartCallbackProps {
 
 /**
  * The imperative handle a `chartRef` callback receives. `refresh()` re-reads
- * the current config/data (rebuilding or re-indexing the data provider)
- * without needing new references, for hosts that mutate data in place.
+ * the current data without a new reference, for hosts that mutate data in
+ * place: `defaultChart` rebuilds its provider over `data`, and `chart` calls
+ * the provider's optional `refresh()` hook, then re-reads it. A config change
+ * still needs a new config object.
  */
 export interface ChartRef {
   refresh(): void;

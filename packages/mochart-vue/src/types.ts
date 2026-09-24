@@ -6,9 +6,10 @@ import type {
 
 /**
  * The interface a template ref on `Chart`/`DefaultChart` exposes.
- * `refresh()` re-reads the current config/data (rebuilding or re-indexing the
- * data provider) without needing new references, for hosts that mutate data
- * in place.
+ * `refresh()` re-reads the current data without a new reference, for hosts
+ * that mutate data in place: `DefaultChart` rebuilds its provider over `data`,
+ * and `Chart` calls the provider's optional `refresh()` hook, then re-reads it.
+ * A config change still needs a new config object.
  */
 export interface ChartRef {
   refresh(): void;

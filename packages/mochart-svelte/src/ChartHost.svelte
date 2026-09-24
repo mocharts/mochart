@@ -23,7 +23,7 @@
     return aKeys.length === Object.keys(b).length && aKeys.every((key) => Object.is(a[key], b[key]));
   }
 
-  /** Re-read the current config/data without new references (see Chart/DefaultChart). */
+  /** Re-read the current data without a new reference (see Chart/DefaultChart). */
   export function refresh(): void {
     host?.refresh();
   }

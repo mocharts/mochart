@@ -10,7 +10,7 @@
 
   let chartHost: ChartHost;
 
-  /** Re-read the current config/data (re-indexing the data provider) without new references. */
+  /** Re-read the current data without a new reference: calls the provider's optional `refresh()` hook, then re-reads it. */
   export function refresh(): void {
     chartHost?.refresh();
   }
