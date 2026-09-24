@@ -112,6 +112,20 @@ describe('accessibility.respectReducedMotion', () => {
     reducedMotionQuery.dispatchEvent(new Event('change')); // listener removed: no throw
   });
 
+  it('leaves no preference listener or running tween behind when mounting throws', () => {
+    const addListener = vi.spyOn(reducedMotionQuery, 'addEventListener');
+    const getLoadingComponent = vi.fn(() => { throw new Error('factory failed'); });
+    expect(() => mochart.createDefaultChart(mountContainer(),
+      { config, data: initialData(), width: 300, height: 200, loading: true, getLoadingComponent })).toThrow('factory failed');
+    expect(() => mochart.createDefaultChart(null as unknown as Element,
+      { config, data: initialData(), width: 300, height: 200 })).toThrow();
+    expect(addListener).not.toHaveBeenCalled();
+    // no tween keeps pushing into the half-mounted chart, which would call the factory again
+    runFrames();
+    expect(getLoadingComponent).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   // Regression: swapping back to the animated source restarted it from scratch, so the settled chart
   // blanked for a frame and re-grew every bar over the entrance animation
   it('keeps the settled chart on screen when animation is switched back on', () => {

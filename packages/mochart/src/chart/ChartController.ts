@@ -39,17 +39,27 @@ export class ChartController {
     this.reducedMotion = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
       ? window.matchMedia('(prefers-reduced-motion: reduce)')
       : null;
-    this.reducedMotion?.addEventListener('change', this.handleReducedMotionChange);
     this.fonts = typeof document !== 'undefined' && typeof document.fonts?.addEventListener === 'function' ? document.fonts : null;
-    this.fonts?.addEventListener('loadingdone', this.handleFontsLoaded);
     this.props = props;
     this.readDataProvider = readDataProvider;
     this.focus.applyExternal(props);
     this.source = this.createSource();
     this.lastInput = this.buildInput();
     this.captureCategoryValues();
-    this.source.start(this.lastInput);
-    this.chart.mount(container, null, this.chartProps());
+    try {
+      this.source.start(this.lastInput);
+      this.chart.mount(container, null, this.chartProps());
+    }
+    catch (error) {
+      // a throwing mount leaves the caller no handle to destroy, so stop the started tween here
+      this.destroyed = true;
+      this.source.dispose();
+      this.chart.destroy();
+      throw error;
+    }
+    // registered only once mounted, since destroy() is the one place that removes them
+    this.reducedMotion?.addEventListener('change', this.handleReducedMotionChange);
+    this.fonts?.addEventListener('loadingdone', this.handleFontsLoaded);
   }
 
   update(props: ManagedChartProps, readDataProvider: DataProvider | null): void {
