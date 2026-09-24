@@ -60,10 +60,12 @@ await exportPNG(element, {
 
 ## Web fonts
 
-The chart itself sets no font, so its text uses whatever font the page gives it.
-The export inlines `font-family` as a *name*; no font data goes into the file. A
-font that is installed on the machine still resolves by name, but a web font the
-page loaded over the network does not:
+By default the chart sets no font, so its text uses whatever font the page gives
+it; a `font.family` in the config (`chart.font` or a part's own `font`) is
+written on the text instead. Either way the export inlines `font-family` as a
+*name*; no font data goes into the file. A font that is installed on the
+machine still resolves by name, but a web font the page loaded over the network
+does not:
 
 - **PNG.** The rasterizer loads the svg as an image, and an svg loaded as an
   image cannot fetch anything external. Only fonts installed on the machine
@@ -78,10 +80,13 @@ alignment, and truncation computed for a font that is no longer there.
 
 Three ways to handle it:
 
-1. **Render the chart in a font every machine has.** Give the chart text a
-   system font stack in your own CSS, for example `.mochart-chart text {
-   font-family: ui-sans-serif, system-ui, Arial, sans-serif }`. Screen and
-   export then agree, and there is nothing to pass to the export.
+1. **Render the chart in a font every machine has.** Set `chart.font.family`
+   to a system font stack, for example `chart: { font: { family:
+   'ui-sans-serif, system-ui, Arial, sans-serif' } }`. A page CSS rule such as
+   `.mochart-chart text { font-family: ... }` does the same, but only for text
+   whose config sets no family, since a configured family is written inline and
+   wins. Screen and export then agree, and there is nothing to pass to the
+   export.
 2. **Accept the substitution**, if the chart's typeface does not matter.
 3. **Embed the font** with `fontFaceCss`.
 

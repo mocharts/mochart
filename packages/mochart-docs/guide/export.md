@@ -85,9 +85,12 @@ supply the background.
 
 ### Web fonts
 
-The chart sets no font of its own, so its text uses whatever font your page
-gives it, and the export inlines `font-family` as a *name*: no font data goes
-into the file. A font installed on the machine still resolves by name; a web
+By default the chart sets no font of its own, so its text uses whatever font
+your page gives it; a `font.family` in the config
+([`chart.font`](/reference/chart#chart.font) or a part's own `font`, see
+[Typography](/guide/theming#typography)) is written on the text instead. Either
+way the export inlines `font-family` as a *name*: no font data goes into the
+file. A font installed on the machine still resolves by name; a web
 font the page loaded over the network does not. For a PNG, the rasterizer loads
 the svg as an image, and an svg loaded as an image cannot fetch anything
 external, so the text falls back to the renderer's default font. For an SVG file
@@ -101,14 +104,20 @@ longer has.
 
 Three ways to handle it:
 
-1. **Render the chart in a font every machine has.** Give the chart text a
-   system font stack in your own CSS:
+1. **Render the chart in a font every machine has.** Set `chart.font.family`
+   to a system font stack:
 
-   ```css
-   .mochart-chart text { font-family: ui-sans-serif, system-ui, Arial, sans-serif; }
+   ```js
+   const config = {
+     chart: { font: { family: 'ui-sans-serif, system-ui, Arial, sans-serif' } },
+     // ...
+   };
    ```
 
-   Screen and export then agree, and there is nothing to pass to the export.
+   A page CSS rule on `.mochart-chart text` does the same, but only for text
+   whose config sets no family, since a configured family is written inline and
+   wins. Screen and export then agree, and there is nothing to pass to the
+   export.
 2. **Accept the substitution**, if the chart's typeface does not matter.
 3. **Embed the font** by passing `@font-face` rules as `fontFaceCss`:
 
