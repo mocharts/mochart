@@ -50,8 +50,8 @@ The library packages ship built `dist/` output that is gitignored, so a fresh
 clone must `npm install` before anything imports `@mochart/core` by its
 default export condition (dev servers use the `development` condition and run
 from `src/`). Target one workspace with `-w`, e.g.
-`npm test -w @mochart/core`. `lint` and `deadcode` exist only at the root;
-narrow them with a path (`npx eslint packages/mochart`) or a workspace
+`npm test -w @mochart/core`, which works for `lint` too. Only `deadcode` exists
+just at the root; narrow it with a workspace
 (`npx knip --workspace packages/mochart`) instead.
 
 ## The config metadata pipeline

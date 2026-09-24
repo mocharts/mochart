@@ -109,9 +109,9 @@ fresh capture against it.
 [scripts/screenshots/README.md](scripts/screenshots/README.md) has the matrix,
 the per-port dev server table and the options.
 
-Target a single package with `-w`, e.g. `npm test -w @mochart/core`. `lint` and
-`deadcode` exist only at the root; narrow them with `npx eslint <path>` and
-`npx knip --workspace packages/<name>`.
+Target a single package with `-w`, e.g. `npm test -w @mochart/core` or
+`npm run lint -w @mochart/core`. Only `deadcode` exists just at the root; narrow
+it with `npx knip --workspace packages/<name>`.
 
 ## Contributing
 
