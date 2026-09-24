@@ -175,13 +175,11 @@ host component and define the placeholder there as a component that closes over
 it. This is narrower than React, where a placeholder reads any ancestor's
 context; see [React](/guide/frameworks/react).
 
-A placeholder component is also mounted once and kept for the life of the chart.
-Leaving the state removes its markup, but the component instance stays mounted,
-so `onMounted` does not run again on re-entry and any watcher, timer or
-transition it started keeps running in between. Clear the prop (or destroy the
-chart) to unmount it. React and Svelte unmount their placeholders on state exit
-and mount a fresh one on re-entry, so a placeholder that assumes it is torn down
-needs adjusting when ported here.
+A placeholder component is mounted when the chart enters its state and
+unmounted when the chart leaves it, so `onMounted` and `onUnmounted` run once
+per visit and any watcher, timer or transition it started ends with it; a later
+visit mounts a fresh instance. Clearing the prop, or destroying the chart,
+unmounts it too. Every binding shares this lifetime.
 
 Every prop, with its type and its core counterpart, is listed in
 [Framework props](/reference/framework-props#vue).

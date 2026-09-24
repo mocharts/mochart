@@ -26,6 +26,8 @@ interface PlaceholderSlot {
 
 export interface PlaceholderAdapter {
   transform(props: Record<string, any>): Record<string, any>;
+  /** Watches the chart host so a slot the core detaches (chart left that state) destroys its component, and one it re-attaches creates a fresh instance; returns the stop function. */
+  attach(host: Element): () => void;
   destroy(): void;
 }
 
@@ -104,15 +106,36 @@ export function createPlaceholderAdapter(environmentInjector: EnvironmentInjecto
     return slot;
   }
 
+  // Destroys the slot's component instance (ngOnDestroy runs, the view leaves the ApplicationRef) and empties its container.
+  function destroyInstance(slot: PlaceholderSlot): void {
+    if (slot.ref !== null) {
+      slot.ref.destroy();
+      slot.ref = null;
+      slot.refComponent = null;
+      slot.container.textContent = '';
+    }
+  }
+
   // Destroys a slot's component instance and forgets it; a later input gets a fresh slot.
   function releaseSlot(propName: string): void {
     const slot = slots.get(propName);
     if (!slot) {
       return;
     }
-    slot.ref?.destroy();
-    slot.ref = null;
+    destroyInstance(slot);
     slots.delete(propName);
+  }
+
+  /** The core only removes a slot's container when the chart leaves the state: the instance goes with it, and re-entry creates a new one, as React and Svelte do. */
+  function syncAttached(slot: PlaceholderSlot, host: Element): void {
+    // containment, not isConnected: a chart hosted in a detached tree still owns its placeholders
+    const attached = host.contains(slot.container);
+    if (!attached && slot.ref !== null) {
+      destroyInstance(slot);
+    }
+    else if (attached && slot.ref === null && slot.context !== null) {
+      renderSlot(slot, slot.context);
+    }
   }
 
   return {
@@ -130,6 +153,18 @@ export function createPlaceholderAdapter(environmentInjector: EnvironmentInjecto
         }
       }
       return out;
+    },
+    attach(host: Element): () => void {
+      if (typeof MutationObserver === 'undefined') {
+        return () => {};
+      }
+      const observer = new MutationObserver(() => {
+        for (const slot of slots.values()) {
+          syncAttached(slot, host);
+        }
+      });
+      observer.observe(host, { childList: true, subtree: true });
+      return () => observer.disconnect();
     },
     destroy(): void {
       for (const propName of [...slots.keys()]) {

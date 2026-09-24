@@ -151,12 +151,13 @@ as `(chartClick)="..."` etc. in templates; only subscribed outputs are wired
 into the chart) and accept the placeholder components (`loadingComponent`,
 `errorComponent`, `noDataComponent`, `noSizeComponent`, `noSeriesComponent`,
 `configErrorComponent`). Each placeholder input takes an **Angular component
-class** whose declared inputs among the chart context names (`width`, `height`,
-`error`, …) are kept up to date while the chart is in that state. It is created
-with the chart's `EnvironmentInjector`, so it can inject what the application or
-route injector provides but not a provider declared in an ancestor component's
-`providers` or `viewProviders` array. Both components also accept `loading` and
-`error` to force the loading or error state.
+class**, created when the chart enters that state and destroyed when it leaves,
+whose declared inputs among the chart context names (`width`, `height`,
+`error`, …) are kept up to date in between. It is created with the chart's
+`EnvironmentInjector`, so it can inject what the application or route injector
+provides but not a provider declared in an ancestor component's `providers` or
+`viewProviders` array. Both components also accept `loading` and `error` to
+force the loading or error state.
 
 ### Controlled state
 

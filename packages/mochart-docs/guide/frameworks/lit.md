@@ -190,8 +190,11 @@ with lit-html, not a component the framework instantiates, so nothing is
 injected into it: it sees the chart state context it is called with plus
 whatever its own closure captures. Define it where the values it needs are in
 scope: inside the host element's `render()`, or in a method that reads `this`.
-Directives inside the template work as in any other lit-html render, and are
-disconnected when the template prop is removed. The component-based bindings
+Directives inside the template work as in any other lit-html render. The
+template is rendered when the chart enters the state and cleared when it
+leaves, so its async directives are disconnected then, as they are when the
+template prop is removed, and reconnected by the fresh render of a later visit.
+The component-based bindings
 inherit framework context to varying degrees; see
 [React](/guide/frameworks/react), [Vue](/guide/frameworks/vue),
 [Svelte](/guide/frameworks/svelte) and [Angular](/guide/frameworks/angular).

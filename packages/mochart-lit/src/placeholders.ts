@@ -16,11 +16,15 @@ interface PlaceholderSlot {
   /** The last context the core rendered this slot with; null until its first factory call. */
   context: PlaceholderProps | null;
   container: HTMLDivElement;
+  /** Whether the container holds a rendered template; false once the core dropped the container from the chart. */
+  rendered: boolean;
   factory: (context: PlaceholderProps) => Node;
 }
 
 export interface PlaceholderAdapter {
   transform(props: Record<string, any>): Record<string, any>;
+  /** Watches the chart host so a slot the core detaches (chart left that state) renders nothing, disconnecting its directives, and one it re-attaches renders again; returns the stop function. */
+  attach(host: Element): () => void;
   destroy(): void;
 }
 
@@ -37,8 +41,29 @@ export function createPlaceholderAdapter(): PlaceholderAdapter {
 
   function renderSlot(slot: PlaceholderSlot, context: PlaceholderProps): Node {
     slot.context = context;
+    slot.rendered = true;
     render(slot.template({ ...context }), slot.container);
     return slot.container;
+  }
+
+  // Renders nothing into the container, which disconnects the template's directives.
+  function clearSlot(slot: PlaceholderSlot): void {
+    if (slot.rendered) {
+      slot.rendered = false;
+      render(nothing, slot.container);
+    }
+  }
+
+  /** The core only removes a slot's container when the chart leaves the state: the template goes with it, and re-entry renders it again, as React and Svelte do. */
+  function syncAttached(slot: PlaceholderSlot, host: Element): void {
+    // containment, not isConnected: a chart hosted in a detached tree still owns its placeholders
+    const attached = host.contains(slot.container);
+    if (!attached && slot.rendered) {
+      clearSlot(slot);
+    }
+    else if (attached && !slot.rendered && slot.context !== null) {
+      renderSlot(slot, slot.context);
+    }
   }
 
   function getSlot(propName: string, template: PlaceholderTemplate): PlaceholderSlot {
@@ -51,6 +76,7 @@ export function createPlaceholderAdapter(): PlaceholderAdapter {
         template,
         context: null,
         container,
+        rendered: false,
         factory: (context: PlaceholderProps) => renderSlot(slots.get(propName)!, context)
       };
       slots.set(propName, slot);
@@ -71,7 +97,7 @@ export function createPlaceholderAdapter(): PlaceholderAdapter {
     if (!slot) {
       return;
     }
-    render(nothing, slot.container);
+    clearSlot(slot);
     slots.delete(propName);
   }
 
@@ -90,6 +116,18 @@ export function createPlaceholderAdapter(): PlaceholderAdapter {
         }
       }
       return out;
+    },
+    attach(host: Element): () => void {
+      if (typeof MutationObserver === 'undefined') {
+        return () => {};
+      }
+      const observer = new MutationObserver(() => {
+        for (const slot of slots.values()) {
+          syncAttached(slot, host);
+        }
+      });
+      observer.observe(host, { childList: true, subtree: true });
+      return () => observer.disconnect();
     },
     destroy(): void {
       for (const propName of [...slots.keys()]) {

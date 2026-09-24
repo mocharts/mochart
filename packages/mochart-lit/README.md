@@ -162,7 +162,8 @@ html`${chart({ mochartConfig, dataProvider, loading, loadingTemplate })}`
 A placeholder template is a plain function the binding calls and renders with
 lit-html rather than a component the framework instantiates, so nothing is
 injected into it: it sees the chart context it is called with plus whatever its
-closure captures.
+closure captures. It is rendered when the chart enters the state and cleared
+when the chart leaves it, which disconnects its async directives.
 
 Both directives also accept `loading` and `error` to force the loading or error
 state.

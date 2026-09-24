@@ -290,6 +290,35 @@ describe('defaultChart', () => {
 
 // Regression: clearing the prop left the rendered template alive in its detached container, so its directives were never disconnected.
 describe('removed placeholder templates', () => {
+  // Regression: the template stayed rendered in its detached container while the chart was out of the state, so its
+  // async directives stayed connected, and re-entry showed the stale render
+  it('disconnects the placeholder template when the chart leaves the state and renders it again on re-entry', async () => {
+    const log = { disconnected: 0 };
+    const loadingTemplate = () => html`<div>Custom loading ${trackDisconnect(log)}</div>`;
+    const el = mountPoint();
+    const template = (loading: boolean) =>
+      html`${chart({ mochartConfig: null, dataProvider: null, loading, loadingTemplate, width: 400, height: 300 })}`;
+    // the observer reports the core's DOM changes in a microtask
+    const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+
+    render(template(true), el);
+    await flushMount();
+    expect(el.textContent).toContain('Custom loading');
+    expect(log.disconnected).toBe(0);
+
+    render(template(false), el);
+    await settle();
+    expect(el.textContent).not.toContain('Custom loading');
+    expect(log.disconnected).toBe(1);
+
+    render(template(true), el);
+    await settle();
+    expect(el.textContent).toContain('Custom loading');
+    expect(log.disconnected).toBe(1);
+    render(nothing, el);
+    el.remove();
+  });
+
   it('clears the placeholder template when the prop is removed', async () => {
     const log = { disconnected: 0 };
     const loadingTemplate = () => html`<div>Custom loading ${trackDisconnect(log)}</div>`;

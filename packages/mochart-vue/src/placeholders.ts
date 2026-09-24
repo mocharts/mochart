@@ -20,10 +20,14 @@ interface PlaceholderSlot {
   factory: (context: PlaceholderProps) => Node;
   /** Whether a deferred render is scheduled for the container. */
   renderPending: boolean;
+  /** Whether the container holds a mounted instance; false once the core dropped the container from the chart. */
+  mounted: boolean;
 }
 
 export interface PlaceholderAdapter {
   transform(props: Record<string, any>): Record<string, any>;
+  /** Watches the chart host so a slot the core detaches (chart left that state) unmounts its instance, and one it re-attaches mounts a fresh one; returns the stop function. */
+  attach(host: Element): () => void;
   destroy(): void;
 }
 
@@ -53,10 +57,31 @@ export function createPlaceholderAdapter(appContext: AppContext | null = null): 
         const vnode = h(slot.component as any, { ...slot.context });
         // the host app's context, so placeholders can inject app-level providers
         vnode.appContext = appContext;
+        slot.mounted = true;
         render(vnode, slot.container);
       });
     }
     return slot.container;
+  }
+
+  // Unmounts the slot's instance (its unmounted hooks run) and empties the container.
+  function unmountSlot(slot: PlaceholderSlot): void {
+    if (slot.mounted) {
+      slot.mounted = false;
+      render(null, slot.container);
+    }
+  }
+
+  /** The core only removes a slot's container when the chart leaves the state: the instance goes with it, and re-entry mounts a new one, as React and Svelte do. */
+  function syncAttached(slot: PlaceholderSlot, host: Element): void {
+    // containment, not isConnected: a chart hosted in a detached tree still owns its placeholders
+    const attached = host.contains(slot.container);
+    if (!attached && slot.mounted) {
+      unmountSlot(slot);
+    }
+    else if (attached && !slot.mounted && !slot.renderPending && slot.context !== null) {
+      renderSlot(slot, slot.context);
+    }
   }
 
   function getSlot(propName: string, component: PlaceholderComponent): PlaceholderSlot {
@@ -70,7 +95,8 @@ export function createPlaceholderAdapter(appContext: AppContext | null = null): 
         context: null,
         container,
         factory: (context: PlaceholderProps) => renderSlot(slots.get(propName)!, context),
-        renderPending: false
+        renderPending: false,
+        mounted: false
       };
       slots.set(propName, slot);
     }
@@ -91,7 +117,7 @@ export function createPlaceholderAdapter(appContext: AppContext | null = null): 
       return;
     }
     slot.context = null;
-    render(null, slot.container);
+    unmountSlot(slot);
     slots.delete(propName);
   }
 
@@ -110,6 +136,18 @@ export function createPlaceholderAdapter(appContext: AppContext | null = null): 
         }
       }
       return out;
+    },
+    attach(host: Element): () => void {
+      if (typeof MutationObserver === 'undefined') {
+        return () => {};
+      }
+      const observer = new MutationObserver(() => {
+        for (const slot of slots.values()) {
+          syncAttached(slot, host);
+        }
+      });
+      observer.observe(host, { childList: true, subtree: true });
+      return () => observer.disconnect();
     },
     destroy(): void {
       for (const propName of [...slots.keys()]) {

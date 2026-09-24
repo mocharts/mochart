@@ -137,7 +137,8 @@ usable as `@chart-click` etc. in templates) and the placeholder components
 (`loadingComponent`, `errorComponent`, `noDataComponent`, `noSizeComponent`,
 `noSeriesComponent`, `configErrorComponent`). Each placeholder prop takes a
 **Vue component** that receives the chart context (`width`, `height`, `error`,
-…) as props and is rendered while the chart is in that state. A placeholder is
+…) as props; it is mounted when the chart enters that state and unmounted when
+the chart leaves it. A placeholder is
 rendered as its own root carrying the chart component's app context, so it can
 `inject()` a value passed to `app.provide()` but not one an ancestor component
 supplied with `provide()`. Both components also accept `loading` and `error` to

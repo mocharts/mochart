@@ -327,6 +327,42 @@ describe('removed placeholder components', () => {
     el.remove();
   });
 
+  // Regression: the instance stayed mounted in its detached container while the chart was out of the state, so a
+  // watcher or timer it started kept running and onMounted never ran again on re-entry
+  it('unmounts the placeholder instance when the chart leaves the state and mounts a fresh one on re-entry', async () => {
+    const log: string[] = [];
+    const Loading = markRaw(
+      defineComponent({
+        name: 'Loading',
+        setup: () => {
+          onMounted(() => { log.push('mount'); });
+          onUnmounted(() => { log.push('unmount'); });
+          return () => h('div', 'Custom loading');
+        }
+      })
+    );
+    const { el, app, state } = mountWith(Chart, {
+      mochartConfig: null, dataProvider: null, loading: true, loadingComponent: Loading, width: 400, height: 300
+    });
+    // the observer reports the core's DOM changes in a microtask, and the slot renders in one too
+    const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+    await settle();
+    expect(el.textContent).toContain('Custom loading');
+    expect(log).toEqual(['mount']);
+
+    state.loading = false;
+    await settle();
+    expect(el.textContent).not.toContain('Custom loading');
+    expect(log).toEqual(['mount', 'unmount']);
+
+    state.loading = true;
+    await settle();
+    expect(el.textContent).toContain('Custom loading');
+    expect(log).toEqual(['mount', 'unmount', 'mount']);
+    app.unmount();
+    el.remove();
+  });
+
   // Regression: clearing the prop left the mounted instance alive in its detached container, so its hooks kept running.
   it('unmounts the placeholder instance when the component is cleared', async () => {
     let unmounted = 0;

@@ -4,7 +4,7 @@ import '@angular/compiler';
 
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { ApplicationRef, ChangeDetectionStrategy, Component, EnvironmentInjector, Input, PLATFORM_ID, provideZonelessChangeDetection, signal } from '@angular/core';
-import type { OnDestroy } from '@angular/core';
+import type { OnDestroy, OnInit } from '@angular/core';
 import { TestBed, getTestBed } from '@angular/core/testing';
 import { BrowserTestingModule, platformBrowserTesting } from '@angular/platform-browser/testing';
 import { enhanceConfig, ArrayOfObjectsDataProvider } from '@mochart/core';
@@ -352,6 +352,39 @@ describe('removed placeholder components', () => {
     fixture.detectChanges();
     expect(el.textContent).not.toContain('Loading 400x300');
     expect(el.querySelector('.mochart-loading')).not.toBeNull();
+  });
+
+  // Regression: the component stayed attached to the ApplicationRef while the chart was out of its state, so an
+  // interval or subscription it started kept running and ngOnInit never ran again on re-entry
+  it('destroys the placeholder component when the chart leaves the state and creates a fresh one on re-entry', async () => {
+    const log: string[] = [];
+    @Component({ selector: 'test-lifecycle-loading', template: '<div>Lifecycle loading</div>' })
+    class LifecycleLoading implements OnInit, OnDestroy {
+      ngOnInit(): void { log.push('init'); }
+      ngOnDestroy(): void { log.push('destroy'); }
+    }
+    const fixture = createWith(Chart, {
+      mochartConfig: null, dataProvider: null, loading: true, loadingComponent: LifecycleLoading, width: 400, height: 300
+    });
+    const el: HTMLElement = fixture.nativeElement;
+    // the observer reports the core's DOM changes in a microtask
+    const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+    await settle();
+    expect(el.textContent).toContain('Lifecycle loading');
+    expect(log).toEqual(['init']);
+
+    fixture.componentRef.setInput('loading', false);
+    fixture.detectChanges();
+    await settle();
+    expect(el.textContent).not.toContain('Lifecycle loading');
+    expect(log).toEqual(['init', 'destroy']);
+
+    fixture.componentRef.setInput('loading', true);
+    fixture.detectChanges();
+    await settle();
+    expect(el.textContent).toContain('Lifecycle loading');
+    expect(log).toEqual(['init', 'destroy', 'init']);
+    fixture.destroy();
   });
 
   // Regression: clearing the input left the created component alive in its detached container, so its ngOnDestroy never ran.

@@ -155,10 +155,14 @@ Both components also accept `loading` and `error` inputs to force the
 [loading or error state](/guide/chart-states), and a placeholder input per
 state: `loadingComponent`, `errorComponent`, `noDataComponent`,
 `noSizeComponent`, `noSeriesComponent`, and `configErrorComponent`. Each takes
-an **Angular component class**; whichever of the
+an **Angular component class**. The component is created when the chart enters
+that state and destroyed when it leaves, so `ngOnInit` and `ngOnDestroy` run
+once per visit and anything it starts, an interval or a subscription, ends with
+it; a later visit gets a fresh instance. While the chart stays in the state,
+whichever of the
 [chart state context](/guide/chart-states#customizing-what-renders) names
-(`width`, `height`, `error`, …) it declares as inputs are kept up to date while
-the chart is in that state. Leave an input off to keep the built-in placeholder.
+(`width`, `height`, `error`, …) the component declares as inputs are kept up to
+date. Leave an input off to keep the built-in placeholder.
 
 A placeholder is created with the chart's `EnvironmentInjector`, so it can
 inject anything the application injector provides: `providedIn: 'root'`
