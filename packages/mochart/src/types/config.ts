@@ -2386,7 +2386,8 @@ export interface AxisTickLabelConfig {
   /**
    * The d3 format string (d3-format for number, d3-time-format for date) to be
    * applied to the category values when displayed in axis tick labels (use null
-   * for none, use "auto" to derive from data).
+   * for none, use "auto" to derive the format from the ticks: on a number axis
+   * an SI-prefixed number whose precision follows the tick spacing).
    *
    * @default "auto"
    */
@@ -3241,9 +3242,13 @@ export interface AxisTickStepConfig {
    * Places a tick at every multiple of the interval inside the axis domain,
    * counted from 0, so the ticks stay put as the data moves the domain. Setting
    * it never changes the automatic min and max of the axis, it only chooses
-   * where the ticks go. When more ticks survive than fit, every k-th survivor
-   * is kept from the first, and a tick thinned away stays a hidden tick: its
-   * minor ticks are kept, and it never becomes one.
+   * where the ticks go. A `tickLabel.format` without a precision of its own,
+   * `"auto"` included, names the ticks exactly: the precision follows the
+   * spacing of the ticks drawn, so an interval of 0.25 reads 0.25 and a
+   * `minorSteps` of 4 on an interval of 1 reads 0.25 too. When more ticks
+   * survive than fit, every k-th survivor is kept from the first, and a tick
+   * thinned away stays a hidden tick: its minor ticks are kept, and it never
+   * becomes one.
    *
    * @default null
    */

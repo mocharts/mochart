@@ -1,5 +1,5 @@
 import { scaleLinear, scaleTime, scaleUtc } from 'd3-scale';
-import { format } from 'd3-format';
+import { format, formatPrefix, formatSpecifier } from 'd3-format';
 import { timeFormat, utcFormat } from 'd3-time-format';
 
 import { getWithMutations } from '../utils/WithMutations';
@@ -286,9 +286,13 @@ interface LinearStepTicks {
   majors: AxisValue[] | null;
   /** The minor ticks between them; one closer to a tick than the regular minor spacing is hidden. */
   minors: { value: AxisValue; hidden: boolean }[];
+  /** The axis value distance between the majors on a number scale (the interval), which the auto label precision follows; null for a period or no step. */
+  step: number | null;
+  /** The axis value distance between the minor ticks on a number scale (the interval split by minorSteps), null without them. */
+  minorStep: number | null;
 }
 
-const noStepTicks: LinearStepTicks = { majors: null, minors: [] };
+const noStepTicks: LinearStepTicks = { majors: null, minors: [], step: null, minorStep: null };
 
 // which of a step's warnings are standing, per tickStep config: a warning repeats only after the step fits again
 const warnedSteps = new WeakMap<object, { majors: boolean; minors: boolean }>();
@@ -360,7 +364,7 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
           .map(boundary => ({ value: boundary, hidden: hiddenMinorIndexes.has(getPeriodIndex(minorPeriod, dateUTC, boundary)) }));
       }
     }
-    return { majors, minors };
+    return { majors, minors, step: null, minorStep: null };
   }
 
   const { interval, minorSteps } = step;
@@ -392,7 +396,21 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
       }
     }
   }
-  return { majors, minors };
+  // the drawn ticks are every count-th multiple, so their spacing is the interval times the count
+  return { majors, minors, step: interval * countN, minorStep: minorSteps !== NONE ? interval / minorSteps : null };
+}
+
+/** The smallest gap between the explicit number ticks, the step their auto label precision follows; null with fewer than two. */
+function getExplicitTickStep(explicitTicks: readonly { value: unknown }[]): number | null {
+  const values = explicitTicks.map(tick => tick.value).filter((value): value is number => typeof value === 'number' && Number.isFinite(value)).sort((a, b) => a - b);
+  let step: number | null = null;
+  for (let i = 1; i < values.length; i++) {
+    const gap = values[i] - values[i - 1];
+    if (gap > 0 && (step === null || gap < step)) {
+      step = gap;
+    }
+  }
+  return step;
 }
 
 /** The linear ticks of an axis in value order: the step's ticks (or the scale's) with the minor ticks between them. */
@@ -483,8 +501,8 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
       minorTickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, scaleTicks.length, categoryValues);
     }
     else {
-      tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length);
-      minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, Math.max(scaleTicks.length, stepTicks.minors.length));
+      tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length, stepTicks.step);
+      minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, Math.max(scaleTicks.length, stepTicks.minors.length), stepTicks.minorStep ?? stepTicks.step);
     }
     if (axisConfig.scale === SCALE_ORDINAL) {
       // a parallel untruncated label that would spill past either axis end is hidden, each kind tested with its own
@@ -634,8 +652,9 @@ function getExplicitCategoryAxisTickData(axisConfig: CategoryAxisConfig, minorTi
     });
     return ticks;
   }
-  const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, explicitTicks.length);
-  const minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, explicitTicks.length);
+  const explicitStep = getExplicitTickStep(explicitTicks);
+  const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, explicitTicks.length, explicitStep);
+  const minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, explicitTicks.length, explicitStep);
   return createExplicitLinearTicks(axisConfig, explicitTicks, axisScale, tickLabelFormatter, minorTickLabelFormatter);
 }
 
@@ -684,8 +703,9 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
   const fits = getTickLabelFits(axisConfig, axisLayoutInfo, minorTickLabel);
   if (axisConfig.ticks !== NONE) {
     if (axisConfig.visibleWhenAllFiltered || visibleSeriesCount > 0) {
-      const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, axisConfig.ticks.length);
-      const minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, axisConfig.ticks.length);
+      const explicitStep = getExplicitTickStep(axisConfig.ticks);
+      const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, axisConfig.ticks.length, explicitStep);
+      const minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, axisConfig.ticks.length, explicitStep);
       ticks = createExplicitLinearTicks(axisConfig, axisConfig.ticks, axisScale, tickLabelFormatter, minorTickLabelFormatter);
       fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing);
     }
@@ -723,9 +743,9 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
         scaleTicks = axisScale.ticks(tickCount);
       }
     }
-    // the visible ticks take their precision from the scale that generated them
-    const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length);
-    const minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, Math.max(scaleTicks.length, stepTicks.minors.length));
+    // the visible ticks take their precision from the scale that generated them, or from the step that placed them
+    const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length, stepTicks.step);
+    const minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, Math.max(scaleTicks.length, stepTicks.minors.length), stepTicks.minorStep ?? stepTicks.step);
     // the hidden size ticks span the raw domain, so they keep its precision for stable label bounds
     // (always the render domain: a collapsed domain gives tickFormat a zero step and garbage precision)
     const sizeTickLabelFormatter = adjustTickLabelsForFiltering ? tickLabelFormatter
@@ -818,16 +838,58 @@ function getTickCount(axisConfig: AxisConfigBase, axisRangeExtent: number, axisD
   return count;
 }
 
-function getLinearScaleTickLabelFormatter(axisConfig: CategoryAxisConfig | EnhancedValueAxisConfig, tickLabel: TickLabelSettings, axisScale: AxisScale, tickCount: number): TickLabelFormatter {
+/** The decimal places needed to write a step exactly (0.25 needs 2, 2.5 needs 1, 250 none), read from its shortest decimal form. */
+function getStepDecimals(step: number): number {
+  const [mantissa, exponent = '0'] = Math.abs(step).toPrecision(12).split('e');
+  const dot = mantissa.indexOf('.');
+  const mantissaDecimals = dot === -1 ? 0 : mantissa.replace(/0+$/, '').length - dot - 1;
+  return Math.max(0, mantissaDecimals - Number(exponent));
+}
+
+function getExponent(value: number): number {
+  return value === 0 ? 0 : Math.floor(Math.log10(Math.abs(value)));
+}
+
+/**
+ * A number format whose precision, when the specifier leaves it open, names the drawn ticks exactly: what
+ * d3's scale.tickFormat does for its own 1-2-5 steps, done for a step the config chose, so a tickStep
+ * interval of 0.25 reads 0.25 rather than the 0.3 that d3's precision helpers would give it.
+ */
+function getStepTickFormat(axisScale: AxisScale, step: number, specifierString: string): TickLabelFormatter {
+  const specifier = formatSpecifier(specifierString);
+  const [domainStart, domainEnd] = axisScale.domain() as [number, number];
+  const magnitude = Math.max(Math.abs(domainStart), Math.abs(domainEnd));
+  if (specifier.precision === undefined) {
+    if (specifier.type === 's') {
+      // formatPrefix writes the value scaled by the SI prefix of the magnitude in fixed notation
+      const prefixExponent = Math.max(-8, Math.min(8, Math.floor(getExponent(magnitude) / 3))) * 3;
+      specifier.precision = getStepDecimals(step / 10 ** prefixExponent);
+      const prefixFormat = formatPrefix(specifier, magnitude);
+      return tick => prefixFormat(tick as number);
+    }
+    if (specifier.type === 'f' || specifier.type === '%') {
+      specifier.precision = getStepDecimals(step * (specifier.type === '%' ? 100 : 1));
+    }
+    else if (specifier.type === '' || specifier.type === 'e' || specifier.type === 'g' || specifier.type === 'p' || specifier.type === 'r') {
+      // significant digits: from the leading digit of the largest value down to the step's last decimal
+      specifier.precision = Math.max(1, getExponent(Math.max(magnitude, step)) + 1 + getStepDecimals(step)) - (specifier.type === 'e' ? 1 : 0);
+    }
+  }
+  const numberFormat = format(specifier);
+  return tick => numberFormat(tick as number);
+}
+
+function getLinearScaleTickLabelFormatter(axisConfig: CategoryAxisConfig | EnhancedValueAxisConfig, tickLabel: TickLabelSettings, axisScale: AxisScale, tickCount: number, tickStep: number | null = null): TickLabelFormatter {
   let tickLabelFormatter: TickLabelFormatter = tick => tick;
   if (tickLabel.format !== NONE) {
     if (axisConfig.type === TYPE_NUMBER) {
-      tickCount = Math.max(1, tickCount); // axisScale.tickFormat expects > 0 ...
-      if (tickLabel.format === AUTO) {
-        tickLabelFormatter = axisScale.tickFormat(tickCount, autoTickLabelFormatNumber);
+      const specifier = tickLabel.format === AUTO ? autoTickLabelFormatNumber : tickLabel.format;
+      if (tickStep !== null && tickStep > 0) {
+        tickLabelFormatter = getStepTickFormat(axisScale, tickStep, specifier);
       }
       else {
-        tickLabelFormatter = axisScale.tickFormat(tickCount, tickLabel.format);
+        // the scale's own ticks: d3 derives the precision from the step it picks for this count over the domain
+        tickLabelFormatter = axisScale.tickFormat(Math.max(1, tickCount), specifier);
       }
     }
     else if (axisConfig.type === TYPE_DATE) {

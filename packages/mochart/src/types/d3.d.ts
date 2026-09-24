@@ -8,8 +8,14 @@ declare module 'd3-scale' {
 }
 
 declare module 'd3-format' {
-  export function format(specifier: string): (value: number) => string;
-  export function formatSpecifier(specifier: string): unknown;
+  /** The parsed form of a format specifier; precision is undefined when the specifier leaves it open. */
+  export interface FormatSpecifier {
+    type: string;
+    precision: number | undefined;
+  }
+  export function format(specifier: string | FormatSpecifier): (value: number) => string;
+  export function formatPrefix(specifier: string | FormatSpecifier, value: number): (value: number) => string;
+  export function formatSpecifier(specifier: string): FormatSpecifier;
 }
 
 declare module 'd3-time-format' {
