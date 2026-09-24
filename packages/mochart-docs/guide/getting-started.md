@@ -126,8 +126,8 @@ When animation is enabled (the default), data changes and `refresh` animate
 through mochart's [staged animation](/guide/staged-animation) phases. Try the
 button under the chart above. Config changes animate whatever they change in the
 chart data (an axis bound, say), redraw the rest instantly, and
-[rebuild the chart](/guide/staged-animation#structural-config-changes-rebuild-the-chart)
-when they change its structure. Size changes are the exception: a new
+[rebuild the chart](/guide/config-model#structural-changes) when they change
+its structure. Size changes are the exception: a new
 `width`/`height` re-lays the chart out instantly.
 
 ## The lower-level entry point

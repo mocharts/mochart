@@ -244,6 +244,7 @@ for (const allKey of allKeys) {
   configSectionValidators[validator.allKey] = validator;
 }
 
+/** Validates a raw config, returning readable errors and warnings. `defaults` is derived when omitted; with `strict` (the default) warnings make the config invalid. */
 export default function validateConfig(configWithoutDefaults: unknown, configDefaults: ConfigRecord = getDefaults(configWithoutDefaults), strict = true): ConfigValidation {
   const { valid, errors, warnings } = validateConfigInternal(configWithoutDefaults, configDefaults, strict);
   return { valid, errors, warnings };

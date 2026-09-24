@@ -1,6 +1,9 @@
+/** The config format version that migrateConfig upgrades to; separate from the package version. */
 export const CONFIG_VERSION = '1.0.0';
 
+/** The value config members take to be computed by the chart. */
 export const AUTO = 'auto';
+/** The explicit off value config members accept. */
 export const NONE = null;
 
 export const TOP = 'top';
@@ -100,6 +103,7 @@ export const EASING_BOUNCE_IN = 'bounceIn';
 export const EASING_BOUNCE_OUT = 'bounceOut';
 export const EASING_BOUNCE_IN_OUT = 'bounceInOut';
 
+/** Every animation.easing and animation.focusEasing name. */
 export const EASINGS = [
   EASING_LINEAR,
   EASING_SINE_IN, EASING_SINE_OUT, EASING_SINE_IN_OUT,
@@ -124,7 +128,9 @@ export const THRESHOLD_TITLE_SIDES = [
   TITLE_SIDE_LOW, TITLE_SIDE_HIGH, TITLE_SIDE_INSIDE
 ];
 
+/** The chart.type of a chart with axes. */
 export const CHART_TYPE_XY = 'xy';
+/** The chart.type of a pie or donut chart. */
 export const CHART_TYPE_PIE = 'pie';
 
 export const CHART_TYPES = [
@@ -154,12 +160,17 @@ export const PIE_TOOLTIP_VALUE_TYPES: PieTooltipValueType[] = [
   PIE_TOOLTIP_VALUE_TYPE_VALUE, PIE_TOOLTIP_VALUE_TYPE_PERCENT, PIE_TOOLTIP_VALUE_TYPE_VALUE_PERCENT, PIE_TOOLTIP_VALUE_TYPE_PERCENT_VALUE
 ];
 
+/** The axis scale that spaces categories evenly. */
 export const SCALE_ORDINAL = 'ordinal';
+/** The axis scale that places values by magnitude. */
 export const SCALE_LINEAR = 'linear';
 
 
+/** The axis type for string values. */
 export const TYPE_STRING = 'string';
+/** The axis type for number values. */
 export const TYPE_NUMBER = 'number';
+/** The axis type for dates. */
 export const TYPE_DATE = 'date';
 
 

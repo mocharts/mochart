@@ -68,6 +68,7 @@ function checkSeriesProperty(dataErrors: string[], dataProvider: DataProvider, c
   }
 }
 
+/** Readable problems with a dataset for an enhanced config, such as non-numeric series values or a value count that differs from the category count. */
 export function getDataErrors(mochartConfig: MochartConfig, dataProvider: DataProvider | null | undefined): string[] {
   const dataErrors: string[] = [];
   if (!mochartConfig.validation.valid || dataProvider == null) {

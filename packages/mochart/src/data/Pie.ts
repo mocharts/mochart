@@ -2,6 +2,7 @@ import type { PieTooltipValueType } from '../config/core/constants.js';
 import type { ChartConfig, DeepPartial, CategoryAxisConfig, PieConfig, SeriesConfig } from '../types/config.js';
 import { computeSliceFractions } from './PieData.js';
 
+/** One pie slice as given: its title, value and optional color. */
 export interface PieItem {
   /** The slice title, e.g. shown in the legend and tooltip. */
   label: string;
@@ -11,6 +12,7 @@ export interface PieItem {
   color?: string;
 }
 
+/** Options for createPie: the category value, the tooltip value type and format, and the donut hole. */
 export interface CreatePieOptions {
   /**
    * The single category value the pie renders (pie data is one row).
@@ -41,6 +43,7 @@ export interface CreatePieOptions {
   innerRadiusFraction?: number;
 }
 
+/** What createPie returns: the total, the fractions, the chart row and the config fragments. */
 export interface PieData {
   /** The sum of the (clamped) slice values; `Infinity` if that sum overflows a double. */
   total: number;

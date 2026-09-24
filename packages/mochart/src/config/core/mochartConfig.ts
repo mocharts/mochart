@@ -6,6 +6,7 @@ import type { ConfigValidation, MochartConfig } from '../../types/config.js';
 
 type ConfigRecord = Record<string, unknown>;
 
+/** Maps each list section to the key of its *Defaults section, such as series to seriesDefaults. Read-only: core's config functions read it. */
 export const sectionKeyAllMap: Record<string, string> = {
   linearGradients: 'linearGradientDefaults',
   patterns: 'patternDefaults',
@@ -373,6 +374,7 @@ function applyAllConfig(configs: ConfigRecord[], allConfig: unknown): ConfigReco
   return configs;
 }
 
+/** The build step of enhanceConfig alone: applies defaults, merges the *Defaults sections and resolves cross-references, without migrating or validating. */
 export default function buildMochartConfig(configWithoutDefaults: unknown, configDefaults: ConfigRecord = getDefaults(configWithoutDefaults), validation?: ConfigValidation): MochartConfig {
   if (validation === undefined) {
     validation = { valid: true, errors: [], warnings: [] };

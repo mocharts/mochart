@@ -173,8 +173,10 @@ so a rename breaks the check; that every prop-interface member reached the
 api-reference model; and that the non-JS surface (the optional stylesheet
 subpath exports and the script-tag IIFE artifact) is mentioned as well.
 Exports declared under `src/types/` are exempt: that surface is the generated
-config reference and the shipped `.d.ts`. A name that should stay
-undocumented goes in the script's `undocumented` map with a reason.
+config reference and the shipped `.d.ts`. So are the core exports in the
+script's `jsdocOnly` list, supported but too minor for a docs page, which must
+carry JSDoc instead. A name that should stay undocumented goes in the script's
+`undocumented` map with a reason.
 
 ### Adding a chart prop, callback, or payload field, end to end
 
@@ -204,18 +206,22 @@ undocumented goes in the script's `undocumented` map with a reason.
 
 1. Export the name from `packages/mochart/src/index.ts` (or the export or
    editor package's entry).
-2. Name it on a docs page. `packages/mochart-docs/reference/api.md` is the
-   hand-written home for the exported surface: a function or class gets its
-   own entry there, a constant joins the constants table, and a recipe or
-   guide mention counts too. A literal union type declared in
-   `src/config/core/constants.ts` (`MarkerShape`, `DomainChange`, …) is
-   instead documented by the generated `/reference/enumerations` page: give it
-   a description in `packages/mochart/scripts/enumerationsModel.ts` (the
-   generator fails without one), and its values and uses are read from the
-   source. A name that should stay undocumented goes in the `undocumented`
-   map of `packages/mochart-docs/scripts/checkApiCoverage.ts` with a reason.
+2. Name it on a docs page, or give it JSDoc and list it in `jsdocOnly`.
+   `packages/mochart-docs/reference/api.md` is the hand-written home for the
+   main exports, the ones a host realistically calls: a function or class gets
+   its own entry there, and a recipe or guide mention counts too. An export too
+   minor for a page, such as a helper's option type or a value constant, is
+   documented by its JSDoc alone and goes in the `jsdocOnly` list of
+   `packages/mochart-docs/scripts/checkApiCoverage.ts`. A literal union type
+   declared in `src/config/core/constants.ts` (`MarkerShape`, `DomainChange`,
+   …) is instead documented by the generated `/reference/enumerations` page:
+   give it a description in `packages/mochart/scripts/enumerationsModel.ts`
+   (the generator fails without one), and its values and uses are read from
+   the source. A name that should stay undocumented goes in the
+   `undocumented` map of the same script with a reason.
 3. Run `npm test -w @mochart/docs`; `checkApiCoverage.ts` fails on any export
-   no page names, and on any stale `undocumented` entry.
+   no page names, on a `jsdocOnly` export without JSDoc, and on any stale
+   `undocumented` or `jsdocOnly` entry.
 
 ## Golden snapshot tests
 

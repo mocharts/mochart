@@ -2,6 +2,7 @@ import { deepMerge } from '../core/deepMerge.js';
 import type { MochartInputConfig } from '../../types/config.js';
 import type { MarginPadding } from '../../types/geometry.js';
 
+/** Options for createSparklineConfig: whether the tooltip stays on, and the edge padding. */
 export interface CreateSparklineConfigOptions {
   /**
    * Whether the tooltip and crosshairs should stay enabled. Sparklines are

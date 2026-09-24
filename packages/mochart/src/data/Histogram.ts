@@ -2,6 +2,7 @@ import { checkUniqueLabels } from './labels.js';
 import { roundToSignificant } from '../utils/utils.js';
 import type { CategoryAxisConfig, SeriesConfig } from '../types/config.js';
 
+/** One histogram bin: its edges, center and count. */
 export interface HistogramBin {
   /** Inclusive lower edge of the bin. */
   start: number;
@@ -15,6 +16,7 @@ export interface HistogramBin {
   value: number;
 }
 
+/** Options for binValues: the bin count or width, the domain, and the normalize and cumulative modes. */
 export interface BinValuesOptions {
   /**
    * Approximate number of bins, rounded down to a whole count of at least one.
@@ -53,6 +55,7 @@ export interface BinValuesOptions {
   cumulative?: boolean;
 }
 
+/** Options for createHistogram: the binning options plus the value property, series title and bin labels. */
 export interface CreateHistogramOptions extends BinValuesOptions {
   /**
    * The data property holding the bin value.
@@ -70,6 +73,7 @@ export interface CreateHistogramOptions extends BinValuesOptions {
   binLabel?: (bin: HistogramBin) => string;
 }
 
+/** What createHistogram returns: the bins, the chart rows and the config fragments. */
 export interface HistogramData {
   bins: HistogramBin[];
   /**
@@ -90,6 +94,7 @@ const NICE_STEPS = [1, 2, 5, 10];
 // plot area is a few thousand pixels, so nothing legible comes near this
 const MAX_BIN_COUNT = 10000;
 
+/** Bins numbers into contiguous bins (Sturges' count and round edges by default), without the chart fragments. */
 export function binValues(values: readonly number[], options: BinValuesOptions = {}): HistogramBin[] {
   const finiteValues = values.filter((value) => Number.isFinite(value));
   const domain = options.domain ?? getExtent(finiteValues);
@@ -150,6 +155,7 @@ export function binValues(values: readonly number[], options: BinValuesOptions =
   return bins;
 }
 
+/** Bins numbers into a histogram: the bins plus chart rows and categoryAxis and series fragments. */
 export function createHistogram(values: readonly number[], options: CreateHistogramOptions = {}): HistogramData {
   const bins = binValues(values, options);
   const valueProperty = options.valueProperty ?? DEFAULT_VALUE_PROPERTY;

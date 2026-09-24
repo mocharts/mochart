@@ -119,38 +119,12 @@ change what the chart *is*, and those structural changes cannot be applied to
 the existing chart at all. It is rebuilt and plays its opening animation again,
 paced by [`initialDuration`](/reference/animation#animation.initialDuration).
 
-An edit counts as structural when it changes any of:
-
-- the config's validity or its `id`
-- [`chart.type`](/reference/chart#chart.type)
-- the category axis [`property`](/reference/categoryAxis#categoryAxis.property),
-  [`keyProperty`](/reference/categoryAxis#categoryAxis.keyProperty),
-  [`type`](/reference/categoryAxis#categoryAxis.type),
-  [`scale`](/reference/categoryAxis#categoryAxis.scale) or
-  [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC)
-- the number or ids of value axes or series stacks, or which axis a stack
-  belongs to
-- the number of series, or for any series its `id`,
-  [`property`](/reference/series#series.property),
-  [`rangeProperty`](/reference/series#series.rangeProperty),
-  [`errorLowProperty`](/reference/series#series.errorLowProperty),
-  [`errorHighProperty`](/reference/series#series.errorHighProperty),
-  [`markerProperty`](/reference/series#series.markerProperty),
-  [`colorProperty`](/reference/series#series.colorProperty),
-  [`labelProperty`](/reference/series#series.labelProperty),
-  [`tooltipProperty`](/reference/series#series.tooltipProperty),
-  [`axis`](/reference/series#series.axis),
-  [`stack`](/reference/series#series.stack) or
-  [`group`](/reference/series#series.group)
-
-Everything else is applied to the existing chart without a rebuild.
+Which edits count as structural is listed under
+[Structural changes](/guide/config-model#structural-changes); everything else is
+applied to the existing chart without a rebuild.
 
 This is about editing the config. Switching a series off by clicking the legend
 is filtering, not a config change, and it animates like a data change.
-
-`hasConfigStructureChange(oldConfig, newConfig)` (comparing two enhanced
-configs) is exported if you need to know in advance whether an edit you are
-about to apply will rebuild.
 
 ## Tuning
 

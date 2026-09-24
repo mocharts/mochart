@@ -1,8 +1,10 @@
 import { checkUniqueLabels } from './labels.js';
 import type { DeepPartial, CategoryAxisConfig, SeriesConfig, ValueAxisConfig } from '../types/config.js';
 
+/** Which series a waterfall step is drawn in. */
 export type WaterfallDirection = 'increase' | 'decrease' | 'total';
 
+/** One waterfall step as given: a label and a signed change, or a total. */
 export interface WaterfallItem {
   /** The step label, used as the category value when charted. */
   label: string;
@@ -20,6 +22,7 @@ export interface WaterfallItem {
   total?: boolean;
 }
 
+/** One computed waterfall step: where its bar starts and ends, and the running total. */
 export interface WaterfallStep {
   label: string;
   /** The signed change of the step (for totals, the offset from the base). */
@@ -33,6 +36,7 @@ export interface WaterfallStep {
   direction: WaterfallDirection;
 }
 
+/** Options for createWaterfall: the base, series titles and colors. */
 export interface CreateWaterfallOptions {
   /**
    * The value the running total starts from and total bars span from. Returned
@@ -51,6 +55,7 @@ export interface CreateWaterfallOptions {
   colors?: Partial<Record<WaterfallDirection, string>>;
 }
 
+/** What createWaterfall returns: the steps, the chart rows and the config fragments. */
 export interface WaterfallData {
   steps: WaterfallStep[];
   /**
@@ -90,6 +95,7 @@ const DEFAULT_COLORS: Record<WaterfallDirection, string> = {
   total: '#2a78d6'
 };
 
+/** Accumulates signed steps into a running total from `base`, without the chart fragments. */
 export function computeWaterfallSteps(items: readonly WaterfallItem[], base = 0): WaterfallStep[] {
   return computeWaterfallStepsFor('computeWaterfallSteps', items, base);
 }
@@ -114,6 +120,7 @@ function computeWaterfallStepsFor(helperName: string, items: readonly WaterfallI
   });
 }
 
+/** Turns signed steps into a waterfall: floating bars in increase, decrease and total series, with chart rows and config fragments. */
 export function createWaterfall(items: readonly WaterfallItem[], options: CreateWaterfallOptions = {}): WaterfallData {
   const base = options.base ?? 0;
   const steps = computeWaterfallStepsFor('createWaterfall', items, base);

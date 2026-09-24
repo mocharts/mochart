@@ -1,17 +1,18 @@
 # API reference
 
-The complete documented API of `@mochart/core`, grouped by task:
+The main API of `@mochart/core`, grouped by task. Smaller exports, such as the
+helpers' option and result types and the value constants, are documented by
+their JSDoc, which editors show on hover:
 
 | Section | Exports |
 | --- | --- |
 | [Entry points](#createdefaultchart) | `createDefaultChart`, `createChart`, [`ChartHandle`](#charthandle) |
 | [Data providers](#data-providers) | `ArrayOfObjectsDataProvider`, `ObjectOfArraysDataProvider`, the `DataProvider` interface |
-| [Config helpers](#config-helpers) | `enhanceConfig`, `validateConfig`, `validateConfigDetailed`, `migrateConfig`, `getDefaults`, `getConfigWithDefaults`, `getConfigWithoutDefaults`, `getDataErrors` |
-| [Chart helpers](#chart-helpers) | `createHistogram`, `createWaterfall`, `createHeatmap`, `createCandlestick`, `createOhlc`, `createPie`, `createSparklineConfig` and their math-only companions |
-| [Constants](#constants) | `NONE`, `AUTO`, `TYPE_*`, `SCALE_*`, `CHART_TYPE_*`, and the config union types |
+| [Config helpers](#config-helpers) | `enhanceConfig`, `validateConfig`, `validateConfigDetailed`, `migrateConfig`, `getDefaults`, `getConfigWithDefaults`, `getConfigWithoutDefaults`, `getDataErrors`, `hasConfigStructureChange` |
+| [Chart helpers](#chart-helpers) | `createHistogram`, `createWaterfall`, `createHeatmap`, `createCandlestick`, `createOhlc`, `createPie`, `createSparklineConfig` |
+| [Config union types](#config-union-types) | the literal types of the enumerated config values |
 | [Styling hooks](#styling-hooks) | `mochartCssClasses` |
 | [Version](#version) | `getVersionString` |
-| [Advanced exports](#advanced-exports) | `buildMochartConfig`, `hasConfigStructureChange` |
 
 The framework bindings (see the [framework pages](/guide/frameworks/react)) have
 their own entry points but accept the same props, callbacks, and helpers
@@ -79,9 +80,9 @@ interface ChartHandle<TProps> {
   means "no change", like an absent key. Data changes (and config changes that
   move the chart data, such as an axis bound) animate through the
   [staged animation](/guide/staged-animation) phases when animation is enabled;
-  other config changes redraw instantly; structural config changes (see
-  [`hasConfigStructureChange`](#advanced-exports)) rebuild the chart and replay
-  its initial animation; width/height changes re-layout the chart instantly.
+  other config changes redraw instantly;
+  [structural config changes](/guide/config-model#structural-changes) rebuild
+  the chart and replay its initial animation; width/height changes re-layout the chart instantly.
 - `replace(nextProps)` swaps the props wholesale: a key absent from `nextProps`
   is unset and returns to chart-managed behavior, where `update` would keep its
   previous value. For hosts that pass the complete prop set on every render.
@@ -140,7 +141,8 @@ properties are read.
 ```ts
 import {
   enhanceConfig, validateConfig, validateConfigDetailed, migrateConfig,
-  getDefaults, getConfigWithDefaults, getConfigWithoutDefaults, getDataErrors
+  getDefaults, getConfigWithDefaults, getConfigWithoutDefaults, getDataErrors,
+  hasConfigStructureChange
 } from '@mochart/core';
 
 enhanceConfig(config)                        // → MochartConfig (migrated, validated, defaults applied)
@@ -152,6 +154,7 @@ getDefaults(config)                          // → the default values derived f
 getConfigWithDefaults(config, defaults?)     // → the config with every default value filled in
 getConfigWithoutDefaults(config, defaults?)  // → the minimal config: every default-matching value removed
 getDataErrors(mochartConfig, dataProvider)   // → string[] of readable data problems
+hasConfigStructureChange(prev, next)         // → whether applying next rebuilds the chart
 ```
 
 Every `defaults` parameter is optional: when omitted it is derived from the
@@ -220,6 +223,11 @@ live-preview editor wants.
   `allowAbsentDataProperties`, which reads an absent series property as
   all-missing values. An invalid config or a `null` provider yields no errors.
   `createDefaultChart` runs this for you; `createChart` does not.
+- `hasConfigStructureChange` compares two enhanced configs (either may be
+  `null` while a host is still loading) and reports whether applying the new
+  one is a [structural change](/guide/config-model#structural-changes), which
+  rebuilds the chart and clears its focus and filters. A host that controls
+  focus or filtering can use it to see that reset coming.
 
 ## Chart helpers
 
@@ -236,104 +244,51 @@ import {
 } from '@mochart/core';
 
 createHistogram(values, options?)          // → { bins, data, categoryAxis, seriesConfig }
-binValues(values, options?)                // → HistogramBin[]
 createWaterfall(items, options?)           // → { steps, data, categoryAxis, series, valueAxes }
-computeWaterfallSteps(items, base?)        // → WaterfallStep[]
 createHeatmap(rows, options?)              // → { domain, colorScale, data, categoryAxis, valueAxes, series }
-createHeatmapColorScale(domain, options?)  // → (value: number) => color
 createCandlestick(items, options?)         // → { candles, data, categoryAxis, series, valueAxes? }
 createOhlc(items, options?)                // → { candles, data, categoryAxis, series, valueAxes? }
-computeCandlesticks(items)                 // → Candlestick[]
 createPie(items, options?)                 // → { total, fractions, data, chart, pie, categoryAxis, series }
-computePieFractions(values)                // → { total, fractions }
 createSparklineConfig(config, options?)    // → config with the sparkline preset applied
 ```
 
 - `createHistogram` bins an array of numbers (Sturges' count and round bin edges
   by default; `binCount`/`binWidth`/`domain` overrides, `normalize` and
-  `cumulative` modes) into contiguous bars. `binValues` returns just the bins,
-  without the chart fragments. See [Histogram](/recipes/histogram).
+  `cumulative` modes) into contiguous bars. See [Histogram](/recipes/histogram).
 - `createWaterfall` accumulates signed steps into floating bars with
   increase/decrease/total series; its `valueAxes` fragment carries the `base`
-  the bars span from. `computeWaterfallSteps` is the math alone. See
-  [Waterfall](/recipes/waterfall).
+  the bars span from. See [Waterfall](/recipes/waterfall).
 - `createHeatmap` turns a grid of row values into one bar-band series per row,
   each cell colored by value from a shared sequential ramp; the value axis
-  fragment labels the rows. `createHeatmapColorScale` builds the same
-  value→color scale standalone (e.g. for a ramp legend). See
-  [Heatmap](/recipes/heatmap).
+  fragment labels the rows. See [Heatmap](/recipes/heatmap).
 - `createCandlestick` turns OHLC items into candles: direction-colored
   open/close bodies over thin low/high wicks, or outlined up bodies with the
   `hollow` option. The `volume` option adds a volume pane on a second axis (the
   result gains a `valueAxes` fragment), and the `axisType` option charts date
-  labels on an ordinal date axis instead of a string one. `computeCandlesticks`
-  is the math alone. See [Candlestick](/recipes/candlestick).
+  labels on an ordinal date axis instead of a string one. See
+  [Candlestick](/recipes/candlestick).
 - `createOhlc` turns the same OHLC items into tick bars: thin low/high lines
   with a left open tick and a right close tick, with the same `volume` and
   `axisType` options. See [OHLC bars](/recipes/ohlc).
 - `createPie` turns labelled values into pie or donut slices, one series per
   slice, sized by its share of the total. Its `chart` fragment is what switches
   the chart into pie mode (`type: 'pie'`); the `donut` option fills the `pie`
-  fragment. `computePieFractions` returns just the total and per-slice
-  fractions. See [Pie and donut](/recipes/pie).
+  fragment. See [Pie and donut](/recipes/pie).
 - `createSparklineConfig` is a config preset rather than a data transform: it
   hides axes, legend, tooltip, crosshairs and markers, and collapses margins for
   tiny inline charts. Values already set on the passed config win; the
   `interactive` option keeps the tooltip and crosshairs, `padding` sets the
   uniform edge padding. See [Sparklines](/recipes/sparklines).
 
-For TypeScript hosts, every helper's item, option, and result shapes are
-exported as named types. Histogram: `BinValuesOptions`, `HistogramBin`,
-`CreateHistogramOptions`, `HistogramData`; waterfall: `WaterfallItem`,
-`WaterfallDirection`, `WaterfallStep`, `CreateWaterfallOptions`,
-`WaterfallData`; heatmap: `HeatmapRow`, `CreateHeatmapOptions`,
-`CreateHeatmapColorScaleOptions`, `HeatmapData`; candlestick: `CandlestickItem`,
-`CandlestickLabel`, `CandlestickAxisType`, `CandlestickDirection`,
-`Candlestick`, `CreateCandlestickOptions`, `CandlestickVolumeOptions`,
-`CandlestickData`; OHLC: `CreateOhlcOptions`, `OhlcData` (OHLC items are
-`CandlestickItem`s); pie: `PieItem`, `CreatePieOptions`, `PieData`; sparkline:
-`CreateSparklineConfigOptions`. The shipped `.d.ts` documents every field: hover
-the type in your editor. Option members typed as a config union,
-`CreatePieOptions.tooltipValueType` (`PieTooltipValueType`) and
-`CreateHeatmapColorScaleOptions.colorInterpolation` (`ColorInterpolation`), use
-the unions listed under [Constants](#constants), so a wrapper prop that forwards
-one can be typed.
-
-## Constants
+## Config union types
 
 Enumerated config values are written as string literals (`renderer: 'bar'`,
 `curveType: 'monotoneX'`), and each member's page in this reference lists its
-allowed values. Only a handful of constants are exported, for the values that
-recur in code that builds configs:
-
-| Constant | Value |
-| --- | --- |
-| `NONE` | `null`, the explicit "off" value config members accept |
-| `AUTO` | `'auto'` |
-| `TYPE_STRING`, `TYPE_NUMBER`, `TYPE_DATE` | axis `type` values |
-| `SCALE_ORDINAL`, `SCALE_LINEAR` | axis `scale` values |
-| `CHART_TYPE_XY`, `CHART_TYPE_PIE` | [`chart.type`](/reference/chart#chart.type) values |
-| `EASINGS` | every [`animation.easing`](/reference/animation#animation.easing) / [`animation.focusEasing`](/reference/animation#animation.focusEasing) value, in reference order |
-| `CONFIG_VERSION` | the config format version (see [Version](#version)) |
-
-The literal type each set of enumerated values forms is exported too, so a
+allowed values. The literal type each set of values forms is exported, so a
 wrapper can name one in its own signature (`function setRenderer(renderer:
 RendererType)`) instead of indexing into a config type as
 `SeriesConfig['renderer']`. [Enumerated values](/reference/enumerations) lists
 every one of them with its values and the config members that use it.
-
-One of those sets also has its implementation exported:
-
-```ts
-getEasingFunction(easing: AnimationEasing): EasingFunction
-```
-
-Returns the function behind an
-[`animation.easing`](/reference/animation#animation.easing) name: an
-`EasingFunction` maps linear progress (0 to 1) onto eased progress with exact
-endpoints. The chart's tweens call it internally; it is exported so a host can
-pace its own animations to match the chart, or plot the shapes. The
-[easing gallery](/guide/staged-animation#tuning) draws its thumbnails with it.
 
 ## Styling hooks
 
@@ -374,45 +329,12 @@ two are separate values and free to diverge, so a host persisting user configs
 should compare a stored `version` against `CONFIG_VERSION`, never against
 `getVersionString()`.
 
-## Advanced exports
+## What is not exported
 
-Exports for hosts that manage chart lifecycles by hand. Most applications never
-need them:
-
-```ts
-buildMochartConfig(config, defaults?, validation?): MochartConfig
-```
-
-The build step of `enhanceConfig` alone: defaults applied, `*Defaults` sections
-merged, and cross-references resolved, with the given validation result attached
-(or a blank valid one). Unlike `enhanceConfig` it neither migrates nor
-validates. Call it directly only to reuse one set of defaults or one validation
-result across several steps, the way
-[`@mochart/demo-common`](https://github.com/mocharts/mochart/tree/main/packages/mochart-demo-common)
-derives a chart build and its editor views from a single `getDefaults` call.
-
-```ts
-hasConfigStructureChange(prev: MochartConfig | null, next: MochartConfig | null): boolean
-```
-
-Compares two enhanced configs (from `enhanceConfig`; either side may be `null`
-while a host is still loading, and a config appearing or going away is
-structural) and reports whether the change is *structural*: a different validity
-(or a new config that is invalid, whatever the old one was), config `id`, chart
-type, category axis (property, key property, type, scale, or `dateUTC`), value
-axis set, stack set, or series set (series ids, data properties, or
-axis/stack/group membership). A structural change makes the chart rebuild and
-replay its initial animation instead of animating the difference in place, so a
-host can use this to know a config edit's blast radius before applying it. The
-entry points run the same check internally; only hosts that rebuild charts
-themselves need to call it.
-
-### What is not exported
-
-Everything else is internal: the retained-mode components and rendering
+The internals are not exported: the retained-mode components and rendering
 primitives, the data-source and focus controllers, the measure/layout and
 staged-animation pipeline types, and the enhanced config views. The shipped
 `.d.ts` still describes the shape of every prop and result (editor hovers show
 them), but internals are not importable by name from `@mochart/core` and change
-without notice. Anything importable but not documented on this page is repo
-tooling, not supported API.
+without notice. Everything that is importable is supported API: this page covers
+the main exports, and the rest are documented by their JSDoc.

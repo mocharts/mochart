@@ -9,7 +9,9 @@
 //   any export syntax, resolved through the TypeScript checker) must appear
 //   in a docs page's code (a span or fenced block, so a word in prose is not
 //   mistaken for a reference). Exports declared under src/types/ are the
-//   exception: that surface is the generated config reference / the .d.ts;
+//   exception: that surface is the generated config reference / the .d.ts.
+//   So are the names in `jsdocOnly`, supported exports too minor for a docs
+//   page, which must carry JSDoc instead;
 // - `ChartHandle` methods must appear in a docs page as a call
 //   (`` `name(` ``), so renaming a method breaks the check;
 // - @mochart/export's and @mochart/editor's exports (checker-resolved, like
@@ -39,9 +41,21 @@ const apiModelPath = path.join(corePackageDir, 'generated', 'api-reference.json'
 // name → why it needs no documentation.
 const undocumented: Record<string, string> = {
   // conventional and read by tooling rather than imported, so there is nothing for a page to say
-  '@mochart/core/package.json': 'manifest subpath, exported so tooling can read it; not a documented API',
-  'sectionKeyAllMap': 'section→*Defaults key lookup consumed by the docs generator and coverage tooling; not a documented API'
+  '@mochart/core/package.json': 'manifest subpath, exported so tooling can read it; not a documented API'
 };
+
+// Supported core exports documented by their JSDoc alone (editor hover and the shipped .d.ts), since api.md
+// covers only what a host realistically calls; each must carry JSDoc.
+const jsdocOnly = new Set([
+  'NONE', 'AUTO', 'TYPE_STRING', 'TYPE_NUMBER', 'TYPE_DATE', 'SCALE_ORDINAL', 'SCALE_LINEAR', 'CHART_TYPE_XY', 'CHART_TYPE_PIE',
+  'EASINGS', 'getEasingFunction', 'EasingFunction', 'buildMochartConfig', 'sectionKeyAllMap',
+  'HistogramBin', 'BinValuesOptions', 'CreateHistogramOptions', 'HistogramData',
+  'WaterfallItem', 'WaterfallDirection', 'WaterfallStep', 'CreateWaterfallOptions', 'WaterfallData',
+  'HeatmapRow', 'CreateHeatmapOptions', 'CreateHeatmapColorScaleOptions', 'HeatmapData',
+  'CandlestickItem', 'CandlestickLabel', 'CandlestickAxisType', 'CandlestickDirection', 'Candlestick',
+  'CreateCandlestickOptions', 'CandlestickVolumeOptions', 'CandlestickData', 'CreateOhlcOptions', 'OhlcData',
+  'PieItem', 'CreatePieOptions', 'PieData', 'CreateSparklineConfigOptions'
+]);
 
 const docsGlobs = ['guide', 'reference', 'recipes'];
 
@@ -97,7 +111,7 @@ function readApiReference(): { propInterfaces: string[]; propKeys: Set<string>; 
  * module's export table. Each name carries the files its (alias-resolved)
  * declarations live in, so callers can exempt whole surfaces by path.
  */
-function moduleExports(entryPath: string): { name: string; declarationFiles: string[] }[] {
+function moduleExports(entryPath: string): { name: string; declarationFiles: string[]; hasJsdoc: boolean }[] {
   const program = ts.createProgram([entryPath], {
     module: ts.ModuleKind.ESNext,
     target: ts.ScriptTarget.ES2020,
@@ -116,7 +130,8 @@ function moduleExports(entryPath: string): { name: string; declarationFiles: str
     const resolved = (symbol.flags & ts.SymbolFlags.Alias) !== 0 ? checker.getAliasedSymbol(symbol) : symbol;
     return {
       name: symbol.name,
-      declarationFiles: (resolved.declarations ?? []).map(declaration => declaration.getSourceFile().fileName)
+      declarationFiles: (resolved.declarations ?? []).map(declaration => declaration.getSourceFile().fileName),
+      hasJsdoc: ts.displayPartsToString(resolved.getDocumentationComment(checker)).trim() !== ''
     };
   });
   if (exports.length === 0) {
@@ -193,9 +208,14 @@ for (const member of interfaceMemberNames(createChartPath, 'ChartHandle')) {
 // Types declared under src/types are the `export type *` wildcard surface:
 // the generated config reference / shipped .d.ts, not docs-page material.
 const coreTypesDir = path.join(coreSrcDir, 'types') + path.sep;
-for (const { name, declarationFiles } of moduleExports(path.join(coreSrcDir, 'index.ts'))) {
+for (const { name, declarationFiles, hasJsdoc } of moduleExports(path.join(coreSrcDir, 'index.ts'))) {
   if (declarationFiles.length > 0 && declarationFiles.every(file => file.startsWith(coreTypesDir))) continue;
-  check('export', name, enumerationNames.has(name) || documentedInCode(name), 'any docs page or the enumerations page');
+  if (jsdocOnly.has(name)) {
+    check('jsdocOnly export', name, hasJsdoc, 'a JSDoc comment on its declaration');
+  }
+  else {
+    check('export', name, enumerationNames.has(name) || documentedInCode(name), 'any docs page or the enumerations page');
+  }
 }
 for (const { name } of moduleExports(path.join(docsDir, '..', 'mochart-export', 'src', 'index.ts'))) {
   check('@mochart/export', name, documentedInCode(name), 'any docs page');
@@ -231,16 +251,16 @@ if (iifeArtifact === undefined) {
 }
 check('script-tag artifact', iifeArtifact, docsText.includes(iifeArtifact), 'any docs page');
 
-const stale = Object.keys(undocumented).filter(name => !seenNames.has(name));
+const stale = [...Object.keys(undocumented), ...jsdocOnly].filter(name => !seenNames.has(name));
 
 if (missing.length > 0) {
-  console.error('✗ undocumented public API: document it, or add it to `undocumented` with a reason:\n');
+  console.error('✗ undocumented public API: name it on a docs page, list it in `jsdocOnly` and give it JSDoc, or add it to `undocumented` with a reason:\n');
   for (const { kind, name, where } of missing) {
     console.error(`    ${name}  (${kind}): not in ${where}`);
   }
 }
 if (stale.length > 0) {
-  console.error('\n✗ stale `undocumented` entries: these names no longer exist:\n');
+  console.error('\n✗ stale `undocumented` or `jsdocOnly` entries: these names no longer exist:\n');
   for (const name of stale) {
     console.error(`    ${name}`);
   }

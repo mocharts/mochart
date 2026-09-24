@@ -52,6 +52,7 @@ function getConfigCount(configs: unknown): number {
 
 export const implicitEntrySectionKeys = ['valueAxes'];
 
+/** The default value of every property the config leaves out, derived from the whole config, since some defaults depend on other settings. */
 export function getDefaults(config: MochartInputConfig | unknown): Record<string, unknown> {
   if (isObject(config)) {
     const inputConfig = config as MochartInputConfig;

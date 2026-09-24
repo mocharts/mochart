@@ -5,6 +5,7 @@ import {
 import type { Candlestick, CandlestickAxisType, CandlestickDirection, CandlestickItem, CandlestickVolumeOptions } from './Candlestick.js';
 import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } from '../types/config.js';
 
+/** Options for createOhlc: titles, colors, line and tick sizes, the volume pane and the axis type. */
 export interface CreateOhlcOptions {
   /**
    * The category axis type the labels are charted on. `string` keeps each
@@ -77,6 +78,7 @@ export interface CreateOhlcOptions {
   volume?: boolean | CandlestickVolumeOptions;
 }
 
+/** What createOhlc returns: the candles, the chart rows and the config fragments. */
 export interface OhlcData {
   candles: Candlestick[];
   /**
@@ -112,6 +114,7 @@ const DEFAULT_TICK_EXTENT = 2;
 const DEFAULT_OPEN_TITLE = 'Open';
 const DEFAULT_CLOSE_TITLE = 'Close';
 
+/** Turns OHLC items into OHLC bars: low-to-high lines with open and close ticks, with chart rows and config fragments. */
 export function createOhlc(items: readonly CandlestickItem[], options: CreateOhlcOptions = {}): OhlcData {
   const axisType = options.axisType ?? 'string';
   const candles = computeCandlesticksFor('createOhlc', items, axisType);

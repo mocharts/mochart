@@ -1,3 +1,4 @@
+/** The CSS classes the chart puts on each part. A value with a space holds two classes, the shared one and a prefix the item's id or index is appended to, so split it before building a selector (chartError holds two complete classes instead). */
 export const mochartCssClasses = {
   chart: 'mochart-chart',
   // state class: present only while accessibility.enabled, and gates the css focus rules

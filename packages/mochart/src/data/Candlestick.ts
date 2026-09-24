@@ -2,6 +2,7 @@ import { checkUniqueLabels } from './labels.js';
 import { roundToSignificant } from '../utils/utils.js';
 import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } from '../types/config.js';
 
+/** Whether a candle closed at or above its open (up) or below it (down). */
 export type CandlestickDirection = 'up' | 'down';
 
 /** The category axis type the candlestick and OHLC helpers chart their labels on. */
@@ -10,6 +11,7 @@ export type CandlestickAxisType = 'string' | 'date';
 /** A candle label: a string on the default string axis, or an ISO date string, timestamp or Date with `axisType: 'date'`. */
 export type CandlestickLabel = string | number | Date;
 
+/** One candle as given: its label, open, high, low and close, and optionally its volume. */
 export interface CandlestickItem {
   /**
    * The candle label (e.g. the trading day), used as the category value when
@@ -25,6 +27,7 @@ export interface CandlestickItem {
   volume?: number;
 }
 
+/** One computed candle: the item plus its change and direction. */
 export interface Candlestick {
   label: CandlestickLabel;
   open: number;
@@ -39,6 +42,7 @@ export interface Candlestick {
   direction: CandlestickDirection;
 }
 
+/** Options for the volume pane of createCandlestick and createOhlc. */
 export interface CandlestickVolumeOptions {
   /**
    * The fraction (above 0, below 1) of the plot height used by the volume pane.
@@ -62,6 +66,7 @@ export interface CandlestickVolumeOptions {
   valueLabel?: string;
 }
 
+/** Options for createCandlestick: titles, colors, body and wick widths, the hollow style, the volume pane and the axis type. */
 export interface CreateCandlestickOptions {
   /**
    * The category axis type the labels are charted on. `string` keeps each
@@ -124,6 +129,7 @@ export interface CreateCandlestickOptions {
   hollow?: boolean;
 }
 
+/** What createCandlestick returns: the candles, the chart rows and the config fragments. */
 export interface CandlestickData {
   candles: Candlestick[];
   /**
@@ -181,6 +187,7 @@ const DEFAULT_VOLUME_HEIGHT_FRACTION = 0.2;
 const DEFAULT_VOLUME_GAP_FRACTION = 0.05;
 const DEFAULT_VOLUME_LABEL = 'Volume';
 
+/** Computes each candle's change and direction, without the chart fragments. */
 export function computeCandlesticks(items: readonly CandlestickItem[]): Candlestick[] {
   return computeCandlesticksFor('computeCandlesticks', items, null);
 }
@@ -361,6 +368,7 @@ export function buildDirectionRows(
   });
 }
 
+/** Turns OHLC items into candlesticks: direction-colored open-to-close bodies over low-to-high wicks, with chart rows and config fragments. */
 export function createCandlestick(items: readonly CandlestickItem[], options: CreateCandlestickOptions = {}): CandlestickData {
   const axisType = options.axisType ?? 'string';
   const candles = computeCandlesticksFor('createCandlestick', items, axisType);

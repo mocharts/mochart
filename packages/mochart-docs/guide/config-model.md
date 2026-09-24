@@ -222,3 +222,44 @@ them, for instance), use the
 pair instead: the first fills every default in, the second strips every value
 that only restates one, and both return plain serializable configs that share
 nothing with the object passed in.
+
+## Structural changes
+
+Most config edits are applied to the chart as it stands. An edit that changes
+what the chart *is* is a structural change instead: the chart is rebuilt and
+plays its opening animation again (see
+[staged animation](/guide/staged-animation#structural-config-changes-rebuild-the-chart)),
+and its focus, pins and legend filters are cleared, which it reports through
+[`onFocus` and `onSeriesFilter`](/guide/interaction#callbacks). An edit counts as
+structural when it changes any of:
+
+- whether there is a config at all (one arriving or going away while a host
+  loads)
+- the config's validity (a new config that is invalid always counts), or its
+  `id`
+- [`chart.type`](/reference/chart#chart.type)
+- the category axis [`property`](/reference/categoryAxis#categoryAxis.property),
+  [`keyProperty`](/reference/categoryAxis#categoryAxis.keyProperty),
+  [`type`](/reference/categoryAxis#categoryAxis.type),
+  [`scale`](/reference/categoryAxis#categoryAxis.scale) or
+  [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC)
+- the number or ids of value axes or series stacks, or which axis a stack
+  belongs to
+- the number of series, or for any series its `id`,
+  [`property`](/reference/series#series.property),
+  [`rangeProperty`](/reference/series#series.rangeProperty),
+  [`errorLowProperty`](/reference/series#series.errorLowProperty),
+  [`errorHighProperty`](/reference/series#series.errorHighProperty),
+  [`markerProperty`](/reference/series#series.markerProperty),
+  [`colorProperty`](/reference/series#series.colorProperty),
+  [`labelProperty`](/reference/series#series.labelProperty),
+  [`tooltipProperty`](/reference/series#series.tooltipProperty),
+  [`axis`](/reference/series#series.axis),
+  [`stack`](/reference/series#series.stack) or
+  [`group`](/reference/series#series.group)
+
+`hasConfigStructureChange(oldConfig, newConfig)`, comparing two enhanced
+configs, tells a host in advance whether an edit it is about to apply is
+structural, for example to reset its own copy of controlled focus or filter
+state (see
+[controlled focus and filtering](/guide/interaction#controlled-focus-and-filtering)).

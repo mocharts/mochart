@@ -70,6 +70,7 @@ const EASING_FUNCTIONS = Object.fromEntries(
   Object.entries(RAW_EASING_FUNCTIONS).map(([name, fn]) => [name, withExactEndpoints(fn)])
 ) as Record<AnimationEasing, EasingFunction>;
 
+/** The easing function behind an animation.easing name, for pacing a host animation to match the chart. */
 export function getEasingFunction(easing: AnimationEasing): EasingFunction {
   return EASING_FUNCTIONS[easing];
 }

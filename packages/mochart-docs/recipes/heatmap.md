@@ -55,5 +55,5 @@ import * as heatmap from '../examples/heatmap'
   `createHeatmap` throws otherwise.
 - The returned `colorScale` maps any value to its hex color and `domain` is the
   extent the colors are scaled over. Together they are the pieces you need to
-  render a color-ramp legend next to the chart. `createHeatmapColorScale(domain,
-  options)` builds the same scale standalone.
+  render a color-ramp legend next to the chart.
+  `createHeatmapColorScale(domain, options)` builds the same scale standalone.

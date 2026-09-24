@@ -54,6 +54,8 @@ series shape, a legend item, an axis or a tooltip row:
   like a click, and leaving with <kbd>Tab</kbd> clears like the pointer leaving.
 - A filtered series, or one a data change removes, loses its pin with its
   focus.
+- A [structural config change](/guide/config-model#structural-changes) clears
+  every focus and pin, along with the legend filters.
 
 This is why enabling both settings makes sense: hover previews for mouse users,
 and a tap pins for touch users, who have no hover. With a
@@ -238,6 +240,12 @@ another has no focus or filter state of its own (it takes both from the series
 it follows), so its own id has no effect in either prop. `onSeriesFilter`
 reports maps keyed the same way, so passing them straight back keeps charts in
 sync.
+
+A [structural config change](/guide/config-model#structural-changes) resets
+focus and filtering and reports the reset through `onFocus` and
+`onSeriesFilter`, so a host that keeps its own copy of that state receives the
+cleared values. To see the reset coming before applying an edit, compare the
+old and new enhanced configs with `hasConfigStructureChange`.
 
 ```js
 chart.update({

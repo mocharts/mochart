@@ -28,7 +28,7 @@ The site has three legs:
   [CONTRIBUTING.md](../../CONTRIBUTING.md#the-props-callbacks-and-framework-props-pipeline)
   for what counts as drift and how to add a prop. The hand-written pages are
   `reference/index.md` (the overview; its section table reads the config model)
-  and `reference/api.md` (the exported functions and classes).
+  and `reference/api.md` (the main exported functions and classes).
 - **Demos**: the nav links to the demo galleries, which
   `scripts/build-pages.mjs` nests next to the docs on the deployed site. Under
   `vitepress dev` those links 404; use the demo dev servers instead.

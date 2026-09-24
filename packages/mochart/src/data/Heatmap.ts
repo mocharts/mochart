@@ -4,6 +4,7 @@ import { checkUniqueLabels } from './labels.js';
 import type { ColorInterpolation } from '../config/core/constants.js';
 import type { DeepPartial, CategoryAxisConfig, ValueAxisConfig, SeriesConfig } from '../types/config.js';
 
+/** One heatmap row: its title and one value per column. */
 export interface HeatmapRow {
   /** The row title, e.g. shown in the legend and tooltip. */
   label: string;
@@ -11,6 +12,7 @@ export interface HeatmapRow {
   values: readonly (number | null | undefined)[];
 }
 
+/** Options for createHeatmapColorScale: the end colors and the interpolation space. */
 export interface CreateHeatmapColorScaleOptions {
   /**
    * The cell color at the low end of the value domain. Together with
@@ -38,6 +40,7 @@ export interface CreateHeatmapColorScaleOptions {
   colorInterpolation?: ColorInterpolation;
 }
 
+/** Options for createHeatmap: the color scale options plus the column labels, domain, cell padding and missing-value color. */
 export interface CreateHeatmapOptions extends CreateHeatmapColorScaleOptions {
   /**
    * The column labels, used as the category values: one per column and unique,
@@ -67,6 +70,7 @@ export interface CreateHeatmapOptions extends CreateHeatmapColorScaleOptions {
   missingColor?: string;
 }
 
+/** What createHeatmap returns: the domain, the color scale, the chart rows and the config fragments. */
 export interface HeatmapData {
   /** The value domain the cell colors are scaled over (null with no values). */
   domain: [number, number] | null;
