@@ -8,8 +8,8 @@ export const config: MochartInputConfig = {
   categoryAxis: { property: 'quarter', type: 'string', scale: 'ordinal' },
   patternDefaults: {
     spacing: 9,
-    foregroundColor: 'series',
-    backgroundColor: 'series',
+    foregroundColor: 'owner',
+    backgroundColor: 'owner',
     backgroundOpacity: 0.18
   },
   patterns: [

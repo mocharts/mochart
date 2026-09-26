@@ -31,9 +31,9 @@
   "seriesGroups": {},
   "patternDefaults": {
     "spacing": 9,
-    "foregroundColor": "series",
+    "foregroundColor": "owner",
     "foregroundOpacity": 1,
-    "backgroundColor": "series",
+    "backgroundColor": "owner",
     "backgroundOpacity": 0.18
   },
   "patterns": [
