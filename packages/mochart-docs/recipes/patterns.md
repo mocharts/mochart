@@ -25,9 +25,10 @@ import * as patterns from '../examples/patterns'
 - `spacing`, the foreground/background colors and their opacities are common to
   every type. Lines and crosshatches add `rotation` and `lineWidth`; dots add
   `radius`.
-- `foregroundColor: "series"` or `backgroundColor: "series"` resolves to the
-  owning series' normal fill color. `"currentColor"` follows the CSS `color` the
-  chart inherits. A `null` background is transparent (the default).
+- `foregroundColor: "owner"` or `backgroundColor: "owner"` resolves to the
+  normal fill color of the series or threshold range the pattern fills.
+  `"currentColor"` follows the CSS `color` the chart inherits. A `null`
+  background is transparent (the default).
 - Only the common properties can go in `patternDefaults`; `type`, `id`,
   `ignore`, `rotation`, `lineWidth`, and `radius` belong on individual entries.
 - A series cannot use both `pattern` and `gradient`. Set `pattern: null` to opt

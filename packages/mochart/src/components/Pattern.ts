@@ -1,6 +1,6 @@
 import { Renderer, svgEl } from '../render/index.js';
 import {
-  COLOR_SERIES, PATTERN_TYPE_CROSSHATCH, PATTERN_TYPE_DOTS
+  COLOR_OWNER, PATTERN_TYPE_CROSSHATCH, PATTERN_TYPE_DOTS
 } from '../config/core/constants.js';
 import type { El } from '../render/index.js';
 import type { PatternColor, PatternConfig } from '../types/config.js';
@@ -8,11 +8,11 @@ import type { PatternColor, PatternConfig } from '../types/config.js';
 interface PatternProps {
   uniqueId: string;
   patternConfig: PatternConfig;
-  seriesColor: string | null;
+  ownerColor: string | null;
 }
 
-function resolveColor(color: PatternColor | null, seriesColor: string | null): string | null {
-  return color === COLOR_SERIES ? seriesColor : color;
+function resolveColor(color: PatternColor | null, ownerColor: string | null): string | null {
+  return color === COLOR_OWNER ? ownerColor : color;
 }
 
 function setChildPresent(parent: El, child: El, present: boolean): void {
@@ -38,10 +38,10 @@ export default class Pattern extends Renderer<PatternProps> {
   }
 
   sync() {
-    const { uniqueId, patternConfig, seriesColor } = this.props;
+    const { uniqueId, patternConfig, ownerColor } = this.props;
     const { type, spacing, foregroundOpacity, backgroundOpacity } = patternConfig;
-    const foregroundColor = resolveColor(patternConfig.foregroundColor, seriesColor);
-    const backgroundColor = resolveColor(patternConfig.backgroundColor, seriesColor);
+    const foregroundColor = resolveColor(patternConfig.foregroundColor, ownerColor);
+    const backgroundColor = resolveColor(patternConfig.backgroundColor, ownerColor);
     const linePattern = type !== PATTERN_TYPE_DOTS;
 
     this.root.set({

@@ -1,5 +1,5 @@
 import {
-  COLOR_SERIES, NONE, PATTERN_TYPE_CROSSHATCH, PATTERN_TYPE_DOTS, PATTERN_TYPE_LINES
+  COLOR_OWNER, NONE, PATTERN_TYPE_CROSSHATCH, PATTERN_TYPE_DOTS, PATTERN_TYPE_LINES
 } from '../core/constants.js';
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
 import type { DeepPartial, PatternConfig, PatternInputConfig } from '../../types/config.js';
@@ -12,7 +12,7 @@ export function getRegularDefaults() {
   return {
     ignore: false,
     spacing: 8,
-    foregroundColor: COLOR_SERIES,
+    foregroundColor: COLOR_OWNER,
     foregroundOpacity: 1,
     backgroundColor: NONE,
     backgroundOpacity: 1

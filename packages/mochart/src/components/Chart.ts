@@ -1418,7 +1418,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
           props: {
             uniqueId: patternIdMap[seriesConfig.id],
             patternConfig: seriesConfig.patternConfig as PatternConfig,
-            seriesColor: getSeriesFillColor(mochartConfig.colorPalette, seriesConfig, seriesIndex, null, fallbackColor)
+            ownerColor: getSeriesFillColor(mochartConfig.colorPalette, seriesConfig, seriesIndex, null, fallbackColor)
           }
         });
       }
@@ -1431,7 +1431,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     for (const { key, pattern, fillColor } of getThresholdPatterns(mochartConfig)) {
       const patternConfig = patternConfigsById[pattern];
       if (patternConfig !== undefined) {
-        patterns.push({ key, ctor: Pattern, props: { uniqueId: patternIdMap[key], patternConfig, seriesColor: fillColor } });
+        patterns.push({ key, ctor: Pattern, props: { uniqueId: patternIdMap[key], patternConfig, ownerColor: fillColor } });
       }
     }
 

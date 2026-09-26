@@ -1,6 +1,6 @@
 import validators from './validators.js';
 import {
-  COLOR_SERIES, PATTERN_TYPES, PATTERN_TYPE_CROSSHATCH, PATTERN_TYPE_DOTS, PATTERN_TYPE_LINES
+  COLOR_OWNER, PATTERN_TYPES, PATTERN_TYPE_CROSSHATCH, PATTERN_TYPE_DOTS, PATTERN_TYPE_LINES
 } from '../core/constants.js';
 import type { PatternConfig } from '../../types/config.js';
 
@@ -9,7 +9,7 @@ const dotPattern = ({ type }: Partial<PatternConfig>) => type === PATTERN_TYPE_D
 const defaultRule = { condition: () => true };
 
 export default function getValidators(config: Partial<PatternConfig>) {
-  const patternColor = () => validators.svgColor().orEqual(COLOR_SERIES);
+  const patternColor = () => validators.svgColor().orEqual(COLOR_OWNER);
   return {
     id: validators.id(),
     ignore: validators.boolean(),

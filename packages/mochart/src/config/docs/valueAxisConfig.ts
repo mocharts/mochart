@@ -1,4 +1,4 @@
-import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, getTickLabelDetails, tickLabelDescription, minorTickLabelIntro, majorNote, tickStepDescription, getTickStepDescriptions, thresholdStepDescription, getThresholdStepDescriptions, tickStepMinorDetails, valueTickStepDetails, valueStepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails } from './axisConfig.js';
+import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, getTickLabelDetails, tickLabelDescription, minorTickLabelIntro, majorNote, tickStepDescription, getTickStepDescriptions, thresholdStepDescription, getThresholdStepDescriptions, tickStepMinorDetails, valueTickStepDetails, valueStepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails, thresholdStepPatternDetails } from './axisConfig.js';
 
 export default function getDescriptions() {
   return {
@@ -84,6 +84,7 @@ export function getDetails() {
       description: 'The steps are the multiples of `interval`, anchored at 0, from the last one at or below the axis minimum, so a range already under way at the domain edge is drawn clipped rather than left out; with no interval nothing is drawn. The ranges follow the domain as it changes, draw after the `thresholds` entries and carry no title; `minSpacing` keeps a rule from flooding the axis.',
       properties: {
         minSpacing: thresholdStepMinSpacingDetails,
+        pattern: thresholdStepPatternDetails,
         count: valueStepCountOffsetDetails,
         offset: valueStepCountOffsetDetails,
         range: '`interval: 10` with `count: 2` draws ranges over 0 to 10, 20 to 30 and so on; with `range: false` a line sits at each multiple instead.'

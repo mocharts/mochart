@@ -68,7 +68,7 @@ fills the range between its two values instead of drawing a line:
   leaves just the fill. A
   [`pattern`](/reference/valueAxes#valueAxes.thresholds.pattern) or
   [`gradient`](/reference/valueAxes#valueAxes.thresholds.gradient) id fills the
-  range with that definition instead, and a pattern's `series` color resolves to
+  range with that definition instead, and a pattern's `owner` color resolves to
   the range's fill color. `front: false` keeps the range behind the series.
 - The title's `side` is `low` or `high` of the whole range, or `inside` to
   center it within the range; `align` places any threshold title at the `start`,

@@ -22,7 +22,7 @@ describe('built-in pattern config', () => {
     expect(config.validation).toEqual({ valid: true, errors: [], warnings: [] });
     expect(config.patterns).toEqual([
       expect.objectContaining({ id: 'P0', type: 'lines', spacing: 8, rotation: 45, lineWidth: 2,
-        foregroundColor: 'series', foregroundOpacity: 1, backgroundColor: null, backgroundOpacity: 1 }),
+        foregroundColor: 'owner', foregroundOpacity: 1, backgroundColor: null, backgroundOpacity: 1 }),
       expect.objectContaining({ id: 'P1', type: 'crosshatch', spacing: 8, rotation: 45, lineWidth: 2 }),
       expect.objectContaining({ id: 'P2', type: 'dots', spacing: 8, radius: 2 })
     ]);
@@ -61,13 +61,21 @@ describe('built-in pattern config', () => {
     );
   });
 
-  it('accepts svg colors, currentColor, series, and a null background', () => {
+  it('accepts svg colors, currentColor, owner, and a null background', () => {
     const config = enhance({ ...base, patterns: [{
-      type: 'lines', foregroundColor: 'series', backgroundColor: null
+      type: 'lines', foregroundColor: 'owner', backgroundColor: null
     }, {
       type: 'dots', foregroundColor: 'currentColor', backgroundColor: 'oklch(0.7 0.1 200)'
     }] });
     expect(config.validation).toEqual({ valid: true, errors: [], warnings: [] });
+  });
+
+  it('rejects series as a pattern color', () => {
+    const config = enhance({ ...base, patterns: [{ type: 'lines', foregroundColor: 'series', backgroundColor: 'series' }] });
+    expect(config.validation.errors).toEqual([
+      'patterns[0] - foregroundColor - should be a valid svg color (or "none" / "currentColor") or be equal to "owner": "series"',
+      'patterns[0] - backgroundColor - should be a valid svg color (or "none" / "currentColor") or be equal to "owner" or be equal to null: "series"'
+    ]);
   });
 
   it('defaults a sole pattern, supports opt-out, and leaves pattern/gradient combinations explicit', () => {

@@ -238,6 +238,8 @@ export const MAJOR = 'major';
 export const COLOR_SERIES = 'series'
 export const COLOR_SERIES_INDEX = 'seriesIndex';
 export const COLOR_CATEGORY_INDEX ='categoryIndex';
+// A pattern color keyword: the color of the series or threshold range the pattern fills.
+export const COLOR_OWNER = 'owner';
 
 // Deliberately not in the ColorMode union: unlike the modes above (resolved by utils/SeriesColors), this is
 // the svg/css keyword, written to the dom as is so the browser resolves it against the host page's css color.

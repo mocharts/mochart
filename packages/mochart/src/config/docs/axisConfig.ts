@@ -207,6 +207,8 @@ export const valueStepCountOffsetDetails = 'A number means the same in `tickStep
 
 export const thresholdStepMinSpacingDetails = 'The thresholds are counted before any is drawn, from the axis length and the number the rule would draw at its `count`, so a rule that would flood the axis never builds its shapes. When they would sit closer together than `minSpacing`, no stepped thresholds are drawn and a console warning names the axis. An ordinal axis never draws more thresholds than it has categories, so it accepts only the default.';
 
+export const thresholdStepPatternDetails = 'The pattern\'s `"owner"` color keyword resolves to the step\'s `style.normal.fillColor`.';
+
 export const thresholdStyleDetails = 'A line entry uses only the `style` stroke members; the fill members, `pattern` and `gradient` apply to ranges.';
 export const thresholdDomainDetails = 'Thresholds never extend the axis domain: a line outside it is not drawn, a range partly outside is clipped to it, and one wholly outside is not drawn.';
 
@@ -214,7 +216,7 @@ export const thresholdDomainDetails = 'Thresholds never extend the axis domain: 
 export function getThresholdMemberDetails(): DescriptionMap {
   return {
     rangeValue: 'Turns the entry into a range: the space between the two values (in either order) is filled with the `style` fill members, or with the `pattern` or `gradient` named by id, and its two edges are drawn with the stroke members like lines (a stroke opacity of 0 leaves the fill alone).',
-    pattern: 'The pattern\'s `"series"` color keyword resolves to the range\'s `style.normal.fillColor`, the color of whatever the pattern fills.',
+    pattern: 'The pattern\'s `"owner"` color keyword resolves to the range\'s `style.normal.fillColor`.',
     title: { properties: { side: 'On a line, the side of the line the title sits on, by axis value. On a range, `low` or `high` of the whole range, or `inside` centered within it; `inside` is an error on a line.' } }
   };
 }

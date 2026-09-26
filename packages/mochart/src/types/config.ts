@@ -15,7 +15,7 @@ import type { MarginPadding, InnerOuter } from './geometry.js';
 export type SeriesColor = Exclude<ColorMode, 'same'> | (string & {});
 
 /** A browser-rendered SVG color, or `"series"` to use the owning series' normal base fill color. */
-export type PatternColor = 'series' | (string & {});
+export type PatternColor = 'owner' | (string & {});
 
 /**
  * The stroke half of a style: everything needed to draw an outline (or a bare
@@ -1933,6 +1933,9 @@ export interface AxisThresholdStepConfig {
    * for none; an unknown id is a validation error; cannot be combined with
    * gradient).
    *
+   * The pattern's `"owner"` color keyword resolves to the step's
+   * `style.normal.fillColor`.
+   *
    * @default null
    */
   pattern: string | null;
@@ -2000,8 +2003,8 @@ export interface ThresholdConfig {
    * none; an unknown id is a validation error; cannot be combined with
    * gradient).
    *
-   * The pattern's `"series"` color keyword resolves to the range's
-   * `style.normal.fillColor`, the color of whatever the pattern fills.
+   * The pattern's `"owner"` color keyword resolves to the range's
+   * `style.normal.fillColor`.
    *
    * @default null
    */
@@ -4699,10 +4702,11 @@ export interface PatternConfig {
    */
   spacing: number;
   /**
-   * The color of the pattern marks: use "series" for the owning series color or
-   * "currentColor" to follow the host page CSS color.
+   * The color of the pattern marks: use "owner" for the normal fill color of
+   * the series or threshold range the pattern fills, or "currentColor" to
+   * follow the host page CSS color.
    *
-   * @default "series"
+   * @default "owner"
    */
   foregroundColor: PatternColor;
   /**
@@ -4712,9 +4716,9 @@ export interface PatternConfig {
    */
   foregroundOpacity: number;
   /**
-   * The color behind the pattern marks: use "series" for the owning series
-   * color, "currentColor" to follow the host page CSS color, or null for a
-   * transparent background.
+   * The color behind the pattern marks: use "owner" for the normal fill color
+   * of the series or threshold range the pattern fills, "currentColor" to
+   * follow the host page CSS color, or null for a transparent background.
    *
    * @default null
    */

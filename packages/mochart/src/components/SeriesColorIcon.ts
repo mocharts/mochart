@@ -163,7 +163,7 @@ export default class SeriesColorIcon extends Renderer<SeriesColorIconProps> {
       this.ensureDefsFillSlot().set(Pattern, {
         uniqueId: fillDefinitionId,
         patternConfig: seriesConfig.patternConfig!,
-        seriesColor: getSeriesFillColor(this.props.colorPaletteConfig, seriesConfig, this.props.seriesIndex, null, fallbackColor)
+        ownerColor: getSeriesFillColor(this.props.colorPaletteConfig, seriesConfig, this.props.seriesIndex, null, fallbackColor)
       });
     }
     else if (gradient !== NONE) {
