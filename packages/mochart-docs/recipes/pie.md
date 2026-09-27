@@ -49,8 +49,10 @@ import * as gauge from '../examples/gauge'
   line back.
 - The category and value axes still exist structurally (the category property
   and value domains feed the data model and animations) but default to
-  [`visible: false`](/reference/categoryAxis#categoryAxis.visible) in pie mode.
-  The crosshair does not apply.
+  [`visible: false`](/reference/categoryAxis#categoryAxis.visible) in pie mode,
+  and the value axis [`base`](/reference/valueAxes#valueAxes.base) is 0, the
+  value a filtered slice shrinks to, so setting any other base is a validation
+  error. The crosshair does not apply.
 - Values must be non-negative: `createPie` clamps negatives to 0, and a
   zero-value slice simply doesn't render. Only the first data row is rendered.
 

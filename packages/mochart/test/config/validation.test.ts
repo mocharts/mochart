@@ -548,6 +548,16 @@ describe('pie chart config validation', () => {
     expect(errors.some(error => error.startsWith('pie - label.minFraction - '))).toBe(true);
   });
 
+  it('rejects a value axis base other than 0 on a pie, which a filtered slice shrinks to', () => {
+    const errorsFor = (base: number | null) => validateConfig({
+      version: V, chart: { type: 'pie' }, categoryAxis: { property: 'p' }, series: [{ property: 'v' }],
+      valueAxes: [{ id: 'A', base }]
+    }).errors;
+    expect(errorsFor(0)).toEqual([]);
+    expect(errorsFor(5)).toContain('valueAxes[0] - base - should be equal to 0 when chart type is not xy: 5');
+    expect(errorsFor(null)).toContain('valueAxes[0] - base - should be equal to 0 when chart type is not xy: null');
+  });
+
   it('flags an unknown pie label.type', () => {
     const errors = errorsFor({
       version: V,
