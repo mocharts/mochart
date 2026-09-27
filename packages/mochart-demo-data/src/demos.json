@@ -313,7 +313,7 @@
       "id": "log-log",
       "title": "Log-log axes",
       "description": "A low-pass filter's gain against frequency, with log scales on both the category and value axes.",
-      "notes": "The category axis is a number axis with scale: 'log', so the third-octave frequencies from 20 Hz to 20 kHz sit evenly along it, and the value axis is log too, so each filter's roll-off above 1 kHz is a straight line: the first-order filter falls by a factor of 10 each time the frequency rises tenfold, and the second-order filter by a factor of 100. A log category axis takes line and area series only, since a bar's width is a fixed distance in values, and its category values must be above 0. In random mode the frequencies and gains are spread evenly along their log axes between the random config's min and max.",
+      "notes": "The category axis is a number axis with scale: 'log', so the third-octave frequencies from 20 Hz to 20 kHz sit evenly along it, and the value axis is log too, so each filter's roll-off above 1 kHz is a straight line: the first-order filter falls by a factor of 10 each time the frequency rises tenfold, and the second-order filter by a factor of 100. The gain axis sets tickLabel.format to '~g', so its ticks and tooltip values read as plain decimals (0.1, 0.01) rather than the automatic SI prefixes (100m, 10m), which suit counts better than ratios. A log category axis takes line and area series only, since a bar's width is a fixed distance in values, and its category values must be above 0. In random mode the frequencies and gains are spread evenly along their log axes between the random config's min and max.",
       "config": "log-log-config.json",
       "data": "log-log-data.json",
       "random": "log-log-random.json"

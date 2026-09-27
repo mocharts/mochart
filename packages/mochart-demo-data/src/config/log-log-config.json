@@ -18,6 +18,9 @@
       "scale": "log",
       "title": {
         "text": "Gain (output / input)"
+      },
+      "tickLabel": {
+        "format": "~g"
       }
     }
   ],

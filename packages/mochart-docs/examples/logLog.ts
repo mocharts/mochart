@@ -15,7 +15,7 @@ export const config: MochartInputConfig = {
     valueFormat: ',.4~g',
     valueSuffix: ' Hz'
   },
-  valueAxes: [{ scale: 'log', title: { text: 'Gain (output / input)' } }],
+  valueAxes: [{ scale: 'log', title: { text: 'Gain (output / input)' }, tickLabel: { format: '~g' } }],
   series: [
     { property: 'firstOrder', title: 'First order', renderer: 'line', marker: { shape: null } },
     { property: 'secondOrder', title: 'Second order', renderer: 'line', marker: { shape: null } }
