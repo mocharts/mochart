@@ -132,6 +132,11 @@ describe('series label fraction guards', () => {
 });
 
 describe('series label fraction guards split at the axis base', () => {
+  it('measures a range end at or below 0 on a log axis as past the minimum end, 0 and negative alike', () => {
+    const rows = [{ month: 'a', sales: 50, floor: 0 }, { month: 'b', sales: 50, floor: -1 }, { month: 'c', sales: 50, floor: 40 }];
+    expect(labelTexts({ rangeProperty: 'floor', label: { minRangeFraction: 0.5 } }, [{ scale: 'log', min: 1, max: 100 }], rows)).toEqual(['50', '50']);
+  });
+
   it('labels every category when only the base is set', () => {
     expect(basedLabelTexts({})).toEqual(['−100', '−50', '−10', '0', '10', '50', '100']);
   });

@@ -3,7 +3,7 @@ import { Renderer, svgEl, textEl } from '../render/index.js';
 import { getSeriesLabelFormat } from '../utils/ValueFormat.js';
 import { getScaledValue, getValueOffsetByDomainFraction } from '../data/DomainFraction.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
-import { NONE, AUTO, LABEL_POSITION_CENTER, LABEL_POSITION_INSIDE, RENDERER_BAR } from '../config/core/constants.js';
+import { NONE, AUTO, LABEL_POSITION_CENTER, LABEL_POSITION_INSIDE, RENDERER_BAR, SCALE_LOG } from '../config/core/constants.js';
 import { translate, isMissingValue } from '../utils/utils.js';
 import { getSeriesLabelFillColor, getSeriesLabelStrokeColor } from '../utils/SeriesColors.js';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
@@ -186,7 +186,9 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
           const hasStack = seriesConfig.stack !== NONE;
           // compared in scaled values, so the span is a share of the axis length on any scale
           const minScaledSpan = seriesConfig.label.minRangeFraction * (getScaledValue(scale, domainMax) - getScaledValue(scale, domainMin));
-          const spansEnough = (maxSeriesValue: number, valueMin: number) => Math.abs(getScaledValue(scale, maxSeriesValue) - getScaledValue(scale, valueMin)) >= minScaledSpan;
+          // a value at or below 0 on a log axis is drawn past the minimum end, 0 or negative alike, so both scale to -Infinity
+          const scaled = (value: number) => scale === SCALE_LOG && value <= 0 ? -Infinity : getScaledValue(scale, value);
+          const spansEnough = (maxSeriesValue: number, valueMin: number) => Math.abs(scaled(maxSeriesValue) - scaled(valueMin)) >= minScaledSpan;
 
           if (hasStack) {
             if (hasBase) {
