@@ -3194,9 +3194,10 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * negative value, so category values at or below 0 are a data error; it
    * rejects bar series, whose widths are a fixed distance in values, and takes
    * no offsets, `minTickInterval` or step interval for the same reason. Its
-   * ticks sit at the powers of 10, with minor ticks at the multiples from 2 to
-   * 9 between them. A date axis cannot be log, since a date has no natural
-   * zero; elapsed time on a log axis is a number, such as days since an event.
+   * ticks sit at the powers of 10 and, where they fit, their 2 and 5 or 2 to 9
+   * multiples, with the rest as minor ticks. A date axis cannot be log, since a
+   * date has no natural zero; elapsed time on a log axis is a number, such as
+   * days since an event.
    *
    * @default "ordinal"
    */
@@ -3686,15 +3687,16 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * end of the axis and cut off at the plot edge, and the clip indicator shows
    * it; a range with both ends at or below 0 is missing. Ticks sit at the
    * powers of 10, every second, fifth or tenth one when they do not all fit,
-   * with the 2 and 5 multiples added when the powers are too few; the other
-   * multiples from 2 to 9 are minor ticks, and inside a single power of 10 the
-   * ticks are linear ones. Values and the domain animate in the same terms, so
-   * a value moving from 1 to 1000 is halfway up the axis at 31.6. A log axis
-   * cannot hold a series stack, since a stack starts at 0, and it takes no
-   * `tickStep` or `thresholdStep` interval, no offsets and no
-   * `minTickInterval`, since each of those is a fixed distance in values. A pie
-   * chart accepts only `"linear"`. Switching the scale restarts the chart
-   * without a transition.
+   * with the 2 and 5 multiples, or every multiple from 2 to 9, added when the
+   * powers are too few and they fit; the multiples and skipped powers that are
+   * not ticks are minor ticks, and between two neighbouring powers of 10 the
+   * ticks are the multiples that lie there, or linear ones on an axis with room
+   * for more. Values and the domain animate in the same terms, so a value
+   * moving from 1 to 1000 is halfway up the axis at 31.6. A log axis cannot
+   * hold a series stack, since a stack starts at 0, and it takes no `tickStep`
+   * or `thresholdStep` interval, no offsets and no `minTickInterval`, since
+   * each of those is a fixed distance in values. A pie chart accepts only
+   * `"linear"`. Switching the scale restarts the chart without a transition.
    *
    * @default "linear"
    */

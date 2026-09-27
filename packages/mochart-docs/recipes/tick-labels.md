@@ -93,8 +93,8 @@ full.
   [`minTickSpacing`](/reference/categoryAxis#categoryAxis.minTickSpacing), and
   keeps that many ticks. On an ordinal axis it keeps every nth category to get
   down to the count; on a linear axis it asks the scale for that many ticks; on
-  a [log axis](/recipes/log-scale) it keeps that many of the powers of 10. A
-  number replaces the calculation outright.
+  a [log axis](/recipes/log-scale) it keeps at most that many of the powers of
+  10 and their multiples. A number replaces the calculation outright.
 - [`maxTickCount`](/reference/categoryAxis#categoryAxis.maxTickCount) caps the
   computed count (10 on a linear axis, uncapped (`0`) on an ordinal one), so the
   eight ticks above are the cap, not the fit. On a linear axis

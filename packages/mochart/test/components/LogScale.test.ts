@@ -78,10 +78,27 @@ describe('log value axis ticks', () => {
     expect(majorLabels(container)).toEqual(['10m', '1', '100', '10k', '1M', '100M']);
   });
 
-  it('falls back to linear ticks between two neighbouring powers of 10', () => {
+  it('keeps the 2 and 5 multiples on a tall axis rather than falling back to linear ticks', () => {
+    const { container } = mount({ valueAxes: [{ scale: 'log', min: 1, max: 10 }], series: [{ property: 'v' }] }, rowsFor([2, 8]));
+    expect(majorLabels(container)).toEqual(['1', '2', '5', '10']);
+    expect(count(container, 'axisMinorTickMark')).toBe(6);
+  });
+
+  it('ticks every 1 to 9 multiple when they all fit and there are too few powers', () => {
     const { container } = mount({ valueAxes: [{ scale: 'log', min: 50, max: 80, tickCount: 7 }], series: [{ property: 'v' }] }, rowsFor([55, 70]));
+    expect(majorLabels(container)).toEqual(['50', '60', '70', '80']);
+    expect(count(container, 'axisMinorTickMark')).toBe(0);
+  });
+
+  it('falls back to linear ticks between two neighbouring powers of 10 when fewer than half the tick count of multiples lie there', () => {
+    const { container } = mount({ valueAxes: [{ scale: 'log', min: 50, max: 80, tickCount: 12 }], series: [{ property: 'v' }] }, rowsFor([55, 70]));
     expect(majorLabels(container)).toEqual(['50', '55', '60', '65', '70', '75', '80']);
     expect(count(container, 'axisMinorTickMark')).toBe(0);
+  });
+
+  it('drops linear fallback ticks until their gaps fit, since they sit closer towards the maximum end', () => {
+    const { container } = mount({ valueAxes: [{ scale: 'log', min: 50, max: 80, tickCount: 12, minTickSpacing: 60 }], series: [{ property: 'v' }] }, rowsFor([55, 70]));
+    expect(majorLabels(container)).toEqual(['60', '80']);
   });
 
   it('formats each tick at its own magnitude', () => {

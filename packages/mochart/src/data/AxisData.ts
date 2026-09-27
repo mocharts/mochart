@@ -463,9 +463,10 @@ function getLogMultiples(min: number, max: number, multiples: readonly number[])
 
 /**
  * The ticks of a log axis: the powers of 10, keeping every second, fifth or tenth one when they do not all fit, with the
- * 2 and 5 multiples added as ticks when the powers are too few and every gap fits minGap pixels. The other 1 to 9
- * multiples, or the skipped powers, are minor ticks. With fewer than half of tickCount powers and 2 and 5 multiples in
- * the domain, as between two neighbouring powers of 10, or none that fit, the ticks are linear ones and there are no minors.
+ * 2 and 5 multiples, or every 1 to 9 multiple, added as ticks when the powers are too few and every gap fits minGap
+ * pixels. The multiples left over, or the skipped powers, are minor ticks. With fewer than half of tickCount of the 1 to
+ * 9 multiples in the domain (d3's rule), as between two neighbouring powers of 10, or with no power of 10 and multiples
+ * that do not fit, the ticks are linear ones, as many as fit minGap, and there are no minors.
  */
 function getLogTicks(domain: [number, number], tickCount: number, axisScale: AxisScale, minGap: number): LogTicks {
   const min = Math.min(domain[0], domain[1]);
@@ -473,13 +474,19 @@ function getLogTicks(domain: [number, number], tickCount: number, axisScale: Axi
   if (tickCount < 1 || !(min > 0) || !(max > min)) {
     return { majors: [], minors: [], linearScale: null };
   }
-  const withTwosAndFives = getLogMultiples(min, max, [1, 2, 5]);
+  const gapsFit = (values: readonly number[]) => values.every((value, i) => i === 0 || Math.abs(axisScale(value) - axisScale(values[i - 1]!)) >= minGap);
+  const fits = (values: readonly number[]) => values.length <= tickCount && gapsFit(values);
   const powers = getLogMultiples(min, max, [1]);
-  const gapsFit = withTwosAndFives.every((value, i) => i === 0 || Math.abs(axisScale(value) - axisScale(withTwosAndFives[i - 1]!)) >= minGap);
-  const useTwosAndFives = withTwosAndFives.length <= tickCount && gapsFit;
-  if (withTwosAndFives.length < tickCount / 2 || (!useTwosAndFives && powers.length === 0)) {
+  const withTwosAndFives = getLogMultiples(min, max, [1, 2, 5]);
+  const allMultiples = getLogMultiples(min, max, logMultiples);
+  if (allMultiples.length < tickCount / 2 || (powers.length === 0 && !fits(allMultiples))) {
+    // linear ticks sit unevenly on a log axis, closer towards the maximum end, so the count drops until every gap fits
     const linearScale = scaleLinear().domain([min, max]);
-    return { majors: linearScale.ticks(tickCount) as number[], minors: [], linearScale };
+    let linearTicks = linearScale.ticks(tickCount) as number[];
+    for (let count = tickCount - 1; count >= 1 && !gapsFit(linearTicks); count--) {
+      linearTicks = linearScale.ticks(count) as number[];
+    }
+    return { majors: linearTicks, minors: [], linearScale };
   }
   let majors: number[];
   if (powers.length > tickCount) {
@@ -487,8 +494,8 @@ function getLogTicks(domain: [number, number], tickCount: number, axisScale: Axi
     majors = powers.filter(power => Math.round(Math.log10(power)) % exponentStep === 0);
     return { majors, minors: powers.filter(power => !majors.includes(power)).map(value => ({ value, hidden: false })), linearScale: null };
   }
-  majors = useTwosAndFives ? withTwosAndFives : powers;
-  return { majors, minors: getLogMultiples(min, max, logMultiples).filter(value => !majors.includes(value)).map(value => ({ value, hidden: false })), linearScale: null };
+  majors = fits(allMultiples) ? allMultiples : fits(withTwosAndFives) ? withTwosAndFives : powers;
+  return { majors, minors: allMultiples.filter(value => !majors.includes(value)).map(value => ({ value, hidden: false })), linearScale: null };
 }
 
 /** The linear ticks of an axis in value order: the step's ticks (or the scale's) with the minor ticks between them. */
