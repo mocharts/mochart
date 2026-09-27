@@ -314,4 +314,19 @@ describe('value formats on a log axis', () => {
     const formats = getSeriesFormats([series({ id: 's', valueFormat: 'auto', valueAxisConfig: axis })], [axis], { y: [1, 1e6] });
     expect(formats.s(12345.6)).toBe('12,346');
   });
+
+  it('gives a format that leaves its precision open 3 significant digits, trimmed, rather than d3\'s 6', () => {
+    const axis = valueAxis({ id: 'y', scale: 'log', tickLabel: { format: 's' } });
+    const formats = getSeriesFormats([series({ id: 's', valueFormat: 'auto', valueAxisConfig: axis })], [axis], { y: [1, 1000] });
+    expect([0.00185284, 4.5, 123, 1000].map(formats['s']!)).toEqual(['1.85m', '4.5', '123', '1k']);
+    const percent = valueAxis({ id: 'y', scale: 'log', tickLabel: { format: '%' } });
+    expect(getSeriesFormats([series({ id: 's', valueFormat: 'auto', valueAxisConfig: percent })], [percent], { y: [1, 1000] })['s']!(4.5)).toBe('450%');
+  });
+
+  it('leaves a format with a precision, or one whose type takes none, as written', () => {
+    const fixed = valueAxis({ id: 'y', scale: 'log', tickLabel: { format: '.4s' } });
+    expect(getSeriesFormats([series({ id: 's', valueFormat: 'auto', valueAxisConfig: fixed })], [fixed], { y: [1, 1000] })['s']!(4.5)).toBe('4.500');
+    const integer = valueAxis({ id: 'y', scale: 'log', tickLabel: { format: 'd' } });
+    expect(getSeriesFormats([series({ id: 's', valueFormat: 'auto', valueAxisConfig: integer })], [integer], { y: [1, 1000] })['s']!(1000)).toBe('1000');
+  });
 });

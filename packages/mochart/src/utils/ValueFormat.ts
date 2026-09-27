@@ -1,4 +1,4 @@
-import { format } from 'd3-format';
+import { format, formatSpecifier } from 'd3-format';
 import { timeFormat, utcFormat } from 'd3-time-format';
 import { scaleLinear } from 'd3-scale';
 
@@ -9,6 +9,23 @@ import type { EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enh
 import type { AxisDomains, AxisScale, CategoryValue } from '../types/data.js';
 
 export type ValueFormatter = (value: number | Date) => CategoryValue;
+
+// the d3 format types whose precision means nothing, so a log axis leaves it alone
+const formatTypesWithoutPrecision = new Set(['b', 'c', 'd', 'o', 'x', 'X']);
+
+/**
+ * A number format for a log axis, which formats each value on its own rather than through a scale's tickFormat: a
+ * specifier that leaves its precision open takes 3 significant digits with the trailing zeros trimmed, as the automatic
+ * log formats do, since there is no tick step or domain to take a precision from and d3's default is 6.
+ */
+export function getLogNumberFormat(specifierString: string): (value: number) => string {
+  const specifier = formatSpecifier(specifierString);
+  if (specifier.precision === undefined && !formatTypesWithoutPrecision.has(specifier.type)) {
+    specifier.precision = 3;
+    specifier.trim = true;
+  }
+  return format(specifier.toString());
+}
 
 const autoValueFormatNumber = ".2s";
 // a log axis spans magnitudes, so each value takes its own prefix; the trailing zeros are trimmed to match its tick labels
@@ -46,7 +63,7 @@ export function getCategoryFormat(categoryAxisConfig: CategoryAxisConfig): (cate
             categoryFormat = category => formatter(category as Date);
           }
           else if (categoryAxisConfig.type === TYPE_NUMBER) {
-            const formatter = format(categoryAxisConfig.tickLabel.format);
+            const formatter = categoryAxisConfig.scale === SCALE_LOG ? getLogNumberFormat(categoryAxisConfig.tickLabel.format) : format(categoryAxisConfig.tickLabel.format);
             categoryFormat = category => formatter(category as number);
           }
         }
@@ -58,7 +75,7 @@ export function getCategoryFormat(categoryAxisConfig: CategoryAxisConfig): (cate
         categoryFormat = category => formatter(category as Date);
       }
       else if (categoryAxisConfig.type === TYPE_NUMBER) {
-        const formatter = format(categoryAxisConfig.valueFormat);
+        const formatter = categoryAxisConfig.scale === SCALE_LOG ? getLogNumberFormat(categoryAxisConfig.valueFormat) : format(categoryAxisConfig.valueFormat);
         categoryFormat = category => formatter(category as number);
       }
     }
@@ -84,7 +101,7 @@ function getSeriesValueFormatter(seriesConfig: EnhancedSeriesConfig, valueAxisCo
     }
     if (valueAxisConfig.scale === SCALE_LOG) {
       // per value, never the log scale's tickFormat, which blanks most values that are not powers of 10
-      const formatter = format(valueAxisConfig.tickLabel.format === AUTO ? autoLogValueFormatNumber : valueAxisConfig.tickLabel.format);
+      const formatter = getLogNumberFormat(valueAxisConfig.tickLabel.format === AUTO ? autoLogValueFormatNumber : valueAxisConfig.tickLabel.format);
       return value => formatter(value as number);
     }
     const formatSpecifier = valueAxisConfig.tickLabel.format === AUTO ? autoValueFormatNumber : valueAxisConfig.tickLabel.format;

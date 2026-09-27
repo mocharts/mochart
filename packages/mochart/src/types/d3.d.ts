@@ -13,6 +13,7 @@ declare module 'd3-format' {
   export interface FormatSpecifier {
     type: string;
     precision: number | undefined;
+    trim: boolean;
   }
   export function format(specifier: string | FormatSpecifier): (value: number) => string;
   export function formatPrefix(specifier: string | FormatSpecifier, value: number): (value: number) => string;

@@ -6,6 +6,7 @@ import { getWithMutations } from '../utils/WithMutations.js';
 import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData.js';
 import { getCategoryValueKey } from './CategoryValue.js';
 import { getScaledValue } from './DomainFraction.js';
+import { getLogNumberFormat } from '../utils/ValueFormat.js';
 import { areArraysAndEqual, arrayToMap, idAccessor, hasText } from '../utils/utils.js';
 import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, SCALE_LOG, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
 import type { Anchor } from '../config/core/constants.js';
@@ -1002,7 +1003,7 @@ function getLinearScaleTickLabelFormatter(axisConfig: CategoryAxisConfig | Enhan
   if (tickLabel.format !== NONE) {
     if (axisConfig.type === TYPE_NUMBER && perValue) {
       // per tick, never the log scale's tickFormat, which blanks most ticks that are not powers of 10
-      const numberFormat = format(tickLabel.format === AUTO ? autoLogTickLabelFormatNumber : tickLabel.format);
+      const numberFormat = getLogNumberFormat(tickLabel.format === AUTO ? autoLogTickLabelFormatNumber : tickLabel.format);
       tickLabelFormatter = tick => numberFormat(tick as number);
     }
     else if (axisConfig.type === TYPE_NUMBER) {

@@ -39,7 +39,9 @@ import * as logLog from '../examples/logLog'
   that misleads, a
   [`tickLabel.format`](/reference/valueAxes#valueAxes.tickLabel.format) of
   `"~g"` labels the ticks and the tooltip values as plain decimals, as the
-  log-log example below does.
+  log-log example below does. A format that leaves its precision open, such
+  as `"s"` or `"~g"`, takes 3 significant digits on a log axis, with the
+  trailing zeros trimmed, since there is no tick step to take one from.
 - [`minMarginFraction`](/reference/valueAxes#valueAxes.minMarginFraction) and
   [`maxMarginFraction`](/reference/valueAxes#valueAxes.maxMarginFraction) are
   taken from the logs of the domain, so a 5% margin is 5% of the axis length on

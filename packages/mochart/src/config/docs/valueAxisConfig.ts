@@ -37,7 +37,7 @@ export default function getDescriptions() {
       description: tickLabelDescription,
       properties: {
         ...getTickLabelDescriptions(),
-        format: 'the d3 format string to be applied to the series values when displayed in axis tick labels (use null for none, use "auto" for an SI-prefixed number whose precision follows the tick spacing, or on a log axis the magnitude of each tick)',
+        format: 'the d3 format string to be applied to the series values when displayed in axis tick labels (use null for none, use "auto" for an SI-prefixed number whose precision follows the tick spacing, or on a log axis the magnitude of each tick; there a format that leaves its precision open takes 3 significant digits, trimmed)',
         minorFormat: 'the d3 format string to be applied to the series values when displayed in minor tick labels (use null for none, use "auto" to derive from data)' + majorNote('tickLabel.format'),
         adjustSizeForFiltering: 'whether to adjust the size of the axis tick label bounds as series belonging to it are filtered (applies to the minor tick labels too)'
       }

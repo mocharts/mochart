@@ -57,7 +57,7 @@ export default function getDescriptions() {
       description: tickLabelDescription,
       properties: {
         ...getTickLabelDescriptions(),
-        format: 'the d3 format string (d3-format for number, d3-time-format for date) to be applied to the category values when displayed in axis tick labels (use null for none, use "auto" to derive the format from the ticks: on a number axis an SI-prefixed number whose precision follows the tick spacing, or on a log axis the magnitude of each tick)',
+        format: 'the d3 format string (d3-format for number, d3-time-format for date) to be applied to the category values when displayed in axis tick labels (use null for none, use "auto" to derive the format from the ticks: on a number axis an SI-prefixed number whose precision follows the tick spacing, or on a log axis the magnitude of each tick; there a format that leaves its precision open takes 3 significant digits, trimmed)',
         minorFormat: 'the d3 format string (d3-format for number, d3-time-format for date) to be applied to the category values when displayed in minor tick labels (use null for none, use "auto" to derive from data)' + majorNote('tickLabel.format'),
         truncation: {
           description: 'the truncation applied to the axis tick labels when they would overlap each other',

@@ -106,6 +106,11 @@ describe('log value axis ticks', () => {
     expect(majorLabels(container)).toEqual(['1m', '10m', '100m', '1', '10', '100', '1k']);
   });
 
+  it('labels ticks with a format that leaves its precision open at 3 significant digits, trimmed', () => {
+    const { container } = mount({ valueAxes: [{ scale: 'log', min: 1, max: 1000, tickCount: 4, tickLabel: { format: 's' } }], series: [{ property: 'v' }] }, rowsFor([2, 30, 400]));
+    expect(majorLabels(container)).toEqual(['1', '10', '100', '1k']);
+  });
+
   it('labels explicit ticks by value', () => {
     const { container } = mount({ valueAxes: [{ scale: 'log', ticks: [{ value: 1 }, { value: 45 }, { value: 1000 }] }], series: [{ property: 'v' }] }, rowsFor([1, 1000]));
     expect(majorLabels(container)).toEqual(['1', '45', '1k']);
