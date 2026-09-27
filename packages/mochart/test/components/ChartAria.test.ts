@@ -84,7 +84,7 @@ describe('chart aria semantics', () => {
   });
 
   it('hides pie slices from assistive tech', () => {
-    const container = mountChart(makeConfig({ chart: { type: 'pie' } }));
+    const container = mountChart(makeConfig({ chart: { type: 'pie' } }), { data: [rows[0]] });
     const slices = container.querySelectorAll(getCssSelector('series'));
     expect(slices.length).toBe(2);
     for (const slice of slices) {
@@ -111,7 +111,7 @@ describe('chart aria semantics', () => {
   });
 
   it('renders a pie without any aria semantics when chart accessibility is disabled', () => {
-    const container = mountChart(makeConfig({ chart: { type: 'pie' }, accessibility: { enabled: false } }));
+    const container = mountChart(makeConfig({ chart: { type: 'pie' }, accessibility: { enabled: false } }), { data: [rows[0]] });
     expect(container.querySelectorAll(getCssSelector('series')).length).toBe(2);
     expect(container.querySelectorAll('[aria-hidden], [role], [tabindex], [aria-label]').length).toBe(0);
   });
@@ -210,7 +210,7 @@ describe('decorative-hidden charts', () => {
   });
 
   it('hides a pie chart and its slice tab stops', () => {
-    const container = mountChart(makeConfig({ chart: { type: 'pie' }, accessibility: { hidden: true } }));
+    const container = mountChart(makeConfig({ chart: { type: 'pie' }, accessibility: { hidden: true } }), { data: [rows[0]] });
     expect(container.querySelector(getCssSelector('chart'))!.getAttribute('aria-hidden')).toBe('true');
     expect(container.querySelectorAll(getCssSelector('series')).length).toBe(2);
     expect(container.querySelectorAll(FOCUSABLE + ', [role="button"]').length).toBe(0);

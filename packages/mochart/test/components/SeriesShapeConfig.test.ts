@@ -102,10 +102,7 @@ describe('stack outer cap expand', () => {
 });
 
 describe('pie centre offset', () => {
-  const pieRows = [
-    { slice: 'A', value: 60 },
-    { slice: 'B', value: 40 }
-  ];
+  const pieRows = [{ slice: 'A', value: 60 }];
   const pie = (extra: Record<string, unknown>) => ({
     chart: { type: 'pie' },
     categoryAxis: { property: 'slice', type: 'string', scale: 'ordinal' },

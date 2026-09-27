@@ -8,7 +8,7 @@ import { getCategoryValueKey } from './CategoryValue.js';
 import { getScaledValue } from './DomainFraction.js';
 import { getAutoPerValueNumberFormat, getPerValueNumberFormat } from '../utils/ValueFormat.js';
 import { areArraysAndEqual, arrayToMap, idAccessor, hasText } from '../utils/utils.js';
-import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, SCALE_LOG, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
+import { AUTO, NONE, CHART_TYPE_PIE, SCALE_ORDINAL, SCALE_LINEAR, SCALE_LOG, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
 import type { Anchor } from '../config/core/constants.js';
 import { getMinorTickLabel } from '../config/core/minorConfig.js';
 import { getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
@@ -28,10 +28,16 @@ const autoTickLabelFormatDate = '%c';
 
 const enableOrdinalExperimentalMode = true;
 
+// a pie's axes draw nothing, so a tickStep that would create no ticks there is not worth a console warning
+function hasStepWarnings(mochartConfig: EnhancedMochartConfig): boolean {
+  return mochartConfig.chart.type !== CHART_TYPE_PIE;
+}
+
 export function getAxisData(mochartConfig: EnhancedMochartConfig, chartLayoutInfo: ChartLayoutInfo, chartData: ChartData | null): AxisData {
 
-  const categoryAxisData = getCategoryAxisData(mochartConfig.categoryAxis, chartLayoutInfo.categoryAxisLayoutInfo, chartData);
-  const valueAxisData = getValueAxisData(mochartConfig.plot, mochartConfig.valueAxes, chartLayoutInfo.valueAxisLayoutInfos, chartData);
+  const stepWarnings = hasStepWarnings(mochartConfig);
+  const categoryAxisData = getCategoryAxisData(mochartConfig.categoryAxis, chartLayoutInfo.categoryAxisLayoutInfo, chartData, stepWarnings);
+  const valueAxisData = getValueAxisData(mochartConfig.plot, mochartConfig.valueAxes, chartLayoutInfo.valueAxisLayoutInfos, chartData, stepWarnings);
 
   return {
     category: categoryAxisData,
@@ -72,16 +78,16 @@ export function getAxisDataWithMutations(axisData: AxisData | null, mochartConfi
 }
 
 export function getAxisDataForCategoryChange(axisData: AxisData, mochartConfig: EnhancedMochartConfig, chartLayoutInfo: ChartLayoutInfo, chartData: ChartData | null): AxisData {
-  const categoryAxisData = getCategoryAxisData(mochartConfig.categoryAxis, chartLayoutInfo.categoryAxisLayoutInfo, chartData);
+  const categoryAxisData = getCategoryAxisData(mochartConfig.categoryAxis, chartLayoutInfo.categoryAxisLayoutInfo, chartData, hasStepWarnings(mochartConfig));
   return getWithMutations(axisData, Object.assign({}, axisData, { category: categoryAxisData }), scaleMutator);
 }
 
 export function getAxisDataForSeriesChange(axisData: AxisData, mochartConfig: EnhancedMochartConfig, chartLayoutInfo: ChartLayoutInfo, chartData: ChartData | null): AxisData {
-  const valueAxisData = getValueAxisData(mochartConfig.plot, mochartConfig.valueAxes, chartLayoutInfo.valueAxisLayoutInfos, chartData);
+  const valueAxisData = getValueAxisData(mochartConfig.plot, mochartConfig.valueAxes, chartLayoutInfo.valueAxisLayoutInfos, chartData, hasStepWarnings(mochartConfig));
   return getWithMutations(axisData, Object.assign({}, axisData, { value: valueAxisData }), scaleMutator);
 }
 
-function getCategoryAxisData(categoryAxisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, chartData: ChartData | null): CategoryAxisData | null {
+function getCategoryAxisData(categoryAxisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, chartData: ChartData | null, stepWarnings: boolean): CategoryAxisData | null {
   let categoryAxisData: CategoryAxisData | null = null;
   if (chartData) {
     const { categoryData } = chartData;
@@ -90,7 +96,7 @@ function getCategoryAxisData(categoryAxisConfig: CategoryAxisConfig, axisLayoutI
     const positions = getCategoryValuePositions(categoryAxisConfig, axisScale, categoryData.values);
     // a collapsed domain (one category, or explicit min === max) draws its single tick at the value, not at the widened render bounds
     const tickDomain = isCollapsedDomain(categoryData.axisDomain) ? categoryData.axisDomain : categoryData.renderAxisDomain;
-    const { ticks: axisTickData, minorTickLabelLength } = buildCategoryAxisTickData(categoryAxisConfig, axisLayoutInfo, axisScale, tickDomain, categoryData.values.parsed, categoryData.values.key, positions);
+    const { ticks: axisTickData, minorTickLabelLength } = buildCategoryAxisTickData(categoryAxisConfig, axisLayoutInfo, axisScale, tickDomain, categoryData.values.parsed, categoryData.values.key, positions, stepWarnings);
     const maxTickLabelLength = getMaxTickLabelLength(categoryAxisConfig, categoryData.values.parsed, axisTickData, spacingInfo);
 
     categoryAxisData = {
@@ -100,13 +106,13 @@ function getCategoryAxisData(categoryAxisConfig: CategoryAxisConfig, axisLayoutI
   return categoryAxisData;
 }
 
-function getValueAxisData(plotConfig: PlotConfig, valueAxisConfigs: EnhancedValueAxisConfig[], axisLayoutInfoArray: ChartLayoutInfo['valueAxisLayoutInfos'], chartData: ChartData | null): ValueAxisData | null {
+function getValueAxisData(plotConfig: PlotConfig, valueAxisConfigs: EnhancedValueAxisConfig[], axisLayoutInfoArray: ChartLayoutInfo['valueAxisLayoutInfos'], chartData: ChartData | null, stepWarnings: boolean): ValueAxisData | null {
   let valueAxisData: ValueAxisData | null = null;
   if (chartData) {
     const vertical = !plotConfig.inverted;
     const { seriesData } = chartData;
     const axisScales = getValueAxisScales(valueAxisConfigs, seriesData.raw.renderAxisDomains, seriesData.filtered.renderAxisDomains, axisLayoutInfoArray, vertical);
-    const axisTickData = getValueAxisTickData(valueAxisConfigs, axisLayoutInfoArray, seriesData, axisScales, vertical);
+    const axisTickData = getValueAxisTickData(valueAxisConfigs, axisLayoutInfoArray, seriesData, axisScales, vertical, stepWarnings);
 
     valueAxisData = {
       axisScales, axisTickData
@@ -336,7 +342,7 @@ function warnStep(step: object, kind: 'majors' | 'minors', tooDense: boolean, me
  * them. The ticks are counted before any is created: a step whose ticks would sit closer than minSpacing along
  * the axis creates none, and its minor ticks alone are dropped when only they would.
  */
-function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue, AxisValue], axisLength: number, axisName: string): LinearStepTicks {
+function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue, AxisValue], axisLength: number, axisName: string, warnings: boolean): LinearStepTicks {
   const step = axisConfig.tickStep;
   const domainMin = +domain[0];
   const domainMax = +domain[1];
@@ -346,7 +352,11 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
   const countN = step.count === AUTO ? 1 : step.count;
   const keep = (index: number) => step.count === AUTO || ((index - step.offset) % step.count + step.count) % step.count === 0;
   const tooDense = (spacing: number) => spacing < step.minSpacing;
-  const warn = (kind: 'majors' | 'minors', dense: boolean) => warnStep(step, kind, dense, 'mochart ' + axisName + ' tickStep creates no ' + (kind === 'majors' ? 'ticks' : 'minor ticks') + ': they would be closer together than minSpacing (' + step.minSpacing + 'px)');
+  const warn = (kind: 'majors' | 'minors', dense: boolean) => {
+    if (warnings) {
+      warnStep(step, kind, dense, 'mochart ' + axisName + ' tickStep creates no ' + (kind === 'majors' ? 'ticks' : 'minor ticks') + ': they would be closer together than minSpacing (' + step.minSpacing + 'px)');
+    }
+  };
 
   if (axisConfig.type === TYPE_DATE) {
     const period = step.period ?? NONE;
@@ -513,11 +523,11 @@ function createLinearTicks(majors: AxisValue[], minors: LinearStepTicks['minors'
 }
 
 /** The ticks of the category axis; see buildCategoryAxisTickData for the minor label room. */
-export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[]): AxisTick[] {
-  return buildCategoryAxisTickData(axisConfig, axisLayoutInfo, axisScale, axisDomain, categoryValues, categoryKeys, categoryPositions).ticks;
+export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[], stepWarnings = true): AxisTick[] {
+  return buildCategoryAxisTickData(axisConfig, axisLayoutInfo, axisScale, axisDomain, categoryValues, categoryKeys, categoryPositions, stepWarnings).ticks;
 }
 
-function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[]): { ticks: AxisTick[]; minorTickLabelLength: number } {
+function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[], stepWarnings: boolean): { ticks: AxisTick[]; minorTickLabelLength: number } {
   const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
   const fits = getTickLabelFits(axisConfig, axisLayoutInfo, minorTickLabel);
   if (axisConfig.ticks !== NONE) {
@@ -590,7 +600,7 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
         linearTickScale = logTicks.linearScale;
       }
       else {
-        stepTicks = getLinearStepTicks(axisConfig, axisScale.domain() as [AxisValue, AxisValue], categoryAxisRangeExtent, 'categoryAxis');
+        stepTicks = getLinearStepTicks(axisConfig, axisScale.domain() as [AxisValue, AxisValue], categoryAxisRangeExtent, 'categoryAxis', stepWarnings);
         scaleTicks = stepTicks.majors ?? axisScale.ticks(tickCount);
       }
     }
@@ -793,18 +803,18 @@ function getMaxTickLabelLength(_categoryAxisConfig: CategoryAxisConfig, category
   return categoryValues.length / visibleTickCount * spacingInfo.categoryValueExtent;
 }
 
-function getValueAxisTickData(axisConfigArray: EnhancedValueAxisConfig[], axisLayoutInfoArray: ChartLayoutInfo['valueAxisLayoutInfos'], seriesData: ChartData['seriesData'], axisScaleArray: Record<string, AxisScale>, vertical: boolean): Record<string, AxisTick[]> {
+function getValueAxisTickData(axisConfigArray: EnhancedValueAxisConfig[], axisLayoutInfoArray: ChartLayoutInfo['valueAxisLayoutInfos'], seriesData: ChartData['seriesData'], axisScaleArray: Record<string, AxisScale>, vertical: boolean, stepWarnings: boolean): Record<string, AxisTick[]> {
   return arrayToMap(axisConfigArray, idAccessor, axisConfig => {
     const axisId = axisConfig.id;
     // explicit min === max: the single tick belongs at the configured value, not at the widened render bounds
     const explicitCollapsed = isExplicitCollapsedDomain(axisConfig, seriesData.raw.axisDomains[axisId]);
     const rawDomain = explicitCollapsed ? seriesData.raw.axisDomains[axisId] : seriesData.raw.renderAxisDomains[axisId];
     const filteredDomain = explicitCollapsed ? seriesData.filtered.axisDomains[axisId] : seriesData.filtered.renderAxisDomains[axisId];
-    return getValueAxisTickDataObject(axisConfig, axisLayoutInfoArray[axisId], rawDomain, filteredDomain, seriesData.raw.renderAxisDomains[axisId], seriesData.axisSeriesCounts[axisId], axisScaleArray[axisId], vertical);
+    return getValueAxisTickDataObject(axisConfig, axisLayoutInfoArray[axisId], rawDomain, filteredDomain, seriesData.raw.renderAxisDomains[axisId], seriesData.axisSeriesCounts[axisId], axisScaleArray[axisId], vertical, stepWarnings);
   });
 }
 
-function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLayoutInfo: AxisLayoutInfo, rawValueAxisDomain: NullableDomain, filteredValueAxisDomain: NullableDomain, rawRenderValueAxisDomain: NullableDomain, visibleSeriesCount: number, axisScale: AxisScale, vertical: boolean): AxisTick[] {
+function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLayoutInfo: AxisLayoutInfo, rawValueAxisDomain: NullableDomain, filteredValueAxisDomain: NullableDomain, rawRenderValueAxisDomain: NullableDomain, visibleSeriesCount: number, axisScale: AxisScale, vertical: boolean, stepWarnings: boolean): AxisTick[] {
   let ticks: AxisTick[] = [];
   const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
   const fits = getTickLabelFits(axisConfig, axisLayoutInfo, minorTickLabel);
@@ -848,7 +858,7 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
     else {
       const valueAxisDomainExtent = valueAxisDomain[1]! - valueAxisDomain[0]!;
       tickCount = getTickCount(axisConfig, axisLayoutInfo.valueExtent, valueAxisDomainExtent, fits.major.space);
-      stepTicks = getLinearStepTicks(axisConfig, axisScale.domain() as [AxisValue, AxisValue], axisLayoutInfo.valueExtent, 'value axis ' + axisConfig.id);
+      stepTicks = getLinearStepTicks(axisConfig, axisScale.domain() as [AxisValue, AxisValue], axisLayoutInfo.valueExtent, 'value axis ' + axisConfig.id, stepWarnings);
       if (stepTicks.majors !== null) {
         scaleTicks = stepTicks.majors;
       }

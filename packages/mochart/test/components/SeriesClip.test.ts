@@ -76,7 +76,7 @@ describe('series clip', () => {
   });
 
   it('is not emitted for a pie chart, which has no axis bounds to exceed', () => {
-    const container = mount(makeConfig({ chart: { type: 'pie' } }));
+    const container = mount(makeConfig({ chart: { type: 'pie' } }), [rows[0]]);
     expect(container.querySelector('clipPath[id^="series__clippath__"]')).toBeNull();
     expect(container.querySelector(getCssSelector('seriesContainer'))!.getAttribute('clip-path')).toBeNull();
   });

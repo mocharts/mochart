@@ -436,10 +436,10 @@ describe('refresh', () => {
 
 // The callback maps are string-to-string plumbing (a dropped or misspelled row ships and the callback never fires), and core switches behaviour on callback presence, so every row gets a delivery case.
 describe('interaction callbacks', () => {
-  async function mountCallbacks(callbacks: Record<string, unknown>, config = rawConfig()) {
+  async function mountCallbacks(callbacks: Record<string, unknown>, config = rawConfig(), data = rows) {
     const el = target();
     const instance = mount(DefaultChart, {
-      target: el, props: { config, data: rows, width: 400, height: 300, ...callbacks } as any
+      target: el, props: { config, data, width: 400, height: 300, ...callbacks } as any
     });
     flushSync();
     return { el, dispose: () => { void unmount(instance); } };
@@ -521,7 +521,7 @@ describe('interaction callbacks', () => {
 
   it('delivers onSliceClick from a pie slice click', async () => {
     const onSliceClick = vi.fn();
-    const { el, dispose } = await mountCallbacks({ onSliceClick }, { ...rawConfig(), chart: { type: 'pie' } });
+    const { el, dispose } = await mountCallbacks({ onSliceClick }, { ...rawConfig(), chart: { type: 'pie' } }, [rows[0]]);
     el.querySelector('.mochart-series path')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(onSliceClick).toHaveBeenCalledTimes(1);
     dispose();

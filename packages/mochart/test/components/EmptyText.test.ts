@@ -17,11 +17,11 @@ const WIDTH = 400;
 const HEIGHT = 300;
 const rows = [{ m: 'Jan', a: 1 }, { m: 'Feb', a: 2 }];
 
-function mountChart(overrides: Record<string, unknown>): Element {
+function mountChart(overrides: Record<string, unknown>, data: readonly unknown[] = rows): Element {
   const container = mountContainer();
   trackHandle(createDefaultChart(container, {
     config: { version: '1.0.0', animation: { enabled: false }, categoryAxis: { property: 'm' }, series: [{ property: 'a' }], ...overrides } as unknown as MochartInputConfig,
-    data: rows, width: WIDTH, height: HEIGHT
+    data, width: WIDTH, height: HEIGHT
   } as DefaultChartProps));
   return container;
 }
@@ -80,9 +80,9 @@ describe("an empty string means none, like null", () => {
     const pie = (text: string | null) => mountChart({
       chart: { type: 'pie' }, pie: { centerLabel: { text }, centerTotal: { visible: true } },
       categoryAxis: { property: 'm' }, series: [{ property: 'a' }]
-    });
+    }, [rows[0]]);
     const totalDy = (container: Element) => container.querySelector(getCssSelector('pieCenterTotal'))!.getAttribute('dy');
-    expect(mountChart({ chart: { type: 'pie' }, pie: { centerLabel: { text: '' }, centerTotal: { visible: true } } }).querySelector(getCssSelector('pieCenterLabel'))).toBeNull();
+    expect(mountChart({ chart: { type: 'pie' }, pie: { centerLabel: { text: '' }, centerTotal: { visible: true } } }, [rows[0]]).querySelector(getCssSelector('pieCenterLabel'))).toBeNull();
     expect(totalDy(pie(''))).toBe(totalDy(pie(null)));
   });
 

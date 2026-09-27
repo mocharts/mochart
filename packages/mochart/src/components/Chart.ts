@@ -382,6 +382,10 @@ const announceSettleDelay = 150;
 /** Every threshold entry or thresholdStep filled by a pattern, with the patternIdMap key its definition lives under and the fill color the pattern's series color resolves to. */
 function getThresholdPatterns(mochartConfig: EnhancedMochartConfig): { key: string; pattern: string; fillColor: string | null }[] {
   const thresholdPatterns: { key: string; pattern: string; fillColor: string | null }[] = [];
+  // a pie draws no thresholds, so a definition would be dead markup, as with the series clip
+  if (mochartConfig.chart.type === CHART_TYPE_PIE) {
+    return thresholdPatterns;
+  }
   const collect = (axisKey: string, thresholds: readonly ThresholdConfig[] | undefined, thresholdStep: AxisThresholdStepConfig) => {
     resolveThresholds(thresholds).forEach((threshold, thresholdIndex) => {
       if (threshold.pattern !== NONE) {

@@ -1,7 +1,7 @@
 import validators from '@mochart/movalid';
 import { isDataProviderValid, getMissingDataProviderMembers } from './ChartData.js';
 import { getCategoryValueKey } from './CategoryValue.js';
-import { NONE, TYPE_DATE, TYPE_NUMBER, SCALE_LINEAR, SCALE_LOG, RENDERER_LINE, RENDERER_AREA } from '../config/core/constants.js';
+import { NONE, TYPE_DATE, TYPE_NUMBER, SCALE_LINEAR, SCALE_LOG, RENDERER_LINE, RENDERER_AREA, CHART_TYPE_PIE } from '../config/core/constants.js';
 import type { CategoryAxisConfig, MochartConfig } from '../types/config.js';
 import type { DataProvider, CategoryValue, DataValue } from '../types/data.js';
 
@@ -91,6 +91,10 @@ export function getDataErrors(mochartConfig: MochartConfig, dataProvider: DataPr
     }
     const categoryCount = categoryPropertyValues.length;
     const categoryValues = categoryPropertyValues as readonly CategoryValue[];
+    // a pie draws the first category's values only, while the tooltip and keys would step through the rest
+    if (mochartConfig.chart.type === CHART_TYPE_PIE && categoryCount > 1) {
+      dataErrors.push('a pie chart takes one category, found ' + categoryCount + ' for property: ' + categoryAxisConfig.property);
+    }
 
     let validator;
     if (categoryAxisConfig.type === TYPE_DATE) {

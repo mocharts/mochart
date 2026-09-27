@@ -551,8 +551,8 @@ describe('interaction callbacks', () => {
     'chartMouseLeave', 'titleClick', 'focusChange', 'seriesFilter', 'seriesLayoutBoundsChange'
   ] as const;
 
-  async function mountWithAllOutputs(config = rawConfig()) {
-    const fixture = createWith(DefaultChart, { config, data: rows, width: 400, height: 300 });
+  async function mountWithAllOutputs(config = rawConfig(), data = rows) {
+    const fixture = createWith(DefaultChart, { config, data, width: 400, height: 300 });
     const instance = fixture.componentInstance as unknown as Record<string, { subscribe(fn: (p: unknown) => void): void }>;
     const seen: Record<string, unknown[]> = {};
     for (const name of OUTPUTS) {
@@ -637,7 +637,7 @@ describe('interaction callbacks', () => {
   });
 
   it('delivers sliceClick from a pie slice click', async () => {
-    const { el, seen } = await mountWithAllOutputs({ ...rawConfig(), chart: { type: 'pie' } });
+    const { el, seen } = await mountWithAllOutputs({ ...rawConfig(), chart: { type: 'pie' } }, [rows[0]]);
     el.querySelector('.mochart-series path')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     expect(seen.sliceClick.length).toBe(1);
   });

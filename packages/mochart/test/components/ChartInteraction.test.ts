@@ -1611,7 +1611,7 @@ describe('touch and pointer focus never count as hover', () => {
     const container = mountChart(makeConfig({
       chart: { type: 'pie' },
       series: [{ property: 'sales', focusOnHover: true, focusOnClick: true }, { property: 'costs' }]
-    }), { onFocus: focus => { focuses.push(focus); } });
+    }), { onFocus: focus => { focuses.push(focus); } }, [rows[0]]);
     const slice = container.querySelector(getIdCssSelector('series', 'S0') + ' ' + getCssSelector('seriesSlice'))!;
 
     slice.dispatchEvent(new MouseEvent('click', { bubbles: true }));

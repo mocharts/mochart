@@ -54,7 +54,10 @@ import * as gauge from '../examples/gauge'
   value a filtered slice shrinks to, so setting any other base is a validation
   error. The crosshair does not apply.
 - Values must be non-negative: `createPie` clamps negatives to 0, and a
-  zero-value slice simply doesn't render. Only the first data row is rendered.
+  zero-value slice simply doesn't render.
+- A pie takes one category: the slices are that category's values, one per
+  series. Data with more than one category is a data error, reported like a
+  value count that differs from the category count.
 
 ## Donut and slice labels
 

@@ -22,6 +22,18 @@ describe('getDataErrors', () => {
     expect(getDataErrors(config, provider)).toEqual([]);
   });
 
+  it('flags more than one category on a pie, which draws only the first', () => {
+    const config = makeConfig({
+      chart: { type: 'pie' },
+      categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+      series: [{ property: 'sales' }]
+    });
+    const oneCategory = new ArrayOfObjectsDataProvider([{ month: 'Jan', sales: 10 }]);
+    expect(getDataErrors(config, oneCategory)).toEqual([]);
+    const twoCategories = new ArrayOfObjectsDataProvider([{ month: 'Jan', sales: 10 }, { month: 'Feb', sales: 20 }]);
+    expect(getDataErrors(config, twoCategories)).toEqual(['a pie chart takes one category, found 2 for property: month']);
+  });
+
   it('returns no errors when the config itself is invalid', () => {
     const invalid = makeConfig({});
     expect(invalid.validation.valid).toBe(false);
