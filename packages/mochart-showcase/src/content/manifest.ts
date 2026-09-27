@@ -416,7 +416,7 @@ export function getSections(): ShowcaseSection[] {
     {
       id: 'scales',
       title: 'Scales & axes',
-      tagline: 'Ordinal, linear and date category scales, log number axes; multiple and log value axes; thresholds; axis bounds; and tick-label management.',
+      tagline: 'Ordinal, linear and date category scales, log scales on number axes; multiple value axes; thresholds; axis bounds; and tick-label management.',
       entries: [
         local({
           slug: 'time-series',
