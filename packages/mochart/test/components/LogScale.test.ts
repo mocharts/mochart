@@ -280,4 +280,11 @@ describe('log category axis', () => {
     expect(categoryLabels(mountProvider([{ x: -5, v: 1 }, { x: 0, v: 2 }]))).toEqual([]);
     expect(categoryLabels(mountProvider([{ x: -5, v: 1 }, { x: 10, v: 2 }, { x: 100, v: 3 }], { ...logCategory, tickCount: 1 }))).toEqual(['10']);
   });
+
+  it('keeps the other powers of 10 as minor tick marks beside a lone fitting tick, as a value axis with one tick does', () => {
+    const container = mountProvider([1, 10, 100, 1000].map((x, i) => ({ x, v: i + 1 })), { ...logCategory, tickCount: 1 });
+    expect(shown(getDomAccessors(container).getCategoryAxisMajorTicksDomElements())).toEqual(['1']);
+    // the linear value axis draws none, so every minor mark is the category axis's
+    expect(count(container, 'axisMinorTickMark')).toBe(3);
+  });
 });

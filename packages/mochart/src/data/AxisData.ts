@@ -588,6 +588,13 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
         }
         else {
           scaleTicks = singleCategoryTicks();
+          // a log axis keeps the powers of 10 as minor ticks beside its lone tick, as a value axis with one tick does
+          if (axisConfig.scale === SCALE_LOG) {
+            const logTicks = getLogTicks(axisDomain, tickCount, axisScale, ordinalTickSpace);
+            const loneValues = scaleTicks.map(Number);
+            const powers = logTicks.linearScale === null ? [...logTicks.majors.map(Number), ...logTicks.minors.map(minor => minor.value as number)] : [];
+            stepTicks = { ...noStepTicks, minors: powers.filter(value => !loneValues.includes(value)).sort((a, b) => a - b).map(value => ({ value, hidden: false })) };
+          }
         }
       }
       else if (axisConfig.scale === SCALE_ORDINAL) {
