@@ -315,6 +315,11 @@ describe('value formats on a log axis', () => {
     expect(formats.s(12345.6)).toBe('12,346');
   });
 
+  it('takes exponent form outside the SI prefixes, where d3 pads the last prefix with zeros', () => {
+    const formats = getSeriesFormats([series({ id: 's', valueFormat: 'auto', valueAxisConfig: logAxis })], [logAxis], { y: [1, 1000] });
+    expect([1e30, 1e-30, 4500, 1e24, 0].map(formats['s']!)).toEqual(['1e+30', '1e-30', '4.5k', '1Y', '0']);
+  });
+
   it('gives a format that leaves its precision open 3 significant digits, trimmed, rather than d3\'s 6', () => {
     const axis = valueAxis({ id: 'y', scale: 'log', tickLabel: { format: 's' } });
     const formats = getSeriesFormats([series({ id: 's', valueFormat: 'auto', valueAxisConfig: axis })], [axis], { y: [1, 1000] });

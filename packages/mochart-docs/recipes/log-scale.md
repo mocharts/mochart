@@ -34,8 +34,10 @@ import * as logLog from '../examples/logLog'
   to show them where they fit.
 - With the default `"auto"` format, each tick label and each tooltip value
   takes an SI prefix of its own magnitude, so `1m`, `1` and `1k` share one
-  axis. A linear axis takes one prefix for the whole axis instead. The prefix
-  reaches down to milli, so a ratio such as a gain of 0.1 reads `100m`; where
+  axis. A linear axis takes one prefix for the whole axis instead. Beyond the
+  prefixes, below 1e-24 or from 1e27, a value takes exponent form, `1e+30`.
+  The prefix reaches down to milli, so a ratio such as a gain of 0.1 reads
+  `100m`; where
   that misleads, a
   [`tickLabel.format`](/reference/valueAxes#valueAxes.tickLabel.format) of
   `"~g"` labels the ticks and the tooltip values as plain decimals, as the

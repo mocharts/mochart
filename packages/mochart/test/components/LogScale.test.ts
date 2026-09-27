@@ -111,6 +111,11 @@ describe('log value axis ticks', () => {
     expect(majorLabels(container)).toEqual(['1', '10', '100', '1k']);
   });
 
+  it('labels ticks beyond the SI prefixes in exponent form', () => {
+    const { container } = mount({ valueAxes: [{ scale: 'log', min: 1e-30, max: 1e30, ticks: [{ value: 1e-30 }, { value: 1 }, { value: 1e30 }] }], series: [{ property: 'v' }] }, rowsFor([1, 1e30]));
+    expect(majorLabels(container)).toEqual(['1e-30', '1', '1e+30']);
+  });
+
   it('labels explicit ticks by value', () => {
     const { container } = mount({ valueAxes: [{ scale: 'log', ticks: [{ value: 1 }, { value: 45 }, { value: 1000 }] }], series: [{ property: 'v' }] }, rowsFor([1, 1000]));
     expect(majorLabels(container)).toEqual(['1', '45', '1k']);

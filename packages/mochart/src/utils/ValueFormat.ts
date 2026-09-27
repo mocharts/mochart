@@ -27,9 +27,26 @@ export function getLogNumberFormat(specifierString: string): (value: number) => 
   return format(specifier.toString());
 }
 
+// the values the SI prefixes cover, yocto to yotta; beyond them d3 pads the last prefix with zeros (1e30 as 1000000Y)
+const SI_PREFIX_MIN = 1e-24;
+const SI_PREFIX_MAX = 1e27;
+
+/**
+ * The automatic number format of a log axis, which spans magnitudes: an SI prefix per value, with the trailing zeros
+ * trimmed, or exponent notation for a value outside the prefixes' range.
+ */
+export function getAutoLogNumberFormat(precision: number): (value: number) => string {
+  const prefixed = format('.' + precision + '~s');
+  const exponent = format('.' + precision + '~e');
+  return value => {
+    const magnitude = Math.abs(value);
+    return magnitude !== 0 && (magnitude >= SI_PREFIX_MAX || magnitude < SI_PREFIX_MIN) ? exponent(value) : prefixed(value);
+  };
+}
+
 const autoValueFormatNumber = ".2s";
-// a log axis spans magnitudes, so each value takes its own prefix; the trailing zeros are trimmed to match its tick labels
-const autoLogValueFormatNumber = '.2~s';
+// two significant digits, as the linear auto format, matching the log tick labels' trimmed form
+const autoLogValuePrecision = 2;
 const autoCategoryFormatNumber = '.2s';
 const autoCategoryFormatDate = '%c';
 
@@ -101,7 +118,7 @@ function getSeriesValueFormatter(seriesConfig: EnhancedSeriesConfig, valueAxisCo
     }
     if (valueAxisConfig.scale === SCALE_LOG) {
       // per value, never the log scale's tickFormat, which blanks most values that are not powers of 10
-      const formatter = getLogNumberFormat(valueAxisConfig.tickLabel.format === AUTO ? autoLogValueFormatNumber : valueAxisConfig.tickLabel.format);
+      const formatter = valueAxisConfig.tickLabel.format === AUTO ? getAutoLogNumberFormat(autoLogValuePrecision) : getLogNumberFormat(valueAxisConfig.tickLabel.format);
       return value => formatter(value as number);
     }
     const formatSpecifier = valueAxisConfig.tickLabel.format === AUTO ? autoValueFormatNumber : valueAxisConfig.tickLabel.format;

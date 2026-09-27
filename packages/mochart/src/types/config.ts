@@ -2422,8 +2422,9 @@ export interface AxisTickLabelConfig {
    * applied to the category values when displayed in axis tick labels (use null
    * for none, use "auto" to derive the format from the ticks: on a number axis
    * an SI-prefixed number whose precision follows the tick spacing, or on a log
-   * axis the magnitude of each tick; there a format that leaves its precision
-   * open takes 3 significant digits, trimmed).
+   * axis the magnitude of each tick, in exponent form beyond the SI prefixes;
+   * there a format that leaves its precision open takes 3 significant digits,
+   * trimmed).
    *
    * @default "auto"
    */
