@@ -141,6 +141,12 @@ function getDomainForDelta(startDomain: NumericDomain, endDomain: NumericDomain,
       return endDomain;
     }
     const deltaFactorPercentage = domainDelta.deltaFactor! * percentage;
+    if (domainDelta.log === true) { // a log axis moves in logs, so its ends travel at a steady rate on screen
+      return [
+        10 ** (Math.log10(startDomain[0]) + domainDelta.delta[0] * deltaFactorPercentage),
+        10 ** (Math.log10(startDomain[1]) + domainDelta.delta[1] * deltaFactorPercentage)
+      ];
+    }
     return [
       startDomain[0] + domainDelta.delta[0] * deltaFactorPercentage,
       startDomain[1] + domainDelta.delta[1] * deltaFactorPercentage
@@ -442,7 +448,8 @@ function setValueSeriesValuesForDelta(
     valueObject[valueKey] = getValuesForDelta(
       startValueObject[valueKey] as NumericValues,
       valueDelta.deltas,
-      valueDelta.deltaFactor! * percentage
+      valueDelta.deltaFactor! * percentage,
+      valueDelta.log === true
     );
   }
 }
@@ -468,19 +475,21 @@ function setFilteredValueSeriesValuesForDelta(
     valueObject[valueKey] = getValuesForDelta(
       startValueObject[valueKey] as NumericValues,
       valueDelta.deltas,
-      valueDelta.deltaFactor! * percentage
+      valueDelta.deltaFactor! * percentage,
+      valueDelta.log === true
     );
   }
 }
 
-function getValuesForDelta(startValues: number[], valueDeltas: number[], percentage: number): number[];
-function getValuesForDelta(startValues: NumericValues, valueDeltas: number[], percentage: number): NumericValues;
-function getValuesForDelta(startValues: NumericValues, valueDeltas: number[], percentage: number): NumericValues {
+function getValuesForDelta(startValues: number[], valueDeltas: number[], percentage: number, log?: boolean): number[];
+function getValuesForDelta(startValues: NumericValues, valueDeltas: number[], percentage: number, log?: boolean): NumericValues;
+function getValuesForDelta(startValues: NumericValues, valueDeltas: number[], percentage: number, log = false): NumericValues {
   const values = startValues.slice();
   const count = startValues.length;
   for (let i=0; i<count; i++) {
     if (valueDeltas[i] !== 0) {
-      values[i] = values[i]! + valueDeltas[i] * percentage;
+      // log deltas are in base 10 logs, so a value on a log axis moves at a steady rate on screen
+      values[i] = log ? 10 ** (Math.log10(values[i]!) + valueDeltas[i] * percentage) : values[i]! + valueDeltas[i] * percentage;
     }
   }
   return values;

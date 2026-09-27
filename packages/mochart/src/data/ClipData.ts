@@ -1,8 +1,8 @@
 import { getCategoryDomainForValues } from './DomainData.js';
 import { calculateValueAxisDomain } from './SeriesData.js';
 import { getWithMutations } from '../utils/WithMutations.js';
-import { AUTO, SCALE_ORDINAL } from '../config/core/constants.js';
-import type { ChartData, ClippedEdges, DomainValue, NullableDomain } from '../types/data.js';
+import { AUTO, SCALE_LOG, SCALE_ORDINAL } from '../config/core/constants.js';
+import type { ChartData, ClippedEdges, DomainValue, NullableDomain, NumericValues, SeriesValueObject } from '../types/data.js';
 import type { EnhancedMochartConfig } from '../types/enhanced.js';
 
 export const noClippedEdges: ClippedEdges = { top: false, right: false, bottom: false, left: false };
@@ -41,6 +41,11 @@ export function getClippedEdges(mochartConfig: EnhancedMochartConfig, chartData:
     // never calls its calculator, so no pre-bound extent is stored anywhere
     const drawnDomain = calculateValueAxisDomain(valueAxisConfig, chartData.seriesData.filtered.domains);
     setClippedEdges(clippedEdges, mochartConfig, valueAxisConfig, drawnDomain, renderedDomain, false);
+    // an end at or below 0 is drawn past the minimum end of a log axis, whatever its bounds
+    if (valueAxisConfig.scale === SCALE_LOG && valueAxisConfig.seriesConfigs!.some(seriesConfig =>
+      hasEndPastMinimum(chartData.seriesData.filtered.values[seriesConfig.id]))) {
+      clippedEdges[getClippedEdge(mochartConfig, valueAxisConfig.reversed, false, false)] = true;
+    }
   }
 
   const { categoryAxis: categoryAxisConfig } = mochartConfig;
@@ -52,6 +57,29 @@ export function getClippedEdges(mochartConfig: EnhancedMochartConfig, chartData:
   }
 
   return clippedEdges;
+}
+
+// keyed on the value object, which focus frames reuse by reference
+const endPastMinimumCache = new WeakMap<SeriesValueObject, boolean>();
+
+/** Whether an error bar end, or the lower end of a range whose other end is above 0, is at or below 0 and so drawn past a log axis's minimum end. */
+function hasEndPastMinimum(valueObject: SeriesValueObject | undefined): boolean {
+  if (valueObject === undefined || valueObject.plain === null) {
+    return false;
+  }
+  let result = endPastMinimumCache.get(valueObject);
+  if (result === undefined) {
+    const { errorLow, errorHigh, min, max } = valueObject;
+    const atOrBelowZero = (values: NumericValues | null, i: number) => values !== null && values[i]! <= 0;
+    result = false;
+    for (let i = 0; i < valueObject.plain.length && !result; i++) {
+      // an error bar is drawn at a point with a position, so only its value counts; NaN compares false throughout
+      result = (max !== null && max[i]! > 0 && (atOrBelowZero(errorLow, i) || atOrBelowZero(errorHigh, i))) ||
+        (min !== null && max !== null && ((atOrBelowZero(min, i) && max[i]! > 0) || (atOrBelowZero(max, i) && min[i]! > 0)));
+    }
+    endPastMinimumCache.set(valueObject, result);
+  }
+  return result;
 }
 
 function setClippedEdges(clippedEdges: ClippedEdges, mochartConfig: EnhancedMochartConfig,

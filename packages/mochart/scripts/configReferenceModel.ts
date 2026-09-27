@@ -306,7 +306,7 @@ function getSectionSources(): SectionSource[] {
     { id: 'pie', title: 'Pie Config', regularDefaults: getPieRegularDefaults(), conditionalDefaults: getPieConditionalDefaults({} as PieConfig), validators: getPieValidators(), docs: pieDocs },
     { id: 'plot', title: 'Plot Config', regularDefaults: getPlotDefaults(), validators: getPlotValidators(), docs: plotDocs },
     { id: 'radialGradients', title: 'Radial Gradient Config', regularDefaults: getRadialGradientRegularDefaults(), conditionalDefaults: getRadialGradientConditionalDefaults({} as RadialGradientConfig, 0), validators: getRadialGradientValidators(), docs: radialGradientDocs },
-    { id: 'valueAxes', title: 'Value Axis Config', regularDefaults: getValueAxisRegularDefaults(), conditionalDefaults: getValueAxisConditionalDefaults({} as ValueAxisConfig, 0, false, false), validators: getValueAxisValidators(), docs: valueAxisDocs, itemDefaults: { thresholds: getThresholdEntryDefaults() } },
+    { id: 'valueAxes', title: 'Value Axis Config', regularDefaults: getValueAxisRegularDefaults(), conditionalDefaults: getValueAxisConditionalDefaults({} as ValueAxisConfig, 0, false, false), validators: getValueAxisValidators({}), docs: valueAxisDocs, itemDefaults: { thresholds: getThresholdEntryDefaults() } },
     { id: 'series', title: 'Series Config', regularDefaults: getSeriesRegularDefaults(), conditionalDefaults: getSeriesConditionalDefaults({} as SeriesConfig, 0, null, null, null, null, null, false), validators: getSeriesValidators({}), docs: seriesDocs },
     { id: 'seriesGroups', title: 'Series Group Config', regularDefaults: getSeriesGroupRegularDefaults(), conditionalDefaults: getSeriesGroupConditionalDefaults({} as SeriesGroupConfig, 0), validators: getSeriesGroupValidators(), docs: seriesGroupDocs },
     { id: 'seriesStacks', title: 'Series Stack Config', regularDefaults: getSeriesStackRegularDefaults(), conditionalDefaults: getSeriesStackConditionalDefaults({} as SeriesStackConfig, 0, null), validators: getSeriesStackValidators(), docs: seriesStackDocs },
@@ -713,8 +713,16 @@ function editorTypesForValidator(validator: Validator): EditorValueType[] {
   }
 }
 
+/** The values a conditional allows when every rule is an enum, such as a scale that depends on the axis type. */
+function conditionalEnumValues(validator: Validator): unknown[] | null {
+  const rules = validator.alternativeValidators ?? [];
+  return validator.validatorName === 'conditional' && rules.length > 0 && rules.every(rule => rule.isEnum)
+    ? unique(rules.flatMap(rule => rule.allowedValues ?? []))
+    : null;
+}
+
 function buildEditorValue(validator: Validator): EditorValueDoc {
-  const allowed = (validator.allowedValues ?? []).filter(value => value !== undefined);
+  const allowed = (validator.allowedValues ?? conditionalEnumValues(validator) ?? []).filter(value => value !== undefined);
   // Extensions like numberMin(0).orEqual("auto") keep the base validator's name,
   // so the literal alternatives join the type union as well as the enum completions.
   const literalTypes = allowed

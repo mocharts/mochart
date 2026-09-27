@@ -1,6 +1,6 @@
 import validators from './validators.js';
 
-import { AUTO, NONE, MAJOR, SCALE_ORDINAL, SCALE_LINEAR, TYPE_STRING, TYPE_NUMBER, TYPE_DATE, STEP_PERIODS, CATEGORY_VALUE_INTERVAL_PERIODS } from '../core/constants.js';
+import { AUTO, NONE, MAJOR, SCALE_ORDINAL, SCALE_LINEAR, SCALE_LOG, TYPE_STRING, TYPE_NUMBER, TYPE_DATE, STEP_PERIODS, CATEGORY_VALUE_INTERVAL_PERIODS } from '../core/constants.js';
 
 import getAxisValidators, { getTickLabelValidators, getThresholdStepValidators, getTickStepValidators, thresholdStepIntervalValidator, positiveNumber } from './axisConfig.js';
 import getTruncationValidators from './truncationConfig.js';
@@ -13,6 +13,7 @@ const typeDateSuffix = 'when type is ' + TYPE_DATE;
 const typeNumberSuffix = 'when type is ' + TYPE_NUMBER;
 const scaleOrdinalSuffix = 'when scale is ' + SCALE_ORDINAL;
 const scaleLinearSuffix = 'when scale is ' + SCALE_LINEAR;
+const scaleLogSuffix = 'when scale is ' + SCALE_LOG;
 const linearDateSuffix = 'when scale is ' + SCALE_LINEAR + ' and type is ' + TYPE_DATE;
 const linearNumberSuffix = 'when scale is ' + SCALE_LINEAR + ' and type is ' + TYPE_NUMBER;
 
@@ -23,11 +24,17 @@ const scaleOrdinalRule = { condition: ({ scale }: CategoryAxisCondition) => scal
 // a keyed ordinal axis names its categories by key, so ticks and thresholds take the key's forms there
 const keyedOrdinalRule = { condition: ({ scale, keyProperty }: CategoryAxisCondition) => scale === SCALE_ORDINAL && keyProperty !== undefined && keyProperty !== null, suffix: scaleOrdinalSuffix + ' and keyProperty is set' };
 const scaleLinearRule = { condition: ({ scale }: CategoryAxisCondition) => scale === SCALE_LINEAR, suffix: scaleLinearSuffix };
+const scaleLogRule = { condition: ({ scale }: CategoryAxisCondition) => scale === SCALE_LOG, suffix: scaleLogSuffix };
 const linearDateRule = { condition: ({ scale, type }: CategoryAxisCondition) => scale === SCALE_LINEAR && type === TYPE_DATE, suffix: linearDateSuffix };
 const linearNumberRule = { condition: ({ scale, type }: CategoryAxisCondition) => scale === SCALE_LINEAR && type === TYPE_NUMBER, suffix: linearNumberSuffix };
 const defaultRule = { condition: () => true };
 
 export default function getValidators(config: Partial<CategoryAxisConfig>, pieMode = false) {
+  const stepInterval = validators.conditional([
+    { ...linearNumberRule, validator: thresholdStepIntervalValidator },
+    { ...scaleLogRule, validator: validators.equal(NONE) },
+    { ...defaultRule, validator: validators.equal(NONE) }
+  ], config);
   return {
     ...getAxisValidators(validators.conditional([
       { ...keyedOrdinalRule, validator: validators.string().or(validators.number()) },
@@ -45,6 +52,7 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
       truncation: validators.partialObjectWithShape({
         ...getTruncationValidators(validators.conditional([
           { ...scaleLinearRule, validator: validators.equal(false) },
+          { ...scaleLogRule, validator: validators.equal(false) },
           { ...defaultRule, validator: validators.boolean() }
         ], config)),
         maxFraction: validators.numberMinMax(0, 1),
@@ -59,6 +67,7 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
       minorTruncation: validators.partialObjectWithShape({
         enabled: validators.conditional([
           { ...scaleLinearRule, validator: validators.oneOf([false, MAJOR]) },
+          { ...scaleLogRule, validator: validators.oneOf([false, MAJOR]) },
           { ...defaultRule, validator: validators.boolean().orEqual(MAJOR) }
         ], config),
         text: validators.string(),
@@ -72,21 +81,16 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
         { ...typeDateRule, validator: validators.oneOf(STEP_PERIODS).orEqual(NONE) },
         { ...defaultRule, validator: validators.equal(NONE) }
       ], config),
-      interval: validators.conditional([
-        { ...linearNumberRule, validator: thresholdStepIntervalValidator },
-        { ...defaultRule, validator: validators.equal(NONE) }
-      ], config),
+      interval: stepInterval,
       minSpacing: validators.conditional([
         { ...scaleLinearRule, validator: validators.numberMin(2) },
+        { ...scaleLogRule, validator: validators.numberMin(2) },
         { ...scaleOrdinalRule, validator: validators.equal(2) },
         { ...defaultRule, validator: validators.any() }
       ], config)
     }, {
       ...getTickStepValidators(),
-      interval: validators.conditional([
-        { ...linearNumberRule, validator: thresholdStepIntervalValidator },
-        { ...defaultRule, validator: validators.equal(NONE) }
-      ], config),
+      interval: stepInterval,
       period: validators.conditional([
         { ...typeDateRule, validator: validators.oneOf(STEP_PERIODS).orEqual(NONE) },
         { ...defaultRule, validator: validators.equal(NONE) }
@@ -97,15 +101,18 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
       ], config),
       minorSteps: validators.conditional([
         { ...linearNumberRule, validator: validators.integerMin(2).orEqual(NONE) },
+        { ...scaleLogRule, validator: validators.equal(NONE) },
         { ...defaultRule, validator: validators.equal(NONE) }
       ], config),
       includeFirst: validators.conditional([
         { ...scaleOrdinalRule, validator: validators.boolean() },
         { ...scaleLinearRule, validator: validators.equal(false) },
+        { ...scaleLogRule, validator: validators.equal(false) },
         { ...defaultRule, validator: validators.any() }
       ], config),
       minSpacing: validators.conditional([
         { ...scaleLinearRule, validator: validators.numberMin(2) },
+        { ...scaleLogRule, validator: validators.numberMin(2) },
         { ...scaleOrdinalRule, validator: validators.equal(2) },
         { ...defaultRule, validator: validators.any() }
       ], config)
@@ -120,17 +127,20 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
     categoryValueInterval: validators.conditional([
       { ...linearDateRule, validator: positiveNumber.orOneOf([AUTO, ...CATEGORY_VALUE_INTERVAL_PERIODS]) },
       { ...linearNumberRule, validator: positiveNumber.orEqual(AUTO) },
+      { ...scaleLogRule, validator: validators.equal(AUTO) },
       { ...defaultRule, validator: validators.equal(AUTO) }
     ], config),
 
     max: validators.conditional([
       { ...linearDateRule, validator: validators.datePrimitive().orEqual(AUTO) },
       { ...linearNumberRule, validator: validators.number().orEqual(AUTO) },
+      { ...scaleLogRule, validator: positiveNumber.orEqual(AUTO) },
       { ...scaleOrdinalRule, validator: validators.equal(AUTO) },
       { ...defaultRule, validator: validators.any() }
     ], config),
     maxOffset: validators.conditional([
       { ...scaleLinearRule, validator: validators.number() },
+      { ...scaleLogRule, validator: validators.equal(0) },
       { ...scaleOrdinalRule, validator: validators.equal(0) },
       { ...defaultRule, validator: validators.any() }
     ], config),
@@ -138,12 +148,18 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
     min: validators.conditional([
       { ...linearDateRule, validator: validators.datePrimitive().orEqual(AUTO) },
       { ...linearNumberRule, validator: validators.number().orEqual(AUTO) },
+      { ...scaleLogRule, validator: positiveNumber.orEqual(AUTO) },
       { ...scaleOrdinalRule, validator: validators.equal(AUTO) },
       { ...defaultRule, validator: validators.any() }
     ], config),
     minCategoryValueExtent: validators.numberMin(1),
+    minTickInterval: validators.conditional([
+      { ...scaleLogRule, validator: validators.equal(0) },
+      { ...defaultRule, validator: validators.numberMin(0) }
+    ], config),
     minOffset: validators.conditional([
       { ...scaleLinearRule, validator: validators.number() },
+      { ...scaleLogRule, validator: validators.equal(0) },
       { ...scaleOrdinalRule, validator: validators.equal(0) },
       { ...defaultRule, validator: validators.any() }
     ], config),
@@ -152,12 +168,16 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
 
     scale: validators.conditional([
       { ...typeStringRule, validator: validators.equal(SCALE_ORDINAL) },
+      { condition: () => pieMode, suffix: 'when chart type is not xy', validator: validators.oneOf([SCALE_LINEAR, SCALE_ORDINAL]) },
+      { ...typeDateRule, validator: validators.oneOf([SCALE_LINEAR, SCALE_ORDINAL]) },
+      { ...typeNumberRule, validator: validators.oneOf([SCALE_LINEAR, SCALE_LOG, SCALE_ORDINAL]) },
       { ...defaultRule, validator: validators.oneOf([SCALE_LINEAR, SCALE_ORDINAL]) }
     ], config),
 
     ticks: validators.arrayOf(validators.objectWithShape({
       value: validators.conditional([
         { ...keyedOrdinalRule, validator: validators.string().or(validators.number()) },
+        { ...scaleLogRule, validator: positiveNumber },
         { ...typeStringRule, validator: validators.string() },
         { ...typeDateRule, validator: validators.datePrimitive() },
         { ...typeNumberRule, validator: validators.number() },
@@ -170,12 +190,14 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
     softMax: validators.conditional([
       { ...linearDateRule, validator: validators.datePrimitive().orEqual(NONE) },
       { ...linearNumberRule, validator: validators.number().orEqual(NONE) },
+      { ...scaleLogRule, validator: positiveNumber.orEqual(NONE) },
       { ...scaleOrdinalRule, validator: validators.equal(NONE) },
       { ...defaultRule, validator: validators.any() }
     ], config),
     softMin: validators.conditional([
       { ...linearDateRule, validator: validators.datePrimitive().orEqual(NONE) },
       { ...linearNumberRule, validator: validators.number().orEqual(NONE) },
+      { ...scaleLogRule, validator: positiveNumber.orEqual(NONE) },
       { ...scaleOrdinalRule, validator: validators.equal(NONE) },
       { ...defaultRule, validator: validators.any() }
     ], config),

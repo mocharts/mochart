@@ -1,11 +1,12 @@
 import { Renderer, svgEl } from '../render/index.js';
 
 import { mochartCssClasses } from '../utils/ChartDom.js';
-import { NONE, RENDERER_BAR } from '../config/core/constants.js';
+import { NONE, RENDERER_BAR, SCALE_LOG } from '../config/core/constants.js';
 import { getSeriesErrorBarStrokeColor } from '../utils/SeriesColors.js';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
 import { getFocusStrokeStyle, getCategoryFocusPercentage } from '../utils/FocusValue.js';
 import { isMissingValue } from '../utils/utils.js';
+import { getPastMinimumPosition } from '../utils/SeriesPositions.js';
 import type { ElListAdapter, ElProps } from '../render/index.js';
 import type { FocusData } from '../types/animation.js';
 import type { ColorPaletteConfig } from '../types/config.js';
@@ -31,6 +32,7 @@ interface SeriesErrorBarsProps {
   seriesIndex: number;
   seriesPositionData: SeriesPositionData;
   valueAxisScale: AxisScale;
+  clipOverflow: number;
   filteredValues: SeriesValueObject;
   inverted: boolean;
   focusData: FocusData;
@@ -45,7 +47,7 @@ export default class SeriesErrorBars extends Renderer<SeriesErrorBarsProps> {
   }
 
   sync() {
-    const { colorPaletteConfig, seriesConfig, seriesIndex, seriesPositionData, valueAxisScale, filteredValues, inverted, focusData } = this.props;
+    const { colorPaletteConfig, seriesConfig, seriesIndex, seriesPositionData, valueAxisScale, clipOverflow, filteredValues, inverted, focusData } = this.props;
 
     const hasErrorValues = filteredValues.errorLow !== null || filteredValues.errorHigh !== null;
     if ((seriesConfig.errorLowProperty !== NONE || seriesConfig.errorHighProperty !== NONE) &&
@@ -64,6 +66,10 @@ export default class SeriesErrorBars extends Renderer<SeriesErrorBarsProps> {
       // Caps on bars are clamped to the slot so they never overlap a neighbour.
       const capHalfSize = (isBar ? Math.min(errorBarCapSize, categoryValueExtent) : errorBarCapSize) / 2;
 
+      // an end at or below 0 has no place on a log axis, so it runs off past the minimum end like data beyond an explicit min
+      const log = seriesConfig.valueAxisConfig.scale === SCALE_LOG;
+      const getEndPosition = (value: number) => log && value <= 0 ? getPastMinimumPosition(valueAxisScale, clipOverflow) : Math.floor(valueAxisScale(value));
+
       const errorBars: ErrorBarItem[] = [];
       for (let i = 0; i < length; i++) {
         if (getDefined(null, i)) {
@@ -79,8 +85,8 @@ export default class SeriesErrorBars extends Renderer<SeriesErrorBarsProps> {
           // A missing bound anchors its whisker end at the series position, so
           // a one-sided error bar spans from the point to the defined bound.
           const anchorPosition = getSeriesPosition(null, i)!;
-          const lowPosition = errorLow !== undefined ? Math.floor(valueAxisScale(errorLow)) : anchorPosition;
-          const highPosition = errorHigh !== undefined ? Math.floor(valueAxisScale(errorHigh)) : anchorPosition;
+          const lowPosition = errorLow !== undefined ? getEndPosition(errorLow) : anchorPosition;
+          const highPosition = errorHigh !== undefined ? getEndPosition(errorHigh) : anchorPosition;
           const center = isBar ? getOffsetCategoryPosition(null, i)! + categoryValueExtent / 2 : getCategoryPosition(null, i)!;
 
           let d;

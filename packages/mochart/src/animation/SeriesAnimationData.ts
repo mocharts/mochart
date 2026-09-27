@@ -2,7 +2,7 @@ import { getChartDataWithSeriesData, getChartDataWithData } from '../data/ChartD
 
 import { getCategoryDataWithRenderAxisDomain, getCategoryDataFromValues, getCategoryDataWithNumericValues } from '../data/CategoryData.js';
 
-import { getMaxDomain, getSafeDomainExtent, getSafeDomainExtents } from '../data/DomainData.js';
+import { getMaxDomain, getSafeDomainExtent } from '../data/DomainData.js';
 
 import { getSeriesContainerVisibleSeriesCounts, getSeriesDataWithRenderAxisDomains, getSeriesDataWithSeriesValues,
   getSeriesDataWithDomains, setMinMax } from '../data/SeriesData.js';
@@ -16,13 +16,13 @@ import {
   hasCategoryChanges, hasNumericValueOffsets, getNumericValuesWithoutOffsets,
   getMergedNumericValues, createCategoryOrderDeltaData, setCategoryOrderDeltaFactors, getNumericValueOffsets } from './CategoryAnimationData.js';
 
-import { getMaxAxisDomains, getCombinedDomainAxisIds, getCombinedAxisDomainDeltas, getCombinedCategoryDomainDelta,
+import { getMaxAxisDomains, getLogAxisIds, getScaledDomain, getScaledSafeDomainExtents, getCombinedDomainAxisIds, getCombinedAxisDomainDeltas, getCombinedCategoryDomainDelta,
   shouldCombineDomainChange, setAxisDeltaFactors, setDeltaFactor, withAxisDomainsForIds, withSeriesDomainsForAxes } from './DomainAnimationData.js';
 
 import { keyPlain, keyRange, positionKeys, positionOrComputedKeys, valueKeys, extraAndCopyKeys } from '../data/constants.js';
 import type { PositionKey } from '../data/constants.js';
 
-import { NONE, SCALE_ORDINAL } from '../config/core/constants.js';
+import { NONE, SCALE_LOG, SCALE_ORDINAL } from '../config/core/constants.js';
 
 import { mapMap } from '../utils/utils.js';
 import type { AnimationConfig } from '../types/config.js';
@@ -125,7 +125,7 @@ export function getTransitionValueChangeData(mochartConfig: EnhancedMochartConfi
   // a combined-domain category axis (e.g. a sliding window) finishes this phase on its new domain; start holds the old.
   // Not ordinal: its indices only slide with the expansion/contraction domain moves, so shrinking here would leave them off the axis and snapping later
   if (mochartConfig.categoryAxis.scale !== SCALE_ORDINAL &&
-      shouldCombineDomainChange(mochartConfig.animation.categoryDomainChange, prevChartData.categoryData.renderAxisDomain, newChartData.categoryData.renderAxisDomain)) {
+      shouldCombineDomainChange(mochartConfig.animation.categoryDomainChange, prevChartData.categoryData.renderAxisDomain, newChartData.categoryData.renderAxisDomain, mochartConfig.categoryAxis.scale === SCALE_LOG)) {
     endCategoryData = getCategoryDataWithRenderAxisDomain(endCategoryData, newChartData.categoryData.renderAxisDomain);
     finalCategoryData = getCategoryDataWithRenderAxisDomain(finalCategoryData, newChartData.categoryData.renderAxisDomain);
   }
@@ -615,8 +615,10 @@ function setBaseValuesForOuterChange(targetValues: NumericValues | null, sourceV
 
 function createValueDeltaData(mochartConfig: EnhancedMochartConfig, startChartData: ChartData, endChartData: ChartData, finalChartData: ChartData, rawValueAxisDomains: AxisDomains, filteredValueAxisDomains: AxisDomains, rawSeriesDomains: SeriesDomainObjects, ordinalCategoryOrderOffets: number[] | null): ValueChangeData {
   // safe extents over the union of the phase endpoints, so a value and its combined domain share the same pacing basis and a collapsed/inverted domain cannot zero every value delta
-  const rawValueAxisExtents = getSafeDomainExtents(getMaxAxisDomains(rawValueAxisDomains, endChartData.seriesData.raw.renderAxisDomains));
-  const filteredValueAxisExtents = getSafeDomainExtents(getMaxAxisDomains(filteredValueAxisDomains, endChartData.seriesData.filtered.renderAxisDomains));
+  // in logs on a log axis, where its domain and values move
+  const logAxisIds = getLogAxisIds(mochartConfig.valueAxes);
+  const rawValueAxisExtents = getScaledSafeDomainExtents(getMaxAxisDomains(rawValueAxisDomains, endChartData.seriesData.raw.renderAxisDomains), logAxisIds);
+  const filteredValueAxisExtents = getScaledSafeDomainExtents(getMaxAxisDomains(filteredValueAxisDomains, endChartData.seriesData.filtered.renderAxisDomains), logAxisIds);
   const valueDeltaData = createRawValueDeltaData(mochartConfig, startChartData.seriesData.raw.values,
     endChartData.seriesData.raw.values, rawValueAxisExtents, rawSeriesDomains);
   const filteredValueDeltaData = createFilteredValueDeltaData(mochartConfig,
@@ -628,13 +630,14 @@ function createValueDeltaData(mochartConfig: EnhancedMochartConfig, startChartDa
 
   // non-zero only for combined-domain axes: the value phase moves their render domains directly
   const rawDomainDeltaData = getCombinedAxisDomainDeltas(startChartData.seriesData.raw.renderAxisDomains,
-    endChartData.seriesData.raw.renderAxisDomains, rawValueAxisExtents);
+    endChartData.seriesData.raw.renderAxisDomains, rawValueAxisExtents, logAxisIds);
   const filteredDomainDeltaData = getCombinedAxisDomainDeltas(startChartData.seriesData.filtered.renderAxisDomains,
-    endChartData.seriesData.filtered.renderAxisDomains, filteredValueAxisExtents);
-  const categoryDomainExtent = getSafeDomainExtent(getMaxDomain(startChartData.categoryData.renderAxisDomain,
-    endChartData.categoryData.renderAxisDomain) as NullableDomain);
+    endChartData.seriesData.filtered.renderAxisDomains, filteredValueAxisExtents, logAxisIds);
+  const categoryLog = mochartConfig.categoryAxis.scale === SCALE_LOG;
+  const categoryDomainExtent = getSafeDomainExtent(getScaledDomain(getMaxDomain(startChartData.categoryData.renderAxisDomain,
+    endChartData.categoryData.renderAxisDomain), categoryLog) as NullableDomain);
   const categoryDomainDeltaData = getCombinedCategoryDomainDelta(startChartData.categoryData.renderAxisDomain,
-    endChartData.categoryData.renderAxisDomain, categoryDomainExtent);
+    endChartData.categoryData.renderAxisDomain, categoryDomainExtent, categoryLog);
 
   const deltaPercentage = Math.max(valueDeltaData.deltaPercentage, filteredValueDeltaData.deltaPercentage, categoryOrderDeltaData.deltaPercentage,
     rawDomainDeltaData.deltaPercentage, filteredDomainDeltaData.deltaPercentage, categoryDomainDeltaData.deltaPercentage);
@@ -668,7 +671,7 @@ function createRawValueDeltaData(mochartConfig: EnhancedMochartConfig, startValu
   for (const seriesConfig of seriesConfigs) {
     const { id, axis } = seriesConfig;
     deltaObject = createRawValueDeltaDataObject(startValueObjects[id], endValueObjects[id],
-      valueAxisExtents[axis!]!, seriesDomains[id]!);
+      valueAxisExtents[axis!]!, seriesDomains[id]!, seriesConfig.valueAxisConfig!.scale === SCALE_LOG);
     deltaPercentage = Math.max(deltaPercentage, deltaObject.deltaPercentage);
     deltas[id] = deltaObject;
   }
@@ -818,13 +821,15 @@ function adjustDeltaPercentagesForStackedCategories(seriesStackConfigs: Enhanced
   }
 }
 
-function createRawValueDeltaDataObject(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, valueAxisExtent: number, seriesDomain: SeriesDomainObject): ValueDeltaObject {
+/** logAxis: the series is on a log axis, where the values it places move in logs and paced against the axis extent in logs. */
+function createRawValueDeltaDataObject(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, valueAxisExtent: number, seriesDomain: SeriesDomainObject, logAxis: boolean): ValueDeltaObject {
   const valueDeltaObject = {} as ValueDeltaObject;
   for (const key of positionOrComputedKeys) {
-    setRawSeriesValueDeltas(valueDeltaObject, startValueObject, endValueObject, key, valueAxisExtent);
+    setRawSeriesValueDeltas(valueDeltaObject, startValueObject, endValueObject, key, valueAxisExtent, logAxis);
   }
   for (const { extraKey, copyKey } of extraAndCopyKeys) {
-    setRawExtraSeriesValueDeltas(valueDeltaObject, startValueObject, endValueObject, extraKey, copyKey, valueAxisExtent, seriesDomain, extraKey !== 'label');
+    // a label value is paced against the axis extent, but on a log axis that is in logs, so it takes its own extent
+    setRawExtraSeriesValueDeltas(valueDeltaObject, startValueObject, endValueObject, extraKey, copyKey, valueAxisExtent, seriesDomain, extraKey !== 'label' || logAxis);
   }
   valueDeltaObject.deltaPercentage = getMaxDeltaPercentage(valueDeltaObject);
   return valueDeltaObject;
@@ -843,24 +848,43 @@ function setRawExtraSeriesValueDeltas(valueDeltaObject: ValueDeltaObject, startV
   }
 }
 
-function setRawSeriesValueDeltas(valueDeltaObject: ValueDeltaObject, startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, valueKey: ValueKey, valueAxisExtent: number): void {
+function setRawSeriesValueDeltas(valueDeltaObject: ValueDeltaObject, startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, valueKey: ValueKey, valueAxisExtent: number, log = false): void {
   if (startValueObject[valueKey] !== null) {
-    valueDeltaObject[valueKey] = getSeriesValuesDeltas(startValueObject[valueKey]!, endValueObject[valueKey]!, valueAxisExtent);
+    valueDeltaObject[valueKey] = getSeriesValuesDeltas(startValueObject[valueKey]!, endValueObject[valueKey]!, valueAxisExtent, log);
   }
   else {
     valueDeltaObject[valueKey] = emptyValueDelta();
   }
 }
 
-function getSeriesValuesDeltas(startValues: NumericValues, endValues: NumericValues, valueAxisExtent: number): NumericValuesDelta {
-  const deltas = getArrayDeltas(startValues as number[], endValues);
+function getSeriesValuesDeltas(startValues: NumericValues, endValues: NumericValues, valueAxisExtent: number, log = false): NumericValuesDelta {
+  const deltas = log ? getLogArrayDeltas(startValues, endValues) : getArrayDeltas(startValues as number[], endValues);
   // capped at 1: a value ending outside the axis is clipped, so it cannot move further than one
   // axis extent on screen, and the weight is what paces the animation
   const deltaPercentage = valueAxisExtent > 0 ? Math.min(getMaxAbsoluteValue(deltas) / valueAxisExtent, 1) : 0;
-  return deltaPercentage === 0 ? emptyValueDelta() : {
+  return deltaPercentage === 0 ? emptyValueDelta() : log ? { deltaPercentage, deltas, log } : {
     deltaPercentage,
     deltas
   };
+}
+
+/**
+ * The deltas between the base 10 logs of the values, as a log axis animates them. A value at or below 0 has no position
+ * there, so a change to or from one is NaN, which leaves the value missing until the animation ends.
+ */
+function getLogArrayDeltas(startValues: NumericValues, endValues: NumericValues): number[] {
+  const deltas: number[] = [];
+  for (let i = 0; i < startValues.length; i++) {
+    const start = startValues[i]!;
+    const end = endValues[i]!;
+    if (isMissingValue(end) || start === end) { // if one is missing, both should be missing
+      deltas.push(0);
+    }
+    else {
+      deltas.push(start > 0 && end > 0 ? Math.log10(end) - Math.log10(start) : NaN);
+    }
+  }
+  return deltas;
 }
 
 function getMaxDeltaPercentage(valueDeltaObject: ValueDeltaObject): number {
@@ -888,7 +912,7 @@ function createFilteredValueDeltaData(mochartConfig: EnhancedMochartConfig, star
     const { id, axis } = seriesConfig;
     deltaObject = createFilteredValueDeltaDataObject(
       startFilteredValueObjects[id], endFilteredValueObjects[id],
-      startValueObjects[id], endValueObjects[id], valueDeltaData.deltas[id] as ValueDeltaObject, valueAxisExtents[axis!]!, seriesDomains[id]!);
+      startValueObjects[id], endValueObjects[id], valueDeltaData.deltas[id] as ValueDeltaObject, valueAxisExtents[axis!]!, seriesDomains[id]!, seriesConfig.valueAxisConfig!.scale === SCALE_LOG);
     deltaPercentage = Math.max(deltaPercentage, deltaObject.deltaPercentage);
     if (deltaObject.deltaCopied === false) {
       deltaCopied = false;
@@ -907,13 +931,13 @@ function createFilteredValueDeltaData(mochartConfig: EnhancedMochartConfig, star
   };
 }
 
-function createFilteredValueDeltaDataObject(startFilteredValueObject: SeriesValueObject, endFilteredValueObject: SeriesValueObject, startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, rawValueDeltaObject: ValueDeltaObject, valueAxisExtent: number, seriesDomain: SeriesDomainObject): ValueDeltaObject {
+function createFilteredValueDeltaDataObject(startFilteredValueObject: SeriesValueObject, endFilteredValueObject: SeriesValueObject, startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, rawValueDeltaObject: ValueDeltaObject, valueAxisExtent: number, seriesDomain: SeriesDomainObject, logAxis: boolean): ValueDeltaObject {
   const valueDeltaObject = {} as ValueDeltaObject;
   for (const key of positionOrComputedKeys) {
-    setFilteredSeriesValueDeltas(valueDeltaObject, startFilteredValueObject, endFilteredValueObject, startValueObject, endValueObject, rawValueDeltaObject, key, valueAxisExtent);
+    setFilteredSeriesValueDeltas(valueDeltaObject, startFilteredValueObject, endFilteredValueObject, startValueObject, endValueObject, rawValueDeltaObject, key, valueAxisExtent, logAxis);
   }
   for (const { extraKey, copyKey } of extraAndCopyKeys) {
-    setFilteredExtraSeriesValueDeltas(valueDeltaObject, startFilteredValueObject, endFilteredValueObject, startValueObject, endValueObject, rawValueDeltaObject, extraKey, copyKey, valueAxisExtent, seriesDomain, extraKey !== 'label');
+    setFilteredExtraSeriesValueDeltas(valueDeltaObject, startFilteredValueObject, endFilteredValueObject, startValueObject, endValueObject, rawValueDeltaObject, extraKey, copyKey, valueAxisExtent, seriesDomain, extraKey !== 'label' || logAxis);
   }
   valueDeltaObject.deltaPercentage = getMaxDeltaPercentage(valueDeltaObject);
   valueDeltaObject.deltaCopied = getAllDeltaCopied(valueDeltaObject);
@@ -933,10 +957,10 @@ function setFilteredExtraSeriesValueDeltas(valueDeltaObject: ValueDeltaObject, s
   }
 }
 
-function setFilteredSeriesValueDeltas(valueDeltaObject: ValueDeltaObject, startFilteredValueObject: SeriesValueObject, endFilteredValueObject: SeriesValueObject, startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, rawValueDeltaObject: ValueDeltaObject, valueKey: ValueKey, valueAxisExtent: number): void {
+function setFilteredSeriesValueDeltas(valueDeltaObject: ValueDeltaObject, startFilteredValueObject: SeriesValueObject, endFilteredValueObject: SeriesValueObject, startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, rawValueDeltaObject: ValueDeltaObject, valueKey: ValueKey, valueAxisExtent: number, log = false): void {
   const filteredIsNotCopy = areValueReferencesDifferent(startFilteredValueObject, endFilteredValueObject, startValueObject, endValueObject, valueKey);
   if (startFilteredValueObject[valueKey] !== null && filteredIsNotCopy) {
-    valueDeltaObject[valueKey] = getSeriesValuesDeltas(startFilteredValueObject[valueKey]!, endFilteredValueObject[valueKey]!, valueAxisExtent);
+    valueDeltaObject[valueKey] = getSeriesValuesDeltas(startFilteredValueObject[valueKey]!, endFilteredValueObject[valueKey]!, valueAxisExtent, log);
     valueDeltaObject[valueKey].deltaCopied = false;
   }
   else {

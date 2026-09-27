@@ -48,7 +48,7 @@ const undocumented: Record<string, string> = {
 // Supported core exports documented by their JSDoc alone (editor hover and the shipped .d.ts), since api.md
 // covers only what a host realistically calls; each must carry JSDoc.
 const jsdocOnly = new Set([
-  'NONE', 'AUTO', 'TYPE_STRING', 'TYPE_NUMBER', 'TYPE_DATE', 'SCALE_ORDINAL', 'SCALE_LINEAR', 'CHART_TYPE_XY', 'CHART_TYPE_PIE',
+  'NONE', 'AUTO', 'TYPE_STRING', 'TYPE_NUMBER', 'TYPE_DATE', 'SCALE_ORDINAL', 'SCALE_LINEAR', 'SCALE_LOG', 'CHART_TYPE_XY', 'CHART_TYPE_PIE',
   'EASINGS', 'getEasingFunction', 'EasingFunction', 'buildMochartConfig', 'sectionKeyAllMap',
   'HistogramBin', 'BinValuesOptions', 'CreateHistogramOptions', 'HistogramData',
   'WaterfallItem', 'WaterfallDirection', 'WaterfallStep', 'CreateWaterfallOptions', 'WaterfallData',

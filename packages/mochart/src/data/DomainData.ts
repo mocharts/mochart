@@ -28,7 +28,8 @@ export function getCategoryDomainForValues<T extends DomainValue>(values: readon
   return [min, max];
 }
 
-export function getDomainForValues(values: readonly number[] | null): NullableDomain {
+/** The domain of the finite values; positiveOnly leaves out values at or below 0, which a log axis has no position for. */
+export function getDomainForValues(values: readonly number[] | null, positiveOnly = false): NullableDomain {
   let min: number | null = null;
   let max: number | null = null;
   if (values !== null) {
@@ -37,7 +38,7 @@ export function getDomainForValues(values: readonly number[] | null): NullableDo
     for (let i=0; i<valueCount; i++) {
       value = values[i];
       // a missing value is NaN; null would compare as 0 and re-arm the `min === null` sentinel, discarding the minimum
-      if (typeof value === 'number' && Number.isFinite(value)) {
+      if (typeof value === 'number' && Number.isFinite(value) && (!positiveOnly || value > 0)) {
         if (min === null || value < min) {
           min = value;
         }

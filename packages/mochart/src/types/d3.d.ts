@@ -2,6 +2,7 @@ declare module 'd3-scale' {
   import type { AxisScale } from './data.js';
 
   export function scaleLinear(): AxisScale;
+  export function scaleLog(): AxisScale;
   export function scaleSqrt(): AxisScale;
   export function scaleTime(): AxisScale;
   export function scaleUtc(): AxisScale;

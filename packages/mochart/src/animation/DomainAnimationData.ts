@@ -1,4 +1,4 @@
-import { getDomainExtents, getMaxDomain, copyDomain } from '../data/DomainData.js';
+import { getDomainExtents, getMaxDomain, getSafeDomainExtent, getSafeDomainExtents, copyDomain } from '../data/DomainData.js';
 
 import { getCategoryDataWithRenderAxisDomain, getCategoryDataWithNumericValues } from '../data/CategoryData.js';
 
@@ -6,16 +6,17 @@ import { getChartDataWithData, getChartDataWithRenderAxisDomains, getChartDataWi
 
 import { getSeriesDataWithRenderAxisDomains, getSeriesDataWithSeriesBases, getSeriesDataWithDomains, getSeriesBases } from '../data/SeriesData.js';
 
-import { domainKeys } from '../data/constants.js';
+import { domainKeys, keyDomain, positionOrComputedKeys } from '../data/constants.js';
 
 import { hasCategoryAdditions, getExpansionCategoryValueDeltaData, getContractionCategoryValueDeltaData } from './CategoryAnimationData.js';
 
 import { mapMap } from '../utils/utils.js';
 
-import { SCALE_ORDINAL, DOMAIN_CHANGE_COMBINED, DOMAIN_CHANGE_STAGED } from '../config/core/constants.js';
+import { SCALE_LOG, SCALE_ORDINAL, DOMAIN_CHANGE_COMBINED, DOMAIN_CHANGE_STAGED } from '../config/core/constants.js';
 import type { DomainChange } from '../config/core/constants.js';
 import type { AxisDomains, ChartData, CategoryAxisDomain, DomainValue, NullableDomain, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObjects } from '../types/data.js';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
+import type { DomainKey } from '../data/constants.js';
 import type {
   AxisDeltaData, CompleteNumericArrayDelta, DomainDelta, DomainDeltaMap, CategoryDeltaData,
   EmptyAxisDeltaData, NumericDomain, SeriesDomainDelta, SeriesDomainDeltaMap
@@ -45,7 +46,36 @@ export function emptyAxisDeltaData(): EmptyAxisDeltaData {
 // a barely-overlapping domain change (union far taller than either endpoint) is a translation: it skips the expand/contract "pump" and interpolates its render domain during the value phase
 export const TRANSLATION_UNION_RATIO = 1.5;
 
-export function isDomainTranslation(fromDomain: NullableDomain<DomainValue>, toDomain: NullableDomain<DomainValue>): boolean {
+/** A domain in the units its scale spaces evenly: the base 10 logs of its ends on a log axis, where its changes are measured and animated. */
+export function getScaledDomain<T extends DomainValue>(domain: NullableDomain<T>, log: boolean): NullableDomain<T | number> {
+  return log ? [domain[0] === null ? null : Math.log10(+domain[0]), domain[1] === null ? null : Math.log10(+domain[1])] : domain;
+}
+
+/** The ids of the value axes with a log scale, whose domains and values animate in logs. */
+export function getLogAxisIds(valueAxisConfigs: EnhancedValueAxisConfig[]): Set<string> {
+  return new Set(valueAxisConfigs.filter(({ scale }) => scale === SCALE_LOG).map(({ id }) => id));
+}
+
+function getScaledDomains(domains: AxisDomains, logAxisIds: ReadonlySet<string>): AxisDomains {
+  if (logAxisIds.size === 0) {
+    return domains;
+  }
+  const scaledDomains: AxisDomains = Object.create(null);
+  for (const axisId of Object.keys(domains)) {
+    scaledDomains[axisId] = getScaledDomain(domains[axisId], logAxisIds.has(axisId)) as NullableDomain;
+  }
+  return scaledDomains;
+}
+
+/** Each axis's safe extent (see getSafeDomainExtent), in logs on a log axis. */
+export function getScaledSafeDomainExtents(domains: AxisDomains, logAxisIds: ReadonlySet<string>): Record<string, number> {
+  return getSafeDomainExtents(getScaledDomains(domains, logAxisIds));
+}
+
+export function isDomainTranslation(fromDomain: NullableDomain<DomainValue>, toDomain: NullableDomain<DomainValue>, log = false): boolean {
+  if (log) {
+    return isDomainTranslation(getScaledDomain(fromDomain, true), getScaledDomain(toDomain, true));
+  }
   if (fromDomain[0] === null || fromDomain[1] === null || toDomain[0] === null || toDomain[1] === null) {
     return false;
   }
@@ -60,7 +90,7 @@ export function isDomainTranslation(fromDomain: NullableDomain<DomainValue>, toD
 }
 
 /** Whether a domain change interpolates directly during the value phase, per animation.domainChange. */
-export function shouldCombineDomainChange(domainChange: DomainChange, fromDomain: NullableDomain<DomainValue>, toDomain: NullableDomain<DomainValue>): boolean {
+export function shouldCombineDomainChange(domainChange: DomainChange, fromDomain: NullableDomain<DomainValue>, toDomain: NullableDomain<DomainValue>, log = false): boolean {
   if (domainChange === DOMAIN_CHANGE_STAGED) {
     return false;
   }
@@ -70,7 +100,7 @@ export function shouldCombineDomainChange(domainChange: DomainChange, fromDomain
   if (domainChange === DOMAIN_CHANGE_COMBINED) {
     return +fromDomain[0] !== +toDomain[0] || +fromDomain[1] !== +toDomain[1];
   }
-  return isDomainTranslation(fromDomain, toDomain);
+  return isDomainTranslation(fromDomain, toDomain, log);
 }
 
 /** Classified once per axis on the domains its scale displays, so raw and filtered never diverge. */
@@ -80,7 +110,7 @@ export function getCombinedDomainAxisIds(domainChange: DomainChange, valueAxisCo
     const axisId = valueAxisConfig.id;
     const fromDomain = valueAxisConfig.adjustForFiltering ? fromFilteredDomains[axisId] : fromRawDomains[axisId];
     const toDomain = valueAxisConfig.adjustForFiltering ? toFilteredDomains[axisId] : toRawDomains[axisId];
-    if (shouldCombineDomainChange(domainChange, fromDomain, toDomain)) {
+    if (shouldCombineDomainChange(domainChange, fromDomain, toDomain, valueAxisConfig.scale === SCALE_LOG)) {
       axisIds.push(axisId);
     }
   }
@@ -137,12 +167,13 @@ function getDomainDeltaMagnitude(minDelta: number, maxDelta: number): number {
 }
 
 /** Signed per-axis domain deltas for the value phase (see getDomainDeltaMagnitude for pacing). */
-export function getCombinedAxisDomainDeltas(fromDomains: AxisDomains, toDomains: AxisDomains, fromValueAxisDomainExtents: Record<string, number>): DomainDeltaMap {
+export function getCombinedAxisDomainDeltas(fromDomains: AxisDomains, toDomains: AxisDomains, fromValueAxisDomainExtents: Record<string, number>, logAxisIds: ReadonlySet<string> = new Set()): DomainDeltaMap {
   let deltaPercentage = 0;
   const deltas: Record<string, DomainDelta> = Object.create(null);
   for (const axisId of Object.keys(fromDomains)) {
-    const fromDomain = fromDomains[axisId];
-    const toDomain = toDomains[axisId];
+    const log = logAxisIds.has(axisId);
+    const fromDomain = getScaledDomain(fromDomains[axisId], log);
+    const toDomain = getScaledDomain(toDomains[axisId], log);
     let delta: NumericDomain | null = null;
     let axisDeltaPercentage = 0;
     if (fromDomain[0] !== null && fromDomain[1] !== null && toDomain[0] !== null && toDomain[1] !== null) {
@@ -155,14 +186,16 @@ export function getCombinedAxisDomainDeltas(fromDomains: AxisDomains, toDomains:
         axisDeltaPercentage = extent > 0 ? magnitude / extent : 0;
       }
     }
-    deltas[axisId] = { deltaPercentage: axisDeltaPercentage, delta };
+    deltas[axisId] = log ? { deltaPercentage: axisDeltaPercentage, delta, log } : { deltaPercentage: axisDeltaPercentage, delta };
     deltaPercentage = Math.max(deltaPercentage, axisDeltaPercentage);
   }
   return deltaPercentage === 0 ? emptyValueAxisDomainDelta() : { deltaPercentage, deltas };
 }
 
 /** Single-domain sibling of getCombinedAxisDomainDeltas for the category axis (dates coerce via +). */
-export function getCombinedCategoryDomainDelta(fromDomain: CategoryAxisDomain, toDomain: CategoryAxisDomain, fromDomainExtent: number): DomainDelta {
+export function getCombinedCategoryDomainDelta(fromCategoryDomain: CategoryAxisDomain, toCategoryDomain: CategoryAxisDomain, fromDomainExtent: number, log = false): DomainDelta {
+  const fromDomain = getScaledDomain(fromCategoryDomain, log);
+  const toDomain = getScaledDomain(toCategoryDomain, log);
   if (fromDomain[0] === null || fromDomain[1] === null || toDomain[0] === null || toDomain[1] === null) {
     return emptyCategoryAxisDomainDelta();
   }
@@ -172,7 +205,8 @@ export function getCombinedCategoryDomainDelta(fromDomain: CategoryAxisDomain, t
   if (magnitude === 0 || fromDomainExtent <= 0) {
     return emptyCategoryAxisDomainDelta();
   }
-  return { deltaPercentage: magnitude / fromDomainExtent, delta: [minDelta, maxDelta] };
+  const delta: DomainDelta = { deltaPercentage: magnitude / fromDomainExtent, delta: [minDelta, maxDelta] };
+  return log ? { ...delta, log } : delta;
 }
 
 function getPositiveDomainDelta(fromDomain: NullableDomain, toDomain: NullableDomain): NumericDomain {
@@ -276,7 +310,7 @@ export function getTransitionAxisExpansionData(mochartConfig: EnhancedMochartCon
   else {
     startCategoryAxisDomain = copyDomain(prevChartData.categoryData.renderAxisDomain);
     // a combined-domain category axis (e.g. a sliding window) sits out the union; its domain moves during the value phase
-    if (shouldCombineDomainChange(mochartConfig.animation.categoryDomainChange, prevChartData.categoryData.renderAxisDomain, newChartData.categoryData.renderAxisDomain)) {
+    if (shouldCombineDomainChange(mochartConfig.animation.categoryDomainChange, prevChartData.categoryData.renderAxisDomain, newChartData.categoryData.renderAxisDomain, categoryAxisConfig.scale === SCALE_LOG)) {
       endCategoryAxisDomain = copyDomain(startCategoryAxisDomain);
     }
     else {
@@ -285,7 +319,7 @@ export function getTransitionAxisExpansionData(mochartConfig: EnhancedMochartCon
     setBaseDomainForChanges(startCategoryAxisDomain, endCategoryAxisDomain);
   }
 
-  const categoryAxisDomainDelta = getCategoryAxisDomainDelta(startCategoryAxisDomain, endCategoryAxisDomain);
+  const categoryAxisDomainDelta = getCategoryAxisDomainDelta(startCategoryAxisDomain, endCategoryAxisDomain, categoryAxisConfig.scale === SCALE_LOG);
   if (categoryAxisDomainDelta.deltaPercentage !== 0) {
     finalCategoryAxisDomain = endCategoryAxisDomain;
     categoryValueDeltaData = getExpansionCategoryValueDeltaData(categoryAxisConfig, categoryDeltaData, prevChartData, newChartData, endCategoryAxisDomain);
@@ -311,8 +345,9 @@ export function getTransitionAxisExpansionData(mochartConfig: EnhancedMochartCon
   const combinedAxisIds = getCombinedDomainAxisIds(mochartConfig.animation.valueDomainChange, valueAxisConfigs,
     prevChartData.seriesData.raw.renderAxisDomains, prevChartData.seriesData.filtered.renderAxisDomains,
     newChartData.seriesData.raw.renderAxisDomains, newChartData.seriesData.filtered.renderAxisDomains);
-  const rawSet = getDomainDeltaSet(seriesConfigs, prevChartData.seriesData.raw, newChartData.seriesData.raw, false, combinedAxisIds);
-  const filteredSet = getDomainDeltaSet(seriesConfigs, prevChartData.seriesData.filtered, newChartData.seriesData.filtered, false, combinedAxisIds);
+  const logAxisIds = getLogAxisIds(valueAxisConfigs);
+  const rawSet = getDomainDeltaSet(seriesConfigs, prevChartData.seriesData.raw, newChartData.seriesData.raw, false, combinedAxisIds, logAxisIds);
+  const filteredSet = getDomainDeltaSet(seriesConfigs, prevChartData.seriesData.filtered, newChartData.seriesData.filtered, false, combinedAxisIds, logAxisIds);
 
   let endRawValueAxisDomains = rawSet.startValueAxisDomains;
   let endFilteredValueAxisDomains = filteredSet.startValueAxisDomains;
@@ -387,7 +422,7 @@ export function getTransitionAxisContractionData(mochartConfig: EnhancedMochartC
 
   const { categoryAxis: categoryAxisConfig, valueAxes: valueAxisConfigs, series: seriesConfigs } = mochartConfig;
 
-  const categoryAxisDomainDelta = getCategoryAxisDomainDelta(endCategoryAxisDomain, startCategoryAxisDomain);
+  const categoryAxisDomainDelta = getCategoryAxisDomainDelta(endCategoryAxisDomain, startCategoryAxisDomain, categoryAxisConfig.scale === SCALE_LOG);
   if (categoryAxisDomainDelta.deltaPercentage !== 0) {
     categoryValueDeltaData = getContractionCategoryValueDeltaData(categoryAxisConfig, categoryDeltaData, prevChartData, newChartData, startCategoryAxisDomain);
 
@@ -403,8 +438,9 @@ export function getTransitionAxisContractionData(mochartConfig: EnhancedMochartC
   let startSeriesData = newChartData.seriesData;
   let endSeriesData = newChartData.seriesData;
 
-  const rawSet = getDomainDeltaSet(seriesConfigs, prevChartData.seriesData.raw, newChartData.seriesData.raw, true, []);
-  const filteredSet = getDomainDeltaSet(seriesConfigs, prevChartData.seriesData.filtered, newChartData.seriesData.filtered, true, []);
+  const logAxisIds = getLogAxisIds(valueAxisConfigs);
+  const rawSet = getDomainDeltaSet(seriesConfigs, prevChartData.seriesData.raw, newChartData.seriesData.raw, true, [], logAxisIds);
+  const filteredSet = getDomainDeltaSet(seriesConfigs, prevChartData.seriesData.filtered, newChartData.seriesData.filtered, true, [], logAxisIds);
 
   if (hasAnyDomainDelta(rawSet, filteredSet)) {
     startSeriesData = getSeriesDataWithAllDomains(startSeriesData, rawSet.startValueAxisDomains, filteredSet.startValueAxisDomains, rawSet.startSeriesDomains, filteredSet.startSeriesDomains);
@@ -434,7 +470,7 @@ interface DomainDeltaSet {
   seriesDomainDeltas: SeriesDomainDeltaMap;
 }
 
-function getDomainDeltaSet(seriesConfigs: EnhancedSeriesConfig[], prevDataSet: SeriesDataSet, newDataSet: SeriesDataSet, fromEnd: boolean, combinedAxisIds: string[]): DomainDeltaSet {
+function getDomainDeltaSet(seriesConfigs: EnhancedSeriesConfig[], prevDataSet: SeriesDataSet, newDataSet: SeriesDataSet, fromEnd: boolean, combinedAxisIds: string[], logAxisIds: ReadonlySet<string>): DomainDeltaSet {
   const startValueAxisDomains = copyValueAxisDomains(prevDataSet.renderAxisDomains);
   const endValueAxisDomains = copyValueAxisDomains(newDataSet.renderAxisDomains);
   setAllBaseAxisDomainsForChanges(startValueAxisDomains, endValueAxisDomains);
@@ -450,13 +486,14 @@ function getDomainDeltaSet(seriesConfigs: EnhancedSeriesConfig[], prevDataSet: S
   const toValueAxisDomains = fromEnd ? startValueAxisDomains : endValueAxisDomains;
   const fromSeriesDomains = fromEnd ? endSeriesDomains : startSeriesDomains;
   const toSeriesDomains = fromEnd ? startSeriesDomains : endSeriesDomains;
-  const valueAxisExtents = getDomainExtents(fromValueAxisDomains);
+  // extents and deltas in logs on a log axis
+  const valueAxisExtents = getDomainExtents(getScaledDomains(fromValueAxisDomains, logAxisIds));
 
   return {
     startValueAxisDomains, endValueAxisDomains,
-    valueAxisDomainDeltas: getValueAxisDomainDeltas(fromValueAxisDomains, toValueAxisDomains, valueAxisExtents),
+    valueAxisDomainDeltas: getValueAxisDomainDeltas(fromValueAxisDomains, toValueAxisDomains, valueAxisExtents, logAxisIds),
     startSeriesDomains, endSeriesDomains,
-    seriesDomainDeltas: getSeriesDomainDeltas(seriesConfigs, fromSeriesDomains, toSeriesDomains, valueAxisExtents)
+    seriesDomainDeltas: getSeriesDomainDeltas(seriesConfigs, fromSeriesDomains, toSeriesDomains, valueAxisExtents, logAxisIds)
   };
 }
 
@@ -504,17 +541,18 @@ function adjustFilteredAxisDomainDeltas(valueAxisConfigs: EnhancedValueAxisConfi
 }
 
 // getAxisDeltaData functions
-function getValueAxisDomainDeltas(fromValueAxisDomains: AxisDomains, toValueAxisDomains: AxisDomains, fromValueAxisDomainExtents: Record<string, number>): DomainDeltaMap {
+function getValueAxisDomainDeltas(fromValueAxisDomains: AxisDomains, toValueAxisDomains: AxisDomains, fromValueAxisDomainExtents: Record<string, number>, logAxisIds: ReadonlySet<string>): DomainDeltaMap {
   let deltaPercentage = 0;
   const deltas: Record<string, DomainDelta> = Object.create(null);
 
   let axisDelta, axisDeltaPercentage;
   const valueAxisIds = Object.keys(fromValueAxisDomains);
   for (const id of valueAxisIds) {
-    axisDelta = getPositiveDomainDelta(fromValueAxisDomains[id], toValueAxisDomains[id]);
+    const log = logAxisIds.has(id);
+    axisDelta = getPositiveDomainDelta(getScaledDomain(fromValueAxisDomains[id], log) as NullableDomain, getScaledDomain(toValueAxisDomains[id], log) as NullableDomain);
     axisDeltaPercentage = getPositiveDomainDeltaPercentage(axisDelta, fromValueAxisDomainExtents[id]);
     deltaPercentage = Math.max(deltaPercentage, axisDeltaPercentage);
-    deltas[id] = {
+    deltas[id] = log ? { deltaPercentage: axisDeltaPercentage, delta: axisDelta, log } : {
       deltaPercentage: axisDeltaPercentage,
       delta: axisDelta
     };
@@ -525,10 +563,11 @@ function getValueAxisDomainDeltas(fromValueAxisDomains: AxisDomains, toValueAxis
   };
 }
 
-function getCategoryAxisDomainDelta(fromCategoryAxisDomain: CategoryAxisDomain, toCategoryAxisDomain: CategoryAxisDomain): DomainDelta {
+function getCategoryAxisDomainDelta(fromCategoryAxisDomain: CategoryAxisDomain, toCategoryAxisDomain: CategoryAxisDomain, log: boolean): DomainDelta {
   const delta: NumericDomain = [0, 0];
 
-  const getValue = (categoryValue: CategoryAxisDomain[number]): number => categoryValue === null ? 0 : categoryValue instanceof Date ? categoryValue.getTime() : categoryValue;
+  // in logs on a log axis, where the domain animates
+  const getValue = (categoryValue: CategoryAxisDomain[number]): number => categoryValue === null ? 0 : log ? Math.log10(+categoryValue) : categoryValue instanceof Date ? categoryValue.getTime() : categoryValue;
 
   if (getValue(toCategoryAxisDomain[0]) < getValue(fromCategoryAxisDomain[0])) {
     delta[0] = getValue(toCategoryAxisDomain[0]) - getValue(fromCategoryAxisDomain[0]);
@@ -539,19 +578,19 @@ function getCategoryAxisDomainDelta(fromCategoryAxisDomain: CategoryAxisDomain, 
 
   const deltaPercentage = getPositiveDomainDeltaPercentage(delta, getDomainExtentWithValueGetter(fromCategoryAxisDomain, getValue));
 
-  return deltaPercentage === 0 ? emptyCategoryAxisDomainDelta() : {
+  return deltaPercentage === 0 ? emptyCategoryAxisDomainDelta() : log ? { deltaPercentage, delta, log } : {
     deltaPercentage,
     delta
   }
 }
 
-function getSeriesDomainDeltas(seriesConfigs: EnhancedSeriesConfig[], fromDomainObjects: SeriesDomainObjects, toDomainObjects: SeriesDomainObjects, fromAxisExtents: Record<string, number>): SeriesDomainDeltaMap {
+function getSeriesDomainDeltas(seriesConfigs: EnhancedSeriesConfig[], fromDomainObjects: SeriesDomainObjects, toDomainObjects: SeriesDomainObjects, fromAxisExtents: Record<string, number>, logAxisIds: ReadonlySet<string>): SeriesDomainDeltaMap {
   let deltaPercentage = 0;
   const deltas: Record<string, SeriesDomainDelta> = Object.create(null);
   let domainDelta;
   for (const seriesConfig of seriesConfigs) {
     const { id } = seriesConfig;
-    domainDelta = getSeriesDomainDelta(fromDomainObjects[id]!, toDomainObjects[id]!, fromAxisExtents[seriesConfig.axis!]!);
+    domainDelta = getSeriesDomainDelta(fromDomainObjects[id]!, toDomainObjects[id]!, fromAxisExtents[seriesConfig.axis!]!, logAxisIds.has(seriesConfig.axis!));
     deltaPercentage = Math.max(deltaPercentage, domainDelta.deltaPercentage);
     deltas[id] = domainDelta;
   }
@@ -561,23 +600,30 @@ function getSeriesDomainDeltas(seriesConfigs: EnhancedSeriesConfig[], fromDomain
   };
 }
 
-function getSeriesDomainDelta(fromDomainObject: SeriesDomainObject, toDomainObject: SeriesDomainObject, fromAxisExtent: number): SeriesDomainDelta {
+function getSeriesDomainDelta(fromDomainObject: SeriesDomainObject, toDomainObject: SeriesDomainObject, fromAxisExtent: number, logAxis: boolean): SeriesDomainDelta {
   const newDomainObject = {} as SeriesDomainDelta;
   let deltaPercentage = 0;
   let key, domainDelta, domainDeltaPercentage;
   const length = domainKeys.length;
   for (let i=0; i<length; i++) {
     key = domainKeys[i];
-    domainDelta = getPositiveDomainDelta(fromDomainObject[key], toDomainObject[key]);
-    domainDeltaPercentage = getPositiveDomainDeltaPercentage(domainDelta, fromAxisExtent);
+    // on a log axis the values it places move in logs; marker, label, color and tooltip values keep moving linearly,
+    // paced against their own extent rather than the axis's
+    const log = logAxis && isAxisDomainKey(key);
+    domainDelta = getPositiveDomainDelta(getScaledDomain(fromDomainObject[key], log) as NullableDomain, getScaledDomain(toDomainObject[key], log) as NullableDomain);
+    domainDeltaPercentage = getPositiveDomainDeltaPercentage(domainDelta, logAxis && !log ? getSafeDomainExtent(fromDomainObject[key]) : fromAxisExtent);
     deltaPercentage = Math.max(deltaPercentage, domainDeltaPercentage);
-    newDomainObject[key] ={
+    newDomainObject[key] = log ? { deltaPercentage: domainDeltaPercentage, delta: domainDelta, log } : {
       deltaPercentage: domainDeltaPercentage,
       delta: domainDelta
     };
   }
   newDomainObject.deltaPercentage = deltaPercentage;
   return newDomainObject;
+}
+
+function isAxisDomainKey(key: DomainKey): boolean {
+  return key === keyDomain || (positionOrComputedKeys as readonly string[]).includes(key);
 }
 
 function createAxisDeltaData(startChartData: ChartData, endChartData: ChartData, finalChartData: ChartData, categoryAxisDomainDelta: DomainDelta, rawValueAxisDomainDeltas: DomainDeltaMap,

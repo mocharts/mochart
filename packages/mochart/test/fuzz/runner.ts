@@ -259,7 +259,7 @@ export class Fuzzer {
         this.stats.timersLeftAfterDestroy++;
       }
       resetClock();
-      for (const message of consoleMessages) {
+      for (const message of consoleMessages.filter(message => !expectedConsoleMessages.some(pattern => pattern.test(message)))) {
         this.record('error', property, 'console:' + message.slice(0, 80), {
           base: base.id, value, stage, detail: message.slice(0, 400)
         });
@@ -301,6 +301,9 @@ export class Fuzzer {
     }
   }
 }
+
+// warnings a valid config is meant to log: a log axis names the series values at or below 0 it draws as missing
+const expectedConsoleMessages = [/^mochart value axis .* is a log axis, so it draws series values at or below 0 as missing/];
 
 /** A config holding something unclonable cannot be guarded; skip its mutation check rather than fail the case. */
 function safeClone<T>(value: T): T | undefined {

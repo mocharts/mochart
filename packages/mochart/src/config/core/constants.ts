@@ -326,7 +326,8 @@ export type PieLabelType =
 export type PieTooltipValueType =
   typeof PIE_TOOLTIP_VALUE_TYPE_VALUE | typeof PIE_TOOLTIP_VALUE_TYPE_PERCENT |
   typeof PIE_TOOLTIP_VALUE_TYPE_VALUE_PERCENT | typeof PIE_TOOLTIP_VALUE_TYPE_PERCENT_VALUE;
-export type Scale = typeof SCALE_ORDINAL | typeof SCALE_LINEAR;
+export type Scale = typeof SCALE_ORDINAL | typeof SCALE_LINEAR | typeof SCALE_LOG;
+export type ValueAxisScale = typeof SCALE_LINEAR | typeof SCALE_LOG;
 export type DataType = typeof TYPE_STRING | typeof TYPE_NUMBER | typeof TYPE_DATE;
 export type RendererType = typeof RENDERER_BAR | typeof RENDERER_LINE | typeof RENDERER_AREA | typeof RENDERER_NONE;
 export type PatternType = typeof PATTERN_TYPE_LINES | typeof PATTERN_TYPE_CROSSHATCH | typeof PATTERN_TYPE_DOTS;

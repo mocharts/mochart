@@ -4,7 +4,7 @@ import { getDomainFraction } from '../data/DomainFraction.js';
 import { getWithMutations } from '../utils/WithMutations.js';
 import { arrayToMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils.js';
 import { NONE } from '../config/core/constants.js';
-import type { DomainFractionScale } from '../data/DomainFraction.js';
+import type { Scale } from '../config/core/constants.js';
 import type { FocusData, FocusPercentage, CategoryDeltaData } from '../types/animation.js';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced.js';
 import type { ChartData, CategoryData, NullableDomain, SeriesData } from '../types/data.js';
@@ -16,7 +16,7 @@ function isFocused(value: number | string | null | undefined): value is number |
 }
 
 // ascending: whether the axis's pixel position grows with the value along its direction
-function getPercentageForDomain(scale: DomainFractionScale, domain: [number, number], value: number, ascending: boolean): number {
+function getPercentageForDomain(scale: Scale, domain: [number, number], value: number, ascending: boolean): number {
   if (domain[0] === domain[1]) {
     return ascending ? 0 : 1;
   }

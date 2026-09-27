@@ -45,6 +45,8 @@ interface SeriesProps {
   focusData: FocusData | null;
   categoryValueData: CategoryAxisData['valueData'];
   valueAxisScale: AxisScale;
+  /** The widest plot.clipOverflow side: how far past the plot a clipped position must lie. */
+  clipOverflow: number;
   rawValueAxisDomain: NullableDomain;
   rawDomains: SeriesDomainObject;
   filteredValues: SeriesValueObject;
@@ -209,8 +211,8 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
   }
 
   computeSeriesPositionData(props: SeriesProps): Pick<SeriesState, 'seriesPositionData'> {
-    const { categoryAxisConfig, seriesConfig, categoryValueData, valueAxisScale, filteredValues, seriesLayoutInfo } = props;
-    const seriesPositionData = filteredValues.plain !== null ? getSeriesPositionData(categoryAxisConfig, seriesConfig, categoryValueData, valueAxisScale, filteredValues, seriesLayoutInfo) : null;
+    const { categoryAxisConfig, seriesConfig, categoryValueData, valueAxisScale, filteredValues, seriesLayoutInfo, clipOverflow } = props;
+    const seriesPositionData = filteredValues.plain !== null ? getSeriesPositionData(categoryAxisConfig, seriesConfig, categoryValueData, valueAxisScale, filteredValues, seriesLayoutInfo, clipOverflow) : null;
     return {
       seriesPositionData
     };
@@ -366,7 +368,7 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
         cursor: seriesConfig.showPointer ? 'pointer' : null, // inherited: covers bars, markers, labels and paths
         transform: translateObject(seriesLayoutInfo) });
       this.errorBars.set(SeriesErrorBars, { colorPaletteConfig, seriesConfig, seriesIndex,
-        seriesPositionData, valueAxisScale, filteredValues, inverted, focusData });
+        seriesPositionData, valueAxisScale, clipOverflow: this.props.clipOverflow, filteredValues, inverted, focusData });
       this.markers.set(SeriesMarkers, { colorPaletteConfig, seriesConfig, seriesPositionData,
         filteredValues, rawDomains, inverted, seriesIndex,
         focusData, onCategoryEnter, onCategoryLeave, onCategoryClick });

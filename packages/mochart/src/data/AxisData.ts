@@ -1,12 +1,13 @@
-import { scaleLinear, scaleTime, scaleUtc } from 'd3-scale';
+import { scaleLinear, scaleLog, scaleTime, scaleUtc } from 'd3-scale';
 import { format, formatPrefix, formatSpecifier } from 'd3-format';
 import { timeFormat, utcFormat } from 'd3-time-format';
 
 import { getWithMutations } from '../utils/WithMutations.js';
 import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData.js';
 import { getCategoryValueKey } from './CategoryValue.js';
+import { getScaledValue } from './DomainFraction.js';
 import { areArraysAndEqual, arrayToMap, idAccessor, hasText } from '../utils/utils.js';
-import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
+import { AUTO, NONE, SCALE_ORDINAL, SCALE_LINEAR, SCALE_LOG, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
 import type { Anchor } from '../config/core/constants.js';
 import { getMinorTickLabel } from '../config/core/minorConfig.js';
 import { getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
@@ -18,6 +19,8 @@ import type { AxisData, AxisScale, AxisTick, AxisValue, ChartData, CategoryAxisD
 import type { AxisLayoutInfo, ChartLayoutInfo, CategoryAxisLayoutInfo } from '../types/layout.js';
 
 const autoTickLabelFormatNumber = 's';
+// a log axis spans magnitudes, so each tick takes its own prefix; three digits cover the 1 to 9 multiples and keep the domain-end sizing labels short
+const autoLogTickLabelFormatNumber = '.3~s';
 // per-value form: without a tick step to take the precision from, the trailing zeros must be trimmed
 const autoOrdinalTickLabelFormatNumber = '~s';
 const autoTickLabelFormatDate = '%c';
@@ -114,8 +117,11 @@ function getValueAxisData(plotConfig: PlotConfig, valueAxisConfigs: EnhancedValu
 export function getCategorySpacingInfo(categoryAxisConfig: CategoryAxisConfig, categoryAxisDomain: CategoryAxisDomain, categoryAxisExtent: number, categoryValueInterval: number | null): CategorySpacingInfo {
   let minPosition = 0;
   let maxPosition = categoryAxisExtent;
-  const categoryAxisDomainExtent = categoryAxisDomain[0] === null || categoryAxisDomain[1] === null ? 0 : Math.abs(+categoryAxisDomain[1] - +categoryAxisDomain[0]);
-  // slots across the domain: one per category on an ordinal axis, one per categoryValueInterval on a linear axis, one when a single category has no interval
+  // on a log axis in the base 10 logs, the units its categoryValueInterval is measured in
+  const scale = categoryAxisConfig.scale;
+  const categoryAxisDomainExtent = categoryAxisDomain[0] === null || categoryAxisDomain[1] === null ? 0 :
+    Math.abs(getScaledValue(scale, +categoryAxisDomain[1]) - getScaledValue(scale, +categoryAxisDomain[0]));
+  // slots across the domain: one per category on an ordinal axis, one per categoryValueInterval on a linear or log axis, one when a single category has no interval
   const categorySlotCount = categoryValueInterval !== null ? categoryAxisDomainExtent / categoryValueInterval : (categoryAxisDomainExtent === 0 ? 0 : 1);
   const categoryCountPadding = categoryAxisConfig.categoryCountPadding;
   let categoryValueExtent;
@@ -142,16 +148,31 @@ export function getCategorySpacingInfo(categoryAxisConfig: CategoryAxisConfig, c
 function getCategoryValuePositions(categoryAxisConfig: CategoryAxisConfig, scale: AxisScale, valueData: CategoryValues): number[] {
   const positions: number[] = [];
   const values = categoryAxisConfig.scale === SCALE_ORDINAL ? valueData.numeric : valueData.parsed;
+  const log = categoryAxisConfig.scale === SCALE_LOG;
   const count = values.length;
   for (let i=0; i<count; i++) {
-    positions.push(scale(values[i] as number | Date));
+    // a value at or below 0 has no position on a log axis (a data error, but a custom data provider can pass one)
+    positions.push(log && !(+values[i]! > 0) ? NaN : scale(values[i] as number | Date));
   }
   return positions;
 }
 
+/** A log scale over the domain; one with no values, or none a log axis can place, stands in with [1, 10] so the scale stays finite. */
+function getLogScale(axisDomain: readonly (AxisValue | null)[]): AxisScale {
+  const [min, max] = axisDomain;
+  const valid = min !== null && max !== null && +min > 0 && +max > 0;
+  return scaleLog().domain(valid ? [+min, +max] : [1, 10]);
+}
+
 function getCategoryAxisScale(axisConfig: CategoryAxisConfig, axisDomain: CategoryAxisDomain, categorySpacingInfo: CategorySpacingInfo): AxisScale {
-  const axisScale = (axisConfig.type === TYPE_DATE && axisConfig.scale === SCALE_LINEAR) ? (axisConfig.dateUTC ? scaleUtc() : scaleTime()) : scaleLinear();
-  axisScale.domain(axisDomain);
+  let axisScale: AxisScale;
+  if (axisConfig.scale === SCALE_LOG) {
+    axisScale = getLogScale(axisDomain);
+  }
+  else {
+    axisScale = (axisConfig.type === TYPE_DATE && axisConfig.scale === SCALE_LINEAR) ? (axisConfig.dateUTC ? scaleUtc() : scaleTime()) : scaleLinear();
+    axisScale.domain(axisDomain);
+  }
   axisScale.range(reversedRange(categorySpacingInfo.categoryRange, axisConfig.reversed));
   return axisScale;
 }
@@ -174,8 +195,7 @@ function getValueAxisScale(axisConfig: EnhancedValueAxisConfig, rawAxisDomain: N
 }
 
 function getValueAxisScaleForDomain(axisConfig: EnhancedValueAxisConfig, axisLayoutInfo: AxisLayoutInfo, axisDomain: NullableDomain, vertical: boolean): AxisScale {
-  const axisScale = scaleLinear();
-  axisScale.domain(axisDomain);
+  const axisScale = axisConfig.scale === SCALE_LOG ? getLogScale(axisDomain) : scaleLinear().domain(axisDomain);
   const range: [number, number] = vertical ? [axisLayoutInfo.valueExtent, 0] : [0, axisLayoutInfo.valueExtent];
   axisScale.range(reversedRange(range, axisConfig.reversed));
   return axisScale;
@@ -413,6 +433,64 @@ function getExplicitTickStep(explicitTicks: readonly { value: unknown }[]): numb
   return step;
 }
 
+interface LogTicks {
+  majors: number[];
+  minors: LinearStepTicks['minors'];
+  /** The linear scale over the domain when the ticks fell back to linear ones, whose labels take their precision from it. */
+  linearScale: AxisScale | null;
+}
+
+// the multiples of each power of 10 a log axis ticks: the powers themselves, then the 2 and 5 multiples, then the rest
+const logMultiples = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const logExponentSteps = [1, 2, 5, 10, 20, 50, 100];
+
+/** The given multiples of each power of 10 that lie within the domain, in value order. */
+function getLogMultiples(min: number, max: number, multiples: readonly number[]): number[] {
+  const values: number[] = [];
+  const minExponent = Math.floor(Math.log10(min));
+  const maxExponent = Math.ceil(Math.log10(max));
+  for (let exponent = minExponent; exponent <= maxExponent; exponent++) {
+    for (const multipleOf of multiples) {
+      // toPrecision drops the float noise of 3 * 1e-7, which would leak into labels and lookups
+      const value = Number((multipleOf * 10 ** exponent).toPrecision(12));
+      if (value >= min * (1 - 1e-12) && value <= max * (1 + 1e-12)) {
+        values.push(value);
+      }
+    }
+  }
+  return values;
+}
+
+/**
+ * The ticks of a log axis: the powers of 10, keeping every second, fifth or tenth one when they do not all fit, with the
+ * 2 and 5 multiples added as ticks when the powers are too few and every gap fits minGap pixels. The other 1 to 9
+ * multiples, or the skipped powers, are minor ticks. With fewer than half of tickCount powers and 2 and 5 multiples in
+ * the domain, as inside one decade, or none that fit, the ticks are linear ones and there are no minors.
+ */
+function getLogTicks(domain: [number, number], tickCount: number, axisScale: AxisScale, minGap: number): LogTicks {
+  const min = Math.min(domain[0], domain[1]);
+  const max = Math.max(domain[0], domain[1]);
+  if (tickCount < 1 || !(min > 0) || !(max > min)) {
+    return { majors: [], minors: [], linearScale: null };
+  }
+  const withTwosAndFives = getLogMultiples(min, max, [1, 2, 5]);
+  const powers = getLogMultiples(min, max, [1]);
+  const gapsFit = withTwosAndFives.every((value, i) => i === 0 || Math.abs(axisScale(value) - axisScale(withTwosAndFives[i - 1]!)) >= minGap);
+  const useTwosAndFives = withTwosAndFives.length <= tickCount && gapsFit;
+  if (withTwosAndFives.length < tickCount / 2 || (!useTwosAndFives && powers.length === 0)) {
+    const linearScale = scaleLinear().domain([min, max]);
+    return { majors: linearScale.ticks(tickCount) as number[], minors: [], linearScale };
+  }
+  let majors: number[];
+  if (powers.length > tickCount) {
+    const exponentStep = logExponentSteps.find(step => powers.filter(power => Math.round(Math.log10(power)) % step === 0).length <= tickCount) ?? logExponentSteps[logExponentSteps.length - 1]!;
+    majors = powers.filter(power => Math.round(Math.log10(power)) % exponentStep === 0);
+    return { majors, minors: powers.filter(power => !majors.includes(power)).map(value => ({ value, hidden: false })), linearScale: null };
+  }
+  majors = useTwosAndFives ? withTwosAndFives : powers;
+  return { majors, minors: getLogMultiples(min, max, logMultiples).filter(value => !majors.includes(value)).map(value => ({ value, hidden: false })), linearScale: null };
+}
+
 /** The linear ticks of an axis in value order: the step's ticks (or the scale's) with the minor ticks between them. */
 function createLinearTicks(majors: AxisValue[], minors: LinearStepTicks['minors'], axisScale: AxisScale, majorFormatter: TickLabelFormatter, minorFormatter: TickLabelFormatter, isMajorHidden: (index: number, tick: Omit<AxisTick, 'hidden'>) => boolean, isMinorHidden: (tick: Omit<AxisTick, 'hidden'>) => boolean): AxisTick[] {
   const ticks = majors.map((major, index) => createLinearTickObject(major, axisScale, majorFormatter, tick => isMajorHidden(index, tick)));
@@ -450,6 +528,8 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
     // the axis room one ordinal tick label needs, the widest label plus the spacing, for the step rule's collision pass
     let ordinalTickSpace = 0;
     let stepTicks = noStepTicks;
+    // set when log ticks fell back to linear ones, which are labelled the way a linear axis labels them
+    let linearTickScale: AxisScale | null = null;
 
     if (categoryValues.length === 1) {
       if (axisConfig.scale === SCALE_ORDINAL) {
@@ -489,6 +569,12 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
       else if (axisConfig.scale === SCALE_ORDINAL) {
         scaleTicks = categoryValues.map((_v, i) => i);
       }
+      else if (axisConfig.scale === SCALE_LOG) {
+        const logTicks = getLogTicks(axisScale.domain() as [number, number], tickCount, axisScale, ordinalTickSpace);
+        scaleTicks = logTicks.majors;
+        stepTicks = { ...noStepTicks, minors: logTicks.minors };
+        linearTickScale = logTicks.linearScale;
+      }
       else {
         stepTicks = getLinearStepTicks(axisConfig, axisScale.domain() as [AxisValue, AxisValue], categoryAxisRangeExtent, 'categoryAxis');
         scaleTicks = stepTicks.majors ?? axisScale.ticks(tickCount);
@@ -499,6 +585,10 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
     if (axisConfig.scale === SCALE_ORDINAL) {
       tickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length, categoryValues);
       minorTickLabelFormatter = getOrdinalScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, scaleTicks.length, categoryValues);
+    }
+    else if (linearTickScale !== null) {
+      tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, linearTickScale, scaleTicks.length, null, false);
+      minorTickLabelFormatter = tickLabelFormatter;
     }
     else {
       tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length, stepTicks.step);
@@ -540,7 +630,9 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
 
         ticks = createLinearTicks(scaleTicks, stepTicks.minors, axisScale, tickLabelFormatter, minorTickLabelFormatter, (i, tick) => i % tickInterval !== 0 || outside(tick), outside);
         if (categoryValues.length > 0) {
-          const singleValue = tickLabelAnchor === ANCHOR_START ? axisDomain[0]! : (tickLabelAnchor === ANCHOR_END ? axisDomain[1]! : +axisDomain[0]! + (+axisDomain[1]! - +axisDomain[0]!) / 2);
+          // the middle of the axis, which on a log one is the geometric mean of its ends
+          const middleValue = axisConfig.scale === SCALE_LOG ? Math.sqrt(+axisDomain[0]! * +axisDomain[1]!) : +axisDomain[0]! + (+axisDomain[1]! - +axisDomain[0]!) / 2;
+          const singleValue = tickLabelAnchor === ANCHOR_START ? axisDomain[0]! : (tickLabelAnchor === ANCHOR_END ? axisDomain[1]! : middleValue);
           const singleTickValue = axisConfig.type === TYPE_DATE ? new Date(singleValue) : singleValue;
           singleTick = createLinearTickObject(singleTickValue, axisScale, tickLabelFormatter, () => true);
           ticks.push(singleTick);
@@ -715,6 +807,8 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
     let tickCount = axisConfig.tickCount;
     let scaleTicks: AxisValue[];
     let stepTicks = noStepTicks;
+    // set when log ticks fell back to linear ones, which are labelled the way a linear axis labels them
+    let linearTickScale: AxisScale | null = null;
     const adjustForFiltering = axisConfig.adjustForFiltering;
     const adjustTickLabelsForFiltering = adjustForFiltering && axisConfig.tickLabel.adjustSizeForFiltering;
     const valueAxisDomain = adjustForFiltering ? filteredValueAxisDomain : rawValueAxisDomain;
@@ -728,6 +822,13 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
         tickCount = 1;
         scaleTicks = [valueAxisDomain[0]];
       }
+    }
+    else if (axisConfig.scale === SCALE_LOG) {
+      tickCount = getTickCount(axisConfig, axisLayoutInfo.valueExtent, 0, fits.major.space);
+      const logTicks = getLogTicks([valueAxisDomain[0]!, valueAxisDomain[1]!], tickCount, axisScale, fits.major.space + axisConfig.minTickSpacing);
+      scaleTicks = logTicks.majors;
+      stepTicks = { ...noStepTicks, minors: logTicks.minors };
+      linearTickScale = logTicks.linearScale;
     }
     else {
       const valueAxisDomainExtent = valueAxisDomain[1]! - valueAxisDomain[0]!;
@@ -744,7 +845,9 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
       }
     }
     // the visible ticks take their precision from the scale that generated them, or from the step that placed them
-    const tickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length, stepTicks.step);
+    const tickLabelFormatter = linearTickScale !== null
+      ? getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, linearTickScale, scaleTicks.length, null, false)
+      : getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, scaleTicks.length, stepTicks.step);
     const minorTickLabelFormatter = getLinearScaleTickLabelFormatter(axisConfig, minorTickLabel, axisScale, Math.max(scaleTicks.length, stepTicks.minors.length), stepTicks.minorStep ?? stepTicks.step);
     // the hidden size ticks span the raw domain, so they keep its precision for stable label bounds
     // (always the render domain: a collapsed domain gives tickFormat a zero step and garbage precision)
@@ -879,10 +982,16 @@ function getStepTickFormat(axisScale: AxisScale, step: number, specifierString: 
   return tick => numberFormat(tick as number);
 }
 
-function getLinearScaleTickLabelFormatter(axisConfig: CategoryAxisConfig | EnhancedValueAxisConfig, tickLabel: TickLabelSettings, axisScale: AxisScale, tickCount: number, tickStep: number | null = null): TickLabelFormatter {
+/** perValue formats each tick on its own, as a log axis does unless its ticks fell back to linear ones. */
+function getLinearScaleTickLabelFormatter(axisConfig: CategoryAxisConfig | EnhancedValueAxisConfig, tickLabel: TickLabelSettings, axisScale: AxisScale, tickCount: number, tickStep: number | null = null, perValue = axisConfig.scale === SCALE_LOG): TickLabelFormatter {
   let tickLabelFormatter: TickLabelFormatter = tick => tick;
   if (tickLabel.format !== NONE) {
-    if (axisConfig.type === TYPE_NUMBER) {
+    if (axisConfig.type === TYPE_NUMBER && perValue) {
+      // per tick, never the log scale's tickFormat, which blanks most ticks that are not powers of 10
+      const numberFormat = format(tickLabel.format === AUTO ? autoLogTickLabelFormatNumber : tickLabel.format);
+      tickLabelFormatter = tick => numberFormat(tick as number);
+    }
+    else if (axisConfig.type === TYPE_NUMBER) {
       const specifier = tickLabel.format === AUTO ? autoTickLabelFormatNumber : tickLabel.format;
       if (tickStep !== null && tickStep > 0) {
         tickLabelFormatter = getStepTickFormat(axisScale, tickStep, specifier);

@@ -16,13 +16,13 @@ export { enhanceConfig } from './config/helper/index.js';
 export { createSparklineConfig } from './config/helper/sparkline.js';
 export type { CreateSparklineConfigOptions } from './config/helper/sparkline.js';
 // other enumerated config values are written as string literals; the union types below name them
-export { NONE, AUTO, TYPE_DATE, TYPE_NUMBER, TYPE_STRING, SCALE_ORDINAL, SCALE_LINEAR, EASINGS } from './config/core/constants.js';
+export { NONE, AUTO, TYPE_DATE, TYPE_NUMBER, TYPE_STRING, SCALE_ORDINAL, SCALE_LINEAR, SCALE_LOG, EASINGS } from './config/core/constants.js';
 export { getEasingFunction } from './animation/Easing.js';
 export type { EasingFunction } from './animation/Easing.js';
 // the union types every config member is declared with, so a host can name one in its own signatures
 export type {
   Auto, Align, TooltipValueAlign, VerticalAlign, Anchor, Position, MissingValueMode, AxisSide, ThresholdTitleSide,
-  ChartType, PieLabelType, PieTooltipValueType, Scale, DataType, RendererType, PatternType, CurveType,
+  ChartType, PieLabelType, PieTooltipValueType, Scale, ValueAxisScale, DataType, RendererType, PatternType, CurveType,
   CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, CategoryValueIntervalPeriod, DomainChange, AnimationEasing,
   FontWeight, FontStyle, Major
 } from './config/core/constants.js';

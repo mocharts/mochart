@@ -1,13 +1,15 @@
 import { scaleLinear } from 'd3-scale';
 
 import { getDomainExtent, numericValue } from './DomainData.js';
-import { AUTO, NONE, TYPE_DATE } from '../config/core/constants.js';
+import { getValueOffsetByDomainFraction } from './DomainFraction.js';
+import { AUTO, NONE, SCALE_LOG, TYPE_DATE } from '../config/core/constants.js';
 import type { AxisConfigBase } from '../types/config.js';
-import type { DataType } from '../config/core/constants.js';
+import type { DataType, Scale } from '../config/core/constants.js';
 import type { DomainValue, CategoryAxisDomain } from '../types/data.js';
 
 type AxisDomainConfig = AxisConfigBase & {
   type: DataType;
+  scale?: Scale;
   base?: number | null;
   minMarginFraction?: number;
   maxMarginFraction?: number;
@@ -39,6 +41,9 @@ export function getRenderAxisDomain(axisConfig: AxisDomainConfig, axisDomain: Ca
     return axisDomain;
   }
   const value = numericValue(min);
+  if (axisConfig.scale === SCALE_LOG) { // widened by a ratio and never niced, which would open whole decades
+    return [value / 1.05, value * 1.05];
+  }
   if (axisConfig.type === TYPE_DATE) {
     const half = getDateHalfWidth(axisConfig);
     return [new Date(value - half), new Date(value + half)];
@@ -131,7 +136,10 @@ function getAxisDomainWithMinAndMax(axisConfig: AxisDomainConfig, axisDomainCalc
       axisDomain[0] = axisDomain[1];
     }
     const axisExtent = getDomainExtent(axisDomain);
-    if (axisExtent > 0) {
+    if (axisExtent > 0 && axisConfig.scale === SCALE_LOG) {
+      adjustLogAxisDomainForMargins(axisConfig, axisDomain as [number, number]);
+    }
+    else if (axisExtent > 0) {
       const { minMarginFraction = 0, maxMarginFraction = 0 } = axisConfig;
       if (min === AUTO && axisDomain[0] !== null && (base === NONE || axisDomain[0] !== base) && minMarginFraction > 0) {
         adjustAxisBound(axisConfig, axisDomain, 0, -minMarginFraction * axisExtent);
@@ -142,6 +150,21 @@ function getAxisDomainWithMinAndMax(axisConfig: AxisDomainConfig, axisDomainCalc
     }
   }
   return axisDomain;
+}
+
+// a margin is a share of the axis length on either scale, so on a log axis it is a share of the extent of the logs
+function adjustLogAxisDomainForMargins(axisConfig: AxisDomainConfig, axisDomain: [number, number]): void {
+  const { min, max, base = null, minMarginFraction = 0, maxMarginFraction = 0 } = axisConfig;
+  const marginDomain: [number, number] = [axisDomain[0], axisDomain[1]];
+  if (min === AUTO && (base === NONE || axisDomain[0] !== base) && minMarginFraction > 0) {
+    axisDomain[0] = getValueOffsetByDomainFraction(SCALE_LOG, marginDomain, marginDomain[0], -minMarginFraction);
+  }
+  if (max === AUTO && (base === NONE || axisDomain[1] !== base) && maxMarginFraction > 0) {
+    const adjusted = getValueOffsetByDomainFraction(SCALE_LOG, marginDomain, marginDomain[1], maxMarginFraction);
+    if (Number.isFinite(adjusted)) {
+      axisDomain[1] = adjusted;
+    }
+  }
 }
 
 function adjustAxisDomainForOffsets(axisConfig: AxisDomainConfig, axisDomain: CategoryAxisDomain): void {

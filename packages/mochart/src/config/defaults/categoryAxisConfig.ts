@@ -1,4 +1,4 @@
-import { AUTO, NONE, MAJOR, TYPE_STRING, SCALE_LINEAR, SCALE_ORDINAL, SIDE_START, SIDE_END } from '../core/constants.js';
+import { AUTO, NONE, MAJOR, TYPE_STRING, SCALE_LINEAR, SCALE_LOG, SCALE_ORDINAL, SIDE_START, SIDE_END } from '../core/constants.js';
 import { resolveDefaults, conditionalDefault, defaultRule } from './conditionalDefault.js';
 
 import getAxisDefaults, { getMinorVisibleDefault } from './axisConfig.js';
@@ -62,11 +62,13 @@ export function getConditionalDefaults(configWithRegularDefaults: CategoryAxisCo
     ], configWithRegularDefaults, inverted),
     maxTickCount: conditionalDefault([
       { condition: ({ scale }, _inverted) => scale === SCALE_LINEAR, suffix: "when scale is linear", default: 10 },
+      { condition: ({ scale }, _inverted) => scale === SCALE_LOG, suffix: "when scale is log", default: 10 },
       { condition: ({ scale }, _inverted) => scale === SCALE_ORDINAL, suffix: "when scale is ordinal", default: 0 },
       { ...defaultRule, default: 10 }
     ], configWithRegularDefaults, inverted),
     minTickSpacing: conditionalDefault([
       { condition: ({ scale }, _inverted) => scale === SCALE_LINEAR, suffix: "when scale is linear", default: 12 },
+      { condition: ({ scale }, _inverted) => scale === SCALE_LOG, suffix: "when scale is log", default: 12 },
       { condition: ({ scale }, _inverted) => scale === SCALE_ORDINAL, suffix: "when scale is ordinal", default: 4 },
       { ...defaultRule, default: 10 }
     ], configWithRegularDefaults, inverted),
@@ -80,7 +82,7 @@ export function getConditionalDefaults(configWithRegularDefaults: CategoryAxisCo
       },
       minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted)
     },
-    tickMark: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted) },
-    gridLine: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted) }
+    tickMark: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted, true) },
+    gridLine: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted, true) }
   };
 }

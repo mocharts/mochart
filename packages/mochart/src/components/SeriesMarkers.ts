@@ -6,6 +6,7 @@ import { mochartCssClasses } from '../utils/ChartDom.js';
 import { NONE, MARKER_SIZE_SCALE_SQRT, RENDERER_BAR } from '../config/core/constants.js';
 import { translate, isMissingValue } from '../utils/utils.js';
 import { getSymbolGenerator } from '../utils/shapeUtils.js';
+import { hasScalePosition } from '../data/DomainFraction.js';
 import { getSeriesMarkerFillColor, getSeriesMarkerStrokeColor } from '../utils/SeriesColors.js';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
 import { getFocusStyle, getCategoryFocusPercentage } from '../utils/FocusValue.js';
@@ -88,7 +89,7 @@ export default class SeriesMarkers extends Renderer<SeriesMarkersProps> {
 
       for (let i = 0; i < length; i++) {
         const skipI = skipped ? skipCategoryIndexMap[i] : i;
-        if (getDefined(null, i) && (missingValueMarkers || !isMissingValue(max[skipI]))) {
+        if (getDefined(null, i) && (missingValueMarkers || hasScalePosition(seriesConfig.valueAxisConfig.scale, max[skipI]))) {
           focusPercentage = getCategoryFocusPercentage(categoryFocusPercentages[skipI], seriesFocusPercentage);
           markerFillColor = getSeriesMarkerFillColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, skipI);
           markerStrokeColor = getSeriesMarkerStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, skipI);

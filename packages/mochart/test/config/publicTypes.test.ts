@@ -5,7 +5,7 @@ import { CONFIG_VERSION } from '../../src/config/core/constants';
 import type {
   CssStyle, MochartInputConfig, MochartConfig,
   Auto, Align, VerticalAlign, Anchor, Position, MissingValueMode, AxisSide, ThresholdTitleSide,
-  ChartType, PieLabelType, PieTooltipValueType, Scale, DataType, RendererType, CurveType,
+  ChartType, PieLabelType, PieTooltipValueType, Scale, ValueAxisScale, DataType, RendererType, CurveType,
   PatternType, CapType, LabelPosition, ColorMode, ColorInterpolation, MarkerShape, MarkerSizeScale, StepPeriod, CategoryValueIntervalPeriod, DomainChange,
   FontWeight, FontStyle, Major,
   ChartEventPayload, ChartFocus, ChartSeriesFilter, ChartSliceClickPayload, ChartSeriesClickPayload,
@@ -24,7 +24,7 @@ interface EveryUnion {
   auto: Auto; align: Align; verticalAlign: VerticalAlign; anchor: Anchor; position: Position;
   missingValueMode: MissingValueMode; axisSide: AxisSide; thresholdTitleSide: ThresholdTitleSide;
   chartType: ChartType; pieLabelType: PieLabelType; pieTooltipValueType: PieTooltipValueType;
-  scale: Scale; dataType: DataType; rendererType: RendererType; curveType: CurveType;
+  scale: Scale; valueAxisScale: ValueAxisScale; dataType: DataType; rendererType: RendererType; curveType: CurveType;
   patternType: PatternType;
   capType: CapType; labelPosition: LabelPosition; colorMode: ColorMode;
   colorInterpolation: ColorInterpolation; markerShape: MarkerShape; markerSizeScale: MarkerSizeScale;
@@ -37,13 +37,13 @@ describe('public config type surface', () => {
       auto: 'auto', align: 'left', verticalAlign: 'top', anchor: 'start', position: 'top',
       missingValueMode: 'break', axisSide: 'start', thresholdTitleSide: 'low',
       chartType: 'xy', pieLabelType: 'titlePercent', pieTooltipValueType: 'value',
-      scale: 'linear', dataType: 'number', rendererType: 'bar', curveType: 'stepAfter',
+      scale: 'linear', valueAxisScale: 'log', dataType: 'number', rendererType: 'bar', curveType: 'stepAfter',
       patternType: 'crosshatch',
       capType: 'round', labelPosition: 'inside', colorMode: 'seriesIndex',
       colorInterpolation: 'hcl', markerShape: 'star', markerSizeScale: 'sqrt', stepPeriod: 'week', categoryValueIntervalPeriod: 'hour', domainChange: 'staged',
       fontWeight: 'bold', fontStyle: 'italic', major: 'major'
     };
-    expect(Object.keys(values)).toHaveLength(28);
+    expect(Object.keys(values)).toHaveLength(29);
     expect(describeSeries(values.rendererType, values.curveType, values.markerShape)).toBe('bar/stepAfter/star');
   });
 
@@ -69,7 +69,7 @@ describe('public config type surface', () => {
     const expected: Record<string, unknown> = {
       AUTO: 'auto', NONE: null,
       TYPE_STRING: 'string', TYPE_NUMBER: 'number', TYPE_DATE: 'date',
-      SCALE_ORDINAL: 'ordinal', SCALE_LINEAR: 'linear',
+      SCALE_ORDINAL: 'ordinal', SCALE_LINEAR: 'linear', SCALE_LOG: 'log',
       CHART_TYPE_XY: 'xy', CHART_TYPE_PIE: 'pie',
       CONFIG_VERSION
     };

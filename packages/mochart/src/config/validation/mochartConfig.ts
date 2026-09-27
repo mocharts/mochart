@@ -1,7 +1,7 @@
 import validators from './validators.js';
 import { getMessage, getPropertyMessage, getMessages, addWarningMessages, DEFAULT } from './messages.js';
 import type { LocatedValidationMessage } from './messages.js';
-import { CHART_TYPE_PIE, NONE, CONFIG_VERSION } from '../core/constants.js';
+import { CHART_TYPE_PIE, NONE, CONFIG_VERSION, RENDERER_BAR, SCALE_LOG } from '../core/constants.js';
 import { configWithAll, filterConfig, filterConfigs, getConfigKey, getRawIndices } from '../core/configUtils.js';
 import { getConfigWithDefaults, sectionKeyAllMap } from '../core/mochartConfig.js';
 import { getDefaults } from '../defaults/mochartConfig.js';
@@ -87,8 +87,23 @@ export function getStackGroupMessage(): string {
   return 'should equal the id property of a series stack whose series all share this series\' group property';
 }
 
+export function getLogCategoryBarMessage(): string {
+  return 'should not be "bar" when categoryAxis.scale is "log", since equal value distances take unequal widths there';
+}
+
 export function getGradientIdMessage(): string {
   return 'should be unique across linearGradients and radialGradients';
+}
+
+/** Whether a series stack draws on the value axis: a stack with no axis uses the first one, as the base default reads it. */
+function hasStackOnAxis(valueAxis: ConfigRecord, config?: ConfigRecord): boolean {
+  const stacks = config?.seriesStacks;
+  const valueAxes = config?.valueAxes;
+  if (!Array.isArray(stacks) || valueAxis.id === undefined) {
+    return false;
+  }
+  const firstAxisId = Array.isArray(valueAxes) && isConfigRecord(valueAxes[0]) ? valueAxes[0].id : undefined;
+  return stacks.some(stack => isConfigRecord(stack) && (stack.axis ?? firstAxisId) === valueAxis.id);
 }
 
 export const configWithoutAllValidators: Record<string, ConfigSectionValidator> = {
@@ -173,9 +188,9 @@ export const configWithoutAllValidators: Record<string, ConfigSectionValidator> 
   valueAxes: {
     list: true,
     validator: arrayOfObjectsOrEmpty,
-    validators: (_configSection: ConfigRecord, config?: ConfigRecord) => {
+    validators: (configSection: ConfigRecord, config?: ConfigRecord) => {
       const chart = config?.chart;
-      return valueAxisValidators(isConfigRecord(chart) && chart.type === CHART_TYPE_PIE);
+      return valueAxisValidators(configSection, isConfigRecord(chart) && chart.type === CHART_TYPE_PIE, hasStackOnAxis(configSection, config));
     },
     uniqueKeys: ['id', 'order'],
     allExcludedKeys: ['ignore']
@@ -201,6 +216,7 @@ export const configWithoutAllValidators: Record<string, ConfigSectionValidator> 
       stack: { section: 'seriesStacks', key: 'id', commonKey: 'axis' }
     },
     crossRules: {
+      renderer: getLogCategoryBarMessage,
       stack: getStackGroupMessage,
       followSeries: getFollowSeriesMessage
     }
@@ -342,6 +358,7 @@ function validateConfigInternal(configWithoutDefaults: unknown, configDefaults: 
     }
     validateFollowSeries(config, configWithoutDefaults, errors, errorDetails);
     validateStackGroups(config, configWithoutDefaults, errors, errorDetails);
+    validateLogCategoryBars(config, configWithoutDefaults, errors, errorDetails);
     validateGradientIds(config, configWithoutDefaults, errors, errorDetails);
     validateAxisBounds(config, configWithoutDefaults, errors, errorDetails);
     validateThresholdEntries(config, configWithoutDefaults, errors, errorDetails);
@@ -641,6 +658,24 @@ function validateStackGroups(config: ConfigRecord, configWithoutDefaults: Config
     const reportIndex = rawIndices?.[i] ?? i;
     errors.push(getPropertyMessage('series', 'stack', message, reportIndex));
     errorDetails.push({ path: ['series', reportIndex, 'stack'], message });
+  }
+}
+
+function validateLogCategoryBars(config: ConfigRecord, configWithoutDefaults: ConfigRecord, errors: string[], errorDetails: LocatedValidationMessage[]): void {
+  const seriesSections = config['series'];
+  const categoryAxis = config['categoryAxis'];
+  if (!Array.isArray(seriesSections) || !isConfigRecord(categoryAxis) || categoryAxis['scale'] !== SCALE_LOG) {
+    return;
+  }
+  const rawIndices = getRawIndices(configWithoutDefaults['series']);
+  for (let i = 0; i < seriesSections.length; i++) {
+    const section = seriesSections[i];
+    if (isConfigRecord(section) && section['renderer'] === RENDERER_BAR) {
+      const message = getLogCategoryBarMessage();
+      const reportIndex = rawIndices?.[i] ?? i;
+      errors.push(getPropertyMessage('series', 'renderer', message, reportIndex));
+      errorDetails.push({ path: ['series', reportIndex, 'renderer'], message });
+    }
   }
 }
 

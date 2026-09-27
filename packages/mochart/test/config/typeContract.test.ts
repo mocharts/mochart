@@ -50,16 +50,16 @@ describe('category axis bounds accept the date forms the validators accept', () 
   });
 });
 
-describe('value axis scale and type are the single values the validators accept', () => {
+describe('value axis scale and type are the values the validators accept', () => {
   it('rejects an ordinal scale at typecheck time', () => {
     const config: MochartInputConfig = {
       version: V,
       categoryAxis: { property: 'c' },
-      // @ts-expect-error a value axis is always linear; the validator rejects anything else
+      // @ts-expect-error a value axis is linear or log; the validator rejects anything else
       valueAxes: [{ id: 'A', scale: 'ordinal' }],
       series: [{ property: 'v' }]
     };
-    expect(errorsFor(config)).toContain('valueAxes[0] - scale - should be equal to "linear": "ordinal"');
+    expect(errorsFor(config)).toContain('valueAxes[0] - scale - should be one of [ "linear", "log" ]: "ordinal"');
   });
 
   it('rejects a string type at typecheck time', () => {
@@ -73,13 +73,15 @@ describe('value axis scale and type are the single values the validators accept'
     expect(errorsFor(config)).toContain('valueAxes[0] - type - should be equal to "number": "string"');
   });
 
-  it('accepts the two values it does allow', () => {
-    expect(errorsFor({
-      version: V,
-      categoryAxis: { property: 'c' },
-      valueAxes: [{ id: 'A', scale: 'linear', type: 'number' }],
-      series: [{ property: 'v' }]
-    })).toEqual([]);
+  it('accepts the values it does allow', () => {
+    for (const scale of ['linear', 'log'] as const) {
+      expect(errorsFor({
+        version: V,
+        categoryAxis: { property: 'c' },
+        valueAxes: [{ id: 'A', scale, type: 'number' }],
+        series: [{ property: 'v' }]
+      })).toEqual([]);
+    }
   });
 });
 

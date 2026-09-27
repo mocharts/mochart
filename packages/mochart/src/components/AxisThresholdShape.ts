@@ -5,7 +5,7 @@ import { mochartCssClasses } from '../utils/ChartDom.js';
 import { styleToAttributes } from '../utils/style.js';
 import { getCategoryValueKey } from '../data/CategoryValue.js';
 import { getDomainFraction } from '../data/DomainFraction.js';
-import { ANCHOR_MIDDLE, ANCHOR_START, AUTO, NONE, SCALE_ORDINAL, SIDE_START, TITLE_SIDE_INSIDE, TITLE_SIDE_LOW, TYPE_DATE } from '../config/core/constants.js';
+import { ANCHOR_MIDDLE, ANCHOR_START, AUTO, NONE, SCALE_LOG, SCALE_ORDINAL, SIDE_START, TITLE_SIDE_INSIDE, TITLE_SIDE_LOW, TYPE_DATE } from '../config/core/constants.js';
 import type { El, TextEl } from '../render/index.js';
 import type { AxisConfigBase } from '../types/config.js';
 import type { FontInlineStyle } from '../utils/font.js';
@@ -86,7 +86,8 @@ function getThresholdOffset(props: AxisThresholdShapeProps, rawValue: number | s
   if (typeof numericThreshold !== 'number' || Number.isNaN(numericThreshold) || domainMin === undefined || domainMax === undefined || domainMin === domainMax) {
     return null;
   }
-  const domainFraction = getDomainFraction(scale, [domainMin, domainMax], numericThreshold);
+  // at or below 0 a log axis has no place for the value: a whole axis length before the minimum end, so a range fills from that end
+  const domainFraction = scale === SCALE_LOG && numericThreshold <= 0 ? -1 : getDomainFraction(scale, [domainMin, domainMax], numericThreshold);
   const thresholdPercentage = positionRange[0] + (positionRange[1] - positionRange[0]) * domainFraction;
   return (ascending ? thresholdPercentage : 1 - thresholdPercentage) * axisExtent;
 }

@@ -4,7 +4,7 @@ import { filterConfig, getRawIndices } from '../core/configUtils.js';
 import { getPropertyMessage, isConfigObject } from './messages.js';
 import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators.js';
 
-import { AUTO, NONE, MAJOR, ANCHORS, STYLE_SAME, SIDES, SCALE_ORDINAL, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants.js';
+import { AUTO, NONE, MAJOR, ANCHORS, STYLE_SAME, SIDES, SCALE_LOG, SCALE_ORDINAL, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants.js';
 
 import type { ConfigObject, LocatedValidationMessage } from './messages.js';
 import type { Validator } from '@mochart/movalid';
@@ -254,6 +254,8 @@ const thresholdPatternMessage = 'should be the id of a patterns entry';
 const thresholdGradientMessage = 'should be the id of a linearGradients or radialGradients entry';
 const thresholdPatternGradientMessage = 'cannot be combined with gradient';
 const thresholdInsideMessage = 'should be "inside" only on a threshold range (an entry with a rangeValue)';
+const thresholdLogValueMessage = 'should be a number greater than 0 when scale is log';
+const thresholdLogRangeMessage = 'should be a number greater than 0 when scale is log and rangeValue is not greater than 0';
 
 function getSectionIds(config: ConfigObject, sectionKeys: string[]): Set<string> {
   const ids = new Set<string>();
@@ -334,6 +336,7 @@ function getAxisReporter({ prefix, path, raw }: ValidationAxis, reportedDefaults
 
 const PERIOD_ORDER = ['second', 'minute', 'hour', 'day', 'week', 'month', 'year'];
 const stepNeedsPlacementMessage = 'should be left at its default on a linear axis unless period or interval is set';
+const stepOnLogMessage = 'should be left at its default on a log axis, where interval must be null';
 const minorPeriodNeedsPeriodMessage = 'should be null unless period is set';
 const offsetNeedsCountMessage = 'should be 0 on a linear axis unless count is a number, since every step is kept and there is nothing to shift';
 const minorPeriodTooLongMessage = 'should be a shorter period than period';
@@ -349,8 +352,9 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
       continue;
     }
     const report = getAxisReporter(validationAxis, reportedDefaults, errors, errorDetails);
-    // a value axis is always linear; the category axis says so itself
+    // a log axis takes no interval, so like an unplaced linear one it keeps count and offset at their defaults
     const linear = axis['scale'] !== SCALE_ORDINAL;
+    const placementMessage = axis['scale'] === SCALE_LOG ? stepOnLogMessage : stepNeedsPlacementMessage;
     for (const [groupKey, defaultCount] of [['tickStep', AUTO], ['thresholdStep', 1]] as const) {
       const step = axis[groupKey];
       if (!isConfigObject(step)) {
@@ -360,10 +364,10 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
       const placed = (step['period'] !== undefined && step['period'] !== NONE) || (step['interval'] !== undefined && step['interval'] !== NONE);
       if (linear && !placed) {
         if (step['count'] !== defaultCount) {
-          reportStep('count', stepNeedsPlacementMessage);
+          reportStep('count', placementMessage);
         }
         if (step['offset'] !== 0) {
-          reportStep('offset', stepNeedsPlacementMessage);
+          reportStep('offset', placementMessage);
         }
       }
       // a linear offset shifts which count-th step is kept, so with every step kept (count "auto") it does nothing
@@ -457,6 +461,16 @@ export function validateThresholdEntries(config: ConfigObject, configWithoutDefa
       }
       if (typeof pattern === 'string' && typeof gradient === 'string') {
         reportEntry('pattern', thresholdPatternGradientMessage, ['pattern']);
+      }
+      // a range with one end at or below 0 fills from the axis minimum end, but one with no end above 0 is never drawn
+      if (axis['scale'] === SCALE_LOG && typeof threshold['value'] === 'number' && threshold['value'] <= 0) {
+        const rangeValue = threshold['rangeValue'];
+        if (rangeValue === undefined || rangeValue === null) {
+          reportEntry('value', thresholdLogValueMessage, ['value']);
+        }
+        else if (typeof rangeValue === 'number' && rangeValue <= 0) {
+          reportEntry('value', thresholdLogRangeMessage, ['value']);
+        }
       }
       const title = threshold['title'];
       if (isConfigObject(title) && title['side'] === TITLE_SIDE_INSIDE && (threshold['rangeValue'] === undefined || threshold['rangeValue'] === null)) {

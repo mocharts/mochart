@@ -93,7 +93,7 @@ export function getTickLabelDescriptions(): DescriptionMap {
     anchor: 'the anchor to use for all axis tick labels (start, end, middle) (use "auto" to determine automatically)',
     textStyle: styleStates('the style of the axis tick label text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity']),
     font: font('the font of the axis tick label text (family, size, weight, style), each member falling back to chart.font when null'),
-    minorVisible: 'whether to show the minor tick labels, the labels of the minor ticks a tickStep places between its ticks and of the ticks entries marked minor' + majorNote('tickLabel.visible'),
+    minorVisible: 'whether to show the minor tick labels, the labels of the minor ticks a tickStep places between its ticks, a log axis places between its powers of 10, and of the ticks entries marked minor' + majorNote('tickLabel.visible'),
     minorFront: 'whether the minor tick labels should be shown in front (true) or behind (false) the series shapes' + majorNote('tickLabel.front'),
     minorBackgroundStyle: minorStyle('the styles to apply to the minor tick label background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))', 'tickLabel.backgroundStyle'),
     minorSize: 'the space (in pixels) perpendicular to the axis direction to allocate for the minor tick labels (use "auto" to derive from the font size)' + majorNote('tickLabel.size'),
@@ -112,13 +112,13 @@ export function getTickLabelDescriptions(): DescriptionMap {
 
 export const tickLabelDescription = 'the labels shown at each tick along the axis';
 
-export const minorTickLabelIntro = 'A minor tick is one a `tickStep` places between its own ticks (the categories between an ordinal step\'s ticks, the `minorSteps` or `minorPeriod` ticks of a linear step) or a `ticks` entry marked `minor`. Every tick label setting has a minor version named "minor" followed by the setting name. Each defaults to `"major"`, which uses the value of the matching non-minor setting, except `minorPrefix` and `minorSuffix`, which default to null and take no `"major"`, and the `text` of the category axis `minorTruncation`, which is always a string of its own.';
+export const minorTickLabelIntro = 'A minor tick is one a `tickStep` places between its own ticks (the categories between an ordinal step\'s ticks, the `minorSteps` or `minorPeriod` ticks of a linear step), one a log axis places at the multiples from 2 to 9 of each power of 10 that is not a tick, or a `ticks` entry marked `minor`. Every tick label setting has a minor version named "minor" followed by the setting name. Each defaults to `"major"`, which uses the value of the matching non-minor setting, except `minorPrefix` and `minorSuffix`, which default to null and take no `"major"`, and the `text` of the category axis `minorTruncation`, which is always a string of its own.';
 
 /** The tick label details shared by both axes: what a minor tick is, how its labels fit, and the font size note. */
 export function getTickLabelDetails(): DescriptionMap {
   return {
     visible: 'A label hidden here is not drawn and takes no room in the layout, and its ticks are no longer thinned to make the labels fit: under a `tickStep` rule the tick marks and grid lines are limited only by `tickStep.minSpacing`, and without one the axis still picks its tick count from `tickCount`, `maxTickCount`, `minTickSpacing` and `minTickInterval`. To keep hidden labels in the layout, leave them visible and set the opacities of every state of `textStyle` to 0 instead.',
-    minorVisible: 'The default is `false` while `minorFormat` is `"major"` and `ticks` is unset, so a `tickStep` alone labels only its own ticks; setting a `minorFormat` or listing `ticks` turns it to `"major"`. Minor labels never change which non-minor labels show. A minor label shows only when every minor label fits beside its neighbours, minor or not, measured from the widest minor and non-minor labels plus `minTickSpacing`; when one does not fit they all hide, unless the category axis `minorTruncation` truncates them instead. Minor labels that do not fit hide their tick marks and grid lines with them; `false` here hides only the labels and takes them out of the layout, and `visible: false` hides the minor labels whatever this says.',
+    minorVisible: 'The default is `false` while `minorFormat` is `"major"` and `ticks` is unset, so a `tickStep` alone labels only its own ticks; setting a `minorFormat` or listing `ticks` turns it to `"major"`. A log axis makes its minor ticks without being asked, so there `tickMark.minorVisible` and `gridLine.minorVisible` default to `"major"` while this keeps the same default, which shows their marks and grid lines without crowding the axis with labels. Minor labels never change which non-minor labels show. A minor label shows only when every minor label fits beside its neighbours, minor or not, measured from the widest minor and non-minor labels plus `minTickSpacing`; when one does not fit they all hide, unless the category axis `minorTruncation` truncates them instead. Minor labels that do not fit hide their tick marks and grid lines with them; `false` here hides only the labels and takes them out of the layout, and `visible: false` hides the minor labels whatever this says.',
     minorFormat: '`"major"` is replaced with the value of `format` before any formatter is built, so it never reaches d3.',
     minorSize: 'The minor labels have a layout of their own: they are measured and placed from the minor settings, the axis reserves the larger of the two label totals (size, margins and paddings), the title sits after the larger one, and the minor labels get their own background box.',
     minorFont: { properties: { size: 'A relative size such as `"0.85em"` resolves against the font size the label inherits from the host page, as every font size in mochart does, not against `tickLabel.font.size` or `chart.font.size`: with `tickLabel.font.size` 16 on a page with a 12px font, `"0.85em"` gives minor labels 10.2px, not 13.6px.' } }
@@ -162,7 +162,7 @@ export const stepCountDescription = 'every count-th step is kept (2 keeps every 
 /** The tickStep members both axes share; the category axis adds the members that place its steps on its scales. */
 export function getTickStepDescriptions(): DescriptionMap {
   return {
-    interval: 'the axis value distance between the ticks on a linear number scale (use null to keep the ticks the axis picks)',
+    interval: 'the axis value distance between the ticks on a linear number scale (use null to keep the ticks the axis picks, as a log axis must)',
     count: stepCountDescription + ' ("auto" keeps as many as fit without overlapping)',
     offset: 'the number of steps skipped before the first tick; on a linear scale it shifts which multiples or periods are kept, counted from 0 or the calendar origin',
     minorSteps: 'the number of even steps (at least 2) each interval is split into on a linear number scale, with a minor tick at each step between the ticks (use null for none)',
@@ -188,7 +188,7 @@ export const tickStepMinorDetails = {
 export function getThresholdStepDescriptions(): DescriptionMap {
   return {
     visible: 'whether to draw the stepped thresholds',
-    interval: 'the axis value distance the thresholds step by on a number scale (use null for none)',
+    interval: 'the axis value distance the thresholds step by on a linear number scale (use null for none, as a log axis must)',
     count: stepCountDescription + ' as a threshold',
     offset: 'the number of steps skipped before the first threshold; on a linear scale it shifts which multiples or periods are kept, counted from 0 or the calendar origin',
     minSpacing: 'the least distance (in pixels, at least 2) to allow between the thresholds the rule draws on a linear axis; when they would be closer, none are drawn (an ordinal axis accepts only 2)',
@@ -211,6 +211,9 @@ export const thresholdStepPatternDetails = 'The pattern\'s `"owner"` color keywo
 
 export const thresholdStyleDetails = 'A line entry uses only the `style` stroke members; the fill members, `pattern` and `gradient` apply to ranges.';
 export const thresholdDomainDetails = 'Thresholds never extend the axis domain: a line outside it is not drawn, a range partly outside is clipped to it, and one wholly outside is not drawn.';
+
+/** The threshold rules of a log axis, which has no position for a value at or below 0. */
+export const thresholdLogDetails = 'On a log axis a value at or below 0 has no position: a line there is a validation error, a range with one end there fills from the minimum end of the axis (a range from 0 to 10 covers everything below 10), and a range with neither end above 0 is a validation error.';
 
 /** The details of the threshold members both axes share; each axis adds the value forms its scale takes. */
 export function getThresholdMemberDetails(): DescriptionMap {
@@ -280,7 +283,7 @@ export default function getDescriptions() {
     maxTickCount: 'the maximum number of ticks to show along the length of the axis (use 0 to disable the maximum)',
 
     minTickSpacing: 'the minimum space (in pixels) to allow between the bounds of any tick label text',
-    minTickInterval: 'the minimum value interval to use between any two consecutive tick label values',
+    minTickInterval: 'the minimum value interval to use between any two consecutive tick label values (must be 0 on a log axis, whose ticks are powers of 10 rather than a fixed distance apart)',
 
     paddingInner: 'the inner (closest to chart) padding (in pixels) of the axis',
     paddingOuter: 'the outer (furthest from chart) padding (in pixels) of the axis',
@@ -350,8 +353,8 @@ export default function getDescriptions() {
     max: 'the forced maximum value for the axis: a number, or a date on a date category axis (use "auto" to compute from the values); must be >= min unless either is "auto" (set reversed to run the axis backwards)',
     softMin: 'the minimum value for the axis to cover while no data value is less than it, taking the same forms as min (use null to disable)',
     softMax: 'the maximum value for the axis to cover while no data value is greater than it, taking the same forms as max (use null to disable)',
-    minOffset: 'the offset to add to the minimum value of the axis while min is "auto" (no effect with a fixed min), in the axis\'s units: milliseconds on a date axis',
-    maxOffset: 'the offset to add to the maximum value of the axis while max is "auto" (no effect with a fixed max), in the axis\'s units: milliseconds on a date axis',
+    minOffset: 'the offset to add to the minimum value of the axis while min is "auto" (no effect with a fixed min), in the axis\'s units: milliseconds on a date axis; must be 0 on a log axis, where a fixed amount of axis units takes a different length at each end (a value axis reserves space there with minMarginFraction)',
+    maxOffset: 'the offset to add to the maximum value of the axis while max is "auto" (no effect with a fixed max), in the axis\'s units: milliseconds on a date axis; must be 0 on a log axis, where a fixed amount of axis units takes a different length at each end (a value axis reserves space there with maxMarginFraction)',
 
     visible: 'whether the axis should be visible (its line, tick marks, tick labels and title). Its grid, base and threshold lines are controlled by their own visibility properties, and can remain visible when the axis is hidden',
   };

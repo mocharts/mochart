@@ -3,7 +3,7 @@ import { timeFormat, utcFormat } from 'd3-time-format';
 import { scaleLinear } from 'd3-scale';
 
 import { arrayToMap, idAccessor, hasText } from './utils.js';
-import { NONE, AUTO, TYPE_DATE, TYPE_NUMBER } from '../config/core/constants.js';
+import { NONE, AUTO, SCALE_LOG, TYPE_DATE, TYPE_NUMBER } from '../config/core/constants.js';
 import type { CategoryAxisConfig } from '../types/config.js';
 import type { EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
 import type { AxisDomains, AxisScale, CategoryValue } from '../types/data.js';
@@ -11,6 +11,8 @@ import type { AxisDomains, AxisScale, CategoryValue } from '../types/data.js';
 export type ValueFormatter = (value: number | Date) => CategoryValue;
 
 const autoValueFormatNumber = ".2s";
+// a log axis spans magnitudes, so each value takes its own prefix; the trailing zeros are trimmed to match its tick labels
+const autoLogValueFormatNumber = '.2~s';
 const autoCategoryFormatNumber = '.2s';
 const autoCategoryFormatDate = '%c';
 
@@ -79,6 +81,11 @@ function getSeriesValueFormatter(seriesConfig: EnhancedSeriesConfig, valueAxisCo
   if (seriesConfig.valueFormat === AUTO) {
     if (valueAxisConfig.tickLabel.format === NONE) {
       return value => value;
+    }
+    if (valueAxisConfig.scale === SCALE_LOG) {
+      // per value, never the log scale's tickFormat, which blanks most values that are not powers of 10
+      const formatter = format(valueAxisConfig.tickLabel.format === AUTO ? autoLogValueFormatNumber : valueAxisConfig.tickLabel.format);
+      return value => formatter(value as number);
     }
     const formatSpecifier = valueAxisConfig.tickLabel.format === AUTO ? autoValueFormatNumber : valueAxisConfig.tickLabel.format;
     return valueAxisScale.tickFormat(10, formatSpecifier);

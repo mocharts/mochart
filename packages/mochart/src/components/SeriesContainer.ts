@@ -84,6 +84,8 @@ export default class SeriesContainer extends Renderer<SeriesContainerProps, Seri
     const { values: filteredValues } = filtered;
 
     const orderedSeriesConfigs = getSeriesConfigsOrderedByFocus(mochartConfig, focusData);
+    const { top, right, bottom, left } = mochartConfig.plot.clipOverflow;
+    const clipOverflow = Math.max(top, right, bottom, left);
 
     const accessibility = accessibilityActive(mochartConfig.accessibility);
     // filtered-out series render nothing (see Series.sync), so they hold no tab stop
@@ -117,7 +119,7 @@ export default class SeriesContainer extends Renderer<SeriesContainerProps, Seri
         props: { categoryAxisConfig, colorPaletteConfig, chartFont: mochartConfig.chart.font,
           seriesConfig, seriesIndex: index, stackData,
           seriesLayoutInfo, focusData, categoryValueData,
-          valueAxisScale: valueAxisData.axisScales[axis!],
+          valueAxisScale: valueAxisData.axisScales[axis!], clipOverflow,
           rawValueAxisDomain: rawValueAxisDomains[axis!], rawDomains: rawDomains[id],
           filteredValues: filteredValues[id],
           gradientIdMap, patternIdMap, onFocus, onSeriesShapeClick, accessibility,

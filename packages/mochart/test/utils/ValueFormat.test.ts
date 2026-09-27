@@ -292,3 +292,26 @@ describe('getSeriesLabelFormat prefix and suffix', () => {
     expect(fmt(7)).toBe('$7');
   });
 });
+
+describe('value formats on a log axis', () => {
+  const logAxis = valueAxis({ id: 'y', scale: 'log', tickLabel: { format: 'auto' } });
+
+  it('formats each tooltip value at its own magnitude, where a linear axis takes one prefix from the domain', () => {
+    const formats = getSeriesFormats([series({ id: 's', valueFormat: 'auto', valueAxisConfig: logAxis })], [logAxis], { y: [1, 1000] });
+    expect([0.002, 4.5, 45, 1234].map(value => formats.s(value))).toEqual(['2m', '4.5', '45', '1.2k']);
+    const linearAxis = valueAxis({ id: 'y', tickLabel: { format: 'auto' } });
+    const linearFormats = getSeriesFormats([series({ id: 's', valueFormat: 'auto', valueAxisConfig: linearAxis })], [linearAxis], { y: [1, 1000] });
+    expect(linearFormats.s(4.5)).toBe('0.00k');
+  });
+
+  it('formats label values per value, not through the log scale, which would blank most of them', () => {
+    const fmt = getSeriesLabelFormat(series({ label: { format: 'auto' }, valueFormat: 'auto' }), logAxis, scaleLinear().domain([1, 1000]));
+    expect([4, 45, 450].map(value => fmt(value))).toEqual(['4', '45', '450']);
+  });
+
+  it('applies a tick label format to each value as given', () => {
+    const axis = valueAxis({ id: 'y', scale: 'log', tickLabel: { format: ',.0f' } });
+    const formats = getSeriesFormats([series({ id: 's', valueFormat: 'auto', valueAxisConfig: axis })], [axis], { y: [1, 1e6] });
+    expect(formats.s(12345.6)).toBe('12,346');
+  });
+});

@@ -16,7 +16,8 @@ export function getTooltipLayoutInfo(mochartConfig: EnhancedMochartConfig, toolt
   }
   const { tooltip: tooltipConfig, plot: plotConfig } = mochartConfig;
   const snappedOffset = tooltipConfig.snapToCategory ? categoryValueData!.positions[focusedCategoryIndex] : undefined;
-  if (tooltipConfig.snapToCategory && snappedOffset === undefined) {
+  // NaN: a category with no position, as a value at or below 0 on a log axis
+  if (tooltipConfig.snapToCategory && (snappedOffset === undefined || Number.isNaN(snappedOffset))) {
     return defaultLayout;
   }
   const { chartContentLayoutInfo, seriesLayoutInfo, containerLayoutInfo } = layoutInfo!;

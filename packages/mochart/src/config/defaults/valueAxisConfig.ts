@@ -67,7 +67,7 @@ export function getConditionalDefaults(configWithRegularDefaults: ValueAxisConfi
       { ...defaultRule, default: index, defaultText: '${index}' }
     ], configWithRegularDefaults, index),
     tickLabel: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, index) },
-    tickMark: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, index) },
-    gridLine: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, index) }
+    tickMark: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, index, true) },
+    gridLine: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, index, true) }
   };
 }

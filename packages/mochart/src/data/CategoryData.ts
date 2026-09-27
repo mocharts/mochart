@@ -2,7 +2,7 @@ import { getCategoryDomainForValues } from './DomainData.js';
 import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData.js';
 import { readAlignedValues, readCategoryValues } from './PropertyData.js';
 import {
-  AUTO, NONE, TYPE_DATE, SCALE_ORDINAL,
+  AUTO, NONE, TYPE_DATE, SCALE_LOG, SCALE_ORDINAL,
   CATEGORY_VALUE_INTERVAL_PERIOD_SECOND, CATEGORY_VALUE_INTERVAL_PERIOD_MINUTE, CATEGORY_VALUE_INTERVAL_PERIOD_HOUR,
   CATEGORY_VALUE_INTERVAL_PERIOD_DAY, CATEGORY_VALUE_INTERVAL_PERIOD_WEEK
 } from '../config/core/constants.js';
@@ -66,7 +66,10 @@ const categoryValueIntervalPeriodMillis: Record<CategoryValueIntervalPeriod, num
   [CATEGORY_VALUE_INTERVAL_PERIOD_WEEK]: 7 * MS_DAY
 };
 
-/** The slot width in axis values: one category on an ordinal axis, the configured interval or the smallest gap between neighbouring values on a linear one. */
+/**
+ * The slot width in axis values: one category on an ordinal axis, the configured interval or the smallest gap between
+ * neighbouring values on a linear one, and on a log one the smallest gap between the base 10 logs of neighbouring values.
+ */
 export function getCategoryValueInterval(categoryAxisConfig: CategoryAxisConfig, numericCategoryValues: readonly number[]): number | null {
   if (categoryAxisConfig.scale === SCALE_ORDINAL) {
     return 1;
@@ -75,7 +78,9 @@ export function getCategoryValueInterval(categoryAxisConfig: CategoryAxisConfig,
   if (categoryValueInterval !== AUTO) {
     return typeof categoryValueInterval === 'number' ? categoryValueInterval : categoryValueIntervalPeriodMillis[categoryValueInterval];
   }
-  const sortedValues = numericCategoryValues.filter(value => Number.isFinite(value)).sort((a, b) => a - b);
+  const log = categoryAxisConfig.scale === SCALE_LOG;
+  const sortedValues = numericCategoryValues.filter(value => Number.isFinite(value) && (!log || value > 0))
+    .map(value => log ? Math.log10(value) : value).sort((a, b) => a - b);
   let minGap: number | null = null;
   for (let i = 1; i < sortedValues.length; i++) {
     const gap = sortedValues[i] - sortedValues[i - 1];
@@ -169,7 +174,9 @@ function getOrdinalCategoryAxisDomain(categoryCount: number): CategoryAxisDomain
 
 function getLinearCategoryAxisDomain(categoryAxisConfig: CategoryAxisConfig, parsedCategoryValues: readonly CategoryValue[]): CategoryAxisDomain {
   const domainValues = parsedCategoryValues as readonly (number | Date)[];
-  return getAxisDomain(categoryAxisConfig, () => getCategoryDomainForValues(domainValues));
+  // values at or below 0 are a data error on a log axis, but a custom data provider can still pass them
+  const positionedValues = categoryAxisConfig.scale === SCALE_LOG ? domainValues.filter(value => +value > 0) : domainValues;
+  return getAxisDomain(categoryAxisConfig, () => getCategoryDomainForValues(positionedValues));
 }
 
 export function getCategoryValueObject(categoryData: CategoryData, categoryIndex: number): CategoryValueObject {

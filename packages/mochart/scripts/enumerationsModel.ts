@@ -49,6 +49,7 @@ const descriptions: Record<string, string> = {
   ChartType: 'The chart family: cartesian (`\'xy\'`) or pie.',
   DataType: 'The data type of the category axis values.',
   Scale: 'How the category axis spaces its categories.',
+  ValueAxisScale: 'How the value axis places values: by difference (`linear`) or by ratio (`log`).',
   AxisSide: 'Which side of the plot an axis is drawn on: the start (left or bottom) or the end.',
   Anchor: 'Where a tick label is anchored relative to its tick.',
   ThresholdTitleSide: 'Which side of a threshold its title sits on, or `inside` a threshold range.',

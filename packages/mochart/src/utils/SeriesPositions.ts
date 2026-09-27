@@ -1,4 +1,4 @@
-import { NONE, MISSING_VALUE_MODE_BASE, MISSING_VALUE_MODE_CONNECT, RENDERER_BAR } from '../config/core/constants.js';
+import { NONE, MISSING_VALUE_MODE_BASE, MISSING_VALUE_MODE_CONNECT, RENDERER_BAR, SCALE_LOG } from '../config/core/constants.js';
 import { isMissingValue } from './utils.js';
 import type { CategoryAxisConfig } from '../types/config.js';
 import type { EnhancedSeriesConfig } from '../types/enhanced.js';
@@ -32,7 +32,17 @@ function normalizePriorPositions(seriesPositions: SeriesPosition[], seriesPriorP
   }
 }
 
-export function getSeriesPositionData(categoryAxisConfig: CategoryAxisConfig, seriesConfig: EnhancedSeriesConfig, categoryValueData: CategoryAxisData['valueData'], valueAxisScale: AxisScale, valueObject: SeriesValueObject, seriesLayoutInfo: LayoutInfo): SeriesPositionData {
+/**
+ * Where a value at or below 0 is drawn on a log axis when it ends a range or an error bar: an axis length past the minimum
+ * end and past the clip overflow, so the plot edge cuts it off the way it cuts off data beyond an explicit min.
+ */
+export function getPastMinimumPosition(valueAxisScale: AxisScale, clipOverflow: number): number {
+  const [start, end] = valueAxisScale.range() as [number, number];
+  const direction = start >= end ? 1 : -1;
+  return start + direction * (Math.abs(end - start) + clipOverflow + 1);
+}
+
+export function getSeriesPositionData(categoryAxisConfig: CategoryAxisConfig, seriesConfig: EnhancedSeriesConfig, categoryValueData: CategoryAxisData['valueData'], valueAxisScale: AxisScale, valueObject: SeriesValueObject, seriesLayoutInfo: LayoutInfo, clipOverflow = 0): SeriesPositionData {
   const { valueAxisConfig, seriesGroupConfig, missingValueMode, partialRangeIsMissing, group, stack, rangeProperty, renderer } = seriesConfig;
   const { widthFraction: barWidthFraction, alignFraction: barAlignFraction } = seriesConfig.bar;
   const { spacingInfo, positions: categoryPositions } = categoryValueData;
@@ -82,13 +92,25 @@ export function getSeriesPositionData(categoryAxisConfig: CategoryAxisConfig, se
   // normalizePriorPositions back-fills the absent side. Stacked exempt: their min holds stack priors.
   const requireBothValues = partialRangeIsMissing && rangeProperty !== NONE && stack === NONE && min !== null;
 
+  // on a log axis a value at or below 0 has no position: missing on its own, past the minimum end when the other end of its range has one
+  const log = valueAxisConfig.scale === SCALE_LOG;
+  const pastMinimumPosition = log ? getPastMinimumPosition(valueAxisScale, clipOverflow) : 0;
+  const getPosition = (value: number, otherValue: number | undefined): SeriesPosition => {
+    if (!log || value > 0) {
+      return Math.floor(valueAxisScale(value));
+    }
+    return otherValue !== undefined && otherValue > 0 ? pastMinimumPosition : missingPosition;
+  };
+
   let i, length = categoryPositions.length;
-  let position;
-  // positions keep undefined for a missing point (values mark it NaN)
+  // positions keep undefined for a missing point (values mark it NaN), and for a category with no position (NaN), whatever
+  // the missingValueMode: a category value at or below 0 on a log axis, which only a custom data provider can pass
   for (i=0; i<length; i++) {
-    if (!isMissingValue(max[i]) && (!requireBothValues || !isMissingValue(min![i]))) {
-      position = Math.floor(valueAxisScale(max[i]!));
-      seriesPositions.push(position);
+    if (Number.isNaN(categoryPositions[i])) {
+      seriesPositions.push(undefined);
+    }
+    else if (!isMissingValue(max[i]) && (!requireBothValues || !isMissingValue(min![i]))) {
+      seriesPositions.push(getPosition(max[i]!, min?.[i]));
     }
     else {
       seriesPositions.push(missingPosition);
@@ -97,9 +119,11 @@ export function getSeriesPositionData(categoryAxisConfig: CategoryAxisConfig, se
   if (min !== null) {
     seriesPriorPositions = [];
     for (i=0; i<length; i++) {
-      if (!isMissingValue(min[i]) && (!requireBothValues || !isMissingValue(max[i]))) {
-        position = Math.floor(valueAxisScale(min[i]!));
-        seriesPriorPositions.push(position);
+      if (Number.isNaN(categoryPositions[i])) {
+        seriesPriorPositions.push(undefined);
+      }
+      else if (!isMissingValue(min[i]) && (!requireBothValues || !isMissingValue(max[i]))) {
+        seriesPriorPositions.push(getPosition(min[i]!, max[i]));
       }
       else {
         seriesPriorPositions.push(missingPosition);

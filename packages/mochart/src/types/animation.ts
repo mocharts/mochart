@@ -57,8 +57,11 @@ export type AnimationChartData = ChartData;
 
 export interface DomainDelta {
   deltaPercentage: number;
+  /** In base 10 logs when log is set. */
   delta: NumericDomain | null;
   deltaFactor?: number;
+  /** Set for a log axis, whose domain moves in logs. */
+  log?: boolean;
 }
 
 export interface DomainDeltaMap {
@@ -77,9 +80,12 @@ export interface SeriesDomainDeltaMap {
 
 export interface NumericValuesDelta {
   deltaPercentage: number;
+  /** In base 10 logs when log is set. */
   deltas: number[] | null;
   deltaFactor?: number;
   deltaCopied?: boolean;
+  /** Set for the values placed on a log axis, which move in logs. */
+  log?: boolean;
 }
 
 export type SeriesValueDelta = Record<string, NumericValuesDelta | boolean | number> & {

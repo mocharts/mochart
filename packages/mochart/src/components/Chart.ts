@@ -149,7 +149,9 @@ const chartInstanceCounterKey = Symbol.for('mochart.chartInstanceCounter');
 function getCategoryFraction(axisData: AxisData, layoutInfo: ChartLayoutInfo, categoryIndex: number): number {
   const positions = axisData.category!.valueData.positions;
   const { categoryExtent } = layoutInfo.seriesLayoutInfo;
-  return categoryExtent > 0 ? (positions[categoryIndex] ?? 0) / categoryExtent : 0;
+  const position = positions[categoryIndex];
+  // NaN: a category value at or below 0 on a log axis, which only a custom data provider can pass
+  return categoryExtent > 0 && position !== undefined && !Number.isNaN(position) ? position / categoryExtent : 0;
 }
 
 function nextChartInstanceId(): string {

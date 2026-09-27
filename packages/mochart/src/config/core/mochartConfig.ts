@@ -504,7 +504,8 @@ export function hasConfigStructureChange(configOld: MochartConfig | null, config
   for (let valueAxisIndex = 0; valueAxisIndex < valueAxisConfigs.length; valueAxisIndex++) {
     const valueAxisConfig = valueAxisConfigs[valueAxisIndex];
     const newValueAxisConfig = newValueAxisConfigs[valueAxisIndex];
-    if (valueAxisConfig.id !== newValueAxisConfig.id) {
+    // linear and log have no transition between them, and the scale object is reused while domain and range hold
+    if (valueAxisConfig.id !== newValueAxisConfig.id || valueAxisConfig.scale !== newValueAxisConfig.scale) {
       return true;
     }
   }

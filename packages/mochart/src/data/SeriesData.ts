@@ -1,9 +1,9 @@
 import { nullDomain, getDomainForValues, mergeDomain } from './DomainData.js';
 import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData.js';
 import { readNumericValues } from './PropertyData.js';
-import { AUTO, NONE, RENDERER_AREA, RENDERER_BAR } from '../config/core/constants.js';
+import { AUTO, NONE, RENDERER_AREA, RENDERER_BAR, SCALE_LOG } from '../config/core/constants.js';
 
-import { keyPlain, keyPrior, valueKeys, positionKeys, extraKeys, extraCopyKeys } from './constants.js';
+import { keyPlain, keyPrior, valueKeys, positionKeys, positionOrComputedKeys, extraKeys, extraCopyKeys } from './constants.js';
 
 import { createArrayFilledWithZero, arrayToMap, mapMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils.js';
 import type { DataProvider, CategoryData, CategoryValue, NullableDomain, NumericValues, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObject, SeriesValueObjects } from '../types/data.js';
@@ -25,6 +25,7 @@ export function getSeriesData(mochartConfig: EnhancedMochartConfig, dataProvider
   const seriesBases = getSeriesBases(seriesConfigs, rawSeriesBundle.data.domains, filteredSeriesBundle.data.domains,
     rawSeriesBundle.data.renderAxisDomains, filteredSeriesBundle.data.renderAxisDomains);
   const axisSeriesCounts = getSeriesContainerVisibleSeriesCounts(valueAxisConfigs, seriesFilteredFlags);
+  warnLogAxisValues(valueAxisConfigs, rawSeriesBundle.data.values);
 
   return {
     seriesBases,
@@ -33,6 +34,30 @@ export function getSeriesData(mochartConfig: EnhancedMochartConfig, dataProvider
     filteredFlags: seriesFilteredFlags,
     filtered: filteredSeriesBundle.data
   };
+}
+
+// whether each log axis's warning is standing, per value axis config: it repeats only after the values clear
+const warnedLogAxes = new WeakMap<object, boolean>();
+
+/** Warns once when a log axis has series values at or below 0, which it draws as missing, since nothing else says why a point is gone. */
+function warnLogAxisValues(valueAxisConfigs: EnhancedValueAxisConfig[], valueObjects: SeriesValueObjects): void {
+  for (const valueAxisConfig of valueAxisConfigs) {
+    if (valueAxisConfig.scale !== SCALE_LOG) {
+      continue;
+    }
+    const seriesIds = valueAxisConfig.seriesConfigs!
+      .filter(({ id }) => {
+        // a range with one end above 0 is still drawn, its other end cut off at the plot edge
+        const { plain, range } = valueObjects[id];
+        return plain !== null && plain.some((value, i) => value <= 0 && !(range !== null && range[i]! > 0));
+      })
+      .map(({ id }) => id);
+    const standing = seriesIds.length > 0;
+    if (standing && warnedLogAxes.get(valueAxisConfig) !== true) {
+      console.warn('mochart value axis ' + valueAxisConfig.id + ' is a log axis, so it draws series values at or below 0 as missing, in series: ' + seriesIds.join(', '));
+    }
+    warnedLogAxes.set(valueAxisConfig, standing);
+  }
 }
 
 export function getSeriesDataWithRenderAxisDomains(seriesData: SeriesData, rawRenderAxisDomains: SeriesDataSet['renderAxisDomains'], filteredRenderAxisDomains: SeriesDataSet['renderAxisDomains']): SeriesData {
@@ -76,7 +101,7 @@ function getRawSeriesBundle(valueAxisConfigs: EnhancedValueAxisConfig[], seriesC
   setStackSeriesValues(seriesConfigs, seriesStackConfigs, keyCategoryValues, valueObjects);
   setExtraSeriesValues(seriesConfigs, keyCategoryValues, dataProvider, valueObjects);
   setMinMax(valueObjects);
-  const domainObjects = getSeriesDomainObjects(valueObjects);
+  const domainObjects = getSeriesDomainObjects(valueObjects, seriesConfigs);
   const axisDomains = getValueAxisDomains(valueAxisConfigs, domainObjects);
   return {
     data: {
@@ -96,7 +121,7 @@ function getFilteredSeriesBundle(valueAxisConfigs: EnhancedValueAxisConfig[], se
   setFilteredStackSeriesValues(seriesConfigs, seriesStackConfigs, keyCategoryValues, valueObjects, rawSeriesValuesBundle.data.values);
   setFilteredExtraSeriesValues(rawSeriesValuesBundle.data.values, valueObjects, seriesFilteredFlags);
   setMinMax(valueObjects);
-  const domainObjects = getSeriesDomainObjects(valueObjects);
+  const domainObjects = getSeriesDomainObjects(valueObjects, seriesConfigs);
   const axisDomains = getValueAxisDomains(valueAxisConfigs, domainObjects);
   return {
     data: {
@@ -354,21 +379,22 @@ export function setMinMax(valueObjects: Record<string, Partial<SeriesValueObject
   }
 }
 
-function getSeriesDomainObjects(seriesValueObjects: SeriesValueObjects): SeriesDomainObjects {
+function getSeriesDomainObjects(seriesValueObjects: SeriesValueObjects, seriesConfigs: EnhancedSeriesConfig[]): SeriesDomainObjects {
   const seriesDomainObjects: SeriesDomainObjects = Object.create(null);
 
-  const seriesIds = Object.keys(seriesValueObjects);
-  for (const seriesId of seriesIds) {
-    seriesDomainObjects[seriesId] = getSeriesDomainObject(seriesValueObjects[seriesId]);
+  for (const seriesConfig of seriesConfigs) {
+    const positiveOnly = seriesConfig.valueAxisConfig?.scale === SCALE_LOG;
+    seriesDomainObjects[seriesConfig.id] = getSeriesDomainObject(seriesValueObjects[seriesConfig.id], positiveOnly);
   }
   return seriesDomainObjects;
 }
 
-function getSeriesDomainObject(seriesValueObject: SeriesValueObject): SeriesDomainObject {
+function getSeriesDomainObject(seriesValueObject: SeriesValueObject, positiveOnly: boolean): SeriesDomainObject {
   const seriesDomainObject: SeriesDomainObject = {};
   for (const key of valueKeys) {
     if (key !== keyPrior) {
-      setSeriesDomain(seriesDomainObject, seriesValueObject, key);
+      // only values placed on the axis lose their non-positive ones: marker sizes, colors and labels keep theirs
+      setSeriesDomain(seriesDomainObject, seriesValueObject, key, positiveOnly && isPositionOrComputedKey(key));
     }
   }
   let domain = nullDomain;
@@ -391,9 +417,13 @@ function getSeriesDomainObject(seriesValueObject: SeriesValueObject): SeriesDoma
   return seriesDomainObject;
 }
 
-function setSeriesDomain(seriesDomainObject: SeriesDomainObject, seriesValuesObject: SeriesValueObject, valueKey: ValueKey): void {
+function isPositionOrComputedKey(key: ValueKey): boolean {
+  return (positionOrComputedKeys as readonly ValueKey[]).includes(key);
+}
+
+function setSeriesDomain(seriesDomainObject: SeriesDomainObject, seriesValuesObject: SeriesValueObject, valueKey: ValueKey, positiveOnly: boolean): void {
   if (seriesValuesObject[valueKey] !== null) {
-    seriesDomainObject[valueKey] = getDomainForValues(seriesValuesObject[valueKey]);
+    seriesDomainObject[valueKey] = getDomainForValues(seriesValuesObject[valueKey], positiveOnly);
   }
   else {
     seriesDomainObject[valueKey] = nullDomain;

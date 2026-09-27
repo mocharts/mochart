@@ -1,7 +1,7 @@
 import validators from '@mochart/movalid';
 import { isDataProviderValid, getMissingDataProviderMembers } from './ChartData.js';
 import { getCategoryValueKey } from './CategoryValue.js';
-import { NONE, TYPE_DATE, TYPE_NUMBER, SCALE_LINEAR, RENDERER_LINE, RENDERER_AREA } from '../config/core/constants.js';
+import { NONE, TYPE_DATE, TYPE_NUMBER, SCALE_LINEAR, SCALE_LOG, RENDERER_LINE, RENDERER_AREA } from '../config/core/constants.js';
 import type { CategoryAxisConfig, MochartConfig } from '../types/config.js';
 import type { DataProvider, CategoryValue, DataValue } from '../types/data.js';
 
@@ -105,6 +105,13 @@ export function getDataErrors(mochartConfig: MochartConfig, dataProvider: DataPr
     if (categoryPropertyValues.some(value => !validator(value))) {
       dataErrors.push('category values must all match the specified type for property: ' + categoryAxisConfig.property);
     }
+    // category values place everything else, so one with no place on a log axis is an error rather than a gap
+    else if (categoryAxisConfig.scale === SCALE_LOG) {
+      const notPositive = (categoryValues as readonly number[]).filter(value => value <= 0);
+      if (notPositive.length > 0) {
+        dataErrors.push('category values must be greater than 0 on a log category scale, values at or below 0: ' + notPositive.join(', '));
+      }
+    }
     // the values categories are identified by: the key values when a keyProperty is configured
     let keyValues: readonly CategoryValue[] | null = categoryValues;
     if (categoryAxisConfig.keyProperty !== NONE) {
@@ -127,12 +134,12 @@ export function getDataErrors(mochartConfig: MochartConfig, dataProvider: DataPr
     }
     // Only line/area paths zigzag on out-of-order data, so bar/none charts are not flagged.
     // Nor are keyProperty configs: keyed category values may legitimately fold back (DST repeated hour).
-    if (dataErrors.length === 0 && categoryAxisConfig.scale === SCALE_LINEAR
+    if (dataErrors.length === 0 && (categoryAxisConfig.scale === SCALE_LINEAR || categoryAxisConfig.scale === SCALE_LOG)
       && categoryAxisConfig.keyProperty === NONE
       && seriesConfigs.some(({ renderer }) => renderer === RENDERER_LINE || renderer === RENDERER_AREA)) {
       const outOfOrder = getOutOfOrderValues(categoryAxisConfig.type === TYPE_DATE, categoryValues);
       if (outOfOrder.length > 0) {
-        dataErrors.push('category values must be in order on a linear category scale, out-of-order values: ' + outOfOrder.join(', '));
+        dataErrors.push('category values must be in order on a ' + categoryAxisConfig.scale + ' category scale, out-of-order values: ' + outOfOrder.join(', '));
       }
     }
     for (const seriesConfig of seriesConfigs) {

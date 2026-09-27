@@ -1,4 +1,4 @@
-import { AUTO, NONE, MAJOR, COLOR_CURRENT, STYLE_SAME, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants.js';
+import { AUTO, NONE, MAJOR, COLOR_CURRENT, STYLE_SAME, SCALE_LOG, SIDE_START, TITLE_SIDE_HIGH } from '../core/constants.js';
 import { deepMerge } from '../core/deepMerge.js';
 import { conditionalDefault, defaultRule } from './conditionalDefault.js';
 import { getRegularDefaults as getTruncationDefaults } from './truncationConfig.js';
@@ -186,9 +186,17 @@ export default function getDefaults() {
  * The minorVisible default shared by the tick labels, tick marks and grid lines of both axes: off while
  * nothing asks for minor ticks, so a step alone looks as it did before minor ticks could be shown.
  */
-export function getMinorVisibleDefault<E>(configWithRegularDefaults: { tickLabel: { minorFormat: unknown }; ticks: unknown }, extraArg: E) {
-  const unset = ({ tickLabel, ticks }: { tickLabel: { minorFormat: unknown }; ticks: unknown }) => tickLabel.minorFormat === MAJOR && ticks === NONE;
-  return conditionalDefault<{ tickLabel: { minorFormat: unknown }; ticks: unknown }, E, boolean | typeof MAJOR>([
+type MinorVisibleCondition = { tickLabel: { minorFormat: unknown }; ticks: unknown; scale: unknown };
+
+/**
+ * The minorVisible default for tickLabel, tickMark or gridLine. A log axis makes its own minor ticks, so its tick
+ * marks and grid lines follow the major setting (followsMajorOnLog); its labels stay off, since minor labels
+ * that do not fit hide their marks and grid lines with them.
+ */
+export function getMinorVisibleDefault<E>(configWithRegularDefaults: MinorVisibleCondition, extraArg: E, followsMajorOnLog = false) {
+  const unset = ({ tickLabel, ticks }: MinorVisibleCondition) => tickLabel.minorFormat === MAJOR && ticks === NONE;
+  return conditionalDefault<MinorVisibleCondition, E, boolean | typeof MAJOR>([
+    ...(followsMajorOnLog ? [{ condition: ({ scale }: MinorVisibleCondition) => scale === SCALE_LOG, suffix: 'when scale is log', default: MAJOR as typeof MAJOR }] : []),
     { condition: config => unset(config), suffix: 'when tickLabel.minorFormat is "major" and ticks is null', default: false },
     { condition: config => !unset(config), suffix: 'when tickLabel.minorFormat is set or ticks is set', default: MAJOR },
     { ...defaultRule, default: false }
