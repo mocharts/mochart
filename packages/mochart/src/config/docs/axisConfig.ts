@@ -178,8 +178,8 @@ export const valueTickStepDetails = {
 
 export const tickStepMinorDetails = {
   interval: 'Places a tick at every multiple of the interval inside the axis domain, counted from 0, so the ticks stay put as the data moves the domain. Setting it never changes the automatic min and max of the axis, it only chooses where the ticks go. A `tickLabel.format` without a precision of its own, `"auto"` included, names the ticks exactly: the precision follows the spacing of the ticks drawn, so an interval of 0.25 reads 0.25 and a `minorSteps` of 4 on an interval of 1 reads 0.25 too. When more ticks survive than fit, every k-th survivor is kept from the first, and a tick thinned away stays a hidden tick: its minor ticks are kept, and it never becomes one.',
-  count: 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. On a linear axis it needs a `period` or `interval` to count, and is counted from a fixed starting point, so setting it without one is a validation error.',
-  offset: 'On a linear axis it needs a `period` or `interval` to count, so setting it without one is a validation error, and it shifts which count-th step is kept, so setting it while `count` is `"auto"` (every step kept) is one too.',
+  count: 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. On a linear axis it needs a `period` or `interval` to count, and is counted from a fixed starting point, so setting it without one is a validation error. A log axis takes no interval, so setting it there is one too.',
+  offset: 'On a linear axis it needs a `period` or `interval` to count, so setting it without one is a validation error, and a log axis takes no interval, so setting it there is one too. It shifts which count-th step is kept, so setting it while `count` is `"auto"` (every step kept) is also an error.',
   minorSteps: 'Splits `interval` itself, not the gap between the ticks that `count` keeps, and needs an `interval` to split. `{ interval: 10, count: 2, minorSteps: 5 }` gives ticks at 0, 20 and 40 and minor ticks every 2, including at 10 and 30: the steps `count` skips get a minor tick only where one of the even steps falls. A minor tick at a tick\'s position is dropped.',
   minSpacing: 'The ticks are counted before any is created, from the axis length and the number the step would create, so a step that would create thousands of ticks never builds them. When the minor ticks would be closer together than this, none are created; when the ticks themselves would be, the step creates none either and the axis uses the ticks it picks, as if `period` and `interval` were null. Both cases log a console warning naming the axis. Explicit `ticks` are never limited, and an ordinal axis cannot create more ticks than it has categories, so it accepts only the default.'
 };
@@ -200,7 +200,7 @@ export function getThresholdStepDescriptions(): DescriptionMap {
   };
 }
 
-export const stepCountOffsetDetails = 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. On a linear axis `count` and `offset` need a `period` or `interval` to count, so setting either without one is a validation error.';
+export const stepCountOffsetDetails = 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. On a linear axis `count` and `offset` need a `period` or `interval` to count, so setting either without one is a validation error. A log axis takes no interval, so setting either there is one too.';
 
 /** The value axis has no period, so its count and offset details name only the interval. */
 export const valueStepCountOffsetDetails = 'A number means the same in `tickStep` and `thresholdStep`: every count-th step. `count` and `offset` need an `interval` to count, so setting either without one is a validation error.';
