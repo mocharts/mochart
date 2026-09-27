@@ -50,6 +50,21 @@ describe('value axis scale', () => {
     expect(valueAxisErrors({ tickStep: { count: 2 } })).toContain('valueAxes[0] - tickStep.count - should be left at its default on a log axis, where interval must be null');
   });
 
+  it('gives count and offset the log message beside a rejected interval, not the linear one', () => {
+    const errors = valueAxisErrors({ tickStep: { interval: 10, count: 2, offset: 1 } });
+    expect(errors).toContain('valueAxes[0] - tickStep.interval - should be equal to null when scale is log: 10');
+    expect(errors).toContain('valueAxes[0] - tickStep.count - should be left at its default on a log axis, where interval must be null');
+    expect(errors).toContain('valueAxes[0] - tickStep.offset - should be left at its default on a log axis, where interval must be null');
+    expect(errors.some(error => error.includes('on a linear axis'))).toBe(false);
+  });
+
+  it('rejects minorSteps once, on either axis, without telling the user to set an interval', () => {
+    const valueErrors = valueAxisErrors({ tickStep: { minorSteps: 5 } });
+    expect(valueErrors).toEqual(['valueAxes[0] - tickStep.minorSteps - should be equal to null when scale is log: 5']);
+    const categoryErrors = errorsFor({ categoryAxis: { ...logNumberCategoryAxis, tickStep: { minorSteps: 5 } } });
+    expect(categoryErrors).toEqual(['categoryAxis - tickStep.minorSteps - should be equal to null when scale is log: 5']);
+  });
+
   it('rejects a threshold line at or below 0', () => {
     expect(valueAxisErrors({ thresholds: [{ value: 0 }] })).toContain('valueAxes[0] - thresholds[0].value - should be a number greater than 0 when scale is log');
   });

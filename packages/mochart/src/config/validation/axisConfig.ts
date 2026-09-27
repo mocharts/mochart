@@ -352,16 +352,18 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
       continue;
     }
     const report = getAxisReporter(validationAxis, reportedDefaults, errors, errorDetails);
-    // a log axis takes no interval, so like an unplaced linear one it keeps count and offset at their defaults
+    // a log axis takes no interval, so like an unplaced linear one it keeps count and offset at their defaults,
+    // even with an interval set, which its own interval rule rejects; its own minorSteps rule rejects those too
     const linear = axis['scale'] !== SCALE_ORDINAL;
-    const placementMessage = axis['scale'] === SCALE_LOG ? stepOnLogMessage : stepNeedsPlacementMessage;
+    const log = axis['scale'] === SCALE_LOG;
+    const placementMessage = log ? stepOnLogMessage : stepNeedsPlacementMessage;
     for (const [groupKey, defaultCount] of [['tickStep', AUTO], ['thresholdStep', 1]] as const) {
       const step = axis[groupKey];
       if (!isConfigObject(step)) {
         continue;
       }
       const reportStep = (member: string, message: string) => report([groupKey, member], groupKey + '.' + member, message);
-      const placed = (step['period'] !== undefined && step['period'] !== NONE) || (step['interval'] !== undefined && step['interval'] !== NONE);
+      const placed = !log && ((step['period'] !== undefined && step['period'] !== NONE) || (step['interval'] !== undefined && step['interval'] !== NONE));
       if (linear && !placed) {
         if (step['count'] !== defaultCount) {
           reportStep('count', placementMessage);
@@ -385,7 +387,7 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
             reportStep('minorPeriod', minorPeriodTooLongMessage);
           }
         }
-        if (typeof step['minorSteps'] === 'number' && (step['interval'] === undefined || step['interval'] === NONE)) {
+        if (!log && typeof step['minorSteps'] === 'number' && (step['interval'] === undefined || step['interval'] === NONE)) {
           reportStep('minorSteps', minorStepsNeedsIntervalMessage);
         }
       }

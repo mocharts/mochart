@@ -36,7 +36,8 @@ export default function getValidators(config: ValueAxisCondition = {}, pieMode =
       interval: stepInterval
     }, {
       ...getTickStepValidators(),
-      interval: stepInterval
+      interval: stepInterval,
+      minorSteps: logOrLinear(validators.equal(NONE), validators.integerMin(2).orEqual(NONE))
     }),
 
     adjustForFiltering: validators.boolean(),
