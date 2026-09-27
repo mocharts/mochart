@@ -3,7 +3,7 @@ import { getCategorySpacingInfo } from '../data/AxisData.js';
 import { getDomainFraction } from '../data/DomainFraction.js';
 import { getWithMutations } from '../utils/WithMutations.js';
 import { arrayToMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils.js';
-import { NONE } from '../config/core/constants.js';
+import { NONE, SCALE_LOG } from '../config/core/constants.js';
 import type { Scale } from '../config/core/constants.js';
 import type { FocusData, FocusPercentage, CategoryDeltaData } from '../types/animation.js';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced.js';
@@ -254,15 +254,17 @@ function getCategoryFocusDomainPercentages(mochartConfig: EnhancedMochartConfig,
 // keyed on the copy-on-write value arrays: focus-tween frames reuse them by reference, so the
 // per-frame full-array scans collapse to lookups; data-tween frames rebuild the arrays and recompute
 const valuesDomainCache = new WeakMap<readonly number[], NullableDomain>();
+const positiveValuesDomainCache = new WeakMap<readonly number[], NullableDomain>();
 
-function getCachedDomainForValues(values: readonly number[] | null): NullableDomain {
+function getCachedDomainForValues(values: readonly number[] | null, positiveOnly: boolean): NullableDomain {
   if (values === null) {
-    return getDomainForValues(values);
+    return getDomainForValues(values, positiveOnly);
   }
-  let domain = valuesDomainCache.get(values);
+  const cache = positiveOnly ? positiveValuesDomainCache : valuesDomainCache;
+  let domain = cache.get(values);
   if (domain === undefined) {
-    domain = getDomainForValues(values);
-    valuesDomainCache.set(values, domain);
+    domain = getDomainForValues(values, positiveOnly);
+    cache.set(values, domain);
   }
   return domain;
 }
@@ -281,6 +283,9 @@ function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, s
       const axisDomains = valueAxisConfig.adjustForFiltering ? filtered.renderAxisDomains : raw.renderAxisDomains;
       const axisDomain = axisDomains[axis] as [number, number];
       const axisBase = seriesBases[id];
+      // a log axis has no position for a value at or below 0, so it stays out of the range as a null does
+      const positiveOnly = valueAxisConfig.scale === SCALE_LOG;
+      const isDrawn = (value: number) => !isMissingValue(value) && (!positiveOnly || value > 0);
 
       const { values } = filtered;
       // the focused series plus its same-axis followSeries followers, so a composite
@@ -294,10 +299,10 @@ function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, s
           const { max: maxValues, min: minValues } = values[config.id];
           const maxValue = maxValues !== null ? maxValues[focusedCategoryIndex]! : MISSING_VALUE;
           const minValue = minValues !== null ? minValues[focusedCategoryIndex]! : MISSING_VALUE;
-          if (!isMissingValue(maxValue)) {
+          if (isDrawn(maxValue)) {
             seriesCategoryValues.push(maxValue);
           }
-          if (!isMissingValue(minValue) && minValue !== maxValue) {
+          if (isDrawn(minValue) && minValue !== maxValue) {
             seriesCategoryValues.push(minValue);
           }
         }
@@ -318,8 +323,8 @@ function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, s
         for (const config of focusedSeriesConfigs) {
           const { max: maxValues, min: minValues } = values[config.id];
           let configFocusDomain: NullableDomain = [null, null];
-          const maxValuesDomain = getCachedDomainForValues(maxValues);
-          const minValuesDomain = getCachedDomainForValues(minValues);
+          const maxValuesDomain = getCachedDomainForValues(maxValues, positiveOnly);
+          const minValuesDomain = getCachedDomainForValues(minValues, positiveOnly);
           if (maxValuesDomain[0] !== null || minValuesDomain[0] !== null) {
             if (maxValuesDomain[0] !== null && minValuesDomain[0] !== null) {
               configFocusDomain = mergeDomain(maxValuesDomain, minValuesDomain);

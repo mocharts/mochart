@@ -29,6 +29,33 @@ function makeChart() {
   };
 }
 
+/** A 3-category log chart whose middle value is the argument, so a 0 there compares with a null. */
+function makeLogChart(middle: number | null) {
+  const config = makeConfig({
+    categoryAxis: { property: 'g', type: 'number', scale: 'ordinal' },
+    valueAxes: [{ scale: 'log', min: 1, max: 1000 }],
+    series: [{ property: 'a' }]
+  });
+  const provider = new ArrayOfObjectsDataProvider([{ g: 0, a: 10 }, { g: 1, a: middle }, { g: 2, a: 1000 }]);
+  return { config, chartData: getChartData(config, provider, {}), s0: config.series[0].id };
+}
+
+describe('getFocusData on a log axis', () => {
+  it('leaves a value at or below 0 out of the focused series range, as a null is, rather than clamping it to the axis minimum', () => {
+    const zero = makeLogChart(0);
+    const gap = makeLogChart(null);
+    const zeroPercentages = getFocusData(zero.config, zero.chartData, -1, null, zero.s0).seriesFocusDomainPercentages;
+    expect(zeroPercentages).toEqual(getFocusData(gap.config, gap.chartData, -1, null, gap.s0).seriesFocusDomainPercentages);
+    // measured from the top: the 10 two thirds of the way down and the 1000 at the top; the 0 would have added the bottom end, 1
+    expect(zeroPercentages).toEqual([expect.closeTo(2 / 3, 5), 0]);
+  });
+
+  it('gives a focused category whose value is at or below 0 no series percentages, as a null does', () => {
+    const zero = makeLogChart(0);
+    expect(getFocusData(zero.config, zero.chartData, 1, null, zero.s0).seriesFocusDomainPercentages).toEqual([]);
+  });
+});
+
 describe('getFocusData', () => {
   it('leaves everything unfocused when nothing is selected', () => {
     const { config, chartData } = makeChart();
