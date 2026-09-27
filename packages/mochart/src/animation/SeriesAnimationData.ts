@@ -161,6 +161,7 @@ export function getTransitionValueChangeData(mochartConfig: EnhancedMochartConfi
     endSeriesData = getSeriesDataWithDomains(endSeriesData, endRawSeriesDomains, endFilteredSeriesDomains);
   }
 
+  setLogAxisMissingValues(mochartConfig.series, [startSeriesData, endSeriesData]);
   setAllBaseValuesForOuterChanges(mochartConfig.animation, mochartConfig.series, startSeriesData, endSeriesData,
     prevSeriesData, newChartData.seriesData, categoryDeltaData.outerCounts);
   // in logs on a log category axis, so a filled-in point sits on the straight line between its neighbours there too
@@ -173,6 +174,32 @@ export function getTransitionValueChangeData(mochartConfig: EnhancedMochartConfi
   return createValueDeltaData(mochartConfig, getChartDataWithData(prevChartData, startCategoryData, startSeriesData),
     getChartDataWithData(prevChartData, endCategoryData, endSeriesData),
     getChartDataWithData(newChartData, finalCategoryData, finalSeriesData), startSeriesData.raw.renderAxisDomains, startSeriesData.filtered.renderAxisDomains, startSeriesData.raw.domains, categoryOrderOffsets);
+}
+
+/**
+ * A plain value at or below 0 on a log axis is drawn as a missing value (a range's end is drawn past the minimum end
+ * instead), so it animates as one: marked missing in the tween's start and end values, it takes the fill a null takes,
+ * from the base or its neighbours. The final frame keeps the real value.
+ */
+function setLogAxisMissingValues(seriesConfigs: EnhancedSeriesConfig[], seriesDataSets: SeriesData[]): void {
+  for (const seriesConfig of seriesConfigs) {
+    if (seriesConfig.valueAxisConfig!.scale !== SCALE_LOG) {
+      continue;
+    }
+    for (const seriesData of seriesDataSets) {
+      for (const valueObject of [seriesData.raw.values[seriesConfig.id], seriesData.filtered.values[seriesConfig.id]]) {
+        const { plain, range } = valueObject;
+        if (plain === null || range !== null) {
+          continue;
+        }
+        for (let i = 0; i < plain.length; i++) {
+          if (plain[i]! <= 0) {
+            plain[i] = MISSING_VALUE;
+          }
+        }
+      }
+    }
+  }
 }
 
 export function enhanceValueObjects(valueObjects: SeriesValueObjects): void {

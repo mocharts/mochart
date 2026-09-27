@@ -105,6 +105,46 @@ describe('log axis ends at or below 0', () => {
   });
 });
 
+/** The middle point's y, frame by frame, as its value changes under missingValueMode base. */
+function middlePointYs(from: number, to: number): number[] {
+  const config = {
+    version: '1.0.0',
+    animation: { easing: 'linear', valueChangeDuration: DURATION },
+    categoryAxis: { property: 'c' },
+    valueAxes: [{ scale: 'log', min: 1, max: 1000 }],
+    series: [{ property: 'v', renderer: 'line', missingValueMode: 'base', marker: { shape: null } }]
+  } as unknown as MochartInputConfig;
+  const rows = (middle: number) => [{ c: 'a', v: 10 }, { c: 'b', v: middle }, { c: 'c', v: 10 }];
+  const container = mountContainer();
+  const handle = trackHandle(mochart.createDefaultChart(container, { config, data: rows(from), width: WIDTH, height: HEIGHT } as DefaultChartProps));
+  runFrames();
+  handle.update({ data: rows(to) } as Partial<DefaultChartProps>);
+  const ys: number[] = [];
+  for (let frame = 0; frame < 200 && vi.getTimerCount() > 0; frame++) {
+    advanceFrames(1);
+    const d = container.querySelector(getCssSelector('seriesLine'))!.getAttribute('d') ?? '';
+    const points = Array.from(d.matchAll(/[ML](-?[\d.]+),(-?[\d.]+)/g)).map(point => Number(point[2]));
+    ys.push(points.length === 3 ? points[1]! : NaN);
+  }
+  return ys;
+}
+
+describe('log axis plain values at or below 0 under missingValueMode base', () => {
+  it('slides a value down to the base as a null would, rather than jumping there on the first frame', () => {
+    const ys = middlePointYs(100, 0);
+    expect(ys.every(Number.isFinite)).toBe(true);
+    expect(ys.every((y, i) => i === 0 || y >= ys[i - 1]!)).toBe(true);
+    expect(new Set(ys.map(Math.round)).size).toBeGreaterThan(5);
+  });
+
+  it('rises from the base rather than sitting there until the last frame', () => {
+    const ys = middlePointYs(0, 100);
+    expect(ys.every(Number.isFinite)).toBe(true);
+    expect(ys.every((y, i) => i === 0 || y <= ys[i - 1]!)).toBe(true);
+    expect(new Set(ys.map(Math.round)).size).toBeGreaterThan(5);
+  });
+});
+
 /** The line's points, frame by frame, through an update that removes the middle category. */
 function linePointsWhileRemoving(): [number, number][][] {
   const config = {
