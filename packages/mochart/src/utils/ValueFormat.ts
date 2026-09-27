@@ -47,7 +47,8 @@ export function getAutoLogNumberFormat(precision: number): (value: number) => st
 const autoValueFormatNumber = ".2s";
 // two significant digits, as the linear auto format, matching the log tick labels' trimmed form
 const autoLogValuePrecision = 2;
-const autoCategoryFormatNumber = '.2s';
+// per value, so the trailing zeros are trimmed as the tick labels' are
+const autoCategoryFormatNumber = '.2~s';
 const autoCategoryFormatDate = '%c';
 
 export function getCategoryFormat(categoryAxisConfig: CategoryAxisConfig): (category: CategoryValue) => CategoryValue {

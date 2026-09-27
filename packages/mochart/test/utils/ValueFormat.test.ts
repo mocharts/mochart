@@ -119,6 +119,13 @@ describe('getCategoryFormat', () => {
     }));
     expect(fmt(5)).toBe('5%');
   });
+
+  it('formats number categories with an SI prefix per value and no trailing zeros, as the tick labels read', () => {
+    const fmt = getCategoryFormat(categoryAxis({
+      type: 'number', valueFormat: 'auto', tickLabel: { format: 'auto' }, valuePrefix: null, valueSuffix: null
+    }));
+    expect([1, 1000, 20000, 4.5].map(fmt)).toEqual(['1', '1k', '20k', '4.5']);
+  });
 });
 
 describe('getSeriesFormat', () => {
