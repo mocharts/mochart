@@ -42,7 +42,8 @@ export function getRenderAxisDomain(axisConfig: AxisDomainConfig, axisDomain: Ca
   }
   const value = numericValue(min);
   if (axisConfig.scale === SCALE_LOG) { // widened by a ratio and never niced, which would widen it out to whole powers of 10
-    return [value / 1.05, value * 1.05];
+    // a value near the float maximum widens downward only, since its upper end would overflow
+    return Number.isFinite(value * 1.05) ? [value / 1.05, value * 1.05] : [value / 1.05 ** 2, value];
   }
   if (axisConfig.type === TYPE_DATE) {
     const half = getDateHalfWidth(axisConfig);
@@ -156,8 +157,12 @@ function getAxisDomainWithMinAndMax(axisConfig: AxisDomainConfig, axisDomainCalc
 function adjustLogAxisDomainForMargins(axisConfig: AxisDomainConfig, axisDomain: [number, number]): void {
   const { min, max, base = null, minMarginFraction = 0, maxMarginFraction = 0 } = axisConfig;
   const marginDomain: [number, number] = [axisDomain[0], axisDomain[1]];
+  // a margin is skipped when it would underflow to 0 or overflow to Infinity, neither of which a log scale can place (data near the float limits)
   if (min === AUTO && (base === NONE || axisDomain[0] !== base) && minMarginFraction > 0) {
-    axisDomain[0] = getValueOffsetByDomainFraction(SCALE_LOG, marginDomain, marginDomain[0], -minMarginFraction);
+    const adjusted = getValueOffsetByDomainFraction(SCALE_LOG, marginDomain, marginDomain[0], -minMarginFraction);
+    if (adjusted > 0) {
+      axisDomain[0] = adjusted;
+    }
   }
   if (max === AUTO && (base === NONE || axisDomain[1] !== base) && maxMarginFraction > 0) {
     const adjusted = getValueOffsetByDomainFraction(SCALE_LOG, marginDomain, marginDomain[1], maxMarginFraction);

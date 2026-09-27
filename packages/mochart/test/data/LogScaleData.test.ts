@@ -45,6 +45,14 @@ describe('log axis domains', () => {
     expect(getRenderAxisDomain(logAxis(), [50, 50])).toEqual([50 / 1.05, 50 * 1.05]);
   });
 
+  it('skips a minimum margin that would underflow to 0, and widens a collapsed domain near the float maximum downward only', () => {
+    const [min] = getAxisDomain(logAxis({ minMarginFraction: 0.05 }), () => [1e-310, 1]) as [number, number];
+    expect(min).toBeGreaterThan(0);
+    const [wideMin, wideMax] = getRenderAxisDomain(logAxis(), [1.7e308, 1.7e308]) as [number, number];
+    expect(Number.isFinite(wideMax)).toBe(true);
+    expect(wideMin).toBeLessThan(1.7e308);
+  });
+
   it('leaves values at or below 0 out of a positive-only domain', () => {
     expect(getDomainForValues([-3, 0, 5, 20, NaN], true)).toEqual([5, 20]);
     expect(getDomainForValues([-3, 0], true)).toEqual([null, null]);
