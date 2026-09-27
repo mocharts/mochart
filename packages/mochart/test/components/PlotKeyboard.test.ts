@@ -230,20 +230,20 @@ describe('plot keyboard semantics', () => {
     expect(liveText(container)).toBe('');
 
     key(rect, 'Enter');
-    expect(liveText(container)).toBe('Jan: Series S0: 10.00, Series S1: 5.00');
+    expect(liveText(container)).toBe('Jan: Series S0: 10, Series S1: 5');
 
     key(rect, 'ArrowRight');
     await settleAnnouncement();
-    expect(liveText(container)).toBe('Feb: Series S0: 20.00, Series S1: 8.00');
+    expect(liveText(container)).toBe('Feb: Series S0: 20, Series S1: 8');
 
     key(rect, 'End');
     await settleAnnouncement();
-    expect(liveText(container)).toBe('Mar: Series S0: 15.00, Series S1: 6.00');
+    expect(liveText(container)).toBe('Mar: Series S0: 15, Series S1: 6');
 
     // clamped at the last category: nothing new to announce
     key(rect, 'ArrowRight');
     await settleAnnouncement();
-    expect(liveText(container)).toBe('Mar: Series S0: 15.00, Series S1: 6.00');
+    expect(liveText(container)).toBe('Mar: Series S0: 15, Series S1: 6');
 
     key(rect, 'Escape');
     expect(liveText(container)).toBe('');
@@ -264,7 +264,7 @@ describe('plot keyboard semantics', () => {
     new MutationObserver(records => records.forEach(() => writes.push(region.textContent ?? ''))).observe(region, { childList: true, characterData: true, subtree: true });
 
     key(rect, 'Enter');
-    expect(liveText(container)).toBe('Series S0: 10.00');
+    expect(liveText(container)).toBe('Series S0: 10');
     key(rect, 'ArrowRight');
     await settleAnnouncement();
     // the same text written again for Feb; a clamped arrow on the last category writes nothing
@@ -283,7 +283,7 @@ describe('plot keyboard semantics', () => {
       mochartConfig: enhanceConfig(makeConfig()), dataProvider: new ArrayOfObjectsDataProvider(rows), width: 800, height: 600
     }));
     key(plotRect(container), 'Enter');
-    expect(liveText(container)).toBe('Jan: Series S0: 10.00, Series S1: 5.00');
+    expect(liveText(container)).toBe('Jan: Series S0: 10, Series S1: 5');
 
     // no region while accessibility is off, so closing the tooltip by pointer has nothing to silence
     handle.update({ mochartConfig: enhanceConfig(makeConfig({ accessibility: { enabled: false } })) });
@@ -297,7 +297,7 @@ describe('plot keyboard semantics', () => {
     expect(liveText(container)).toBe('');
     key(plotRect(container), 'Enter'); // reopens at the remembered category
     await settleAnnouncement();
-    expect(liveText(container)).toBe('Jan: Series S0: 10.00, Series S1: 5.00');
+    expect(liveText(container)).toBe('Jan: Series S0: 10, Series S1: 5');
     vi.restoreAllMocks();
   });
 
@@ -325,7 +325,7 @@ describe('plot keyboard semantics', () => {
     new MutationObserver(records => records.forEach(() => writes.push(region.textContent ?? ''))).observe(region, { childList: true, characterData: true, subtree: true });
     key(plotRect(container), 'Enter');
     await settleAnnouncement();
-    expect(writes).toEqual(['Feb: Series S0: 20.00, Series S1: 8.00']);
+    expect(writes).toEqual(['Feb: Series S0: 20, Series S1: 8']);
   });
 
   it('has no live region when chart accessibility is disabled', () => {
