@@ -169,7 +169,43 @@ function linePointsWhileRemoving(): [number, number][][] {
   return frames;
 }
 
+/** The line's points, frame by frame, through an update that adds a middle category between a value at 0 and one at 1000. */
+function linePointsWhileAddingBesideZero(): [number, number][][] {
+  const config = {
+    version: '1.0.0',
+    animation: { easing: 'linear' },
+    categoryAxis: { property: 'x', type: 'number', scale: 'linear' },
+    valueAxes: [{ scale: 'log', min: 1, max: 1000 }],
+    series: [{ property: 'v', renderer: 'line', marker: { shape: null } }]
+  } as unknown as MochartInputConfig;
+  const container = mountContainer();
+  const handle = trackHandle(mochart.createDefaultChart(container, {
+    config, data: [{ x: 1, v: 0 }, { x: 3, v: 1000 }], width: WIDTH, height: HEIGHT
+  } as DefaultChartProps));
+  runFrames();
+  handle.update({ data: [{ x: 1, v: 0 }, { x: 2, v: 2 }, { x: 3, v: 1000 }] } as Partial<DefaultChartProps>);
+  const frames: [number, number][][] = [];
+  for (let frame = 0; frame < 200 && vi.getTimerCount() > 0; frame++) {
+    advanceFrames(1);
+    const d = container.querySelector(getCssSelector('seriesLine'))!.getAttribute('d') ?? '';
+    frames.push(Array.from(d.matchAll(/[ML](-?[\d.]+),(-?[\d.]+)/g)).map(point => [Number(point[1]), Number(point[2])]));
+  }
+  return frames;
+}
+
 describe('log axis category changes', () => {
+  it('starts an entering point beside a value at 0 on its drawn neighbour, not at the linear midpoint of the values', () => {
+    // the 0 is not drawn, so the point fills from the 1000 as it would beside a null, rather than from 500
+    const frames = linePointsWhileAddingBesideZero();
+    const twoPointFrames = frames.filter(points => points.length === 2);
+    const [[, firstY], [, topY]] = twoPointFrames[0]!;
+    const [[, finalY]] = twoPointFrames[twoPointFrames.length - 1]!;
+    // the entering point ends at 2, 0.1 of the axis up from 1, so its travel spans 0.9 of the plot height
+    const plotHeight = (finalY! - topY!) / 0.9;
+    // a fill of 500 would start it 0.1 of the plot height below the 1000
+    expect(firstY! - topY!).toBeLessThan(0.05 * plotHeight);
+  });
+
   it('ends a leaving point on the straight line between its neighbours, so the line does not snap when it goes', () => {
     // a point filled in by value would end at 500.5, well above the line from 1 to 1000
     const frames = linePointsWhileRemoving();
