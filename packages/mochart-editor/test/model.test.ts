@@ -29,6 +29,20 @@ describe('Mochart config editor model', () => {
     expect(radius?.editor.maximum).toBe(1);
   });
 
+  it('offers the literal forms of a bound whose number form depends on the axis scale', () => {
+    const valueAxes = mochartConfigEditorModel.sections.find(section => section.id === 'valueAxes');
+    const min = valueAxes?.properties.find(property => property.key === 'min');
+    const softMin = valueAxes?.properties.find(property => property.key === 'softMin');
+    const categoryAxis = mochartConfigEditorModel.sections.find(section => section.id === 'categoryAxis');
+    const categoryMin = categoryAxis?.properties.find(property => property.key === 'min');
+
+    expect(min?.editor.enum).toEqual(['auto']);
+    expect(min?.editor.types).toEqual(expect.arrayContaining(['number', 'string']));
+    expect(min?.editor.format).toBeUndefined();
+    expect(softMin?.editor.enum).toEqual([null]);
+    expect(categoryMin?.editor.format).toBeUndefined();
+  });
+
   it('describes automatic tooltip and legend icon sizing', () => {
     for (const sectionId of ['tooltip', 'legend']) {
       const section = mochartConfigEditorModel.sections.find(candidate => candidate.id === sectionId);

@@ -656,9 +656,14 @@ const CUSTOM_VALIDATOR_TYPES: Record<string, EditorValueType[]> = {
 
 /** The one format shared by every named branch of a conditional, so a branch's tag is not lost. */
 function alternativeFormat(validator: Validator): string | undefined {
-  const names = unique((validator.alternativeValidators ?? [])
+  const alternatives = validator.alternativeValidators ?? [];
+  const names = unique(alternatives
     .map(alternative => alternative.customName)
     .filter((name): name is string => typeof name === 'string'));
+  // a conditional's rules must all agree: a bound that is a positive number on a log axis is any number on a linear one
+  if (validator.validatorName === 'conditional' && !alternatives.every(alternative => alternative.customName === names[0])) {
+    return undefined;
+  }
   return names.length === 1 ? names[0] : undefined;
 }
 
@@ -713,16 +718,21 @@ function editorTypesForValidator(validator: Validator): EditorValueType[] {
   }
 }
 
-/** The values a conditional allows when every rule is an enum, such as a scale that depends on the axis type. */
-function conditionalEnumValues(validator: Validator): unknown[] | null {
+/**
+ * The values a conditional's rules allow between them: a scale that depends on the axis type, or the "auto" of a bound
+ * whose number form depends on the scale. Every rule contributes, since the editor cannot tell which one applies.
+ */
+function conditionalAllowedValues(validator: Validator): unknown[] | null {
   const rules = validator.alternativeValidators ?? [];
-  return validator.validatorName === 'conditional' && rules.length > 0 && rules.every(rule => rule.isEnum)
-    ? unique(rules.flatMap(rule => rule.allowedValues ?? []))
-    : null;
+  if (validator.validatorName !== 'conditional' || rules.length === 0) {
+    return null;
+  }
+  const values = unique(rules.flatMap(rule => rule.allowedValues ?? conditionalAllowedValues(rule) ?? []));
+  return values.length > 0 ? values : null;
 }
 
 function buildEditorValue(validator: Validator): EditorValueDoc {
-  const allowed = (validator.allowedValues ?? conditionalEnumValues(validator) ?? []).filter(value => value !== undefined);
+  const allowed = (validator.allowedValues ?? conditionalAllowedValues(validator) ?? []).filter(value => value !== undefined);
   // Extensions like numberMin(0).orEqual("auto") keep the base validator's name,
   // so the literal alternatives join the type union as well as the enum completions.
   const literalTypes = allowed
