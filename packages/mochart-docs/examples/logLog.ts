@@ -1,6 +1,7 @@
 // A number category axis can be log too: with both axes log, a low-pass
 // filter's roll-off above its 1 kHz cutoff is a straight line, falling by 10x
-// per decade for the first-order filter and 100x for the second-order one.
+// for every tenfold rise in frequency for the first-order filter and 100x for
+// the second-order one.
 import type { MochartInputConfig } from '@mochart/core';
 
 export const config: MochartInputConfig = {

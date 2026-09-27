@@ -1,4 +1,4 @@
-// scale: 'log' drawn: decade ticks with 2 to 9 minor ticks, values at or below 0 missing or cut off at the plot edge, and no NaN anywhere.
+// scale: 'log' drawn: ticks at the powers of 10 with minor ticks at the multiples from 2 to 9, values at or below 0 missing or cut off at the plot edge, and no NaN anywhere.
 import { describe, it, expect, beforeAll, vi, afterEach } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
 import { mockBoundingClientRect, mountContainer, trackHandle, barRects } from './helpers';
@@ -53,10 +53,10 @@ function count(container: Element, key: 'axisMinorTickMark' | 'axisMinorGridLine
 }
 
 describe('log value axis ticks', () => {
-  const decades = { valueAxes: [{ scale: 'log', min: 1, max: 1000 }], series: [{ property: 'v' }] };
+  const powersOfTen = { valueAxes: [{ scale: 'log', min: 1, max: 1000 }], series: [{ property: 'v' }] };
 
   it('ticks the powers of 10, with the other 1 to 9 multiples as minor tick marks and grid lines but no minor labels', () => {
-    const { container } = mount({ ...decades, valueAxes: [{ scale: 'log', min: 1, max: 1000, tickCount: 4, gridLine: { visible: true } }] }, rowsFor([2, 30, 400]));
+    const { container } = mount({ ...powersOfTen, valueAxes: [{ scale: 'log', min: 1, max: 1000, tickCount: 4, gridLine: { visible: true } }] }, rowsFor([2, 30, 400]));
     expect(majorLabels(container)).toEqual(['1', '10', '100', '1k']);
     expect(count(container, 'axisMinorTickMark')).toBe(8 * 3);
     expect(count(container, 'axisMinorGridLine')).toBe(8 * 3);
@@ -64,7 +64,7 @@ describe('log value axis ticks', () => {
   });
 
   it('hides the minor grid lines along with the major ones', () => {
-    const { container } = mount({ ...decades, valueAxes: [{ scale: 'log', min: 1, max: 1000, gridLine: { visible: false } }] }, rowsFor([2, 30]));
+    const { container } = mount({ ...powersOfTen, valueAxes: [{ scale: 'log', min: 1, max: 1000, gridLine: { visible: false } }] }, rowsFor([2, 30]));
     expect(count(container, 'axisMinorGridLine')).toBe(0);
   });
 
@@ -78,7 +78,7 @@ describe('log value axis ticks', () => {
     expect(majorLabels(container)).toEqual(['10m', '1', '100', '10k', '1M', '100M']);
   });
 
-  it('falls back to linear ticks inside one decade', () => {
+  it('falls back to linear ticks between two neighbouring powers of 10', () => {
     const { container } = mount({ valueAxes: [{ scale: 'log', min: 50, max: 80, tickCount: 7 }], series: [{ property: 'v' }] }, rowsFor([55, 70]));
     expect(majorLabels(container)).toEqual(['50', '55', '60', '65', '70', '75', '80']);
     expect(count(container, 'axisMinorTickMark')).toBe(0);

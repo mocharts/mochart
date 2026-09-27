@@ -41,7 +41,7 @@ export function getRenderAxisDomain(axisConfig: AxisDomainConfig, axisDomain: Ca
     return axisDomain;
   }
   const value = numericValue(min);
-  if (axisConfig.scale === SCALE_LOG) { // widened by a ratio and never niced, which would open whole decades
+  if (axisConfig.scale === SCALE_LOG) { // widened by a ratio and never niced, which would widen it out to whole powers of 10
     return [value / 1.05, value * 1.05];
   }
   if (axisConfig.type === TYPE_DATE) {

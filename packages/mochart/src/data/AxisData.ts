@@ -465,7 +465,7 @@ function getLogMultiples(min: number, max: number, multiples: readonly number[])
  * The ticks of a log axis: the powers of 10, keeping every second, fifth or tenth one when they do not all fit, with the
  * 2 and 5 multiples added as ticks when the powers are too few and every gap fits minGap pixels. The other 1 to 9
  * multiples, or the skipped powers, are minor ticks. With fewer than half of tickCount powers and 2 and 5 multiples in
- * the domain, as inside one decade, or none that fit, the ticks are linear ones and there are no minors.
+ * the domain, as between two neighbouring powers of 10, or none that fit, the ticks are linear ones and there are no minors.
  */
 function getLogTicks(domain: [number, number], tickCount: number, axisScale: AxisScale, minGap: number): LogTicks {
   const min = Math.min(domain[0], domain[1]);

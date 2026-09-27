@@ -304,7 +304,7 @@
       "id": "log-growth",
       "title": "Log value axis",
       "description": "Three user counts spanning 100 to several million on a log value axis.",
-      "notes": "The value axis sets scale: 'log', so each power of 10 takes the same height and equal growth rates show as equal slopes: Orbit's early years, which a linear axis would flatten against the bottom of the plot, read as clearly as its millions, and Lantern's steady 30% a year is a straight line. The ticks sit at the powers of 10 with the multiples from 2 to 9 as minor tick marks, the tooltip formats each value at its own magnitude, and in random mode the values are drawn evenly across the decades between the random config's series min and max.",
+      "notes": "The value axis sets scale: 'log', so each power of 10 takes the same height and equal growth rates show as equal slopes: Orbit's early years, which a linear axis would flatten against the bottom of the plot, read as clearly as its millions, and Lantern's steady 30% a year is a straight line. The ticks sit at the powers of 10 with the multiples from 2 to 9 as minor tick marks, the tooltip formats each value at its own magnitude, and in random mode the values are spread evenly along the log axis between the random config's series min and max, as many between 100 and 1000 as between 100000 and 1000000.",
       "config": "log-growth-config.json",
       "data": "log-growth-data.json",
       "random": "log-growth-random.json"
@@ -313,7 +313,7 @@
       "id": "log-log",
       "title": "Log-log axes",
       "description": "A low-pass filter's gain against frequency, with log scales on both the category and value axes.",
-      "notes": "The category axis is a number axis with scale: 'log', so the third-octave frequencies from 20 Hz to 20 kHz sit evenly along it, and the value axis is log too, so each filter's roll-off above 1 kHz is a straight line: the first-order filter falls by a factor of 10 per decade of frequency and the second-order filter by a factor of 100. A log category axis takes line and area series only, since a bar's width is a fixed distance in values, and its category values must be above 0. In random mode the frequencies and gains are drawn evenly across the decades of the random config's ranges.",
+      "notes": "The category axis is a number axis with scale: 'log', so the third-octave frequencies from 20 Hz to 20 kHz sit evenly along it, and the value axis is log too, so each filter's roll-off above 1 kHz is a straight line: the first-order filter falls by a factor of 10 each time the frequency rises tenfold, and the second-order filter by a factor of 100. A log category axis takes line and area series only, since a bar's width is a fixed distance in values, and its category values must be above 0. In random mode the frequencies and gains are spread evenly along their log axes between the random config's min and max.",
       "config": "log-log-config.json",
       "data": "log-log-data.json",
       "random": "log-log-random.json"

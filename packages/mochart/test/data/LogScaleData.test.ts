@@ -104,7 +104,7 @@ describe('log category axis', () => {
 });
 
 describe('log domain translation', () => {
-  it('reads a one-decade slide as a translation, which linear extents would not', () => {
+  it('reads a slide from 1 to 10 into 10 to 100 as a translation, which linear extents would not', () => {
     expect(isDomainTranslation([1, 10], [10, 100])).toBe(false);
     expect(isDomainTranslation([1, 10], [10, 100], true)).toBe(true);
   });
