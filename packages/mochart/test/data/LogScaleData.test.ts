@@ -5,7 +5,7 @@ import { getDomainForValues } from '../../src/data/DomainData';
 import { getCategoryValueInterval } from '../../src/data/CategoryData';
 import { getChartData } from '../../src/data/ChartData';
 import { getDataErrors } from '../../src/data/DataValidator';
-import { isDomainTranslation } from '../../src/animation/DomainAnimationData';
+import { isDomainTranslation, getCombinedAxisDomainDeltas, getCombinedCategoryDomainDelta, getScaledSafeDomainExtents } from '../../src/animation/DomainAnimationData';
 import { makeConfig, ArrayOfObjectsDataProvider } from './fixtures';
 
 const logAxis = (over: Record<string, unknown> = {}) => ({
@@ -107,5 +107,23 @@ describe('log domain translation', () => {
   it('reads a slide from 1 to 10 into 10 to 100 as a translation, which linear extents would not', () => {
     expect(isDomainTranslation([1, 10], [10, 100])).toBe(false);
     expect(isDomainTranslation([1, 10], [10, 100], true)).toBe(true);
+  });
+});
+
+describe('log domain change pacing', () => {
+  it('measures a value axis domain change in logs, so 1 to 10 growing to 1 to 100 is a change of one extent, not ten', () => {
+    const logIds = new Set(['A']);
+    const from = { A: [1, 10] as [number, number] };
+    const to = { A: [1, 100] as [number, number] };
+    const log = getCombinedAxisDomainDeltas(from, to, getScaledSafeDomainExtents(from, logIds), logIds);
+    expect(log.deltaPercentage).toBeCloseTo(1, 10);
+    expect(log.deltas!['A']).toEqual({ deltaPercentage: expect.closeTo(1, 10), delta: [0, 1], log: true });
+    const linear = getCombinedAxisDomainDeltas(from, to, getScaledSafeDomainExtents(from, new Set()));
+    expect(linear.deltaPercentage).toBeCloseTo(10, 10);
+  });
+
+  it('measures a category axis domain change in logs too', () => {
+    expect(getCombinedCategoryDomainDelta([1, 10], [1, 100], 1, true)).toEqual({ deltaPercentage: 1, delta: [0, 1], log: true });
+    expect(getCombinedCategoryDomainDelta([1, 10], [1, 100], 9)).toEqual({ deltaPercentage: 10, delta: [0, 90] });
   });
 });

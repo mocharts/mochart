@@ -78,6 +78,18 @@ describe('log value axis ticks', () => {
     expect(majorLabels(container)).toEqual(['10m', '1', '100', '10k', '1M', '100M']);
   });
 
+  it('keeps every fifth or tenth power on a domain too wide for every second', () => {
+    const fifth = mount({ valueAxes: [{ scale: 'log', min: 1, max: 1e20, tickCount: 5 }], series: [{ property: 'v' }] }, rowsFor([2, 30]));
+    expect(majorLabels(fifth.container)).toEqual(['1', '100k', '10G', '1P', '100E']);
+    const tenth = mount({ valueAxes: [{ scale: 'log', min: 1, max: 1e30, tickCount: 4 }], series: [{ property: 'v' }] }, rowsFor([2, 30]));
+    expect(majorLabels(tenth.container)).toEqual(['1', '10G', '100E', '1e+30']);
+  });
+
+  it('leaves the 2 and 5 multiples out when their gaps would not fit, even with the count to spare', () => {
+    const { container } = mount({ valueAxes: [{ scale: 'log', min: 1, max: 100, tickCount: 8, minTickSpacing: 150 }], series: [{ property: 'v' }] }, rowsFor([2, 30]));
+    expect(majorLabels(container)).toEqual(['1', '10', '100']);
+  });
+
   it('keeps the 2 and 5 multiples on a tall axis rather than falling back to linear ticks', () => {
     const { container } = mount({ valueAxes: [{ scale: 'log', min: 1, max: 10 }], series: [{ property: 'v' }] }, rowsFor([2, 8]));
     expect(majorLabels(container)).toEqual(['1', '2', '5', '10']);
@@ -200,6 +212,15 @@ describe('values at or below 0 on a log value axis', () => {
     expect(container.querySelector(getCssSelector('clipIndicator'))).not.toBeNull();
   });
 
+  it('runs an error bar high end at or below 0 off the minimum end too, and shows the clip indicator', () => {
+    const { container, bounds } = mount({ valueAxes: [{ scale: 'log', min: 1, max: 100 }],
+      series: [{ id: 'S', property: 'v', errorLowProperty: 'lo', errorHighProperty: 'hi' }] }, rowsFor([5, 20], v => ({ lo: v - 1, hi: v === 5 ? -3 : v + 8 })));
+    const paths = Array.from(container.querySelectorAll(getIdCssSelector('series', 'S') + ' path' + getCssClassMatchSelector(getIdCssClass('seriesErrorBar', ''))));
+    const ys = Array.from(paths[0]!.getAttribute('d')!.matchAll(/M-?[\d.]+,(-?[\d.]+)|V(-?[\d.]+)/g)).map(m => Number(m[1] ?? m[2]));
+    expect(Math.max(...ys)).toBeGreaterThan(bounds.height);
+    expect(container.querySelector(getCssSelector('clipIndicator'))).not.toBeNull();
+  });
+
   it('shows no clip indicator when every error bar end is above 0', () => {
     const { container } = mount({ valueAxes: [{ scale: 'log', min: 1, max: 100 }],
       series: [{ id: 'S', property: 'v', errorLowProperty: 'lo', errorHighProperty: 'hi' }] }, rowsFor([5, 20], v => ({ lo: v - 1, hi: v + 1 })));
@@ -228,6 +249,19 @@ describe('values at or below 0 on a log value axis', () => {
       series: [{ property: 'v' }] }, rowsFor([5, 20]));
     const rect = container.querySelector(getCssSelector('valueAxisThreshold') + ' rect')!;
     expect(Number(rect.getAttribute('height')) / bounds.height).toBeCloseTo(1 / 2, 1);
+  });
+});
+
+describe('values at or below 0 in the tooltip', () => {
+  it('shows the value itself, not the missing value text the point is drawn as', () => {
+    const { container } = mount({ valueAxes: [{ scale: 'log', min: 1, max: 1000 }], series: [{ id: 'S', property: 'v' }] },
+      [{ c: 'a', v: 7 }, { c: 'zero', v: 0 }, { c: 'b', v: 777 }]);
+    const rect = container.querySelector(getCssSelector('seriesBackground') + ' rect')!;
+    rect.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    rect.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+    const text = container.querySelector(getCssSelector('tooltip'))?.textContent ?? '';
+    expect(text).toContain('zero');
+    expect(text).toMatch(/\b0\b/);
   });
 });
 
@@ -279,6 +313,18 @@ describe('log category axis', () => {
     expect(categoryLabels(mountProvider([{ x: -5, v: 1 }]))).toEqual([]);
     expect(categoryLabels(mountProvider([{ x: -5, v: 1 }, { x: 0, v: 2 }]))).toEqual([]);
     expect(categoryLabels(mountProvider([{ x: -5, v: 1 }, { x: 10, v: 2 }, { x: 100, v: 3 }], { ...logCategory, tickCount: 1 }))).toEqual(['10']);
+  });
+
+  it('steps the keyboard onto a custom-provider category at or below 0 without a NaN, opening the tooltip at the axis start', () => {
+    const container = mountProvider([{ x: -1, v: 1 }, { x: 10, v: 2 }, { x: 100, v: 3 }]);
+    const rect = container.querySelector(getCssSelector('seriesBackground') + ' rect')!;
+    for (const keyValue of ['Enter', 'End', 'Home']) {
+      rect.dispatchEvent(new KeyboardEvent('keydown', { key: keyValue, bubbles: true, cancelable: true }));
+    }
+    expect(container.innerHTML).not.toContain('NaN');
+    const tooltip = container.querySelector(getCssSelector('tooltip')) as HTMLElement | null;
+    expect(tooltip).not.toBeNull();
+    expect(tooltip!.textContent).toMatch(/^[-\u2212]1/); // the category value, formatted with a minus sign
   });
 
   it('keeps the other powers of 10 as minor tick marks beside a lone fitting tick, as a value axis with one tick does', () => {

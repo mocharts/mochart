@@ -106,8 +106,11 @@ describe('category axis scale', () => {
 
   it.each([
     ['min', 0, 'categoryAxis - min - should be a number greater than 0 or be equal to "auto" when scale is log: 0'],
+    ['max', -1, 'categoryAxis - max - should be a number greater than 0 or be equal to "auto" when scale is log: -1'],
+    ['softMin', 0, 'categoryAxis - softMin - should be a number greater than 0 or be equal to null when scale is log: 0'],
     ['softMax', -1, 'categoryAxis - softMax - should be a number greater than 0 or be equal to null when scale is log: -1'],
     ['minOffset', 2, 'categoryAxis - minOffset - should be equal to 0 when scale is log: 2'],
+    ['maxOffset', 1, 'categoryAxis - maxOffset - should be equal to 0 when scale is log: 1'],
     ['minTickInterval', 1, 'categoryAxis - minTickInterval - should be equal to 0 when scale is log: 1'],
     ['categoryValueInterval', 3, 'categoryAxis - categoryValueInterval - should be equal to "auto" when scale is log: 3']
   ])('rejects %s %s', (member, value, message) => {
@@ -121,6 +124,13 @@ describe('category axis scale', () => {
     expect(errors).toContain('categoryAxis - tickStep.interval - should be equal to null when scale is log: 10');
     expect(errors).toContain('categoryAxis - tickStep.minorSteps - should be equal to null when scale is log: 2');
     expect(errors).toContain('categoryAxis - tickStep.includeFirst - should be equal to false when scale is log: true');
+  });
+
+  it('rejects an explicit tick, a threshold line and a thresholdStep interval at or below 0', () => {
+    const errors = errorsFor({ categoryAxis: { ...logNumberCategoryAxis, ticks: [{ value: 0 }], thresholds: [{ value: -1 }], thresholdStep: { interval: 10 } } });
+    expect(errors).toContain('categoryAxis - ticks[0].value - should be a number greater than 0 when scale is log: 0');
+    expect(errors.some(error => error.startsWith('categoryAxis - thresholds[0].value - should be a number greater than 0 when scale is log'))).toBe(true);
+    expect(errors).toContain('categoryAxis - thresholdStep.interval - should be equal to null when scale is log: 10');
   });
 
   it('rejects bar series on a log category axis', () => {

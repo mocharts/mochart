@@ -145,21 +145,21 @@ describe('log axis plain values at or below 0 under missingValueMode base', () =
   });
 });
 
-/** The line's points, frame by frame, through an update that removes the middle category. */
-function linePointsWhileRemoving(): [number, number][][] {
+/** The line's points, frame by frame, through an update that removes the middle category, at the given category values. */
+function linePointsWhileRemoving(categoryScale: 'linear' | 'log' = 'linear', xs: [number, number, number] = [1, 2, 3]): [number, number][][] {
   const config = {
     version: '1.0.0',
     animation: { easing: 'linear' },
-    categoryAxis: { property: 'x', type: 'number', scale: 'linear' },
+    categoryAxis: { property: 'x', type: 'number', scale: categoryScale },
     valueAxes: [{ scale: 'log', min: 1, max: 1000 }],
     series: [{ property: 'v', renderer: 'line', marker: { shape: null } }]
   } as unknown as MochartInputConfig;
   const container = mountContainer();
   const handle = trackHandle(mochart.createDefaultChart(container, {
-    config, data: [{ x: 1, v: 1 }, { x: 2, v: 10 }, { x: 3, v: 1000 }], width: WIDTH, height: HEIGHT
+    config, data: [{ x: xs[0], v: 1 }, { x: xs[1], v: 10 }, { x: xs[2], v: 1000 }], width: WIDTH, height: HEIGHT
   } as DefaultChartProps));
   runFrames();
-  handle.update({ data: [{ x: 1, v: 1 }, { x: 3, v: 1000 }] } as Partial<DefaultChartProps>);
+  handle.update({ data: [{ x: xs[0], v: 1 }, { x: xs[2], v: 1000 }] } as Partial<DefaultChartProps>);
   const frames: [number, number][][] = [];
   for (let frame = 0; frame < 200 && vi.getTimerCount() > 0; frame++) {
     advanceFrames(1);
@@ -210,6 +210,15 @@ describe('log axis category changes', () => {
     // a point filled in by value would end at 500.5, well above the line from 1 to 1000
     const frames = linePointsWhileRemoving();
     const [left, middle, right] = frames[frames.findIndex(points => points.length === 2) - 1]!;
+    const onLine = left![1] + (middle![0] - left![0]) / (right![0] - left![0]) * (right![1] - left![1]);
+    expect(Math.abs(middle![1] - onLine)).toBeLessThanOrEqual(2);
+  });
+
+  it('weights the fill by the logs of the category values on a log category axis, so the point still ends on the line', () => {
+    // x 10 sits halfway between 1 and 100 on the axis; weighted by value it would take a tenth of the way
+    const frames = linePointsWhileRemoving('log', [1, 10, 100]);
+    const [left, middle, right] = frames[frames.findIndex(points => points.length === 2) - 1]!;
+    expect((middle![0] - left![0]) / (right![0] - left![0])).toBeCloseTo(0.5, 1);
     const onLine = left![1] + (middle![0] - left![0]) / (right![0] - left![0]) * (right![1] - left![1]);
     expect(Math.abs(middle![1] - onLine)).toBeLessThanOrEqual(2);
   });

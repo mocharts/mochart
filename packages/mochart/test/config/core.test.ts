@@ -470,6 +470,16 @@ describe('hasConfigStructureChange', () => {
     expect(hasConfigStructureChange(base(), base())).toBe(false);
   });
 
+  it('treats a value axis scale switch as structural, since linear and log have no transition between them', () => {
+    const log = makeConfig({
+      categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+      valueAxes: [{ scale: 'log' }],
+      series: [{ property: 'sales' }]
+    });
+    expect(hasConfigStructureChange(base(), log)).toBe(true);
+    expect(hasConfigStructureChange(log, log)).toBe(false);
+  });
+
   // hosts hold no config while loading, so either side may be null
   it('treats a config appearing or disappearing as a change, but two nulls as none', () => {
     expect(hasConfigStructureChange(null, base())).toBe(true);
