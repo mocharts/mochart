@@ -16,7 +16,6 @@ export interface FocusData {
   valueAxisFocusPercentages: FocusPercentageMap;
   seriesFocusPercentages: FocusPercentageMap;
   categoryFocusDomainPercentages?: number[];
-  valueAxisFocusDomainPercentages?: number[];
   seriesFocusDomainPercentages?: number[];
   valueAxisComputedFocusDomainPercentages?: Record<string, number[]>;
 }

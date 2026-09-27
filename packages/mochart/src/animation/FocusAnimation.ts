@@ -31,7 +31,6 @@ export function getFocusDataForPercent(focusAnimationData: FocusAnimationData, p
       focusedValueAxisId: focusAnimationData.end.focusedValueAxisId,
       focusedSeriesId: focusAnimationData.end.focusedSeriesId,
       categoryFocusDomainPercentages: focusAnimationData.end.categoryFocusDomainPercentages,
-      valueAxisFocusDomainPercentages: focusAnimationData.end.valueAxisFocusDomainPercentages,
       seriesFocusDomainPercentages: focusAnimationData.end.seriesFocusDomainPercentages,
       valueAxisComputedFocusDomainPercentages: focusAnimationData.end.valueAxisComputedFocusDomainPercentages
     };

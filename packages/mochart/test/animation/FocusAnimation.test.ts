@@ -16,7 +16,6 @@ function focusData(overrides: Partial<FocusData> = {}): FocusData {
     valueAxisFocusPercentages: { VA0: 0 },
     seriesFocusPercentages: { S0: 0 },
     categoryFocusDomainPercentages: [0],
-    valueAxisFocusDomainPercentages: [0],
     seriesFocusDomainPercentages: [0],
     valueAxisComputedFocusDomainPercentages: { VA0: [0] },
     ...overrides

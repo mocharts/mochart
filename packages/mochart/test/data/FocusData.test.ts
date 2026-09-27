@@ -76,11 +76,10 @@ describe('getFocusData', () => {
     expect(fd.valueAxisComputedFocusDomainPercentages![axisId]).toEqual(fd.seriesFocusDomainPercentages);
   });
 
-  it('marks the focused value axis at +1 and spans the full axis domain', () => {
+  it('marks the focused value axis at +1', () => {
     const { config, chartData, axisId } = makeChart();
     const fd = getFocusData(config, chartData, -1, axisId, null);
     expect(fd.valueAxisFocusPercentages).toEqual({ [axisId]: 1 });
-    expect(fd.valueAxisFocusDomainPercentages).toEqual([1, 0]);
   });
 
   it('reduces to a single value plus the axis base when a category and series are both focused', () => {
