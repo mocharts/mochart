@@ -468,9 +468,10 @@ function getLogMultiples(min: number, max: number, multiples: readonly number[])
  * 9 multiples in the domain (d3's rule), as between two neighbouring powers of 10, or with no power of 10 and multiples
  * that do not fit, the ticks are linear ones, as many as fit minGap, and there are no minors.
  */
-function getLogTicks(domain: [number, number], tickCount: number, axisScale: AxisScale, minGap: number): LogTicks {
-  const min = Math.min(domain[0], domain[1]);
-  const max = Math.max(domain[0], domain[1]);
+function getLogTicks(domain: readonly [AxisValue | null, AxisValue | null], tickCount: number, axisScale: AxisScale, minGap: number): LogTicks {
+  // the axis domain, not the scale's, which stands in with [1, 10] when the axis has no values it can place
+  const min = domain[0] === null || domain[1] === null ? NaN : Math.min(+domain[0], +domain[1]);
+  const max = domain[0] === null || domain[1] === null ? NaN : Math.max(+domain[0], +domain[1]);
   if (tickCount < 1 || !(min > 0) || !(max > min)) {
     return { majors: [], minors: [], linearScale: null };
   }
@@ -537,6 +538,11 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
     let stepTicks = noStepTicks;
     // set when log ticks fell back to linear ones, which are labelled the way a linear axis labels them
     let linearTickScale: AxisScale | null = null;
+    // a lone tick at the first category value with a position: on a log axis a value above 0, which a custom data provider can fail to pass
+    const singleCategoryTicks = (): AxisValue[] => {
+      const value = axisConfig.scale === SCALE_LOG ? categoryValues.find(categoryValue => +categoryValue! > 0) : categoryValues[0];
+      return value === undefined ? [] : [value as AxisValue];
+    };
 
     if (categoryValues.length === 1) {
       if (axisConfig.scale === SCALE_ORDINAL) {
@@ -550,7 +556,7 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
           scaleTicks = [axisMin, axisMax];
         }
         else {
-          scaleTicks = [categoryValues[0] as AxisValue];
+          scaleTicks = singleCategoryTicks();
         }
       }
       tickCount = scaleTicks.length;
@@ -570,14 +576,14 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
           scaleTicks = [0];
         }
         else {
-          scaleTicks = [categoryValues[0] as AxisValue];
+          scaleTicks = singleCategoryTicks();
         }
       }
       else if (axisConfig.scale === SCALE_ORDINAL) {
         scaleTicks = categoryValues.map((_v, i) => i);
       }
       else if (axisConfig.scale === SCALE_LOG) {
-        const logTicks = getLogTicks(axisScale.domain() as [number, number], tickCount, axisScale, ordinalTickSpace);
+        const logTicks = getLogTicks(axisDomain, tickCount, axisScale, ordinalTickSpace);
         scaleTicks = logTicks.majors;
         stepTicks = { ...noStepTicks, minors: logTicks.minors };
         linearTickScale = logTicks.linearScale;
@@ -636,7 +642,8 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
         const outside = ({ position }: Omit<AxisTick, 'hidden'>) => position < minPosition || position > maxPosition;
 
         ticks = createLinearTicks(scaleTicks, stepTicks.minors, axisScale, tickLabelFormatter, minorTickLabelFormatter, (i, tick) => i % tickInterval !== 0 || outside(tick), outside);
-        if (categoryValues.length > 0) {
+        // no sizing tick on an empty domain: every category value at or below 0 on a log axis
+        if (categoryValues.length > 0 && axisDomain[0] !== null && axisDomain[1] !== null) {
           // the middle of the axis, which on a log one is the geometric mean of its ends
           const middleValue = axisConfig.scale === SCALE_LOG ? Math.sqrt(+axisDomain[0]! * +axisDomain[1]!) : +axisDomain[0]! + (+axisDomain[1]! - +axisDomain[0]!) / 2;
           const singleValue = tickLabelAnchor === ANCHOR_START ? axisDomain[0]! : (tickLabelAnchor === ANCHOR_END ? axisDomain[1]! : middleValue);
@@ -832,7 +839,7 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
     }
     else if (axisConfig.scale === SCALE_LOG) {
       tickCount = getTickCount(axisConfig, axisLayoutInfo.valueExtent, 0, fits.major.space);
-      const logTicks = getLogTicks([valueAxisDomain[0]!, valueAxisDomain[1]!], tickCount, axisScale, fits.major.space + axisConfig.minTickSpacing);
+      const logTicks = getLogTicks(valueAxisDomain, tickCount, axisScale, fits.major.space + axisConfig.minTickSpacing);
       scaleTicks = logTicks.majors;
       stepTicks = { ...noStepTicks, minors: logTicks.minors };
       linearTickScale = logTicks.linearScale;

@@ -247,15 +247,27 @@ describe('log category axis', () => {
     expect(xs[3]! / bounds.width).toBeCloseTo(7 / 8, 1);
   });
 
-  it('draws nothing at a category value at or below 0 from a custom data provider, and no NaN', () => {
+  // a custom data provider skips getDataErrors, so category values at or below 0 reach drawing
+  function mountProvider(rows: Record<string, number>[], categoryAxis: Record<string, unknown> = logCategory): Element {
     const mochartConfig = enhanceConfig({
-      version: '1.0.0', animation: { enabled: false }, categoryAxis: logCategory,
+      version: '1.0.0', animation: { enabled: false }, categoryAxis,
       series: [{ id: 'S', property: 'v' }]
     } as unknown as MochartInputConfig);
     const container = mountContainer();
-    trackHandle(createChart(container, { mochartConfig, dataProvider: new ArrayOfObjectsDataProvider([{ x: -1, v: 1 }, { x: 10, v: 2 }, { x: 100, v: 3 }]),
-      width: WIDTH, height: HEIGHT }));
+    trackHandle(createChart(container, { mochartConfig, dataProvider: new ArrayOfObjectsDataProvider(rows), width: WIDTH, height: HEIGHT }));
     expect(container.innerHTML).not.toContain('NaN');
+    return container;
+  }
+
+  it('draws nothing at a category value at or below 0 from a custom data provider, and no NaN', () => {
+    const container = mountProvider([{ x: -1, v: 1 }, { x: 10, v: 2 }, { x: 100, v: 3 }]);
     expect(markerXs(container)).toHaveLength(2);
+  });
+
+  it('draws no tick at a lone category value at or below 0, none when every value is, and a lone fitting tick at the first value above 0', () => {
+    const categoryLabels = (container: Element) => shown(getDomAccessors(container).getCategoryAxisMajorTicksDomElements());
+    expect(categoryLabels(mountProvider([{ x: -5, v: 1 }]))).toEqual([]);
+    expect(categoryLabels(mountProvider([{ x: -5, v: 1 }, { x: 0, v: 2 }]))).toEqual([]);
+    expect(categoryLabels(mountProvider([{ x: -5, v: 1 }, { x: 10, v: 2 }, { x: 100, v: 3 }], { ...logCategory, tickCount: 1 }))).toEqual(['10']);
   });
 });
