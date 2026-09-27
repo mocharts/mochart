@@ -10,12 +10,15 @@ export const noClippedEdges: ClippedEdges = { top: false, right: false, bottom: 
 // keyed on the parsed category values array, which value-tween frames reuse by reference,
 // so the per-frame rescan of every category collapses to a lookup
 const categoryDomainCache = new WeakMap<readonly DomainValue[], NullableDomain<DomainValue>>();
+const positiveCategoryDomainCache = new WeakMap<readonly DomainValue[], NullableDomain<DomainValue>>();
 
-function getCachedCategoryDomain(values: readonly DomainValue[]): NullableDomain<DomainValue> {
-  let domain = categoryDomainCache.get(values);
+// positiveOnly on a log axis, where a category value at or below 0 has no position and so cannot be clipped
+function getCachedCategoryDomain(values: readonly DomainValue[], positiveOnly: boolean): NullableDomain<DomainValue> {
+  const cache = positiveOnly ? positiveCategoryDomainCache : categoryDomainCache;
+  let domain = cache.get(values);
   if (domain === undefined) {
-    domain = getCategoryDomainForValues(values);
-    categoryDomainCache.set(values, domain);
+    domain = getCategoryDomainForValues(positiveOnly ? (values as readonly number[]).filter(value => value > 0) : values);
+    cache.set(values, domain);
   }
   return domain;
 }
@@ -51,7 +54,7 @@ export function getClippedEdges(mochartConfig: EnhancedMochartConfig, chartData:
   const { categoryAxis: categoryAxisConfig } = mochartConfig;
   // an ordinal category axis validates min/max to "auto", so it can never clip
   if (categoryAxisConfig.scale !== SCALE_ORDINAL) {
-    const drawnDomain = getCachedCategoryDomain(chartData.categoryData.values.parsed as readonly DomainValue[]);
+    const drawnDomain = getCachedCategoryDomain(chartData.categoryData.values.parsed as readonly DomainValue[], categoryAxisConfig.scale === SCALE_LOG);
     setClippedEdges(clippedEdges, mochartConfig, categoryAxisConfig, toNumericDomain(drawnDomain),
       toNumericDomain(chartData.categoryData.axisDomain), true);
   }
