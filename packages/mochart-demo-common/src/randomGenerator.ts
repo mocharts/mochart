@@ -47,15 +47,37 @@ function createValue(generator: Rng, range: number): number {
   return Math.round(generator() * range);
 }
 
-/** A value drawn evenly across the powers of 10 between min and max, as a log axis spaces them, to 3 significant digits. */
-function createLogValue(generator: Rng, min: number, max: number): number {
+/** A value drawn evenly across the powers of 10 between min and max, as a log axis spaces them, to the given significant digits. */
+function createLogValue(generator: Rng, min: number, max: number, precision = 3): number {
   const logMin = Math.log10(min);
-  return Number((10 ** (logMin + generator() * (Math.log10(max) - logMin))).toPrecision(3));
+  return Number((10 ** (logMin + generator() * (Math.log10(max) - logMin))).toPrecision(precision));
 }
 
-// a log axis has no place for values at or below 0, so a random min there falls back to a thousandth of the max
-function getLogMin(min: number, max: number): number {
-  return min > 0 ? min : max / 1000;
+// a log axis has no place for values at or below 0, so a random max there falls back to 1000 and a min to a thousandth of the max
+function getLogRange(min: number, max: number): [number, number] {
+  const logMax = max > 0 ? max : 1000;
+  return [min > 0 && min < logMax ? min : logMax / 1000, logMax];
+}
+
+/** How many values of the given significant digits lie between min and max, the pool a log draw picks from. */
+function countLogDraws(min: number, max: number, precision: number): number {
+  let count = 0;
+  for (let exponent = Math.floor(Math.log10(min)); exponent <= Math.floor(Math.log10(max)); exponent++) {
+    const unit = 10 ** (exponent - precision + 1);
+    const lowest = Math.max(10 ** (precision - 1), Math.ceil(min / unit));
+    const highest = Math.min(10 ** precision - 1, Math.floor(max / unit));
+    count += Math.max(0, highest - lowest + 1);
+  }
+  return count;
+}
+
+// 3 significant digits unless the pool between min and max is too small for the distinct values needed, then more
+function getLogPrecision(min: number, max: number, needed: number): number {
+  let precision = 3;
+  while (precision < 15 && countLogDraws(min, max, precision) < 2 * needed) {
+    precision++;
+  }
+  return precision;
 }
 
 const DAY_MILLIS = 86400000;
@@ -144,8 +166,9 @@ function categoryStringGenerator({ string }: RandomCategoryConfig, randomGenerat
 
 function categoryGenerator(type: string, categoryConfig: RandomCategoryConfig, randomGenerator: Rng, log = false): ValueGenerator {
   if (log && type === TYPE_NUMBER) {
-    const { min, max } = categoryConfig.number;
-    return () => createLogValue(randomGenerator, getLogMin(min, max), max);
+    const [min, max] = getLogRange(categoryConfig.number.min, categoryConfig.number.max);
+    const precision = getLogPrecision(min, max, categoryConfig.count);
+    return () => createLogValue(randomGenerator, min, max, precision);
   }
   return categoryTypeToGenerator[type](categoryConfig, randomGenerator);
 }
@@ -266,7 +289,8 @@ function generateSeriesValuesForCategoryValues(
       return undefined;
     }
     else if (log) {
-      return createLogValue(randomGenerator, min, min + range);
+      const [logMin, logMax] = getLogRange(min, min + range);
+      return createLogValue(randomGenerator, logMin, logMax);
     }
     else if (round) {
       return Math.round(min + randomGenerator() * range);
@@ -354,7 +378,7 @@ function generateChartSeriesValues(
         // values the axis places are drawn evenly across its powers of 10 when it is a log axis
         const log = axisPropertyMap[key] === true && axisConfig.scale === SCALE_LOG;
         if (log) {
-          keyMin = getLogMin(keyMin, keyMax);
+          [keyMin, keyMax] = getLogRange(keyMin, keyMax);
         }
         keyRange = keyMax - keyMin;
         seriesValues[propertyValue as string] = generateSeriesValues(id, categoryData, reuse, keyMin, keyRange, probability,

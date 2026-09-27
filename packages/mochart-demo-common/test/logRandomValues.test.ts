@@ -56,3 +56,29 @@ describe('random values on log axes', () => {
     expect(Math.min(...(provider.seriesValues!['v'] as number[]))).toBeGreaterThan(0);
   });
 });
+
+describe('random log draws at the edges of their config', () => {
+  const logConfig = enhanceConfig({
+    version: '1.0.0',
+    categoryAxis: { property: 'x', type: 'number', scale: 'log' },
+    valueAxes: [{ scale: 'log' }],
+    series: [{ property: 'v' }]
+  } as unknown as MochartInputConfig);
+
+  it('draws finite values above 0 when a max is at or below 0, rather than NaN', () => {
+    const provider = generateDemoDataProvider(undefined, logConfig, randomConfig({ min: -10, max: 0 }, { min: -5, max: -1 }) as never, 3);
+    for (const value of [...provider.categoryValues as number[], ...provider.seriesValues!['v'] as number[]]) {
+      expect(Number.isFinite(value)).toBe(true);
+      expect(value).toBeGreaterThan(0);
+    }
+  });
+
+  it('draws more significant digits when 3 give too few distinct category values, rather than throwing', () => {
+    const provider = generateDemoDataProvider(undefined, logConfig, randomConfig({ min: 1, max: 2 }, { min: 1, max: 1000 }) as never, 3);
+    const categories = provider.categoryValues as number[];
+    expect(categories).toHaveLength(200);
+    expect(new Set(categories).size).toBe(200);
+    expect(Math.min(...categories)).toBeGreaterThanOrEqual(1);
+    expect(Math.max(...categories)).toBeLessThanOrEqual(2);
+  });
+});
