@@ -190,14 +190,15 @@ type MinorVisibleCondition = { tickLabel: { minorFormat: unknown }; ticks: unkno
 
 /**
  * The minorVisible default for tickLabel, tickMark or gridLine. A log axis makes its own minor ticks, so its tick
- * marks and grid lines follow the major setting (followsMajorOnLog); its labels stay off, since minor labels
- * that do not fit hide their marks and grid lines with them.
+ * marks and grid lines follow the major setting (followsMajorOnLog); its labels stay off, a minorFormat alone
+ * included, since minor labels that do not fit hide their marks and grid lines with them.
  */
 export function getMinorVisibleDefault<E>(configWithRegularDefaults: MinorVisibleCondition, extraArg: E, followsMajorOnLog = false) {
   const unset = ({ tickLabel, ticks }: MinorVisibleCondition) => tickLabel.minorFormat === MAJOR && ticks === NONE;
   return conditionalDefault<MinorVisibleCondition, E, boolean | typeof MAJOR>([
     ...(followsMajorOnLog ? [{ condition: ({ scale }: MinorVisibleCondition) => scale === SCALE_LOG, suffix: 'when scale is log', default: MAJOR as typeof MAJOR }] : []),
     { condition: config => unset(config), suffix: 'when tickLabel.minorFormat is "major" and ticks is null', default: false },
+    ...(followsMajorOnLog ? [] : [{ condition: ({ scale, ticks }: MinorVisibleCondition) => scale === SCALE_LOG && ticks === NONE, suffix: 'when scale is log and ticks is null', default: false }]),
     { condition: config => !unset(config), suffix: 'when tickLabel.minorFormat is set or ticks is set', default: MAJOR },
     { ...defaultRule, default: false }
   ], configWithRegularDefaults, extraArg);

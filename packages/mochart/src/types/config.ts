@@ -1871,7 +1871,8 @@ export interface AxisThresholdStepConfig {
    *
    * A number means the same in `tickStep` and `thresholdStep`: every count-th
    * step. On a linear axis `count` and `offset` need a `period` or `interval`
-   * to count, so setting either without one is a validation error.
+   * to count, so setting either without one is a validation error. A log axis
+   * takes no interval, so setting either there is one too.
    *
    * @default 1
    */
@@ -1883,7 +1884,8 @@ export interface AxisThresholdStepConfig {
    *
    * A number means the same in `tickStep` and `thresholdStep`: every count-th
    * step. On a linear axis `count` and `offset` need a `period` or `interval`
-   * to count, so setting either without one is a validation error.
+   * to count, so setting either without one is a validation error. A log axis
+   * takes no interval, so setting either there is one too.
    *
    * @default 0
    */
@@ -2479,30 +2481,34 @@ export interface AxisTickLabelConfig {
   visible: boolean;
   /**
    * Whether to show the minor tick labels, the labels of the minor ticks a
-   * tickStep places between its ticks, a log axis places between its powers of
-   * 10, and of the ticks entries marked minor ("major" uses the value of
-   * tickLabel.visible).
+   * tickStep places between its ticks, a log axis places at the multiples and
+   * skipped powers of 10 that are not ticks, and of the ticks entries marked
+   * minor ("major" uses the value of tickLabel.visible).
    *
    * The default is `false` while `minorFormat` is `"major"` and `ticks` is
    * unset, so a `tickStep` alone labels only its own ticks; setting a
-   * `minorFormat` or listing `ticks` turns it to `"major"`. A log axis makes
-   * its minor ticks without being asked, so there `tickMark.minorVisible` and
-   * `gridLine.minorVisible` default to `"major"` while this keeps the same
-   * default, which shows their marks and grid lines without crowding the axis
-   * with labels. Minor labels never change which non-minor labels show. A minor
-   * label shows only when every minor label fits beside its neighbours, minor
-   * or not, measured from the widest minor and non-minor labels plus
-   * `minTickSpacing`; when one does not fit they all hide, unless the category
-   * axis `minorTruncation` truncates them instead. Minor labels that do not fit
-   * hide their tick marks and grid lines with them; `false` here hides only the
-   * labels and takes them out of the layout, and `visible: false` hides the
-   * minor labels whatever this says.
+   * `minorFormat` or listing `ticks` turns it to `"major"`, except that on a
+   * log axis only listing `ticks` does. A log axis makes its minor ticks
+   * without being asked, so there `tickMark.minorVisible` and
+   * `gridLine.minorVisible` default to `"major"` while this stays `false`,
+   * which shows their marks and grid lines without crowding the axis with
+   * labels; a `minorFormat` alone does not turn it on there, since minor labels
+   * that do not fit would hide the marks and grid lines with them. Minor labels
+   * never change which non-minor labels show. A minor label shows only when
+   * every minor label fits beside its neighbours, minor or not, measured from
+   * the widest minor and non-minor labels plus `minTickSpacing`; when one does
+   * not fit they all hide, unless the category axis `minorTruncation` truncates
+   * them instead. Minor labels that do not fit hide their tick marks and grid
+   * lines with them; `false` here hides only the labels and takes them out of
+   * the layout, and `visible: false` hides the minor labels whatever this says.
    *
    * Category axis defaults:
    * - `false`: when tickLabel.minorFormat is "major" and ticks is null
+   * - `false`: when scale is log and ticks is null
    * - `"major"`: when tickLabel.minorFormat is set or ticks is set
    * Value axis defaults:
    * - `false`: when tickLabel.minorFormat is "major" and ticks is null
+   * - `false`: when scale is log and ticks is null
    * - `"major"`: when tickLabel.minorFormat is set or ticks is set
    */
   minorVisible: boolean | Major;
@@ -3049,13 +3055,13 @@ export interface AxisConfigBase {
    * A minor tick is one a `tickStep` places between its own ticks (the
    * categories between an ordinal step's ticks, the `minorSteps` or
    * `minorPeriod` ticks of a linear step), one a log axis places at the
-   * multiples from 2 to 9 of each power of 10 that is not a tick, or a `ticks`
-   * entry marked `minor`. Every tick label setting has a minor version named
-   * "minor" followed by the setting name. Each defaults to `"major"`, which
-   * uses the value of the matching non-minor setting, except `minorPrefix` and
-   * `minorSuffix`, which default to null and take no `"major"`, and the `text`
-   * of the category axis `minorTruncation`, which is always a string of its
-   * own.
+   * multiples from 2 to 9 that are not ticks or at the powers of 10 it skips,
+   * or a `ticks` entry marked `minor`. Every tick label setting has a minor
+   * version named "minor" followed by the setting name. Each defaults to
+   * `"major"`, which uses the value of the matching non-minor setting, except
+   * `minorPrefix` and `minorSuffix`, which default to null and take no
+   * `"major"`, and the `text` of the category axis `minorTruncation`, which is
+   * always a string of its own.
    *
    * Category axis default: `{ visible: true, front: false, anchor: "auto",
    * backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1,
@@ -3184,8 +3190,8 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    */
   minCategoryValueExtent: number;
   /**
-   * The scale to use for the category values (ordinal, linear, and log for
-   * number values).
+   * The scale to use for the category values: ordinal for any type, linear for
+   * number and date values, log for number values.
    *
    * `ordinal` places the categories at evenly spaced positions in data order
    * regardless of their values; `linear` positions `number`/`date` category
@@ -3199,7 +3205,8 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * ticks sit at the powers of 10 and, where they fit, their 2 and 5 or 2 to 9
    * multiples, with the rest as minor ticks. A date axis cannot be log, since a
    * date has no natural zero; elapsed time on a log axis is a number, such as
-   * days since an event.
+   * days since an event. A pie chart's category axis accepts `"ordinal"` or
+   * `"linear"`, not `"log"`.
    *
    * @default "ordinal"
    */
@@ -3250,13 +3257,13 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * A minor tick is one a `tickStep` places between its own ticks (the
    * categories between an ordinal step's ticks, the `minorSteps` or
    * `minorPeriod` ticks of a linear step), one a log axis places at the
-   * multiples from 2 to 9 of each power of 10 that is not a tick, or a `ticks`
-   * entry marked `minor`. Every tick label setting has a minor version named
-   * "minor" followed by the setting name. Each defaults to `"major"`, which
-   * uses the value of the matching non-minor setting, except `minorPrefix` and
-   * `minorSuffix`, which default to null and take no `"major"`, and the `text`
-   * of the category axis `minorTruncation`, which is always a string of its
-   * own.
+   * multiples from 2 to 9 that are not ticks or at the powers of 10 it skips,
+   * or a `ticks` entry marked `minor`. Every tick label setting has a minor
+   * version named "minor" followed by the setting name. Each defaults to
+   * `"major"`, which uses the value of the matching non-minor setting, except
+   * `minorPrefix` and `minorSuffix`, which default to null and take no
+   * `"major"`, and the `text` of the category axis `minorTruncation`, which is
+   * always a string of its own.
    *
    * @default { visible: true, front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, minorFront: "major", minorAnchor: "major", minorBackgroundStyle: { … }, minorSize: "major", minorMarginInner: "major", minorMarginOuter: "major", minorPaddingInner: "major", minorPaddingOuter: "major", minorFormat: "major", minorPrefix: null, minorSuffix: null, minorRotation: "major", minorTextStyle: { … }, minorFont: { … }, truncation: { … }, minorTruncation: { … } }
    */
@@ -3350,7 +3357,8 @@ export interface AxisTickStepConfig {
    * decides whether crowded labels truncate or skip. A number means the same in
    * `tickStep` and `thresholdStep`: every count-th step. On a linear axis it
    * needs a `period` or `interval` to count, and is counted from a fixed
-   * starting point, so setting it without one is a validation error.
+   * starting point, so setting it without one is a validation error. A log axis
+   * takes no interval, so setting it there is one too.
    *
    * @default "auto"
    */
@@ -3363,8 +3371,9 @@ export interface AxisTickStepConfig {
    * Counted in candidates, so under a `period` an offset of 1 skips the first
    * period rather than the first category. On a linear axis it needs a `period`
    * or `interval` to count, so setting it without one is a validation error,
-   * and it shifts which count-th step is kept, so setting it while `count` is
-   * `"auto"` (every step kept) is one too.
+   * and a log axis takes no interval, so setting it there is one too. It shifts
+   * which count-th step is kept, so setting it while `count` is `"auto"` (every
+   * step kept) is also an error.
    *
    * @default 0
    */
@@ -3535,13 +3544,13 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * A minor tick is one a `tickStep` places between its own ticks (the
    * categories between an ordinal step's ticks, the `minorSteps` or
    * `minorPeriod` ticks of a linear step), one a log axis places at the
-   * multiples from 2 to 9 of each power of 10 that is not a tick, or a `ticks`
-   * entry marked `minor`. Every tick label setting has a minor version named
-   * "minor" followed by the setting name. Each defaults to `"major"`, which
-   * uses the value of the matching non-minor setting, except `minorPrefix` and
-   * `minorSuffix`, which default to null and take no `"major"`, and the `text`
-   * of the category axis `minorTruncation`, which is always a string of its
-   * own.
+   * multiples from 2 to 9 that are not ticks or at the powers of 10 it skips,
+   * or a `ticks` entry marked `minor`. Every tick label setting has a minor
+   * version named "minor" followed by the setting name. Each defaults to
+   * `"major"`, which uses the value of the matching non-minor setting, except
+   * `minorPrefix` and `minorSuffix`, which default to null and take no
+   * `"major"`, and the `text` of the category axis `minorTruncation`, which is
+   * always a string of its own.
    *
    * @default { visible: true, front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, minorFront: "major", minorAnchor: "major", minorBackgroundStyle: { … }, minorSize: "major", minorMarginInner: "major", minorMarginOuter: "major", minorPaddingInner: "major", minorPaddingOuter: "major", minorFormat: "major", minorPrefix: null, minorSuffix: null, minorRotation: "major", minorTextStyle: { … }, minorFont: { … }, adjustSizeForFiltering: false }
    */
@@ -3555,7 +3564,8 @@ export interface ValueAxisConfig extends AxisConfigBase {
   visibleWhenAllFiltered: boolean;
   /**
    * The numeric base value of the axis, used for animation and relative
-   * positioning for shapes (use null for none; above 0 on a log axis).
+   * positioning for shapes (use null for none; above 0 on a log axis; 0 on a
+   * pie chart).
    *
    * The value shapes are measured from: bars and areas grow from it,
    * `missingValueMode: 'base'` puts missing values on it, and shapes animate
@@ -3564,7 +3574,9 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * series use the minimum end of the axis, and other series use `min` when it
    * is set, otherwise the smallest value in the data. On a log axis it must be
    * above 0, and a base such as 1 grows ratios above it up and ratios below it
-   * down, with a doubling and a halving the same length.
+   * down, with a doubling and a halving the same length. A pie chart takes only
+   * 0, since a filtered slice shrinks to the base and any other value would
+   * stop it partway.
    *
    * Default:
    * - `0`: when chart.type is pie
@@ -3681,24 +3693,26 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * A log axis reads data spanning several orders of magnitude: 1 to 10 takes
    * the same length as 100 to 1000, and a doubling is the same length anywhere.
    * It has no position for 0 or a negative value, so the chart handles those by
-   * which value they are, and tooltips and labels still show the value itself.
-   * A series value at or below 0 is left out of the domain and drawn as
-   * missing, following the series `missingValueMode`, and the chart logs a
-   * console warning naming the series. An error bar end at or below 0, or the
-   * lower end of a range whose other end is above 0, is drawn past the minimum
-   * end of the axis and cut off at the plot edge, and the clip indicator shows
-   * it; a range with both ends at or below 0 is missing. Ticks sit at the
-   * powers of 10, every second, fifth or tenth one when they do not all fit,
-   * with the 2 and 5 multiples, or every multiple from 2 to 9, added when the
-   * powers are too few and they fit; the multiples and skipped powers that are
-   * not ticks are minor ticks, and between two neighbouring powers of 10 the
-   * ticks are the multiples that lie there, or linear ones on an axis with room
-   * for more. Values and the domain animate in the same terms, so a value
-   * moving from 1 to 1000 is halfway up the axis at 31.6. A log axis cannot
-   * hold a series stack, since a stack starts at 0, and it takes no `tickStep`
-   * or `thresholdStep` interval, no offsets and no `minTickInterval`, since
-   * each of those is a fixed distance in values. A pie chart accepts only
-   * `"linear"`. Switching the scale restarts the chart without a transition.
+   * which value they are; a tooltip shows the value itself, and a series label
+   * shows it where the point is drawn. A series value at or below 0 is left out
+   * of the domain and drawn as missing, following the series
+   * `missingValueMode`, and the chart logs a console warning naming the series.
+   * An error bar end at or below 0, or the lower end of a range whose other end
+   * is above 0, is drawn past the minimum end of the axis and cut off at the
+   * plot edge, and the clip indicator shows it; a range with both ends at or
+   * below 0 is missing. Ticks sit at the powers of 10, every second, fifth or
+   * tenth one when they do not all fit, with the 2 and 5 multiples, or every
+   * multiple from 2 to 9, added when the powers are too few and they fit; the
+   * minor ticks are the multiples from 2 to 9 that are not ticks or, when the
+   * powers are stepped, the powers the axis skips, and between two neighbouring
+   * powers of 10 the ticks are the multiples that lie there, or linear ones on
+   * an axis with room for more. Values and the domain animate in logs, so a
+   * value moving from 1 to 1000 is halfway up the axis at 31.6. A log axis
+   * cannot hold a series stack, since a stack starts at 0, and it takes no
+   * `tickStep` or `thresholdStep` interval, no offsets and no
+   * `minTickInterval`, since each of those is a fixed distance in values. A pie
+   * chart accepts only `"linear"`. Switching the scale restarts the chart
+   * without a transition.
    *
    * @default "linear"
    */

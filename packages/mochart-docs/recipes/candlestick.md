@@ -134,6 +134,6 @@ those of the same stock at $100:
 Set `scale: 'log'` on the `price` axis alone, by its id, as the example does.
 The volume axis starts at 0, which a log axis has no position for, so a log
 scale set for every value axis at once (in `valueAxisDefaults`, or on each
-entry of the fragment) fails validation on the volume axis. The volume pane still
-works on a log price axis: its `minMarginFraction` is taken from the logs of
-the price domain, so it reserves the same share of the plot either way.
+entry of the fragment) fails validation on the volume axis. The volume pane
+still works on a log price axis: its `minMarginFraction` is taken from the logs
+of the price domain, so it reserves the same share of the plot either way.

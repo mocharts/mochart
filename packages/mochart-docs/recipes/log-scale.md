@@ -23,15 +23,17 @@ import * as logLog from '../examples/logLog'
   fit. Inside a single power of 10, such as 50 to 80, the ticks are the
   multiples that lie there (50, 60, 70, 80), or linear ones on an axis with
   room for more than twice that many.
-- The multiples from 2 to 9 that are not ticks are minor ticks, as are the
-  powers of 10 the axis skips. Their tick marks
-  and grid lines show by default, following the
-  [`tickMark`](/reference/valueAxes#valueAxes.tickMark.minorVisible) and
+- Between the ticks, the minor ticks are the multiples from 2 to 9 that are not
+  ticks or, when the axis keeps every second, fifth or tenth power of 10, the
+  powers it skips. Their tick marks and grid lines show by default, following
+  the [`tickMark`](/reference/valueAxes#valueAxes.tickMark.minorVisible) and
   [`gridLine`](/reference/valueAxes#valueAxes.gridLine.minorVisible) settings
-  of the ticks themselves, so hiding the grid lines hides both. Their labels
-  stay off: set
+  of the ticks themselves, so hiding the grid lines hides the minor grid lines
+  too. Their labels stay off.
   [`tickLabel.minorVisible`](/reference/valueAxes#valueAxes.tickLabel.minorVisible)
-  to show them where they fit.
+  `true` labels them all when every label fits, and hides their marks and grid
+  lines along with the labels when one does not, so it suits a tall axis with
+  few powers of 10; a `minorFormat` alone leaves the labels off on a log axis.
 - With the default `"auto"` format, each tick label takes an SI prefix of its
   own magnitude, so `1m`, `1` and `1k` share one axis, where a linear axis's
   tick labels take one prefix for the whole axis; tooltip and label values are
@@ -53,14 +55,16 @@ import * as logLog from '../examples/logLog'
   [`base`](/reference/valueAxes#valueAxes.base) is set. A base above 0 works as
   it does on a linear axis: with `base: 1`, ratios above 1 grow up and ratios
   below it grow down, with a doubling and a halving the same length.
-- Values and the domain animate in the same terms, so a value moving from 1 to
-  1000 is halfway up the axis at 31.6 rather than at 500.
+- Values and the domain animate in logs, so a value moving from 1 to 1000 is
+  halfway up the axis at 31.6 rather than at 500.
 - Changing `scale` on an axis restarts the chart without a transition.
 
 ## Values at or below 0
 
 A log axis has no position for 0 or a negative value. The chart handles each
-kind of value differently, and tooltips and labels still show the value itself.
+kind of value differently. A tooltip shows the value itself, and a series label
+shows it only where the point is drawn, at the base under
+`missingValueMode: 'base'`.
 
 - A series value at or below 0 is left out of the axis domain and drawn as
   missing, the way the series
@@ -75,7 +79,8 @@ kind of value differently, and tooltips and labels still show the value itself.
   the edge. A range with both ends at or below 0 is missing.
 - A threshold line at or below 0 is a validation error. A threshold range with
   one end at or below 0 fills from the minimum end of the axis, so a range from
-  0 to 10 covers everything below 10.
+  0 to 10 covers everything below 10. A range with no end above 0 is a
+  validation error too.
 
 ## What a log axis rejects
 
@@ -95,7 +100,7 @@ length at each end of the axis:
   [`thresholdStep`](/reference/valueAxes#valueAxes.thresholdStep) interval.
   `interval: 100` on an axis from 1 to 100000 would put almost every tick in the
   top power of 10.
-- A pie chart's axes, which accept only `"linear"`.
+- A pie chart's axes, which do not accept `"log"`.
 
 ## Log category axes
 
@@ -110,8 +115,8 @@ too, for log-log plots such as a frequency response:
 - Category values at or below 0 are a
   [data error](/guide/data-providers), like duplicate category values: the
   category values place everything else, so the chart is not drawn.
-- It takes line and area series. Bar series are a validation error, because a
-  bar's width is a fixed distance in values.
+- It takes line, area and marker-only series. Bar series are a validation
+  error, because a bar's width is a fixed distance in values.
 - [`categoryValueInterval`](/reference/categoryAxis#categoryAxis.categoryValueInterval)
   must stay `"auto"`, which on a log axis is the smallest ratio between
   neighbouring category values. Values a fixed ratio apart (1, 10, 100, or
