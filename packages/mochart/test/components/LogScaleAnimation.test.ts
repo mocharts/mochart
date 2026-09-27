@@ -60,6 +60,51 @@ describe('log axis value animation', () => {
   });
 });
 
+/** The lowest point of the error bar, frame by frame, through a change of its low end from one value to another. */
+function errorBarLowEnds(from: number, to: number): { ys: number[]; plotHeight: number } {
+  const config = {
+    ...makeConfig(),
+    valueAxes: [{ scale: 'log', min: 1, max: 100 }],
+    series: [{ id: 'S', property: 'v', errorLowProperty: 'lo', renderer: 'bar' }]
+  } as unknown as MochartInputConfig;
+  const container = mountContainer();
+  let bounds: Bounds | null = null;
+  const handle = trackHandle(mochart.createDefaultChart(container, {
+    config, data: [{ c: 'a', v: 10, lo: from }], width: WIDTH, height: HEIGHT,
+    onSeriesLayoutBoundsChange: (b) => { bounds = b; }
+  } as DefaultChartProps));
+  runFrames();
+  handle.update({ data: [{ c: 'a', v: 10, lo: to }] } as Partial<DefaultChartProps>);
+  const ys: number[] = [];
+  for (let frame = 0; frame < 200 && vi.getTimerCount() > 0; frame++) {
+    advanceFrames(1);
+    const d = container.querySelector(getCssSelector('seriesErrorBar'))?.getAttribute('d') ?? '';
+    // the y of each M x,y and V y: the whisker's ends and its caps; a NaN in the path counts as one
+    ys.push(d.includes('NaN') ? NaN : Math.max(...Array.from(d.matchAll(/M-?[\d.]+,(-?[\d.]+)|V(-?[\d.]+)/g)).map(m => Number(m[1] ?? m[2]))));
+  }
+  return { ys, plotHeight: bounds!.height };
+}
+
+describe('log axis ends at or below 0', () => {
+  it('slides an error bar end off the minimum end of the axis rather than dropping it for the tween', () => {
+    const { ys, plotHeight } = errorBarLowEnds(3, -1);
+    expect(ys.every(Number.isFinite)).toBe(true);
+    expect(ys[0]).toBeLessThan(plotHeight);
+    expect(ys[ys.length - 1]).toBeGreaterThan(plotHeight);
+    expect(ys.every((y, i) => i === 0 || y >= ys[i - 1]!)).toBe(true);
+    expect(new Set(ys.map(Math.round)).size).toBeGreaterThan(5); // a slide, not a jump
+  });
+
+  it('slides an error bar end back in from past the minimum end', () => {
+    const { ys, plotHeight } = errorBarLowEnds(-1, 3);
+    expect(ys.every(Number.isFinite)).toBe(true);
+    expect(ys[0]).toBeGreaterThan(plotHeight);
+    expect(ys[ys.length - 1]).toBeLessThan(plotHeight);
+    expect(ys.every((y, i) => i === 0 || y <= ys[i - 1]!)).toBe(true);
+    expect(new Set(ys.map(Math.round)).size).toBeGreaterThan(5);
+  });
+});
+
 /** The line's points, frame by frame, through an update that removes the middle category. */
 function linePointsWhileRemoving(): [number, number][][] {
   const config = {

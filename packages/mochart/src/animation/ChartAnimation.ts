@@ -449,7 +449,8 @@ function setValueSeriesValuesForDelta(
       startValueObject[valueKey] as NumericValues,
       valueDelta.deltas,
       valueDelta.deltaFactor! * percentage,
-      valueDelta.log === true
+      valueDelta.log === true,
+      valueDelta.logFloor
     );
   }
 }
@@ -476,20 +477,21 @@ function setFilteredValueSeriesValuesForDelta(
       startValueObject[valueKey] as NumericValues,
       valueDelta.deltas,
       valueDelta.deltaFactor! * percentage,
-      valueDelta.log === true
+      valueDelta.log === true,
+      valueDelta.logFloor
     );
   }
 }
 
-function getValuesForDelta(startValues: number[], valueDeltas: number[], percentage: number, log?: boolean): number[];
-function getValuesForDelta(startValues: NumericValues, valueDeltas: number[], percentage: number, log?: boolean): NumericValues;
-function getValuesForDelta(startValues: NumericValues, valueDeltas: number[], percentage: number, log = false): NumericValues {
+function getValuesForDelta(startValues: number[], valueDeltas: number[], percentage: number, log?: boolean, logFloor?: number): number[];
+function getValuesForDelta(startValues: NumericValues, valueDeltas: number[], percentage: number, log?: boolean, logFloor?: number): NumericValues;
+function getValuesForDelta(startValues: NumericValues, valueDeltas: number[], percentage: number, log = false, logFloor = NaN): NumericValues {
   const values = startValues.slice();
   const count = startValues.length;
   for (let i=0; i<count; i++) {
     if (valueDeltas[i] !== 0) {
-      // log deltas are in base 10 logs, so a value on a log axis moves at a steady rate on screen
-      values[i] = log ? 10 ** (Math.log10(values[i]!) + valueDeltas[i] * percentage) : values[i]! + valueDeltas[i] * percentage;
+      // log deltas are in base 10 logs, so a value on a log axis moves at a steady rate on screen; a value at or below 0 starts from the floor
+      values[i] = log ? 10 ** ((values[i]! > 0 ? Math.log10(values[i]!) : logFloor) + valueDeltas[i] * percentage) : values[i]! + valueDeltas[i] * percentage;
     }
   }
   return values;

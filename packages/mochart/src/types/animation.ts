@@ -86,6 +86,8 @@ export interface NumericValuesDelta {
   deltaCopied?: boolean;
   /** Set for the values placed on a log axis, which move in logs. */
   log?: boolean;
+  /** The log a value at or below 0 moves from or to on a log axis: an axis length past the minimum end, where a range or error bar end is drawn. */
+  logFloor?: number;
 }
 
 export type SeriesValueDelta = Record<string, NumericValuesDelta | boolean | number> & {

@@ -72,6 +72,16 @@ export function getScaledSafeDomainExtents(domains: AxisDomains, logAxisIds: Rea
   return getSafeDomainExtents(getScaledDomains(domains, logAxisIds));
 }
 
+/** Where a value at or below 0 stands while it moves on each log axis, in logs: an axis length past the minimum end, where a range or error bar end is drawn. */
+export function getLogDomainFloors(domains: AxisDomains, logAxisIds: ReadonlySet<string>, extents: Record<string, number>): Record<string, number> {
+  const floors: Record<string, number> = Object.create(null);
+  for (const axisId of logAxisIds) {
+    const min = domains[axisId]?.[0];
+    floors[axisId] = (min !== null && min !== undefined && +min > 0 ? Math.log10(+min) : 0) - extents[axisId]!;
+  }
+  return floors;
+}
+
 export function isDomainTranslation(fromDomain: NullableDomain<DomainValue>, toDomain: NullableDomain<DomainValue>, log = false): boolean {
   if (log) {
     return isDomainTranslation(getScaledDomain(fromDomain, true), getScaledDomain(toDomain, true));
