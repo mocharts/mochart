@@ -78,11 +78,26 @@ describe('log value axis ticks', () => {
     expect(majorLabels(container)).toEqual(['10m', '1', '100', '10k', '1M', '100M']);
   });
 
-  it('keeps every fifth or tenth power on a domain too wide for every second', () => {
+  it('keeps every n-th power for the smallest n that fits on a domain too wide for every second', () => {
     const fifth = mount({ valueAxes: [{ scale: 'log', min: 1, max: 1e20, tickCount: 5 }], series: [{ property: 'v' }] }, rowsFor([2, 30]));
     expect(majorLabels(fifth.container)).toEqual(['1', '100k', '10G', '1P', '100E']);
-    const tenth = mount({ valueAxes: [{ scale: 'log', min: 1, max: 1e30, tickCount: 4 }], series: [{ property: 'v' }] }, rowsFor([2, 30]));
-    expect(majorLabels(tenth.container)).toEqual(['1', '10G', '100E', '1e+30']);
+    const eighth = mount({ valueAxes: [{ scale: 'log', min: 1, max: 1e30, tickCount: 4 }], series: [{ property: 'v' }] }, rowsFor([2, 30]));
+    expect(majorLabels(eighth.container)).toEqual(['1', '100M', '10P', '1Y']);
+  });
+
+  it('keeps every third power when two or three fit, rather than dropping to one', () => {
+    const { container } = mount({ valueAxes: [{ scale: 'log', min: 10, max: 1e9, tickCount: 3 }], series: [{ property: 'v' }] }, rowsFor([20, 300]));
+    expect(majorLabels(container)).toEqual(['1k', '1M', '1G']);
+  });
+
+  it('thins the skipped powers it draws as minor ticks to minTickSpacing apart', () => {
+    const { container } = mount({ valueAxes: [{ scale: 'log', min: 1, max: 1e100, tickCount: 5, minTickSpacing: 12 }], series: [{ property: 'v' }] }, rowsFor([2, 30]));
+    // every 21st power, the smallest step at which five fit
+    expect(majorLabels(container)).toEqual(['1', '1Z', '1e+42', '1e+63', '1e+84']);
+    // every seventh power between the ticks, the smallest divisor of the step that sits 12px apart, not all 96 of them
+    const minors = count(container, 'axisMinorTickMark');
+    expect(minors).toBeGreaterThan(0);
+    expect(minors).toBeLessThanOrEqual(20);
   });
 
   it('leaves the 2 and 5 multiples out when their gaps would not fit, even with the count to spare', () => {
@@ -313,6 +328,11 @@ describe('log category axis', () => {
     expect(categoryLabels(mountProvider([{ x: -5, v: 1 }]))).toEqual([]);
     expect(categoryLabels(mountProvider([{ x: -5, v: 1 }, { x: 0, v: 2 }]))).toEqual([]);
     expect(categoryLabels(mountProvider([{ x: -5, v: 1 }, { x: 10, v: 2 }, { x: 100, v: 3 }], { ...logCategory, tickCount: 1 }))).toEqual(['10']);
+  });
+
+  it('shows no clip indicator for a custom-provider category value at or below 0, which has no position to clip', () => {
+    expect(mountProvider([{ x: -5, v: 1 }, { x: 10, v: 2 }, { x: 100, v: 3 }], { ...logCategory, min: 5 }).querySelector(getCssSelector('clipIndicator'))).toBeNull();
+    expect(mountProvider([{ x: -5, v: 1 }, { x: 10, v: 2 }, { x: 100, v: 3 }], { ...logCategory, min: 20 }).querySelector(getCssSelector('clipIndicator'))).not.toBeNull();
   });
 
   it('steps the keyboard onto a custom-provider category at or below 0 without a NaN, opening the tooltip at the axis start', () => {

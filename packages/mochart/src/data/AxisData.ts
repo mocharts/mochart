@@ -453,8 +453,6 @@ interface LogTicks {
 
 // the multiples of each power of 10 a log axis ticks: the powers themselves, then the 2 and 5 multiples, then the rest
 const logMultiples = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-const logExponentSteps = [1, 2, 5, 10, 20, 50, 100];
-
 /** The given multiples of each power of 10 that lie within the domain, in value order. */
 function getLogMultiples(min: number, max: number, multiples: readonly number[]): number[] {
   const values: number[] = [];
@@ -473,13 +471,14 @@ function getLogMultiples(min: number, max: number, multiples: readonly number[])
 }
 
 /**
- * The ticks of a log axis: the powers of 10, keeping every second, fifth or tenth one when they do not all fit, with the
- * 2 and 5 multiples, or every 1 to 9 multiple, added as ticks when the powers are too few and every gap fits minGap
- * pixels. The multiples left over, or the skipped powers, are minor ticks. With fewer than half of tickCount of the 1 to
- * 9 multiples in the domain (d3's rule), as between two neighbouring powers of 10, or with no power of 10 and multiples
- * that do not fit, the ticks are linear ones, as many as fit minGap, and there are no minors.
+ * The ticks of a log axis: the powers of 10, keeping every n-th one for the smallest n at which they fit tickCount when
+ * they do not all fit, with the 2 and 5 multiples, or every 1 to 9 multiple, added as ticks when the powers are too few
+ * and every gap fits minGap pixels. The multiples left over are minor ticks, as are the skipped powers, thinned to every
+ * k-th power for the smallest k dividing n at which they sit minMinorGap pixels apart. With fewer than half of tickCount
+ * of the 1 to 9 multiples in the domain (d3's rule), as between two neighbouring powers of 10, or with no power of 10
+ * and multiples that do not fit, the ticks are linear ones, as many as fit minGap, and there are no minors.
  */
-function getLogTicks(domain: readonly [AxisValue | null, AxisValue | null], tickCount: number, axisScale: AxisScale, minGap: number): LogTicks {
+function getLogTicks(domain: readonly [AxisValue | null, AxisValue | null], tickCount: number, axisScale: AxisScale, minGap: number, minMinorGap: number): LogTicks {
   // the axis domain, not the scale's, which stands in with [1, 10] when the axis has no values it can place
   const min = domain[0] === null || domain[1] === null ? NaN : Math.min(+domain[0], +domain[1]);
   const max = domain[0] === null || domain[1] === null ? NaN : Math.max(+domain[0], +domain[1]);
@@ -502,9 +501,21 @@ function getLogTicks(domain: readonly [AxisValue | null, AxisValue | null], tick
   }
   let majors: number[];
   if (powers.length > tickCount) {
-    const exponentStep = logExponentSteps.find(step => powers.filter(power => Math.round(Math.log10(power)) % step === 0).length <= tickCount) ?? logExponentSteps[logExponentSteps.length - 1]!;
-    majors = powers.filter(power => Math.round(Math.log10(power)) % exponentStep === 0);
-    return { majors, minors: powers.filter(power => !majors.includes(power)).map(value => ({ value, hidden: false })), linearScale: null };
+    const exponents = powers.map(power => Math.round(Math.log10(power)));
+    let exponentStep = 2;
+    while (exponents.filter(exponent => exponent % exponentStep === 0).length > tickCount) {
+      exponentStep++;
+    }
+    majors = powers.filter((_power, i) => exponents[i]! % exponentStep === 0);
+    const pixelsPerPower = Math.abs(axisScale(powers[1]!) - axisScale(powers[0]!));
+    let minorStep = 1;
+    while (minorStep < exponentStep && (exponentStep % minorStep !== 0 || pixelsPerPower * minorStep < minMinorGap)) {
+      minorStep++;
+    }
+    const minors = minorStep < exponentStep
+      ? powers.filter((_power, i) => exponents[i]! % exponentStep !== 0 && exponents[i]! % minorStep === 0).map(value => ({ value, hidden: false }))
+      : [];
+    return { majors, minors, linearScale: null };
   }
   majors = fits(allMultiples) ? allMultiples : fits(withTwosAndFives) ? withTwosAndFives : powers;
   return { majors, minors: allMultiples.filter(value => !majors.includes(value)).map(value => ({ value, hidden: false })), linearScale: null };
@@ -590,7 +601,7 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
           scaleTicks = singleCategoryTicks();
           // a log axis keeps the powers of 10 as minor ticks beside its lone tick, as a value axis with one tick does
           if (axisConfig.scale === SCALE_LOG) {
-            const logTicks = getLogTicks(axisDomain, tickCount, axisScale, ordinalTickSpace);
+            const logTicks = getLogTicks(axisDomain, tickCount, axisScale, ordinalTickSpace, axisConfig.minTickSpacing);
             const loneValues = scaleTicks.map(Number);
             const powers = logTicks.linearScale === null ? [...logTicks.majors.map(Number), ...logTicks.minors.map(minor => minor.value as number)] : [];
             stepTicks = { ...noStepTicks, minors: powers.filter(value => !loneValues.includes(value)).sort((a, b) => a - b).map(value => ({ value, hidden: false })) };
@@ -601,7 +612,7 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
         scaleTicks = categoryValues.map((_v, i) => i);
       }
       else if (axisConfig.scale === SCALE_LOG) {
-        const logTicks = getLogTicks(axisDomain, tickCount, axisScale, ordinalTickSpace);
+        const logTicks = getLogTicks(axisDomain, tickCount, axisScale, ordinalTickSpace, axisConfig.minTickSpacing);
         scaleTicks = logTicks.majors;
         stepTicks = { ...noStepTicks, minors: logTicks.minors };
         linearTickScale = logTicks.linearScale;
@@ -857,7 +868,7 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
     }
     else if (axisConfig.scale === SCALE_LOG) {
       tickCount = getTickCount(axisConfig, axisLayoutInfo.valueExtent, 0, fits.major.space);
-      const logTicks = getLogTicks(valueAxisDomain, tickCount, axisScale, fits.major.space + axisConfig.minTickSpacing);
+      const logTicks = getLogTicks(valueAxisDomain, tickCount, axisScale, fits.major.space + axisConfig.minTickSpacing, axisConfig.minTickSpacing);
       scaleTicks = logTicks.majors;
       stepTicks = { ...noStepTicks, minors: logTicks.minors };
       linearTickScale = logTicks.linearScale;
@@ -1070,7 +1081,8 @@ function getDomainForValues(values: readonly CategoryValue[]): [AxisValue, AxisV
 }
 
 function getOrdinalScaleTickLabelFormatter(axisConfig: CategoryAxisConfig, tickLabel: TickLabelSettings, axisScale: AxisScale, tickCount: number, values: readonly CategoryValue[]): TickLabelFormatter {
-  if (tickCount <= 1) {
+  // a lone number category formats per value below: the linear tickFormat takes its precision from a tick step, which a single tick has none of
+  if (tickCount <= 1 && axisConfig.type !== TYPE_NUMBER) {
     return getLinearScaleTickLabelFormatter(axisConfig, tickLabel, axisScale, tickCount);
   }
   else {

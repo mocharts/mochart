@@ -112,6 +112,14 @@ describe('getCategoryAxisTickData', () => {
     expect(labelsFor([1, 1.5, 2])).toEqual(['1', '1.5', '2']);
   });
 
+  it('formats a lone ordinal number category by value too, rather than "NaN" from a tickFormat over a collapsed domain', () => {
+    const config = makeConfig({ categoryAxis: { property: 'x', type: 'number', scale: 'ordinal' } });
+    const ordinalLayout = { tickLabelParallel: false, tickLabelSpace: 10 } as CategoryAxisLayoutInfo;
+    const axisScale = scaleLinear().domain([0, 0]).range([0, 400]) as unknown as AxisScale;
+    const ticks = getCategoryAxisTickData(config.categoryAxis, ordinalLayout, axisScale, [0, 0] as CategoryAxisDomain, [1], [1], [200]);
+    expect(ticks.filter(tick => !tick.hidden).map(tick => tick.label)).toEqual(['1']);
+  });
+
   it('draws a single tick for a single-category linear number axis', () => {
     const config = makeConfig({ categoryAxis: { property: 'x', type: 'number', scale: 'linear' } });
     const axisScale = scaleLinear().domain([5, 5]).range([0, 200]) as unknown as AxisScale;

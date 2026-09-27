@@ -18,14 +18,16 @@ import * as logLog from '../examples/logLog'
 ## How it works
 
 - The ticks sit at the powers of 10. When they do not all fit, the axis keeps
-  every second, fifth or tenth one; when there are too few of them, it adds
-  the 2 and 5 multiples as ticks, or every multiple from 2 to 9, where they
-  fit. Inside a single power of 10, such as 50 to 80, the ticks are the
+  every second, third or n-th one, for the smallest n that fits; when there
+  are too few of them, it adds the 2 and 5 multiples as ticks, or every
+  multiple from 2 to 9, where they fit. Inside a single power of 10, such as 50 to 80, the ticks are the
   multiples that lie there (50, 60, 70, 80), or linear ones on an axis with
   room for more than twice that many.
 - Between the ticks, the minor ticks are the multiples from 2 to 9 that are not
-  ticks or, when the axis keeps every second, fifth or tenth power of 10, the
-  powers it skips. Their tick marks and grid lines show by default, following
+  ticks or, when the axis keeps every n-th power of 10, the powers it skips,
+  thinned to sit at least
+  [`minTickSpacing`](/reference/valueAxes#valueAxes.minTickSpacing) apart.
+  Their tick marks and grid lines show by default, following
   the [`tickMark`](/reference/valueAxes#valueAxes.tickMark.minorVisible) and
   [`gridLine`](/reference/valueAxes#valueAxes.gridLine.minorVisible) settings
   of the ticks themselves, so hiding the grid lines hides the minor grid lines

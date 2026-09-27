@@ -3700,19 +3700,19 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * An error bar end at or below 0, or the lower end of a range whose other end
    * is above 0, is drawn past the minimum end of the axis and cut off at the
    * plot edge, and the clip indicator shows it; a range with both ends at or
-   * below 0 is missing. Ticks sit at the powers of 10, every second, fifth or
-   * tenth one when they do not all fit, with the 2 and 5 multiples, or every
-   * multiple from 2 to 9, added when the powers are too few and they fit; the
-   * minor ticks are the multiples from 2 to 9 that are not ticks or, when the
-   * powers are stepped, the powers the axis skips, and between two neighbouring
-   * powers of 10 the ticks are the multiples that lie there, or linear ones on
-   * an axis with room for more. Values and the domain animate in logs, so a
-   * value moving from 1 to 1000 is halfway up the axis at 31.6. A log axis
-   * cannot hold a series stack, since a stack starts at 0, and it takes no
-   * `tickStep` or `thresholdStep` interval, no offsets and no
-   * `minTickInterval`, since each of those is a fixed distance in values. A pie
-   * chart accepts only `"linear"`. Switching the scale restarts the chart
-   * without a transition.
+   * below 0 is missing. Ticks sit at the powers of 10, every n-th one for the
+   * smallest n that fits when they do not all fit, with the 2 and 5 multiples,
+   * or every multiple from 2 to 9, added when the powers are too few and they
+   * fit; the minor ticks are the multiples from 2 to 9 that are not ticks or,
+   * when the powers are stepped, the powers the axis skips, thinned to sit at
+   * least `minTickSpacing` apart, and between two neighbouring powers of 10 the
+   * ticks are the multiples that lie there, or linear ones on an axis with room
+   * for more. Values and the domain animate in logs, so a value moving from 1
+   * to 1000 is halfway up the axis at 31.6. A log axis cannot hold a series
+   * stack, since a stack starts at 0, and it takes no `tickStep` or
+   * `thresholdStep` interval, no offsets and no `minTickInterval`, since each
+   * of those is a fixed distance in values. A pie chart accepts only
+   * `"linear"`. Switching the scale restarts the chart without a transition.
    *
    * @default "linear"
    */
