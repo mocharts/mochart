@@ -182,15 +182,13 @@ export default function getDefaults() {
   };
 }
 
-/**
- * The minorVisible default shared by the tick labels, tick marks and grid lines of both axes: off while
- * nothing asks for minor ticks, so a step alone looks as it did before minor ticks could be shown.
- */
+/** The config members the minorVisible default reads. */
 type MinorVisibleCondition = { tickLabel: { minorFormat: unknown }; ticks: unknown; scale: unknown };
 
 /**
- * The minorVisible default for tickLabel, tickMark or gridLine. A log axis makes its own minor ticks, so its tick
- * marks and grid lines follow the major setting (followsMajorOnLog); its labels stay off, a minorFormat alone
+ * The minorVisible default for tickLabel, tickMark or gridLine, shared by both axes: off while nothing asks for minor
+ * ticks, so a step alone looks as it did before minor ticks could be shown. A log axis makes its own minor ticks, so
+ * its tick marks and grid lines follow the major setting (followsMajorOnLog); its labels stay off, a minorFormat alone
  * included, since minor labels that do not fit hide their marks and grid lines with them.
  */
 export function getMinorVisibleDefault<E>(configWithRegularDefaults: MinorVisibleCondition, extraArg: E, followsMajorOnLog = false) {
