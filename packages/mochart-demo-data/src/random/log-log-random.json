@@ -1,0 +1,45 @@
+{
+  "category": {
+    "count": 25,
+    "order": {
+      "sort": true
+    },
+    "missing": {
+      "probability": 0.0
+    },
+    "reuse": {
+      "globalFraction": 0.5,
+      "stepFraction": 0.5
+    },
+    "number": {
+      "min": 20,
+      "max": 20000,
+      "interval": 1
+    },
+    "string": {
+      "minLength": 1,
+      "maxLength": 20
+    },
+    "date": {
+      "min": "2014-01-01",
+      "max": "2018-01-01",
+      "interval": 30,
+      "intervalUnit": "day"
+    }
+  },
+  "series": {
+    "number": {
+      "min": 0.001,
+      "max": 1,
+      "round": false,
+      "limitToAxisConfig": true
+    },
+    "missing": {
+      "probability": 0
+    },
+    "reuse": {
+      "global": false,
+      "step": true
+    }
+  }
+}

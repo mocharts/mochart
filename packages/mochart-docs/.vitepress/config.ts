@@ -163,6 +163,7 @@ function guideSidebar() {
         { text: 'Dual value axes', link: '/recipes/dual-axes' },
         { text: 'Date axis', link: '/recipes/date-axis' },
         { text: 'Axis bounds', link: '/recipes/axis-bounds' },
+        { text: 'Log scales', link: '/recipes/log-scale' },
         { text: 'Tick labels', link: '/recipes/tick-labels' },
         { text: 'Horizontal charts', link: '/recipes/horizontal-bars' },
         { text: 'Positive and negative values', link: '/recipes/positive-negative' },

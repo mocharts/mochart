@@ -8,6 +8,7 @@ spanning low→high.
 import * as candlestick from '../examples/candlestick'
 import * as candlestickHollow from '../examples/candlestickHollow'
 import * as candlestickVolume from '../examples/candlestickVolume'
+import * as candlestickLog from '../examples/candlestickLog'
 </script>
 
 <LiveChart :config="candlestick.config" :data="candlestick.data" demo="candlestick" />
@@ -118,3 +119,21 @@ they must sum to less than 1, or the call throws), relabel the tooltip rows with
 fragment to show its scale. The volume bars follow their direction series
 (toggling or focusing Up takes its volume bars along) and stay out of the
 legend, with one volume row per day in the tooltip.
+
+## Log price axis
+
+A price that multiplies over the chart reads best on a
+[log scale](/recipes/log-scale), where a candle's height is its percentage move
+rather than its dollar move, so the swings of a $10 stock are as visible as
+those of the same stock at $100:
+
+<LiveChart :config="candlestickLog.config" :data="candlestickLog.data" demo="candlestick-log" />
+
+<<< @/examples/candlestickLog.ts{38-39}
+
+Set `scale: 'log'` on the `price` axis alone, by its id, as the example does.
+The volume axis starts at 0, which a log axis has no position for, so a log
+scale set for every value axis at once (in `valueAxisDefaults`, or on each
+entry of the fragment) fails validation on the volume axis. The volume pane still
+works on a log price axis: its `minMarginFraction` is taken from the logs of
+the price domain, so it reserves the same share of the plot either way.

@@ -1,0 +1,175 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Monthly Share Price (fictional, $)"
+  },
+  "categoryAxis": {
+    "property": "label",
+    "type": "date",
+    "scale": "ordinal",
+    "tickLabel": {
+      "format": "%Y"
+    },
+    "valueFormat": "%b %Y",
+    "tickStep": {
+      "period": "year"
+    }
+  },
+  "valueAxes": [
+    {
+      "id": "price",
+      "minMarginFraction": 0.35,
+      "maxMarginFraction": 0.05,
+      "scale": "log",
+      "title": {
+        "text": "$ per share"
+      }
+    },
+    {
+      "id": "volume",
+      "min": 0,
+      "maxMarginFraction": 4,
+      "visible": false
+    }
+  ],
+  "series": [
+    {
+      "id": "upWick",
+      "property": "upHigh",
+      "rangeProperty": "low",
+      "axis": "price",
+      "renderer": "bar",
+      "bar": {
+        "widthFraction": 0.15
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
+      "group": null,
+      "stack": null,
+      "showInLegend": false,
+      "followSeries": "up",
+      "valueLabel": "Range",
+      "shapeStyle": {
+        "normal": {
+          "strokeColor": "#1baf7a",
+          "fillColor": "#1baf7a",
+          "fillOpacity": 1
+        }
+      },
+      "valueFormat": ",.2f"
+    },
+    {
+      "id": "downWick",
+      "property": "downHigh",
+      "rangeProperty": "low",
+      "axis": "price",
+      "renderer": "bar",
+      "bar": {
+        "widthFraction": 0.15
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
+      "group": null,
+      "stack": null,
+      "showInLegend": false,
+      "followSeries": "down",
+      "valueLabel": "Range",
+      "shapeStyle": {
+        "normal": {
+          "strokeColor": "#e34948",
+          "fillColor": "#e34948",
+          "fillOpacity": 1
+        }
+      },
+      "valueFormat": ",.2f"
+    },
+    {
+      "id": "up",
+      "property": "up",
+      "rangeProperty": "open",
+      "axis": "price",
+      "renderer": "bar",
+      "bar": {
+        "widthFraction": 1,
+        "minExtent": 2
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
+      "group": null,
+      "stack": null,
+      "title": "Up",
+      "shapeStyle": {
+        "normal": {
+          "strokeColor": "#1baf7a",
+          "fillColor": "#1baf7a",
+          "fillOpacity": 1
+        }
+      },
+      "valueFormat": ",.2f"
+    },
+    {
+      "id": "down",
+      "property": "down",
+      "rangeProperty": "open",
+      "axis": "price",
+      "renderer": "bar",
+      "bar": {
+        "widthFraction": 1,
+        "minExtent": 2
+      },
+      "missingValueMode": "connect",
+      "partialRangeIsMissing": true,
+      "group": null,
+      "stack": null,
+      "title": "Down",
+      "shapeStyle": {
+        "normal": {
+          "strokeColor": "#e34948",
+          "fillColor": "#e34948",
+          "fillOpacity": 1
+        }
+      },
+      "valueFormat": ",.2f"
+    },
+    {
+      "id": "upVolume",
+      "property": "upVolume",
+      "axis": "volume",
+      "renderer": "bar",
+      "missingValueMode": "connect",
+      "group": null,
+      "stack": null,
+      "showInLegend": false,
+      "followSeries": "up",
+      "valueLabel": "Volume",
+      "shapeStyle": {
+        "normal": {
+          "strokeColor": "#1baf7a",
+          "fillColor": "#1baf7a",
+          "fillOpacity": 1
+        }
+      },
+      "valueFormat": ",.0f"
+    },
+    {
+      "id": "downVolume",
+      "property": "downVolume",
+      "axis": "volume",
+      "renderer": "bar",
+      "missingValueMode": "connect",
+      "group": null,
+      "stack": null,
+      "showInLegend": false,
+      "followSeries": "down",
+      "valueLabel": "Volume",
+      "shapeStyle": {
+        "normal": {
+          "strokeColor": "#e34948",
+          "fillColor": "#e34948",
+          "fillOpacity": 1
+        }
+      },
+      "valueFormat": ",.0f"
+    }
+  ]
+}

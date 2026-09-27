@@ -92,7 +92,8 @@ full.
   label's width when flat, the text height when perpendicular) plus
   [`minTickSpacing`](/reference/categoryAxis#categoryAxis.minTickSpacing), and
   keeps that many ticks. On an ordinal axis it keeps every nth category to get
-  down to the count; on a linear axis it asks the scale for that many ticks. A
+  down to the count; on a linear axis it asks the scale for that many ticks; on
+  a [log axis](/recipes/log-scale) it keeps that many of the powers of 10. A
   number replaces the calculation outright.
 - [`maxTickCount`](/reference/categoryAxis#categoryAxis.maxTickCount) caps the
   computed count (10 on a linear axis, uncapped (`0`) on an ordinal one), so the

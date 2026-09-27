@@ -174,12 +174,14 @@ messages:
 - non-numeric series values, category values that don't match the configured
   type, and duplicate category values each get their own message
 
-On a linear category scale, out-of-order category values are flagged too when a
-`line` or `area` series would zigzag through them; monotonic data in either
-direction passes, order-independent charts (bars, scatter) are not checked, and
-[`keyProperty`](/reference/categoryAxis#categoryAxis.keyProperty) configs are
-exempt since their keyed category values may legitimately fold back across a
-DST-style repeated hour.
+On a linear or log category scale, out-of-order category values are flagged too
+when a `line` or `area` series would zigzag through them; monotonic data in
+either direction passes, order-independent charts (bars, scatter) are not
+checked, and [`keyProperty`](/reference/categoryAxis#categoryAxis.keyProperty)
+configs are exempt since their keyed category values may legitimately fold back
+across a DST-style repeated hour. On a
+[log category scale](/recipes/log-scale#log-category-axes), category values at
+or below 0 are flagged as well, since the axis has no position for them.
 
 ```js
 import { enhanceConfig, getDataErrors, ArrayOfObjectsDataProvider } from '@mochart/core';

@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Monthly Active Users (fictional)"
+  },
+  "categoryAxis": {
+    "property": "year",
+    "type": "number",
+    "scale": "linear",
+    "tickLabel": {
+      "format": "d"
+    },
+    "valueFormat": "d"
+  },
+  "valueAxes": [
+    {
+      "scale": "log",
+      "title": {
+        "text": "Users"
+      }
+    }
+  ],
+  "series": [
+    {
+      "property": "orbit",
+      "title": "Orbit",
+      "renderer": "line"
+    },
+    {
+      "property": "lantern",
+      "title": "Lantern",
+      "renderer": "line"
+    },
+    {
+      "property": "harbor",
+      "title": "Harbor",
+      "renderer": "line"
+    }
+  ]
+}

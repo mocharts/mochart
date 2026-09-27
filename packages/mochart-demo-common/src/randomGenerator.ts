@@ -1,6 +1,6 @@
 import seedrandom from 'seedrandom';
 
-import { NONE, AUTO, TYPE_DATE, TYPE_NUMBER, TYPE_STRING, SCALE_ORDINAL } from '@mochart/core';
+import { NONE, AUTO, TYPE_DATE, TYPE_NUMBER, TYPE_STRING, SCALE_LOG, SCALE_ORDINAL } from '@mochart/core';
 import type { MochartConfig } from '@mochart/core';
 
 import type { RandomConfig, CategoryValue, DemoDataProvider } from './types';
@@ -45,6 +45,17 @@ function toMillis(value: string | number | Date): number {
 
 function createValue(generator: Rng, range: number): number {
   return Math.round(generator() * range);
+}
+
+/** A value drawn evenly across the powers of 10 between min and max, as a log axis spaces them, to 3 significant digits. */
+function createLogValue(generator: Rng, min: number, max: number): number {
+  const logMin = Math.log10(min);
+  return Number((10 ** (logMin + generator() * (Math.log10(max) - logMin))).toPrecision(3));
+}
+
+// a log axis has no place for values at or below 0, so a random min there falls back to a thousandth of the max
+function getLogMin(min: number, max: number): number {
+  return min > 0 ? min : max / 1000;
 }
 
 const DAY_MILLIS = 86400000;
@@ -131,7 +142,11 @@ function categoryStringGenerator({ string }: RandomCategoryConfig, randomGenerat
   return () => numberToString(min + createValue(randomGenerator, range));
 }
 
-function categoryGenerator(type: string, categoryConfig: RandomCategoryConfig, randomGenerator: Rng): ValueGenerator {
+function categoryGenerator(type: string, categoryConfig: RandomCategoryConfig, randomGenerator: Rng, log = false): ValueGenerator {
+  if (log && type === TYPE_NUMBER) {
+    const { min, max } = categoryConfig.number;
+    return () => createLogValue(randomGenerator, getLogMin(min, max), max);
+  }
   return categoryTypeToGenerator[type](categoryConfig, randomGenerator);
 }
 
@@ -172,6 +187,7 @@ function generateChartCategoryValues(
   randomId: number
 ): CategoryData {
   const { type } = categoryAxisConfig;
+  const log = categoryAxisConfig.scale === SCALE_LOG;
   const { count, missing, reuse } = categoryConfig;
   const { probability } = missing;
   const { globalFraction, stepFraction } = reuse;
@@ -181,13 +197,13 @@ function generateChartCategoryValues(
   const halfStepCount = Math.floor(stepCount / 2);
   const ownCount = count - globalCount - stepCount;
 
-  const globalGenerator = categoryGenerator(type, categoryConfig, rng(globalId));
+  const globalGenerator = categoryGenerator(type, categoryConfig, rng(globalId), log);
   const globalMissingGenerator = rng(globalId);
-  const stepPrevGenerator = categoryGenerator(type, categoryConfig, rng((randomId - 1) + 0.5));
+  const stepPrevGenerator = categoryGenerator(type, categoryConfig, rng((randomId - 1) + 0.5), log);
   const stepPrevMissingGenerator = rng((randomId - 1) + 0.5);
-  const stepNextGenerator = categoryGenerator(type, categoryConfig, rng(randomId + 0.5));
+  const stepNextGenerator = categoryGenerator(type, categoryConfig, rng(randomId + 0.5), log);
   const stepNextMissingGenerator = rng(randomId + 0.5);
-  const ownGenerator = categoryGenerator(type, categoryConfig, rng(randomId));
+  const ownGenerator = categoryGenerator(type, categoryConfig, rng(randomId), log);
   const missingGenerator = rng(randomId);
 
   const categoryValueMap: Record<string, CategoryValue> = {};
@@ -200,7 +216,7 @@ function generateChartCategoryValues(
     const stepPrevCategoryValueMap = { ...globalCategoryValueMap };
     stepPrevValues = generateCategoryValues(stepPrevGenerator, stepPrevMissingGenerator, halfStepCount, probability, stepPrevCategoryValueMap);
     const stepNextNextCategoryValueMap = { ...globalCategoryValueMap };
-    const stepNextNextGenerator = categoryGenerator(type, categoryConfig, rng((randomId + 1) + 0.5));
+    const stepNextNextGenerator = categoryGenerator(type, categoryConfig, rng((randomId + 1) + 0.5), log);
     const stepNextNextMissingGenerator = rng((randomId + 1) + 0.5);
     generateCategoryValues(stepNextNextGenerator, stepNextNextMissingGenerator, halfStepCount, probability, stepNextNextCategoryValueMap);
     const stepNextCategoryValueMap = { ...stepPrevCategoryValueMap, ...stepNextNextCategoryValueMap };
@@ -210,7 +226,7 @@ function generateChartCategoryValues(
     const stepNextCategoryValueMap = { ...globalCategoryValueMap };
     stepNextValues = generateCategoryValues(stepNextGenerator, stepNextMissingGenerator, halfStepCount, probability, stepNextCategoryValueMap);
     const stepPrevPrevCategoryValueMap = { ...globalCategoryValueMap };
-    const stepPrevPrevGenerator = categoryGenerator(type, categoryConfig, rng((randomId - 2) + 0.5));
+    const stepPrevPrevGenerator = categoryGenerator(type, categoryConfig, rng((randomId - 2) + 0.5), log);
     const stepPrevPrevMissingGenerator = rng((randomId - 2) + 0.5);
     generateCategoryValues(stepPrevPrevGenerator, stepPrevPrevMissingGenerator, halfStepCount, probability, stepPrevPrevCategoryValueMap);
     const stepPrevCategoryValueMap = { ...stepNextCategoryValueMap, ...stepPrevPrevCategoryValueMap };
@@ -242,11 +258,15 @@ function generateSeriesValuesForCategoryValues(
   probability: number,
   round: boolean,
   randomGenerator: Rng,
-  missingGenerator: Rng
+  missingGenerator: Rng,
+  log: boolean
 ): (number | undefined)[] {
   return categoryValues.map(() => {
     if (probability > 0 && missingGenerator() < probability) {
       return undefined;
+    }
+    else if (log) {
+      return createLogValue(randomGenerator, min, min + range);
     }
     else if (round) {
       return Math.round(min + randomGenerator() * range);
@@ -272,15 +292,16 @@ function generateSeriesValues(
   stepPrevGenerator: Rng,
   stepPrevMissingGenerator: Rng,
   stepNextGenerator: Rng,
-  stepNextMissingGenerator: Rng
+  stepNextMissingGenerator: Rng,
+  log: boolean
 ): (number | undefined)[] {
   const { stepPrevValues, globalValues, ownValues, stepNextValues, categoryValues } = categoryData;
   const { global, step } = reuse;
   if (global || step) {
-    const prevSeriesValues = generateSeriesValuesForCategoryValues(stepPrevValues, min, range, probability, round, step ? stepPrevGenerator : randomGenerator, step ? stepPrevMissingGenerator : missingGenerator);
-    const globalSeriesValues = generateSeriesValuesForCategoryValues(globalValues, min, range, probability, round, global ? globalGenerator : randomGenerator, global ? globalMissingGenerator : missingGenerator);
-    const ownSeriesValues = generateSeriesValuesForCategoryValues(ownValues, min, range, probability, round, randomGenerator, missingGenerator);
-    const nextSeriesValues = generateSeriesValuesForCategoryValues(stepNextValues, min, range, probability, round, step ? stepNextGenerator : randomGenerator, step ? stepNextMissingGenerator : missingGenerator);
+    const prevSeriesValues = generateSeriesValuesForCategoryValues(stepPrevValues, min, range, probability, round, step ? stepPrevGenerator : randomGenerator, step ? stepPrevMissingGenerator : missingGenerator, log);
+    const globalSeriesValues = generateSeriesValuesForCategoryValues(globalValues, min, range, probability, round, global ? globalGenerator : randomGenerator, global ? globalMissingGenerator : missingGenerator, log);
+    const ownSeriesValues = generateSeriesValuesForCategoryValues(ownValues, min, range, probability, round, randomGenerator, missingGenerator, log);
+    const nextSeriesValues = generateSeriesValuesForCategoryValues(stepNextValues, min, range, probability, round, step ? stepNextGenerator : randomGenerator, step ? stepNextMissingGenerator : missingGenerator, log);
 
     return ([] as (number | undefined)[]).concat(
       prevSeriesValues,
@@ -290,7 +311,7 @@ function generateSeriesValues(
     );
   }
   else {
-    return generateSeriesValuesForCategoryValues(categoryValues, min, range, probability, round, randomGenerator, missingGenerator);
+    return generateSeriesValuesForCategoryValues(categoryValues, min, range, probability, round, randomGenerator, missingGenerator, log);
   }
 }
 
@@ -330,10 +351,15 @@ function generateChartSeriesValues(
       if (propertyValue !== NONE) {
         keyMin = axisPropertyMap[key] && axisConfig.min !== AUTO && limitToAxisConfig ? (axisConfig.min as number) : min;
         keyMax = axisPropertyMap[key] && axisConfig.max !== AUTO && limitToAxisConfig ? (axisConfig.max as number) : max;
+        // values the axis places are drawn evenly across its powers of 10 when it is a log axis
+        const log = axisPropertyMap[key] === true && axisConfig.scale === SCALE_LOG;
+        if (log) {
+          keyMin = getLogMin(keyMin, keyMax);
+        }
         keyRange = keyMax - keyMin;
         seriesValues[propertyValue as string] = generateSeriesValues(id, categoryData, reuse, keyMin, keyRange, probability,
           round, randomGenerator, missingGenerator, globalGenerator, globalMissingGenerator,
-          stepPrevGenerator, stepPrevMissingGenerator, stepNextGenerator, stepNextMissingGenerator);
+          stepPrevGenerator, stepPrevMissingGenerator, stepNextGenerator, stepNextMissingGenerator, log);
       }
     }
   });

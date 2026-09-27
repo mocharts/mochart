@@ -16,6 +16,7 @@ const generatorSchemaIds: Record<string, RandomSchemaId> = {
   waterfall: 'pool',
   candlestick: 'walk',
   'candlestick-hollow': 'walk',
+  'candlestick-log': 'walk',
   ohlc: 'walk',
   histogram: 'histogram',
   heatmap: 'heatmap',

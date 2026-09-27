@@ -243,8 +243,8 @@ structural when it changes any of:
   [`type`](/reference/categoryAxis#categoryAxis.type),
   [`scale`](/reference/categoryAxis#categoryAxis.scale) or
   [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC)
-- the number or ids of value axes or series stacks, or which axis a stack
-  belongs to
+- the number or ids of value axes or series stacks, which axis a stack belongs
+  to, or a value axis [`scale`](/reference/valueAxes#valueAxes.scale)
 - the number of series, or for any series its `id`,
   [`property`](/reference/series#series.property),
   [`rangeProperty`](/reference/series#series.rangeProperty),

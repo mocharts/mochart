@@ -78,7 +78,7 @@ function poolEntryRng(scope: string, index: number, randomId: number, poolSize: 
 }
 
 /** The chart-type generator ids usable in a demos.json `generator` field. */
-export const chartTypeGenerators = ['histogram', 'waterfall', 'heatmap', 'candlestick', 'candlestick-hollow', 'ohlc', 'error-bars', 'pie', 'donut', 'gauge', 'range'] as const;
+export const chartTypeGenerators = ['histogram', 'waterfall', 'heatmap', 'candlestick', 'candlestick-hollow', 'candlestick-log', 'ohlc', 'error-bars', 'pie', 'donut', 'gauge', 'range'] as const;
 
 export type ChartTypeGenerator = (typeof chartTypeGenerators)[number];
 
@@ -390,18 +390,19 @@ function candlestickItems(rng: Rng, dayCount: number): CandlestickItem[] {
 // overnight gap and wick extents scale off it, at the baseline's 0.15/0.375
 // ratios), reuse.step = correlate the walk with the neighbouring steps so
 // playing steps looks like one instrument drifting.
-function walkItems(scope: string, { candles, price, reuse }: WalkRandomConfig, randomId: number): CandlestickItem[] {
+// labels: the candle dates to walk through; drift: the average rise per candle, as a fraction of the open.
+function walkItems(scope: string, { candles, price, reuse }: WalkRandomConfig, randomId: number, labels: readonly string[] = CANDLESTICK_DAYS, drift = 0): CandlestickItem[] {
   const { volatility } = price;
 
-  const dayMax = Math.min(CANDLESTICK_DAYS.length, Math.max(1, Math.round(candles.max)));
+  const dayMax = Math.min(labels.length, Math.max(1, Math.round(candles.max)));
   const dayMin = Math.min(dayMax, Math.max(1, Math.round(candles.min)));
   const dayCount = dayMin + Math.floor(seedrandom(scope + ':count:' + randomId)() * (dayMax - dayMin + 1));
 
   let previousClose = price.min + reusedDraw(scope, 'start', randomId, false, reuse.step) * (price.max - price.min);
-  return CANDLESTICK_DAYS.slice(0, dayCount).map(label => {
+  return labels.slice(0, dayCount).map(label => {
     const draw = (key: string) => reusedDraw(scope, label + ':' + key, randomId, false, reuse.step);
     const open = previousClose * (1 + (volatility * 0.15) * (2 * draw('gap') - 1));
-    const close = open * (1 + volatility * (2 * draw('drift') - 1));
+    const close = open * (1 + drift + volatility * (2 * draw('drift') - 1));
     const high = Math.max(open, close) * (1 + (volatility * 0.375) * draw('high'));
     const low = Math.min(open, close) * (1 - (volatility * 0.375) * draw('low'));
     previousClose = close;
@@ -487,6 +488,47 @@ function buildCandlestickHollowSnapshot(): ChartTypeDemoSnapshot {
       categoryAxis: candlestickCategoryAxis(categoryAxis),
       valueAxes: [{ title: { text: '$ per share' } }],
       series: series.map(seriesConfig => ({ ...seriesConfig, valueFormat: ',.2f' }))
+    },
+    data
+  };
+}
+
+// --- Log price candlestick -------------------------------------------------------
+
+// A log price axis matters once a price multiplies, so this demo walks three years of monthly candles with an
+// upward drift: a stock rising from about $10 to several hundred, where a linear axis would flatten the first
+// year into the bottom of the plot. The random mode walks the same months from the random config.
+const CANDLESTICK_LOG_MONTHS = Array.from({ length: 36 }, (_, i) =>
+  new Date(Date.UTC(2023, 6 + i, 1)).toISOString().slice(0, 10));
+const CANDLESTICK_LOG_DRIFT = 0.1;
+const CANDLESTICK_LOG_BASELINE: WalkRandomConfig = {
+  candles: { min: 36, max: 36 },
+  price: { min: 10, max: 10, volatility: 0.12 },
+  reuse: { step: false }
+};
+
+function candlestickLogItems(random: WalkRandomConfig, randomId: number): CandlestickItem[] {
+  return walkVolumes('candlestick-log', randomId, walkItems('candlestick-log', random, randomId, CANDLESTICK_LOG_MONTHS, CANDLESTICK_LOG_DRIFT));
+}
+
+function candlestickLogRows(random: WalkRandomConfig, randomId: number): DataObject[] {
+  return roundCandlestickChanges(createCandlestick(candlestickLogItems(random, randomId), { volume: true, axisType: 'date' }).data);
+}
+
+function buildCandlestickLogSnapshot(): ChartTypeDemoSnapshot {
+  const { data, categoryAxis, series, valueAxes } = createCandlestick(candlestickLogItems(CANDLESTICK_LOG_BASELINE, 0), { volume: true, axisType: 'date' });
+  roundCandlestickChanges(data);
+  return {
+    id: 'candlestick-log',
+    config: {
+      version: '1.0.0',
+      title: { text: 'Monthly Share Price (fictional, $)' },
+      categoryAxis: { ...categoryAxis, tickLabel: { format: '%Y' }, valueFormat: '%b %Y', tickStep: { period: 'year' } },
+      // the helper's price/volume pane axes, with the price axis made log by id: the volume axis starts at 0
+      valueAxes: valueAxes!.map(axisConfig =>
+        axisConfig.id === 'price' ? { ...axisConfig, scale: 'log' as const, title: { text: '$ per share' } } : axisConfig),
+      series: series.map(seriesConfig =>
+        ({ ...seriesConfig, valueFormat: seriesConfig.id!.includes('Volume') ? ',.0f' : ',.2f' }))
     },
     data
   };
@@ -824,7 +866,7 @@ function rangeRows(mochartConfig: MochartConfig, { categories, value, width, reu
 
 /** Rebuilds every chart-type demo's static config/data (snapshot script). */
 export function buildChartTypeDemoSnapshots(): ChartTypeDemoSnapshot[] {
-  return [buildHistogramSnapshot(), buildWaterfallSnapshot(), buildHeatmapSnapshot(), buildCandlestickSnapshot(), buildCandlestickHollowSnapshot(), buildOhlcSnapshot(), buildErrorBarsSnapshot(), buildPieSnapshot(), buildDonutSnapshot(), buildGaugeSnapshot()];
+  return [buildHistogramSnapshot(), buildWaterfallSnapshot(), buildHeatmapSnapshot(), buildCandlestickSnapshot(), buildCandlestickHollowSnapshot(), buildCandlestickLogSnapshot(), buildOhlcSnapshot(), buildErrorBarsSnapshot(), buildPieSnapshot(), buildDonutSnapshot(), buildGaugeSnapshot()];
 }
 
 /**
@@ -854,6 +896,9 @@ export function generateChartTypeDataProvider(
   }
   else if (generator === 'candlestick-hollow') {
     rows = candlestickHollowRows(random as WalkRandomConfig, randomId);
+  }
+  else if (generator === 'candlestick-log') {
+    rows = candlestickLogRows(random as WalkRandomConfig, randomId);
   }
   else if (generator === 'ohlc') {
     rows = ohlcRows(random as WalkRandomConfig, randomId);

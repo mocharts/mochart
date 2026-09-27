@@ -20,7 +20,9 @@ import * as errorBars from '../examples/errorBars'
   confidence interval), not deltas from the value. For `value ± error` data,
   derive the bound properties once when preparing the rows.
 - The bounds join the value axis domain, so whiskers never clip: the axis above
-  reaches past the tallest bar to cover its upper bound.
+  reaches past the tallest bar to cover its upper bound. The exception is a
+  bound at or below 0 on a [log axis](/recipes/log-scale#values-at-or-below-0),
+  which has no position for it, so the whisker runs off the plot edge.
 - Whiskers center on each bar's layout slot (including grouped sub-slots, as in
   the two plant series above), and on the point position for `line`, `area` and
   `none` renderer series. On [horizontal charts](/recipes/horizontal-bars) they

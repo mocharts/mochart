@@ -43,7 +43,8 @@ import * as axisReversed from '../examples/axisReversed'
 - The same properties exist on the
   [category axis](/reference/categoryAxis#categoryAxis.min), on any scale but
   `ordinal`, where they window a numeric or date range (a date bound is an ISO
-  string or a millisecond timestamp).
+  string or a millisecond timestamp). On a [log scale](/recipes/log-scale) every
+  bound must be above 0, and the offsets must stay 0.
 - [`plot.clipOverflow`](/reference/plot#plot.clipOverflow) sets how far (in
   pixels) marks may spill past each edge before being cut. Raise it when a
   marker or a thick stroke sitting on the boundary is being shaved.

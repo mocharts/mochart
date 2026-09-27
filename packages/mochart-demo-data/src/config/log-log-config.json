@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0",
+  "title": {
+    "text": "Low-Pass Filter Response"
+  },
+  "categoryAxis": {
+    "property": "hz",
+    "type": "number",
+    "scale": "log",
+    "title": {
+      "text": "Frequency (Hz)"
+    },
+    "valueFormat": ",.4~g",
+    "valueSuffix": " Hz"
+  },
+  "valueAxes": [
+    {
+      "scale": "log",
+      "title": {
+        "text": "Gain (output / input)"
+      }
+    }
+  ],
+  "series": [
+    {
+      "property": "firstOrder",
+      "title": "First order",
+      "renderer": "line",
+      "marker": {
+        "shape": null
+      }
+    },
+    {
+      "property": "secondOrder",
+      "title": "Second order",
+      "renderer": "line",
+      "marker": {
+        "shape": null
+      }
+    }
+  ]
+}

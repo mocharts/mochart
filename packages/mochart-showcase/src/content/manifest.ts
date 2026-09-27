@@ -404,6 +404,7 @@ export function getSections(): ShowcaseSection[] {
         reuse('heatmap'),
         reuse('candlestick'),
         reuse('candlestick-hollow'),
+        reuse('candlestick-log'),
         reuse('ohlc'),
         reuse('error-bars'),
         reuse('pie'),
@@ -415,7 +416,7 @@ export function getSections(): ShowcaseSection[] {
     {
       id: 'scales',
       title: 'Scales & axes',
-      tagline: 'Ordinal, linear and date category scales; multiple value axes; thresholds; axis bounds; and tick-label management.',
+      tagline: 'Ordinal, linear, log and date category scales; multiple and log value axes; thresholds; axis bounds; and tick-label management.',
       entries: [
         local({
           slug: 'time-series',
@@ -427,6 +428,8 @@ export function getSections(): ShowcaseSection[] {
           random: timeSeriesRandom
         }),
         multipleAxesEntry(),
+        reuse('log-growth'),
+        reuse('log-log'),
         thresholdLineEntry(),
         thresholdRangeEntry(),
         reuse('threshold-step'),

@@ -42,6 +42,9 @@ import * as barCapsStacked from '../../examples/barCapsStacked.ts';
 import * as candlestick from '../../examples/candlestick.ts';
 import * as candlestickHollow from '../../examples/candlestickHollow.ts';
 import * as candlestickVolume from '../../examples/candlestickVolume.ts';
+import * as candlestickLog from '../../examples/candlestickLog.ts';
+import * as logScale from '../../examples/logScale.ts';
+import * as logLog from '../../examples/logLog.ts';
 import * as chartStates from '../../examples/chart-states.ts';
 import * as colorByValue from '../../examples/colorByValue.ts';
 import * as colorByValueBase from '../../examples/colorByValueBase.ts';
@@ -113,11 +116,14 @@ const docsExamples: { config: object; page: UsageLink }[] = [
   { config: animationValueDomain.config, page: { text: 'Staged animation', link: '/guide/staged-animation' } },
   { config: axisBounds.config, page: { text: 'Axis bounds', link: '/recipes/axis-bounds' } },
   { config: axisReversed.config, page: { text: 'Reversing an axis', link: '/recipes/axis-bounds#reversing-an-axis' } },
+  { config: logScale.config, page: { text: 'Log scales', link: '/recipes/log-scale' } },
+  { config: logLog.config, page: { text: 'Log category axes', link: '/recipes/log-scale#log-category-axes' } },
   { config: barCaps.config, page: { text: 'Bar caps', link: '/recipes/bar-caps' } },
   { config: barCapsStacked.config, page: { text: 'Capping a stack', link: '/recipes/bar-caps#capping-a-stack' } },
   { config: candlestick.config, page: { text: 'Candlestick', link: '/recipes/candlestick' } },
   { config: candlestickHollow.config, page: { text: 'Hollow candles', link: '/recipes/candlestick#hollow-candles' } },
   { config: candlestickVolume.config, page: { text: 'Volume pane', link: '/recipes/candlestick#volume-pane' } },
+  { config: candlestickLog.config, page: { text: 'Log price axis', link: '/recipes/candlestick#log-price-axis' } },
   { config: colorByValue.config, page: { text: 'Color by value', link: '/recipes/color-by-value' } },
   { config: colorByValueBase.config, page: { text: 'Diverging around a base', link: '/recipes/color-by-value#diverging-around-a-base' } },
   { config: curves.config, page: { text: 'Curves', link: '/recipes/curves' } },

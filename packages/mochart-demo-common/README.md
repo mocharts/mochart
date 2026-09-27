@@ -45,7 +45,7 @@ The model each mode and showcase page renders, so the six ports stay mechanical.
 | --- | --- |
 | `gallery.ts` | `getGallerySections`: the gallery landing route's model: curated demos, the standalone showcase pages, and the feature-coverage test demos in their collapsed section. |
 | `multiCharts.ts` | Multi demo: rotating per-chart data providers. |
-| `randomGenerator.ts` | Seeded random chart data generator (`generateChartDataProvider`) behind the random demo mode, reached through `generateDemoDataProvider`. |
+| `randomGenerator.ts` | Seeded random chart data generator (`generateChartDataProvider`) behind the random demo mode, reached through `generateDemoDataProvider`. On a log axis it draws the category or series values evenly across the powers of 10 between the random config's min and max. |
 | `randomConfig.ts` | Validation and formatting for the random generator's config editor. |
 | `randomId.ts` | The random step id the galleries carry in `/random/:demoId/:randomId` and the showcase in `?seed=`: `parseRandomId`, and `nextRandomId` / `previousRandomId`, which wrap at both ends of the 0 to `MAX_RANDOM_ID` range. |
 | `chartTypeGenerators.ts` | `generateDemoDataProvider`, random mode's entry point for every demo: it dispatches to a chart-type generator when the demo's manifest entry names one in its `generator` field, and to `randomGenerator.ts` otherwise. The chart-type generators randomize the inputs to the core chart helpers and re-run the helper, so a generated dataset is always valid for its type. The generator ids are listed in `chartTypeGenerators`, and `buildChartTypeDemoSnapshots` exposes the same canonical inputs to the snapshot script. |

@@ -324,7 +324,7 @@ describe('generateDemoDataProvider', () => {
   });
 
   it('exposes the generator ids', () => {
-    expect(chartTypeGenerators).toEqual(['histogram', 'waterfall', 'heatmap', 'candlestick', 'candlestick-hollow', 'ohlc', 'error-bars', 'pie', 'donut', 'gauge', 'range']);
+    expect(chartTypeGenerators).toEqual(['histogram', 'waterfall', 'heatmap', 'candlestick', 'candlestick-hollow', 'candlestick-log', 'ohlc', 'error-bars', 'pie', 'donut', 'gauge', 'range']);
   });
 });
 

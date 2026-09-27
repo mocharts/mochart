@@ -301,6 +301,24 @@
       "random": "default-random.json"
     },
     {
+      "id": "log-growth",
+      "title": "Log value axis",
+      "description": "Three user counts spanning 100 to several million on a log value axis.",
+      "notes": "The value axis sets scale: 'log', so each power of 10 takes the same height and equal growth rates show as equal slopes: Orbit's early years, which a linear axis would flatten against the bottom of the plot, read as clearly as its millions, and Lantern's steady 30% a year is a straight line. The ticks sit at the powers of 10 with the multiples from 2 to 9 as minor tick marks, the tooltip formats each value at its own magnitude, and in random mode the values are drawn evenly across the decades between the random config's series min and max.",
+      "config": "log-growth-config.json",
+      "data": "log-growth-data.json",
+      "random": "log-growth-random.json"
+    },
+    {
+      "id": "log-log",
+      "title": "Log-log axes",
+      "description": "A low-pass filter's gain against frequency, with log scales on both the category and value axes.",
+      "notes": "The category axis is a number axis with scale: 'log', so the third-octave frequencies from 20 Hz to 20 kHz sit evenly along it, and the value axis is log too, so each filter's roll-off above 1 kHz is a straight line: the first-order filter falls by a factor of 10 per decade of frequency and the second-order filter by a factor of 100. A log category axis takes line and area series only, since a bar's width is a fixed distance in values, and its category values must be above 0. In random mode the frequencies and gains are drawn evenly across the decades of the random config's ranges.",
+      "config": "log-log-config.json",
+      "data": "log-log-data.json",
+      "random": "log-log-random.json"
+    },
+    {
       "id": "threshold-line",
       "title": "Threshold Line",
       "description": "Two value axes, each drawing its own threshold line and title across the plot.",
@@ -530,6 +548,16 @@
       "data": "candlestick-hollow-data.json",
       "random": "candlestick-random.json",
       "generator": "candlestick-hollow"
+    },
+    {
+      "id": "candlestick-log",
+      "title": "Candlestick, log price axis",
+      "description": "Three years of monthly candles for a stock rising from about $10 to over $300, on a log price axis with a volume pane.",
+      "notes": "createCandlestick with volume: true returns a price and a volume value axis; the demo sets scale: 'log' on the price axis alone, by its id, because the volume axis starts at 0, which a log axis has no position for. On the log axis a month's candle height shows its percentage move, so the swings of the first year are as visible as those of the last. The volume pane is still carved out by the price axis's minMarginFraction, which a log axis takes as the same share of the axis length. The random mode walks the same 36 months with an upward drift from the random config's starting price band and volatility.",
+      "config": "candlestick-log-config.json",
+      "data": "candlestick-log-data.json",
+      "random": "candlestick-log-random.json",
+      "generator": "candlestick-log"
     },
     {
       "id": "ohlc",
