@@ -163,7 +163,9 @@ export function getTransitionValueChangeData(mochartConfig: EnhancedMochartConfi
 
   setAllBaseValuesForOuterChanges(mochartConfig.animation, mochartConfig.series, startSeriesData, endSeriesData,
     prevSeriesData, newChartData.seriesData, categoryDeltaData.outerCounts);
-  setAllBaseValuesForChanges(mochartConfig.series, startSeriesData, endSeriesData, endCategoryData.values.numeric);
+  // in logs on a log category axis, so a filled-in point sits on the straight line between its neighbours there too
+  const categoryCoordinates = mochartConfig.categoryAxis.scale === SCALE_LOG ? endCategoryData.values.numeric.map(value => Math.log10(value)) : endCategoryData.values.numeric;
+  setAllBaseValuesForChanges(mochartConfig.series, startSeriesData, endSeriesData, categoryCoordinates);
 
   enhanceValueObjects(startSeriesData.filtered.values);
   enhanceValueObjects(endSeriesData.filtered.values);
@@ -429,9 +431,10 @@ function setBasePositionValuesForChanges(seriesConfig: EnhancedSeriesConfig, sta
 }
 
 // A point that enters or leaves animates from or onto its neighbours: between the nearest
-// present values on each side, weighted by category position, or onto the one neighbour a
-// leading or trailing point has, so a line or area never spikes to the base.
-function fillFromNeighbours(values: NumericValues, otherValues: NumericValues, coordinates: readonly number[]): void {
+// present values on each side, weighted by category position (between their logs on a log
+// value axis, where that is the straight line), or onto the one neighbour a leading or
+// trailing point has, so a line or area never spikes to the base.
+function fillFromNeighbours(values: NumericValues, otherValues: NumericValues, coordinates: readonly number[], log: boolean): void {
   const source = values.slice();
   const count = values.length;
   for (let i = 0; i < count; i++) {
@@ -458,12 +461,16 @@ function fillFromNeighbours(values: NumericValues, otherValues: NumericValues, c
     else {
       const span = coordinates[right]! - coordinates[left]!;
       const fraction = span === 0 ? 0.5 : (coordinates[i]! - coordinates[left]!) / span;
-      values[i] = source[left]! + fraction * (source[right]! - source[left]!);
+      const leftValue = source[left]!;
+      const rightValue = source[right]!;
+      values[i] = log && leftValue > 0 && rightValue > 0
+        ? 10 ** (Math.log10(leftValue) + fraction * (Math.log10(rightValue) - Math.log10(leftValue)))
+        : leftValue + fraction * (rightValue - leftValue);
     }
   }
 }
 
-function setAdjacentValuesForChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, coordinates: readonly number[], onlyDifferentReferences: boolean, startRawValueObject: SeriesValueObject, endRawValueObject: SeriesValueObject): void {
+function setAdjacentValuesForChanges(startValueObject: SeriesValueObject, endValueObject: SeriesValueObject, coordinates: readonly number[], onlyDifferentReferences: boolean, startRawValueObject: SeriesValueObject, endRawValueObject: SeriesValueObject, log: boolean): void {
   for (const key of positionOrComputedKeys) {
     const startValues = startValueObject[key];
     const endValues = endValueObject[key];
@@ -473,8 +480,8 @@ function setAdjacentValuesForChanges(startValueObject: SeriesValueObject, endVal
     if (onlyDifferentReferences && !areValueReferencesDifferent(startValueObject, endValueObject, startRawValueObject, endRawValueObject, key)) {
       continue;
     }
-    fillFromNeighbours(startValues, endValues, coordinates);
-    fillFromNeighbours(endValues, startValues, coordinates);
+    fillFromNeighbours(startValues, endValues, coordinates, log);
+    fillFromNeighbours(endValues, startValues, coordinates, log);
   }
 }
 
@@ -488,8 +495,9 @@ function setAllBaseValuesForChanges(seriesConfigs: EnhancedSeriesConfig[], start
     const endFilteredValueObject = endSeriesData.filtered.values[id];
 
     if (seriesConfig.animateBaseFromAdjacent) {
-      setAdjacentValuesForChanges(startValueObject, endValueObject, categoryCoordinates, false, startValueObject, endValueObject);
-      setAdjacentValuesForChanges(startFilteredValueObject, endFilteredValueObject, categoryCoordinates, true, startValueObject, endValueObject);
+      const log = seriesConfig.valueAxisConfig!.scale === SCALE_LOG;
+      setAdjacentValuesForChanges(startValueObject, endValueObject, categoryCoordinates, false, startValueObject, endValueObject, log);
+      setAdjacentValuesForChanges(startFilteredValueObject, endFilteredValueObject, categoryCoordinates, true, startValueObject, endValueObject, log);
     }
 
     setBasePositionValuesForChanges(seriesConfig, startValueObject, endValueObject, seriesBase, false, startValueObject, endValueObject);
