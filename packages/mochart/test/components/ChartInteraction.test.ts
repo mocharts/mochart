@@ -615,7 +615,7 @@ describe('tooltip', () => {
     mouse(root, 'click', 100, 100);
     const filteredLine = container.querySelector(getCssSelector('tooltip') + ' ' + getCssClassMatchSelector(getIdCssClass('tooltipSeriesLine', 'S1')));
     expect(filteredLine).not.toBeNull();
-    expect(filteredLine!.textContent).not.toContain('5.00');
+    expect(filteredLine!.textContent).not.toMatch(/\b5\b/); // the costs value at the first category, which a filtered row leaves out
 
     // showFiltered: false drops the line completely
     const hiding = mountChart(makeConfig({ ...twoSeries, tooltip: { showFiltered: false } }));

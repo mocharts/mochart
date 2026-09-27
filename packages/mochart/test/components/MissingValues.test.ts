@@ -60,7 +60,7 @@ describe('missingValueMode base', () => {
 
     const labels = container.querySelectorAll(getCssSelector('seriesLabel'));
     expect(labels.length).toBe(2);
-    expect([...labels].map(label => label.textContent)).toEqual(['10.00', '30.00']);
+    expect([...labels].map(label => label.textContent)).toEqual(['10', '30']);
     expect(container.querySelectorAll(getCssSelector('seriesMarker')).length).toBe(2);
     expect(container.querySelectorAll(getCssSelector('seriesErrorBar')).length).toBe(2);
 
