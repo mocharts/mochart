@@ -164,6 +164,8 @@ export const PIE_TOOLTIP_VALUE_TYPES: PieTooltipValueType[] = [
 export const SCALE_ORDINAL = 'ordinal';
 /** The axis scale that places values by magnitude. */
 export const SCALE_LINEAR = 'linear';
+/** The axis scale that places values by order of magnitude. */
+export const SCALE_LOG = 'log';
 
 
 /** The axis type for string values. */

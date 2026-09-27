@@ -2,6 +2,7 @@ import { Renderer, svgEl } from '../render/index.js';
 
 import { mochartCssClasses } from '../utils/ChartDom.js';
 import { getValueAxisFocusContexts } from '../utils/FocusValue.js';
+import { getDomainFraction } from '../data/DomainFraction.js';
 
 import AxisBaseLine from './AxisBaseLine.js';
 import { NONE } from '../config/core/constants.js';
@@ -38,11 +39,11 @@ export default class AxisBaseContainer extends Renderer<AxisBaseContainerProps> 
     this.baseLines.sync(getValueAxisFocusContexts(valueAxisConfigs, focusData)
       .filter(({ axisConfig }) => axisConfig.baseLine.front === front)
       .map(({ axisConfig, id, key, axisFocusPercentage, seriesFocusPercentage }) => {
-        const { base, adjustForFiltering } = axisConfig;
+        const { base, adjustForFiltering, scale } = axisConfig;
         const axisDomain = adjustForFiltering ? filteredDomains[id] : rawDomains[id];
         const domainMin = axisDomain[0];
         const domainMax = axisDomain[1];
-        const basePercentage = base !== NONE && domainMin !== null && domainMax !== null && domainMin !== domainMax && base > domainMin && base < domainMax ? (base - domainMin) / (domainMax - domainMin) : 0;
+        const basePercentage = base !== NONE && domainMin !== null && domainMax !== null && domainMin !== domainMax && base > domainMin && base < domainMax ? getDomainFraction(scale, [domainMin, domainMax], base) : 0;
         return {
           key,
           ctor: AxisBaseLine,

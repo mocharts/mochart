@@ -1,6 +1,7 @@
 import { Renderer, svgEl, textEl } from '../render/index.js';
 
 import { getSeriesLabelFormat } from '../utils/ValueFormat.js';
+import { getScaledValue, getValueOffsetByDomainFraction } from '../data/DomainFraction.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
 import { NONE, AUTO, LABEL_POSITION_CENTER, LABEL_POSITION_INSIDE, RENDERER_BAR } from '../config/core/constants.js';
 import { translate, isMissingValue } from '../utils/utils.js';
@@ -94,7 +95,8 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
       const domainMax = rawValueAxisDomain[1];
 
       if (domainMin !== null && domainMax !== null) {
-        const domainExtent = domainMax - domainMin;
+        const { scale } = valueAxisConfig;
+        const domain: [number, number] = [domainMin, domainMax];
         const base = hasBase ? Math.min(Math.max(valueAxisConfig.base!, domainMin), domainMax) : domainMin;
         const labels: SeriesLabelShape[] = [];
         const { max: maxValuesNullable, min: minValues, label: labelValuesNullable } = filteredValues;
@@ -144,19 +146,19 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
           if (hasBase) {
             if (labelAboveBaseMinPositionFraction !== NONE && !(labelAboveBaseMinPositionFraction === AUTO && labelMinPositionFraction === NONE)) {
               const percent = (labelAboveBaseMinPositionFraction === AUTO ? labelMinPositionFraction : labelAboveBaseMinPositionFraction)!;
-              aboveBaseMinValue = base + percent * domainExtent;
+              aboveBaseMinValue = getValueOffsetByDomainFraction(scale, domain, base, percent);
             }
             if (labelAboveBaseMaxPositionFraction !== NONE && !(labelAboveBaseMaxPositionFraction === AUTO && labelMaxPositionFraction === NONE)) {
               const percent = (labelAboveBaseMaxPositionFraction === AUTO ? labelMaxPositionFraction : labelAboveBaseMaxPositionFraction)!;
-              aboveBaseMaxValue = domainMax - percent * domainExtent;
+              aboveBaseMaxValue = getValueOffsetByDomainFraction(scale, domain, domainMax, -percent);
             }
             if (labelBelowBaseMinPositionFraction !== NONE && !(labelBelowBaseMinPositionFraction === AUTO && labelMinPositionFraction === NONE)) {
               const percent = (labelBelowBaseMinPositionFraction === AUTO ? labelMinPositionFraction : labelBelowBaseMinPositionFraction)!;
-              belowBaseMinValue = base - percent * domainExtent;
+              belowBaseMinValue = getValueOffsetByDomainFraction(scale, domain, base, -percent);
             }
             if (labelBelowBaseMaxPositionFraction !== NONE && !(labelBelowBaseMaxPositionFraction === AUTO && labelMaxPositionFraction === NONE)) {
               const percent = (labelBelowBaseMaxPositionFraction === AUTO ? labelMaxPositionFraction : labelBelowBaseMaxPositionFraction)!;
-              belowBaseMaxValue = domainMin + percent * domainExtent;
+              belowBaseMaxValue = getValueOffsetByDomainFraction(scale, domain, domainMin, percent);
             }
             withinPercentages = (seriesValue: number) => {
               if (seriesValue >= base) {
@@ -169,10 +171,10 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
           }
           else {
             if (labelMinPositionFraction !== NONE) {
-              minValue = domainMin + labelMinPositionFraction * domainExtent;
+              minValue = getValueOffsetByDomainFraction(scale, domain, domainMin, labelMinPositionFraction);
             }
             if (labelMaxPositionFraction !== NONE) {
-              maxValue = domainMax - labelMaxPositionFraction * domainExtent;
+              maxValue = getValueOffsetByDomainFraction(scale, domain, domainMax, -labelMaxPositionFraction);
             }
 
             withinPercentages = (seriesValue: number) => {
@@ -183,7 +185,9 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
         if (seriesConfig.label.minRangeFraction !== NONE) {
           const oldWithinPercentages = withinPercentages;
           const hasStack = seriesConfig.stack !== NONE;
-          const minAbsoluteValue = seriesConfig.label.minRangeFraction * domainExtent;
+          // compared in scaled values, so the span is a share of the axis length on any scale
+          const minScaledSpan = seriesConfig.label.minRangeFraction * (getScaledValue(scale, domainMax) - getScaledValue(scale, domainMin));
+          const spansEnough = (maxSeriesValue: number, valueMin: number) => Math.abs(getScaledValue(scale, maxSeriesValue) - getScaledValue(scale, valueMin)) >= minScaledSpan;
 
           if (hasStack) {
             if (hasBase) {
@@ -192,7 +196,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
                 if (minSeriesValue !== null && minSeriesValue !== undefined) {
                   valueMin = minSeriesValue;
                 }
-                return oldWithinPercentages(maxSeriesValue) && Math.abs(maxSeriesValue - valueMin) >= minAbsoluteValue;
+                return oldWithinPercentages(maxSeriesValue) && spansEnough(maxSeriesValue, valueMin);
               };
             }
             else {
@@ -201,7 +205,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
                 if (minSeriesValue !== null && minSeriesValue !== undefined) {
                   valueMin = minSeriesValue;
                 }
-                return oldWithinPercentages(maxSeriesValue) && Math.abs(maxSeriesValue - valueMin) >= minAbsoluteValue;
+                return oldWithinPercentages(maxSeriesValue) && spansEnough(maxSeriesValue, valueMin);
               };
             }
           }
@@ -213,7 +217,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
               if (minSeriesValue !== undefined) {
                 valueMin = minSeriesValue ?? unstackedMin;
               }
-              return oldWithinPercentages(maxSeriesValue) && Math.abs(maxSeriesValue - valueMin) >= minAbsoluteValue;
+              return oldWithinPercentages(maxSeriesValue) && spansEnough(maxSeriesValue, valueMin);
             };
           }
         }

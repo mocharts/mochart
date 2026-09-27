@@ -4,7 +4,8 @@ import { translate, translateRotate, hasText } from '../utils/utils.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
 import { styleToAttributes } from '../utils/style.js';
 import { getCategoryValueKey } from '../data/CategoryValue.js';
-import { ANCHOR_MIDDLE, ANCHOR_START, AUTO, NONE, SCALE_LINEAR, SCALE_ORDINAL, SIDE_START, TITLE_SIDE_INSIDE, TITLE_SIDE_LOW, TYPE_DATE } from '../config/core/constants.js';
+import { getDomainFraction } from '../data/DomainFraction.js';
+import { ANCHOR_MIDDLE, ANCHOR_START, AUTO, NONE, SCALE_ORDINAL, SIDE_START, TITLE_SIDE_INSIDE, TITLE_SIDE_LOW, TYPE_DATE } from '../config/core/constants.js';
 import type { El, TextEl } from '../render/index.js';
 import type { AxisConfigBase } from '../types/config.js';
 import type { FontInlineStyle } from '../utils/font.js';
@@ -82,10 +83,10 @@ function getThresholdOffset(props: AxisThresholdShapeProps, rawValue: number | s
   const domainMin = axisDomain[0]?.valueOf();
   const domainMax = axisDomain[1]?.valueOf();
   const numericThreshold = thresholdValue?.valueOf();
-  if (scale !== SCALE_LINEAR || typeof numericThreshold !== 'number' || Number.isNaN(numericThreshold) || domainMin === undefined || domainMax === undefined || domainMin === domainMax) {
+  if (typeof numericThreshold !== 'number' || Number.isNaN(numericThreshold) || domainMin === undefined || domainMax === undefined || domainMin === domainMax) {
     return null;
   }
-  const domainFraction = (numericThreshold - domainMin) / (domainMax - domainMin);
+  const domainFraction = getDomainFraction(scale, [domainMin, domainMax], numericThreshold);
   const thresholdPercentage = positionRange[0] + (positionRange[1] - positionRange[0]) * domainFraction;
   return (ascending ? thresholdPercentage : 1 - thresholdPercentage) * axisExtent;
 }

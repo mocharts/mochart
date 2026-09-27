@@ -1,8 +1,10 @@
 import { getDomainForValues, mergeDomain } from '../data/DomainData.js';
 import { getCategorySpacingInfo } from '../data/AxisData.js';
+import { getDomainFraction } from '../data/DomainFraction.js';
 import { getWithMutations } from '../utils/WithMutations.js';
 import { arrayToMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils.js';
 import { NONE } from '../config/core/constants.js';
+import type { DomainFractionScale } from '../data/DomainFraction.js';
 import type { FocusData, FocusPercentage, CategoryDeltaData } from '../types/animation.js';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced.js';
 import type { ChartData, CategoryData, NullableDomain, SeriesData } from '../types/data.js';
@@ -14,22 +16,18 @@ function isFocused(value: number | string | null | undefined): value is number |
 }
 
 // ascending: whether the axis's pixel position grows with the value along its direction
-function getPercentageForDomain(domain: [number, number], value: number, ascending: boolean): number {
+function getPercentageForDomain(scale: DomainFractionScale, domain: [number, number], value: number, ascending: boolean): number {
   if (domain[0] === domain[1]) {
     return ascending ? 0 : 1;
   }
+  // clamped before scaling, which also keeps a value at or below 0 off a log scale
   if (value >= domain[1]) {
     value = domain[1];
   }
   else if (value <= domain[0]) {
     value = domain[0];
   }
-  if (ascending) {
-    return (value - domain[0]) / (domain[1] - domain[0]);
-  }
-  else {
-    return (domain[1] - value) / (domain[1] - domain[0]);
-  }
+  return getDomainFraction(scale, domain, value, ascending);
 }
 
 export function getFocusData(mochartConfig: EnhancedMochartConfig, chartData: ChartData, focusedCategoryIndex: number, focusedValueAxisId: string | null, focusedSeriesId: string | null, computeDomainPercentages = true): FocusData {
@@ -251,10 +249,8 @@ function getCategoryFocusDomainPercentages(mochartConfig: EnhancedMochartConfig,
       const extentPercentage = maxPercentage - minPercentage;
       const numericMin = +min;
       const numericMax = +max;
-      const domainExtent = (numericMax === numericMin) ? 1 : (numericMax - numericMin);
-
       // a reversed axis flips the scale range, so the fraction mirrors within the category range
-      const domainFraction = (value - numericMin) / domainExtent;
+      const domainFraction = numericMax === numericMin ? 0 : getDomainFraction(mochartConfig.categoryAxis.scale, [numericMin, numericMax], value);
       categoryPercentages = [minPercentage + extentPercentage * (mochartConfig.categoryAxis.reversed ? 1 - domainFraction : domainFraction)];
     }
   }
@@ -275,12 +271,12 @@ function getValueAxisFocusDomainPercentages(mochartConfig: EnhancedMochartConfig
       const completeDomain: [number, number] = [axisDomain[0], axisDomain[1]];
       if (axisDomain[0] !== axisDomain[1]) {
         seriesPercentages = [
-          getPercentageForDomain(completeDomain, axisDomain[0], ascending),
-          getPercentageForDomain(completeDomain, axisDomain[1], ascending)
+          getPercentageForDomain(valueAxisConfig.scale, completeDomain, axisDomain[0], ascending),
+          getPercentageForDomain(valueAxisConfig.scale, completeDomain, axisDomain[1], ascending)
         ];
       }
       else {
-        seriesPercentages = [getPercentageForDomain(completeDomain, axisDomain[0], ascending)];
+        seriesPercentages = [getPercentageForDomain(valueAxisConfig.scale, completeDomain, axisDomain[0], ascending)];
       }
     }
   }
@@ -347,7 +343,7 @@ function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, s
             seriesCategoryValues.push(axisBase);
           }
         }
-        seriesPercentages = seriesCategoryValues.map(value => getPercentageForDomain(axisDomain, value, ascending));
+        seriesPercentages = seriesCategoryValues.map(value => getPercentageForDomain(valueAxisConfig.scale, axisDomain, value, ascending));
       }
       else {
         let seriesFocusDomain: NullableDomain = [null, null];
@@ -372,13 +368,13 @@ function getSeriesFocusDomainPercentages(mochartConfig: EnhancedMochartConfig, s
         if (seriesFocusDomain[0] !== null) { // if the domain has no values then min ([0]) and max ([1]) will both be null
           if (seriesFocusDomain[0] !== seriesFocusDomain[1]) {
             seriesPercentages = [
-              getPercentageForDomain(axisDomain, seriesFocusDomain[0], ascending),
-              getPercentageForDomain(axisDomain, seriesFocusDomain[1]!, ascending)
+              getPercentageForDomain(valueAxisConfig.scale, axisDomain, seriesFocusDomain[0], ascending),
+              getPercentageForDomain(valueAxisConfig.scale, axisDomain, seriesFocusDomain[1]!, ascending)
             ];
           }
           else {
             seriesPercentages = [
-              getPercentageForDomain(axisDomain, seriesFocusDomain[0], ascending)
+              getPercentageForDomain(valueAxisConfig.scale, axisDomain, seriesFocusDomain[0], ascending)
             ];
           }
         }
