@@ -13,7 +13,7 @@ import type { El, ElListAdapter, TextEl } from '../render/index.js';
 import type { ColorPaletteConfig, FontConfig } from '../types/config.js';
 import type { EnhancedSeriesConfig } from '../types/enhanced.js';
 import type { FocusData } from '../types/animation.js';
-import type { AxisScale, NullableDomain, SeriesPositionData, SeriesValueObject } from '../types/data.js';
+import type { NullableDomain, SeriesPositionData, SeriesValueObject } from '../types/data.js';
 import type { LabelPosition } from '../config/core/constants.js';
 import { CategoryShapeCache } from '../utils/CategoryShapes.js';
 import type { CategoryShape } from '../utils/CategoryShapes.js';
@@ -64,7 +64,6 @@ interface SeriesLabelsProps {
   seriesConfig: EnhancedSeriesConfig;
   seriesIndex: number;
   rawValueAxisDomain: NullableDomain;
-  valueAxisScale: AxisScale;
   seriesPositionData: SeriesPositionData;
   filteredValues: SeriesValueObject;
   inverted: boolean;
@@ -86,7 +85,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
   }
 
   sync() {
-    const { colorPaletteConfig, seriesConfig, seriesIndex, rawValueAxisDomain, valueAxisScale, seriesPositionData,
+    const { colorPaletteConfig, seriesConfig, seriesIndex, rawValueAxisDomain, seriesPositionData,
       filteredValues, inverted, focusData, accessibility } = this.props;
     if (seriesConfig.labelProperty !== NONE) {
       const { valueAxisConfig } = seriesConfig;
@@ -222,7 +221,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
           }
         }
 
-        const valueFormat = getSeriesLabelFormat(seriesConfig, valueAxisConfig, valueAxisScale);
+        const valueFormat = getSeriesLabelFormat(seriesConfig, valueAxisConfig);
 
         const { categoryFocusPercentages, valueAxisFocusPercentages, seriesFocusPercentages } = focusData;
         const seriesFocusPercentage = getSeriesFocusPercentage(seriesConfig, valueAxisFocusPercentages, seriesFocusPercentages);

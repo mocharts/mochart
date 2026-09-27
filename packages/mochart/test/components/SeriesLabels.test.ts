@@ -49,22 +49,22 @@ beforeAll(() => {
 
 describe('series label fraction guards', () => {
   it('labels every category when no guard is set', () => {
-    expect(labelTexts({})).toEqual(['10.00', '50.00', '100.00']);
+    expect(labelTexts({})).toEqual(['10', '50', '100']);
   });
 
   it('hides labels below labelMinPositionFraction', () => {
     // domain 10–100, so the guard hides everything positioned below 55
-    expect(labelTexts({ label: { minPositionFraction: 0.5 } })).toEqual(['100.00']);
+    expect(labelTexts({ label: { minPositionFraction: 0.5 } })).toEqual(['100']);
   });
 
   it('hides labels above labelMaxPositionFraction', () => {
-    expect(labelTexts({ label: { maxPositionFraction: 0.5 } })).toEqual(['10.00', '50.00']);
+    expect(labelTexts({ label: { maxPositionFraction: 0.5 } })).toEqual(['10', '50']);
   });
 
   it('hides labels whose value spans less than labelMinRangeFraction', () => {
     // no axis base, so each unstacked value measures from the domain minimum: domain 10-100, extent 90,
     // so the guard is 45 and only the 100 bar (spanning 90) survives
-    expect(labelTexts({ label: { minRangeFraction: 0.5 } }, [{ base: null }])).toEqual(['100.00']);
+    expect(labelTexts({ label: { minRangeFraction: 0.5 } }, [{ base: null }])).toEqual(['100']);
   });
 
   // Regression: an unstacked value measured its span from zero, so the guard was inert on any chart
@@ -72,13 +72,13 @@ describe('series label fraction guards', () => {
   it('measures an unstacked value from the axis base, not from zero', () => {
     const rowsAboveBase = [{ month: 'Jan', sales: 55 }, { month: 'Feb', sales: 90 }];
     expect(labelTexts({ label: { minRangeFraction: 0.2 } }, [{ base: 50, min: 50, max: 100 }], rowsAboveBase))
-      .toEqual(['90.00']);
+      .toEqual(['90']);
   });
 
   it('falls back to the domain minimum when the axis has no base', () => {
     const rowsAboveBase = [{ month: 'Jan', sales: 55 }, { month: 'Feb', sales: 90 }];
     expect(labelTexts({ label: { minRangeFraction: 0.2 } }, [{ base: null, min: 50, max: 100 }], rowsAboveBase))
-      .toEqual(['90.00']);
+      .toEqual(['90']);
   });
 
   it('measures a stacked series against the domain minimum when the axis has no base', () => {
@@ -99,7 +99,7 @@ describe('series label fraction guards', () => {
       data: rows, width: WIDTH, height: HEIGHT
     } as DefaultChartProps));
     // stack extents 10/50/100 against a threshold of half the stacked domain: only Mar survives
-    expect(surviving(container)).toEqual(['100.00']);
+    expect(surviving(container)).toEqual(['100']);
   });
 
   it('measures below-base stacked segments by their extent', () => {
@@ -119,7 +119,7 @@ describe('series label fraction guards', () => {
       data: rows.map((row) => ({ ...row, sales: -row.sales })), width: WIDTH, height: HEIGHT
     } as DefaultChartProps));
     // segments extend 10/50/100 below the base; the negative sign must not hide the two that clear the threshold
-    expect(surviving(container)).toEqual(['−50.00', '−100.00']);
+    expect(surviving(container)).toEqual(['−50', '−100']);
   });
 
   it('measures a ranged series against its own range property', () => {
@@ -127,63 +127,63 @@ describe('series label fraction guards', () => {
     expect(labelTexts(
       { rangeProperty: 'floor', label: { minRangeFraction: 0.5 } },
       [{ base: null }]
-    )).toEqual(['100.00']);
+    )).toEqual(['100']);
   });
 });
 
 describe('series label fraction guards split at the axis base', () => {
   it('labels every category when only the base is set', () => {
-    expect(basedLabelTexts({})).toEqual(['−100.00', '−50.00', '−10.00', '0.00', '10.00', '50.00', '100.00']);
+    expect(basedLabelTexts({})).toEqual(['−100', '−50', '−10', '0', '10', '50', '100']);
   });
 
   it('measures labelAboveBaseMinPositionFraction up from the base and leaves below-base labels alone', () => {
     // 0.2 × 200 = 40 above the base hides 0 (which counts as above) and 10
     expect(basedLabelTexts({ label: { aboveBase: { minPositionFraction: 0.2 } } }))
-      .toEqual(['−100.00', '−50.00', '−10.00', '50.00', '100.00']);
+      .toEqual(['−100', '−50', '−10', '50', '100']);
   });
 
   it('measures labelAboveBaseMaxPositionFraction down from the domain maximum', () => {
     // 100 − 0.3 × 200 = 40 hides 50 and 100
     expect(basedLabelTexts({ label: { aboveBase: { maxPositionFraction: 0.3 } } }))
-      .toEqual(['−100.00', '−50.00', '−10.00', '0.00', '10.00']);
+      .toEqual(['−100', '−50', '−10', '0', '10']);
   });
 
   it('measures labelBelowBaseMinPositionFraction down from the base, keeping only the values that reach it', () => {
     // 0 − 0.2 × 200 = −40: the guard inverts below the base, so −10 hides and −50/−100 stay
     expect(basedLabelTexts({ label: { belowBase: { minPositionFraction: 0.2 } } }))
-      .toEqual(['−100.00', '−50.00', '0.00', '10.00', '50.00', '100.00']);
+      .toEqual(['−100', '−50', '0', '10', '50', '100']);
   });
 
   it('measures labelBelowBaseMaxPositionFraction up from the domain minimum', () => {
     // −100 + 0.3 × 200 = −40 hides −50 and −100
     expect(basedLabelTexts({ label: { belowBase: { maxPositionFraction: 0.3 } } }))
-      .toEqual(['−10.00', '0.00', '10.00', '50.00', '100.00']);
+      .toEqual(['−10', '0', '10', '50', '100']);
   });
 
   it('applies labelMinPositionFraction on both sides of the base when the base fractions are auto', () => {
     // 40 units either side of the base rather than 40 above the domain minimum
     expect(basedLabelTexts({ label: { minPositionFraction: 0.2 } }))
-      .toEqual(['−100.00', '−50.00', '50.00', '100.00']);
+      .toEqual(['−100', '−50', '50', '100']);
   });
 
   it('applies labelMaxPositionFraction from both domain edges when the base fractions are auto', () => {
     expect(basedLabelTexts({ label: { maxPositionFraction: 0.3 } }))
-      .toEqual(['−10.00', '0.00', '10.00']);
+      .toEqual(['−10', '0', '10']);
   });
 
   it('lets a null base fraction exempt one side from the inherited bound', () => {
     expect(basedLabelTexts({ label: { minPositionFraction: 0.2, belowBase: { minPositionFraction: null } } }))
-      .toEqual(['−100.00', '−50.00', '−10.00', '50.00', '100.00']);
+      .toEqual(['−100', '−50', '−10', '50', '100']);
   });
 
   it('lets an explicit base fraction override the inherited bound on its side only', () => {
     // above uses 0.2 (40), below uses 0.4 (−80)
     expect(basedLabelTexts({ label: { minPositionFraction: 0.2, belowBase: { minPositionFraction: 0.4 } } }))
-      .toEqual(['−100.00', '50.00', '100.00']);
+      .toEqual(['−100', '50', '100']);
   });
 
   it('ignores the base fractions when the axis has no base', () => {
     expect(labelTexts({ label: { aboveBase: { minPositionFraction: 0.9 }, belowBase: { minPositionFraction: 0.9 } } }, [{ base: null }], basedRows))
-      .toEqual(['−100.00', '−50.00', '−10.00', '0.00', '10.00', '50.00', '100.00']);
+      .toEqual(['−100', '−50', '−10', '0', '10', '50', '100']);
   });
 });

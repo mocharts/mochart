@@ -191,7 +191,7 @@ export function getSeriesText(tooltipConfig: TooltipConfig, seriesConfig: Enhanc
  */
 export function getTooltipAnnouncement(mochartConfig: EnhancedMochartConfig, tooltipValueObject: ChartCategorySeriesValueObject): string {
   const { chart: chartConfig, pie: pieConfig, tooltip: tooltipConfig, categoryAxis: categoryAxisConfig,
-    valueAxes: valueAxisConfigs, series: seriesConfigs } = mochartConfig;
+    series: seriesConfigs } = mochartConfig;
   const { category, series } = tooltipValueObject;
   const { raw, filtered, filteredFlags } = series;
 
@@ -214,7 +214,7 @@ export function getTooltipAnnouncement(mochartConfig: EnhancedMochartConfig, too
   }
 
   const rows: string[] = [];
-  const valueFormats = getSeriesFormats(seriesConfigs, valueAxisConfigs, raw.renderAxisDomains);
+  const valueFormats = getSeriesFormats(seriesConfigs);
   for (const seriesConfig of seriesConfigs) {
     if (!seriesConfig.showInTooltip) {
       continue;

@@ -372,7 +372,7 @@ export default class Series extends Renderer<SeriesProps, SeriesState> {
       this.markers.set(SeriesMarkers, { colorPaletteConfig, seriesConfig, seriesPositionData,
         filteredValues, rawDomains, inverted, seriesIndex,
         focusData, onCategoryEnter, onCategoryLeave, onCategoryClick });
-      this.labels.set(SeriesLabels, { colorPaletteConfig, seriesConfig, valueAxisScale,
+      this.labels.set(SeriesLabels, { colorPaletteConfig, seriesConfig,
         rawValueAxisDomain, seriesPositionData, filteredValues, inverted,
         focusData, onCategoryEnter, onCategoryLeave, onCategoryClick, seriesIndex,
         accessibility: this.props.accessibility, chartFont: this.props.chartFont });

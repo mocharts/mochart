@@ -32,10 +32,11 @@ import * as logLog from '../examples/logLog'
   stay off: set
   [`tickLabel.minorVisible`](/reference/valueAxes#valueAxes.tickLabel.minorVisible)
   to show them where they fit.
-- With the default `"auto"` format, each tick label and each tooltip value
-  takes an SI prefix of its own magnitude, so `1m`, `1` and `1k` share one
-  axis. A linear axis takes one prefix for the whole axis instead. Beyond the
-  prefixes, below 1e-24 or from 1e27, a value takes exponent form, `1e+30`.
+- With the default `"auto"` format, each tick label takes an SI prefix of its
+  own magnitude, so `1m`, `1` and `1k` share one axis, where a linear axis's
+  tick labels take one prefix for the whole axis; tooltip and label values are
+  formatted per value on both. Beyond the prefixes, below 1e-24 or from 1e27,
+  a value takes exponent form, `1e+30`.
   The prefix reaches down to milli, so a ratio such as a gain of 0.1 reads
   `100m`; where
   that misleads, a

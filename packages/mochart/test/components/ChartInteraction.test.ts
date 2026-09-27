@@ -541,13 +541,13 @@ describe('tooltip', () => {
     const tooltip = container.querySelector(getCssSelector('tooltip'))!;
     expect(tooltip).not.toBeNull();
     expect(tooltip.textContent).toContain('Jan');
-    expect(tooltip.textContent).toContain('10.00');
+    expect(tooltip.textContent).toContain('10');
 
     // crossing to the last category must update the tooltip content
     mouse(root, 'mousemove', 790, 100);
     const moved = container.querySelector(getCssSelector('tooltip'))!;
     expect(moved.textContent).toContain('Mar');
-    expect(moved.textContent).toContain('30.00');
+    expect(moved.textContent).toContain('30');
     expect(moved.textContent).not.toContain('Jan');
 
     // leaving the plot closes a followPointer tooltip

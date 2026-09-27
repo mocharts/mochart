@@ -32,8 +32,9 @@ import * as tooltipFormat from '../examples/tooltipFormat'
   wrap it.
 - A series' config determines the formatting of its own line:
   [`valueFormat`](/reference/series#series.valueFormat) is a d3-format string
-  (`,.1f`, `.1%`, …); `"auto"` derives one from the data, preferring the value
-  axis `tickLabel.format` when that is set.
+  (`,.1f`, `.1%`, …); `"auto"` takes the value axis `tickLabel.format` when
+  that is set, and otherwise an SI prefix and two significant digits at each
+  value's own magnitude (`4.5`, `45`, `1.2k`).
   [`valuePrefix`](/reference/series#series.valuePrefix) and
   [`valueSuffix`](/reference/series#series.valueSuffix) wrap the formatted value
   (`$41.2k` above).

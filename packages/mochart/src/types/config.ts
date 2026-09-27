@@ -3959,7 +3959,7 @@ export interface SeriesLabelBaseSideConfig {
 export interface SeriesLabelConfig {
   /**
    * The d3 format string to be applied to the series label values (use null for
-   * none, use "auto" to derive from data).
+   * none, use "auto" for the series valueFormat).
    *
    * @default "auto"
    */
@@ -4388,12 +4388,18 @@ export interface SeriesConfig {
   valueLabel: string | null;
   /**
    * The d3 format string to be applied to the series value when displayed in
-   * the tooltip (use null for none, use "auto" to derive from data ("auto" will
-   * use the value axis tick label format if it is set)).
+   * the tooltip (use null for none, use "auto" for the value axis tick label
+   * format when it is set, otherwise an SI-prefixed number with two significant
+   * digits at each value's own magnitude).
    *
    * A d3-format specifier applied to the value shown in the tooltip, e.g.
-   * `".1f"` or `",.0f"`. `"auto"` derives a format from the data, preferring
-   * the value axis `tickLabel.format` when that is set.
+   * `".1f"` or `",.0f"`. `"auto"` takes the value axis `tickLabel.format` when
+   * that is set, and otherwise formats each value at its own magnitude with an
+   * SI prefix and two significant digits (4.5, 45, 1.2k), so values of
+   * different sizes read well in one tooltip; a format that leaves its
+   * precision open takes 3 significant digits, trimmed. Values are never
+   * formatted through the axis scale, so an axis to 1000 shows 4.5 as 4.5, not
+   * 0.00k.
    *
    * @default "auto"
    */

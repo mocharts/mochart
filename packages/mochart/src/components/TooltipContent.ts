@@ -16,8 +16,7 @@ import TooltipControls, { MODE_FOCUS, MODE_FILTER } from './TooltipControls.js';
 import type { TooltipMode } from './TooltipControls.js';
 import SeriesColorIcon from './SeriesColorIcon.js';
 import type { ColorPaletteConfig } from '../types/config.js';
-import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
-import type { AxisDomains } from '../types/data.js';
+import type { EnhancedMochartConfig, EnhancedSeriesConfig } from '../types/enhanced.js';
 import type { ValueFormatter } from '../utils/ValueFormat.js';
 import type { InternalFocus } from '../types/chart.js';
 import type { FocusPercentage, FocusPercentageMap } from '../types/animation.js';
@@ -32,7 +31,7 @@ interface LineStyles {
 }
 
 interface ValueFormats {
-  seriesConfigs: EnhancedSeriesConfig[]; valueAxisConfigs: EnhancedValueAxisConfig[]; axisDomains: AxisDomains;
+  seriesConfigs: EnhancedSeriesConfig[];
   formats: Record<string, ValueFormatter>;
 }
 
@@ -447,16 +446,16 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
       collapsedLineStyle: { ...lineStyle, height: 0, paddingTop: 0, paddingBottom: 0, overflow: 'hidden' } };
   }
 
-  // the formatters build d3 scales/formats per series; rebuilt only when their inputs change
+  // the formatters build d3 formats per series; rebuilt only when the series configs change
   private valueFormats: ValueFormats | null = null;
 
-  private getValueFormats(seriesConfigs: EnhancedSeriesConfig[], valueAxisConfigs: EnhancedValueAxisConfig[], axisDomains: AxisDomains): Record<string, ValueFormatter> {
+  private getValueFormats(seriesConfigs: EnhancedSeriesConfig[]): Record<string, ValueFormatter> {
     const cached = this.valueFormats;
-    if (cached !== null && cached.seriesConfigs === seriesConfigs && cached.valueAxisConfigs === valueAxisConfigs && cached.axisDomains === axisDomains) {
+    if (cached !== null && cached.seriesConfigs === seriesConfigs) {
       return cached.formats;
     }
-    const formats = getSeriesFormats(seriesConfigs, valueAxisConfigs, axisDomains);
-    this.valueFormats = { seriesConfigs, valueAxisConfigs, axisDomains, formats };
+    const formats = getSeriesFormats(seriesConfigs);
+    this.valueFormats = { seriesConfigs, formats };
     return formats;
   }
 
@@ -480,12 +479,10 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
     const { mochartConfig, tooltipValueObject, categoryCount, focusedCategoryIndex, visible, tooltipCategoryIndex, updateTooltipCategoryIndex,
       minWidth = null, adjustForFiltering = true, svgUniqueId, onFocus, valueAxisFocusPercentages, seriesFocusPercentages, mode, toggleMode } = this.props;
 
-    const { chart: chartConfig, pie: pieConfig, tooltip: tooltipConfig, categoryAxis: categoryAxisConfig, valueAxes: valueAxisConfigs, series: seriesConfigs, seriesIndicesById: seriesConfigIndicesById, colorPalette: colorPaletteConfig } = mochartConfig;
+    const { chart: chartConfig, pie: pieConfig, tooltip: tooltipConfig, categoryAxis: categoryAxisConfig, series: seriesConfigs, seriesIndicesById: seriesConfigIndicesById, colorPalette: colorPaletteConfig } = mochartConfig;
 
     const { category, series } = tooltipValueObject;
     const { raw, filtered, filteredFlags } = series;
-    // render domains: tickFormat precision needs a real extent, which a collapsed domain lacks
-    const { renderAxisDomains } = raw;
 
     // Percent values come from the same normalized slice fractions as the labels (getPieSliceFractions),
     // built once per tooltip; tooltipConfig.adjustForFiltering picks renormalized vs full-total shares.
@@ -541,7 +538,7 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
       });
     }
 
-    const valueFormats = this.getValueFormats(seriesConfigs, valueAxisConfigs, renderAxisDomains);
+    const valueFormats = this.getValueFormats(seriesConfigs);
     let lastSeriesLineIndex = -1;
     let lastSeriesLineIsTarget = false;
     for (const seriesConfig of seriesConfigs) {

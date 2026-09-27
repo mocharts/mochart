@@ -102,7 +102,7 @@ export default function getDescriptions() {
       }
     },
     valueLabel: 'the label to show before a series value in the tooltip (null falls back to useTitleForValueLabel, it does not mean no label)',
-    valueFormat: 'the d3 format string to be applied to the series value when displayed in the tooltip (use null for none, use "auto" to derive from data ("auto" will use the value axis tick label format if it is set))',
+    valueFormat: 'the d3 format string to be applied to the series value when displayed in the tooltip (use null for none, use "auto" for the value axis tick label format when it is set, otherwise an SI-prefixed number with two significant digits at each value\'s own magnitude)',
     valuePrefix: 'the text to prefix series values with when showing them in the tooltip (use null or an empty string for none)',
     valueSuffix: 'the text to append series values with when showing them in the tooltip (use null or an empty string for none)',
     useTitleForValueLabel: 'whether to use the title value for the valueLabel value when the valueLabel is not set',
@@ -111,7 +111,7 @@ export default function getDescriptions() {
     label: {
       description: 'the labels drawn next to the series shapes from the labelProperty values',
       properties: {
-        format: 'the d3 format string to be applied to the series label values (use null for none, use "auto" to derive from data)',
+        format: 'the d3 format string to be applied to the series label values (use null for none, use "auto" for the series valueFormat)',
         prefix: 'the text to prefix series label values with when drawing them on the plot (use null or an empty string for none)',
         suffix: 'the text to append series label values with when drawing them on the plot (use null or an empty string for none)',
         textStyle: styleStates('the style of the series label values', styleMembers, 'label', true),
@@ -188,7 +188,7 @@ export function getDetails() {
     missingValueMode: 'With `"connect"`, lines and areas bridge missing categories directly between the neighbouring defined values; with `"base"` the point is drawn at the value axis base value; the default `"break"` leaves a gap in the shape. For a series with a `rangeProperty`, a category counts as missing only when both properties are undefined (see `partialRangeIsMissing`).',
     allowAbsentDataProperties: 'Covers every data property the series names: `property`, `rangeProperty`, `errorLowProperty`, `errorHighProperty`, `markerProperty`, `labelProperty`, `tooltipProperty` and `colorProperty`. Kept `false` by default so a misspelled property name is still reported by `getDataErrors`; enable it for a series that may genuinely have no data behind it, which then draws nothing but keeps its legend and tooltip entries. A property that is present but has the wrong number of values is still an error.',
     partialRangeIsMissing: 'Only affects series with a `rangeProperty` (stacked series are unaffected). By default a category with just one of `property`/`rangeProperty` undefined keeps a zero-extent span collapsed at the defined value, so ranged areas stay connected through it. When `true` such categories count as missing instead, following the configured `missingValueMode` treatment.',
-    valueFormat: 'A d3-format specifier applied to the value shown in the tooltip, e.g. `".1f"` or `",.0f"`. `"auto"` derives a format from the data, preferring the value axis `tickLabel.format` when that is set.',
+    valueFormat: 'A d3-format specifier applied to the value shown in the tooltip, e.g. `".1f"` or `",.0f"`. `"auto"` takes the value axis `tickLabel.format` when that is set, and otherwise formats each value at its own magnitude with an SI prefix and two significant digits (4.5, 45, 1.2k), so values of different sizes read well in one tooltip; a format that leaves its precision open takes 3 significant digits, trimmed. Values are never formatted through the axis scale, so an axis to 1000 shows 4.5 as 4.5, not 0.00k.',
     cap: { properties: { type: 'Draws a decorative cap on the value end of each bar in the series; `size` controls its extent. To cap only the outside of a stacked bar, see `onlyStackOuter` and `seriesStacks[].outerCap.type`.' } },
     marker: { properties: {
       size: 'Without a `markerProperty` every marker is drawn at exactly this size, and `minSize` is not used. With one, the series value with the largest marker property value gets this size and the others scale down toward `minSize` by `sizeScale`, so `size` is the top of the range and `minSize` the bottom. There is no separate maximum.',
