@@ -3218,12 +3218,11 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    * Replaces the automatic tick generation entirely: tick counts, intervals and
    * the tick skipping that keeps labels apart are ignored, so the configured
    * ticks show even where they overlap, except that the entries marked `minor`
-   * follow the minor label fit rule. Useful for labeling only some of many
-   * categories, e.g. every Monday of a daily date axis, where the generated
-   * ticks would be truncated or skipped at arbitrary categories. Two entries
-   * naming the same category (compared the way a tick finds its category: by
-   * instant on a date axis, by key with a `keyProperty`, otherwise by value)
-   * are a validation error.
+   * follow the minor label fit rule. Useful for naming chosen categories with
+   * label text of their own; for a regular pattern such as one tick a week, use
+   * `tickStep`. Two entries naming the same category (compared the way a tick
+   * finds its category: by instant on a date axis, by key with a `keyProperty`,
+   * otherwise by value) are a validation error.
    *
    * @default null
    */
