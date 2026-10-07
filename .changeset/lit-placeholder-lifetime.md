@@ -2,4 +2,4 @@
 "@mochart/lit": patch
 ---
 
-clears a placeholder template when the chart leaves its state, disconnecting its async directives, and renders it again on re-entry, instead of keeping the detached render alive, matching the React and Svelte bindings
+fix placeholder templates staying rendered, with their async directives connected, after the chart leaves their state
