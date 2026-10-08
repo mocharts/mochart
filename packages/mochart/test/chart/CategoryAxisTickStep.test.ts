@@ -430,6 +430,42 @@ describe('category axis tick step on a linear date axis', () => {
     chart.destroy();
   });
 
+  it('places number interval ticks at the millisecond multiples from the epoch, kept by count and offset', () => {
+    const rows = dateRows(['2026-06-01T00:00:00Z', '2026-06-03T00:00:00Z']);
+    const twelveHours = 12 * 60 * 60 * 1000;
+    const every = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%d %H:%M' }, tickStep: { interval: twelveHours } }, rows);
+    expect(getAxisLabels(every.container)).toEqual(['01 00:00', '01 12:00', '02 00:00', '02 12:00', '03 00:00']);
+    every.chart.destroy();
+    // midnight UTC is an even multiple of 12 hours since the epoch, so offset 1 keeps the noons
+    const noons = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%d %H:%M' }, tickStep: { interval: twelveHours, count: 2, offset: 1 } }, rows);
+    expect(getAxisLabels(noons.container)).toEqual(['01 12:00', '02 12:00']);
+    noons.chart.destroy();
+  });
+
+  it('counts number interval ticks from local midnight of the epoch day without dateUTC', () => {
+    const tz = process.env.TZ;
+    process.env.TZ = 'America/New_York';
+    try {
+      const rows = dateRows(['2026-01-05T00:00:00', '2026-01-06T00:00:00']);
+      const { container, chart } = renderChart({ type: 'date', scale: 'linear', dateUTC: false, tickLabel: { format: '%d %H:%M' }, tickStep: { interval: 12 * 60 * 60 * 1000 } }, rows);
+      expect(getAxisLabels(container)).toEqual(['05 00:00', '05 12:00', '06 00:00']);
+      chart.destroy();
+    }
+    finally {
+      process.env.TZ = tz;
+    }
+  });
+
+  it('places number minorInterval minor ticks between number interval ticks, dropping those on a kept tick', () => {
+    const rows = dateRows(['2026-06-01T00:00:00Z', '2026-06-02T00:00:00Z']);
+    const hour = 60 * 60 * 1000;
+    const { container, chart } = renderChart({ type: 'date', scale: 'linear', min: rows[0]!.label, max: rows[1]!.label, tickLabel: { format: '%H:%M' }, minorTickLabel: { format: '%H' }, tickStep: { interval: 6 * hour, count: 2, minorInterval: 2 * hour } }, rows);
+    expect(getKindLabels(container, categoryTickLabels, false)).toEqual(['00:00', '12:00', '00:00']);
+    // 13 two-hour multiples less the 3 kept ticks; the 06:00 and 18:00 multiples count skips stay minor ticks
+    expect(container.querySelectorAll(categoryTickMarks + minorMark).length).toBe(10);
+    chart.destroy();
+  });
+
   it('keeps hour ticks on the local hours across a daylight saving change', () => {
     const tz = process.env.TZ;
     process.env.TZ = 'America/New_York';
@@ -485,14 +521,21 @@ describe('category axis tick step validation', () => {
 });
 
 describe('minor tick step validation', () => {
-  it('needs a period interval for minorInterval, a shorter period than it, an interval for minorSteps, and a linear axis for either', () => {
+  it('needs minorInterval in the form of interval and shorter than it, an interval for minorSteps, and a linear axis for either', () => {
     const { enhanceConfig } = mochart;
     const errors = (tickStep: Record<string, unknown>, scale: 'linear' | 'ordinal' = 'linear') => enhanceConfig({
       version: '1.0.0',
       categoryAxis: { property: 'label', type: 'date', scale, tickStep },
       series: [{ property: 'value' }]
     }).validation.errors.join('\n');
-    expect(errors({ minorInterval: 'day' })).toMatch(/tickStep\.minorInterval - should be null unless interval is a period/);
+    const hour = 60 * 60 * 1000;
+    expect(errors({ minorInterval: 'day' })).toMatch(/tickStep\.minorInterval - should be null unless interval is set/);
+    expect(errors({ interval: 'day', minorInterval: hour })).toMatch(/tickStep\.minorInterval - should be a period when interval is a period/);
+    expect(errors({ interval: 12 * hour, minorInterval: 'hour' })).toMatch(/tickStep\.minorInterval - should be a number when interval is a number/);
+    expect(errors({ interval: hour, minorInterval: hour })).toMatch(/tickStep\.minorInterval - should be smaller than interval/);
+    expect(errors({ interval: 12 * hour, minorInterval: 5 * hour })).toBe('');
+    // an ordinal date axis steps through categories, so a number of milliseconds has no meaning there
+    expect(errors({ interval: hour }, 'ordinal')).toMatch(/tickStep\.interval/);
     expect(errors({ interval: 'week', minorInterval: 'month' })).toMatch(/tickStep\.minorInterval - should be a shorter period than interval/);
     expect(errors({ interval: 'week', minorInterval: 'week' })).toMatch(/tickStep\.minorInterval - should be a shorter period than interval/);
     expect(errors({ interval: 'hour', minorInterval: 'day' })).toMatch(/tickStep\.minorInterval - should be a shorter period than interval/);

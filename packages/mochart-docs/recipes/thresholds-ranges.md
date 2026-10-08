@@ -83,10 +83,11 @@ fills the range between its two values instead of drawing a line:
   set `visible: true` along with the rule: every `count`-th candidate from an
   `offset`, where the candidates are an ordinal axis's categories, the periods
   of a date axis when `interval` is a period, or the multiples of a number
-  `interval` on a number scale. `interval: 'week'` with `count: 2` draws a range
-  over every other week of a daily trading axis, holidays included, as the
-  threshold step demo in the gallery does, and on a value axis `interval: 10`
-  with `count: 2` draws ranges over 0 to 10, 20 to 30 and so on. `range: false`
+  `interval`, in axis values on a number scale or in milliseconds on a linear
+  date axis. `interval: 'week'` with `count: 2` draws a range over every other
+  week of a daily trading axis, holidays included, as the threshold step demo
+  in the gallery does, and on a value axis `interval: 10` with `count: 2` draws
+  ranges over 0 to 10, 20 to 30 and so on. `range: false`
   draws lines at the candidates instead. The stepped shapes share one `style`,
   `pattern` or `gradient` and carry no title. On a linear axis
   [`minSpacing`](/reference/valueAxes#valueAxes.thresholdStep.minSpacing) is the

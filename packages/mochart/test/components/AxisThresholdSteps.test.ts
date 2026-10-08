@@ -133,6 +133,18 @@ describe('threshold steps on linear scales', () => {
     expect(rects(container)).toHaveLength(2);
   });
 
+  it('ranges every other 90 minutes from the epoch on a linear date axis with a number interval', () => {
+    const ranges = (domain: [string, string], offset = 0) => getSteppedThresholds({ scale: 'linear', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, interval: 90 * 60 * 1000, count: 2, offset }) }, [new Date(domain[0]), new Date(domain[1])], null)
+      .map((threshold) => [new Date(threshold.value).toISOString().slice(11, 16), new Date(threshold.rangeValue!).toISOString().slice(11, 16)]);
+    // a day holds 16 multiples of 90 minutes, so midnight UTC is an even one; the range under way at the domain start counts
+    expect(ranges(['2026-06-01T00:00:00Z', '2026-06-01T06:00:00Z'])).toEqual([['00:00', '01:30'], ['03:00', '04:30']]);
+    expect(ranges(['2026-06-01T01:00:00Z', '2026-06-01T06:00:00Z'])).toEqual([['00:00', '01:30'], ['03:00', '04:30']]);
+    expect(ranges(['2026-06-01T00:00:00Z', '2026-06-01T06:00:00Z'], 1)).toEqual([['01:30', '03:00'], ['04:30', '06:00']]);
+    const rows = [{ day: '2026-06-01T00:00:00Z', value: 1 }, { day: '2026-06-01T06:00:00Z', value: 2 }];
+    const container = mount({ categoryAxis: { property: 'day', type: 'date', scale: 'linear', thresholdStep: { visible: true, interval: 90 * 60 * 1000, count: 2, style: stepStyle } } }, rows);
+    expect(rects(container)).toHaveLength(2);
+  });
+
   it('keeps the same multiples of the interval whatever the domain, with the offset shifting them', () => {
     const multiples = (domain: [number, number], offset = 0) => getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 10, count: 2, offset }) }, domain, null)
       .map((threshold) => [threshold.value, threshold.rangeValue]);
@@ -229,7 +241,7 @@ describe('threshold steps on linear scales', () => {
 });
 
 describe('threshold step validation', () => {
-  it('rejects a period or number interval off their scales, a non-positive interval, and unknown fill ids', () => {
+  it('rejects a period or number interval off their scales, a number on an ordinal date axis, a non-positive interval, and unknown fill ids', () => {
     const errors = enhanceConfig({
       version: '1.0.0',
       categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', thresholdStep: { visible: true, interval: 'week', pattern: 'missing' } },
@@ -240,12 +252,14 @@ describe('threshold step validation', () => {
     expect(errors).toMatch(/categoryAxis - thresholdStep\.pattern - should be the id of a patterns entry/);
     expect(errors).toMatch(/valueAxes\[0\] - thresholdStep\.interval - should be a number greater than 0/);
     expect(errors).toMatch(/valueAxes\[0\] - thresholdStep\.gradient/);
-    const numberOnDate = enhanceConfig({
+    // milliseconds on a linear date axis, but an ordinal one steps through categories
+    const numberOnDate = (scale: 'linear' | 'ordinal') => enhanceConfig({
       version: '1.0.0',
-      categoryAxis: { property: 'label', type: 'date', scale: 'linear', thresholdStep: { visible: true, interval: 5 } },
+      categoryAxis: { property: 'label', type: 'date', scale, thresholdStep: { visible: true, interval: 5000 } },
       series: [{ property: 'value' }]
     }).validation.errors.join('\n');
-    expect(numberOnDate).toMatch(/categoryAxis - thresholdStep\.interval/);
+    expect(numberOnDate('linear')).toBe('');
+    expect(numberOnDate('ordinal')).toMatch(/categoryAxis - thresholdStep\.interval/);
   });
 
   it('rejects a minSpacing below 2 on a linear axis and any but 2 on an ordinal axis', () => {

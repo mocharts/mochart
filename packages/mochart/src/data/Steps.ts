@@ -97,6 +97,14 @@ export function getPeriodIndex(period: StepPeriod, dateUTC: boolean, periodStart
   return period === STEP_PERIOD_WEEK ? Math.floor((days - 4) / 7) : days;
 }
 
+/**
+ * Where a number interval on a linear date axis counts its multiples from: the epoch, or with dateUTC false
+ * local midnight of the epoch day, so the multiples stay put as the domain moves.
+ */
+export function getDateIntervalOrigin(dateUTC: boolean): number {
+  return dateUTC ? 0 : new Date(1970, 0, 1).getTime();
+}
+
 /** The period boundaries inside a linear date domain, the linear axis's ticks under a period step. */
 export function getPeriodBoundaries(period: StepPeriod, dateUTC: boolean, [domainStart, domainEnd]: [Date, Date]): Date[] {
   const boundaries: Date[] = [];

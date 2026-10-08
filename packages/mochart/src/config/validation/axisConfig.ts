@@ -59,7 +59,7 @@ export function getMinorTickLabelValidators(): Record<string, Validator> {
   };
 }
 
-/** The tickStep members shared by both axes; the category axis adds minorInterval and includeFirst, takes a period as interval on a date axis and narrows the rest to its scales. */
+/** The tickStep members shared by both axes; the category axis adds minorInterval and includeFirst, also takes a period as interval on a date axis and narrows the rest to its scales. */
 export function getTickStepValidators(): Record<string, Validator> {
   return {
     interval: thresholdStepIntervalValidator,
@@ -77,7 +77,7 @@ export const positiveNumber = validators.custom((value: unknown) => typeof value
 /** The thresholdStep interval: an axis value distance above 0, or null. */
 export const thresholdStepIntervalValidator = positiveNumber.orEqual(NONE);
 
-/** The thresholdStep members both axes share; the category axis takes a period as interval on a date axis and a number only on its linear number scale. */
+/** The thresholdStep members both axes share; the category axis takes a number as interval on its linear scales and a period on a date axis. */
 export function getThresholdStepValidators(): Record<string, Validator> {
   return {
     visible: validators.boolean(),
@@ -350,10 +350,12 @@ function getAxisReporter({ prefix, path, raw }: ValidationAxis, reportedDefaults
 
 const stepNeedsPlacementMessage = 'should be left at its default on a linear axis unless interval is set';
 const stepOnLogMessage = 'should be left at its default on a log axis, where interval must be null';
-const minorIntervalNeedsPeriodMessage = 'should be null unless interval is a period';
 const offsetNeedsCountMessage = 'should be 0 on a linear axis unless count is a number, since every step is kept and there is nothing to shift';
+const minorNeedsIntervalMessage = 'should be null unless interval is set';
+const minorIntervalNeedsPeriodMessage = 'should be a period when interval is a period';
+const minorIntervalNeedsNumberMessage = 'should be a number when interval is a number';
 const minorIntervalTooLongMessage = 'should be a shorter period than interval';
-const minorStepsNeedsIntervalMessage = 'should be null unless interval is set';
+const minorIntervalTooLargeMessage = 'should be smaller than interval';
 const duplicateTickMessage = 'should not repeat the value of another ticks entry';
 
 /** The step rules that cross members, in tickStep and thresholdStep alike: what count and offset count on a linear axis, and what the minor members need. */
@@ -390,18 +392,31 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
         reportStep('offset', offsetNeedsCountMessage);
       }
       if (groupKey === 'tickStep') {
-        const minorInterval = step['minorInterval'];
-        if (typeof minorInterval === 'string') {
-          const interval = step['interval'];
-          if (typeof interval !== 'string') {
-            reportStep('minorInterval', minorIntervalNeedsPeriodMessage);
+        // minorInterval takes the form of interval: a shorter period, or a smaller number of milliseconds
+        const { minorInterval, interval } = step;
+        if (typeof minorInterval === 'string' || typeof minorInterval === 'number') {
+          if (interval === undefined || interval === NONE) {
+            reportStep('minorInterval', minorNeedsIntervalMessage);
           }
-          else if (STEP_PERIODS.indexOf(minorInterval) >= STEP_PERIODS.indexOf(interval)) {
-            reportStep('minorInterval', minorIntervalTooLongMessage);
+          else if (typeof interval === 'string') {
+            if (typeof minorInterval !== 'string') {
+              reportStep('minorInterval', minorIntervalNeedsPeriodMessage);
+            }
+            else if (STEP_PERIODS.indexOf(minorInterval) >= STEP_PERIODS.indexOf(interval)) {
+              reportStep('minorInterval', minorIntervalTooLongMessage);
+            }
+          }
+          else if (typeof interval === 'number') {
+            if (typeof minorInterval !== 'number') {
+              reportStep('minorInterval', minorIntervalNeedsNumberMessage);
+            }
+            else if (minorInterval >= interval) {
+              reportStep('minorInterval', minorIntervalTooLargeMessage);
+            }
           }
         }
-        if (!log && typeof step['minorSteps'] === 'number' && (step['interval'] === undefined || step['interval'] === NONE)) {
-          reportStep('minorSteps', minorStepsNeedsIntervalMessage);
+        if (!log && typeof step['minorSteps'] === 'number' && (interval === undefined || interval === NONE)) {
+          reportStep('minorSteps', minorNeedsIntervalMessage);
         }
       }
     }

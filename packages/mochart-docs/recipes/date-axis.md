@@ -89,9 +89,19 @@ holds through holidays and as the data window slides:
 - On a linear date axis the ticks sit on the period boundaries themselves rather
   than on categories, `count` and `offset` keep every count-th boundary, and
   `minorInterval` takes a shorter period to place minor ticks between them: a
-  day inside each week, or a week inside each month. On a linear number axis
-  `interval` takes a number in axis values instead, with `minorSteps` splitting
-  each interval into minor ticks, and value axes take the same `tickStep`.
+  day inside each week, or a week inside each month.
+- A linear date axis also takes a number of milliseconds as the `interval`, for
+  a step no period gives: `interval: 12 * 60 * 60 * 1000` puts a tick at every
+  midnight and noon. The ticks sit at the multiples of the interval counted from
+  the epoch, or from local midnight of the epoch day when `dateUTC` is `false`,
+  so they stay put as the data window slides. `minorInterval` then takes a
+  smaller number of milliseconds, and mixing a number and a period is a
+  validation error. The multiples keep a fixed length, so in local time a
+  daylight saving change moves them an hour against the clock, which a period
+  does not.
+- On a linear number axis `interval` takes a number in axis values instead,
+  with `minorSteps` splitting each interval into minor ticks, and value axes
+  take the same `tickStep`.
 
 To name the dates outright instead,
 [`ticks`](/reference/categoryAxis#categoryAxis.ticks) replaces the generated

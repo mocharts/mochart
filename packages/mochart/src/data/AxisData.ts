@@ -11,7 +11,7 @@ import { areArraysAndEqual, arrayToMap, idAccessor, hasText } from '../utils/uti
 import { AUTO, NONE, CHART_TYPE_PIE, SCALE_ORDINAL, SCALE_LINEAR, SCALE_LOG, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
 import type { Anchor } from '../config/core/constants.js';
 import { getMinorTickLabel } from '../config/core/minorConfig.js';
-import { getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
+import { getDateIntervalOrigin, getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
 import type { Auto, DataType } from '../config/core/constants.js';
 import type { MinorTickLabel } from '../config/core/minorConfig.js';
 import type { AxisConfigBase, CategoryAxisConfig, CategoryAxisTick, CategoryAxisTickStepConfig, PlotConfig, ValueAxisTick } from '../types/config.js';
@@ -314,7 +314,7 @@ interface LinearStepTicks {
   majors: AxisValue[] | null;
   /** The minor ticks between them; one closer to a tick than the regular minor spacing is hidden. */
   minors: { value: AxisValue; hidden: boolean }[];
-  /** The axis value distance between the majors on a number scale (the interval), which the auto label precision follows; null for a period interval or no step. */
+  /** The axis value distance between the majors on a number scale (the interval), which the auto label precision follows; null on a date axis or with no step. */
   step: number | null;
   /** The axis value distance between the minor ticks on a number scale (the interval split by minorSteps), null without them. */
   minorStep: number | null;
@@ -338,9 +338,9 @@ function warnStep(step: object, kind: 'majors' | 'minors', tooDense: boolean, me
 }
 
 /**
- * The ticks a linear axis's tickStep creates: the multiples of a number interval or the boundaries of a period one,
- * kept by count and offset counted from a fixed origin, with minor ticks from minorSteps or minorInterval between
- * them. The ticks are counted before any is created: a step whose ticks would sit closer than minSpacing along
+ * The ticks a linear axis's tickStep creates: the multiples of a number interval (milliseconds on a date axis) or
+ * the boundaries of a period one, kept by count and offset counted from a fixed origin, with minor ticks from
+ * minorSteps or minorInterval between them. The ticks are counted before any is created: a step whose ticks would sit closer than minSpacing along
  * the axis creates none, and its minor ticks alone are dropped when only they would.
  */
 function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue, AxisValue], axisLength: number, axisName: string, warnings: boolean): LinearStepTicks {
@@ -359,12 +359,57 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
     }
   };
 
+  // the multiples of a number interval counted from origin, kept by count and offset, with the multiples of
+  // minorInterval between them less any on a kept tick; a minor tick nearer a kept tick than minorInterval is hidden
+  const getMultipleTicks = (interval: number, minorInterval: number | null, origin: number, toValue: (index: number, unit: number) => AxisValue): LinearStepTicks | null => {
+    const span = domainMax - domainMin;
+    const majorsDense = tooDense(axisLength * interval * countN / span);
+    warn('majors', majorsDense);
+    if (majorsDense) {
+      return null;
+    }
+    const firstMajor = getFirstKeptStep(Math.ceil((domainMin - origin) / interval - 1e-9), step.count, step.offset);
+    const lastMajor = Math.floor((domainMax - origin) / interval + 1e-9);
+    const majors: AxisValue[] = [];
+    for (let index = firstMajor; index <= lastMajor; index += countN) {
+      majors.push(toValue(index, interval));
+    }
+    const minors: LinearStepTicks['minors'] = [];
+    if (minorInterval !== null) {
+      const minorsDense = tooDense(axisLength * minorInterval / span);
+      warn('minors', minorsDense);
+      if (!minorsDense) {
+        const drawn = (index: number) => index >= firstMajor && index <= lastMajor && keep(index);
+        // a minor tick's place counted in intervals, so a kept tick sits at a whole number
+        const ratio = minorInterval / interval;
+        const lastMinor = Math.floor((domainMax - origin) / minorInterval + 1e-9);
+        for (let index = Math.ceil((domainMin - origin) / minorInterval - 1e-9); index <= lastMinor; index++) {
+          const place = index * ratio;
+          const nearest = Math.round(place);
+          if (Math.abs(place - nearest) < 1e-6 && drawn(nearest)) {
+            continue;
+          }
+          const below = Math.floor(place);
+          const hidden = (drawn(below) && place - below < ratio - 1e-6) || (drawn(below + 1) && below + 1 - place < ratio - 1e-6);
+          minors.push({ value: toValue(index, minorInterval), hidden });
+        }
+      }
+    }
+    return { majors, minors, step: null, minorStep: null };
+  };
+
   if (axisConfig.type === TYPE_DATE) {
-    const period = step.interval;
-    if (typeof period !== 'string') {
+    const { interval, minorInterval = NONE } = step;
+    const dateUTC = axisConfig.dateUTC ?? true;
+    if (typeof interval === 'number') {
+      const origin = getDateIntervalOrigin(dateUTC);
+      const ticks = getMultipleTicks(interval, typeof minorInterval === 'number' ? minorInterval : null, origin, (index, unit) => new Date(origin + index * unit));
+      return ticks ?? noStepTicks;
+    }
+    if (typeof interval !== 'string') {
       return noStepTicks;
     }
-    const dateUTC = axisConfig.dateUTC ?? true;
+    const period = interval;
     const periods = getPeriodIndex(period, dateUTC, new Date(domainMax)) - getPeriodIndex(period, dateUTC, new Date(domainMin)) + 1;
     const majorsDense = tooDense(axisLength * countN / periods);
     warn('majors', majorsDense);
@@ -372,9 +417,9 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
       return noStepTicks;
     }
     const majors = getPeriodBoundaries(period, dateUTC, [new Date(domainMin), new Date(domainMax)]).filter(boundary => keep(getPeriodIndex(period, dateUTC, boundary)));
-    const minorPeriod = step.minorInterval;
     let minors: LinearStepTicks['minors'] = [];
-    if (typeof minorPeriod === 'string') {
+    if (typeof minorInterval === 'string') {
+      const minorPeriod = minorInterval;
       const minorPeriods = getPeriodIndex(minorPeriod, dateUTC, new Date(domainMax)) - getPeriodIndex(minorPeriod, dateUTC, new Date(domainMin)) + 1;
       const minorsDense = tooDense(axisLength / minorPeriods);
       warn('minors', minorsDense);
@@ -403,33 +448,10 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
   if (typeof interval !== 'number') {
     return noStepTicks;
   }
-  const span = domainMax - domainMin;
-  const majorsDense = tooDense(axisLength * interval * countN / span);
-  warn('majors', majorsDense);
-  if (majorsDense) {
-    return noStepTicks;
-  }
-  const majors: AxisValue[] = [];
-  const lastIndex = Math.floor(domainMax / interval + 1e-9);
-  for (let index = getFirstKeptStep(Math.ceil(domainMin / interval - 1e-9), step.count, step.offset); index <= lastIndex; index += countN) {
-    majors.push(multiple(index, interval));
-  }
-  const minors: LinearStepTicks['minors'] = [];
-  if (minorSteps !== NONE) {
-    const minorStep = interval / minorSteps;
-    const minorsDense = tooDense(axisLength * minorStep / span);
-    warn('minors', minorsDense);
-    if (!minorsDense) {
-      for (let index = Math.ceil(domainMin / minorStep - 1e-9); index <= Math.floor(domainMax / minorStep + 1e-9); index++) {
-        // a minor step on a kept tick is that tick; on a tick count skipped it is a minor tick
-        if (index % minorSteps !== 0 || !keep(index / minorSteps)) {
-          minors.push({ value: multiple(index, minorStep), hidden: false });
-        }
-      }
-    }
-  }
+  const minorStep = minorSteps !== NONE ? interval / minorSteps : null;
+  const ticks = getMultipleTicks(interval, minorStep, 0, multiple);
   // the drawn ticks are every count-th multiple, so their spacing is the interval times the count
-  return { majors, minors, step: interval * countN, minorStep: minorSteps !== NONE ? interval / minorSteps : null };
+  return ticks === null ? noStepTicks : { ...ticks, step: interval * countN, minorStep };
 }
 
 /** The smallest gap between the explicit number ticks, the step their auto label precision follows; null with fewer than two. */

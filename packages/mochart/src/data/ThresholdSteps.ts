@@ -1,6 +1,6 @@
 import { deepMerge } from '../config/core/deepMerge.js';
 import { getThresholdEntryDefaults } from '../config/defaults/axisConfig.js';
-import { getFirstKeptStep, getNextPeriodStart, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
+import { getDateIntervalOrigin, getFirstKeptStep, getNextPeriodStart, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
 import { NONE, SCALE_ORDINAL, TYPE_DATE } from '../config/core/constants.js';
 import type { ResolvedThreshold } from '../config/defaults/axisConfig.js';
 import type { CategoryAxisThresholdStepConfig } from '../types/config.js';
@@ -23,16 +23,12 @@ function toThresholdValue(categoryValue: CategoryValue): number | string {
 function getSteppedThresholdSpacing(axisConfig: ThresholdStepAxisConfig, domainMin: number, domainMax: number, axisLength: number): number {
   const step = axisConfig.thresholdStep;
   const dateUTC = axisConfig.dateUTC ?? true;
-  if (axisConfig.type === TYPE_DATE) {
-    const period = step.interval;
-    if (typeof period !== 'string') {
-      return Infinity;
-    }
+  const { interval } = step;
+  if (axisConfig.type === TYPE_DATE && typeof interval === 'string') {
     // the periods touching the domain, including the one under way at its start
-    const periods = getPeriodIndex(period, dateUTC, new Date(domainMax)) - getPeriodIndex(period, dateUTC, new Date(domainMin)) + 1;
+    const periods = getPeriodIndex(interval, dateUTC, new Date(domainMax)) - getPeriodIndex(interval, dateUTC, new Date(domainMin)) + 1;
     return axisLength * step.count / periods;
   }
-  const { interval } = step;
   if (typeof interval !== 'number' || !(interval > 0)) {
     return Infinity;
   }
@@ -52,10 +48,11 @@ export function steppedThresholdsFit(axisConfig: ThresholdStepAxisConfig, axisDo
 /**
  * The thresholds a thresholdStep rule expands to: one line or range per selected candidate, sharing the
  * rule's style and fill. The candidates are the ordinal categories (or the first of each period), the period
- * boundaries of a linear date axis, or the multiples of the interval on a number scale. An ordinal threshold
- * names its category the way an explicit entry does, by the category's key, so the keys are given alongside
- * the values the candidates are found from; they are the values themselves without a keyProperty. On a linear
- * axis the rule draws nothing when its thresholds would be closer than minSpacing along an axis of axisLength pixels.
+ * boundaries of a linear date axis, or the multiples of a number interval, milliseconds on a date axis. An
+ * ordinal threshold names its category the way an explicit entry does, by the category's key, so the keys are
+ * given alongside the values the candidates are found from; they are the values themselves without a
+ * keyProperty. On a linear axis the rule draws nothing when its thresholds would be closer than minSpacing along
+ * an axis of axisLength pixels.
  */
 export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDomain: [number | Date | null, number | Date | null], categoryValues: readonly CategoryValue[] | null, categoryKeys: readonly CategoryValue[] | null = categoryValues, axisLength = Infinity): ResolvedThreshold[] {
   const step = axisConfig.thresholdStep;
@@ -93,11 +90,9 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
   // origin), not on where the domain starts, so the same steps keep their shapes as the data moves the domain
   const keep = (index: number) => ((index - step.offset) % step.count + step.count) % step.count === 0;
 
-  if (axisConfig.type === TYPE_DATE) {
-    const period = step.interval;
-    if (typeof period !== 'string') {
-      return thresholds;
-    }
+  const { interval } = step;
+  if (axisConfig.type === TYPE_DATE && typeof interval === 'string') {
+    const period = interval;
     // the period holding the domain start counts too, so a range already under way is drawn clipped
     let boundary = getPeriodStart(period, dateUTC, new Date(domainMin));
     while (boundary.getTime() <= domainMax) {
@@ -110,15 +105,16 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
     return thresholds;
   }
 
-  const { interval } = step;
   if (typeof interval !== 'number' || !(interval > 0)) {
     return thresholds;
   }
-  const firstMultiple = Math.floor(domainMin / interval);
+  // a number interval counts its multiples from 0, or on a date axis in milliseconds from the epoch
+  const origin = axisConfig.type === TYPE_DATE ? getDateIntervalOrigin(dateUTC) : 0;
+  const firstMultiple = Math.floor((domainMin - origin) / interval);
   // a line sits at each multiple up to the domain max; a range starting at the top multiple would lie wholly outside the domain
-  const lastMultiple = step.range ? Math.ceil(domainMax / interval) - 1 : Math.floor(domainMax / interval + 1e-9);
+  const lastMultiple = step.range ? Math.ceil((domainMax - origin) / interval) - 1 : Math.floor((domainMax - origin) / interval + 1e-9);
   for (let multiple = getFirstKeptStep(firstMultiple, step.count, step.offset); multiple <= lastMultiple; multiple += step.count) {
-    add(multiple * interval, (multiple + 1) * interval);
+    add(origin + multiple * interval, origin + (multiple + 1) * interval);
   }
   return thresholds;
 }
