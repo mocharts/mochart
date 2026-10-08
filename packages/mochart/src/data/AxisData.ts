@@ -1007,9 +1007,15 @@ function getTickCount(axisConfig: AxisConfigBase, axisRangeExtent: number, axisD
   return count;
 }
 
-/** The decimal places needed to write a step exactly (0.25 needs 2, 2.5 needs 1, 250 none), read from its shortest decimal form. */
+/**
+ * The decimal places needed to write a step exactly (0.25 needs 2, 2.5 needs 1, 250 none), read from its shortest
+ * decimal form. A step that fills all 12 digits never ends (1 / 3) and takes two significant digits instead.
+ */
 function getStepDecimals(step: number): number {
   const [mantissa, exponent = '0'] = Math.abs(step).toPrecision(12).split('e');
+  if (mantissa.replace('.', '').replace(/^0+/, '').replace(/0+$/, '').length >= 12) {
+    return Math.max(0, 1 - getExponent(step));
+  }
   const dot = mantissa.indexOf('.');
   const mantissaDecimals = dot === -1 ? 0 : mantissa.replace(/0+$/, '').length - dot - 1;
   return Math.max(0, mantissaDecimals - Number(exponent));

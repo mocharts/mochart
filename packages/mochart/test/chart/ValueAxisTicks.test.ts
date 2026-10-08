@@ -152,6 +152,19 @@ describe('value axis tick step label precision', () => {
     chart.destroy();
   });
 
+  // a step that never ends in decimals took the 12 digits of its toPrecision form: 0.333333333333
+  it('names a step with no exact decimal form to two significant digits', () => {
+    const thirds = renderChart({ min: 0, max: 3, minorTickLabel: { visible: true }, tickStep: { interval: 1, minorSteps: 3 } }, 600);
+    expect(getAxisLabels(thirds.container)).toEqual(['0', '0.33', '0.67', '1', '1.33', '1.67', '2', '2.33', '2.67', '3']);
+    thirds.chart.destroy();
+    const majors = renderChart({ min: 0, max: 3, maxTickCount: 20, tickStep: { interval: 1 / 3 } }, 600);
+    expect(getAxisLabels(majors.container).slice(0, 5)).toEqual(['0.00', '0.33', '0.67', '1.00', '1.33']);
+    majors.chart.destroy();
+    const thousands = renderChart({ min: 0, max: 3000, minorTickLabel: { visible: true }, tickStep: { interval: 1000, minorSteps: 3 } }, 600);
+    expect(getAxisLabels(thousands.container).slice(0, 4)).toEqual(['0k', '0.33k', '0.67k', '1k']);
+    thousands.chart.destroy();
+  });
+
   it('keeps a specifier precision and derives an open one for other format types', () => {
     const fixed = renderChart({ min: 0, max: 3, maxTickCount: 20, tickLabel: { format: '.1f' }, tickStep: { interval: 0.25 } }, 600);
     // the specifier's own precision stands, so the quarter ticks round the way they did before

@@ -3344,12 +3344,13 @@ export interface AxisTickStepConfig {
    * counted from 0, so the ticks stay put as the data moves the domain. Setting
    * it never changes the automatic min and max of the axis, it only chooses
    * where the ticks go. A `tickLabel.format` without a precision of its own,
-   * `"auto"` included, names the ticks exactly: the precision follows the
-   * spacing of the ticks drawn, so an interval of 0.25 reads 0.25 and a
-   * `minorSteps` of 4 on an interval of 1 reads 0.25 too. When more ticks
-   * survive than fit, every k-th survivor is kept from the first, and a tick
-   * thinned away stays a hidden tick: its minor ticks are kept, and it never
-   * becomes one.
+   * `"auto"` included, takes its precision from the spacing of the ticks drawn:
+   * an interval of 0.25 reads 0.25, a `minorSteps` of 4 on an interval of 1
+   * reads 0.25 too, and a spacing with no exact decimal form, such as a
+   * `minorSteps` of 3 on an interval of 1, reads to two significant digits:
+   * 0.33, 0.67. When more ticks survive than fit, every k-th survivor is kept
+   * from the first, and a tick thinned away stays a hidden tick: its minor
+   * ticks are kept, and it never becomes one.
    *
    * @default null
    */
@@ -3438,19 +3439,21 @@ export interface CategoryAxisTickStepConfig extends Omit<AxisTickStepConfig, 'in
    * false a daylight saving change moves them an hour against the local clock,
    * which a period does not. Setting it never changes the automatic min and max
    * of the axis, it only chooses where the ticks go. On a number axis a
-   * `tickLabel.format` without a precision of its own, `"auto"` included, names
-   * the ticks exactly: the precision follows the spacing of the ticks drawn, so
-   * an interval of 0.25 reads 0.25 and a `minorSteps` of 4 on an interval of 1
-   * reads 0.25 too. When more ticks survive than fit, every k-th survivor is
-   * kept from the first, and a tick thinned away stays a hidden tick: its minor
-   * ticks are kept, and it never becomes one. A period steps by the calendar: a
-   * week starts on Monday and the boundaries follow `dateUTC`, so a daily
-   * series with `"week"` gets a tick at each week's first trading day whatever
-   * the holidays. A partial first week is a period of its own, so its first
-   * category gets a tick too; `offset: 1` skips it. On a linear date axis the
-   * ticks sit on the period boundaries themselves. An ordinal date axis takes
-   * only a period, since its ticks are categories rather than positions a
-   * number of milliseconds could step through.
+   * `tickLabel.format` without a precision of its own, `"auto"` included, takes
+   * its precision from the spacing of the ticks drawn: an interval of 0.25
+   * reads 0.25, a `minorSteps` of 4 on an interval of 1 reads 0.25 too, and a
+   * spacing with no exact decimal form, such as a `minorSteps` of 3 on an
+   * interval of 1, reads to two significant digits: 0.33, 0.67. When more ticks
+   * survive than fit, every k-th survivor is kept from the first, and a tick
+   * thinned away stays a hidden tick: its minor ticks are kept, and it never
+   * becomes one. A period steps by the calendar: a week starts on Monday and
+   * the boundaries follow `dateUTC`, so a daily series with `"week"` gets a
+   * tick at each week's first trading day whatever the holidays. A partial
+   * first week is a period of its own, so its first category gets a tick too;
+   * `offset: 1` skips it. On a linear date axis the ticks sit on the period
+   * boundaries themselves. An ordinal date axis takes only a period, since its
+   * ticks are categories rather than positions a number of milliseconds could
+   * step through.
    *
    * @default null
    */
