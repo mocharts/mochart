@@ -55,20 +55,20 @@ import * as tickStep from '../examples/tickStep'
 A daily ordinal axis has more categories than fit as labels, and the generated
 ticks are thinned by skipping every Nth category, which lands on arbitrary days.
 [`tickStep`](/reference/categoryAxis#categoryAxis.tickStep) chooses the ticks by
-rule instead. With a `period` on a date axis the first category of each period
-gets the tick, here each week's first trading day, and that holds through
-holidays and as the data window slides:
+rule instead. With a period as the `interval` on a date axis the first category
+of each period gets the tick, here each week's first trading day, and that
+holds through holidays and as the data window slides:
 
 <LiveChart :config="tickStep.config" :data="tickStep.data" demo="candlestick" />
 
 <<< @/examples/tickStep.ts{15}
 
-- `period` is `second`, `minute`, `hour`, `day`, `week`, `month` or `year`;
-  weeks start on Monday and the boundaries follow
+- On a date axis `interval` takes a period: `second`, `minute`, `hour`, `day`,
+  `week`, `month` or `year`; weeks start on Monday and the boundaries follow
   [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC). A
   partial first week is a period of its own, so its first day gets a tick;
   `offset: 1` skips it.
-- `count` and `offset` step through the candidates: `period: 'week'` with
+- `count` and `offset` step through the candidates: `interval: 'week'` with
   `count: 2` labels every second week, and on a string axis
   `count: 5, offset: 3` shows the fourth category and every fifth after it.
   On an ordinal axis, `includeFirst` always keeps the first category.
@@ -88,10 +88,10 @@ holidays and as the data window slides:
   `mochart-axis-minor-tick-label` classes for styling.
 - On a linear date axis the ticks sit on the period boundaries themselves rather
   than on categories, `count` and `offset` keep every count-th boundary, and
-  `minorPeriod` places minor ticks between them: a day inside each week, or a
-  week inside each month. A linear number axis steps by `interval` instead, with
-  `minorSteps` splitting each interval into minor ticks, and value axes take the
-  same `tickStep`.
+  `minorInterval` takes a shorter period to place minor ticks between them: a
+  day inside each week, or a week inside each month. On a linear number axis
+  `interval` takes a number in axis values instead, with `minorSteps` splitting
+  each interval into minor ticks, and value axes take the same `tickStep`.
 
 To name the dates outright instead,
 [`ticks`](/reference/categoryAxis#categoryAxis.ticks) replaces the generated

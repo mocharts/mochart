@@ -361,7 +361,7 @@ function candlestickCategoryAxis(categoryAxis: Partial<CategoryAxisConfig>): Dee
       textStyle: { normal: { fillOpacity: 0.6 }, focused: { fillOpacity: 0.6 }, defocused: { fillOpacity: 0.3 } }
     },
     valueFormat: '%a %b %d',
-    tickStep: { period: 'week' }
+    tickStep: { interval: 'week' }
   };
 }
 const CANDLESTICK_START_PRICE = 100;
@@ -523,7 +523,7 @@ function buildCandlestickLogSnapshot(): ChartTypeDemoSnapshot {
     config: {
       version: '1.0.0',
       title: { text: 'Monthly Share Price (fictional, $)' },
-      categoryAxis: { ...categoryAxis, tickLabel: { format: '%Y' }, valueFormat: '%b %Y', tickStep: { period: 'year' } },
+      categoryAxis: { ...categoryAxis, tickLabel: { format: '%Y' }, valueFormat: '%b %Y', tickStep: { interval: 'year' } },
       // the helper's price/volume pane axes, with the price axis made log by id: the volume axis starts at 0
       valueAxes: valueAxes!.map(axisConfig =>
         axisConfig.id === 'price' ? { ...axisConfig, scale: 'log' as const, title: { text: '$ per share' } } : axisConfig),

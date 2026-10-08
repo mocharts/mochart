@@ -4,7 +4,7 @@ import { filterConfig, getRawIndices } from '../core/configUtils.js';
 import { getPropertyMessage, isConfigObject } from './messages.js';
 import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators.js';
 
-import { AUTO, NONE, MAJOR, ANCHORS, STYLE_SAME, SIDES, SCALE_LOG, SCALE_ORDINAL, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants.js';
+import { AUTO, NONE, MAJOR, ANCHORS, STYLE_SAME, SIDES, SCALE_LOG, SCALE_ORDINAL, STEP_PERIODS, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants.js';
 
 import type { ConfigObject, LocatedValidationMessage } from './messages.js';
 import type { Validator } from '@mochart/movalid';
@@ -59,7 +59,7 @@ export function getMinorTickLabelValidators(): Record<string, Validator> {
   };
 }
 
-/** The tickStep members shared by both axes; the category axis adds period, minorPeriod and includeFirst and narrows the rest to its scales. */
+/** The tickStep members shared by both axes; the category axis adds minorInterval and includeFirst, takes a period as interval on a date axis and narrows the rest to its scales. */
 export function getTickStepValidators(): Record<string, Validator> {
   return {
     interval: thresholdStepIntervalValidator,
@@ -77,7 +77,7 @@ export const positiveNumber = validators.custom((value: unknown) => typeof value
 /** The thresholdStep interval: an axis value distance above 0, or null. */
 export const thresholdStepIntervalValidator = positiveNumber.orEqual(NONE);
 
-/** The thresholdStep members both axes share; the category axis adds period and narrows interval to its number scale. */
+/** The thresholdStep members both axes share; the category axis takes a period as interval on a date axis and a number only on its linear number scale. */
 export function getThresholdStepValidators(): Record<string, Validator> {
   return {
     visible: validators.boolean(),
@@ -348,12 +348,11 @@ function getAxisReporter({ prefix, path, raw }: ValidationAxis, reportedDefaults
   };
 }
 
-const PERIOD_ORDER = ['second', 'minute', 'hour', 'day', 'week', 'month', 'year'];
-const stepNeedsPlacementMessage = 'should be left at its default on a linear axis unless period or interval is set';
+const stepNeedsPlacementMessage = 'should be left at its default on a linear axis unless interval is set';
 const stepOnLogMessage = 'should be left at its default on a log axis, where interval must be null';
-const minorPeriodNeedsPeriodMessage = 'should be null unless period is set';
+const minorIntervalNeedsPeriodMessage = 'should be null unless interval is a period';
 const offsetNeedsCountMessage = 'should be 0 on a linear axis unless count is a number, since every step is kept and there is nothing to shift';
-const minorPeriodTooLongMessage = 'should be a shorter period than period';
+const minorIntervalTooLongMessage = 'should be a shorter period than interval';
 const minorStepsNeedsIntervalMessage = 'should be null unless interval is set';
 const duplicateTickMessage = 'should not repeat the value of another ticks entry';
 
@@ -377,7 +376,7 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
         continue;
       }
       const reportStep = (member: string, message: string) => report([groupKey, member], groupKey + '.' + member, message);
-      const placed = !log && ((step['period'] !== undefined && step['period'] !== NONE) || (step['interval'] !== undefined && step['interval'] !== NONE));
+      const placed = !log && step['interval'] !== undefined && step['interval'] !== NONE;
       if (linear && !placed) {
         if (step['count'] !== defaultCount) {
           reportStep('count', placementMessage);
@@ -391,14 +390,14 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
         reportStep('offset', offsetNeedsCountMessage);
       }
       if (groupKey === 'tickStep') {
-        const minorPeriod = step['minorPeriod'];
-        if (typeof minorPeriod === 'string') {
-          const period = step['period'];
-          if (typeof period !== 'string') {
-            reportStep('minorPeriod', minorPeriodNeedsPeriodMessage);
+        const minorInterval = step['minorInterval'];
+        if (typeof minorInterval === 'string') {
+          const interval = step['interval'];
+          if (typeof interval !== 'string') {
+            reportStep('minorInterval', minorIntervalNeedsPeriodMessage);
           }
-          else if (PERIOD_ORDER.indexOf(minorPeriod) >= PERIOD_ORDER.indexOf(period)) {
-            reportStep('minorPeriod', minorPeriodTooLongMessage);
+          else if (STEP_PERIODS.indexOf(minorInterval) >= STEP_PERIODS.indexOf(interval)) {
+            reportStep('minorInterval', minorIntervalTooLongMessage);
           }
         }
         if (!log && typeof step['minorSteps'] === 'number' && (step['interval'] === undefined || step['interval'] === NONE)) {

@@ -1870,9 +1870,9 @@ export interface AxisThresholdStepConfig {
    * Every count-th step is kept (2 keeps every other one) as a threshold.
    *
    * A number means the same in `tickStep` and `thresholdStep`: every count-th
-   * step. On a linear axis `count` and `offset` need a `period` or `interval`
-   * to count, so setting either without one is a validation error. A log axis
-   * takes no interval, so setting either there is one too.
+   * step. On a linear axis `count` and `offset` need an `interval` to count, so
+   * setting either without one is a validation error. A log axis takes no
+   * interval, so setting either there is one too.
    *
    * @default 1
    */
@@ -1883,9 +1883,9 @@ export interface AxisThresholdStepConfig {
    * calendar origin.
    *
    * A number means the same in `tickStep` and `thresholdStep`: every count-th
-   * step. On a linear axis `count` and `offset` need a `period` or `interval`
-   * to count, so setting either without one is a validation error. A log axis
-   * takes no interval, so setting either there is one too.
+   * step. On a linear axis `count` and `offset` need an `interval` to count, so
+   * setting either without one is a validation error. A log axis takes no
+   * interval, so setting either there is one too.
    *
    * @default 0
    */
@@ -1951,19 +1951,21 @@ export interface AxisThresholdStepConfig {
   gradient: string | null;
 }
 
-export interface CategoryAxisThresholdStepConfig extends AxisThresholdStepConfig {
+export interface CategoryAxisThresholdStepConfig extends Omit<AxisThresholdStepConfig, 'interval'> {
   /**
-   * The calendar period the thresholds step by on a date axis (second, minute,
-   * hour, day, week, month, year; use null for none).
+   * The distance the thresholds step by: a number in axis values on a linear
+   * number axis, or a calendar period (second, minute, hour, day, week, month,
+   * year) on a date axis (use null for none, as a log axis must).
    *
-   * Weeks start on Monday and the boundaries follow `dateUTC`. On an ordinal
-   * axis the steps are the first category of each period, so `"week"` with
-   * `count: 2` draws a range over every other week whatever the holidays; on a
-   * linear date axis they are the period boundaries themselves.
+   * A number steps by its multiples, counted from 0. A period steps by the
+   * calendar: weeks start on Monday and the boundaries follow `dateUTC`. On an
+   * ordinal axis the steps are the first category of each period, so `"week"`
+   * with `count: 2` draws a range over every other week whatever the holidays;
+   * on a linear date axis they are the period boundaries themselves.
    *
    * @default null
    */
-  period: StepPeriod | null;
+  interval: number | StepPeriod | null;
 }
 
 /**
@@ -3019,60 +3021,12 @@ export interface AxisConfigBase {
    */
   thresholds: ThresholdConfig[];
   /**
-   * Threshold lines or ranges repeated along the axis by rule.
-   *
-   * The steps follow the scale: on an ordinal axis the categories, so `count:
-   * 2` stripes alternate categories, or under a `period` the first category of
-   * each period; on a linear date axis the period boundaries; on a linear
-   * number axis the multiples of `interval`; and with neither a period nor an
-   * interval, which a log axis never takes, nothing is drawn. A linear scale
-   * counts its periods from a fixed calendar origin and its multiples from 0,
-   * so the same steps keep their shapes as the data moves the domain. The
-   * stepped thresholds draw after the `thresholds` entries and carry no title;
-   * on a linear axis `minSpacing` keeps a rule from flooding the axis.
-   *
-   * Category axis default: `{ visible: false, interval: null, count: 1, offset:
-   * 0, minSpacing: 2, range: true, front: false, style: { … }, pattern: null,
-   * gradient: null, period: null }`.
-   * Value axis default: `{ visible: false, interval: null, count: 1, offset: 0,
-   * minSpacing: 2, range: true, front: false, style: { … }, pattern: null,
-   * gradient: null }`.
-   */
-  thresholdStep: AxisThresholdStepConfig;
-  /**
    * The number of ticks to show along the length of the axis (use "auto" to
    * derive the tick count from the data).
    *
    * @default "auto"
    */
   tickCount: number | Auto;
-  /**
-   * The step between the ticks shown along the axis, with minor ticks between
-   * them.
-   *
-   * Chooses the ticks by rule rather than by a list, so the choice holds as the
-   * data changes; explicit `ticks` take precedence. On an ordinal axis the
-   * candidates are the categories in order, or under a `period` the first
-   * category of each period, `count` and `offset` step through them, and the
-   * categories between the ticks are minor ticks. On a linear axis a `period`
-   * (date) or `interval` (number) places the ticks on the period boundaries or
-   * the multiples of the interval, `count` and `offset` keep every count-th of
-   * them counted from a fixed starting point, and `minorPeriod` or `minorSteps`
-   * places minor ticks between them; without a period or interval the axis
-   * keeps the ticks it picks. A log axis takes neither, since equal distances
-   * in values take unequal lengths there, so it always keeps the ticks it
-   * picks. The minor tick marks, grid lines and labels carry the
-   * `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and
-   * `mochart-axis-minor-tick-label` classes, and `minorTickLabel`,
-   * `minorTickMark` and `minorGridLine` say how they are drawn.
-   *
-   * Category axis default: `{ interval: null, count: "auto", offset: 0,
-   * minorSteps: null, minSpacing: 2, period: null, minorPeriod: null,
-   * includeFirst: false }`.
-   * Value axis default: `{ interval: null, count: "auto", offset: 0,
-   * minorSteps: null, minSpacing: 2 }`.
-   */
-  tickStep: AxisTickStepConfig;
   /**
    * The labels shown at each tick along the axis.
    *
@@ -3092,7 +3046,7 @@ export interface AxisConfigBase {
    *
    * A minor tick is one a `tickStep` places between its own ticks (the
    * categories between an ordinal step's ticks, the `minorSteps` or
-   * `minorPeriod` ticks of a linear step), one a log axis places at the
+   * `minorInterval` ticks of a linear step), one a log axis places at the
    * multiples from 2 to 9 that are not ticks or at the powers of 10 it skips,
    * or a `ticks` entry marked `minor`. Each member is named after the
    * `tickLabel` member it stands in for, and `"major"` uses the value of that
@@ -3270,21 +3224,22 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    *
    * Chooses the ticks by rule rather than by a list, so the choice holds as the
    * data changes; explicit `ticks` take precedence. On an ordinal axis the
-   * candidates are the categories in order, or under a `period` the first
-   * category of each period, `count` and `offset` step through them, and the
-   * categories between the ticks are minor ticks. On a linear axis a `period`
-   * (date) or `interval` (number) places the ticks on the period boundaries or
-   * the multiples of the interval, `count` and `offset` keep every count-th of
-   * them counted from a fixed starting point, and `minorPeriod` or `minorSteps`
-   * places minor ticks between them; without a period or interval the axis
-   * keeps the ticks it picks. A log axis takes neither, since equal distances
-   * in values take unequal lengths there, so it always keeps the ticks it
-   * picks. The minor tick marks, grid lines and labels carry the
-   * `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and
-   * `mochart-axis-minor-tick-label` classes, and `minorTickLabel`,
-   * `minorTickMark` and `minorGridLine` say how they are drawn.
+   * candidates are the categories in order, or with a period as the `interval`
+   * the first category of each period, `count` and `offset` step through them,
+   * and the categories between the ticks are minor ticks. On a linear axis
+   * `interval` places the ticks on the period boundaries (a period on a date
+   * axis) or the multiples of the interval (a number on a number axis), `count`
+   * and `offset` keep every count-th of them counted from a fixed starting
+   * point, and `minorInterval` or `minorSteps` places minor ticks between them;
+   * without an interval the axis keeps the ticks it picks. A log axis takes no
+   * interval, since equal distances in values take unequal lengths there, so it
+   * always keeps the ticks it picks. The minor tick marks, grid lines and
+   * labels carry the `mochart-axis-minor-tick-mark`,
+   * `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes,
+   * and `minorTickLabel`, `minorTickMark` and `minorGridLine` say how they are
+   * drawn.
    *
-   * @default { interval: null, count: "auto", offset: 0, minorSteps: null, minSpacing: 2, period: null, minorPeriod: null, includeFirst: false }
+   * @default { interval: null, count: "auto", offset: 0, minorSteps: null, minSpacing: 2, minorInterval: null, includeFirst: false }
    */
   tickStep: CategoryAxisTickStepConfig;
   /**
@@ -3298,7 +3253,7 @@ export interface CategoryAxisConfig extends AxisConfigBase {
    *
    * A minor tick is one a `tickStep` places between its own ticks (the
    * categories between an ordinal step's ticks, the `minorSteps` or
-   * `minorPeriod` ticks of a linear step), one a log axis places at the
+   * `minorInterval` ticks of a linear step), one a log axis places at the
    * multiples from 2 to 9 that are not ticks or at the powers of 10 it skips,
    * or a `ticks` entry marked `minor`. Each member is named after the
    * `tickLabel` member it stands in for, and `"major"` uses the value of that
@@ -3315,17 +3270,18 @@ export interface CategoryAxisConfig extends AxisConfigBase {
   /**
    * Threshold lines or ranges repeated along the axis by rule.
    *
-   * The steps follow the scale: on an ordinal axis the categories, so `count:
-   * 2` stripes alternate categories, or under a `period` the first category of
-   * each period; on a linear date axis the period boundaries; on a linear
-   * number axis the multiples of `interval`; and with neither a period nor an
-   * interval, which a log axis never takes, nothing is drawn. A linear scale
-   * counts its periods from a fixed calendar origin and its multiples from 0,
-   * so the same steps keep their shapes as the data moves the domain. The
-   * stepped thresholds draw after the `thresholds` entries and carry no title;
-   * on a linear axis `minSpacing` keeps a rule from flooding the axis.
+   * The steps follow the scale and `interval`: on an ordinal axis the
+   * categories, so `count: 2` stripes alternate categories, or with a period as
+   * the `interval` the first category of each period; on a linear date axis the
+   * boundaries of the `interval` period; on a linear number axis the multiples
+   * of the `interval` number; and on a linear axis with no interval, or a log
+   * axis, which never takes one, nothing is drawn. A linear scale counts its
+   * periods from a fixed calendar origin and its multiples from 0, so the same
+   * steps keep their shapes as the data moves the domain. The stepped
+   * thresholds draw after the `thresholds` entries and carry no title; on a
+   * linear axis `minSpacing` keeps a rule from flooding the axis.
    *
-   * @default { visible: false, interval: null, count: 1, offset: 0, minSpacing: 2, range: true, front: false, style: { … }, pattern: null, gradient: null, period: null }
+   * @default { visible: false, interval: null, count: 1, offset: 0, minSpacing: 2, range: true, front: false, style: { … }, pattern: null, gradient: null }
    */
   thresholdStep: CategoryAxisThresholdStepConfig;
   /**
@@ -3395,14 +3351,14 @@ export interface AxisTickStepConfig {
    *
    * Counts through the candidates, the categories or the period starts: `count:
    * 5, offset: 3` shows the fourth category and every fifth after it, and
-   * `period: "week"` with `count: 2` gives every second week. When more ticks
+   * `interval: "week"` with `count: 2` gives every second week. When more ticks
    * survive the rule than fit, every k-th survivor is kept starting from the
    * first, so thinned Mondays stay Mondays; `tickLabel.truncation` still
    * decides whether crowded labels truncate or skip. A number means the same in
    * `tickStep` and `thresholdStep`: every count-th step. On a linear axis it
-   * needs a `period` or `interval` to count, and is counted from a fixed
-   * starting point, so setting it without one is a validation error. A log axis
-   * takes no interval, so setting it there is one too.
+   * needs an `interval` to count, and is counted from a fixed starting point,
+   * so setting it without one is a validation error. A log axis takes no
+   * interval, so setting it there is one too.
    *
    * @default "auto"
    */
@@ -3412,12 +3368,12 @@ export interface AxisTickStepConfig {
    * shifts which multiples or periods are kept, counted from 0 or the calendar
    * origin.
    *
-   * Counted in candidates, so under a `period` an offset of 1 skips the first
-   * period rather than the first category. On a linear axis it needs a `period`
-   * or `interval` to count, so setting it without one is a validation error,
-   * and a log axis takes no interval, so setting it there is one too. It shifts
-   * which count-th step is kept, so setting it while `count` is `"auto"` (every
-   * step kept) is also an error.
+   * Counted in candidates, so with a period as the `interval` an offset of 1
+   * skips the first period rather than the first category. On a linear axis it
+   * needs an `interval` to count, so setting it without one is a validation
+   * error, and a log axis takes no interval, so setting it there is one too. It
+   * shifts which count-th step is kept, so setting it while `count` is `"auto"`
+   * (every step kept) is also an error.
    *
    * @default 0
    */
@@ -3446,45 +3402,57 @@ export interface AxisTickStepConfig {
    * number the step would create, so a step that would create thousands of
    * ticks never builds them. When the minor ticks would be closer together than
    * this, none are created; when the ticks themselves would be, the step
-   * creates none either and the axis uses the ticks it picks, as if `period`
-   * and `interval` were null. Both cases log a console warning naming the axis.
-   * Explicit `ticks` are never limited, and an ordinal axis cannot create more
-   * ticks than it has categories, so it accepts only the default.
+   * creates none either and the axis uses the ticks it picks, as if `interval`
+   * were null. Both cases log a console warning naming the axis. Explicit
+   * `ticks` are never limited, and an ordinal axis cannot create more ticks
+   * than it has categories, so it accepts only the default.
    *
    * @default 2
    */
   minSpacing: number;
 }
 
-export interface CategoryAxisTickStepConfig extends AxisTickStepConfig {
+export interface CategoryAxisTickStepConfig extends Omit<AxisTickStepConfig, 'interval'> {
   /**
-   * The calendar period the ticks step by on a date axis (second, minute, hour,
-   * day, week, month, year; use null for none).
+   * The distance between the ticks: a number in axis values on a linear number
+   * axis, or a calendar period (second, minute, hour, day, week, month, year)
+   * on a date axis (use null to keep the ticks the axis picks, as a log axis
+   * must).
    *
-   * A week starts on Monday and the boundaries follow `dateUTC`, so a daily
-   * series with `"week"` gets a tick at each week's first trading day whatever
-   * the holidays. A partial first week is a period of its own, so its first
-   * category gets a tick too; `offset: 1` skips it. On a linear date axis the
-   * ticks sit on the period boundaries themselves.
+   * A number places a tick at every multiple of it inside the axis domain,
+   * counted from 0, so the ticks stay put as the data moves the domain. Setting
+   * it never changes the automatic min and max of the axis, it only chooses
+   * where the ticks go. A `tickLabel.format` without a precision of its own,
+   * `"auto"` included, names the ticks exactly: the precision follows the
+   * spacing of the ticks drawn, so an interval of 0.25 reads 0.25 and a
+   * `minorSteps` of 4 on an interval of 1 reads 0.25 too. When more ticks
+   * survive than fit, every k-th survivor is kept from the first, and a tick
+   * thinned away stays a hidden tick: its minor ticks are kept, and it never
+   * becomes one. A period steps by the calendar: a week starts on Monday and
+   * the boundaries follow `dateUTC`, so a daily series with `"week"` gets a
+   * tick at each week's first trading day whatever the holidays. A partial
+   * first week is a period of its own, so its first category gets a tick too;
+   * `offset: 1` skips it. On a linear date axis the ticks sit on the period
+   * boundaries themselves.
    *
    * @default null
    */
-  period: StepPeriod | null;
+  interval: number | StepPeriod | null;
   /**
-   * The calendar period of the minor ticks placed between the period ticks on a
-   * linear date axis (second, minute, hour, day, week, month, year, shorter
-   * than period; use null for none).
+   * The distance between the minor ticks placed between the ticks on a linear
+   * date axis: a calendar period (second, minute, hour, day, week, month, year)
+   * shorter than the `interval` period (use null for none).
    *
-   * Needs a `period`, and must be a shorter period than it: a week inside a
-   * month, a day inside a week, or an hour inside a day. A minor tick on a tick
-   * the step keeps is dropped, and a tick inside a minor period hides the minor
-   * ticks at both ends of that period, such as the Mondays either side of the
-   * 1st of a month, with their tick marks and grid lines; a tick on a minor
-   * boundary hides none.
+   * Needs a period as the `interval`, and must be a shorter period than it: a
+   * week inside a month, a day inside a week, or an hour inside a day. A minor
+   * tick on a tick the step keeps is dropped, and a tick inside a minor period
+   * hides the minor ticks at both ends of that period, such as the Mondays
+   * either side of the 1st of a month, with their tick marks and grid lines; a
+   * tick on a minor boundary hides none.
    *
    * @default null
    */
-  minorPeriod: StepPeriod | null;
+  minorInterval: number | StepPeriod | null;
   /**
    * Whether the first category always gets a tick, even when count and offset
    * would skip it (ordinal scale only; a linear or log axis accepts only
@@ -3588,6 +3556,38 @@ export interface ValueAxisConfig extends AxisConfigBase {
    * @default { visible: true, front: false, anchor: "auto", backgroundStyle: { … }, size: "auto", marginInner: 2, marginOuter: 1, paddingInner: 5, paddingOuter: 5, format: "auto", prefix: null, suffix: null, rotation: 0, textStyle: { … }, font: { … }, adjustSizeForFiltering: false }
    */
   tickLabel: ValueAxisTickLabelConfig;
+  /**
+   * Threshold lines or ranges repeated along the axis by rule.
+   *
+   * The steps are the multiples of `interval`, anchored at 0, from the last one
+   * at or below the axis minimum, so a range already under way at the domain
+   * edge is drawn clipped rather than left out; with no interval nothing is
+   * drawn, and a log axis takes no interval. The ranges follow the domain as it
+   * changes, draw after the `thresholds` entries and carry no title;
+   * `minSpacing` keeps a rule from flooding the axis.
+   *
+   * @default { visible: false, interval: null, count: 1, offset: 0, minSpacing: 2, range: true, front: false, style: { … }, pattern: null, gradient: null }
+   */
+  thresholdStep: AxisThresholdStepConfig;
+  /**
+   * The step between the ticks shown along the axis, with minor ticks between
+   * them.
+   *
+   * Chooses the ticks by rule rather than by a list, so the choice holds as the
+   * data changes; explicit `ticks` take precedence. An `interval` places the
+   * ticks on its multiples, `count` and `offset` keep every count-th of them
+   * counted from 0, and `minorSteps` places minor ticks between them; without
+   * an interval the axis keeps the ticks it picks. A log axis takes no
+   * interval, since equal distances in values take unequal lengths there, so it
+   * always keeps the ticks it picks. The minor tick marks, grid lines and
+   * labels carry the `mochart-axis-minor-tick-mark`,
+   * `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes,
+   * and `minorTickLabel`, `minorTickMark` and `minorGridLine` say how they are
+   * drawn.
+   *
+   * @default { interval: null, count: "auto", offset: 0, minorSteps: null, minSpacing: 2 }
+   */
+  tickStep: AxisTickStepConfig;
   /**
    * Whether the axis should be visible when all series belonging to it are
    * filtered.

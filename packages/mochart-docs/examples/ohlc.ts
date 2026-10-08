@@ -28,7 +28,7 @@ export const config: MochartInputConfig = {
       textStyle: { normal: { fillOpacity: 0.6 }, focused: { fillOpacity: 0.6 }, defocused: { fillOpacity: 0.3 } }
     },
     valueFormat: '%a %b %d',
-    tickStep: { period: 'week' }
+    tickStep: { interval: 'week' }
   },
   valueAxes: [{ title: { text: '$ per share' } }],
   series: ohlc.series

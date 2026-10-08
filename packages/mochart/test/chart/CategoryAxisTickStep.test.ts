@@ -1,8 +1,8 @@
 /**
  * `tickStep`: which ticks an axis shows by rule. An ordinal axis keeps every count-th category from an
- * offset, or under a period the first category of each calendar period, thinned to what fits, and the
+ * offset, or with a period as the interval the first category of each calendar period, thinned to what fits, and the
  * categories between are minor ticks. A linear axis places its ticks on period boundaries or interval
- * multiples with minor ticks between them from minorPeriod or minorSteps. minorTickLabel, minorTickMark and
+ * multiples with minor ticks between them from minorInterval or minorSteps. minorTickLabel, minorTickMark and
  * minorGridLine draw the minor ticks, and minor labels show only where they fit beside their neighbours.
  */
 import { describe, it, beforeAll, expect, vi } from 'vitest';
@@ -95,34 +95,34 @@ describe('category axis tick step on an ordinal axis', () => {
   it('steps by week to the first trading day of each week, across a holiday and a partial first week', () => {
     // Wednesday June 3 2026 start; Monday June 8 is a holiday, so that week starts on the Tuesday
     const dates = weekdays('2026-06-03', 19, ['2026-06-08']);
-    const { container, chart } = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { period: 'week' } }, dateRows(dates));
+    const { container, chart } = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { interval: 'week' } }, dateRows(dates));
     expect(getAxisLabels(container)).toEqual(['Jun 03', 'Jun 09', 'Jun 15']);
     chart.destroy();
   });
 
   it('skips the partial first week with an offset, and steps every second week with a count', () => {
     const dates = weekdays('2026-06-03', 33);
-    const skipped = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { period: 'week', offset: 1 } }, dateRows(dates));
+    const skipped = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { interval: 'week', offset: 1 } }, dateRows(dates));
     expect(getAxisLabels(skipped.container)).toEqual(['Jun 08', 'Jun 15', 'Jun 22', 'Jun 29']);
     skipped.chart.destroy();
-    const fortnightly = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { period: 'week', count: 2 } }, dateRows(dates));
+    const fortnightly = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { interval: 'week', count: 2 } }, dateRows(dates));
     expect(getAxisLabels(fortnightly.container)).toEqual(['Jun 03', 'Jun 15', 'Jun 29']);
     fortnightly.chart.destroy();
   });
 
   it('steps by month and year to the first category of each period', () => {
     const dates = ['2025-11-10', '2025-11-24', '2025-12-08', '2026-01-05', '2026-01-19', '2026-02-02'];
-    const monthly = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { period: 'month' } }, dateRows(dates));
+    const monthly = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { interval: 'month' } }, dateRows(dates));
     expect(getAxisLabels(monthly.container)).toEqual(['Nov 10', 'Dec 08', 'Jan 05', 'Feb 02']);
     monthly.chart.destroy();
-    const yearly = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%Y' }, tickStep: { period: 'year' } }, dateRows(dates));
+    const yearly = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%Y' }, tickStep: { interval: 'year' } }, dateRows(dates));
     expect(getAxisLabels(yearly.container)).toEqual(['2025', '2026']);
     yearly.chart.destroy();
   });
 
   it('thins the surviving ticks to what fits, keeping them on the rule', () => {
     const dates = weekdays('2026-06-01', 26 * 7);
-    const { container, chart } = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { period: 'week' } }, dateRows(dates), 300);
+    const { container, chart } = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { interval: 'week' } }, dateRows(dates), 300);
     const labels = getAxisLabels(container);
     expect(labels.length).toBeGreaterThan(1);
     expect(labels.length).toBeLessThan(26);
@@ -142,7 +142,7 @@ describe('category axis tick step on an ordinal axis', () => {
     // Jun 1 alone, Jun 8 to 12, Jun 15 alone, Jun 22 to 26, Jun 29 alone, Jul 6 to 10: three ticks sit one slot after another
     const dates = ['2026-06-01', ...weekdays('2026-06-08', 5), '2026-06-15', ...weekdays('2026-06-22', 5), '2026-06-29', ...weekdays('2026-07-06', 5)];
     // the shims measure no label width, so the spacing alone is the room a tick needs: 80px against 33px slots at 600px wide
-    const weekly = { type: 'date', scale: 'ordinal', minTickSpacing: 80, tickLabel: { format: '%b %d' }, tickStep: { period: 'week' } };
+    const weekly = { type: 'date', scale: 'ordinal', minTickSpacing: 80, tickLabel: { format: '%b %d' }, tickStep: { interval: 'week' } };
     const roomy = renderChart(weekly, dateRows(dates), 2400);
     expect(getAxisLabels(roomy.container)).toEqual(['Jun 01', 'Jun 08', 'Jun 15', 'Jun 22', 'Jun 29', 'Jul 06']);
     roomy.chart.destroy();
@@ -165,7 +165,7 @@ describe('category axis tick step on an ordinal axis', () => {
 describe('category axis tick step minor labels', () => {
   // Wednesday June 3 2026 start with Monday June 8 a holiday: Jun 03, Jun 09 and Jun 15 are the rule's ticks
   const dates = weekdays('2026-06-03', 19, ['2026-06-08']);
-  const weeklyAxis = { type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, minorTickLabel: { format: '%a' }, tickStep: { period: 'week' } };
+  const weeklyAxis = { type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, minorTickLabel: { format: '%a' }, tickStep: { interval: 'week' } };
 
   it('labels the categories between the weekly ticks with the minor format', () => {
     const { container, chart } = renderChart(weeklyAxis, dateRows(dates));
@@ -228,7 +228,7 @@ describe('category axis tick step minor labels', () => {
   });
 
   it('draws no minor tick marks or grid lines while nothing asks for minor ticks, and draws them when minorTickMark.visible and minorGridLine.visible say so', () => {
-    const stepOnly = { type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { period: 'week' }, tickMark: { visible: true }, gridLine: { visible: true } };
+    const stepOnly = { type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { interval: 'week' }, tickMark: { visible: true }, gridLine: { visible: true } };
     const quiet = renderChart(stepOnly, dateRows(dates));
     expect(quiet.container.querySelectorAll(categoryTickMarks + minorMark).length).toBe(0);
     expect(quiet.container.querySelectorAll(categoryGridLines + minorGridLine).length).toBe(0);
@@ -244,7 +244,7 @@ describe('category axis tick step minor labels', () => {
 
   it('draws no labels and thins nothing when tickLabel.visible is false', () => {
     const rows = dateRows(weekdays('2026-06-01', 26 * 7));
-    const { container, chart } = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { visible: false }, tickStep: { period: 'week' }, tickMark: { visible: true } }, rows, 300);
+    const { container, chart } = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { visible: false }, tickStep: { interval: 'week' }, tickMark: { visible: true } }, rows, 300);
     expect(container.querySelectorAll(categoryTickLabels).length).toBe(0);
     // every Monday keeps its tick mark: 26 weeks, none thinned to make room for labels that are not drawn
     expect(Array.from(container.querySelectorAll(categoryTickMarks + ':not(' + minorMark + ') line')).filter(isShown).length).toBe(26);
@@ -252,7 +252,7 @@ describe('category axis tick step minor labels', () => {
   });
 
   it('hides the minor ticks of a part whose visible is false, whatever the visible of its minor object says', () => {
-    const { container, chart } = renderChart({ type: 'date', scale: 'ordinal', tickStep: { period: 'week' },
+    const { container, chart } = renderChart({ type: 'date', scale: 'ordinal', tickStep: { interval: 'week' },
       tickLabel: { visible: false }, minorTickLabel: { visible: true }, tickMark: { visible: false }, minorTickMark: { visible: true },
       gridLine: { visible: false }, minorGridLine: { visible: true } }, dateRows(dates));
     expect(container.querySelectorAll(categoryTickLabels).length).toBe(0);
@@ -278,7 +278,7 @@ describe('category axis tick step minor labels', () => {
     expect(stringAxis.validation.errors.join('\n')).toMatch(/minorTickLabel\.format/);
     const linearAxis = enhanceConfig({
       version: '1.0.0',
-      categoryAxis: { property: 'label', type: 'date', scale: 'linear', minorTickLabel: { format: '%a' }, tickStep: { period: 'week', minorPeriod: 'day' } },
+      categoryAxis: { property: 'label', type: 'date', scale: 'linear', minorTickLabel: { format: '%a' }, tickStep: { interval: 'week', minorInterval: 'day' } },
       series: [{ property: 'value' }]
     });
     expect(linearAxis.validation.errors).toEqual([]);
@@ -348,7 +348,7 @@ describe('tick step on linear axes', () => {
 
   it('hides a minor period tick closer to a period tick than a whole minor period', () => {
     const rows = [{ label: '2026-06-01', value: 1 }, { label: '2026-08-31', value: 2 }];
-    const { container, chart } = renderChart({ type: 'date', scale: 'linear', ...noPadding, tickLabel: { format: '%b' }, minorTickLabel: { format: '%b %d' }, tickStep: { period: 'month', minorPeriod: 'week' } }, rows, 2400);
+    const { container, chart } = renderChart({ type: 'date', scale: 'linear', ...noPadding, tickLabel: { format: '%b' }, minorTickLabel: { format: '%b %d' }, tickStep: { interval: 'month', minorInterval: 'week' } }, rows, 2400);
     expect(getKindLabels(container, categoryTickLabels, false)).toEqual(['Jul', 'Aug']);
     const minors = getKindLabels(container, categoryTickLabels, true);
     // the Mondays a few days after the 1st of July and August are hidden, the rest of the Mondays show
@@ -367,7 +367,7 @@ describe('tick step on linear axes', () => {
       // the premise: the zone springs forward on March 8 2026
       expect(new Date('2026-03-07T12:00:00').getTimezoneOffset()).not.toBe(new Date('2026-03-21T12:00:00').getTimezoneOffset());
       const rows = [{ label: '2026-03-01T00:00:00', value: 1 }, { label: '2026-03-21T00:00:00', value: 2 }];
-      const { container, chart } = renderChart({ type: 'date', scale: 'linear', dateUTC: false, tickLabel: { format: '%b %d' }, minorTickLabel: { format: '%d' }, tickStep: { period: 'week', minorPeriod: 'day' } }, rows, 2400);
+      const { container, chart } = renderChart({ type: 'date', scale: 'linear', dateUTC: false, tickLabel: { format: '%b %d' }, minorTickLabel: { format: '%d' }, tickStep: { interval: 'week', minorInterval: 'day' } }, rows, 2400);
       expect(getKindLabels(container, categoryTickLabels, false)).toEqual(['Mar 02', 'Mar 09', 'Mar 16']);
       expect(getKindLabels(container, categoryTickLabels, true)).toContain('08');
       chart.destroy();
@@ -405,7 +405,7 @@ describe('tick step on linear axes', () => {
 describe('category axis tick step on a linear date axis', () => {
   it('places the ticks on the period boundaries', () => {
     const dates = weekdays('2026-06-03', 19, ['2026-06-08']);
-    const { container, chart } = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%b %d' }, tickStep: { period: 'week' } }, dateRows(dates));
+    const { container, chart } = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%b %d' }, tickStep: { interval: 'week' } }, dateRows(dates));
     // the boundaries inside the domain: the holiday Monday still gets its tick, the partial first week does not
     expect(getAxisLabels(container)).toEqual(['Jun 08', 'Jun 15']);
     chart.destroy();
@@ -413,18 +413,18 @@ describe('category axis tick step on a linear date axis', () => {
 
   it('places hour ticks on the hour boundaries, every count-th from a fixed origin', () => {
     const rows = dateRows(['2026-06-01T00:30:00Z', '2026-06-01T05:30:00Z']);
-    const hourly = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, tickStep: { period: 'hour' } }, rows);
+    const hourly = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, tickStep: { interval: 'hour' } }, rows);
     expect(getAxisLabels(hourly.container)).toEqual(['01:00', '02:00', '03:00', '04:00', '05:00']);
     hourly.chart.destroy();
     // the even hours since the epoch, whatever the domain starts at
-    const everyOther = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, tickStep: { period: 'hour', count: 2 } }, rows);
+    const everyOther = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, tickStep: { interval: 'hour', count: 2 } }, rows);
     expect(getAxisLabels(everyOther.container)).toEqual(['02:00', '04:00']);
     everyOther.chart.destroy();
   });
 
   it('places minute minor ticks inside hour ticks', () => {
     const rows = dateRows(['2026-06-01T00:00:00Z', '2026-06-01T02:00:00Z']);
-    const { container, chart } = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, minorTickLabel: { format: '%M' }, tickStep: { period: 'hour', minorPeriod: 'minute', count: 1 } }, rows, 3600);
+    const { container, chart } = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, minorTickLabel: { format: '%M' }, tickStep: { interval: 'hour', minorInterval: 'minute', count: 1 } }, rows, 3600);
     expect(getKindLabels(container, categoryTickLabels, false)).toEqual(['00:00', '01:00', '02:00']);
     expect(container.querySelectorAll(categoryTickMarks + minorMark).length).toBe(118);
     chart.destroy();
@@ -437,7 +437,7 @@ describe('category axis tick step on a linear date axis', () => {
       // the premise: the zone springs forward at 02:00 on March 8 2026, so the hour 02 does not exist
       expect(new Date('2026-03-07T12:00:00').getTimezoneOffset()).not.toBe(new Date('2026-03-21T12:00:00').getTimezoneOffset());
       const rows = dateRows(['2026-03-08T00:00:00', '2026-03-08T05:00:00']);
-      const { container, chart } = renderChart({ type: 'date', scale: 'linear', dateUTC: false, tickLabel: { format: '%H' }, tickStep: { period: 'hour' } }, rows);
+      const { container, chart } = renderChart({ type: 'date', scale: 'linear', dateUTC: false, tickLabel: { format: '%H' }, tickStep: { interval: 'hour' } }, rows);
       expect(getAxisLabels(container)).toEqual(['00', '01', '03', '04', '05']);
       chart.destroy();
     }
@@ -448,7 +448,7 @@ describe('category axis tick step on a linear date axis', () => {
 });
 
 describe('category axis tick step validation', () => {
-  it('rejects includeFirst on a linear axis, a count or offset there without a period or interval, and a period on a non-date axis', () => {
+  it('rejects includeFirst on a linear axis, a count or offset there without an interval, and a period interval on a non-date axis', () => {
     const { enhanceConfig } = mochart;
     const linear = enhanceConfig({
       version: '1.0.0',
@@ -457,7 +457,7 @@ describe('category axis tick step validation', () => {
     });
     expect(linear.validation.errors.filter((error) => error.includes('tickStep'))).toHaveLength(3);
     expect(linear.validation.errors.filter((error) => error.includes('thresholdStep'))).toHaveLength(2);
-    expect(linear.validation.errors.join('\n')).toMatch(/tickStep\.count - should be left at its default on a linear axis unless period or interval is set/);
+    expect(linear.validation.errors.join('\n')).toMatch(/tickStep\.count - should be left at its default on a linear axis unless interval is set/);
     const placed = enhanceConfig({
       version: '1.0.0',
       categoryAxis: { property: 'label', type: 'number', scale: 'linear', tickStep: { interval: 10, count: 2, offset: 1 }, thresholdStep: { interval: 10, count: 2, offset: 1 } },
@@ -477,28 +477,28 @@ describe('category axis tick step validation', () => {
     ]);
     const stringUnit = enhanceConfig({
       version: '1.0.0',
-      categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { period: 'week' } },
+      categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { interval: 'week' } },
       series: [{ property: 'value' }]
     });
-    expect(stringUnit.validation.errors.join('\n')).toMatch(/tickStep\.period/);
+    expect(stringUnit.validation.errors.join('\n')).toMatch(/tickStep\.interval/);
   });
 });
 
 describe('minor tick step validation', () => {
-  it('needs a period for minorPeriod, a shorter one than period, an interval for minorSteps, and a linear axis for either', () => {
+  it('needs a period interval for minorInterval, a shorter period than it, an interval for minorSteps, and a linear axis for either', () => {
     const { enhanceConfig } = mochart;
     const errors = (tickStep: Record<string, unknown>, scale: 'linear' | 'ordinal' = 'linear') => enhanceConfig({
       version: '1.0.0',
       categoryAxis: { property: 'label', type: 'date', scale, tickStep },
       series: [{ property: 'value' }]
     }).validation.errors.join('\n');
-    expect(errors({ minorPeriod: 'day' })).toMatch(/tickStep\.minorPeriod - should be null unless period is set/);
-    expect(errors({ period: 'week', minorPeriod: 'month' })).toMatch(/tickStep\.minorPeriod - should be a shorter period than period/);
-    expect(errors({ period: 'week', minorPeriod: 'week' })).toMatch(/tickStep\.minorPeriod - should be a shorter period than period/);
-    expect(errors({ period: 'hour', minorPeriod: 'day' })).toMatch(/tickStep\.minorPeriod - should be a shorter period than period/);
-    expect(errors({ period: 'day', minorPeriod: 'hour' })).toBe('');
-    expect(errors({ period: 'minute', minorPeriod: 'second' })).toBe('');
-    expect(errors({ period: 'week', minorPeriod: 'day' }, 'ordinal')).toMatch(/tickStep\.minorPeriod/);
+    expect(errors({ minorInterval: 'day' })).toMatch(/tickStep\.minorInterval - should be null unless interval is a period/);
+    expect(errors({ interval: 'week', minorInterval: 'month' })).toMatch(/tickStep\.minorInterval - should be a shorter period than interval/);
+    expect(errors({ interval: 'week', minorInterval: 'week' })).toMatch(/tickStep\.minorInterval - should be a shorter period than interval/);
+    expect(errors({ interval: 'hour', minorInterval: 'day' })).toMatch(/tickStep\.minorInterval - should be a shorter period than interval/);
+    expect(errors({ interval: 'day', minorInterval: 'hour' })).toBe('');
+    expect(errors({ interval: 'minute', minorInterval: 'second' })).toBe('');
+    expect(errors({ interval: 'week', minorInterval: 'day' }, 'ordinal')).toMatch(/tickStep\.minorInterval/);
     expect(enhanceConfig({
       version: '1.0.0',
       categoryAxis: { property: 'label', type: 'number', scale: 'linear', tickStep: { minorSteps: 5 } },

@@ -117,12 +117,14 @@ interface SharedAxisInterface {
   propertyKey: string;
   categoryInterfaceName?: string;
   valueInterfaceName?: string;
+  /** Members both axes have that the category interface redeclares with a wider type: each interface documents its own axis. */
+  categoryOverrides?: string[];
 }
 
 const sharedAxisInterfaces: SharedAxisInterface[] = [
   { interfaceName: 'AxisLineConfig', propertyKey: 'axisLine' },
   { interfaceName: 'AxisFocusRangeConfig', propertyKey: 'focusRange' },
-  { interfaceName: 'AxisThresholdStepConfig', propertyKey: 'thresholdStep', categoryInterfaceName: 'CategoryAxisThresholdStepConfig' },
+  { interfaceName: 'AxisThresholdStepConfig', propertyKey: 'thresholdStep', categoryInterfaceName: 'CategoryAxisThresholdStepConfig', categoryOverrides: ['interval'] },
   { interfaceName: 'AxisFocusTickMarkConfig', propertyKey: 'focusTickMark' },
   { interfaceName: 'AxisGridLineConfig', propertyKey: 'gridLine' },
   { interfaceName: 'AxisMinorGridLineConfig', propertyKey: 'minorGridLine' },
@@ -130,7 +132,7 @@ const sharedAxisInterfaces: SharedAxisInterface[] = [
   { interfaceName: 'AxisMinorTickMarkConfig', propertyKey: 'minorTickMark' },
   { interfaceName: 'AxisTickLabelConfig', propertyKey: 'tickLabel', categoryInterfaceName: 'CategoryAxisTickLabelConfig', valueInterfaceName: 'ValueAxisTickLabelConfig' },
   { interfaceName: 'AxisMinorTickLabelConfig', propertyKey: 'minorTickLabel', categoryInterfaceName: 'CategoryAxisMinorTickLabelConfig' },
-  { interfaceName: 'AxisTickStepConfig', propertyKey: 'tickStep', categoryInterfaceName: 'CategoryAxisTickStepConfig' },
+  { interfaceName: 'AxisTickStepConfig', propertyKey: 'tickStep', categoryInterfaceName: 'CategoryAxisTickStepConfig', categoryOverrides: ['interval'] },
   { interfaceName: 'AxisTitleConfig', propertyKey: 'title' }
 ];
 
@@ -396,7 +398,11 @@ function buildInterfaceDocs(sections: SectionDoc[], topLevel: TopLevelKeyDoc[], 
       const categoryDocs = new Map<string, MemberDoc>();
       for (const categoryMember of categoryMembers) {
         const valueMember = valueByKey.get(categoryMember.key);
-        if (valueMember) {
+        if (valueMember && shared.categoryOverrides?.includes(categoryMember.key)) {
+          sharedDocs.set(categoryMember.key, toMemberDoc(valueMember));
+          categoryDocs.set(categoryMember.key, toMemberDoc(categoryMember));
+        }
+        else if (valueMember) {
           sharedDocs.set(categoryMember.key, mergedAxisMemberDoc(categoryMember, valueMember));
         }
         else {

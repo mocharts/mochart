@@ -386,7 +386,7 @@ function getThresholdPatterns(mochartConfig: EnhancedMochartConfig): { key: stri
   if (mochartConfig.chart.type === CHART_TYPE_PIE) {
     return thresholdPatterns;
   }
-  const collect = (axisKey: string, thresholds: readonly ThresholdConfig[] | undefined, thresholdStep: AxisThresholdStepConfig) => {
+  const collect = (axisKey: string, thresholds: readonly ThresholdConfig[] | undefined, thresholdStep: Pick<AxisThresholdStepConfig, 'visible' | 'pattern' | 'style'>) => {
     resolveThresholds(thresholds).forEach((threshold, thresholdIndex) => {
       if (threshold.pattern !== NONE) {
         thresholdPatterns.push({ key: getThresholdPatternKey(axisKey, thresholdIndex), pattern: threshold.pattern, fillColor: threshold.style.normal.fillColor ?? null });

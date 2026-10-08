@@ -12,7 +12,7 @@
     },
     "valueFormat": "%b %Y",
     "tickStep": {
-      "period": "year"
+      "interval": "year"
     }
   },
   "valueAxes": [

@@ -31,6 +31,7 @@ const defaultRule = { condition: () => true };
 
 export default function getValidators(config: Partial<CategoryAxisConfig>, pieMode = false) {
   const stepInterval = validators.conditional([
+    { ...typeDateRule, validator: validators.oneOf(STEP_PERIODS).orEqual(NONE) },
     { ...linearNumberRule, validator: thresholdStepIntervalValidator },
     { ...scaleLogRule, validator: validators.equal(NONE) },
     { ...defaultRule, validator: validators.equal(NONE) }
@@ -60,10 +61,6 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
       }, true)
     }, pieMode, {
       ...getThresholdStepValidators(),
-      period: validators.conditional([
-        { ...typeDateRule, validator: validators.oneOf(STEP_PERIODS).orEqual(NONE) },
-        { ...defaultRule, validator: validators.equal(NONE) }
-      ], config),
       interval: stepInterval,
       minSpacing: validators.conditional([
         { ...scaleLinearRule, validator: validators.numberMin(2) },
@@ -74,11 +71,7 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
     }, {
       ...getTickStepValidators(),
       interval: stepInterval,
-      period: validators.conditional([
-        { ...typeDateRule, validator: validators.oneOf(STEP_PERIODS).orEqual(NONE) },
-        { ...defaultRule, validator: validators.equal(NONE) }
-      ], config),
-      minorPeriod: validators.conditional([
+      minorInterval: validators.conditional([
         { ...linearDateRule, validator: validators.oneOf(STEP_PERIODS).orEqual(NONE) },
         { ...defaultRule, validator: validators.equal(NONE) }
       ], config),

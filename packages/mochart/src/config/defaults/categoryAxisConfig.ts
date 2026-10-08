@@ -30,8 +30,7 @@ export function getRegularDefaults() {
     scale: SCALE_ORDINAL,
 
     ticks: NONE,
-    tickStep: { ...axisDefaults.tickStep, period: NONE, minorPeriod: NONE, includeFirst: false },
-    thresholdStep: { ...axisDefaults.thresholdStep, period: NONE },
+    tickStep: { ...axisDefaults.tickStep, minorInterval: NONE, includeFirst: false },
 
     tickLabel: {
       ...axisDefaults.tickLabel,

@@ -1,4 +1,4 @@
-// tickStep on a daily ordinal date axis: a period of week gives the first trading
+// tickStep on a daily ordinal date axis: an interval of week gives the first trading
 // day of each week the tick, through holidays and as the window slides.
 import type { MochartInputConfig } from '@mochart/core';
 
@@ -12,7 +12,7 @@ export const config: MochartInputConfig = {
     gridLine: { visible: true },
     tickLabel: { format: '%b %d' },
     valueFormat: '%a %b %d',
-    tickStep: { period: 'week' }
+    tickStep: { interval: 'week' }
   },
   valueAxes: [{ tickLabel: { format: '$.0f' } }],
   series: [{ property: 'close', renderer: 'line', title: 'Close' }]

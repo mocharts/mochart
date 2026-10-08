@@ -3,7 +3,7 @@ import { getThresholdEntryDefaults } from '../config/defaults/axisConfig.js';
 import { getFirstKeptStep, getNextPeriodStart, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
 import { NONE, SCALE_ORDINAL, TYPE_DATE } from '../config/core/constants.js';
 import type { ResolvedThreshold } from '../config/defaults/axisConfig.js';
-import type { AxisThresholdStepConfig, CategoryAxisThresholdStepConfig } from '../types/config.js';
+import type { CategoryAxisThresholdStepConfig } from '../types/config.js';
 import type { DataType, Scale } from '../config/core/constants.js';
 import type { CategoryValue } from '../types/data.js';
 
@@ -11,8 +11,8 @@ export interface ThresholdStepAxisConfig {
   scale: Scale;
   type: DataType;
   dateUTC?: boolean;
-  /** A value axis's step has no period, so it is optional here. */
-  thresholdStep: AxisThresholdStepConfig & Partial<Pick<CategoryAxisThresholdStepConfig, 'period'>>;
+  /** A value axis's number interval fits the category axis's wider one. */
+  thresholdStep: CategoryAxisThresholdStepConfig;
 }
 
 function toThresholdValue(categoryValue: CategoryValue): number | string {
@@ -24,8 +24,8 @@ function getSteppedThresholdSpacing(axisConfig: ThresholdStepAxisConfig, domainM
   const step = axisConfig.thresholdStep;
   const dateUTC = axisConfig.dateUTC ?? true;
   if (axisConfig.type === TYPE_DATE) {
-    const period = step.period;
-    if (period === undefined || period === NONE) {
+    const period = step.interval;
+    if (typeof period !== 'string') {
       return Infinity;
     }
     // the periods touching the domain, including the one under way at its start
@@ -33,7 +33,7 @@ function getSteppedThresholdSpacing(axisConfig: ThresholdStepAxisConfig, domainM
     return axisLength * step.count / periods;
   }
   const { interval } = step;
-  if (interval === NONE || !(interval > 0)) {
+  if (typeof interval !== 'number' || !(interval > 0)) {
     return Infinity;
   }
   return axisLength * interval * step.count / (domainMax - domainMin);
@@ -74,7 +74,7 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
       return thresholds;
     }
     const keys = categoryKeys ?? categoryValues;
-    const { candidates, selected } = getStepCandidates({ period: step.period ?? NONE, count: step.count, offset: step.offset }, categoryValues, axisConfig.type, dateUTC);
+    const { candidates, selected } = getStepCandidates(step, categoryValues, axisConfig.type, dateUTC);
     for (const index of selected) {
       // a range runs to the category before the next candidate, the last of its period
       const next = candidates.find(candidate => candidate > index);
@@ -94,14 +94,15 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
   const keep = (index: number) => ((index - step.offset) % step.count + step.count) % step.count === 0;
 
   if (axisConfig.type === TYPE_DATE) {
-    if (step.period === undefined || step.period === NONE) {
+    const period = step.interval;
+    if (typeof period !== 'string') {
       return thresholds;
     }
     // the period holding the domain start counts too, so a range already under way is drawn clipped
-    let boundary = getPeriodStart(step.period, dateUTC, new Date(domainMin));
+    let boundary = getPeriodStart(period, dateUTC, new Date(domainMin));
     while (boundary.getTime() <= domainMax) {
-      const nextBoundary = getNextPeriodStart(step.period, dateUTC, boundary);
-      if (keep(getPeriodIndex(step.period, dateUTC, boundary))) {
+      const nextBoundary = getNextPeriodStart(period, dateUTC, boundary);
+      if (keep(getPeriodIndex(period, dateUTC, boundary))) {
         add(boundary.getTime(), nextBoundary.getTime());
       }
       boundary = nextBoundary;
@@ -110,7 +111,7 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
   }
 
   const { interval } = step;
-  if (interval === NONE || !(interval > 0)) {
+  if (typeof interval !== 'number' || !(interval > 0)) {
     return thresholds;
   }
   const firstMultiple = Math.floor(domainMin / interval);

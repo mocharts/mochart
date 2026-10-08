@@ -14,7 +14,7 @@ import { getMinorTickLabel } from '../config/core/minorConfig.js';
 import { getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
 import type { Auto, DataType } from '../config/core/constants.js';
 import type { MinorTickLabel } from '../config/core/minorConfig.js';
-import type { AxisConfigBase, AxisTickStepConfig, CategoryAxisConfig, CategoryAxisTick, CategoryAxisTickStepConfig, PlotConfig, ValueAxisTick } from '../types/config.js';
+import type { AxisConfigBase, CategoryAxisConfig, CategoryAxisTick, CategoryAxisTickStepConfig, PlotConfig, ValueAxisTick } from '../types/config.js';
 import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
 import type { AxisData, AxisScale, AxisTick, AxisValue, ChartData, CategoryAxisData, CategoryAxisDomain, CategorySpacingInfo, CategoryValue, CategoryValues, NullableDomain, ValueAxisData, TickLabelFormatter } from '../types/data.js';
 import type { AxisLayoutInfo, ChartLayoutInfo, CategoryAxisLayoutInfo } from '../types/layout.js';
@@ -305,7 +305,8 @@ function multiple(count: number, step: number): number {
 interface LinearStepAxisConfig {
   type: DataType;
   dateUTC?: boolean;
-  tickStep: AxisTickStepConfig & Partial<Pick<CategoryAxisTickStepConfig, 'period' | 'minorPeriod'>>;
+  /** A value axis's step has no minorInterval, so it is optional here. */
+  tickStep: Omit<CategoryAxisTickStepConfig, 'minorInterval' | 'includeFirst'> & Partial<Pick<CategoryAxisTickStepConfig, 'minorInterval'>>;
 }
 
 interface LinearStepTicks {
@@ -313,7 +314,7 @@ interface LinearStepTicks {
   majors: AxisValue[] | null;
   /** The minor ticks between them; one closer to a tick than the regular minor spacing is hidden. */
   minors: { value: AxisValue; hidden: boolean }[];
-  /** The axis value distance between the majors on a number scale (the interval), which the auto label precision follows; null for a period or no step. */
+  /** The axis value distance between the majors on a number scale (the interval), which the auto label precision follows; null for a period interval or no step. */
   step: number | null;
   /** The axis value distance between the minor ticks on a number scale (the interval split by minorSteps), null without them. */
   minorStep: number | null;
@@ -337,8 +338,8 @@ function warnStep(step: object, kind: 'majors' | 'minors', tooDense: boolean, me
 }
 
 /**
- * The ticks a linear axis's tickStep creates: the multiples of its interval or the boundaries of its period,
- * kept by count and offset counted from a fixed origin, with minor ticks from minorSteps or minorPeriod between
+ * The ticks a linear axis's tickStep creates: the multiples of a number interval or the boundaries of a period one,
+ * kept by count and offset counted from a fixed origin, with minor ticks from minorSteps or minorInterval between
  * them. The ticks are counted before any is created: a step whose ticks would sit closer than minSpacing along
  * the axis creates none, and its minor ticks alone are dropped when only they would.
  */
@@ -359,8 +360,8 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
   };
 
   if (axisConfig.type === TYPE_DATE) {
-    const period = step.period ?? NONE;
-    if (period === NONE) {
+    const period = step.interval;
+    if (typeof period !== 'string') {
       return noStepTicks;
     }
     const dateUTC = axisConfig.dateUTC ?? true;
@@ -371,9 +372,9 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
       return noStepTicks;
     }
     const majors = getPeriodBoundaries(period, dateUTC, [new Date(domainMin), new Date(domainMax)]).filter(boundary => keep(getPeriodIndex(period, dateUTC, boundary)));
-    const minorPeriod = step.minorPeriod ?? NONE;
+    const minorPeriod = step.minorInterval;
     let minors: LinearStepTicks['minors'] = [];
-    if (minorPeriod !== NONE) {
+    if (typeof minorPeriod === 'string') {
       const minorPeriods = getPeriodIndex(minorPeriod, dateUTC, new Date(domainMax)) - getPeriodIndex(minorPeriod, dateUTC, new Date(domainMin)) + 1;
       const minorsDense = tooDense(axisLength / minorPeriods);
       warn('minors', minorsDense);
@@ -399,7 +400,7 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
   }
 
   const { interval, minorSteps } = step;
-  if (interval === NONE) {
+  if (typeof interval !== 'number') {
     return noStepTicks;
   }
   const span = domainMax - domainMin;
@@ -711,8 +712,8 @@ function getEdgeRange(axisLayoutInfo: CategoryAxisLayoutInfo, tickLabelSpace: nu
 }
 
 function hasTickStep(axisConfig: CategoryAxisConfig): boolean {
-  const { count, offset, period, interval, includeFirst } = axisConfig.tickStep;
-  return count !== AUTO || offset !== 0 || period !== NONE || interval !== NONE || includeFirst;
+  const { count, offset, interval, includeFirst } = axisConfig.tickStep;
+  return count !== AUTO || offset !== 0 || interval !== NONE || includeFirst;
 }
 
 interface OrdinalTickRule {

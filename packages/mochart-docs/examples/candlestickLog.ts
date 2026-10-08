@@ -34,7 +34,7 @@ const candlestick = createCandlestick([
 export const config: MochartInputConfig = {
   version: '1.0.0',
   title: { text: 'Monthly Share Price (fictional, $)' },
-  categoryAxis: { ...candlestick.categoryAxis, tickLabel: { format: '%Y' }, valueFormat: '%b %Y', tickStep: { period: 'year' } },
+  categoryAxis: { ...candlestick.categoryAxis, tickLabel: { format: '%Y' }, valueFormat: '%b %Y', tickStep: { interval: 'year' } },
   valueAxes: candlestick.valueAxes!.map((axisConfig) =>
     axisConfig.id === 'price' ? { ...axisConfig, scale: 'log', title: { text: '$ per share' } } : axisConfig),
   series: candlestick.series

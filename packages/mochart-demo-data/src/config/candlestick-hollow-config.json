@@ -29,7 +29,7 @@
     },
     "valueFormat": "%a %b %d",
     "tickStep": {
-      "period": "week"
+      "interval": "week"
     }
   },
   "valueAxes": [

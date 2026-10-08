@@ -1,10 +1,10 @@
-import { AUTO, NONE, TYPE_DATE, STEP_PERIOD_YEAR, STEP_PERIOD_MONTH, STEP_PERIOD_WEEK, STEP_PERIOD_SECOND, STEP_PERIOD_MINUTE, STEP_PERIOD_HOUR } from '../config/core/constants.js';
+import { AUTO, TYPE_DATE, STEP_PERIOD_YEAR, STEP_PERIOD_MONTH, STEP_PERIOD_WEEK, STEP_PERIOD_SECOND, STEP_PERIOD_MINUTE, STEP_PERIOD_HOUR } from '../config/core/constants.js';
 import type { Auto, DataType, StepPeriod } from '../config/core/constants.js';
 import type { CategoryValue } from '../types/data.js';
 
 /** The rule members the tick and threshold steps share: which candidates, and which of them are kept. */
 export interface StepRule {
-  period: StepPeriod | null;
+  interval: number | StepPeriod | null;
   count: number | Auto;
   offset: number;
   includeFirst?: boolean;
@@ -113,9 +113,9 @@ export function getPeriodBoundaries(period: StepPeriod, dateUTC: boolean, [domai
 
 
 /**
- * The category indexes a step rule works from: the candidates are every category, or under a period on a date
- * axis the first category of each period, and `selected` steps through them by count and offset, with
- * includeFirst adding the first category back.
+ * The category indexes a step rule works from: the candidates are every category, or with a period as the
+ * interval on a date axis the first category of each period, and `selected` steps through them by count and
+ * offset, with includeFirst adding the first category back.
  */
 /**
  * The first step index at or after `first` that a linear rule keeps: every count-th index counted from the fixed
@@ -130,9 +130,9 @@ export function getFirstKeptStep(first: number, count: number | Auto, offset: nu
 }
 
 export function getStepCandidates(rule: StepRule, categoryValues: readonly CategoryValue[], type: DataType, dateUTC: boolean): { candidates: number[]; selected: number[] } {
-  const { period, count, offset, includeFirst = false } = rule;
+  const { interval: period, count, offset, includeFirst = false } = rule;
   let candidates: number[];
-  if (period !== NONE && type === TYPE_DATE) {
+  if (typeof period === 'string' && type === TYPE_DATE) {
     candidates = [];
     // every period start seen so far, so a category of a period met earlier starts no second step when the categories are not in order
     const periodStarts = new Set<number>();

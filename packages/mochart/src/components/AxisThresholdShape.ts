@@ -7,7 +7,7 @@ import { getCategoryValueKey } from '../data/CategoryValue.js';
 import { getDomainFraction } from '../data/DomainFraction.js';
 import { ANCHOR_MIDDLE, ANCHOR_START, AUTO, NONE, SCALE_LOG, SCALE_ORDINAL, SIDE_START, TITLE_SIDE_INSIDE, TITLE_SIDE_LOW, TYPE_DATE } from '../config/core/constants.js';
 import type { El, TextEl } from '../render/index.js';
-import type { AxisConfigBase } from '../types/config.js';
+import type { AxisConfigBase, CategoryAxisThresholdStepConfig } from '../types/config.js';
 import type { FontInlineStyle } from '../utils/font.js';
 import type { CategoryValue } from '../types/data.js';
 import type { ResolvedThreshold } from '../config/defaults/axisConfig.js';
@@ -17,6 +17,7 @@ import type { AxisLayoutInfo, LayoutInfo } from '../types/layout.js';
 type ThresholdTitleEl = El & { backgroundHandle: El; textHandle: El; valueHandle: TextEl };
 
 export type ThresholdAxisConfig = AxisConfigBase & {
+  thresholdStep: CategoryAxisThresholdStepConfig;
   scale: Scale;
   type: DataType;
   keyProperty?: string | null;
