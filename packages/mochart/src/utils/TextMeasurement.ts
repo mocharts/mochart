@@ -320,7 +320,7 @@ function getMinorTickLabelBounds(domAccessors: ChartDomAccessors | null | undefi
 
 function getCategoryAxisMinorTickLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
   const { categoryAxis } = mochartConfig;
-  if (!categoryAxis.visible || !getMinorTickLabel(categoryAxis.tickLabel).visible) {
+  if (!categoryAxis.visible || !getMinorTickLabel(categoryAxis).visible) {
     return emptyBounds;
   }
   return getMinorTickLabelBounds(domAccessors, () => domAccessors!.getCategoryAxisMinorTicksDomElements(), () => domAccessors!.getCategoryAxisTicksDomElements());
@@ -337,7 +337,7 @@ export function getCategoryAxisSizeTickLabelBounds(mochartConfig: EnhancedMochar
 
 function getCategoryAxisMinorSizeTickLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
   const { categoryAxis } = mochartConfig;
-  const minorTickLabel = getMinorTickLabel(categoryAxis.tickLabel);
+  const minorTickLabel = getMinorTickLabel(categoryAxis);
   if (categoryAxis.visible && categoryAxis.scale === SCALE_ORDINAL && minorTickLabel.visible && minorTickLabel.truncation?.enabled === true) {
     return getSvgBounds(domAccessors, 'getCategoryAxisMinorSizeTickDomElement', defaultBounds);
   }
@@ -410,7 +410,7 @@ export function getValueAxisTickLabelBounds(mochartConfig: EnhancedMochartConfig
 function getValueAxisMinorTickLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null, axisSeriesCounts?: Record<string, number>): Record<string, TextBounds> {
   const { valueAxes: valueAxisConfigs } = mochartConfig;
   return arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => {
-    if (!axisIsDrawn(valueAxisConfig, axisSeriesCounts) || !getMinorTickLabel(valueAxisConfig.tickLabel).visible) {
+    if (!axisIsDrawn(valueAxisConfig, axisSeriesCounts) || !getMinorTickLabel(valueAxisConfig).visible) {
       return emptyBounds;
     }
     const { id } = valueAxisConfig;

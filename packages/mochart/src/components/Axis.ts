@@ -64,8 +64,8 @@ export default class Axis extends Renderer<AxisProps> {
       const { backgroundFront } = axisConfig;
       const axisLineFront = axisConfig.axisLine.front, focusRangeFront = axisConfig.focusRange.front, focusTickMarkFront = axisConfig.focusTickMark.front,
         tickLabelFront = axisConfig.tickLabel.front, tickMarkFront = axisConfig.tickMark.front, titleFront = axisConfig.title.front;
-      const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
-      const minorTickMark = getMinorTickMark(axisConfig.tickMark);
+      const minorTickLabel = getMinorTickLabel(axisConfig);
+      const minorTickMark = getMinorTickMark(axisConfig);
       // a pass draws the labels or marks of either kind that are visible and drawn in it
       const tickLabelsInPass = (front === tickLabelFront && axisConfig.tickLabel.visible) || (front === minorTickLabel.front && minorTickLabel.visible);
       const tickMarksInPass = (front === tickMarkFront && axisConfig.tickMark.visible) || (front === minorTickMark.front && minorTickMark.visible);

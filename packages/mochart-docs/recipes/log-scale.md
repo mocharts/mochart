@@ -27,15 +27,18 @@ import * as logLog from '../examples/logLog'
   ticks or, when the axis keeps every n-th power of 10, the powers it skips,
   thinned to sit at least
   [`minTickSpacing`](/reference/valueAxes#valueAxes.minTickSpacing) apart.
-  Their tick marks and grid lines show by default, following
-  the [`tickMark`](/reference/valueAxes#valueAxes.tickMark.minorVisible) and
-  [`gridLine`](/reference/valueAxes#valueAxes.gridLine.minorVisible) settings
-  of the ticks themselves, so hiding the grid lines hides the minor grid lines
-  too. Their labels stay off.
-  [`tickLabel.minorVisible`](/reference/valueAxes#valueAxes.tickLabel.minorVisible)
+  Their tick marks and grid lines show by default: on a log axis
+  [`minorTickMark.visible`](/reference/valueAxes#valueAxes.minorTickMark.visible)
+  and
+  [`minorGridLine.visible`](/reference/valueAxes#valueAxes.minorGridLine.visible)
+  default to `"major"`, which uses the value of `tickMark.visible` and
+  `gridLine.visible`, so hiding the grid lines hides the minor grid lines too.
+  Their labels stay off.
+  [`minorTickLabel.visible`](/reference/valueAxes#valueAxes.minorTickLabel.visible)
   `true` labels them all when every label fits, and hides their marks and grid
   lines along with the labels when one does not, so it suits a tall axis with
-  few powers of 10; a `minorFormat` alone leaves the labels off on a log axis.
+  few powers of 10; `minorTickLabel.format` alone leaves the labels off on a log
+  axis.
 - With the default `"auto"` format, each tick label takes an SI prefix of its
   own magnitude, so `1m`, `1` and `1k` share one axis, where a linear axis's
   tick labels take one prefix for the whole axis; tooltip and label values are

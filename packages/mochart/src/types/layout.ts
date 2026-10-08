@@ -66,7 +66,7 @@ export interface AxisLayoutInfo extends SpacingLayoutInfo, LayoutInfo {
   tickMarkY1: number;
   tickMarkX2: number;
   tickMarkY2: number;
-  /** The minor tick labels' own layout: measured and placed from the minor settings, with their own box. */
+  /** The minor tick labels' own layout: measured and placed from minorTickLabel, with their own box. */
   minorTickLabelParallel: boolean;
   minorTickLabelSize: number;
   minorTickLabelSpace: number;

@@ -49,10 +49,11 @@ import * as candlestickLog from '../examples/candlestickLog'
   [`tickStep`](/reference/categoryAxis#categoryAxis.tickStep) instead, as the
   example does, so the first trading day of each week gets the tick. The days
   between are minor ticks:
-  [`tickLabel.minorFormat`](/reference/categoryAxis#categoryAxis.tickLabel.minorFormat)
-  of `%a` names the weekday at each where the short labels fit, `minorFont` sets
-  them at `0.85em` of the page font and `minorTextStyle` fades them to 0.6
-  opacity (0.3 when defocused). Or list the dates to label in
+  [`minorTickLabel.format`](/reference/categoryAxis#categoryAxis.minorTickLabel.format)
+  of `%a` names the weekday at each where the short labels fit,
+  `minorTickLabel.font` sets them at `0.85em` of the page font and
+  `minorTickLabel.textStyle` fades them to 0.6 opacity (0.3 when defocused). Or
+  list the dates to label in
   [`ticks`](/reference/categoryAxis#categoryAxis.ticks). See
   [labeling chosen dates](/recipes/date-axis#labeling-chosen-dates).
 - The default direction colors are teal-green/red rather than a pure green/red:

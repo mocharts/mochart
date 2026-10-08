@@ -75,14 +75,15 @@ holidays and as the data window slides:
 - When more ticks survive than fit, every k-th survivor is kept from the first,
   so a thinned weekly rule still lands on Mondays.
 - The categories between the rule's ticks are minor ticks.
-  [`tickLabel.minorFormat`](/reference/categoryAxis#categoryAxis.tickLabel.minorFormat)
-  labels them in a d3 format of their own, `%a` for the weekday. Every other
-  tick label, tick mark and grid line setting has a minor version too
-  (`minorFont`, `minorTextStyle`, `tickMark.minorVisible` and so on), each
-  defaulting to `"major"`, which uses the value of the matching non-minor
-  setting. The minor labels show only while every one fits beside its
-  neighbours; when one does not they all hide together, and the rule's ticks are
-  unchanged either way. Their tick marks, grid lines and labels carry
+  [`minorTickLabel.format`](/reference/categoryAxis#categoryAxis.minorTickLabel.format)
+  labels them in a d3 format of their own, `%a` for the weekday.
+  `minorTickLabel`, `minorTickMark` and `minorGridLine` hold a minor version of
+  every `tickLabel`, `tickMark` and `gridLine` setting under the same name
+  (`minorTickLabel.font`, `minorTickMark.visible` and so on), most defaulting
+  to `"major"`, which uses the value of the matching non-minor setting. The
+  minor labels show only while every one fits beside its neighbours; when one
+  does not they all hide together, and the rule's ticks are unchanged either
+  way. Their tick marks, grid lines and labels carry
   `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and
   `mochart-axis-minor-tick-label` classes for styling.
 - On a linear date axis the ticks sit on the period boundaries themselves rather

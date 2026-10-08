@@ -1,4 +1,4 @@
-import getAxisDescriptions, { getTickLabelDescriptions, getTickLabelDetails, tickLabelDescription, minorTickLabelIntro, majorNote, getTickStepDescriptions, tickStepDescription, tickStepMinorDetails, stepCountOffsetDetails, getThresholdStepDescriptions, thresholdStepDescription, getThresholdDescriptions, thresholdsDescription, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails, thresholdStepPatternDetails, thresholdLogDetails } from './axisConfig.js';
+import getAxisDescriptions, { getTickLabelDescriptions, getTickLabelDetails, getMinorTickLabelDescriptions, getMinorTickLabelDetails, tickLabelDescription, minorTickLabelDescription, minorTickLabelIntro, majorNote, getTickStepDescriptions, tickStepDescription, tickStepMinorDetails, stepCountOffsetDetails, getThresholdStepDescriptions, thresholdStepDescription, getThresholdDescriptions, thresholdsDescription, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails, thresholdStepPatternDetails, thresholdLogDetails } from './axisConfig.js';
 
 export default function getDescriptions() {
   return {
@@ -58,7 +58,6 @@ export default function getDescriptions() {
       properties: {
         ...getTickLabelDescriptions(),
         format: 'the d3 format string (d3-format for number, d3-time-format for date) to be applied to the category values when displayed in axis tick labels (use null for none, use "auto" to derive the format from the ticks: on a number axis an SI-prefixed number whose precision follows the tick spacing, or on a log axis the magnitude of each tick, in exponent form beyond the SI prefixes; there a format that leaves its precision open takes 3 significant digits, trimmed)',
-        minorFormat: 'the d3 format string (d3-format for number, d3-time-format for date) to be applied to the category values when displayed in minor tick labels (use null for none, use "auto" to derive from data)' + majorNote('tickLabel.format'),
         truncation: {
           description: 'the truncation applied to the axis tick labels when they would overlap each other',
           properties: {
@@ -68,8 +67,15 @@ export default function getDescriptions() {
             minLength: 'the minimum length (in pixels) to allow tick label text perpendicular to the axis, applied when maxFraction would allow less',
             maxFraction: 'the maximum fraction (0 - 1) of the plot bounds to allow any tick label text to occupy when they are perpendicular to the axis'
           }
-        },
-        minorTruncation: {
+        }
+      }
+    },
+    minorTickLabel: {
+      description: minorTickLabelDescription,
+      properties: {
+        ...getMinorTickLabelDescriptions(),
+        format: 'the d3 format string (d3-format for number, d3-time-format for date) to be applied to the category values when displayed in minor tick labels (use null for none, use "auto" to derive from data)' + majorNote('tickLabel.format'),
+        truncation: {
           description: 'the truncation applied to the minor tick labels when they would overlap each other',
           properties: {
             enabled: 'whether or not to use text truncation (true) when the minor tick labels would overlap each other instead of hiding them (false)' + majorNote('tickLabel.truncation.enabled'),
@@ -96,7 +102,7 @@ export function getDetails() {
     softMin: 'Takes the same forms as `min` (a number, above 0 on a log axis, or a timestamp or ISO date string on a date axis) but only applies while no category value falls below it, so real data still expands the domain. An ordinal axis accepts only `null`.',
     softMax: 'Takes the same forms as `max` (a number, above 0 on a log axis, or a timestamp or ISO date string on a date axis) but only applies while no category value rises above it, so real data still expands the domain. An ordinal axis accepts only `null`.',
     tickStep: {
-      description: 'Chooses the ticks by rule rather than by a list, so the choice holds as the data changes; explicit `ticks` take precedence. On an ordinal axis the candidates are the categories in order, or under a `period` the first category of each period, `count` and `offset` step through them, and the categories between the ticks are minor ticks. On a linear axis a `period` (date) or `interval` (number) places the ticks on the period boundaries or the multiples of the interval, `count` and `offset` keep every count-th of them counted from a fixed starting point, and `minorPeriod` or `minorSteps` places minor ticks between them; without a period or interval the axis keeps the ticks it picks. A log axis takes neither, since equal distances in values take unequal lengths there, so it always keeps the ticks it picks. The minor tick marks, grid lines and labels carry the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes, and the `tickLabel`, `tickMark` and `gridLine` minor settings say how they are drawn.',
+      description: 'Chooses the ticks by rule rather than by a list, so the choice holds as the data changes; explicit `ticks` take precedence. On an ordinal axis the candidates are the categories in order, or under a `period` the first category of each period, `count` and `offset` step through them, and the categories between the ticks are minor ticks. On a linear axis a `period` (date) or `interval` (number) places the ticks on the period boundaries or the multiples of the interval, `count` and `offset` keep every count-th of them counted from a fixed starting point, and `minorPeriod` or `minorSteps` places minor ticks between them; without a period or interval the axis keeps the ticks it picks. A log axis takes neither, since equal distances in values take unequal lengths there, so it always keeps the ticks it picks. The minor tick marks, grid lines and labels carry the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes, and `minorTickLabel`, `minorTickMark` and `minorGridLine` say how they are drawn.',
       properties: {
         period: 'A week starts on Monday and the boundaries follow `dateUTC`, so a daily series with `"week"` gets a tick at each week\'s first trading day whatever the holidays. A partial first week is a period of its own, so its first category gets a tick too; `offset: 1` skips it. On a linear date axis the ticks sit on the period boundaries themselves.',
         minorPeriod: 'Needs a `period`, and must be a shorter period than it: a week inside a month, a day inside a week, or an hour inside a day. A minor tick on a tick the step keeps is dropped, and a tick inside a minor period hides the minor ticks at both ends of that period, such as the Mondays either side of the 1st of a month, with their tick marks and grid lines; a tick on a minor boundary hides none.',
@@ -108,18 +114,23 @@ export function getDetails() {
       }
     },
     tickLabel: {
-      description: minorTickLabelIntro,
       properties: {
         ...getTickLabelDetails(),
-        truncation: { properties: { tooltipEnabled: 'When `true`, a truncated tick label carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; assistive tech already gets the full text through `aria-label`.' } },
-        minorTruncation: { description: 'Truncating the minor labels never shortens the non-minor labels, whose truncation counts only their own ticks.' , properties: { tooltipEnabled: 'When `true`, a truncated minor tick label carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it.' } }
+        truncation: { properties: { tooltipEnabled: 'When `true`, a truncated tick label carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it. Touch has no hover, so nothing shows there; assistive tech already gets the full text through `aria-label`.' } }
+      }
+    },
+    minorTickLabel: {
+      description: minorTickLabelIntro,
+      properties: {
+        ...getMinorTickLabelDetails(),
+        truncation: { description: 'Truncating the minor labels never shortens the non-minor labels, whose truncation counts only their own ticks.', properties: { tooltipEnabled: 'When `true`, a truncated minor tick label carries an svg `<title>` holding the full text, which browsers show as their native tooltip (not the chart `tooltip`) while a mouse or pen rests on it.' } }
       }
     },
     ticks: {
       description: 'Replaces the automatic tick generation entirely: tick counts, intervals and the tick skipping that keeps labels apart are ignored, so the configured ticks show even where they overlap, except that the entries marked `minor` follow the minor label fit rule. Useful for naming chosen categories with label text of their own; for a regular pattern such as one tick a week, use `tickStep`. Two entries naming the same category (compared the way a tick finds its category: by instant on a date axis, by key with a `keyProperty`, otherwise by value) are a validation error.',
       properties: {
         value: 'Takes the same forms as `min` on a linear or log axis: a number when `type` is `number`, and either a millisecond timestamp or an ISO date string when `type` is `date`; on a `string` axis it is the category string. On an ordinal axis the tick shows at the category whose value matches (a date matches by instant, so the ISO and timestamp forms both find a `Date` category), or with a `keyProperty` at the category whose key matches, since the key is what makes a repeated value unique; a tick matching no category is hidden. On a linear or log axis the tick is placed on the scale, and one outside the current axis domain is hidden.',
-        minor: 'A minor entry is drawn with the `tickLabel`, `tickMark` and `gridLine` minor settings, and its label shows only when every minor label fits beside its neighbours; an entry with a `label` keeps it whatever `minorFormat` says.'
+        minor: 'A minor entry is drawn with the `minorTickLabel`, `minorTickMark` and `minorGridLine` settings, and its label shows only when every minor label fits beside its neighbours; an entry with a `label` keeps it whatever `minorTickLabel.format` says.'
       }
     },
     thresholdStep: {

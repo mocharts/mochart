@@ -2,7 +2,7 @@ import validators from './validators.js';
 
 import { AUTO, NONE, MAJOR, TYPE_NUMBER, SCALE_LINEAR, SCALE_LOG } from '../core/constants.js';
 
-import getAxisValidators, { axisStyleValidators, getTickLabelValidators, getThresholdStepValidators, getTickStepValidators, positiveNumber } from './axisConfig.js';
+import getAxisValidators, { axisStyleValidators, getTickLabelValidators, getMinorTickLabelValidators, getThresholdStepValidators, getTickStepValidators, positiveNumber } from './axisConfig.js';
 import type { ValueAxisConfig } from '../../types/config.js';
 import type { Validator } from '@mochart/movalid';
 
@@ -29,8 +29,7 @@ export default function getValidators(config: ValueAxisCondition = {}, pieMode =
     ...getAxisValidators(validators.number(), {
       ...getTickLabelValidators(),
       format: validators.numberFormat().orOneOf([NONE, AUTO]),
-      adjustSizeForFiltering: validators.boolean(),
-      minorFormat: validators.numberFormat().orOneOf([NONE, AUTO, MAJOR])
+      adjustSizeForFiltering: validators.boolean()
     }, pieMode, {
       ...getThresholdStepValidators(),
       interval: stepInterval
@@ -38,6 +37,9 @@ export default function getValidators(config: ValueAxisCondition = {}, pieMode =
       ...getTickStepValidators(),
       interval: stepInterval,
       minorSteps: logOrLinear(validators.equal(NONE), validators.integerMin(2).orEqual(NONE))
+    }, {
+      ...getMinorTickLabelValidators(),
+      format: validators.numberFormat().orOneOf([NONE, AUTO, MAJOR])
     }),
 
     adjustForFiltering: validators.boolean(),

@@ -53,7 +53,7 @@ describe('minor tick labels at the axis ends', () => {
 
   it('hides a minor label that would spill past the axis end by its own width and anchor', () => {
     // every second category is a minor tick; the wide minor labels start at their category, so the last one runs past the end
-    const { container, chart } = renderChart({ tickStep: { count: 2 }, tickLabel: { truncation: { enabled: false }, minorVisible: true, minorAnchor: 'start' } }, labels, 1200);
+    const { container, chart } = renderChart({ tickStep: { count: 2 }, tickLabel: { truncation: { enabled: false } }, minorTickLabel: { visible: true, anchor: 'start' } }, labels, 1200);
     expect(getKindLabels(container, false)).toEqual(['a', 'b']);
     expect(getKindLabels(container, true)).toEqual([wide]);
     chart.destroy();
@@ -61,7 +61,7 @@ describe('minor tick labels at the axis ends', () => {
 
   it('keeps a minor label the major width would have hidden', () => {
     // the wide labels are the majors here; the short minor labels sit well inside the ends
-    const { container, chart } = renderChart({ tickStep: { count: 2 }, tickLabel: { truncation: { enabled: false }, minorVisible: true, anchor: 'start' } }, [wide, 'a', wide + 'w', 'b'], 1200);
+    const { container, chart } = renderChart({ tickStep: { count: 2 }, tickLabel: { truncation: { enabled: false }, anchor: 'start' }, minorTickLabel: { visible: true } }, [wide, 'a', wide + 'w', 'b'], 1200);
     expect(getKindLabels(container, true)).toEqual(['a', 'b']);
     chart.destroy();
   });
@@ -71,7 +71,7 @@ describe('the single-label fallback with a tick step', () => {
   const labels = ['category-1', 'category-2', 'category-3', 'category-4', 'category-5', 'category-6'];
 
   it('shows one label when the step leaves no label of either kind, as the same axis without a step does', () => {
-    const withStep = renderChart({ tickStep: { count: 6 }, tickLabel: { truncation: { enabled: false }, minorVisible: true } }, labels, 250);
+    const withStep = renderChart({ tickStep: { count: 6 }, tickLabel: { truncation: { enabled: false } }, minorTickLabel: { visible: true } }, labels, 250);
     const withoutStep = renderChart({ tickLabel: { truncation: { enabled: false } } }, labels, 250);
     expect(getKindLabels(withoutStep.container, false).length).toBe(1);
     expect(getKindLabels(withStep.container, true)).toEqual([]);

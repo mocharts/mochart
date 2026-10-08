@@ -28,7 +28,7 @@ export default class CategoryAxisTickLabelClip extends Renderer<CategoryAxisTick
     const { mochartConfig, minor, categoryAxisLayoutInfo, plotLayoutInfo, categoryAxisTickLabelClipPathUniqueId } = this.props;
     let { maxTickLabelLength } = this.props;
     const { categoryAxis: categoryAxisConfig } = mochartConfig;
-    const minorTickLabel = minor ? getMinorTickLabel(categoryAxisConfig.tickLabel) : null;
+    const minorTickLabel = minor ? getMinorTickLabel(categoryAxisConfig) : null;
     const tickLabelTruncation = minorTickLabel === null ? categoryAxisConfig.tickLabel.truncation : minorTickLabel.truncation!;
     const tickLabelRotation = minorTickLabel === null ? categoryAxisConfig.tickLabel.rotation : minorTickLabel.rotation;
     // a minor clip only once minor labels can reference it

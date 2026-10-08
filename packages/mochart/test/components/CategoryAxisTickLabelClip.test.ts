@@ -2,7 +2,7 @@
  * The category axis tick labels of each kind clip to a rect of their own: the minor labels' rect is built
  * from the minor truncation, rotation and anchor, and a kind whose truncation is off references no clip.
  * A single rect from the major settings left minor labels referencing a clip that was never emitted when only
- * minorTruncation was enabled (so nothing rendered), and cut rotated minor labels at the unrotated major box.
+ * minorTickLabel.truncation was enabled (so nothing rendered), and cut rotated minor labels at the unrotated major box.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
@@ -19,12 +19,12 @@ beforeAll(async () => {
 
 const data = Array.from({ length: 12 }, (_, i) => ({ label: 'category number ' + (i + 1), value: 1 }));
 
-function renderChart(tickLabel: Record<string, unknown>): HTMLElement {
+function renderChart(tickLabel: Record<string, unknown>, minorTickLabel: Record<string, unknown> = {}): HTMLElement {
   const { createChart, enhanceConfig, ArrayOfObjectsDataProvider } = mochart;
   const mochartConfig = enhanceConfig({
     version: '1.0.0',
     animation: { enabled: false },
-    categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { count: 3 }, tickLabel },
+    categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { count: 3 }, tickLabel, minorTickLabel },
     valueAxes: [{ id: 'va', min: 0, max: 3, visible: false }],
     series: [{ axis: 'va', property: 'value', renderer: 'bar' }]
   });
@@ -50,8 +50,8 @@ function clipRect(container: HTMLElement, idPrefix: string): SVGRectElement | nu
 }
 
 describe('category axis tick label clips', () => {
-  it('references a minor clip that exists when only minorTruncation is enabled, and no major clip', () => {
-    const container = renderChart({ minorVisible: true, truncation: { enabled: false }, minorTruncation: { enabled: true } });
+  it('references a minor clip that exists when only minorTickLabel.truncation is enabled, and no major clip', () => {
+    const container = renderChart({ truncation: { enabled: false } }, { visible: true, truncation: { enabled: true } });
     const minorReferences = clipReferences(container, true);
     expect(minorReferences.length).toBeGreaterThan(0);
     expect(clipRect(container, minorClipPrefix)).not.toBeNull();
@@ -65,7 +65,7 @@ describe('category axis tick label clips', () => {
   });
 
   it('builds the minor clip rect from the minor rotation, leaving the major rect unrotated', () => {
-    const container = renderChart({ minorVisible: true, rotation: 0, minorRotation: -60, truncation: { enabled: true } });
+    const container = renderChart({ rotation: 0, truncation: { enabled: true } }, { visible: true, rotation: -60 });
     expect(clipRect(container, majorClipPrefix)!.getAttribute('transform')).toBeNull();
     expect(clipRect(container, minorClipPrefix)!.getAttribute('transform')).toBe('rotate(-60)');
     for (const reference of clipReferences(container, false)) {

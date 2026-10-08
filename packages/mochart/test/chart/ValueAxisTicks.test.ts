@@ -145,7 +145,7 @@ describe('value axis tick step label precision', () => {
   });
 
   it('names the minor step ticks exactly while the ticks keep the interval precision', () => {
-    const { container, chart } = renderChart({ min: 0, max: 3, tickLabel: { minorFormat: 'auto' }, tickStep: { interval: 1, minorSteps: 4 } }, 600);
+    const { container, chart } = renderChart({ min: 0, max: 3, minorTickLabel: { format: 'auto' }, tickStep: { interval: 1, minorSteps: 4 } }, 600);
     const labels = getAxisLabels(container);
     expect(labels).toEqual(expect.arrayContaining(['0', '1', '2', '3', '0.25', '0.50', '0.75', '1.25', '2.75']));
     expect(labels).not.toContain('0.3');

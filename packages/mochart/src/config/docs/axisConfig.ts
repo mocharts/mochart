@@ -79,7 +79,7 @@ function styleStates(description: string, members: string[]): NestedDescription 
 /** The tick label members shared by both axes; each axis adds its own (format, truncation, filtering). */
 export function getTickLabelDescriptions(): DescriptionMap {
   return {
-    visible: 'whether to show the axis tick labels (false hides the minor tick labels too)',
+    visible: 'whether to show the axis tick labels (false hides the minor tick labels too, whatever minorTickLabel.visible says)',
     front: 'whether the axis tick labels should be shown in front (true) or behind (false) the series shapes',
     backgroundStyle: style('the styles to apply to the axis tick label background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))'),
     size: 'the space (in pixels) perpendicular to the axis direction to allocate for the tick labels (use "auto" to derive from the font size)',
@@ -92,36 +92,50 @@ export function getTickLabelDescriptions(): DescriptionMap {
     rotation: 'the rotation (in degrees, -90 to 90) to apply to each axis tick label',
     anchor: 'the anchor to use for all axis tick labels (start, end, middle) (use "auto" to determine automatically)',
     textStyle: styleStates('the style of the axis tick label text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity']),
-    font: font('the font of the axis tick label text (family, size, weight, style), each member falling back to chart.font when null'),
-    minorVisible: 'whether to show the minor tick labels, the labels of the minor ticks a tickStep places between its ticks, a log axis places at the multiples and skipped powers of 10 that are not ticks, and of the ticks entries marked minor' + majorNote('tickLabel.visible'),
-    minorFront: 'whether the minor tick labels should be shown in front (true) or behind (false) the series shapes' + majorNote('tickLabel.front'),
-    minorBackgroundStyle: minorStyle('the styles to apply to the minor tick label background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))', 'tickLabel.backgroundStyle'),
-    minorSize: 'the space (in pixels) perpendicular to the axis direction to allocate for the minor tick labels (use "auto" to derive from the font size)' + majorNote('tickLabel.size'),
-    minorMarginInner: 'the margin (in pixels) to show between the minor tick labels and the inside of the axis' + majorNote('tickLabel.marginInner'),
-    minorMarginOuter: 'the margin (in pixels) to show between the minor tick labels and the outside of the axis' + majorNote('tickLabel.marginOuter'),
-    minorPaddingInner: 'the padding (in pixels) to show between the minor tick labels and the inside of the axis' + majorNote('tickLabel.paddingInner'),
-    minorPaddingOuter: 'the padding (in pixels) to show between the minor tick labels and the outside of the axis' + majorNote('tickLabel.paddingOuter'),
-    minorPrefix: 'the string to prefix to the text of each minor tick label (use null or an empty string for none)',
-    minorSuffix: 'the string to append to the text of each minor tick label (use null or an empty string for none)',
-    minorRotation: 'the rotation (in degrees, -90 to 90) to apply to each minor tick label' + majorNote('tickLabel.rotation'),
-    minorAnchor: 'the anchor to use for all minor tick labels (start, end, middle) (use "auto" to determine automatically)' + majorNote('tickLabel.anchor'),
-    minorTextStyle: minorStyleStates('the style of the minor tick label text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity'], 'tickLabel.textStyle'),
-    minorFont: minorFont('the font of the minor tick label text (family, size, weight, style), each member taking the matching tickLabel.font member when "major" and falling back to chart.font when null', 'tickLabel.font')
+    font: font('the font of the axis tick label text (family, size, weight, style), each member falling back to chart.font when null')
+  };
+}
+
+/** The minor tick label members shared by both axes, named after the tickLabel members they stand in for; each axis adds its own (format, truncation). */
+export function getMinorTickLabelDescriptions(): DescriptionMap {
+  return {
+    visible: 'whether to show the minor tick labels, the labels of the minor ticks a tickStep places between its ticks, a log axis places at the multiples and skipped powers of 10 that are not ticks, and of the ticks entries marked minor' + majorNote('tickLabel.visible'),
+    front: 'whether the minor tick labels should be shown in front (true) or behind (false) the series shapes' + majorNote('tickLabel.front'),
+    backgroundStyle: minorStyle('the styles to apply to the minor tick label background (strokeColor, strokeOpacity, strokeWidth, fillColor, fillOpacity (use null for none))', 'tickLabel.backgroundStyle'),
+    size: 'the space (in pixels) perpendicular to the axis direction to allocate for the minor tick labels (use "auto" to derive from the font size)' + majorNote('tickLabel.size'),
+    marginInner: 'the margin (in pixels) to show between the minor tick labels and the inside of the axis' + majorNote('tickLabel.marginInner'),
+    marginOuter: 'the margin (in pixels) to show between the minor tick labels and the outside of the axis' + majorNote('tickLabel.marginOuter'),
+    paddingInner: 'the padding (in pixels) to show between the minor tick labels and the inside of the axis' + majorNote('tickLabel.paddingInner'),
+    paddingOuter: 'the padding (in pixels) to show between the minor tick labels and the outside of the axis' + majorNote('tickLabel.paddingOuter'),
+    prefix: 'the string to prefix to the text of each minor tick label (use null or an empty string for none)',
+    suffix: 'the string to append to the text of each minor tick label (use null or an empty string for none)',
+    rotation: 'the rotation (in degrees, -90 to 90) to apply to each minor tick label' + majorNote('tickLabel.rotation'),
+    anchor: 'the anchor to use for all minor tick labels (start, end, middle) (use "auto" to determine automatically)' + majorNote('tickLabel.anchor'),
+    textStyle: minorStyleStates('the style of the minor tick label text', ['strokeColor', 'strokeOpacity', 'strokeWidth', 'strokeDashArray', 'fillColor', 'fillOpacity'], 'tickLabel.textStyle'),
+    font: minorFont('the font of the minor tick label text (family, size, weight, style), each member taking the matching tickLabel.font member when "major" and falling back to chart.font when null', 'tickLabel.font')
   };
 }
 
 export const tickLabelDescription = 'the labels shown at each tick along the axis';
 
-export const minorTickLabelIntro = 'A minor tick is one a `tickStep` places between its own ticks (the categories between an ordinal step\'s ticks, the `minorSteps` or `minorPeriod` ticks of a linear step), one a log axis places at the multiples from 2 to 9 that are not ticks or at the powers of 10 it skips, or a `ticks` entry marked `minor`. Every tick label setting has a minor version named "minor" followed by the setting name. Each defaults to `"major"`, which uses the value of the matching non-minor setting, except `minorPrefix` and `minorSuffix`, which default to null and take no `"major"`, and the `text` of the category axis `minorTruncation`, which is always a string of its own.';
+export const minorTickLabelDescription = 'the labels shown at each minor tick along the axis';
 
-/** The tick label details shared by both axes: what a minor tick is, how its labels fit, and the font size note. */
+export const minorTickLabelIntro = 'A minor tick is one a `tickStep` places between its own ticks (the categories between an ordinal step\'s ticks, the `minorSteps` or `minorPeriod` ticks of a linear step), one a log axis places at the multiples from 2 to 9 that are not ticks or at the powers of 10 it skips, or a `ticks` entry marked `minor`. Each member is named after the `tickLabel` member it stands in for, and `"major"` uses the value of that `tickLabel` member. Every member defaults to `"major"` except these: `visible`, whose default depends on `minorTickLabel.format`, `ticks` and `scale`; `prefix` and `suffix`, which default to null and take no `"major"`; and the `text` of the category axis `truncation`, which is always a string of its own. `tickLabel.visible: false` hides the minor tick labels too, whatever `minorTickLabel.visible` says.';
+
+/** The tick label details shared by both axes. */
 export function getTickLabelDetails(): DescriptionMap {
   return {
-    visible: 'A label hidden here is not drawn and takes no room in the layout, and its ticks are no longer thinned to make the labels fit: under a `tickStep` rule the tick marks and grid lines are limited only by `tickStep.minSpacing`, and without one the axis still picks its tick count from `tickCount`, `maxTickCount`, `minTickSpacing` and `minTickInterval`. To keep hidden labels in the layout, leave them visible and set the opacities of every state of `textStyle` to 0 instead.',
-    minorVisible: 'The default is `false` while `minorFormat` is `"major"` and `ticks` is unset, so a `tickStep` alone labels only its own ticks; setting a `minorFormat` or listing `ticks` turns it to `"major"`, except that on a log axis only listing `ticks` does. A log axis makes its minor ticks without being asked, so there `tickMark.minorVisible` and `gridLine.minorVisible` default to `"major"` while this stays `false`, which shows their marks and grid lines without crowding the axis with labels; a `minorFormat` alone does not turn it on there, since minor labels that do not fit would hide the marks and grid lines with them. Minor labels never change which non-minor labels show. A minor label shows only when every minor label fits beside its neighbours, minor or not, measured from the widest minor and non-minor labels plus `minTickSpacing`; when one does not fit they all hide, unless the category axis `minorTruncation` truncates them instead. Minor labels that do not fit hide their tick marks and grid lines with them; `false` here hides only the labels and takes them out of the layout, and `visible: false` hides the minor labels whatever this says.',
-    minorFormat: '`"major"` is replaced with the value of `format` before any formatter is built, so it never reaches d3.',
-    minorSize: 'The minor labels have a layout of their own: they are measured and placed from the minor settings, the axis reserves the larger of the two label totals (size, margins and paddings), the title sits after the larger one, and the minor labels get their own background box.',
-    minorFont: { properties: { size: 'A relative size such as `"0.85em"` resolves against the font size the label inherits from the host page, as every font size in mochart does, not against `tickLabel.font.size` or `chart.font.size`: with `tickLabel.font.size` 16 on a page with a 12px font, `"0.85em"` gives minor labels 10.2px, not 13.6px.' } }
+    visible: 'A label hidden here is not drawn and takes no room in the layout, and its ticks are no longer thinned to make the labels fit: under a `tickStep` rule the tick marks and grid lines are limited only by `tickStep.minSpacing`, and without one the axis still picks its tick count from `tickCount`, `maxTickCount`, `minTickSpacing` and `minTickInterval`. To keep hidden labels in the layout, leave them visible and set the opacities of every state of `textStyle` to 0 instead.'
+  };
+}
+
+/** The minor tick label details shared by both axes: when they show, how they fit, and the font size note. */
+export function getMinorTickLabelDetails(): DescriptionMap {
+  return {
+    visible: 'The default is `false` while `minorTickLabel.format` is `"major"` and `ticks` is unset, so a `tickStep` alone labels only its own ticks; setting `minorTickLabel.format` or listing `ticks` turns it to `"major"`, except that on a log axis only listing `ticks` does. A log axis makes its minor ticks without being asked, so there `minorTickMark.visible` and `minorGridLine.visible` default to `"major"` while this stays `false`, which shows their marks and grid lines without crowding the axis with labels; `minorTickLabel.format` alone does not turn it on there, since minor labels that do not fit would hide the marks and grid lines with them. Minor labels never change which non-minor labels show. A minor label shows only when every minor label fits beside its neighbours, minor or not, measured from the widest minor and non-minor labels plus `minTickSpacing`; when one does not fit they all hide, unless the category axis `minorTickLabel.truncation` truncates them instead. Minor labels that do not fit hide their tick marks and grid lines with them; `false` here hides only the labels and takes them out of the layout, and `tickLabel.visible: false` hides the minor labels whatever this says.',
+    format: '`"major"` is replaced with the value of `tickLabel.format` before any formatter is built, so it never reaches d3.',
+    size: 'The minor labels have a layout of their own: they are measured and placed from the `minorTickLabel` settings, the axis reserves the larger of the two label totals (size, margins and paddings), the title sits after the larger one, and the minor labels get their own background box.',
+    font: { properties: { size: 'A relative size such as `"0.85em"` resolves against the font size the label inherits from the host page, as every font size in mochart does, not against `tickLabel.font.size` or `chart.font.size`: with `tickLabel.font.size` 16 on a page with a 12px font, `"0.85em"` gives minor labels 10.2px, not 13.6px.' } }
   };
 }
 
@@ -268,12 +282,18 @@ export default function getDescriptions() {
     gridLine: {
       description: 'the grid lines drawn across the plot at each tick on the axis',
       properties: {
-        visible: 'whether to show grid lines perpendicular to each tick on the axis (false hides the minor grid lines too)',
+        visible: 'whether to show grid lines perpendicular to each tick on the axis (false hides the minor grid lines too, whatever minorGridLine.visible says)',
         front: 'whether the axis grid lines should be shown in front (true) or behind (false) the series shapes',
-        style: styleStates('the style of the axis grid lines', strokeMembers),
-        minorVisible: 'whether to show grid lines perpendicular to each minor tick on the axis' + majorNote('gridLine.visible'),
-        minorFront: 'whether the minor grid lines should be shown in front (true) or behind (false) the series shapes' + majorNote('gridLine.front'),
-        minorStyle: minorStyleStates('the style of the minor grid lines', strokeMembers, 'gridLine.style')
+        style: styleStates('the style of the axis grid lines', strokeMembers)
+      }
+    },
+
+    minorGridLine: {
+      description: 'the grid lines drawn across the plot at each minor tick on the axis',
+      properties: {
+        visible: 'whether to show grid lines perpendicular to each minor tick on the axis' + majorNote('gridLine.visible'),
+        front: 'whether the minor grid lines should be shown in front (true) or behind (false) the series shapes' + majorNote('gridLine.front'),
+        style: minorStyleStates('the style of the minor grid lines', strokeMembers, 'gridLine.style')
       }
     },
 
@@ -304,19 +324,30 @@ export default function getDescriptions() {
       properties: getTickLabelDescriptions()
     },
 
+    minorTickLabel: {
+      description: minorTickLabelDescription,
+      properties: getMinorTickLabelDescriptions()
+    },
+
     tickMark: {
       description: 'the tick marks drawn perpendicular to the axis at each tick value',
       properties: {
-        visible: 'whether to show lines perpendicular to each tick value along the axis (false hides the minor tick marks too)',
+        visible: 'whether to show lines perpendicular to each tick value along the axis (false hides the minor tick marks too, whatever minorTickMark.visible says)',
         front: 'whether the axis tick marks should be shown in front (true) or behind (false) the series shapes',
         size: 'the length (in pixels) of the axis tick mark lines',
         marginInner: 'the margin (in pixels) to show between the inside of the axis and the axis tick mark lines',
-        style: styleStates('the style of the axis tick mark lines', strokeMembers),
-        minorVisible: 'whether to show lines perpendicular to each minor tick value along the axis' + majorNote('tickMark.visible'),
-        minorFront: 'whether the minor tick marks should be shown in front (true) or behind (false) the series shapes' + majorNote('tickMark.front'),
-        minorSize: 'the length (in pixels) of the minor tick mark lines' + majorNote('tickMark.size'),
-        minorMarginInner: 'the margin (in pixels) to show between the inside of the axis and the minor tick mark lines' + majorNote('tickMark.marginInner'),
-        minorStyle: minorStyleStates('the style of the minor tick mark lines', strokeMembers, 'tickMark.style')
+        style: styleStates('the style of the axis tick mark lines', strokeMembers)
+      }
+    },
+
+    minorTickMark: {
+      description: 'the tick marks drawn perpendicular to the axis at each minor tick value',
+      properties: {
+        visible: 'whether to show lines perpendicular to each minor tick value along the axis' + majorNote('tickMark.visible'),
+        front: 'whether the minor tick marks should be shown in front (true) or behind (false) the series shapes' + majorNote('tickMark.front'),
+        size: 'the length (in pixels) of the minor tick mark lines' + majorNote('tickMark.size'),
+        marginInner: 'the margin (in pixels) to show between the inside of the axis and the minor tick mark lines' + majorNote('tickMark.marginInner'),
+        style: minorStyleStates('the style of the minor tick mark lines', strokeMembers, 'tickMark.style')
       }
     },
 

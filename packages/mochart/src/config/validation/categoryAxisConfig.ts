@@ -2,7 +2,7 @@ import validators from './validators.js';
 
 import { AUTO, NONE, MAJOR, SCALE_ORDINAL, SCALE_LINEAR, SCALE_LOG, TYPE_STRING, TYPE_NUMBER, TYPE_DATE, STEP_PERIODS, CATEGORY_VALUE_INTERVAL_PERIODS } from '../core/constants.js';
 
-import getAxisValidators, { getTickLabelValidators, getThresholdStepValidators, getTickStepValidators, thresholdStepIntervalValidator, positiveNumber } from './axisConfig.js';
+import getAxisValidators, { getTickLabelValidators, getMinorTickLabelValidators, getThresholdStepValidators, getTickStepValidators, thresholdStepIntervalValidator, positiveNumber } from './axisConfig.js';
 import getTruncationValidators from './truncationConfig.js';
 import type { CategoryAxisConfig } from '../../types/config.js';
 
@@ -57,23 +57,6 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
         ], config)),
         maxFraction: validators.numberMinMax(0, 1),
         minLength: validators.numberMin(0)
-      }, true),
-      minorFormat: validators.conditional([
-        { ...typeStringRule, validator: validators.oneOf([NONE, AUTO, MAJOR]) },
-        { ...typeDateRule, validator: validators.dateFormat().orOneOf([NONE, AUTO, MAJOR]) },
-        { ...typeNumberRule, validator: validators.numberFormat().orOneOf([NONE, AUTO, MAJOR]) },
-        { ...defaultRule, validator: validators.any() }
-      ], config),
-      minorTruncation: validators.partialObjectWithShape({
-        enabled: validators.conditional([
-          { ...scaleLinearRule, validator: validators.oneOf([false, MAJOR]) },
-          { ...scaleLogRule, validator: validators.oneOf([false, MAJOR]) },
-          { ...defaultRule, validator: validators.boolean().orEqual(MAJOR) }
-        ], config),
-        text: validators.string(),
-        tooltipEnabled: validators.boolean().orEqual(MAJOR),
-        maxFraction: validators.numberMinMax(0, 1).orEqual(MAJOR),
-        minLength: validators.numberMin(0).orEqual(MAJOR)
       }, true)
     }, pieMode, {
       ...getThresholdStepValidators(),
@@ -116,6 +99,25 @@ export default function getValidators(config: Partial<CategoryAxisConfig>, pieMo
         { ...scaleOrdinalRule, validator: validators.equal(2) },
         { ...defaultRule, validator: validators.any() }
       ], config)
+    }, {
+      ...getMinorTickLabelValidators(),
+      format: validators.conditional([
+        { ...typeStringRule, validator: validators.oneOf([NONE, AUTO, MAJOR]) },
+        { ...typeDateRule, validator: validators.dateFormat().orOneOf([NONE, AUTO, MAJOR]) },
+        { ...typeNumberRule, validator: validators.numberFormat().orOneOf([NONE, AUTO, MAJOR]) },
+        { ...defaultRule, validator: validators.any() }
+      ], config),
+      truncation: validators.partialObjectWithShape({
+        enabled: validators.conditional([
+          { ...scaleLinearRule, validator: validators.oneOf([false, MAJOR]) },
+          { ...scaleLogRule, validator: validators.oneOf([false, MAJOR]) },
+          { ...defaultRule, validator: validators.boolean().orEqual(MAJOR) }
+        ], config),
+        text: validators.string(),
+        tooltipEnabled: validators.boolean().orEqual(MAJOR),
+        maxFraction: validators.numberMinMax(0, 1).orEqual(MAJOR),
+        minLength: validators.numberMin(0).orEqual(MAJOR)
+      }, true)
     }),
 
     dateUTC: validators.boolean(),

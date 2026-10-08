@@ -35,21 +35,27 @@ export function getTickLabelValidators(): Record<string, Validator> {
     rotation: validators.numberMinMax(-90, 90),
     anchor: validators.oneOf(ANCHORS.concat([AUTO])),
     textStyle: styleStates(styleMembers),
-    font: validators.font(),
-    minorVisible: validators.boolean().orEqual(MAJOR),
-    minorFront: validators.boolean().orEqual(MAJOR),
-    minorBackgroundStyle: validators.styleOrMajor(),
-    minorSize: validators.numberMin(0).orOneOf([AUTO, MAJOR]),
-    minorMarginInner: validators.numberMin(0).orEqual(MAJOR),
-    minorMarginOuter: validators.numberMin(0).orEqual(MAJOR),
-    minorPaddingInner: validators.numberMin(0).orEqual(MAJOR),
-    minorPaddingOuter: validators.numberMin(0).orEqual(MAJOR),
-    minorPrefix: validators.string().orEqual(NONE),
-    minorSuffix: validators.string().orEqual(NONE),
-    minorRotation: validators.numberMinMax(-90, 90).orEqual(MAJOR),
-    minorAnchor: validators.oneOf(ANCHORS.concat([AUTO, MAJOR])),
-    minorTextStyle: styleStates(styleMembers, true),
-    minorFont: validators.fontOrMajor()
+    font: validators.font()
+  };
+}
+
+/** The minor tick label members shared by both axes; each axis adds its own (format rules, truncation). */
+export function getMinorTickLabelValidators(): Record<string, Validator> {
+  return {
+    visible: validators.boolean().orEqual(MAJOR),
+    front: validators.boolean().orEqual(MAJOR),
+    backgroundStyle: validators.styleOrMajor(),
+    size: validators.numberMin(0).orOneOf([AUTO, MAJOR]),
+    marginInner: validators.numberMin(0).orEqual(MAJOR),
+    marginOuter: validators.numberMin(0).orEqual(MAJOR),
+    paddingInner: validators.numberMin(0).orEqual(MAJOR),
+    paddingOuter: validators.numberMin(0).orEqual(MAJOR),
+    prefix: validators.string().orEqual(NONE),
+    suffix: validators.string().orEqual(NONE),
+    rotation: validators.numberMinMax(-90, 90).orEqual(MAJOR),
+    anchor: validators.oneOf(ANCHORS.concat([AUTO, MAJOR])),
+    textStyle: styleStates(styleMembers, true),
+    font: validators.fontOrMajor()
   };
 }
 
@@ -87,7 +93,7 @@ export function getThresholdStepValidators(): Record<string, Validator> {
   };
 }
 
-export default function getValidators(thresholdValue = validators.number(), tickLabelValidators: Record<string, Validator> = getTickLabelValidators(), pieMode = false, thresholdStepValidators: Record<string, Validator> = getThresholdStepValidators(), tickStepValidators: Record<string, Validator> = getTickStepValidators()) {
+export default function getValidators(thresholdValue = validators.number(), tickLabelValidators: Record<string, Validator> = getTickLabelValidators(), pieMode = false, thresholdStepValidators: Record<string, Validator> = getThresholdStepValidators(), tickStepValidators: Record<string, Validator> = getTickStepValidators(), minorTickLabelValidators: Record<string, Validator> = getMinorTickLabelValidators()) {
   return {
     axisLine: group({
       visible: validators.boolean(),
@@ -123,10 +129,13 @@ export default function getValidators(thresholdValue = validators.number(), tick
     gridLine: group({
       visible: validators.boolean(),
       front: validators.boolean(),
-      style: styleStates(lineMembers),
-      minorVisible: validators.boolean().orEqual(MAJOR),
-      minorFront: validators.boolean().orEqual(MAJOR),
-      minorStyle: styleStates(lineMembers, true)
+      style: styleStates(lineMembers)
+    }),
+
+    minorGridLine: group({
+      visible: validators.boolean().orEqual(MAJOR),
+      front: validators.boolean().orEqual(MAJOR),
+      style: styleStates(lineMembers, true)
     }),
 
     marginInner: validators.numberMin(0),
@@ -166,17 +175,22 @@ export default function getValidators(thresholdValue = validators.number(), tick
 
     tickLabel: group(tickLabelValidators),
 
+    minorTickLabel: group(minorTickLabelValidators),
+
     tickMark: group({
       visible: validators.boolean(),
       front: validators.boolean(),
       size: validators.numberMin(0),
       marginInner: validators.numberMin(0),
-      style: styleStates(lineMembers),
-      minorVisible: validators.boolean().orEqual(MAJOR),
-      minorFront: validators.boolean().orEqual(MAJOR),
-      minorSize: validators.numberMin(0).orEqual(MAJOR),
-      minorMarginInner: validators.numberMin(0).orEqual(MAJOR),
-      minorStyle: styleStates(lineMembers, true)
+      style: styleStates(lineMembers)
+    }),
+
+    minorTickMark: group({
+      visible: validators.boolean().orEqual(MAJOR),
+      front: validators.boolean().orEqual(MAJOR),
+      size: validators.numberMin(0).orEqual(MAJOR),
+      marginInner: validators.numberMin(0).orEqual(MAJOR),
+      style: styleStates(lineMembers, true)
     }),
 
     tickStep: group(tickStepValidators),

@@ -142,22 +142,22 @@ describe('category axis scale', () => {
 describe('minor tick defaults', () => {
   it('shows minor tick marks and grid lines on a log axis, following the major setting, and keeps minor labels off', () => {
     const [valueAxis] = getDefaults({ categoryAxis: { property: 'c' }, valueAxes: [{ scale: 'log' }], series: [{ property: 'v' }] }).valueAxes as Record<string, Record<string, unknown>>[];
-    expect(valueAxis!.tickMark!.minorVisible).toBe('major');
-    expect(valueAxis!.gridLine!.minorVisible).toBe('major');
-    expect(valueAxis!.tickLabel!.minorVisible).toBe(false);
+    expect(valueAxis!.minorTickMark!.visible).toBe('major');
+    expect(valueAxis!.minorGridLine!.visible).toBe('major');
+    expect(valueAxis!.minorTickLabel!.visible).toBe(false);
   });
 
-  it('keeps minor labels off on a log axis when only a minorFormat is set, since labels that do not fit would hide the marks', () => {
-    const axes = (scale: string) => getDefaults({ categoryAxis: { property: 'c' }, valueAxes: [{ scale, tickLabel: { minorFormat: '~s' } }], series: [{ property: 'v' }] }).valueAxes as Record<string, Record<string, unknown>>[];
-    expect(axes('log')[0]!.tickLabel!.minorVisible).toBe(false);
-    expect(axes('linear')[0]!.tickLabel!.minorVisible).toBe('major');
+  it('keeps minor labels off on a log axis when only minorTickLabel.format is set, since labels that do not fit would hide the marks', () => {
+    const axes = (scale: string) => getDefaults({ categoryAxis: { property: 'c' }, valueAxes: [{ scale, minorTickLabel: { format: '~s' } }], series: [{ property: 'v' }] }).valueAxes as Record<string, Record<string, unknown>>[];
+    expect(axes('log')[0]!.minorTickLabel!.visible).toBe(false);
+    expect(axes('linear')[0]!.minorTickLabel!.visible).toBe('major');
     const listed = getDefaults({ categoryAxis: { property: 'c' }, valueAxes: [{ scale: 'log', ticks: [{ value: 1 }, { value: 5, minor: true }] }], series: [{ property: 'v' }] }).valueAxes as Record<string, Record<string, unknown>>[];
-    expect(listed[0]!.tickLabel!.minorVisible).toBe('major');
+    expect(listed[0]!.minorTickLabel!.visible).toBe('major');
   });
 
   it('keeps them off on a linear axis with no minor ticks asked for', () => {
     const [valueAxis] = getDefaults({ categoryAxis: { property: 'c' }, valueAxes: [{}], series: [{ property: 'v' }] }).valueAxes as Record<string, Record<string, unknown>>[];
-    expect(valueAxis!.tickMark!.minorVisible).toBe(false);
-    expect(valueAxis!.gridLine!.minorVisible).toBe(false);
+    expect(valueAxis!.minorTickMark!.visible).toBe(false);
+    expect(valueAxis!.minorGridLine!.visible).toBe(false);
   });
 });

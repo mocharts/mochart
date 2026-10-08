@@ -78,9 +78,12 @@ export default function getDefaults() {
         normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.13, strokeWidth: 1, strokeDashArray: '5, 5' },
         focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.17, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME },
         defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.09, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME }
-      },
-      minorFront: MAJOR,
-      minorStyle: getMajorLineStyleStates()
+      }
+    },
+
+    minorGridLine: {
+      front: MAJOR,
+      style: getMajorLineStyleStates()
     },
 
     marginInner: 0,
@@ -128,21 +131,24 @@ export default function getDefaults() {
         focused: { strokeColor: STYLE_SAME, strokeOpacity: 1, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 1 },
         defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.5, strokeWidth: 0, strokeDashArray: STYLE_SAME, fillColor: STYLE_SAME, fillOpacity: 0.5 }
       },
-      font: getFontDefaults(),
-      minorFront: MAJOR,
-      minorAnchor: MAJOR,
-      minorBackgroundStyle: { ...majorStyle },
-      minorSize: MAJOR,
-      minorMarginInner: MAJOR,
-      minorMarginOuter: MAJOR,
-      minorPaddingInner: MAJOR,
-      minorPaddingOuter: MAJOR,
-      minorFormat: MAJOR,
-      minorPrefix: NONE,
-      minorSuffix: NONE,
-      minorRotation: MAJOR,
-      minorTextStyle: getMajorStyleStates(),
-      minorFont: { family: MAJOR, size: MAJOR, weight: MAJOR, style: MAJOR }
+      font: getFontDefaults()
+    },
+
+    minorTickLabel: {
+      front: MAJOR,
+      anchor: MAJOR,
+      backgroundStyle: { ...majorStyle },
+      size: MAJOR,
+      marginInner: MAJOR,
+      marginOuter: MAJOR,
+      paddingInner: MAJOR,
+      paddingOuter: MAJOR,
+      format: MAJOR,
+      prefix: NONE,
+      suffix: NONE,
+      rotation: MAJOR,
+      textStyle: getMajorStyleStates(),
+      font: { family: MAJOR, size: MAJOR, weight: MAJOR, style: MAJOR }
     },
 
     tickMark: {
@@ -154,11 +160,14 @@ export default function getDefaults() {
         normal: { strokeColor: COLOR_CURRENT, strokeOpacity: 0.65, strokeWidth: 1, strokeDashArray: NONE },
         focused: { strokeColor: STYLE_SAME, strokeOpacity: 0.65, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME },
         defocused: { strokeColor: STYLE_SAME, strokeOpacity: 0.325, strokeWidth: STYLE_SAME, strokeDashArray: STYLE_SAME }
-      },
-      minorFront: MAJOR,
-      minorSize: MAJOR,
-      minorMarginInner: MAJOR,
-      minorStyle: getMajorLineStyleStates()
+      }
+    },
+
+    minorTickMark: {
+      front: MAJOR,
+      size: MAJOR,
+      marginInner: MAJOR,
+      style: getMajorLineStyleStates()
     },
 
     title: {
@@ -182,22 +191,22 @@ export default function getDefaults() {
   };
 }
 
-/** The config members the minorVisible default reads. */
-type MinorVisibleCondition = { tickLabel: { minorFormat: unknown }; ticks: unknown; scale: unknown };
+/** The config members the minor visible default reads. */
+type MinorVisibleCondition = { minorTickLabel: { format: unknown }; ticks: unknown; scale: unknown };
 
 /**
- * The minorVisible default for tickLabel, tickMark or gridLine, shared by both axes: off while nothing asks for minor
- * ticks, so a step alone looks as it did before minor ticks could be shown. A log axis makes its own minor ticks, so
- * its tick marks and grid lines follow the major setting (followsMajorOnLog); its labels stay off, a minorFormat alone
- * included, since minor labels that do not fit hide their marks and grid lines with them.
+ * The visible default for minorTickLabel, minorTickMark or minorGridLine, shared by both axes: off while nothing asks
+ * for minor ticks, so a step alone looks as it did before minor ticks could be shown. A log axis makes its own minor
+ * ticks, so its tick marks and grid lines follow the major setting (followsMajorOnLog); its labels stay off, a
+ * minorTickLabel.format alone included, since minor labels that do not fit hide their marks and grid lines with them.
  */
 export function getMinorVisibleDefault<E>(configWithRegularDefaults: MinorVisibleCondition, extraArg: E, followsMajorOnLog = false) {
-  const unset = ({ tickLabel, ticks }: MinorVisibleCondition) => tickLabel.minorFormat === MAJOR && ticks === NONE;
+  const unset = ({ minorTickLabel, ticks }: MinorVisibleCondition) => minorTickLabel.format === MAJOR && ticks === NONE;
   return conditionalDefault<MinorVisibleCondition, E, boolean | typeof MAJOR>([
     ...(followsMajorOnLog ? [{ condition: ({ scale }: MinorVisibleCondition) => scale === SCALE_LOG, suffix: 'when scale is log', default: MAJOR as typeof MAJOR }] : []),
-    { condition: config => unset(config), suffix: 'when tickLabel.minorFormat is "major" and ticks is null', default: false },
+    { condition: config => unset(config), suffix: 'when minorTickLabel.format is "major" and ticks is null', default: false },
     ...(followsMajorOnLog ? [] : [{ condition: ({ scale, ticks }: MinorVisibleCondition) => scale === SCALE_LOG && ticks === NONE, suffix: 'when scale is log and ticks is null', default: false }]),
-    { condition: config => !unset(config), suffix: 'when tickLabel.minorFormat is set or ticks is set', default: MAJOR },
+    { condition: config => !unset(config), suffix: 'when minorTickLabel.format is set or ticks is set', default: MAJOR },
     { ...defaultRule, default: false }
   ], configWithRegularDefaults, extraArg);
 }

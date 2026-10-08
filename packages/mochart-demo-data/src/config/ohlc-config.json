@@ -8,12 +8,14 @@
     "type": "date",
     "scale": "ordinal",
     "tickLabel": {
-      "format": "%b %d",
-      "minorFormat": "%a",
-      "minorFont": {
+      "format": "%b %d"
+    },
+    "minorTickLabel": {
+      "format": "%a",
+      "font": {
         "size": "0.85em"
       },
-      "minorTextStyle": {
+      "textStyle": {
         "normal": {
           "fillOpacity": 0.6
         },

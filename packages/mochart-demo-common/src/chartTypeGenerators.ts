@@ -354,11 +354,11 @@ const CANDLESTICK_DAYS = [
 function candlestickCategoryAxis(categoryAxis: Partial<CategoryAxisConfig>): DeepPartial<CategoryAxisConfig> {
   return {
     ...categoryAxis,
-    tickLabel: {
-      format: '%b %d',
-      minorFormat: '%a',
-      minorFont: { size: '0.85em' },
-      minorTextStyle: { normal: { fillOpacity: 0.6 }, focused: { fillOpacity: 0.6 }, defocused: { fillOpacity: 0.3 } }
+    tickLabel: { format: '%b %d' },
+    minorTickLabel: {
+      format: '%a',
+      font: { size: '0.85em' },
+      textStyle: { normal: { fillOpacity: 0.6 }, focused: { fillOpacity: 0.6 }, defocused: { fillOpacity: 0.3 } }
     },
     valueFormat: '%a %b %d',
     tickStep: { period: 'week' }

@@ -14,8 +14,8 @@ import Background from './Background.js';
 import { getPassTicks } from './AxisLines.js';
 import type { PassTick } from './AxisLines.js';
 import type { El, TextEl } from '../render/index.js';
-import type { MinorTickLabel } from '../config/core/minorConfig.js';
-import type { AxisConfigBase, AxisTickLabelConfig, CategoryAxisConfig, CategoryAxisTickLabelConfig, FontConfig, TickLabelTruncationConfig } from '../types/config.js';
+import type { MinorTickLabel, MinorTickLabelSource } from '../config/core/minorConfig.js';
+import type { AxisConfigBase, CategoryAxisConfig, FontConfig, TickLabelTruncationConfig } from '../types/config.js';
 import type { FontInlineStyle } from '../utils/font.js';
 import type { EnhancedValueAxisConfig } from '../types/enhanced.js';
 import type { AxisTick } from '../types/data.js';
@@ -29,9 +29,9 @@ const emptyNumbers: number[] = [];
 const emptyPassTicks: PassTick[] = [];
 const hiddenStyle = { visibility: 'hidden' };
 
-type AxisDisplayConfig = Omit<AxisConfigBase, 'tickLabel'> &
+type AxisDisplayConfig = Omit<AxisConfigBase, 'tickLabel' | 'minorTickLabel'> &
   Pick<CategoryAxisConfig, 'scale'> &
-  { tickLabel: AxisTickLabelConfig & Partial<Pick<CategoryAxisTickLabelConfig, 'truncation' | 'minorTruncation'>> } &
+  MinorTickLabelSource &
   Partial<Pick<EnhancedValueAxisConfig, 'useSeriesFocus'>>;
 
 interface AxisTickLabelsProps {
@@ -57,7 +57,7 @@ interface TickLabelHandle { root: El; text: El; value: TextEl; tooltip: Truncati
 /** The kinds of label a pass draws: those visible in the config and drawn in front or behind like the pass. */
 function getPasses(props: AxisTickLabelsProps): { majorPass: boolean; minorPass: boolean; minorTickLabel: MinorTickLabel } {
   const { front, axisConfig } = props;
-  const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
+  const minorTickLabel = getMinorTickLabel(axisConfig);
   return {
     majorPass: front === axisConfig.tickLabel.front && axisConfig.tickLabel.visible,
     minorPass: front === minorTickLabel.front && minorTickLabel.visible,

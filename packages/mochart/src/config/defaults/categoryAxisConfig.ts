@@ -35,8 +35,11 @@ export function getRegularDefaults() {
 
     tickLabel: {
       ...axisDefaults.tickLabel,
-      truncation: { ...getTruncationDefaultsWithoutEnabled(), minLength: 0, maxFraction: 0.2 },
-      minorTruncation: { enabled: MAJOR, text: getTruncationDefaultsWithoutEnabled().text, tooltipEnabled: MAJOR, minLength: MAJOR, maxFraction: MAJOR }
+      truncation: { ...getTruncationDefaultsWithoutEnabled(), minLength: 0, maxFraction: 0.2 }
+    },
+    minorTickLabel: {
+      ...axisDefaults.minorTickLabel,
+      truncation: { enabled: MAJOR, text: getTruncationDefaultsWithoutEnabled().text, tooltipEnabled: MAJOR, minLength: MAJOR, maxFraction: MAJOR }
     },
 
     type: TYPE_STRING,
@@ -79,10 +82,10 @@ export function getConditionalDefaults(configWithRegularDefaults: CategoryAxisCo
           { condition: ({ type }, _inverted) => type !== TYPE_STRING, suffix: "when type is not string", default: false },
           { ...defaultRule, default: false }
         ], configWithRegularDefaults, inverted)
-      },
-      minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted)
+      }
     },
-    tickMark: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted, true) },
-    gridLine: { minorVisible: getMinorVisibleDefault(configWithRegularDefaults, inverted, true) }
+    minorTickLabel: { visible: getMinorVisibleDefault(configWithRegularDefaults, inverted) },
+    minorTickMark: { visible: getMinorVisibleDefault(configWithRegularDefaults, inverted, true) },
+    minorGridLine: { visible: getMinorVisibleDefault(configWithRegularDefaults, inverted, true) }
   };
 }

@@ -29,7 +29,7 @@ export default class AxisTickMarks extends Renderer<AxisTickMarksProps> {
 
   sync() {
     const { front, axisConfig } = this.props;
-    const minorTickMark = getMinorTickMark(axisConfig.tickMark);
+    const minorTickMark = getMinorTickMark(axisConfig);
     const majorPass = front === axisConfig.tickMark.front && axisConfig.tickMark.visible;
     const minorPass = front === minorTickMark.front && minorTickMark.visible;
     if (majorPass || minorPass) {

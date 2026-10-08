@@ -1,8 +1,8 @@
 import { MAJOR } from './constants.js';
 import type { Major } from './constants.js';
 import type {
-  AxisGridLineConfig, AxisTickLabelConfig, AxisTickMarkConfig, CategoryAxisTickLabelConfig, FontConfig, Style, StyleStates,
-  StrokeStyleStates, TickLabelTruncationConfig
+  AxisGridLineConfig, AxisMinorGridLineConfig, AxisMinorTickLabelConfig, AxisMinorTickMarkConfig, AxisTickLabelConfig, AxisTickMarkConfig,
+  CategoryAxisMinorTickLabelConfig, CategoryAxisTickLabelConfig, FontConfig, Style, StyleStates, StrokeStyleStates, TickLabelTruncationConfig
 } from '../../types/config.js';
 
 /** The minor tick labels' settings in the shape of the non-minor ones, every "major" replaced by the non-minor value. */
@@ -61,64 +61,69 @@ function majorStates<T extends { normal: object; focused: object; defocused: obj
   } as T;
 }
 
+/** The axis config members the minor tick labels resolve from; only a category axis has the truncations. */
+export interface MinorTickLabelSource {
+  tickLabel: AxisTickLabelConfig & Partial<Pick<CategoryAxisTickLabelConfig, 'truncation'>>;
+  minorTickLabel: AxisMinorTickLabelConfig & Partial<Pick<CategoryAxisMinorTickLabelConfig, 'truncation'>>;
+}
+
 // config objects are stable per enhanced config, so the resolved settings are too; a stable identity lets renderer skips hold
-const minorTickLabels = new WeakMap<AxisTickLabelConfig, MinorTickLabel>();
-const minorTickMarks = new WeakMap<AxisTickMarkConfig, MinorTickMark>();
-const minorGridLines = new WeakMap<AxisGridLineConfig, MinorGridLine>();
+const minorTickLabels = new WeakMap<object, { major: object; resolved: MinorTickLabel }>();
+const minorTickMarks = new WeakMap<object, { major: object; resolved: MinorTickMark }>();
+const minorGridLines = new WeakMap<object, { major: object; resolved: MinorGridLine }>();
 
-export function getMinorTickLabel(tickLabel: AxisTickLabelConfig & Partial<Pick<CategoryAxisTickLabelConfig, 'truncation' | 'minorTruncation'>>): MinorTickLabel {
-  let minor = minorTickLabels.get(tickLabel);
-  if (minor === undefined) {
-    minor = {
-      // a part hidden by visible hides its minor ticks too, whatever minorVisible says
-      visible: tickLabel.visible && major(tickLabel.minorVisible, tickLabel.visible),
-      front: major(tickLabel.minorFront, tickLabel.front),
-      anchor: major(tickLabel.minorAnchor, tickLabel.anchor),
-      backgroundStyle: majorMembers(tickLabel.minorBackgroundStyle, tickLabel.backgroundStyle),
-      size: major(tickLabel.minorSize, tickLabel.size),
-      marginInner: major(tickLabel.minorMarginInner, tickLabel.marginInner),
-      marginOuter: major(tickLabel.minorMarginOuter, tickLabel.marginOuter),
-      paddingInner: major(tickLabel.minorPaddingInner, tickLabel.paddingInner),
-      paddingOuter: major(tickLabel.minorPaddingOuter, tickLabel.paddingOuter),
-      format: major(tickLabel.minorFormat, tickLabel.format),
-      prefix: tickLabel.minorPrefix,
-      suffix: tickLabel.minorSuffix,
-      rotation: major(tickLabel.minorRotation, tickLabel.rotation),
-      textStyle: majorStates(tickLabel.minorTextStyle, tickLabel.textStyle),
-      font: majorMembers(tickLabel.minorFont, tickLabel.font)
+// keyed by the minor config object, recomputed when it is paired with a different major one
+function cached<T>(cache: WeakMap<object, { major: object; resolved: T }>, minor: object, major: object, resolve: () => T): T {
+  const entry = cache.get(minor);
+  if (entry !== undefined && entry.major === major) {
+    return entry.resolved;
+  }
+  const resolved = resolve();
+  cache.set(minor, { major, resolved });
+  return resolved;
+}
+
+export function getMinorTickLabel({ tickLabel, minorTickLabel }: MinorTickLabelSource): MinorTickLabel {
+  return cached(minorTickLabels, minorTickLabel, tickLabel, () => {
+    const minor: MinorTickLabel = {
+      // tickLabel.visible false hides the minor labels too, whatever minorTickLabel.visible says
+      visible: tickLabel.visible && major(minorTickLabel.visible, tickLabel.visible),
+      front: major(minorTickLabel.front, tickLabel.front),
+      anchor: major(minorTickLabel.anchor, tickLabel.anchor),
+      backgroundStyle: majorMembers(minorTickLabel.backgroundStyle, tickLabel.backgroundStyle),
+      size: major(minorTickLabel.size, tickLabel.size),
+      marginInner: major(minorTickLabel.marginInner, tickLabel.marginInner),
+      marginOuter: major(minorTickLabel.marginOuter, tickLabel.marginOuter),
+      paddingInner: major(minorTickLabel.paddingInner, tickLabel.paddingInner),
+      paddingOuter: major(minorTickLabel.paddingOuter, tickLabel.paddingOuter),
+      format: major(minorTickLabel.format, tickLabel.format),
+      prefix: minorTickLabel.prefix,
+      suffix: minorTickLabel.suffix,
+      rotation: major(minorTickLabel.rotation, tickLabel.rotation),
+      textStyle: majorStates(minorTickLabel.textStyle, tickLabel.textStyle),
+      font: majorMembers(minorTickLabel.font, tickLabel.font)
     };
-    if (tickLabel.truncation !== undefined && tickLabel.minorTruncation !== undefined) {
-      minor.truncation = majorMembers(tickLabel.minorTruncation, tickLabel.truncation);
+    if (tickLabel.truncation !== undefined && minorTickLabel.truncation !== undefined) {
+      minor.truncation = majorMembers(minorTickLabel.truncation, tickLabel.truncation);
     }
-    minorTickLabels.set(tickLabel, minor);
-  }
-  return minor;
+    return minor;
+  });
 }
 
-export function getMinorTickMark(tickMark: AxisTickMarkConfig): MinorTickMark {
-  let minor = minorTickMarks.get(tickMark);
-  if (minor === undefined) {
-    minor = {
-      visible: tickMark.visible && major(tickMark.minorVisible, tickMark.visible),
-      front: major(tickMark.minorFront, tickMark.front),
-      size: major(tickMark.minorSize, tickMark.size),
-      marginInner: major(tickMark.minorMarginInner, tickMark.marginInner),
-      style: majorStates(tickMark.minorStyle, tickMark.style)
-    };
-    minorTickMarks.set(tickMark, minor);
-  }
-  return minor;
+export function getMinorTickMark({ tickMark, minorTickMark }: { tickMark: AxisTickMarkConfig; minorTickMark: AxisMinorTickMarkConfig }): MinorTickMark {
+  return cached(minorTickMarks, minorTickMark, tickMark, () => ({
+    visible: tickMark.visible && major(minorTickMark.visible, tickMark.visible),
+    front: major(minorTickMark.front, tickMark.front),
+    size: major(minorTickMark.size, tickMark.size),
+    marginInner: major(minorTickMark.marginInner, tickMark.marginInner),
+    style: majorStates(minorTickMark.style, tickMark.style)
+  }));
 }
 
-export function getMinorGridLine(gridLine: AxisGridLineConfig): MinorGridLine {
-  let minor = minorGridLines.get(gridLine);
-  if (minor === undefined) {
-    minor = {
-      visible: gridLine.visible && major(gridLine.minorVisible, gridLine.visible),
-      front: major(gridLine.minorFront, gridLine.front),
-      style: majorStates(gridLine.minorStyle, gridLine.style)
-    };
-    minorGridLines.set(gridLine, minor);
-  }
-  return minor;
+export function getMinorGridLine({ gridLine, minorGridLine }: { gridLine: AxisGridLineConfig; minorGridLine: AxisMinorGridLineConfig }): MinorGridLine {
+  return cached(minorGridLines, minorGridLine, gridLine, () => ({
+    visible: gridLine.visible && major(minorGridLine.visible, gridLine.visible),
+    front: major(minorGridLine.front, gridLine.front),
+    style: majorStates(minorGridLine.style, gridLine.style)
+  }));
 }

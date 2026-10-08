@@ -43,8 +43,8 @@ function getAxisTickInfos(plotConfig: PlotConfig, categoryAxisConfig: CategoryAx
   return {
     categoryAxisTickInfo: getAxisTickInfo(categoryAxisConfig.tickLabel, categoryAxisConfig, inverted),
     valueAxisTickInfos: arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => getAxisTickInfo(valueAxisConfig.tickLabel, valueAxisConfig, !inverted)),
-    categoryAxisMinorTickInfo: getAxisTickInfo(getMinorTickLabel(categoryAxisConfig.tickLabel), categoryAxisConfig, inverted),
-    valueAxisMinorTickInfos: arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => getAxisTickInfo(getMinorTickLabel(valueAxisConfig.tickLabel), valueAxisConfig, !inverted))
+    categoryAxisMinorTickInfo: getAxisTickInfo(getMinorTickLabel(categoryAxisConfig), categoryAxisConfig, inverted),
+    valueAxisMinorTickInfos: arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => getAxisTickInfo(getMinorTickLabel(valueAxisConfig), valueAxisConfig, !inverted))
   };
 }
 
@@ -76,7 +76,7 @@ function getTickLabelTotalSize(tickLabel: TickLabelLayoutSettings, rotatedTickBo
 
 /** The room the tick labels take across the axis: the larger of the two kinds' totals. */
 function getAxisTotalTickLabelSize(axisConfig: AxisConfigBase, rotatedTickBounds: Size, minorTickBounds: TextBounds, minorRotatedTickBounds: Size, vertical: boolean): number {
-  const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
+  const minorTickLabel = getMinorTickLabel(axisConfig);
   return Math.max(
     getTickLabelTotalSize(axisConfig.tickLabel, rotatedTickBounds, vertical, axisConfig.tickLabel.visible),
     getTickLabelTotalSize(minorTickLabel, minorRotatedTickBounds, vertical, hasMinorTickLabels(minorTickLabel, minorTickBounds)));
@@ -180,7 +180,7 @@ export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: Axi
   const { marginInner: tickLabelMarginInner, marginOuter: tickLabelMarginOuter, paddingInner: tickLabelPaddingInner, paddingOuter: tickLabelPaddingOuter } = axisConfig.tickLabel;
   const before = side === SIDE_START;
   const notAfter = (before && !collapsed) || (!before && collapsed);
-  const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
+  const minorTickLabel = getMinorTickLabel(axisConfig);
   const minorPresent = hasMinorTickLabels(minorTickLabel, minorTickBounds);
 
   axisLayoutInfo.titleSize = getAxisTitleSize(axisConfig, titleBounds);
@@ -261,7 +261,7 @@ export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: Axi
   axisLayoutInfo.titleTextAngle = titleTextAngle;
 
   [axisLayoutInfo.tickMarkX1, axisLayoutInfo.tickMarkY1, axisLayoutInfo.tickMarkX2, axisLayoutInfo.tickMarkY2] = setTickMarkInfo(axisConfig.tickMark, width, height, vertical, notAfter);
-  [axisLayoutInfo.minorTickMarkX1, axisLayoutInfo.minorTickMarkY1, axisLayoutInfo.minorTickMarkX2, axisLayoutInfo.minorTickMarkY2] = setTickMarkInfo(getMinorTickMark(axisConfig.tickMark), width, height, vertical, notAfter);
+  [axisLayoutInfo.minorTickMarkX1, axisLayoutInfo.minorTickMarkY1, axisLayoutInfo.minorTickMarkX2, axisLayoutInfo.minorTickMarkY2] = setTickMarkInfo(getMinorTickMark(axisConfig), width, height, vertical, notAfter);
 
   let focusTickMarkX1 = 0;
   let focusTickMarkY1 = 0;
@@ -365,9 +365,9 @@ export function getAxisMetrics(mochartConfig: EnhancedMochartConfig, chartTextBo
 
   const categoryAxisRotatedTickBounds = getCategoryAxisRotatedTickBounds(mochartConfig, chartTextBoundsData, axisTickInfos);
   const valueAxisRotatedTickBounds = getValueAxisRotatedTickBounds(mochartConfig, chartTextBoundsData, axisTickInfos);
-  const categoryAxisMinorRotatedTickBounds = getRotatedTickBounds(getMinorTickLabel(categoryAxisConfig.tickLabel), categoryAxisMinorTickBounds, axisTickInfos.categoryAxisMinorTickInfo);
+  const categoryAxisMinorRotatedTickBounds = getRotatedTickBounds(getMinorTickLabel(categoryAxisConfig), categoryAxisMinorTickBounds, axisTickInfos.categoryAxisMinorTickInfo);
   const valueAxisMinorRotatedTickBounds = arrayToMap(valueAxisConfigs, idAccessor,
-    valueAxisConfig => getRotatedTickBounds(getMinorTickLabel(valueAxisConfig.tickLabel), valueAxisMinorTickBounds[valueAxisConfig.id], axisTickInfos.valueAxisMinorTickInfos[valueAxisConfig.id]));
+    valueAxisConfig => getRotatedTickBounds(getMinorTickLabel(valueAxisConfig), valueAxisMinorTickBounds[valueAxisConfig.id], axisTickInfos.valueAxisMinorTickInfos[valueAxisConfig.id]));
 
   const categoryAxisSize = getCategoryAxisSize(categoryAxisConfig, categoryAxisRotatedTickBounds, categoryAxisMinorTickBounds, categoryAxisMinorRotatedTickBounds, categoryAxisTitleBounds, inverted);
   const valueAxisSizes = getValueAxisSizes(valueAxisConfigs, valueAxisVisibleSeriesCounts, valueAxisRotatedTickBounds, valueAxisMinorTickBounds, valueAxisMinorRotatedTickBounds, valueAxisTitleBounds, !inverted);

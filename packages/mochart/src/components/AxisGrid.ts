@@ -23,7 +23,7 @@ export interface AxisGridProps {
 
 /** Whether a pass draws any of an axis's grid lines: those of either kind that are visible and drawn in it. */
 export function gridLinesInPass(axisConfig: AxisConfigBase, front: boolean): boolean {
-  const minorGridLine = getMinorGridLine(axisConfig.gridLine);
+  const minorGridLine = getMinorGridLine(axisConfig);
   return (front === axisConfig.gridLine.front && axisConfig.gridLine.visible) || (front === minorGridLine.front && minorGridLine.visible);
 }
 
@@ -37,7 +37,7 @@ export default class AxisGrid extends Renderer<AxisGridProps> {
 
   sync() {
     const { front, vertical, axisConfig, seriesLayoutInfo, axisFocusPercentage, seriesFocusPercentage, axisGridClass, axisTicks } = this.props;
-    const minorGridLine = getMinorGridLine(axisConfig.gridLine);
+    const minorGridLine = getMinorGridLine(axisConfig);
     const majorPass = front === axisConfig.gridLine.front && axisConfig.gridLine.visible;
     const minorPass = front === minorGridLine.front && minorGridLine.visible;
     if (majorPass || minorPass) {

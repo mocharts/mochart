@@ -1,4 +1,4 @@
-import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, getTickLabelDetails, tickLabelDescription, minorTickLabelIntro, majorNote, tickStepDescription, getTickStepDescriptions, thresholdStepDescription, getThresholdStepDescriptions, tickStepMinorDetails, valueTickStepDetails, valueStepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails, thresholdStepPatternDetails, thresholdLogDetails } from './axisConfig.js';
+import getAxisDescriptions, { axisStyleStatesDescription, axisStrokeMembers, getTickLabelDescriptions, getTickLabelDetails, getMinorTickLabelDescriptions, getMinorTickLabelDetails, tickLabelDescription, minorTickLabelDescription, minorTickLabelIntro, majorNote, tickStepDescription, getTickStepDescriptions, thresholdStepDescription, getThresholdStepDescriptions, tickStepMinorDetails, valueTickStepDetails, valueStepCountOffsetDetails, getThresholdMemberDetails, thresholdStyleDetails, thresholdDomainDetails, thresholdStepMinSpacingDetails, thresholdStepPatternDetails, thresholdLogDetails } from './axisConfig.js';
 
 export default function getDescriptions() {
   return {
@@ -38,8 +38,14 @@ export default function getDescriptions() {
       properties: {
         ...getTickLabelDescriptions(),
         format: 'the d3 format string to be applied to the series values when displayed in axis tick labels (use null for none, use "auto" for an SI-prefixed number whose precision follows the tick spacing, or on a log axis the magnitude of each tick, in exponent form beyond the SI prefixes; there a format that leaves its precision open takes 3 significant digits, trimmed)',
-        minorFormat: 'the d3 format string to be applied to the series values when displayed in minor tick labels (use null for none, use "auto" to derive from data)' + majorNote('tickLabel.format'),
         adjustSizeForFiltering: 'whether to adjust the size of the axis tick label bounds as series belonging to it are filtered (applies to the minor tick labels too)'
+      }
+    },
+    minorTickLabel: {
+      description: minorTickLabelDescription,
+      properties: {
+        ...getMinorTickLabelDescriptions(),
+        format: 'the d3 format string to be applied to the series values when displayed in minor tick labels (use null for none, use "auto" to derive from data)' + majorNote('tickLabel.format')
       }
     },
     ticks: {
@@ -68,7 +74,7 @@ export function getDetails() {
     scale: 'A log axis reads data spanning several orders of magnitude: 1 to 10 takes the same length as 100 to 1000, and a doubling is the same length anywhere. It has no position for 0 or a negative value, so the chart handles those by which value they are; a tooltip shows the value itself, and a series label shows it where the point is drawn. A series value at or below 0 is left out of the domain and drawn as missing, following the series `missingValueMode`, and the chart logs a console warning naming the series. An error bar end at or below 0, or the lower end of a range whose other end is above 0, is drawn past the minimum end of the axis and cut off at the plot edge, and the clip indicator shows it; a range with both ends at or below 0 is missing. Ticks sit at the powers of 10, every n-th one for the smallest n that fits when they do not all fit, with the 2 and 5 multiples, or every multiple from 2 to 9, added when the powers are too few and they fit; the minor ticks are the multiples from 2 to 9 that are not ticks or, when the powers are stepped, the powers the axis skips, thinned to sit at least `minTickSpacing` apart, and between two neighbouring powers of 10 the ticks are the multiples that lie there, or linear ones on an axis with room for more. Values and the domain animate in logs, so a value moving from 1 to 1000 is halfway up the axis at 31.6. A log axis cannot hold a series stack, since a stack starts at 0, and it takes no `tickStep` or `thresholdStep` interval, no offsets and no `minTickInterval`, since each of those is a fixed distance in values. A pie chart accepts only `"linear"`. Switching the scale restarts the chart without a transition.',
     base: 'The value shapes are measured from: bars and areas grow from it, `missingValueMode: \'base\'` puts missing values on it, and shapes animate from it when series enter or leave. With mixed positive/negative data it separates the two directions. When left unspecified, un-ranged bar and area series use the minimum end of the axis, and other series use `min` when it is set, otherwise the smallest value in the data. On a log axis it must be above 0, and a base such as 1 grows ratios above it up and ratios below it down, with a doubling and a halving the same length. A pie chart takes only 0, since a filtered slice shrinks to the base and any other value would stop it partway.',
     tickStep: {
-      description: 'Chooses the ticks by rule rather than by a list, so the choice holds as the data changes; explicit `ticks` take precedence. An `interval` places the ticks on its multiples, `count` and `offset` keep every count-th of them counted from 0, and `minorSteps` places minor ticks between them; without an interval the axis keeps the ticks it picks. A log axis takes no interval, since equal distances in values take unequal lengths there, so it always keeps the ticks it picks. The minor tick marks, grid lines and labels carry the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes, and the `tickLabel`, `tickMark` and `gridLine` minor settings say how they are drawn.',
+      description: 'Chooses the ticks by rule rather than by a list, so the choice holds as the data changes; explicit `ticks` take precedence. An `interval` places the ticks on its multiples, `count` and `offset` keep every count-th of them counted from 0, and `minorSteps` places minor ticks between them; without an interval the axis keeps the ticks it picks. A log axis takes no interval, since equal distances in values take unequal lengths there, so it always keeps the ticks it picks. The minor tick marks, grid lines and labels carry the `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and `mochart-axis-minor-tick-label` classes, and `minorTickLabel`, `minorTickMark` and `minorGridLine` say how they are drawn.',
       properties: {
         interval: tickStepMinorDetails.interval,
         count: 'When more ticks survive the rule than fit, every k-th survivor is kept starting from the first. ' + valueTickStepDetails.count,
@@ -78,8 +84,11 @@ export function getDetails() {
       }
     },
     tickLabel: {
-      description: minorTickLabelIntro,
       properties: getTickLabelDetails()
+    },
+    minorTickLabel: {
+      description: minorTickLabelIntro,
+      properties: getMinorTickLabelDetails()
     },
     thresholdStep: {
       description: 'The steps are the multiples of `interval`, anchored at 0, from the last one at or below the axis minimum, so a range already under way at the domain edge is drawn clipped rather than left out; with no interval nothing is drawn, and a log axis takes no interval. The ranges follow the domain as it changes, draw after the `thresholds` entries and carry no title; `minSpacing` keeps a rule from flooding the axis.',
@@ -98,7 +107,7 @@ export function getDetails() {
     ticks: {
       description: 'Replaces the automatic tick generation entirely: tick counts, intervals and domain-edge ticks are ignored, except that the entries marked `minor` follow the minor label fit rule. Useful for naming fixed positions, e.g. heatmap row bands or threshold levels. Ticks outside the current axis domain are hidden, and two entries with the same value are a validation error.',
       properties: {
-        minor: 'A minor entry is drawn with the `tickLabel`, `tickMark` and `gridLine` minor settings, and its label shows only when every minor label fits beside its neighbours; an entry with a `label` keeps it whatever `minorFormat` says.'
+        minor: 'A minor entry is drawn with the `minorTickLabel`, `minorTickMark` and `minorGridLine` settings, and its label shows only when every minor label fits beside its neighbours; an entry with a `label` keeps it whatever `minorTickLabel.format` says.'
       }
     },
     maxMarginFraction: 'The margin is relative to the pre-margin domain, so values above 1 are allowed and confine the data to a band of the plot: a margin of 4 leaves the data in the bottom fifth, which is how the candlestick/OHLC volume pane reserves the upper plot for the price axis. On a log axis the margin is taken from the logs of the domain, so it is the same share of the axis length as on a linear one.',

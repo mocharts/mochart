@@ -104,8 +104,8 @@ const sharedInterfaceSources: SharedInterfaceSource[] = [
   { interfaceName: 'AxisBaseLineConfig', sectionId: 'valueAxes', propertyKey: 'baseLine', includeDefaults: true },
   { interfaceName: 'ValueAxisTick', sectionId: 'valueAxes', propertyKey: 'ticks', includeDefaults: true },
   { interfaceName: 'CategoryAxisTick', sectionId: 'categoryAxis', propertyKey: 'ticks', includeDefaults: true },
-  { interfaceName: 'MinorTickLabelTruncationConfig', sectionId: 'categoryAxis', propertyKey: 'tickLabel.minorTruncation', includeDefaults: true },
-  { interfaceName: 'MinorFontConfig', sectionId: 'categoryAxis', propertyKey: 'tickLabel.minorFont' },
+  { interfaceName: 'MinorTickLabelTruncationConfig', sectionId: 'categoryAxis', propertyKey: 'minorTickLabel.truncation', includeDefaults: true },
+  { interfaceName: 'MinorFontConfig', sectionId: 'categoryAxis', propertyKey: 'minorTickLabel.font' },
   { interfaceName: 'GradientStop', sectionId: 'linearGradients', propertyKey: 'stops', includeDefaults: true }
 ];
 
@@ -125,8 +125,11 @@ const sharedAxisInterfaces: SharedAxisInterface[] = [
   { interfaceName: 'AxisThresholdStepConfig', propertyKey: 'thresholdStep', categoryInterfaceName: 'CategoryAxisThresholdStepConfig' },
   { interfaceName: 'AxisFocusTickMarkConfig', propertyKey: 'focusTickMark' },
   { interfaceName: 'AxisGridLineConfig', propertyKey: 'gridLine' },
+  { interfaceName: 'AxisMinorGridLineConfig', propertyKey: 'minorGridLine' },
   { interfaceName: 'AxisTickMarkConfig', propertyKey: 'tickMark' },
+  { interfaceName: 'AxisMinorTickMarkConfig', propertyKey: 'minorTickMark' },
   { interfaceName: 'AxisTickLabelConfig', propertyKey: 'tickLabel', categoryInterfaceName: 'CategoryAxisTickLabelConfig', valueInterfaceName: 'ValueAxisTickLabelConfig' },
+  { interfaceName: 'AxisMinorTickLabelConfig', propertyKey: 'minorTickLabel', categoryInterfaceName: 'CategoryAxisMinorTickLabelConfig' },
   { interfaceName: 'AxisTickStepConfig', propertyKey: 'tickStep', categoryInterfaceName: 'CategoryAxisTickStepConfig' },
   { interfaceName: 'AxisTitleConfig', propertyKey: 'title' }
 ];

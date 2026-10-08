@@ -539,7 +539,7 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
 }
 
 function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[], stepWarnings: boolean): { ticks: AxisTick[]; minorTickLabelLength: number } {
-  const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
+  const minorTickLabel = getMinorTickLabel(axisConfig);
   const fits = getTickLabelFits(axisConfig, axisLayoutInfo, minorTickLabel);
   if (axisConfig.ticks !== NONE) {
     const ticks = getExplicitCategoryAxisTickData(axisConfig, minorTickLabel, axisConfig.ticks, axisScale, categoryValues, categoryKeys, categoryPositions);
@@ -834,7 +834,7 @@ function getValueAxisTickData(axisConfigArray: EnhancedValueAxisConfig[], axisLa
 
 function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLayoutInfo: AxisLayoutInfo, rawValueAxisDomain: NullableDomain, filteredValueAxisDomain: NullableDomain, rawRenderValueAxisDomain: NullableDomain, visibleSeriesCount: number, axisScale: AxisScale, vertical: boolean, stepWarnings: boolean): AxisTick[] {
   let ticks: AxisTick[] = [];
-  const minorTickLabel = getMinorTickLabel(axisConfig.tickLabel);
+  const minorTickLabel = getMinorTickLabel(axisConfig);
   const fits = getTickLabelFits(axisConfig, axisLayoutInfo, minorTickLabel);
   if (axisConfig.ticks !== NONE) {
     if (axisConfig.visibleWhenAllFiltered || visibleSeriesCount > 0) {
