@@ -108,6 +108,11 @@ describe('Mochart support completions', () => {
     }
   });
 
+  // with no parsed document the completion inserts the first allowed value, which was the pie-only 0 a log axis rejects
+  it('completes a value axis base with null before any document has parsed', async () => {
+    expect(await acceptCompletion('{"valueAxes": [{"scale": "log", "ba|"}]}', 'base')).toBe('{"valueAxes": [{"scale": "log", "base": null}]}');
+  });
+
   it('suggests nested properties instead of section properties', async () => {
     const options = await completionOptions('{"chart":{"margin":{"|": 0}}}');
     expect(labels(options)).toEqual(expect.arrayContaining(['top', 'right', 'bottom', 'left']));

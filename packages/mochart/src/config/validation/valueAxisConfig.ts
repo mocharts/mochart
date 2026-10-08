@@ -46,10 +46,11 @@ export default function getValidators(config: ValueAxisCondition = {}, pieMode =
 
     visibleWhenAllFiltered: validators.boolean(),
 
-    // a filtered pie slice shrinks to the base, so a pie takes only 0; a stacked log axis already fails its scale rule, so base adds no second error there
+    // a filtered pie slice shrinks to the base, so a pie takes only 0; a stacked log axis already fails its scale rule, so base adds no second error there;
+    // the pie rule follows the log one so the editor completes the null every other rule allows, not 0
     base: validators.conditional([
+      { condition: ({ scale }: ValueAxisCondition) => scale === SCALE_LOG && !hasStack && !pieMode, suffix: scaleLogSuffix, validator: positiveNumber.orEqual(NONE) },
       { condition: () => pieMode, suffix: 'when chart type is not xy', validator: validators.equal(0) },
-      { condition: ({ scale }: ValueAxisCondition) => scale === SCALE_LOG && !hasStack, suffix: scaleLogSuffix, validator: positiveNumber.orEqual(NONE) },
       { condition: () => true, validator: validators.number().orEqual(NONE) }
     ], config),
     baseLine: validators.partialObjectWithShape({
