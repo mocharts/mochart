@@ -391,7 +391,8 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
       else if (linear && step['offset'] !== 0 && step['offset'] !== undefined && (step['count'] === undefined || step['count'] === AUTO) && defaultCount === AUTO) {
         reportStep('offset', offsetNeedsCountMessage);
       }
-      if (groupKey === 'tickStep') {
+      // an ordinal axis rejects minorInterval and minorSteps through their own conditions
+      if (groupKey === 'tickStep' && linear) {
         // minorInterval takes the form of interval: a shorter period, or a smaller number of milliseconds
         const { minorInterval, interval } = step;
         if (typeof minorInterval === 'string' || typeof minorInterval === 'number') {

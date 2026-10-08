@@ -549,4 +549,16 @@ describe('minor tick step validation', () => {
       series: [{ property: 'value' }]
     }).validation.errors.join('\n')).toMatch(/categoryAxis - tickStep\.minorSteps - should be null unless interval is set[\s\S]*valueAxes\[0\] - tickStep\.minorSteps/);
   });
+
+  // the linear rules ran on ordinal axes too, adding "should be null unless interval is set" to the ordinal rejection
+  it('gives minorSteps and minorInterval on an ordinal axis only the ordinal rejection', () => {
+    const { enhanceConfig } = mochart;
+    const errors = (type: 'string' | 'date', tickStep: Record<string, unknown>) => enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', type, scale: 'ordinal', tickStep },
+      series: [{ property: 'value' }]
+    }).validation.errors;
+    expect(errors('string', { minorSteps: 2 })).toEqual(['categoryAxis - tickStep.minorSteps - should be equal to null: 2']);
+    expect(errors('date', { interval: 'week', minorInterval: 'month' })).toEqual(['categoryAxis - tickStep.minorInterval - should be equal to null: "month"']);
+  });
 });
