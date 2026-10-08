@@ -65,7 +65,7 @@ function getPasses(props: AxisTickLabelsProps): { majorPass: boolean; minorPass:
   };
 }
 
-function labelsChanged(oldLabels: string[], newLabels: string[]): boolean {
+function labelsChanged<T>(oldLabels: T[], newLabels: T[]): boolean {
   if (oldLabels.length !== newLabels.length) {
     return true;
   }
@@ -125,6 +125,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
     const minorTruncation = minorPass ? minorTickLabel.truncation : undefined;
     const truncationEnabled = majorTruncation?.enabled === true || minorTruncation?.enabled === true;
     const previousLabels = this.tickLabelStrings;
+    const previousLengths = this.truncationLengths;
     if (prevProps === null || axisTicks !== prevProps.axisTicks || axisConfig !== prevProps.axisConfig || props.front !== prevProps.front) {
       this.passTicks = getPassTicks(axisTicks, majorPass, minorPass);
       this.tickLabelStrings = this.passTicks.map(({ tick }) => String(tick.label));
@@ -152,13 +153,14 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
         axisLayoutInfo.totalTitleSize !== prevProps.axisLayoutInfo.totalTitleSize || axisLayoutInfo.totalTickLabelSize !== prevProps.axisLayoutInfo.totalTickLabelSize ||
         axisLayoutInfo.totalMinorTickLabelSize !== prevProps.axisLayoutInfo.totalMinorTickLabelSize ||
         axisLayoutInfo.tickLabelParallel !== prevProps.axisLayoutInfo.tickLabelParallel || axisLayoutInfo.minorTickLabelParallel !== prevProps.axisLayoutInfo.minorTickLabelParallel ||
-        tickSpacing !== prevProps.tickSpacing || minorTickSpacing !== prevProps.minorTickSpacing;
+        tickSpacing !== prevProps.tickSpacing || minorTickSpacing !== prevProps.minorTickSpacing ||
+        (Array.isArray(previousLengths) && Array.isArray(this.truncationLengths) ? labelsChanged(previousLengths, this.truncationLengths) : previousLengths !== this.truncationLengths);
       // a fitted prefix belongs to the font it was measured in and to the text that replaced its tail: either changing starts over from the full label
       truncationReset = props.fontsVersion !== prevProps.fontsVersion;
       if (!truncationReset && (axisConfig !== prevProps.axisConfig || props.chartFont !== prevProps.chartFont)) {
-        const { minorTickLabel: prevMinorTickLabel } = getPasses(prevProps);
-        truncationReset = majorTruncation?.text !== prevProps.axisConfig.tickLabel.truncation?.text ||
-          minorTruncation?.text !== prevMinorTickLabel.truncation?.text ||
+        const { majorPass: prevMajorPass, minorPass: prevMinorPass, minorTickLabel: prevMinorTickLabel } = getPasses(prevProps);
+        truncationReset = majorTruncation?.text !== (prevMajorPass ? prevProps.axisConfig.tickLabel.truncation?.text : undefined) ||
+          minorTruncation?.text !== (prevMinorPass ? prevMinorTickLabel.truncation?.text : undefined) ||
           !fontStylesEqual(resolveFontStyle(axisConfig.tickLabel.font, props.chartFont), resolveFontStyle(prevProps.axisConfig.tickLabel.font, prevProps.chartFont)) ||
           !fontStylesEqual(resolveFontStyle(minorTickLabel.font, props.chartFont), resolveFontStyle(prevMinorTickLabel.font, prevProps.chartFont));
       }

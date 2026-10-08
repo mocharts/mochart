@@ -206,3 +206,29 @@ describe('web font loading', () => {
     }
   });
 });
+
+// Regression: a config update that changed only maxFraction or minLength kept the old fit on an axis with
+// visible minor labels, since nothing compared the truncation room with the previous one
+describe('tick-label truncation room changes', () => {
+  const rotated = (maxFraction: number, inverted = false) => config({
+    ticks: rows(0).map(row => ({ value: row.month })),
+    tickLabel: { rotation: inverted ? 0 : -45, truncation: { enabled: true, maxFraction } }
+  });
+
+  for (const inverted of [false, true]) {
+    it(`fits the labels again when only maxFraction changes${inverted ? ' under plot.inverted' : ''}`, () => {
+      const withPlot = (c: MochartInputConfig) => (inverted ? { ...c, plot: { inverted: true } } : c) as MochartInputConfig;
+      const { container, handle } = mountChart();
+      handle.update({ config: withPlot(rotated(0.3, inverted)) } as Partial<DefaultChartProps>);
+      handle.update({ focusedCategoryIndex: 0 } as Partial<DefaultChartProps>);
+      handle.update({ config: withPlot(rotated(0.08, inverted)) } as Partial<DefaultChartProps>);
+      handle.update({ focusedCategoryIndex: 1 } as Partial<DefaultChartProps>);
+
+      const fresh = mountChart();
+      fresh.handle.update({ config: withPlot(rotated(0.08, inverted)) } as Partial<DefaultChartProps>);
+      fresh.handle.update({ focusedCategoryIndex: 1 } as Partial<DefaultChartProps>);
+      expect(labelTextsOf(container)).toEqual(labelTextsOf(fresh.container));
+      expect(labelTextsOf(container).every(text => text.length < 15)).toBe(true);
+    });
+  }
+});
