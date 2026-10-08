@@ -499,9 +499,11 @@ function getLogMultiples(min: number, max: number, multiples: readonly number[])
  * The ticks of a log axis: the powers of 10, keeping every n-th one for the smallest n at which they fit tickCount when
  * they do not all fit, with the 2 and 5 multiples, or every 1 to 9 multiple, added as ticks when the powers are too few
  * and every gap fits minGap pixels. The multiples left over are minor ticks, as are the skipped powers, thinned to every
- * k-th power for the smallest k dividing n at which they sit minMinorGap pixels apart. With fewer than half of tickCount
- * of the 1 to 9 multiples in the domain (d3's rule), as between two neighbouring powers of 10, or with no power of 10
- * and multiples that do not fit, the ticks are linear ones, as many as fit minGap, and there are no minors.
+ * k-th power for the smallest k dividing n at which they sit minMinorGap pixels apart. Between two neighbouring powers
+ * of 10 with fewer than half of tickCount of the 1 to 9 multiples in the domain (d3's rule), or with no power of 10 and
+ * multiples that do not fit, the ticks are linear ones, as many as fit minGap, with no minors, when more of them fit
+ * than log ticks. tickCount can be the fitted capacity of a tall axis, so d3's rule alone would also pick linear ticks
+ * across several powers of 10.
  */
 function getLogTicks(domain: readonly [AxisValue | null, AxisValue | null], tickCount: number, axisScale: AxisScale, minGap: number, minMinorGap: number): LogTicks {
   // the axis domain, not the scale's, which stands in with [1, 10] when the axis has no values it can place
@@ -515,15 +517,25 @@ function getLogTicks(domain: readonly [AxisValue | null, AxisValue | null], tick
   const powers = getLogMultiples(min, max, [1]);
   const withTwosAndFives = getLogMultiples(min, max, [1, 2, 5]);
   const allMultiples = getLogMultiples(min, max, logMultiples);
-  if (allMultiples.length < tickCount / 2 || (powers.length === 0 && !fits(allMultiples))) {
+  const logTicks = getLogTierTicks(powers, withTwosAndFives, allMultiples, tickCount, axisScale, minMinorGap, fits);
+  // linear ticks only between two neighbouring powers of 10, and only when more of them fit than log ticks
+  const withinOnePower = !powers.some(power => power > min * (1 + 1e-12) && power < max * (1 - 1e-12));
+  if ((withinOnePower && allMultiples.length < tickCount / 2) || (powers.length === 0 && !fits(allMultiples))) {
     // linear ticks sit unevenly on a log axis, closer towards the maximum end, so the count drops until every gap fits
     const linearScale = scaleLinear().domain([min, max]);
     let linearTicks = linearScale.ticks(tickCount) as number[];
     for (let count = tickCount - 1; count >= 1 && !gapsFit(linearTicks); count--) {
       linearTicks = linearScale.ticks(count) as number[];
     }
-    return { majors: linearTicks, minors: [], linearScale };
+    if (linearTicks.length > logTicks.majors.length) {
+      return { majors: linearTicks, minors: [], linearScale };
+    }
   }
+  return logTicks;
+}
+
+/** The log ticks: the powers of 10, stepped when too many, or the 2 and 5 or all 1 to 9 multiples when they fit. */
+function getLogTierTicks(powers: number[], withTwosAndFives: number[], allMultiples: number[], tickCount: number, axisScale: AxisScale, minMinorGap: number, fits: (values: readonly number[]) => boolean): LogTicks {
   let majors: number[];
   if (powers.length > tickCount) {
     const exponents = powers.map(power => Math.round(Math.log10(power)));

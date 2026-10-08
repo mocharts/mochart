@@ -123,6 +123,18 @@ describe('log value axis ticks', () => {
     expect(count(container, 'axisMinorTickMark')).toBe(0);
   });
 
+  // a tick count of twice the 28 multiples from 1 to 1000 met d3's rule, and linear ticks thinned to 0.5k, 1.0k replaced the log ones
+  it('keeps log ticks across several powers of 10 whatever the tick count', () => {
+    const ticksFor = (tickCount: number) => {
+      const { container } = mount({ valueAxes: [{ scale: 'log', min: 1, max: 1000, tickCount }], series: [{ property: 'v' }] }, rowsFor([2, 5]));
+      return { labels: majorLabels(container), minors: count(container, 'axisMinorTickMark') };
+    };
+    const below = ticksFor(56);
+    expect(below.labels).toEqual(['1', '10', '100', '1k']);
+    expect(ticksFor(57)).toEqual(below);
+    expect(ticksFor(200)).toEqual(below);
+  });
+
   it('drops linear fallback ticks until their gaps fit, since they sit closer towards the maximum end', () => {
     const { container } = mount({ valueAxes: [{ scale: 'log', min: 50, max: 80, tickCount: 12, minTickSpacing: 60 }], series: [{ property: 'v' }] }, rowsFor([55, 70]));
     expect(majorLabels(container)).toEqual(['60', '80']);
