@@ -1,6 +1,6 @@
 import { deepMerge } from '../config/core/deepMerge.js';
 import { getThresholdEntryDefaults } from '../config/defaults/axisConfig.js';
-import { getDateIntervalOrigin, getFirstKeptStep, getNextPeriodStart, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
+import { getDateIntervalOrigin, getFirstKeptStep, getKeptPeriodStarts, getNextPeriodStart, getPeriodIndex, getStepCandidates } from './Steps.js';
 import { NONE, SCALE_ORDINAL, TYPE_DATE } from '../config/core/constants.js';
 import type { ResolvedThreshold } from '../config/defaults/axisConfig.js';
 import type { CategoryAxisThresholdStepConfig } from '../types/config.js';
@@ -88,19 +88,12 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
   }
   // a linear scale phases the rule on the step's own index (the multiple, or the period from a fixed calendar
   // origin), not on where the domain starts, so the same steps keep their shapes as the data moves the domain
-  const keep = (index: number) => ((index - step.offset) % step.count + step.count) % step.count === 0;
-
   const { interval } = step;
   if (axisConfig.type === TYPE_DATE && typeof interval === 'string') {
     const period = interval;
     // the period holding the domain start counts too, so a range already under way is drawn clipped
-    let boundary = getPeriodStart(period, dateUTC, new Date(domainMin));
-    while (boundary.getTime() <= domainMax) {
-      const nextBoundary = getNextPeriodStart(period, dateUTC, boundary);
-      if (keep(getPeriodIndex(period, dateUTC, boundary))) {
-        add(boundary.getTime(), nextBoundary.getTime());
-      }
-      boundary = nextBoundary;
+    for (const boundary of getKeptPeriodStarts(period, dateUTC, new Date(domainMin), new Date(domainMax), step.count, step.offset)) {
+      add(boundary.getTime(), getNextPeriodStart(period, dateUTC, boundary).getTime());
     }
     return thresholds;
   }

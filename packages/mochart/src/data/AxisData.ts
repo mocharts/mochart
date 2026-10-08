@@ -11,7 +11,7 @@ import { areArraysAndEqual, arrayToMap, idAccessor, hasText } from '../utils/uti
 import { AUTO, NONE, CHART_TYPE_PIE, SCALE_ORDINAL, SCALE_LINEAR, SCALE_LOG, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
 import type { Anchor } from '../config/core/constants.js';
 import { getMinorTickLabel } from '../config/core/minorConfig.js';
-import { getDateIntervalOrigin, getFirstKeptStep, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
+import { getDateIntervalOrigin, getFirstKeptStep, getKeptPeriodStarts, getPeriodBoundaries, getPeriodIndex, getPeriodStart, getStepCandidates } from './Steps.js';
 import type { Auto, DataType } from '../config/core/constants.js';
 import type { MinorTickLabel } from '../config/core/minorConfig.js';
 import type { AxisConfigBase, CategoryAxisConfig, CategoryAxisTick, CategoryAxisTickStepConfig, PlotConfig, ValueAxisTick } from '../types/config.js';
@@ -418,7 +418,7 @@ function getLinearStepTicks(axisConfig: LinearStepAxisConfig, domain: [AxisValue
     if (majorsDense) {
       return noStepTicks;
     }
-    const majors = getPeriodBoundaries(period, dateUTC, [new Date(domainMin), new Date(domainMax)]).filter(boundary => keep(getPeriodIndex(period, dateUTC, boundary)));
+    const majors = getKeptPeriodStarts(period, dateUTC, new Date(domainMin), new Date(domainMax), countN, step.offset).filter(boundary => boundary.getTime() >= domainMin);
     let minors: LinearStepTicks['minors'] = [];
     if (typeof minorInterval === 'string') {
       const minorPeriod = minorInterval;

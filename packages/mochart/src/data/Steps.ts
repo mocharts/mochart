@@ -105,6 +105,31 @@ export function getDateIntervalOrigin(dateUTC: boolean): number {
   return dateUTC ? 0 : new Date(1970, 0, 1).getTime();
 }
 
+/**
+ * The starts of the periods from the one holding start up to end whose period index count and offset keep. A clock
+ * period has a fixed length, so the walk jumps from one kept start to the next instead of visiting every period.
+ */
+export function getKeptPeriodStarts(period: StepPeriod, dateUTC: boolean, start: Date, end: Date, count: number, offset: number): Date[] {
+  const starts: Date[] = [];
+  let boundary = getPeriodStart(period, dateUTC, start);
+  if (isClockPeriod(period)) {
+    const unit = clockPeriodMillis[period];
+    const index = getPeriodIndex(period, dateUTC, boundary);
+    for (let time = boundary.getTime() + (getFirstKeptStep(index, count, offset) - index) * unit; time <= end.getTime(); time += count * unit) {
+      starts.push(new Date(time));
+    }
+    return starts;
+  }
+  while (boundary.getTime() <= end.getTime()) {
+    const index = getPeriodIndex(period, dateUTC, boundary);
+    if (getFirstKeptStep(index, count, offset) === index) {
+      starts.push(boundary);
+    }
+    boundary = getNextPeriodStart(period, dateUTC, boundary);
+  }
+  return starts;
+}
+
 /** The period boundaries inside a linear date domain, the linear axis's ticks under a period step. */
 export function getPeriodBoundaries(period: StepPeriod, dateUTC: boolean, [domainStart, domainEnd]: [Date, Date]): Date[] {
   const boundaries: Date[] = [];

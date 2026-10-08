@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getPeriodStart, getNextPeriodStart, getPeriodIndex, getPeriodBoundaries } from '../../src/data/Steps';
+import { getPeriodStart, getNextPeriodStart, getPeriodIndex, getPeriodBoundaries, getKeptPeriodStarts } from '../../src/data/Steps';
 
 const HOUR = 3600000;
 
@@ -51,5 +51,40 @@ describe('clock periods', () => {
       expect(boundaries.map(boundary => boundary.getHours())).toEqual([0, 1, 3, 4, 5]);
       expect(new Set(boundaries.map(boundary => getPeriodIndex('hour', false, boundary))).size).toBe(5);
     });
+  });
+});
+
+// every period was visited and filtered, so a second step with count 10000000 walked the 31 million seconds of a year
+describe('getKeptPeriodStarts', () => {
+  const visited = (period: 'second' | 'minute' | 'hour' | 'day', dateUTC: boolean, start: Date, end: Date, count: number, offset: number) => {
+    const kept: number[] = [];
+    for (let boundary = getPeriodStart(period, dateUTC, start); boundary.getTime() <= end.getTime(); boundary = getNextPeriodStart(period, dateUTC, boundary)) {
+      const index = getPeriodIndex(period, dateUTC, boundary);
+      if (((index - offset) % count + count) % count === 0) {
+        kept.push(boundary.getTime());
+      }
+    }
+    return kept;
+  };
+
+  it('keeps the periods a walk over every period keeps', () => {
+    inZone('Asia/Kolkata', () => {
+      const start = new Date('2026-06-01T04:45:10Z');
+      const end = new Date('2026-06-03T07:00:00Z');
+      for (const [period, count, offset] of [['second', 7, 3], ['minute', 45, 2], ['hour', 5, 1], ['day', 2, 1]] as const) {
+        for (const dateUTC of [true, false]) {
+          const kept = getKeptPeriodStarts(period, dateUTC, start, end, count, offset).map(boundary => boundary.getTime());
+          expect(kept.length).toBeGreaterThan(0);
+          expect(kept).toEqual(visited(period, dateUTC, start, end, count, offset));
+        }
+      }
+    });
+  });
+
+  it('jumps between kept clock periods', () => {
+    const started = performance.now();
+    const kept = getKeptPeriodStarts('second', true, new Date('2024-01-01T00:00:00Z'), new Date('2025-01-01T00:00:00Z'), 10000000, 0);
+    expect(performance.now() - started).toBeLessThan(100);
+    expect(kept.map(boundary => boundary.getTime() / 1000 % 10000000)).toEqual([0, 0, 0]);
   });
 });
