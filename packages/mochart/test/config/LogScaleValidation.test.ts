@@ -1,6 +1,6 @@
 // scale: 'log' on the value axis and a number category axis: what it rejects, and the one error a stacked or pie axis gets.
 import { describe, it, expect } from 'vitest';
-import validateConfig from '../../src/config/validation/mochartConfig';
+import validateConfig, { validateConfigDetailed } from '../../src/config/validation/mochartConfig';
 import { getDefaults } from '../../src/config/defaults/mochartConfig';
 import { CONFIG_VERSION as V } from '../../src/config/core/constants';
 
@@ -136,6 +136,14 @@ describe('category axis scale', () => {
   it('rejects bar series on a log category axis', () => {
     expect(errorsFor({ categoryAxis: logNumberCategoryAxis, series: [{ property: 'v', renderer: 'bar' }] }))
       .toContain('series[0] - renderer - should not be "bar" when categoryAxis.scale is "log", since equal value distances take unequal widths there');
+  });
+
+  // the inherited bar was reported at series[0].renderer and series[1].renderer, paths the config does not have
+  it('reports a bar renderer from seriesDefaults once, at seriesDefaults', () => {
+    const { diagnostics } = validateConfigDetailed({ version: V, categoryAxis: logNumberCategoryAxis, seriesDefaults: { renderer: 'bar' },
+      series: [{ property: 'v' }, { property: 'w' }, { property: 'x', renderer: 'line' }, { property: 'y', renderer: 'bar' }] });
+    expect(diagnostics.filter(diagnostic => diagnostic.path[diagnostic.path.length - 1] === 'renderer').map(diagnostic => diagnostic.path))
+      .toEqual([['series', 3, 'renderer'], ['seriesDefaults', 'renderer']]);
   });
 });
 

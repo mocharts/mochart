@@ -667,15 +667,29 @@ function validateLogCategoryBars(config: ConfigRecord, configWithoutDefaults: Co
   if (!Array.isArray(seriesSections) || !isConfigRecord(categoryAxis) || categoryAxis['scale'] !== SCALE_LOG) {
     return;
   }
-  const rawIndices = getRawIndices(configWithoutDefaults['series']);
+  const rawSeries = configWithoutDefaults['series'];
+  const rawIndices = getRawIndices(rawSeries);
+  const seriesDefaults = configWithoutDefaults['seriesDefaults'];
+  // a bar inherited from seriesDefaults is reported once, where it was written
+  const defaultsBar = isConfigRecord(seriesDefaults) && seriesDefaults['renderer'] === RENDERER_BAR;
+  const message = getLogCategoryBarMessage();
+  let inherited = false;
   for (let i = 0; i < seriesSections.length; i++) {
     const section = seriesSections[i];
     if (isConfigRecord(section) && section['renderer'] === RENDERER_BAR) {
-      const message = getLogCategoryBarMessage();
       const reportIndex = rawIndices?.[i] ?? i;
+      const rawSection: unknown = Array.isArray(rawSeries) ? rawSeries[reportIndex] : undefined;
+      if (defaultsBar && isConfigRecord(rawSection) && rawSection['renderer'] === undefined) {
+        inherited = true;
+        continue;
+      }
       errors.push(getPropertyMessage('series', 'renderer', message, reportIndex));
       errorDetails.push({ path: ['series', reportIndex, 'renderer'], message });
     }
+  }
+  if (inherited) {
+    errors.push(getPropertyMessage('seriesDefaults', 'renderer', message));
+    errorDetails.push({ path: ['seriesDefaults', 'renderer'], message });
   }
 }
 
