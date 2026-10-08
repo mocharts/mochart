@@ -107,6 +107,16 @@ describe('threshold ranges on a value axis', () => {
     expect(lineTranslations(outside)).toHaveLength(0);
   });
 
+  // a range of zero width failed the width check meant for ranges clipped away, so it drew no edges and no title
+  it('draws both edge lines and the title of a range whose two ends are equal', () => {
+    const lines = lineTranslations(valueThresholds([{ value: 50 }]));
+    const equal = valueThresholds([{ value: 50, rangeValue: 50, title: { text: 'R' } }]);
+    expect(lineTranslations(equal)).toEqual([lines[0], lines[0]]);
+    expect(rect(equal)!.height).toBe(0);
+    expect(equal.querySelector(getCssSelector('axisThreshold'))!.textContent).toContain('R');
+    expect(lineTranslations(valueThresholds([{ value: 150, rangeValue: 150 }]))).toHaveLength(0);
+  });
+
   it('fills with a pattern or gradient definition by id', () => {
     const patterned = valueThresholds([{ value: 20, rangeValue: 60, pattern: 'hatch', style: { normal: { fillColor: 'purple' } } }],
       { patterns: [{ id: 'hatch', type: 'lines' }] });

@@ -149,7 +149,8 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
         const halfSlot = axisConfig.scale === SCALE_ORDINAL ? this.props.categoryPositions!.slotExtent / 2 : 0;
         rangeStart = Math.max(boundStart, Math.min(valueOffset!, rangeOffset!) - halfSlot);
         rangeEnd = Math.min(boundEnd, Math.max(valueOffset!, rangeOffset!) + halfSlot);
-        present = rangeEnd > rangeStart + OFFSET_EPSILON;
+        // a range of zero width shows its edges and title where it sits; one clipped away by the domain shows nothing
+        present = rangeEnd > rangeStart + OFFSET_EPSILON || (Math.abs(valueOffset! - rangeOffset!) <= OFFSET_EPSILON && inPlot(valueOffset));
       }
     }
     else {
