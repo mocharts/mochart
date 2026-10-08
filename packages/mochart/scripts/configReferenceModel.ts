@@ -651,7 +651,8 @@ function editorTypeForValue(value: unknown): EditorValueType {
 const CUSTOM_VALIDATOR_TYPES: Record<string, EditorValueType[]> = {
   color: ['string'],
   svgColor: ['string'],
-  cssColor: ['string']
+  cssColor: ['string'],
+  positiveNumber: ['number']
 };
 
 /** The one format shared by every named branch of a conditional, so a branch's tag is not lost. */
@@ -711,7 +712,8 @@ function editorTypesForValidator(validator: Validator): EditorValueType[] {
     case 'oneOf':
     case 'oneIn': {
       const values = (validator.allowedValues ?? []).filter(value => value !== undefined && value !== null);
-      if (values.length === 0) return ['any'];
+      // null alone is represented by the enum, so a rule that allows only null adds no type to a conditional's union
+      if (values.length === 0) return validator.allowedValues?.includes(null) ? [] : ['any'];
       return unique(values.map(editorTypeForValue));
     }
     default: return ['any'];

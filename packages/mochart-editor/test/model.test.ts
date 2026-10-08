@@ -43,6 +43,19 @@ describe('Mochart config editor model', () => {
     expect(categoryMin?.editor.format).toBeUndefined();
   });
 
+  // positiveNumber had no editor type and a null-only log rule added 'any', so completions read "any | number | string"
+  it('types the log-conditional value axis bounds and step members without any', () => {
+    const valueAxes = mochartConfigEditorModel.sections.find(section => section.id === 'valueAxes');
+    const property = (key: string) => valueAxes?.properties.find(candidate => candidate.key === key);
+    const tickStep = property('tickStep')?.properties;
+
+    expect(property('min')?.editor.types).toEqual(['number', 'string']);
+    expect(property('softMin')?.editor.types).toEqual(['number']);
+    expect(tickStep?.find(candidate => candidate.key === 'interval')?.editor.types).toEqual(['number']);
+    expect(tickStep?.find(candidate => candidate.key === 'minorSteps')?.editor.types).toEqual(['number']);
+    expect(property('thresholdStep')?.properties?.find(candidate => candidate.key === 'interval')?.editor.types).toEqual(['number']);
+  });
+
   it('describes automatic tooltip and legend icon sizing', () => {
     for (const sectionId of ['tooltip', 'legend']) {
       const section = mochartConfigEditorModel.sections.find(candidate => candidate.id === sectionId);
