@@ -159,7 +159,7 @@ export default function getValidators(thresholdValue = validators.number(), tick
       title: validators.partialObjectWithShape({
         text: validators.string().orOneOf([NONE, undefined]),
         side: validators.oneOf(THRESHOLD_TITLE_SIDES).orEqual(undefined),
-        align: validators.oneOf(ANCHORS).orOneOf([AUTO, undefined]),
+        anchor: validators.oneOf(ANCHORS).orOneOf([AUTO, undefined]),
         snapToValue: validators.boolean().orEqual(undefined),
         margin: validators.margin().orEqual(undefined),
         padding: validators.padding().orEqual(undefined),

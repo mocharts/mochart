@@ -71,8 +71,8 @@ fills the range between its two values instead of drawing a line:
   range with that definition instead, and a pattern's `owner` color resolves to
   the range's fill color. `front: false` keeps the range behind the series.
 - The title's `side` is `low` or `high` of the whole range, or `inside` to
-  center it within the range; `align` places any threshold title at the `start`,
-  `middle` or `end` of the plot instead of the axis side.
+  center it within the range; `anchor` places any threshold title at the
+  `start`, `middle` or `end` of the plot instead of the axis side.
 - A range partly outside the axis domain is clipped to it; one wholly outside is
   not drawn.
 - Ordinal category axes take thresholds too: a value names a category, so a line

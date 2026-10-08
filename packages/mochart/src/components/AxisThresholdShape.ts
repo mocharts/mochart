@@ -231,7 +231,7 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
     const { axisConfig, threshold, seriesLayoutInfo, vertical, ascending } = this.props;
     const start = axisConfig.side === SIDE_START;
     const titleLow = threshold.title.side === TITLE_SIDE_LOW;
-    const { snapToValue: titleSnapToValue, align } = threshold.title;
+    const { snapToValue: titleSnapToValue, anchor } = threshold.title;
     const { axisLayoutInfo, thresholdIndex, titleStroke, titleStrokeOpacity, titleStrokeWidth, titleFill, titleFillOpacity, titleFontStyle } = this.props;
     const thresholdTitleLayoutInfo = axisLayoutInfo.thresholdTitleLayoutInfos[thresholdIndex] ?? { x: 0, y: 0, width: 0, height: 0 };
     let titleX = thresholdX;
@@ -260,9 +260,9 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
     // titleSide names the value side; ascending says which pixel direction the values grow in
     const below = ascending ? !titleLow : titleLow;
     const left = ascending ? titleLow : !titleLow;
-    // align places the title along the threshold: auto keeps it at the axis side
-    const alongStart = align === AUTO ? start : align === ANCHOR_START;
-    const alongMiddle = align === ANCHOR_MIDDLE;
+    // anchor places the title along the threshold: auto keeps it at the axis side
+    const alongStart = anchor === AUTO ? start : anchor === ANCHOR_START;
+    const alongMiddle = anchor === ANCHOR_MIDDLE;
     if (vertical) {
       paddingY += paddingHeight / 2.0;
       if (alongMiddle) {

@@ -770,7 +770,7 @@ describe('threshold entry validation', () => {
   it('accepts a range with a fill style, and a pattern or gradient that exists', () => {
     expect(errorsFor({ ...base, categoryAxis: { property: 'p' }, patterns: [{ id: 'hatch', type: 'lines' }], linearGradients: [{ id: 'fade', stops: [{ offset: 0, color: 'red', opacity: 1 }, { offset: 1, color: 'blue', opacity: 1 }] }],
       valueAxes: [{ thresholds: [
-        { value: 1, rangeValue: 2, style: { normal: { fillColor: 'red', fillOpacity: 0.2 } }, pattern: 'hatch', title: { text: 'Band', side: 'inside', align: 'middle' } },
+        { value: 1, rangeValue: 2, style: { normal: { fillColor: 'red', fillOpacity: 0.2 } }, pattern: 'hatch', title: { text: 'Band', side: 'inside', anchor: 'middle' } },
         { value: 3, rangeValue: 4, gradient: 'fade' }
       ] }] })).toEqual([]);
   });

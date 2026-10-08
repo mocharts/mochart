@@ -20,7 +20,7 @@ export const config: MochartInputConfig = {
           rangeValue: 150,
           front: false,
           style: { normal: { fillColor: '#1baf7a', fillOpacity: 0.15, strokeColor: '#1baf7a', strokeOpacity: 0.8 } },
-          title: { text: 'Target', side: 'inside', align: 'middle' }
+          title: { text: 'Target', side: 'inside', anchor: 'middle' }
         },
         { value: 200, title: { text: 'SLA limit' }, style: { normal: { strokeDashArray: '6 3' } } }
       ]

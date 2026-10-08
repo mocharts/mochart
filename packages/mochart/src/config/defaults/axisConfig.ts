@@ -226,7 +226,7 @@ export function getThresholdEntryDefaults() {
     title: {
       text: NONE,
       side: TITLE_SIDE_HIGH,
-      align: AUTO,
+      anchor: AUTO,
       snapToValue: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
       padding: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -246,7 +246,7 @@ export function getThresholdEntryDefaults() {
 export interface ResolvedThresholdTitle {
   text: string | null;
   side: ThresholdTitleSide;
-  align: Anchor | Auto;
+  anchor: Anchor | Auto;
   snapToValue: boolean;
   margin: MarginPadding;
   padding: MarginPadding;

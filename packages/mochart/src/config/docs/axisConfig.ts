@@ -155,7 +155,7 @@ export function getThresholdDescriptions(): DescriptionMap {
       properties: {
         text: 'the title text shown beside the threshold (use null or an empty string for none)',
         side: 'the value side of the threshold the title sits on ("low", "high", or "inside" a range)',
-        align: 'where the title sits along the threshold ("start", "middle", "end", or "auto" for the axis side)',
+        anchor: 'where the title sits along the threshold ("start", "middle", "end", or "auto" for the axis side)',
         snapToValue: 'whether the title flips to the other side of the threshold when its own side has no room, instead of being clamped inside the plot over it',
         margin: spacing('the margin (in pixels) of the threshold title, relative to its orientation'),
         padding: spacing('the padding (in pixels) of the threshold title, relative to its orientation'),

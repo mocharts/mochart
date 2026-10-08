@@ -46,7 +46,7 @@
           "title": {
             "text": "Target",
             "side": "inside",
-            "align": "middle",
+            "anchor": "middle",
             "padding": {
               "top": 4,
               "right": 6,
@@ -69,7 +69,7 @@
           "title": {
             "text": "Stretch",
             "side": "high",
-            "align": "end",
+            "anchor": "end",
             "padding": {
               "top": 5,
               "right": 5,

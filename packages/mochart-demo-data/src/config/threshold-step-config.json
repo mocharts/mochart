@@ -19,7 +19,7 @@
         "value": "2026-07-01",
         "title": {
           "text": "Q3",
-          "align": "start"
+          "anchor": "start"
         }
       }
     ],

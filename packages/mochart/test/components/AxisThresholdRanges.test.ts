@@ -131,8 +131,8 @@ describe('threshold ranges on a value axis', () => {
     expect(gradiented.querySelector('linearGradient[id="' + gradientFill.slice(5, -1) + '"]')).not.toBeNull();
   });
 
-  it('centres an inside title within the band and a middle-aligned one along it', () => {
-    const container = valueThresholds([{ value: 20, rangeValue: 60, title: { text: 'Band', side: 'inside', align: 'middle' } }]);
+  it('centres an inside title within the band and a middle-anchored one along it', () => {
+    const container = valueThresholds([{ value: 20, rangeValue: 60, title: { text: 'Band', side: 'inside', anchor: 'middle' } }]);
     const band = rect(container)!;
     const title = translation(container.querySelector(getCssSelector('axisThresholdTitle')));
     expect(title.y).toBeGreaterThan(band.y);

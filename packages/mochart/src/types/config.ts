@@ -1806,7 +1806,7 @@ export interface ThresholdTitleConfig {
    *
    * @default "auto"
    */
-  align?: Anchor | Auto;
+  anchor?: Anchor | Auto;
   /**
    * Whether the title flips to the other side of the threshold when its own
    * side has no room, instead of being clamped inside the plot over it.
@@ -2031,7 +2031,7 @@ export interface ThresholdConfig {
   /**
    * The title label shown beside the threshold.
    *
-   * @default { text: null, side: "high", align: "auto", snapToValue: true, margin: { … }, padding: { … }, textStyle: { … }, font: { … }, backgroundStyle: { … } }
+   * @default { text: null, side: "high", anchor: "auto", snapToValue: true, margin: { … }, padding: { … }, textStyle: { … }, font: { … }, backgroundStyle: { … } }
    */
   title?: ThresholdTitleConfig;
 }
