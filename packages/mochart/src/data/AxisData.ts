@@ -100,7 +100,9 @@ function getCategoryAxisData(categoryAxisConfig: CategoryAxisConfig, axisLayoutI
     const maxTickLabelLength = getMaxTickLabelLength(categoryAxisConfig, categoryData.values.parsed, axisTickData, spacingInfo);
 
     categoryAxisData = {
-      axisScale, axisTickData, maxTickLabelLength, maxMinorTickLabelLength: minorTickLabelLength, valueData: { spacingInfo, positions }
+      // a minor label with no labelled neighbour, or no minor label, has no room of its own: it takes a tick's share
+      axisScale, axisTickData, maxTickLabelLength, maxMinorTickLabelLength: Number.isFinite(minorTickLabelLength) ? minorTickLabelLength : maxTickLabelLength,
+      valueData: { spacingInfo, positions }
     };
   }
   return categoryAxisData;

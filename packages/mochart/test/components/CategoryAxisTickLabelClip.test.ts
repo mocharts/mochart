@@ -76,6 +76,31 @@ describe('category axis tick label clips', () => {
     }
   });
 
+  // the minor room started at Infinity and only a labelled neighbour narrowed it, so the rect read x="-Infinity" width="Infinity"
+  it('keeps the minor clip rect finite for a lone minor label and for no minor label', () => {
+    const { createChart, enhanceConfig, ArrayOfObjectsDataProvider } = mochart;
+    for (const categoryAxis of [
+      { ticks: [{ value: 'c1', minor: true }] },
+      { tickStep: { count: 2, offset: 1 }, minorTickLabel: { visible: true } },
+      { ticks: [{ value: 'c0' }, { value: 'c2', label: 'C!' }] }
+    ]) {
+      const mochartConfig = enhanceConfig({
+        version: '1.0.0',
+        animation: { enabled: false },
+        categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', ...categoryAxis },
+        series: [{ property: 'value', renderer: 'bar' }]
+      });
+      const container = mountContainer();
+      const rows = ['c0', 'c1', 'c2'].map((label, i) => ({ label, value: i + 1 }));
+      createChart(container, { mochartConfig, dataProvider: new ArrayOfObjectsDataProvider(rows), width: 800, height: 600 });
+      runFrames();
+      const rect = clipRect(container, minorClipPrefix)!;
+      expect(Number.isFinite(Number(rect.getAttribute('x')))).toBe(true);
+      expect(Number(rect.getAttribute('width'))).toBeGreaterThan(0);
+      expect(Number.isFinite(Number(rect.getAttribute('width')))).toBe(true);
+    }
+  });
+
   it('emits no minor clip while no minor labels show', () => {
     const container = renderChart({ truncation: { enabled: true } });
     expect(clipRect(container, majorClipPrefix)).not.toBeNull();
