@@ -561,4 +561,15 @@ describe('minor tick step validation', () => {
     expect(errors('string', { minorSteps: 2 })).toEqual(['categoryAxis - tickStep.minorSteps - should be equal to null: 2']);
     expect(errors('date', { interval: 'week', minorInterval: 'month' })).toEqual(['categoryAxis - tickStep.minorInterval - should be equal to null: "month"']);
   });
+
+  it('gives minorSteps on a linear date axis and minorInterval on a linear number axis only their own rejection', () => {
+    const { enhanceConfig } = mochart;
+    const errors = (type: 'number' | 'date', tickStep: Record<string, unknown>) => enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', type, scale: 'linear', tickStep },
+      series: [{ property: 'value' }]
+    }).validation.errors;
+    expect(errors('date', { minorSteps: 2 })).toEqual(['categoryAxis - tickStep.minorSteps - should be equal to null: 2']);
+    expect(errors('number', { minorInterval: 5 })).toEqual(['categoryAxis - tickStep.minorInterval - should be equal to null: 5']);
+  });
 });

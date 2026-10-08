@@ -4,7 +4,7 @@ import { filterConfig, getRawIndices } from '../core/configUtils.js';
 import { getPropertyMessage, isConfigObject } from './messages.js';
 import { createStyleValidators, lineMembers, styleMembers } from './styleStateValidators.js';
 
-import { AUTO, NONE, MAJOR, ANCHORS, STYLE_SAME, SIDES, SCALE_LOG, SCALE_ORDINAL, STEP_PERIODS, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE } from '../core/constants.js';
+import { AUTO, NONE, MAJOR, ANCHORS, STYLE_SAME, SIDES, SCALE_LOG, SCALE_ORDINAL, STEP_PERIODS, THRESHOLD_TITLE_SIDES, TITLE_SIDE_INSIDE, TYPE_DATE, TYPE_NUMBER } from '../core/constants.js';
 
 import type { ConfigObject, LocatedValidationMessage } from './messages.js';
 import type { Validator } from '@mochart/movalid';
@@ -371,6 +371,9 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
     // even with an interval set, which its own interval rule rejects; its own minorSteps rule rejects those too
     const linear = axis['scale'] !== SCALE_ORDINAL;
     const log = axis['scale'] === SCALE_LOG;
+    const date = axis['type'] === TYPE_DATE;
+    // a value axis has no type member and is a number axis
+    const number = axis['type'] === undefined || axis['type'] === TYPE_NUMBER;
     const placementMessage = log ? stepOnLogMessage : stepNeedsPlacementMessage;
     for (const [groupKey, defaultCount] of [['tickStep', AUTO], ['thresholdStep', 1]] as const) {
       const step = axis[groupKey];
@@ -391,11 +394,11 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
       else if (linear && step['offset'] !== 0 && step['offset'] !== undefined && (step['count'] === undefined || step['count'] === AUTO) && defaultCount === AUTO) {
         reportStep('offset', offsetNeedsCountMessage);
       }
-      // an ordinal axis rejects minorInterval and minorSteps through their own conditions
+      // an ordinal axis, and a linear axis of the other type, rejects minorInterval or minorSteps through its own condition
       if (groupKey === 'tickStep' && linear) {
         // minorInterval takes the form of interval: a shorter period, or a smaller number of milliseconds
         const { minorInterval, interval } = step;
-        if (typeof minorInterval === 'string' || typeof minorInterval === 'number') {
+        if (date && (typeof minorInterval === 'string' || typeof minorInterval === 'number')) {
           if (interval === undefined || interval === NONE) {
             reportStep('minorInterval', minorNeedsIntervalMessage);
           }
@@ -416,7 +419,7 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
             }
           }
         }
-        if (!log && typeof step['minorSteps'] === 'number' && (interval === undefined || interval === NONE)) {
+        if (!log && number && typeof step['minorSteps'] === 'number' && (interval === undefined || interval === NONE)) {
           reportStep('minorSteps', minorNeedsIntervalMessage);
         }
       }
