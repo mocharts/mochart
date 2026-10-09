@@ -1,11 +1,11 @@
-import { AUTO, TYPE_DATE, STEP_PERIOD_YEAR, STEP_PERIOD_MONTH, STEP_PERIOD_WEEK, STEP_PERIOD_SECOND, STEP_PERIOD_MINUTE, STEP_PERIOD_HOUR } from '../config/core/constants.js';
-import type { Auto, DataType, StepPeriod } from '../config/core/constants.js';
+import { TYPE_DATE, STEP_PERIOD_YEAR, STEP_PERIOD_MONTH, STEP_PERIOD_WEEK, STEP_PERIOD_SECOND, STEP_PERIOD_MINUTE, STEP_PERIOD_HOUR } from '../config/core/constants.js';
+import type { DataType, StepPeriod } from '../config/core/constants.js';
 import type { CategoryValue } from '../types/data.js';
 
 /** The rule members the tick and threshold steps share: which candidates, and which of them are kept. */
 export interface StepRule {
   interval: number | StepPeriod | null;
-  count: number | Auto;
+  every: number;
   offset: number;
   includeFirst?: boolean;
 }
@@ -78,7 +78,7 @@ const DAY_MILLIS = 86400000;
  * The period's index from a fixed origin: seconds, minutes and hours from the epoch (counted in UTC, so the
  * index stays unique through a daylight saving change), days from the epoch, weeks from Monday January 5 1970,
  * months from January 1970, or the year itself, the calendar ones read in UTC or local time per dateUTC.
- * A count and offset phased on it keep the same periods whatever the domain.
+ * An `every` and `offset` phased on it keep the same periods whatever the domain.
  */
 export function getPeriodIndex(period: StepPeriod, dateUTC: boolean, periodStart: Date): number {
   if (isClockPeriod(period)) {
@@ -106,23 +106,23 @@ export function getDateIntervalOrigin(dateUTC: boolean): number {
 }
 
 /**
- * The starts of the periods from the one holding start up to end whose period index count and offset keep. A clock
+ * The starts of the periods from the one holding start up to end whose period index `every` and `offset` keep. A clock
  * period has a fixed length, so the walk jumps from one kept start to the next instead of visiting every period.
  */
-export function getKeptPeriodStarts(period: StepPeriod, dateUTC: boolean, start: Date, end: Date, count: number, offset: number): Date[] {
+export function getKeptPeriodStarts(period: StepPeriod, dateUTC: boolean, start: Date, end: Date, every: number, offset: number): Date[] {
   const starts: Date[] = [];
   let boundary = getPeriodStart(period, dateUTC, start);
   if (isClockPeriod(period)) {
     const unit = clockPeriodMillis[period];
     const index = getPeriodIndex(period, dateUTC, boundary);
-    for (let time = boundary.getTime() + (getFirstKeptStep(index, count, offset) - index) * unit; time <= end.getTime(); time += count * unit) {
+    for (let time = boundary.getTime() + (getFirstKeptStep(index, every, offset) - index) * unit; time <= end.getTime(); time += every * unit) {
       starts.push(new Date(time));
     }
     return starts;
   }
   while (boundary.getTime() <= end.getTime()) {
     const index = getPeriodIndex(period, dateUTC, boundary);
-    if (getFirstKeptStep(index, count, offset) === index) {
+    if (getFirstKeptStep(index, every, offset) === index) {
       starts.push(boundary);
     }
     boundary = getNextPeriodStart(period, dateUTC, boundary);
@@ -147,23 +147,20 @@ export function getPeriodBoundaries(period: StepPeriod, dateUTC: boolean, [domai
 
 /**
  * The category indexes a step rule works from: the candidates are every category, or with a period as the
- * interval on a date axis the first category of each period, and `selected` steps through them by count and
- * offset, with includeFirst adding the first category back.
+ * interval on a date axis the first category of each period, and `selected` steps through them by `every` and
+ * `offset`, with includeFirst adding the first category back.
  */
 /**
- * The first step index at or after `first` that a linear rule keeps: every count-th index counted from the fixed
- * origin, phased by offset. Walking from it in steps of count visits only the kept indexes, so the work is the
+ * The first step index at or after `first` that a linear rule keeps: one index in every `every`, counted from the fixed
+ * origin, phased by offset. Walking from it in steps of `every` visits only the kept indexes, so the work is the
  * number of steps drawn, not the number of multiples in the domain.
  */
-export function getFirstKeptStep(first: number, count: number | Auto, offset: number): number {
-  if (count === AUTO) {
-    return first;
-  }
-  return first + (((offset - first) % count) + count) % count;
+export function getFirstKeptStep(first: number, every: number, offset: number): number {
+  return first + (((offset - first) % every) + every) % every;
 }
 
 export function getStepCandidates(rule: StepRule, categoryValues: readonly CategoryValue[], type: DataType, dateUTC: boolean): { candidates: number[]; selected: number[] } {
-  const { interval: period, count, offset, includeFirst = false } = rule;
+  const { interval: period, every, offset, includeFirst = false } = rule;
   let candidates: number[];
   if (typeof period === 'string' && type === TYPE_DATE) {
     candidates = [];
@@ -180,7 +177,7 @@ export function getStepCandidates(rule: StepRule, categoryValues: readonly Categ
   else {
     candidates = categoryValues.map((_v, index) => index);
   }
-  const selected = candidates.filter((_index, position) => position >= offset && (count === AUTO || (position - offset) % count === 0));
+  const selected = candidates.filter((_index, position) => position >= offset && (position - offset) % every === 0);
   if (includeFirst && categoryValues.length > 0 && selected[0] !== 0) {
     selected.unshift(0);
   }

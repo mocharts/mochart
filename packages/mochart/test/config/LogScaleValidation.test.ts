@@ -46,14 +46,14 @@ describe('value axis scale', () => {
     expect(valueAxisErrors({ thresholdStep: { interval: 10 } })).toContain('valueAxes[0] - thresholdStep.interval - should be equal to null when scale is log: 10');
   });
 
-  it('says why a step count is rejected on a log axis', () => {
-    expect(valueAxisErrors({ tickStep: { count: 2 } })).toContain('valueAxes[0] - tickStep.count - should be left at its default on a log axis, where interval must be null');
+  it('says why a step every is rejected on a log axis', () => {
+    expect(valueAxisErrors({ tickStep: { every: 2 } })).toContain('valueAxes[0] - tickStep.every - should be left at its default on a log axis, where interval must be null');
   });
 
-  it('gives count and offset the log message beside a rejected interval, not the linear one', () => {
-    const errors = valueAxisErrors({ tickStep: { interval: 10, count: 2, offset: 1 } });
+  it('gives every and offset the log message beside a rejected interval, not the linear one', () => {
+    const errors = valueAxisErrors({ tickStep: { interval: 10, every: 2, offset: 1 } });
     expect(errors).toContain('valueAxes[0] - tickStep.interval - should be equal to null when scale is log: 10');
-    expect(errors).toContain('valueAxes[0] - tickStep.count - should be left at its default on a log axis, where interval must be null');
+    expect(errors).toContain('valueAxes[0] - tickStep.every - should be left at its default on a log axis, where interval must be null');
     expect(errors).toContain('valueAxes[0] - tickStep.offset - should be left at its default on a log axis, where interval must be null');
     expect(errors.some(error => error.includes('on a linear axis'))).toBe(false);
   });

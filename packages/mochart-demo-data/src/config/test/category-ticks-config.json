@@ -37,7 +37,7 @@
     "thresholdStep": {
       "visible": true,
       "interval": "week",
-      "count": 2,
+      "every": 2,
       "style": {
         "normal": {
           "strokeOpacity": 0,

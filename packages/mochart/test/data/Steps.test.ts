@@ -54,13 +54,13 @@ describe('clock periods', () => {
   });
 });
 
-// every period was visited and filtered, so a second step with count 10000000 walked the 31 million seconds of a year
+// every period was visited and filtered, so a second step with every 10000000 walked the 31 million seconds of a year
 describe('getKeptPeriodStarts', () => {
-  const visited = (period: 'second' | 'minute' | 'hour' | 'day', dateUTC: boolean, start: Date, end: Date, count: number, offset: number) => {
+  const visited = (period: 'second' | 'minute' | 'hour' | 'day', dateUTC: boolean, start: Date, end: Date, every: number, offset: number) => {
     const kept: number[] = [];
     for (let boundary = getPeriodStart(period, dateUTC, start); boundary.getTime() <= end.getTime(); boundary = getNextPeriodStart(period, dateUTC, boundary)) {
       const index = getPeriodIndex(period, dateUTC, boundary);
-      if (((index - offset) % count + count) % count === 0) {
+      if (((index - offset) % every + every) % every === 0) {
         kept.push(boundary.getTime());
       }
     }
@@ -71,11 +71,11 @@ describe('getKeptPeriodStarts', () => {
     inZone('Asia/Kolkata', () => {
       const start = new Date('2026-06-01T04:45:10Z');
       const end = new Date('2026-06-03T07:00:00Z');
-      for (const [period, count, offset] of [['second', 7, 3], ['minute', 45, 2], ['hour', 5, 1], ['day', 2, 1]] as const) {
+      for (const [period, every, offset] of [['second', 7, 3], ['minute', 45, 2], ['hour', 5, 1], ['day', 2, 1]] as const) {
         for (const dateUTC of [true, false]) {
-          const kept = getKeptPeriodStarts(period, dateUTC, start, end, count, offset).map(boundary => boundary.getTime());
+          const kept = getKeptPeriodStarts(period, dateUTC, start, end, every, offset).map(boundary => boundary.getTime());
           expect(kept.length).toBeGreaterThan(0);
-          expect(kept).toEqual(visited(period, dateUTC, start, end, count, offset));
+          expect(kept).toEqual(visited(period, dateUTC, start, end, every, offset));
         }
       }
     });

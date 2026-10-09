@@ -52,7 +52,7 @@ export default function getDefaults() {
     thresholdStep: {
       visible: false,
       interval: NONE,
-      count: 1,
+      every: 1,
       offset: 0,
       minSpacing: 2,
       range: true,
@@ -110,7 +110,7 @@ export default function getDefaults() {
 
     tickCount: AUTO,
 
-    tickStep: { interval: NONE, count: AUTO, offset: 0, minorSteps: NONE, minSpacing: 2 },
+    tickStep: { interval: NONE, every: 1, offset: 0, minorSteps: NONE, minSpacing: 2 },
 
     tickLabel: {
       visible: true,

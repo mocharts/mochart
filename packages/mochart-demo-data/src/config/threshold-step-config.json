@@ -26,7 +26,7 @@
     "thresholdStep": {
       "visible": true,
       "interval": "week",
-      "count": 2,
+      "every": 2,
       "pattern": "hatch",
       "style": {
         "normal": {

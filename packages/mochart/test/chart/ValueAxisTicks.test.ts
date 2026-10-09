@@ -138,8 +138,8 @@ describe('value axis tick step label precision', () => {
     halves.chart.destroy();
   });
 
-  it('follows the spacing of the ticks count keeps, not the interval', () => {
-    const { container, chart } = renderChart({ min: 0, max: 10, tickStep: { interval: 2.5, count: 2 } });
+  it('follows the spacing of the ticks every keeps, not the interval', () => {
+    const { container, chart } = renderChart({ min: 0, max: 10, tickStep: { interval: 2.5, every: 2 } });
     expect(getAxisLabels(container)).toEqual(['0', '5', '10']);
     chart.destroy();
   });

@@ -63,7 +63,7 @@ export function getMinorTickLabelValidators(): Record<string, Validator> {
 export function getTickStepValidators(): Record<string, Validator> {
   return {
     interval: thresholdStepIntervalValidator,
-    count: validators.integerMin(1).orEqual(AUTO),
+    every: validators.integerMin(1),
     offset: validators.integerMin(0),
     minorSteps: validators.integerMin(2).orEqual(NONE),
     minSpacing: validators.numberMin(2)
@@ -82,7 +82,7 @@ export function getThresholdStepValidators(): Record<string, Validator> {
   return {
     visible: validators.boolean(),
     interval: thresholdStepIntervalValidator,
-    count: validators.integerMin(1),
+    every: validators.integerMin(1),
     offset: validators.integerMin(0),
     minSpacing: validators.numberMin(2),
     range: validators.boolean(),
@@ -350,7 +350,7 @@ function getAxisReporter({ prefix, path, raw }: ValidationAxis, reportedDefaults
 
 const stepNeedsPlacementMessage = 'should be left at its default on a linear axis unless interval is set';
 const stepOnLogMessage = 'should be left at its default on a log axis, where interval must be null';
-const offsetNeedsCountMessage = 'should be 0 on a linear axis unless count is a number, since every step is kept and there is nothing to shift';
+const offsetNeedsEveryMessage = 'should be 0 on a linear axis unless every is above 1, since all steps are kept and there is nothing to shift';
 const minorNeedsIntervalMessage = 'should be null unless interval is set';
 const minorIntervalNeedsPeriodMessage = 'should be a period when interval is a period';
 const minorIntervalNeedsNumberMessage = 'should be a number when interval is a number';
@@ -358,7 +358,7 @@ const minorIntervalTooLongMessage = 'should be a shorter period than interval';
 const minorIntervalTooLargeMessage = 'should be smaller than interval';
 const duplicateTickMessage = 'should not repeat the value of another ticks entry';
 
-/** The step rules that cross members, in tickStep and thresholdStep alike: what count and offset count on a linear axis, and what the minor members need. */
+/** The step rules that cross members, in tickStep and thresholdStep alike: what every and offset count on a linear axis, and what the minor members need. */
 export function validateStepRules(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
   const reportedDefaults = new Set<string>();
   for (const validationAxis of getValidationAxes(config, configWithoutDefaults)) {
@@ -367,7 +367,7 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
       continue;
     }
     const report = getAxisReporter(validationAxis, reportedDefaults, errors, errorDetails);
-    // a log axis takes no interval, so like an unplaced linear one it keeps count and offset at their defaults,
+    // a log axis takes no interval, so like an unplaced linear one it keeps every and offset at their defaults,
     // even with an interval set, which its own interval rule rejects; its own minorSteps rule rejects those too
     const linear = axis['scale'] !== SCALE_ORDINAL;
     const log = axis['scale'] === SCALE_LOG;
@@ -375,7 +375,7 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
     // a value axis has no type member and is a number axis
     const number = axis['type'] === undefined || axis['type'] === TYPE_NUMBER;
     const placementMessage = log ? stepOnLogMessage : stepNeedsPlacementMessage;
-    for (const [groupKey, defaultCount] of [['tickStep', AUTO], ['thresholdStep', 1]] as const) {
+    for (const groupKey of ['tickStep', 'thresholdStep'] as const) {
       const step = axis[groupKey];
       if (!isConfigObject(step)) {
         continue;
@@ -383,16 +383,16 @@ export function validateStepRules(config: ConfigObject, configWithoutDefaults: C
       const reportStep = (member: string, message: string) => report([groupKey, member], groupKey + '.' + member, message);
       const placed = !log && step['interval'] !== undefined && step['interval'] !== NONE;
       if (linear && !placed) {
-        if (step['count'] !== defaultCount) {
-          reportStep('count', placementMessage);
+        if (step['every'] !== 1) {
+          reportStep('every', placementMessage);
         }
         if (step['offset'] !== 0) {
           reportStep('offset', placementMessage);
         }
       }
-      // a linear offset shifts which count-th step is kept, so with every step kept (count "auto") it does nothing
-      else if (linear && step['offset'] !== 0 && step['offset'] !== undefined && (step['count'] === undefined || step['count'] === AUTO) && defaultCount === AUTO) {
-        reportStep('offset', offsetNeedsCountMessage);
+      // a linear offset shifts which step in every `every` is kept, so with all steps kept (every 1) it does nothing
+      else if (linear && step['offset'] !== 0 && step['offset'] !== undefined && (step['every'] === undefined || step['every'] === 1)) {
+        reportStep('offset', offsetNeedsEveryMessage);
       }
       // an ordinal axis, and a linear axis of the other type, rejects minorInterval or minorSteps through its own condition
       if (groupKey === 'tickStep' && linear) {

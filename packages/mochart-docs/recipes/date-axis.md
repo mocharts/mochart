@@ -68,9 +68,9 @@ holds through holidays and as the data window slides:
   [`dateUTC`](/reference/categoryAxis#categoryAxis.dateUTC). A
   partial first week is a period of its own, so its first day gets a tick;
   `offset: 1` skips it.
-- `count` and `offset` step through the candidates: `interval: 'week'` with
-  `count: 2` labels every second week, and on a string axis
-  `count: 5, offset: 3` shows the fourth category and every fifth after it.
+- `every` and `offset` step through the candidates: `interval: 'week'` with
+  `every: 2` labels every second week, and on a string axis
+  `every: 5, offset: 3` shows the fourth category and every fifth after it.
   On an ordinal axis, `includeFirst` always keeps the first category.
 - When more ticks survive than fit, every k-th survivor is kept from the first,
   so a thinned weekly rule still lands on Mondays.
@@ -87,9 +87,9 @@ holds through holidays and as the data window slides:
   `mochart-axis-minor-tick-mark`, `mochart-axis-minor-grid-line` and
   `mochart-axis-minor-tick-label` classes for styling.
 - On a linear date axis the ticks sit on the period boundaries themselves rather
-  than on categories, `count` and `offset` keep every count-th boundary, and
-  `minorInterval` takes a shorter period to place minor ticks between them: a
-  day inside each week, or a week inside each month.
+  than on categories, `every` and `offset` choose which boundaries are kept,
+  and `minorInterval` takes a shorter period to place minor ticks between them:
+  a day inside each week, or a week inside each month.
 - A linear date axis also takes a number of milliseconds as the `interval`, for
   a step no period gives: `interval: 12 * 60 * 60 * 1000` puts a tick at every
   midnight and noon. The ticks sit at the multiples of the interval counted from

@@ -27,12 +27,12 @@ function getSteppedThresholdSpacing(axisConfig: ThresholdStepAxisConfig, domainM
   if (axisConfig.type === TYPE_DATE && typeof interval === 'string') {
     // the periods touching the domain, including the one under way at its start
     const periods = getPeriodIndex(interval, dateUTC, new Date(domainMax)) - getPeriodIndex(interval, dateUTC, new Date(domainMin)) + 1;
-    return axisLength * step.count / periods;
+    return axisLength * step.every / periods;
   }
   if (typeof interval !== 'number' || !(interval > 0)) {
     return Infinity;
   }
-  return axisLength * interval * step.count / (domainMax - domainMin);
+  return axisLength * interval * step.every / (domainMax - domainMin);
 }
 
 /** Whether a linear rule draws at all: its thresholds must sit at least minSpacing apart, counted before any is built. */
@@ -92,7 +92,7 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
   if (axisConfig.type === TYPE_DATE && typeof interval === 'string') {
     const period = interval;
     // the period holding the domain start counts too, so a range already under way is drawn clipped
-    for (const boundary of getKeptPeriodStarts(period, dateUTC, new Date(domainMin), new Date(domainMax), step.count, step.offset)) {
+    for (const boundary of getKeptPeriodStarts(period, dateUTC, new Date(domainMin), new Date(domainMax), step.every, step.offset)) {
       add(boundary.getTime(), getNextPeriodStart(period, dateUTC, boundary).getTime());
     }
     return thresholds;
@@ -106,7 +106,7 @@ export function getSteppedThresholds(axisConfig: ThresholdStepAxisConfig, axisDo
   const firstMultiple = Math.floor((domainMin - origin) / interval);
   // a line sits at each multiple up to the domain max; a range starting at the top multiple would lie wholly outside the domain
   const lastMultiple = step.range ? Math.ceil((domainMax - origin) / interval) - 1 : Math.floor((domainMax - origin) / interval + 1e-9);
-  for (let multiple = getFirstKeptStep(firstMultiple, step.count, step.offset); multiple <= lastMultiple; multiple += step.count) {
+  for (let multiple = getFirstKeptStep(firstMultiple, step.every, step.offset); multiple <= lastMultiple; multiple += step.every) {
     add(origin + multiple * interval, origin + (multiple + 1) * interval);
   }
   return thresholds;

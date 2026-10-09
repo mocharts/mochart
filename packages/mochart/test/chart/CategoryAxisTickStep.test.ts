@@ -1,5 +1,5 @@
 /**
- * `tickStep`: which ticks an axis shows by rule. An ordinal axis keeps every count-th category from an
+ * `tickStep`: which ticks an axis shows by rule. An ordinal axis keeps one category in every `every` from an
  * offset, or with a period as the interval the first category of each calendar period, thinned to what fits, and the
  * categories between are minor ticks. A linear axis places its ticks on period boundaries or interval
  * multiples with minor ticks between them from minorInterval or minorSteps. minorTickLabel, minorTickMark and
@@ -80,14 +80,14 @@ const letterRows = letters.map((label, index) => ({ label, value: 1 + (index % 3
 const dateRows = (dates: string[]) => dates.map((label, index) => ({ label, value: 1 + (index % 3) }));
 
 describe('category axis tick step on an ordinal axis', () => {
-  it('shows every count-th category from the offset', () => {
-    const { container, chart } = renderChart({ type: 'string', scale: 'ordinal', tickStep: { count: 5, offset: 3 } }, letterRows);
+  it('shows one category in every `every` from the offset', () => {
+    const { container, chart } = renderChart({ type: 'string', scale: 'ordinal', tickStep: { every: 5, offset: 3 } }, letterRows);
     expect(getAxisLabels(container)).toEqual(['d', 'i', 'n']);
     chart.destroy();
   });
 
   it('adds the first category back with includeFirst', () => {
-    const { container, chart } = renderChart({ type: 'string', scale: 'ordinal', tickStep: { count: 5, offset: 3, includeFirst: true } }, letterRows);
+    const { container, chart } = renderChart({ type: 'string', scale: 'ordinal', tickStep: { every: 5, offset: 3, includeFirst: true } }, letterRows);
     expect(getAxisLabels(container)).toEqual(['a', 'd', 'i', 'n']);
     chart.destroy();
   });
@@ -100,12 +100,12 @@ describe('category axis tick step on an ordinal axis', () => {
     chart.destroy();
   });
 
-  it('skips the partial first week with an offset, and steps every second week with a count', () => {
+  it('skips the partial first week with an offset, and steps every second week with every 2', () => {
     const dates = weekdays('2026-06-03', 33);
     const skipped = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { interval: 'week', offset: 1 } }, dateRows(dates));
     expect(getAxisLabels(skipped.container)).toEqual(['Jun 08', 'Jun 15', 'Jun 22', 'Jun 29']);
     skipped.chart.destroy();
-    const fortnightly = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { interval: 'week', count: 2 } }, dateRows(dates));
+    const fortnightly = renderChart({ type: 'date', scale: 'ordinal', tickLabel: { format: '%b %d' }, tickStep: { interval: 'week', every: 2 } }, dateRows(dates));
     expect(getAxisLabels(fortnightly.container)).toEqual(['Jun 03', 'Jun 15', 'Jun 29']);
     fortnightly.chart.destroy();
   });
@@ -197,7 +197,7 @@ describe('category axis tick step minor labels', () => {
 
   it('formats a number axis\'s minor ticks with a number format', () => {
     const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((label) => ({ label, value: 1 + (label % 3) }));
-    const { container, chart } = renderChart({ type: 'number', scale: 'ordinal', minorTickLabel: { format: '.1f' }, tickStep: { count: 5 } }, rows);
+    const { container, chart } = renderChart({ type: 'number', scale: 'ordinal', minorTickLabel: { format: '.1f' }, tickStep: { every: 5 } }, rows);
     expect(getAxisLabels(container)).toEqual(['1', '2.0', '3.0', '4.0', '5.0', '6', '7.0', '8.0', '9.0', '10.0']);
     chart.destroy();
   });
@@ -272,7 +272,7 @@ describe('category axis tick step minor labels', () => {
     const { enhanceConfig } = mochart;
     const stringAxis = enhanceConfig({
       version: '1.0.0',
-      categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', minorTickLabel: { format: '%a' }, tickStep: { count: 2 } },
+      categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', minorTickLabel: { format: '%a' }, tickStep: { every: 2 } },
       series: [{ property: 'value' }]
     });
     expect(stringAxis.validation.errors.join('\n')).toMatch(/minorTickLabel\.format/);
@@ -324,10 +324,10 @@ describe('tick step on linear axes', () => {
   // two categories make one slot, whose categoryCountPadding would inset the ticks by a quarter of the plot on each side
   const noPadding = { categoryCountPadding: 0 };
 
-  it('places ticks on the multiples of an interval, keeps every count-th, and splits each interval into minor steps', () => {
-    const { container, chart } = renderChart({ type: 'number', scale: 'linear', min: 0, max: 40, minorTickLabel: { format: 'auto' }, tickStep: { interval: 10, count: 2, minorSteps: 5 } }, numberRows);
+  it('places ticks on the multiples of an interval, keeps one in every `every`, and splits each interval into minor steps', () => {
+    const { container, chart } = renderChart({ type: 'number', scale: 'linear', min: 0, max: 40, minorTickLabel: { format: 'auto' }, tickStep: { interval: 10, every: 2, minorSteps: 5 } }, numberRows);
     expect(getKindLabels(container, categoryTickLabels, false)).toEqual(['0', '20', '40']);
-    // the steps count skips get a minor tick only where an even step falls: 10 and 30 are minor, 20 is not
+    // the steps every skips get a minor tick only where an even step falls: 10 and 30 are minor, 20 is not
     expect(getKindLabels(container, categoryTickLabels, true)).toEqual(['2', '4', '6', '8', '10', '12', '14', '16', '18', '22', '24', '26', '28', '30', '32', '34', '36', '38']);
     chart.destroy();
   });
@@ -339,9 +339,9 @@ describe('tick step on linear axes', () => {
     chart.destroy();
   });
 
-  // Regression: the loop visited every multiple of the interval, so a tiny interval with a large count walked tens of millions of steps
-  it('walks only the multiples count keeps, so a tiny interval with a large count costs no more than the ticks drawn', () => {
-    const { container, chart } = renderChart({ type: 'string', scale: 'ordinal' }, letterRows, 1200, { min: 0, max: 90, tickStep: { interval: 1e-6, count: 1e7 } }, 800);
+  // Regression: the loop visited every multiple of the interval, so a tiny interval with a large every walked tens of millions of steps
+  it('walks only the multiples every keeps, so a tiny interval with a large every costs no more than the ticks drawn', () => {
+    const { container, chart } = renderChart({ type: 'string', scale: 'ordinal' }, letterRows, 1200, { min: 0, max: 90, tickStep: { interval: 1e-6, every: 1e7 } }, 800);
     expect(getKindLabels(container, valueTickLabels, false)).toEqual(['0', '10', '20', '30', '40', '50', '60', '70', '80', '90']);
     chart.destroy();
   });
@@ -411,33 +411,33 @@ describe('category axis tick step on a linear date axis', () => {
     chart.destroy();
   });
 
-  it('places hour ticks on the hour boundaries, every count-th from a fixed origin', () => {
+  it('places hour ticks on the hour boundaries, one in every `every` from a fixed origin', () => {
     const rows = dateRows(['2026-06-01T00:30:00Z', '2026-06-01T05:30:00Z']);
     const hourly = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, tickStep: { interval: 'hour' } }, rows);
     expect(getAxisLabels(hourly.container)).toEqual(['01:00', '02:00', '03:00', '04:00', '05:00']);
     hourly.chart.destroy();
     // the even hours since the epoch, whatever the domain starts at
-    const everyOther = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, tickStep: { interval: 'hour', count: 2 } }, rows);
+    const everyOther = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, tickStep: { interval: 'hour', every: 2 } }, rows);
     expect(getAxisLabels(everyOther.container)).toEqual(['02:00', '04:00']);
     everyOther.chart.destroy();
   });
 
   it('places minute minor ticks inside hour ticks', () => {
     const rows = dateRows(['2026-06-01T00:00:00Z', '2026-06-01T02:00:00Z']);
-    const { container, chart } = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, minorTickLabel: { format: '%M' }, tickStep: { interval: 'hour', minorInterval: 'minute', count: 1 } }, rows, 3600);
+    const { container, chart } = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%H:%M' }, minorTickLabel: { format: '%M' }, tickStep: { interval: 'hour', minorInterval: 'minute', every: 1 } }, rows, 3600);
     expect(getKindLabels(container, categoryTickLabels, false)).toEqual(['00:00', '01:00', '02:00']);
     expect(container.querySelectorAll(categoryTickMarks + minorMark).length).toBe(118);
     chart.destroy();
   });
 
-  it('places number interval ticks at the millisecond multiples from the epoch, kept by count and offset', () => {
+  it('places number interval ticks at the millisecond multiples from the epoch, kept by every and offset', () => {
     const rows = dateRows(['2026-06-01T00:00:00Z', '2026-06-03T00:00:00Z']);
     const twelveHours = 12 * 60 * 60 * 1000;
     const every = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%d %H:%M' }, tickStep: { interval: twelveHours } }, rows);
     expect(getAxisLabels(every.container)).toEqual(['01 00:00', '01 12:00', '02 00:00', '02 12:00', '03 00:00']);
     every.chart.destroy();
     // midnight UTC is an even multiple of 12 hours since the epoch, so offset 1 keeps the noons
-    const noons = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%d %H:%M' }, tickStep: { interval: twelveHours, count: 2, offset: 1 } }, rows);
+    const noons = renderChart({ type: 'date', scale: 'linear', tickLabel: { format: '%d %H:%M' }, tickStep: { interval: twelveHours, every: 2, offset: 1 } }, rows);
     expect(getAxisLabels(noons.container)).toEqual(['01 12:00', '02 12:00']);
     noons.chart.destroy();
   });
@@ -459,9 +459,9 @@ describe('category axis tick step on a linear date axis', () => {
   it('places number minorInterval minor ticks between number interval ticks, dropping those on a kept tick', () => {
     const rows = dateRows(['2026-06-01T00:00:00Z', '2026-06-02T00:00:00Z']);
     const hour = 60 * 60 * 1000;
-    const { container, chart } = renderChart({ type: 'date', scale: 'linear', min: rows[0]!.label, max: rows[1]!.label, tickLabel: { format: '%H:%M' }, minorTickLabel: { format: '%H' }, tickStep: { interval: 6 * hour, count: 2, minorInterval: 2 * hour } }, rows);
+    const { container, chart } = renderChart({ type: 'date', scale: 'linear', min: rows[0]!.label, max: rows[1]!.label, tickLabel: { format: '%H:%M' }, minorTickLabel: { format: '%H' }, tickStep: { interval: 6 * hour, every: 2, minorInterval: 2 * hour } }, rows);
     expect(getKindLabels(container, categoryTickLabels, false)).toEqual(['00:00', '12:00', '00:00']);
-    // 13 two-hour multiples less the 3 kept ticks; the 06:00 and 18:00 multiples count skips stay minor ticks
+    // 13 two-hour multiples less the 3 kept ticks; the 06:00 and 18:00 multiples every skips stay minor ticks
     expect(container.querySelectorAll(categoryTickMarks + minorMark).length).toBe(10);
     chart.destroy();
   });
@@ -484,33 +484,40 @@ describe('category axis tick step on a linear date axis', () => {
 });
 
 describe('category axis tick step validation', () => {
-  it('rejects includeFirst on a linear axis, a count or offset there without an interval, and a period interval on a non-date axis', () => {
+  it('rejects includeFirst on a linear axis, an every or offset there without an interval, an offset with every 1, every "auto", and a period interval on a non-date axis', () => {
     const { enhanceConfig } = mochart;
     const linear = enhanceConfig({
       version: '1.0.0',
-      categoryAxis: { property: 'label', type: 'number', scale: 'linear', tickStep: { count: 2, offset: 1, includeFirst: true }, thresholdStep: { count: 2, offset: 1 } },
+      categoryAxis: { property: 'label', type: 'number', scale: 'linear', tickStep: { every: 2, offset: 1, includeFirst: true }, thresholdStep: { every: 2, offset: 1 } },
       series: [{ property: 'value' }]
     });
     expect(linear.validation.errors.filter((error) => error.includes('tickStep'))).toHaveLength(3);
     expect(linear.validation.errors.filter((error) => error.includes('thresholdStep'))).toHaveLength(2);
-    expect(linear.validation.errors.join('\n')).toMatch(/tickStep\.count - should be left at its default on a linear axis unless interval is set/);
+    expect(linear.validation.errors.join('\n')).toMatch(/tickStep\.every - should be left at its default on a linear axis unless interval is set/);
     const placed = enhanceConfig({
       version: '1.0.0',
-      categoryAxis: { property: 'label', type: 'number', scale: 'linear', tickStep: { interval: 10, count: 2, offset: 1 }, thresholdStep: { interval: 10, count: 2, offset: 1 } },
+      categoryAxis: { property: 'label', type: 'number', scale: 'linear', tickStep: { interval: 10, every: 2, offset: 1 }, thresholdStep: { interval: 10, every: 2, offset: 1 } },
       series: [{ property: 'value' }]
     });
     expect(placed.validation.errors).toEqual([]);
-    // with every step kept there is nothing for a linear offset to shift; a thresholdStep counts from 1 so its offset always has a phase
+    // with every step kept there is nothing for a linear offset to shift
     const unshiftable = enhanceConfig({
       version: '1.0.0',
       categoryAxis: { property: 'label', type: 'number', scale: 'linear', tickStep: { interval: 10, offset: 1 }, thresholdStep: { interval: 10, offset: 1 } },
-      valueAxes: [{ tickStep: { interval: 10, count: 'auto', offset: 1 } }],
+      valueAxes: [{ tickStep: { interval: 10, every: 1, offset: 1 } }],
       series: [{ property: 'value' }]
     });
     expect(unshiftable.validation.errors).toEqual([
-      'categoryAxis - tickStep.offset - should be 0 on a linear axis unless count is a number, since every step is kept and there is nothing to shift',
-      'valueAxes[0] - tickStep.offset - should be 0 on a linear axis unless count is a number, since every step is kept and there is nothing to shift'
+      'categoryAxis - tickStep.offset - should be 0 on a linear axis unless every is above 1, since all steps are kept and there is nothing to shift',
+      'categoryAxis - thresholdStep.offset - should be 0 on a linear axis unless every is above 1, since all steps are kept and there is nothing to shift',
+      'valueAxes[0] - tickStep.offset - should be 0 on a linear axis unless every is above 1, since all steps are kept and there is nothing to shift'
     ]);
+    const autoEvery = enhanceConfig({
+      version: '1.0.0',
+      categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { every: 'auto' as never } },
+      series: [{ property: 'value' }]
+    });
+    expect(autoEvery.validation.errors.join('\n')).toMatch(/tickStep\.every/);
     const stringUnit = enhanceConfig({
       version: '1.0.0',
       categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { interval: 'week' } },

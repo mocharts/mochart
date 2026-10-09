@@ -1,5 +1,5 @@
 // thresholdStep: threshold lines or ranges repeated by rule, from ordinal categories, date periods or
-// value intervals, stepped by count and offset, clipped to the plot, and kept minSpacing apart
+// value intervals, stepped by every and offset, clipped to the plot, and kept minSpacing apart
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { installSvgMeasurementShims } from './svgShims';
 import { mountContainer, trackHandle, lastHandle, mockBoundingClientRect } from './helpers';
@@ -60,7 +60,7 @@ const stepStyle = { normal: { strokeOpacity: 0, fillOpacity: 0.1 } };
 
 /** A resolved thresholdStep with the given members over the defaults, for the expansion function alone. */
 function step(overrides: Partial<CategoryAxisThresholdStepConfig>): CategoryAxisThresholdStepConfig {
-  return { visible: false, interval: null, count: 1, offset: 0, minSpacing: 2, range: true, front: false, style: getThresholdEntryDefaults().style as CategoryAxisThresholdStepConfig['style'], pattern: null, gradient: null, ...overrides };
+  return { visible: false, interval: null, every: 1, offset: 0, minSpacing: 2, range: true, front: false, style: getThresholdEntryDefaults().style as CategoryAxisThresholdStepConfig['style'], pattern: null, gradient: null, ...overrides };
 }
 
 beforeAll(() => {
@@ -69,8 +69,8 @@ beforeAll(() => {
 });
 
 describe('threshold steps on an ordinal axis', () => {
-  it('stripes alternate categories with count 2, each band one slot wide, tiling from the plot edge', () => {
-    const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', thresholdStep: { visible: true, count: 2, style: stepStyle } } }, letters);
+  it('stripes alternate categories with every 2, each band one slot wide, tiling from the plot edge', () => {
+    const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', thresholdStep: { visible: true, every: 2, style: stepStyle } } }, letters);
     const bands = rects(container);
     expect(bands).toHaveLength(4);
     const slot = bands[1]!.x - bands[0]!.x;
@@ -84,7 +84,7 @@ describe('threshold steps on an ordinal axis', () => {
   it('places the stepped ranges by category key on an axis with a keyProperty', () => {
     // the keys differ from the values, so a stepped threshold naming the display value would find no category
     const keyed = letters.map((row, index) => ({ ...row, k: 'k' + index }));
-    const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', keyProperty: 'k', thresholdStep: { visible: true, count: 2, style: stepStyle } } }, keyed);
+    const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', keyProperty: 'k', thresholdStep: { visible: true, every: 2, style: stepStyle } } }, keyed);
     const bands = rects(container);
     expect(bands).toHaveLength(4);
     const slot = bands[1]!.x - bands[0]!.x;
@@ -94,7 +94,7 @@ describe('threshold steps on an ordinal axis', () => {
   });
 
   it('draws lines instead with range false, honouring the offset', () => {
-    const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', thresholdStep: { visible: true, count: 3, offset: 1, range: false } } }, letters);
+    const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', thresholdStep: { visible: true, every: 3, offset: 1, range: false } } }, letters);
     expect(rects(container)).toHaveLength(0);
     expect(lineCount(container)).toBe(3);
   });
@@ -102,21 +102,21 @@ describe('threshold steps on an ordinal axis', () => {
   it('bands every other week on a date axis, each band running to the last trading day of its week', () => {
     // Wednesday June 3 start, Monday June 15 a holiday: the third week starts on the Tuesday
     const rows = weekdays('2026-06-03', 26, ['2026-06-15']);
-    const stepped = getSteppedThresholds({ scale: 'ordinal', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, interval: 'week', count: 2 }) }, [null, null], rows.map((row) => new Date(row.day)));
+    const stepped = getSteppedThresholds({ scale: 'ordinal', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, interval: 'week', every: 2 }) }, [null, null], rows.map((row) => new Date(row.day)));
     expect(stepped.map((threshold) => [new Date(threshold.value).toISOString().slice(0, 10), new Date(threshold.rangeValue!).toISOString().slice(0, 10)]))
       .toEqual([['2026-06-03', '2026-06-05'], ['2026-06-16', '2026-06-19']]);
-    const container = mount({ categoryAxis: { property: 'day', type: 'date', scale: 'ordinal', thresholdStep: { visible: true, interval: 'week', count: 2, style: stepStyle } } }, rows);
+    const container = mount({ categoryAxis: { property: 'day', type: 'date', scale: 'ordinal', thresholdStep: { visible: true, interval: 'week', every: 2, style: stepStyle } } }, rows);
     expect(rects(container)).toHaveLength(2);
   });
 
   it('starts one step per period however the categories are ordered', () => {
     // two weeks interleaved: the second category of each week is no new period
     const dates = ['2026-06-03', '2026-06-10', '2026-06-04', '2026-06-11'].map((day) => new Date(day));
-    expect(getStepCandidates({ interval: 'week', count: 1, offset: 0 }, dates, 'date', true)).toEqual({ candidates: [0, 1], selected: [0, 1] });
+    expect(getStepCandidates({ interval: 'week', every: 1, offset: 0 }, dates, 'date', true)).toEqual({ candidates: [0, 1], selected: [0, 1] });
   });
 
   it('draws nothing while not visible', () => {
-    const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', thresholdStep: { count: 2 } } }, letters);
+    const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', thresholdStep: { every: 2 } } }, letters);
     expect(rects(container)).toHaveLength(0);
   });
 });
@@ -124,29 +124,29 @@ describe('threshold steps on an ordinal axis', () => {
 describe('threshold steps on linear scales', () => {
   it('bands alternate weeks between period boundaries on a linear date axis, the same weeks whatever the domain', () => {
     const rows = [{ day: '2026-06-03', value: 1 }, { day: '2026-06-10', value: 2 }, { day: '2026-06-24', value: 3 }];
-    const weeks = (domain: [Date, Date]) => getSteppedThresholds({ scale: 'linear', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, interval: 'week', count: 2 }) }, domain, null)
+    const weeks = (domain: [Date, Date]) => getSteppedThresholds({ scale: 'linear', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, interval: 'week', every: 2 }) }, domain, null)
       .map((threshold) => [new Date(threshold.value).toISOString().slice(0, 10), new Date(threshold.rangeValue!).toISOString().slice(0, 10)]);
     // the weeks are numbered from a fixed Monday, so the week of June 8 2026 is the even one; the week under way at the domain start still counts
     expect(weeks([new Date('2026-06-03'), new Date('2026-06-24')])).toEqual([['2026-06-08', '2026-06-15'], ['2026-06-22', '2026-06-29']]);
     expect(weeks([new Date('2026-06-10'), new Date('2026-06-24')])).toEqual([['2026-06-08', '2026-06-15'], ['2026-06-22', '2026-06-29']]);
-    const container = mount({ categoryAxis: { property: 'day', type: 'date', scale: 'linear', thresholdStep: { visible: true, interval: 'week', count: 2, style: stepStyle } } }, rows);
+    const container = mount({ categoryAxis: { property: 'day', type: 'date', scale: 'linear', thresholdStep: { visible: true, interval: 'week', every: 2, style: stepStyle } } }, rows);
     expect(rects(container)).toHaveLength(2);
   });
 
   it('ranges every other 90 minutes from the epoch on a linear date axis with a number interval', () => {
-    const ranges = (domain: [string, string], offset = 0) => getSteppedThresholds({ scale: 'linear', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, interval: 90 * 60 * 1000, count: 2, offset }) }, [new Date(domain[0]), new Date(domain[1])], null)
+    const ranges = (domain: [string, string], offset = 0) => getSteppedThresholds({ scale: 'linear', type: 'date', dateUTC: true, thresholdStep: step({ visible: true, interval: 90 * 60 * 1000, every: 2, offset }) }, [new Date(domain[0]), new Date(domain[1])], null)
       .map((threshold) => [new Date(threshold.value).toISOString().slice(11, 16), new Date(threshold.rangeValue!).toISOString().slice(11, 16)]);
     // a day holds 16 multiples of 90 minutes, so midnight UTC is an even one; the range under way at the domain start counts
     expect(ranges(['2026-06-01T00:00:00Z', '2026-06-01T06:00:00Z'])).toEqual([['00:00', '01:30'], ['03:00', '04:30']]);
     expect(ranges(['2026-06-01T01:00:00Z', '2026-06-01T06:00:00Z'])).toEqual([['00:00', '01:30'], ['03:00', '04:30']]);
     expect(ranges(['2026-06-01T00:00:00Z', '2026-06-01T06:00:00Z'], 1)).toEqual([['01:30', '03:00'], ['04:30', '06:00']]);
     const rows = [{ day: '2026-06-01T00:00:00Z', value: 1 }, { day: '2026-06-01T06:00:00Z', value: 2 }];
-    const container = mount({ categoryAxis: { property: 'day', type: 'date', scale: 'linear', thresholdStep: { visible: true, interval: 90 * 60 * 1000, count: 2, style: stepStyle } } }, rows);
+    const container = mount({ categoryAxis: { property: 'day', type: 'date', scale: 'linear', thresholdStep: { visible: true, interval: 90 * 60 * 1000, every: 2, style: stepStyle } } }, rows);
     expect(rects(container)).toHaveLength(2);
   });
 
   it('keeps the same multiples of the interval whatever the domain, with the offset shifting them', () => {
-    const multiples = (domain: [number, number], offset = 0) => getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 10, count: 2, offset }) }, domain, null)
+    const multiples = (domain: [number, number], offset = 0) => getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 10, every: 2, offset }) }, domain, null)
       .map((threshold) => [threshold.value, threshold.rangeValue]);
     expect(multiples([0, 50])).toEqual([[0, 10], [20, 30], [40, 50]]);
     expect(multiples([15, 50])).toEqual([[20, 30], [40, 50]]);
@@ -154,10 +154,10 @@ describe('threshold steps on linear scales', () => {
     expect(multiples([15, 50], 1)).toEqual([[10, 20], [30, 40]]);
   });
 
-  // Regression: the loop visited every multiple of the interval and tested each against count, so a tiny interval
-  // with a large count passed the spacing guard (the kept thresholds are far apart) yet walked tens of millions of steps
-  it('walks only the multiples count keeps, so a tiny interval with a large count costs no more than the thresholds drawn', () => {
-    const values = getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1e-7, count: 1e7, offset: 3, range: false }) }, [0, 100], null, null, 800)
+  // Regression: the loop visited every multiple of the interval and tested each against every, so a tiny interval
+  // with a large every passed the spacing guard (the kept thresholds are far apart) yet walked tens of millions of steps
+  it('walks only the multiples every keeps, so a tiny interval with a large every costs no more than the thresholds drawn', () => {
+    const values = getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1e-7, every: 1e7, offset: 3, range: false }) }, [0, 100], null, null, 800)
       .map((threshold) => threshold.value);
     expect(values).toHaveLength(100);
     expect(values.slice(0, 3).map((value) => Number(Number(value).toFixed(7)))).toEqual([0.0000003, 1.0000003, 2.0000003]);
@@ -166,7 +166,7 @@ describe('threshold steps on linear scales', () => {
   it('bands multiples of the interval on a value axis and follows a domain that lets a band be clipped', () => {
     const rows = [{ label: 'a', value: 5 }, { label: 'b', value: 33 }];
     const container = mount({ categoryAxis: { property: 'label', type: 'string', scale: 'ordinal' },
-      valueAxes: [{ min: 0, max: 35, thresholdStep: { visible: true, interval: 10, count: 2, style: stepStyle } }] }, rows);
+      valueAxes: [{ min: 0, max: 35, thresholdStep: { visible: true, interval: 10, every: 2, style: stepStyle } }] }, rows);
     const bands = rects(container, 'valueAxisThreshold');
     // 0 to 10 and 20 to 30 in full, then 40 to 50 lies outside: two bands, the lower one full height of a 10-unit span
     expect(bands).toHaveLength(2);
@@ -182,13 +182,13 @@ describe('threshold steps on linear scales', () => {
 
   it('draws nothing when the thresholds would be closer together than minSpacing, counted before any is built', () => {
     // 10000 steps of 1 along 800 pixels: 0.08 pixels apart
-    const flood = (minSpacing: number, axisLength: number, count = 1) => getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1, count, minSpacing }) }, [0, 10000], null, null, axisLength);
+    const flood = (minSpacing: number, axisLength: number, every = 1) => getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1, every, minSpacing }) }, [0, 10000], null, null, axisLength);
     expect(flood(2, 800)).toHaveLength(0);
     // 800 pixels for 100 steps is 8 pixels apart: at the default it draws, at a larger minSpacing it does not
     expect(getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1 }) }, [0, 100], null, null, 800)).toHaveLength(100);
     expect(getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1, minSpacing: 10 }) }, [0, 100], null, null, 800)).toHaveLength(0);
-    // the spacing is between the thresholds that are drawn, so count 2 doubles it
-    expect(getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1, count: 2, minSpacing: 10 }) }, [0, 100], null, null, 800)).toHaveLength(50);
+    // the spacing is between the thresholds that are drawn, so every 2 doubles it
+    expect(getSteppedThresholds({ scale: 'linear', type: 'number', thresholdStep: step({ visible: true, interval: 1, every: 2, minSpacing: 10 }) }, [0, 100], null, null, 800)).toHaveLength(50);
   });
 
   it('counts the periods of a date rule the same way', () => {

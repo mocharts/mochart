@@ -24,7 +24,7 @@ function renderChart(tickLabel: Record<string, unknown>, minorTickLabel: Record<
   const mochartConfig = enhanceConfig({
     version: '1.0.0',
     animation: { enabled: false },
-    categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { count: 3 }, tickLabel, minorTickLabel },
+    categoryAxis: { property: 'label', type: 'string', scale: 'ordinal', tickStep: { every: 3 }, tickLabel, minorTickLabel },
     valueAxes: [{ id: 'va', min: 0, max: 3, visible: false }],
     series: [{ axis: 'va', property: 'value', renderer: 'bar' }]
   });
@@ -81,7 +81,7 @@ describe('category axis tick label clips', () => {
     const { createChart, enhanceConfig, ArrayOfObjectsDataProvider } = mochart;
     for (const categoryAxis of [
       { ticks: [{ value: 'c1', minor: true }] },
-      { tickStep: { count: 2, offset: 1 }, minorTickLabel: { visible: true } },
+      { tickStep: { every: 2, offset: 1 }, minorTickLabel: { visible: true } },
       { ticks: [{ value: 'c0' }, { value: 'c2', label: 'C!' }] }
     ]) {
       const mochartConfig = enhanceConfig({
