@@ -220,7 +220,8 @@ export class FocusController {
         this.focusedValueAxisId = valueAxisId ?? this.pinnedValueAxisId;
       }
     }
-    if (seriesId !== undefined) {
+    // a filtered series is not drawn, so hover and clicks neither focus nor pin it
+    if (seriesId !== undefined && (seriesId === null || this.filteredSeriesIds[seriesId] !== true)) {
       if (pin) {
         this.pinnedSeriesId = seriesId === this.pinnedSeriesId ? null : seriesId;
         this.focusedSeriesId = this.pinnedSeriesId;

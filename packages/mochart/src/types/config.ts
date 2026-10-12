@@ -1470,8 +1470,8 @@ export interface LegendConfig {
    * another item moves the pin there. Enter and Space on a keyboard-focused
    * item do the same. Hover focus and pinned focus work together, so a chart
    * can preview on hover for mouse users and pin on tap for touch users.
-   * Combine with `filterOnClick` deliberately: with both enabled a click
-   * filters and pins.
+   * With `filterOnClick` also enabled, a click that filters the series out
+   * of the chart pins nothing, and a click that brings it back pins it.
    *
    * @default false
    */

@@ -682,17 +682,24 @@ describe('tooltip', () => {
     mouse(root, 'mouseenter', 100, 100);
     mouse(root, 'click', 100, 100);
 
-    const line = container.querySelector(getCssSelector('tooltip') + ' ' + getCssClassMatchSelector(getIdCssClass('tooltipSeriesLine', 'S0')))!;
-    line.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(focuses[focuses.length - 1].focusedSeriesId).toBe('S0');
+    const clickLine = () => container.querySelector(getCssSelector('tooltip') + ' ' +
+      getCssClassMatchSelector(getIdCssClass('tooltipSeriesLine', 'S0')))!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    const lastSeriesId = () => focuses.at(-1)?.focusedSeriesId ?? null;
+
+    // a click that filters the series out pins nothing
+    clickLine();
     expect(filters[filters.length - 1].filteredSeriesIds).toEqual({ S0: true });
+    expect(lastSeriesId()).toBeNull();
     // stopPropagation keeps the tooltip open despite closeOnClick
     expect(container.querySelector(getCssSelector('tooltip'))).not.toBeNull();
 
-    // clicking the focused series again clears the focus
-    const lineAgain = container.querySelector(getCssSelector('tooltip') + ' ' + getCssClassMatchSelector(getIdCssClass('tooltipSeriesLine', 'S0')))!;
-    lineAgain.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    expect(focuses[focuses.length - 1].focusedSeriesId).toBeNull();
+    // a click that restores it pins it, and the next click filters it out and clears the focus
+    clickLine();
+    expect(filters[filters.length - 1].filteredSeriesIds).toEqual({});
+    expect(lastSeriesId()).toBe('S0');
+    clickLine();
+    expect(filters[filters.length - 1].filteredSeriesIds).toEqual({ S0: true });
+    expect(lastSeriesId()).toBeNull();
   });
 
   it('focuses series on tooltip line hover when configured', () => {
@@ -1313,7 +1320,7 @@ describe('focus pinning', () => {
   it('keeps a clicked legend series focused after the pointer leaves, until a second click releases it', () => {
     const focuses: ChartFocus[] = [];
     const container = mountChart(makeConfig({
-      legend: { focusOnClick: true },
+      legend: { focusOnClick: true, filterOnClick: false },
       series: [{ property: 'sales' }, { property: 'costs' }]
     }), { onFocus: focus => { focuses.push(focus); } });
     const last = () => focuses[focuses.length - 1].focusedSeriesId;
@@ -1341,7 +1348,7 @@ describe('focus pinning', () => {
   it('moves the pin to another clicked series', () => {
     const focuses: ChartFocus[] = [];
     const container = mountChart(makeConfig({
-      legend: { focusOnClick: true },
+      legend: { focusOnClick: true, filterOnClick: false },
       series: [{ property: 'sales' }, { property: 'costs' }]
     }), { onFocus: focus => { focuses.push(focus); } });
     pointer(itemFor(container, 'S0'), 'click');
@@ -1353,7 +1360,7 @@ describe('focus pinning', () => {
   it('releases a pinned series when the host controls the focus to something else', () => {
     const focuses: ChartFocus[] = [];
     const container = mountChart(makeConfig({
-      legend: { focusOnClick: true },
+      legend: { focusOnClick: true, filterOnClick: false },
       series: [{ property: 'sales' }, { property: 'costs' }]
     }), { onFocus: focus => { focuses.push(focus); } });
     pointer(itemFor(container, 'S0'), 'click');
@@ -1369,7 +1376,7 @@ describe('focus pinning', () => {
     const focuses: ChartFocus[] = [];
     const container = mountChart(makeConfig({
       animation: { enabled: true },
-      legend: { focusOnClick: true },
+      legend: { focusOnClick: true, filterOnClick: false },
       series: [{ property: 'sales' }, { property: 'costs' }]
     }), { onFocus: focus => { focuses.push(focus); } });
     const last = () => focuses[focuses.length - 1].focusedSeriesId;
@@ -1385,6 +1392,36 @@ describe('focus pinning', () => {
     pointer(itemFor(container, 'S0'), 'pointerleave');
     expect(last()).toBeNull();
   });
+
+  // Regression: with filterOnClick also on, the click filtered the series out and then pinned the hidden series
+  it('pins nothing when a legend click filters the series out, and pins it when a click restores it', () => {
+    const focuses: ChartFocus[] = [];
+    const filters: Array<{ filteredSeriesIds: Record<string, boolean> }> = [];
+    const container = mountChart(makeConfig({
+      legend: { focusOnClick: true, filterOnClick: true },
+      series: [{ property: 'sales' }, { property: 'costs' }]
+    }), {
+      onFocus: focus => { focuses.push(focus); },
+      onSeriesFilter: filter => { filters.push(filter); }
+    });
+    const last = () => focuses[focuses.length - 1].focusedSeriesId;
+
+    pointer(itemFor(container, 'S0'), 'pointerenter');
+    pointer(itemFor(container, 'S0'), 'click');
+    expect(filters[filters.length - 1].filteredSeriesIds).toEqual({ S0: true });
+    expect(last()).toBeNull();
+    // nothing is pinned: hovering another item and leaving returns to no focus
+    pointer(itemFor(container, 'S0'), 'pointerleave');
+    pointer(itemFor(container, 'S1'), 'pointerenter');
+    pointer(itemFor(container, 'S1'), 'pointerleave');
+    expect(last()).toBeNull();
+
+    pointer(itemFor(container, 'S0'), 'pointerenter');
+    pointer(itemFor(container, 'S0'), 'click');
+    expect(filters[filters.length - 1].filteredSeriesIds).toEqual({});
+    pointer(itemFor(container, 'S0'), 'pointerleave');
+    expect(last()).toBe('S0');
+  });
 });
 
 // Regression: legend focus-on-click cleared the focus whenever anything was
@@ -1393,7 +1430,7 @@ describe('legend focus on click', () => {
   it('moves the focus to the clicked item and toggles the focused one', () => {
     const focuses: ChartFocus[] = [];
     const container = mountChart(makeConfig({
-      legend: { focusOnClick: true },
+      legend: { focusOnClick: true, filterOnClick: false },
       series: [{ property: 'sales' }, { property: 'costs' }]
     }), { onFocus: focus => { focuses.push(focus); } });
 
