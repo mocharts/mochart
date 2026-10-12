@@ -81,7 +81,8 @@ export class FocusController {
 
   /**
    * Reconcile focus/filter state with a config or provider change: structural resets everything, a
-   * data change remaps the focused category by value (dropped when gone). `renderedCategoryValues` is the last committed ordering, because the old
+   * data change remaps the focused category by value (dropped when gone), and host filters that newly
+   * hide the focused or pinned series drop that focus or pin. `renderedCategoryValues` is the last committed ordering, because the old
    * provider can't be re-read after an in-place refresh(). A controlled value the host changed in
    * this same update supersedes the remap/reset of its field and is not reported back (it came from
    * the host); one carried along unchanged gives way to the reset/remap, which is committed and
@@ -150,10 +151,22 @@ export class FocusController {
     if (hostChangedFilteredSeriesIds) {
       this.filterGeneration++;
     }
+    // a series the host's filters newly hide loses its focus and pin, as a filtering click clears them
+    let derivedSeriesId = derivedAll;
+    if (hostChangedFilteredSeriesIds && !hostChangedSeriesId) {
+      const newlyFiltered = (id: string | null) => id !== null && this.filteredSeriesIds[id] === true && oldFilteredSeriesIds[id] !== true;
+      if (newlyFiltered(this.focusedSeriesId)) {
+        this.focusedSeriesId = null;
+        derivedSeriesId = true;
+      }
+      if (newlyFiltered(this.pinnedSeriesId)) {
+        this.pinnedSeriesId = null;
+      }
+    }
     // report what this pass derived and the host did not supersede, by value
     const { focusedValueAxisId, focusedSeriesId, focusedCategoryIndex, filteredSeriesIds } = this;
     const focusChanged = (derivedAll && !hostChangedValueAxisId && focusedValueAxisId !== oldFocusedValueAxisId)
-      || (derivedAll && !hostChangedSeriesId && focusedSeriesId !== oldFocusedSeriesId)
+      || (derivedSeriesId && !hostChangedSeriesId && focusedSeriesId !== oldFocusedSeriesId)
       || (derivedCategoryIndex && !hostChangedCategoryIndex && focusedCategoryIndex !== oldFocusedCategoryIndex);
     const result: FocusReconcileResult = {};
     if (focusChanged) {

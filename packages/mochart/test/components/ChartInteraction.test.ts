@@ -1422,6 +1422,52 @@ describe('focus pinning', () => {
     pointer(itemFor(container, 'S0'), 'pointerleave');
     expect(last()).toBe('S0');
   });
+
+  // Regression: a host filtering the pinned series left the hidden series focused and pinned
+  it('clears the focus and pin of a pinned series the host filters out', () => {
+    const focuses: ChartFocus[] = [];
+    const container = mountChart(makeConfig({
+      legend: { focusOnClick: true, filterOnClick: false },
+      series: [{ property: 'sales' }, { property: 'costs' }]
+    }), { onFocus: focus => { focuses.push(focus); } });
+    const last = () => focuses[focuses.length - 1].focusedSeriesId;
+
+    pointer(itemFor(container, 'S0'), 'click');
+    expect(last()).toBe('S0');
+    lastHandle().update({ filteredSeriesIds: { S0: true } } as Partial<DefaultChartProps>);
+    expect(last()).toBeNull();
+    // the pin is gone: leaving another item returns to no focus
+    pointer(itemFor(container, 'S1'), 'pointerenter');
+    pointer(itemFor(container, 'S1'), 'pointerleave');
+    expect(last()).toBeNull();
+  });
+
+  it('clears the focus of a hovered series the host filters out', () => {
+    const focuses: ChartFocus[] = [];
+    const container = mountChart(makeConfig({
+      legend: { focusOnHover: true },
+      series: [{ property: 'sales' }, { property: 'costs' }]
+    }), { onFocus: focus => { focuses.push(focus); } });
+
+    pointer(itemFor(container, 'S0'), 'pointerenter');
+    expect(focuses[focuses.length - 1].focusedSeriesId).toBe('S0');
+    lastHandle().update({ filteredSeriesIds: { S0: true } } as Partial<DefaultChartProps>);
+    expect(focuses[focuses.length - 1].focusedSeriesId).toBeNull();
+  });
+
+  it('keeps a focus the host sets in the same update that filters the series out', () => {
+    const focuses: ChartFocus[] = [];
+    const container = mountChart(makeConfig({
+      tooltip: { followPointer: true },
+      series: [{ property: 'sales' }, { property: 'costs' }]
+    }), { onFocus: focus => { focuses.push(focus); } });
+
+    lastHandle().update({ filteredSeriesIds: { S0: true }, focusedSeriesId: 'S0' } as Partial<DefaultChartProps>);
+    expect(focuses).toEqual([]);
+    // a category hover reports the whole focus, so it shows the host's series focus stood
+    mouse(chartRoot(container), 'mouseenter', 100, 100);
+    expect(focuses[focuses.length - 1].focusedSeriesId).toBe('S0');
+  });
 });
 
 // Regression: legend focus-on-click cleared the focus whenever anything was
