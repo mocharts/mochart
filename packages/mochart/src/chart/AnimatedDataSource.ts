@@ -268,7 +268,8 @@ export class AnimatedDataSource implements ChartDataSource {
     this.tweenManager.afterUpdate(this.emit);
   }
 
-  remapFocus({ valueAxisId, seriesId, categoryIndex }: InternalFocus): InternalFocus {
+  remapFocus(focus: InternalFocus): InternalFocus {
+    let { categoryIndex } = focus;
     if (categoryIndex !== undefined) {
       categoryIndex = categoryIndex ?? -1;
       if (categoryIndex !== -1 && this.dataTweening && !this.valuesTweened) {
@@ -280,6 +281,6 @@ export class AnimatedDataSource implements ChartDataSource {
         }
       }
     }
-    return { valueAxisId, seriesId, categoryIndex };
+    return categoryIndex === focus.categoryIndex ? focus : { ...focus, categoryIndex };
   }
 }

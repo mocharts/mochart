@@ -1363,6 +1363,28 @@ describe('focus pinning', () => {
     // the pin is gone: leaving asks for no focus rather than S0
     expect(focuses[focuses.length - 1].focusedSeriesId).toBeNull();
   });
+
+  // Regression: the animated data source rebuilt the focus without its pin, so a click only previewed
+  it('pins a clicked legend series with animation on', () => {
+    const focuses: ChartFocus[] = [];
+    const container = mountChart(makeConfig({
+      animation: { enabled: true },
+      legend: { focusOnClick: true },
+      series: [{ property: 'sales' }, { property: 'costs' }]
+    }), { onFocus: focus => { focuses.push(focus); } });
+    const last = () => focuses[focuses.length - 1].focusedSeriesId;
+
+    pointer(itemFor(container, 'S0'), 'pointerenter');
+    pointer(itemFor(container, 'S0'), 'click');
+    pointer(itemFor(container, 'S0'), 'pointerleave');
+    expect(last()).toBe('S0');
+
+    pointer(itemFor(container, 'S0'), 'pointerenter');
+    pointer(itemFor(container, 'S0'), 'click');
+    expect(last()).toBeNull();
+    pointer(itemFor(container, 'S0'), 'pointerleave');
+    expect(last()).toBeNull();
+  });
 });
 
 // Regression: legend focus-on-click cleared the focus whenever anything was
