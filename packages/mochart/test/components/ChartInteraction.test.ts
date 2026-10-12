@@ -684,7 +684,7 @@ describe('tooltip', () => {
 
     const clickLine = () => container.querySelector(getCssSelector('tooltip') + ' ' +
       getCssClassMatchSelector(getIdCssClass('tooltipSeriesLine', 'S0')))!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    const lastSeriesId = () => focuses.at(-1)?.focusedSeriesId ?? null;
+    const lastSeriesId = () => focuses[focuses.length - 1]?.focusedSeriesId ?? null;
 
     // a click that filters the series out pins nothing
     clickLine();
