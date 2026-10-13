@@ -3,7 +3,7 @@ import { createStyleValidators, lineMembers, styleMembers } from './styleStateVa
 
 import {
   AUTO, NONE, RENDERERS, CURVE_TYPES, CAP_TYPES, LABEL_POSITIONS, COLOR_INTERPOLATIONS, MARKER_SHAPES, MARKER_SIZE_SCALES,
-  COLOR_SERIES, STYLE_SAME, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, MISSING_VALUE_MODES, RENDERER_AREA, RENDERER_BAR,
+  COLOR_SERIES, STYLE_SAME, COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX, MISSING_VALUE_MODES, RENDERER_AREA, RENDERER_BAR, RENDERER_LINE,
   CURVE_TYPE_CARDINAL, CURVE_TYPE_CATMULL_ROM
 } from '../core/constants.js';
 import type { DeepPartial, SeriesConfig } from '../../types/config.js';
@@ -18,17 +18,16 @@ type PatternCondition = Pick<SeriesConfig, 'renderer' | 'gradient'>;
 type ShapeFillCondition = { shapeStyle?: DeepPartial<SeriesConfig['shapeStyle']> };
 type CurveCondition = { curve?: DeepPartial<SeriesConfig['curve']> };
 
-function seriesColor(allowSeries: boolean, allowSame: boolean): Validator {
+function seriesColor(allowSeries: boolean, allowSame: boolean, allowCategoryIndex = true): Validator {
   const keywords: string[] = [];
   if (allowSeries) keywords.push(COLOR_SERIES);
   if (allowSame) keywords.push(STYLE_SAME);
-  keywords.push(COLOR_SERIES_INDEX, COLOR_CATEGORY_INDEX);
+  keywords.push(COLOR_SERIES_INDEX);
+  if (allowCategoryIndex) keywords.push(COLOR_CATEGORY_INDEX);
   return validators.svgColor().orOneOf(keywords);
 }
 
-// shapeStyle defines the series colour itself, so it cannot reference it with 'series'
 const seriesStyle = createStyleValidators(allowSame => seriesColor(true, allowSame));
-const ownStyle = createStyleValidators(allowSame => seriesColor(false, allowSame));
 
 const stackSuffix = 'when stack is not ' + NONE;
 const stackNoneSuffix = 'when stack is ' + NONE;
@@ -69,6 +68,21 @@ const labelBaseSideValidators = () => validators.partialObjectWithShape({
   position: validators.oneOf([AUTO].concat(LABEL_POSITIONS))
 }, true);
 
+// textStyle depends on the chart type, so getValidators adds it
+const staticLabelMembers = {
+  format: validators.numberFormat().orOneOf([NONE, AUTO]),
+  prefix: validators.string().orEqual(NONE),
+  suffix: validators.string().orEqual(NONE),
+  font: validators.font(),
+  minPositionFraction: validators.numberMinMax(0, 1).orEqual(NONE),
+  maxPositionFraction: validators.numberMinMax(0, 1).orEqual(NONE),
+  minRangeFraction: validators.numberMinMax(0, 1).orEqual(NONE),
+  offset: validators.number(),
+  position: validators.oneOf(LABEL_POSITIONS),
+  aboveBase: labelBaseSideValidators(),
+  belowBase: labelBaseSideValidators()
+};
+
 // entry-independent members, built once: getValidators only adds the conditional members, which read the entry at construction
 const staticMembers = {
   id: validators.id(),
@@ -107,21 +121,6 @@ const staticMembers = {
   valueSuffix: validators.string().orEqual(NONE),
   useTitleForValueLabel: validators.boolean(),
   title: validators.string().orEqual(NONE),
-  shapeStyle: ownStyle.styleStates(styleMembers),
-  label: validators.partialObjectWithShape({
-    format: validators.numberFormat().orOneOf([NONE, AUTO]),
-    prefix: validators.string().orEqual(NONE),
-    suffix: validators.string().orEqual(NONE),
-    textStyle: seriesStyle.styleStates(styleMembers),
-    font: validators.font(),
-    minPositionFraction: validators.numberMinMax(0, 1).orEqual(NONE),
-    maxPositionFraction: validators.numberMinMax(0, 1).orEqual(NONE),
-    minRangeFraction: validators.numberMinMax(0, 1).orEqual(NONE),
-    offset: validators.number(),
-    position: validators.oneOf(LABEL_POSITIONS),
-    aboveBase: labelBaseSideValidators(),
-    belowBase: labelBaseSideValidators()
-  }, true),
   marker: validators.partialObjectWithShape({
     shape: validators.oneOf([NONE, ...MARKER_SHAPES]),
     minSize: validators.numberMin(0),
@@ -171,8 +170,25 @@ export default function getValidators(config: DeepPartial<SeriesConfig>, pieMode
     condition: (condition: PatternCondition) => supportsFill(condition) && condition.gradient === NONE,
     suffix: 'when chart type is pie or renderer is area or bar, and gradient is ' + NONE
   };
+  // a line, an area and a pie slice are one shape per series, so they have no category index to pick a color by
+  const drawsOneShape = ({ renderer }: RendererCondition) =>
+    pieMode || renderer === RENDERER_LINE || renderer === RENDERER_AREA;
+  const shapeStyle = createStyleValidators(allowSame => validators.conditional([
+    { condition: drawsOneShape, suffix: 'when chart type is pie or renderer is line or area', validator: seriesColor(false, allowSame, false) },
+    { condition: (condition: RendererCondition) => !drawsOneShape(condition), suffix: 'when chart type is xy and renderer is not line or area', validator: seriesColor(false, allowSame) }
+  ], config));
+  const labelTextStyle = createStyleValidators(allowSame => validators.conditional([
+    { condition: () => pieMode, suffix: 'when chart type is pie', validator: seriesColor(true, allowSame, false) },
+    { condition: () => !pieMode, suffix: 'when chart type is xy', validator: seriesColor(true, allowSame) }
+  ], config));
   return {
     ...staticMembers,
+    // shapeStyle defines the series color itself, so it cannot reference it with 'series'
+    shapeStyle: shapeStyle.styleStates(styleMembers),
+    label: validators.partialObjectWithShape({
+      ...staticLabelMembers,
+      textStyle: labelTextStyle.styleStates(styleMembers)
+    }, true),
     errorLowProperty: validators.conditional([
       { ...stackRule, validator: validators.equal(NONE) },
       { ...stackNoneRule, validator: validators.propertyOptional() },

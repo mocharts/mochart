@@ -205,7 +205,7 @@ describe('config validation', () => {
     expect(mochartConfig.validation).toEqual({
       valid: false,
       errors: [
-        'seriesDefaults - shapeStyle.normal.fillColor - should be a valid svg color (or "none" / "currentColor") or be one of [ "seriesIndex", "categoryIndex" ]: "#WWW"'
+        'seriesDefaults - shapeStyle.normal.fillColor - should be a valid svg color (or "none" / "currentColor") or be one of [ "seriesIndex" ] when chart type is pie or renderer is line or area: "#WWW"'
       ],
       warnings: []
     });
@@ -228,7 +228,7 @@ describe('config validation', () => {
     expect(mochartConfig.validation).toEqual({
       valid: false,
       errors: [
-        'seriesDefaults - shapeStyle.normal.fillColor - should be a valid svg color (or "none" / "currentColor") or be one of [ "seriesIndex", "categoryIndex" ]: "#WWW"'
+        'seriesDefaults - shapeStyle.normal.fillColor - should be a valid svg color (or "none" / "currentColor") or be one of [ "seriesIndex" ] when chart type is pie or renderer is line or area: "#WWW"'
       ],
       warnings: []
     });
@@ -251,8 +251,8 @@ describe('config validation', () => {
     expect(mochartConfig.validation).toEqual({
       valid: false,
       errors: [
-        'seriesDefaults - shapeStyle.normal.fillColor - should be a valid svg color (or "none" / "currentColor") or be one of [ "seriesIndex", "categoryIndex" ]: "#WWW"',
-        'series[0] - shapeStyle.normal.fillColor - should be a valid svg color (or "none" / "currentColor") or be one of [ "seriesIndex", "categoryIndex" ]: "#ZZZ"'
+        'seriesDefaults - shapeStyle.normal.fillColor - should be a valid svg color (or "none" / "currentColor") or be one of [ "seriesIndex" ] when chart type is pie or renderer is line or area: "#WWW"',
+        'series[0] - shapeStyle.normal.fillColor - should be a valid svg color (or "none" / "currentColor") or be one of [ "seriesIndex" ] when chart type is pie or renderer is line or area: "#ZZZ"'
       ],
       warnings: []
     });

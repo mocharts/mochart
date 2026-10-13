@@ -914,6 +914,33 @@ describe('style null semantics', () => {
   });
 });
 
+// a line, an area, a pie slice and a pie label are one shape per series, so categoryIndex drew them with no color
+describe('categoryIndex color validation', () => {
+  const errorsWith = (series: Record<string, unknown>, pie = false) =>
+    errorsFor({ version: V, ...(pie ? { chart: { type: 'pie' } } : {}), categoryAxis: { property: 'p' }, series: [{ property: 'v', ...series }] });
+
+  it('rejects categoryIndex in the shapeStyle of a line or area series', () => {
+    for (const renderer of ['line', 'area']) {
+      expect(errorsWith({ renderer, shapeStyle: { normal: { strokeColor: 'categoryIndex' } } }))
+        .toContainEqual(expect.stringContaining('shapeStyle.normal.strokeColor'));
+      expect(errorsWith({ renderer, shapeStyle: { focused: { fillColor: 'categoryIndex' } } }))
+        .toContainEqual(expect.stringContaining('shapeStyle.focused.fillColor'));
+    }
+  });
+
+  it('rejects categoryIndex in the shapeStyle and label textStyle of a pie series', () => {
+    expect(errorsWith({ shapeStyle: { normal: { fillColor: 'categoryIndex' } } }, true))
+      .toContainEqual(expect.stringContaining('shapeStyle.normal.fillColor'));
+    expect(errorsWith({ label: { textStyle: { normal: { fillColor: 'categoryIndex' } } } }, true))
+      .toContainEqual(expect.stringContaining('label.textStyle.normal.fillColor'));
+  });
+
+  it('accepts categoryIndex on a bar series and on xy series labels', () => {
+    expect(errorsWith({ renderer: 'bar', shapeStyle: { normal: { fillColor: 'categoryIndex', strokeColor: 'categoryIndex' } } })).toEqual([]);
+    expect(errorsWith({ renderer: 'line', label: { textStyle: { normal: { fillColor: 'categoryIndex' } } } })).toEqual([]);
+  });
+});
+
 // Regression: curve alone used the exact-shape validator, so { param } (type from the default) was
 // rejected and unknown members were hard errors instead of the single unknown-key warning.
 describe('series curve validation', () => {
