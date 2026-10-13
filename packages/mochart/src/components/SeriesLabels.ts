@@ -256,7 +256,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
             focusPercentage = getCategoryFocusPercentage(categoryFocusPercentages[skipI], seriesFocusPercentage);
             labelFillColor = getSeriesLabelFillColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, skipI);
             labelStrokeColor = getSeriesLabelStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, focusPercentage, null, skipI);
-            const { strokeWidth: labelStrokeWidth, strokeOpacity: labelStrokeOpacity, fillOpacity: labelFillOpacity } = getFocusStyle(focusPercentage, seriesConfig.label.textStyle);
+            const { strokeWidth: labelStrokeWidth, strokeDashArray: labelStrokeDashArray, strokeOpacity: labelStrokeOpacity, fillOpacity: labelFillOpacity } = getFocusStyle(focusPercentage, seriesConfig.label.textStyle);
             seriesPosition = getSeriesPosition(null, i)! + getOffset(aboveBase);
             const categoryPosition = isBar ? getOffsetCategoryPosition(null, i)! + categoryValueExtent / 2 : getCategoryPosition(null, i)!;
             x = inverted ? seriesPosition : categoryPosition;
@@ -264,7 +264,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
             const label = this.labelShapes.get(skipI);
             label.attrs = { className: label.className, transform: translate(x, y),
               textAnchor, dy, stroke: labelStrokeColor, fill: labelFillColor, fillOpacity: labelFillOpacity, strokeOpacity: labelStrokeOpacity,
-              strokeWidth: labelStrokeWidth, onPointerEnter: label.onPointerEnter, onPointerLeave: label.onPointerLeave, onClick: label.onClick,
+              strokeWidth: labelStrokeWidth, strokeDasharray: labelStrokeDashArray, onPointerEnter: label.onPointerEnter, onPointerLeave: label.onPointerLeave, onClick: label.onClick,
               style: labelFontStyle };
             label.text = String(valueFormat(labelValues[skipI]!));
             labels.push(label);

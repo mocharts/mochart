@@ -259,7 +259,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
     const minorClipPath = minorTruncation?.enabled === true && minorTickLabelClipPathUniqueId ? getClipPathReference(minorTickLabelClipPathUniqueId) : null;
 
     // destructured rather than spread whole: this attribute order is what the golden snapshots record
-    const { stroke, strokeOpacity, strokeWidth, fill, fillOpacity } = styleToAttributes(
+    const { stroke, strokeOpacity, strokeWidth, strokeDasharray, fill, fillOpacity } = styleToAttributes(
       getAxisFocusStyle(axisFocusPercentage, seriesFocusPercentage, useSeriesFocus, axisConfig.tickLabel.textStyle));
     const minorAttributes = styleToAttributes(getAxisFocusStyle(axisFocusPercentage, seriesFocusPercentage, useSeriesFocus, minorTickLabel.textStyle));
 
@@ -291,10 +291,10 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
           transform: translate(tickX + (minor ? minorTickTextX : tickTextX), tickY + (minor ? minorTickTextY : tickTextY)), clipPath: minor ? minorClipPath : clipPath });
         // an overlap-hidden label is not read, and a truncated one is read in full
         const fullLabel = this.tickLabelStrings[i];
-        const attributes = minor ? minorAttributes : { stroke, strokeOpacity, fill, fillOpacity, strokeWidth };
+        const attributes = minor ? minorAttributes : { stroke, strokeOpacity, fill, fillOpacity, strokeWidth, strokeDasharray };
         handle.text.set({ style: tick.hidden ? (minor ? hiddenMinorTickTextStyle : hiddenTickTextStyle) : (minor ? minorTickTextStyle : tickTextStyle), dy: tickTextDY,
           transform: minor ? minorTickRotationTransform : tickRotationTransform,
-          stroke: attributes.stroke, strokeOpacity: attributes.strokeOpacity, fill: attributes.fill, fillOpacity: attributes.fillOpacity, strokeWidth: attributes.strokeWidth,
+          stroke: attributes.stroke, strokeOpacity: attributes.strokeOpacity, fill: attributes.fill, fillOpacity: attributes.fillOpacity, strokeWidth: attributes.strokeWidth, strokeDasharray: attributes.strokeDasharray,
           ariaHidden: accessibility && tick.hidden ? 'true' : null,
           ariaLabel: accessibility && !tick.hidden && tickLabels[i] !== fullLabel ? fullLabel : null });
         handle.value.set(tickLabels[i]);

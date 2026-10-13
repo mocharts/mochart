@@ -80,7 +80,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
 
       const useSeriesFocus = axisConfig.useSeriesFocus ?? false;
       // destructured rather than spread whole: this attribute order is what the golden snapshots record
-      const { stroke, strokeOpacity, strokeWidth, fill, fillOpacity } = styleToAttributes(
+      const { stroke, strokeOpacity, strokeWidth, strokeDasharray, fill, fillOpacity } = styleToAttributes(
         getAxisFocusStyle(axisFocusPercentage, seriesFocusPercentage, useSeriesFocus, axisConfig.title.textStyle));
 
       this.setPresent(true);
@@ -90,7 +90,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
       this.background.set(Background, { config: axisConfig.title, classKey: 'axisTitleBackground', spacingRelative: false, spacingLayoutInfo: axisLayoutInfo.titleLayoutInfo });
       this.text.set({ transform: titleTextTransform, textAnchor: titleTextAnchor, dy: titleTextDY,
         stroke, strokeOpacity,
-        fill, fillOpacity, strokeWidth, style: resolveFontStyle(axisConfig.title.font, chartFont) });
+        fill, fillOpacity, strokeWidth, strokeDasharray, style: resolveFontStyle(axisConfig.title.font, chartFont) });
       this.textValue.set(title);
       this.tooltip.sync(this.text, axisConfig.title.truncation.tooltipEnabled, axisConfig.title.text!, title);
     }

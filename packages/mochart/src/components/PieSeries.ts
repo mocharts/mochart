@@ -206,7 +206,7 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
       const labelRadius = radialLayoutInfo.innerRadius + (radialLayoutInfo.outerRadius - radialLayoutInfo.innerRadius) * pieConfig.label.radiusFraction;
       const labelFillColor = getSeriesLabelFillColor(colorPaletteConfig, seriesConfig, seriesIndex, seriesFocusPercentage);
       const labelStrokeColor = getSeriesLabelStrokeColor(colorPaletteConfig, seriesConfig, seriesIndex, seriesFocusPercentage);
-      const { strokeWidth: labelStrokeWidth, strokeOpacity: labelStrokeOpacity, fillOpacity: labelFillOpacity } = getFocusStyle(seriesFocusPercentage, seriesConfig.label.textStyle);
+      const { strokeWidth: labelStrokeWidth, strokeDashArray: labelStrokeDashArray, strokeOpacity: labelStrokeOpacity, fillOpacity: labelFillOpacity } = getFocusStyle(seriesFocusPercentage, seriesConfig.label.textStyle);
 
       const labelEl = this.label.set('text', () => {
         const el = svgEl('text');
@@ -216,7 +216,7 @@ export default class PieSeries extends Renderer<PieSeriesProps, PieSeriesState> 
       labelEl!.set({ className: mochartCssClasses['seriesSliceLabel'],
         transform: translate(labelRadius * Math.sin(midAngle), -labelRadius * Math.cos(midAngle)),
         textAnchor: 'middle', dy: textDY,
-        stroke: labelStrokeColor, strokeWidth: labelStrokeWidth, strokeOpacity: labelStrokeOpacity,
+        stroke: labelStrokeColor, strokeWidth: labelStrokeWidth, strokeDasharray: labelStrokeDashArray, strokeOpacity: labelStrokeOpacity,
         fill: labelFillColor, fillOpacity: labelFillOpacity,
         style: resolveFontStyle(seriesConfig.label.font, this.props.chartFont) });
       this.labelText.set(getPieLabelText(pieConfig, labelFormats, seriesConfig, sliceAngles, labelFraction));

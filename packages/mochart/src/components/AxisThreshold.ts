@@ -112,6 +112,7 @@ export default class AxisThreshold extends Renderer<AxisThresholdProps> {
             strokeWidth: line.strokeWidth ?? null, strokeDashArray: line.strokeDasharray ?? null,
             fill: line.fill ?? null, fillOpacity: line.fillOpacity ?? null, fillReference,
             titleStroke: title.stroke ?? null, titleStrokeOpacity: title.strokeOpacity ?? null, titleStrokeWidth: title.strokeWidth ?? null,
+            titleStrokeDashArray: title.strokeDasharray ?? null,
             titleFill: title.fill ?? null, titleFillOpacity: title.fillOpacity ?? null,
             titleFontStyle: resolveFontStyle(threshold.title.font, chartFont) }
         });

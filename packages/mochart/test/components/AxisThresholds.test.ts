@@ -242,6 +242,7 @@ describe('threshold styling', () => {
     const text = container.querySelector(getCssSelector('axisThresholdTitle') + ' text')!;
     expect(text.getAttribute('fill')).toBe('#008000');
     expect(text.getAttribute('stroke')).toBe('#0000ff');
+    expect(text.getAttribute('stroke-dasharray')).toBe('1 1');
   });
 
   it('draws the title background from titleBackgroundStyle behind the title text', () => {
