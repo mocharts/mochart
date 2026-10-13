@@ -249,7 +249,7 @@ describe('degenerate hatches', () => {
   });
 
   it('paints nothing when the lines have no width', () => {
-    expect(shapeOf({ spacing: 6, lineWidth: 0 }).getAttribute('fill')).toBeNull();
+    expect(shapeOf({ spacing: 6, lineWidth: 0 }).getAttribute('fill')).toBe('none');
   });
 });
 

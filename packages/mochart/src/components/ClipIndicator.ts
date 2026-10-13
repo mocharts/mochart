@@ -113,7 +113,8 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
     }
     if (hatch.lineWidth <= 0) {
       this.pattern.node.remove();
-      return NONE;
+      // 'none' rather than null: a removed fill attribute paints svg's default black
+      return 'none';
     }
     this.root.append(this.pattern);
     this.pattern.set({ id: patternUniqueId, width: hatch.spacing, height: hatch.spacing,
