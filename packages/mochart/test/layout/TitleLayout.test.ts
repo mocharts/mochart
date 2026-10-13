@@ -238,4 +238,18 @@ describe('getTitleLayoutInfo vertical placement', () => {
     expect(titlePrefixLayoutInfo.height).toBe(42);
     expect(titlePrefixLayoutInfo.paddingBounds).toEqual({ x: 12, y: 2, width: 20, height: 10 });
   });
+
+  it('aligns the height an expansion leaves when margins differ', () => {
+    // a suffix margin of 4 top and bottom makes the title 8 taller than the tallest padding height, which expansion does not fill
+    const expanded = (verticalAlign: 'top' | 'middle' | 'bottom') =>
+      layout({ ...titled, verticalAlign, verticalExpand: true, suffix: { text: 'Z', margin: box(4, 0, 4, 0) } });
+    for (const [verticalAlign, y] of [['top', 0], ['middle', 4], ['bottom', 8]] as const) {
+      const { titlePrefixLayoutInfo, titleTextLayoutInfo, titleSuffixLayoutInfo } = expanded(verticalAlign);
+      expect(titlePrefixLayoutInfo.y).toBe(y);
+      expect(titlePrefixLayoutInfo.height).toBe(42);
+      expect(titleTextLayoutInfo.y).toBe(y);
+      expect(titleTextLayoutInfo.height).toBe(42);
+      expect(titleSuffixLayoutInfo.y).toBe(0);
+    }
+  });
 });

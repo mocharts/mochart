@@ -12,8 +12,8 @@ function createTitleLayoutInfo(x: number, y: number, width: number, height: numb
   let textY = 0;
   if (width > 0 && height < titleSpacingHeight) {
     const extraHeight = titleSpacingHeight - height;
-    if (expand > 0) {
-      const expansion = Math.min(extraHeight, expand);
+    const expansion = Math.min(extraHeight, expand);
+    if (expansion > 0) {
       height+= expansion;
       if (verticalAlign === VERTICAL_ALIGN_TOP) {
         padding = {...padding, bottom: padding.bottom + expansion};
@@ -26,8 +26,10 @@ function createTitleLayoutInfo(x: number, y: number, width: number, height: numb
         padding = { ...padding, top: padding.top + expansion };
       }
     }
-    else if (verticalAlign !== VERTICAL_ALIGN_TOP) {
-      textY = verticalAlign === VERTICAL_ALIGN_MIDDLE ? (extraHeight / 2.0) : extraHeight;
+    // expansion matches padding heights, so differing margins can leave height for the alignment
+    const remainingHeight = extraHeight - expansion;
+    if (verticalAlign !== VERTICAL_ALIGN_TOP) {
+      textY = verticalAlign === VERTICAL_ALIGN_MIDDLE ? (remainingHeight / 2.0) : remainingHeight;
     }
   }
   return createSpacingLayoutInfo({ x, y: y + textY, width, height}, margin, padding);
