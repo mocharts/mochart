@@ -371,5 +371,17 @@ describe('getSeriesText', () => {
       );
       expect(valueText).toBe('###');
     });
+
+    it('shows missingValueText for a filtered series with no value unless filtering adjusts values', () => {
+      const filteredMissing = (adjustForFiltering: boolean) => getSeriesText(
+        makeTooltipConfig({ adjustForFiltering, showMissingValues: true, filteredValueCharacter: '#' }),
+        makeSeriesConfig(),
+        identity,
+        makeSlice({}, { plain: null }, { s1: null }) as never,
+        true
+      ).valueText;
+      expect(filteredMissing(false)).toBe('N/A');
+      expect(filteredMissing(true)).toBe('###');
+    });
   });
 });

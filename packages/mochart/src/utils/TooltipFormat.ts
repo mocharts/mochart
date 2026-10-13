@@ -45,9 +45,10 @@ function getValueText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSeries
   const filterValueObject = filtered.values[seriesId];
   const hasFilterValue = filterValueObject[key] !== null;
 
+  const adjusted = adjustForFiltering && tooltipConfig.adjustForFiltering;
   let seriesValueText = null;
   if (seriesValueObject[key] !== undefined) {
-    if (adjustForFiltering && tooltipConfig.adjustForFiltering) {
+    if (adjusted) {
       if (hasFilterValue) {
         seriesValueText = String(valueFormat(filterValueObject[key]!));
       }
@@ -62,7 +63,7 @@ function getValueText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSeries
     }
   }
   else if (tooltipConfig.showMissingValues) {
-    if (hasFilterValue) {
+    if (hasFilterValue || !adjusted) {
       seriesValueText = tooltipConfig.missingValueText;
     }
     else {
