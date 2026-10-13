@@ -109,9 +109,9 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
 
         const { offset: labelOffset } = seriesConfig.label;
 
-        // a reversed value axis flips the pixel direction, so the offset and the label side flip with it
+        // a positive offset moves toward higher values: up when upright, right when inverted, the other way when reversed
         const { reversed } = valueAxisConfig;
-        const offsetSign = reversed ? -1 : 1;
+        const offsetSign = inverted !== reversed ? 1 : -1;
 
         let getOffset = (_aboveBase: boolean) => {
           return offsetSign * labelOffset;

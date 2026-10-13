@@ -162,9 +162,9 @@ describe('value axis reversed series labels', () => {
   it('flips the label offset with the pixel direction', () => {
     const plain = labels(mount({ valueAxes: [{ min: -5, max: 10, base: 0, reversed: true }], series: series({}) }, mixed));
     const offset = labels(mount({ valueAxes: [{ min: -5, max: 10, base: 0, reversed: true }], series: series({ label: { offset: 5 } }) }, mixed));
-    // a positive offset moves labels toward the base: upward for the positive bar once reversed
-    expect(offset[1].y - plain[1].y).toBe(-5);
-    expect(offset[0].y - plain[0].y).toBe(5);
+    // reversed, higher values are down: the positive bar's label moves down, the below-base one up (offset negated)
+    expect(offset[1].y - plain[1].y).toBe(5);
+    expect(offset[0].y - plain[0].y).toBe(-5);
   });
 });
 

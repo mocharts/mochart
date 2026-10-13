@@ -192,3 +192,47 @@ describe('series label fraction guards split at the axis base', () => {
       .toEqual(['−100', '−50', '−10', '0', '10', '50', '100']);
   });
 });
+
+describe('series label offset', () => {
+  const mixedRows = [{ month: 'Jan', sales: -40 }, { month: 'Feb', sales: 60 }];
+
+  /** How far each label moves toward higher values for the given label config, compared with no offset. */
+  function towardHigher(inverted: boolean, label: Record<string, unknown>, base: number | null): number[] {
+    const positions = (labelConfig: Record<string, unknown>) => {
+      const container = mountContainer();
+      trackHandle(createDefaultChart(container, {
+        config: {
+          version: '1.0.0',
+          animation: { enabled: false },
+          plot: { inverted },
+          categoryAxis: { property: 'month', type: 'string', scale: 'ordinal' },
+          valueAxes: [{ min: -100, max: 100, base }],
+          series: [{ property: 'sales', renderer: 'bar', labelProperty: 'sales', label: labelConfig }]
+        } as unknown as MochartInputConfig,
+        data: mixedRows, width: WIDTH, height: HEIGHT
+      } as DefaultChartProps));
+      return [...container.querySelectorAll(getCssSelector('seriesLabels') + ' text')].map((text) => {
+        const match = /translate\((-?[\d.]+)[ ,]\s*(-?[\d.]+)\)/.exec(text.getAttribute('transform') ?? '')!;
+        return inverted ? Number(match[1]) : -Number(match[2]);
+      });
+    };
+    const plain = positions({});
+    return positions(label).map((position, i) => position - plain[i]!);
+  }
+
+  for (const inverted of [false, true]) {
+    describe(inverted ? 'inverted' : 'upright', () => {
+      it('moves every label toward higher values when the axis has no base', () => {
+        expect(towardHigher(inverted, { offset: 5 }, null)).toEqual([5, 5]);
+      });
+
+      it('negates the offset below the base, moving both labels away from it', () => {
+        expect(towardHigher(inverted, { offset: 5 }, 0)).toEqual([-5, 5]);
+      });
+
+      it('moves labels toward higher values by an explicit belowBase.offset', () => {
+        expect(towardHigher(inverted, { belowBase: { offset: 5 } }, 0)).toEqual([5, 0]);
+      });
+    });
+  }
+});
