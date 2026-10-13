@@ -1,9 +1,9 @@
-import { getCategoryDomainForValues } from './DomainData.js';
-import { calculateValueAxisDomain } from './SeriesData.js';
+import { getCategoryDomainForValues, mergeDomain } from './DomainData.js';
+import { getSeriesDrawnDomain } from './SeriesData.js';
 import { getWithMutations } from '../utils/WithMutations.js';
 import { AUTO, SCALE_LOG, SCALE_ORDINAL } from '../config/core/constants.js';
 import type { ChartData, ClippedEdges, DomainValue, NullableDomain, NumericValues, SeriesValueObject } from '../types/data.js';
-import type { EnhancedMochartConfig } from '../types/enhanced.js';
+import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
 
 export const noClippedEdges: ClippedEdges = { top: false, right: false, bottom: false, left: false };
 
@@ -21,6 +21,24 @@ function getCachedCategoryDomain(values: readonly DomainValue[], positiveOnly: b
     cache.set(values, domain);
   }
   return domain;
+}
+
+// keyed on each series' values, which expansion and contraction frames reuse by reference, so only value change frames rescan
+const seriesDrawnDomainCache = new WeakMap<SeriesValueObject, NullableDomain>();
+
+// from the values drawn in this frame: mid-update the series ranges cover both the old and new values
+function getDrawnValueAxisDomain(valueAxisConfig: EnhancedValueAxisConfig, seriesValueObjects: Record<string, SeriesValueObject>): NullableDomain {
+  let axisDomain: NullableDomain = [null, null];
+  for (const seriesConfig of valueAxisConfig.seriesConfigs!) {
+    const seriesValueObject = seriesValueObjects[seriesConfig.id];
+    let domain = seriesDrawnDomainCache.get(seriesValueObject);
+    if (domain === undefined) {
+      domain = getSeriesDrawnDomain(seriesValueObject, valueAxisConfig.scale === SCALE_LOG);
+      seriesDrawnDomainCache.set(seriesValueObject, domain);
+    }
+    axisDomain = mergeDomain(axisDomain, domain);
+  }
+  return axisDomain;
 }
 
 export function hasClippedEdge(clippedEdges: ClippedEdges): boolean {
@@ -42,7 +60,7 @@ export function getClippedEdges(mochartConfig: EnhancedMochartConfig, chartData:
       : chartData.seriesData.raw.axisDomains[valueAxisConfig.id];
     // the drawn extent, recomputed rather than read: with both bounds explicit the axis domain
     // never calls its calculator, so no pre-bound extent is stored anywhere
-    const drawnDomain = calculateValueAxisDomain(valueAxisConfig, chartData.seriesData.filtered.domains);
+    const drawnDomain = getDrawnValueAxisDomain(valueAxisConfig, chartData.seriesData.filtered.values);
     setClippedEdges(clippedEdges, mochartConfig, valueAxisConfig, drawnDomain, renderedDomain, false);
     // an end at or below 0 is drawn past the minimum end of a log axis, whatever its bounds
     if (valueAxisConfig.scale === SCALE_LOG && valueAxisConfig.seriesConfigs!.some(seriesConfig =>

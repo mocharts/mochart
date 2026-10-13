@@ -3,12 +3,12 @@ import { getAxisDomain, getRenderAxisDomain } from './AxisDomainData.js';
 import { readNumericValues } from './PropertyData.js';
 import { AUTO, NONE, RENDERER_AREA, RENDERER_BAR, SCALE_LOG } from '../config/core/constants.js';
 
-import { keyPlain, keyPrior, valueKeys, positionKeys, positionOrComputedKeys, extraKeys, extraCopyKeys } from './constants.js';
+import { keyErrorHigh, keyErrorLow, keyPlain, keyPrior, keyRange, keyStack, valueKeys, positionKeys, positionOrComputedKeys, extraKeys, extraCopyKeys } from './constants.js';
 
 import { createArrayFilledWithZero, arrayToMap, mapMap, idAccessor, isMissingValue, MISSING_VALUE } from '../utils/utils.js';
 import type { DataProvider, CategoryData, CategoryValue, NullableDomain, NumericValues, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObject, SeriesValueObjects } from '../types/data.js';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedSeriesGroupConfig, EnhancedSeriesStackConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
-import type { ExtraCopyKey, ExtraKey, PositionKey, ValueKey } from './constants.js';
+import type { ExtraCopyKey, ExtraKey, PositionKey, PositionOrComputedKey, ValueKey } from './constants.js';
 
 type SeriesContainerConfig = EnhancedValueAxisConfig | EnhancedSeriesStackConfig | EnhancedSeriesGroupConfig;
 type SeriesBundle = { data: SeriesDataSet };
@@ -397,24 +397,33 @@ function getSeriesDomainObject(seriesValueObject: SeriesValueObject, positiveOnl
       setSeriesDomain(seriesDomainObject, seriesValueObject, key, positiveOnly && isPositionOrComputedKey(key));
     }
   }
+  seriesDomainObject.domain = combineSeriesDomain(seriesValueObject, key => seriesDomainObject[key]);
+  return seriesDomainObject;
+}
+
+/** The range of the values a series draws on its axis, worked out from the values themselves, as an animation frame needs. */
+export function getSeriesDrawnDomain(seriesValueObject: SeriesValueObject, positiveOnly: boolean): NullableDomain {
+  return combineSeriesDomain(seriesValueObject, key => getDomainForValues(seriesValueObject[key], positiveOnly));
+}
+
+function combineSeriesDomain(seriesValueObject: SeriesValueObject, getKeyDomain: (key: PositionOrComputedKey) => NullableDomain): NullableDomain {
   let domain = nullDomain;
   if (seriesValueObject.plain !== null) {
     if (seriesValueObject.stack !== null) {
-      domain = mergeDomain(seriesDomainObject.stack, seriesValueObject.prior !== null ? getDomainForValues(seriesValueObject.prior) : nullDomain);
+      domain = mergeDomain(getKeyDomain(keyStack), seriesValueObject.prior !== null ? getDomainForValues(seriesValueObject.prior) : nullDomain);
     }
     else {
-      domain = seriesValueObject.range !== null ? mergeDomain(seriesDomainObject.plain, seriesDomainObject.range) : seriesDomainObject.plain;
+      domain = seriesValueObject.range !== null ? mergeDomain(getKeyDomain(keyPlain), getKeyDomain(keyRange)) : getKeyDomain(keyPlain);
       // error bounds join the domain so whiskers never clip (stacked series can't configure them)
       if (seriesValueObject.errorLow !== null) {
-        domain = mergeDomain(domain, seriesDomainObject.errorLow);
+        domain = mergeDomain(domain, getKeyDomain(keyErrorLow));
       }
       if (seriesValueObject.errorHigh !== null) {
-        domain = mergeDomain(domain, seriesDomainObject.errorHigh);
+        domain = mergeDomain(domain, getKeyDomain(keyErrorHigh));
       }
     }
   }
-  seriesDomainObject.domain = domain;
-  return seriesDomainObject;
+  return domain;
 }
 
 function isPositionOrComputedKey(key: ValueKey): boolean {
