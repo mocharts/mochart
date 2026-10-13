@@ -533,24 +533,25 @@ describe('category index maps with Date category values', () => {
 // filtered-series transition underpaced its domain tween and snapped on the final frame.
 describe('filtered series-domain deltas drive the phase pacing', () => {
   it('includes the filtered map in the overall delta and keeps factors >= 1', () => {
+    // a marker range is drawn while the axes move, so it must finish within the phase; [1, 2] to [30, 40] widens then narrows it
     const filteredConfig = makeConfig({
       categoryAxis: { property: 'c', type: 'number', scale: 'ordinal' },
       valueAxes: [{ adjustForFiltering: false }],
-      series: [{ property: 'a', renderer: 'bar' }, { property: 'b', renderer: 'bar' }]
+      series: [{ property: 'a', renderer: 'bar' }, { property: 'b', renderer: 'line', markerProperty: 'm', marker: { shape: 'circle' } }]
     });
     const dataFor = (rows: Record<string, number>[]) =>
       getChartData(filteredConfig, new ArrayOfObjectsDataProvider(rows), { S0: true });
     const cad = getChartAnimationData(
       filteredConfig,
-      dataFor([{ c: 0, a: 100, b: 5 }, { c: 1, a: 80, b: 10 }]),
-      dataFor([{ c: 0, a: 100, b: 25 }, { c: 1, a: 80, b: 50 }])
+      dataFor([{ c: 0, a: 100, b: 5, m: 1 }, { c: 1, a: 80, b: 10, m: 2 }]),
+      dataFor([{ c: 0, a: 100, b: 5, m: 30 }, { c: 1, a: 80, b: 10, m: 40 }])
     ) as any;
 
     for (const phase of [cad.axisExpansionData, cad.axisContractionData]) {
-      const filtered = phase.deltas.domain.series.filtered;
-      expect(phase.deltaPercentage).toBeGreaterThanOrEqual(filtered.deltaPercentage);
-      expect(filtered.deltas.S1.deltaPercentage).toBeGreaterThan(0);
-      expect(filtered.deltas.S1.deltaFactor).toBeGreaterThanOrEqual(1);
+      const filteredMarker = phase.deltas.domain.series.filtered.deltas.S1.marker;
+      expect(phase.deltaPercentage).toBeGreaterThanOrEqual(filteredMarker.deltaPercentage);
+      expect(filteredMarker.deltaPercentage).toBeGreaterThan(0);
+      expect(filteredMarker.deltaFactor).toBeGreaterThanOrEqual(1);
     }
   });
 });

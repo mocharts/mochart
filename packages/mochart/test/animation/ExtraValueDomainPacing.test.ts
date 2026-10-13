@@ -6,10 +6,10 @@ import { makeConfig, ArrayOfObjectsDataProvider } from '../data/fixtures';
 
 type Row = Record<string, number>;
 
-function animationDataFor(extraProperty: string, from: Row[], to: Row[]) {
+function animationDataFor(extraProperty: string, from: Row[], to: Row[], valueAxis: Record<string, unknown> = { min: 0, max: 20 }) {
   const config = makeConfig({
     categoryAxis: { property: 'c', type: 'number', scale: 'ordinal' },
-    valueAxes: [{ min: 0, max: 20 }],
+    valueAxes: [valueAxis],
     series: [{ property: 'v', renderer: 'line', [extraProperty]: 'x', marker: { shape: 'circle' } }]
   });
   const prev = getChartData(config, new ArrayOfObjectsDataProvider(from), {});
@@ -40,8 +40,9 @@ describe.each([['labelProperty', 'label'], ['tooltipProperty', 'tooltip']])('a %
   });
 
   it('leaves the expansion of a value change paced by that value alone', () => {
-    const valueOnly = animationDataFor(extraProperty, narrow, [{ c: 0, v: 5, x: 1 }, { c: 1, v: 30, x: 2 }]);
-    const both = animationDataFor(extraProperty, narrow, [{ c: 0, v: 5, x: 1 }, { c: 1, v: 30, x: 40 }]);
+    // an automatic axis, so the value change moves it
+    const valueOnly = animationDataFor(extraProperty, narrow, [{ c: 0, v: 5, x: 1 }, { c: 1, v: 30, x: 2 }], {});
+    const both = animationDataFor(extraProperty, narrow, [{ c: 0, v: 5, x: 1 }, { c: 1, v: 30, x: 40 }], {});
     expect(valueOnly.axisExpansionData.deltaPercentage).toBeGreaterThan(0);
     expect(both.axisExpansionData.deltaPercentage).toBe(valueOnly.axisExpansionData.deltaPercentage);
   });

@@ -6,13 +6,13 @@ import { getChartDataWithData, getChartDataWithRenderAxisDomains, getChartDataWi
 
 import { getSeriesDataWithRenderAxisDomains, getSeriesDataWithSeriesBases, getSeriesDataWithDomains, getSeriesBases } from '../data/SeriesData.js';
 
-import { domainKeys, keyDomain, keyLabel, keyTooltip, positionOrComputedKeys } from '../data/constants.js';
+import { domainKeys, keyColor, keyDomain, keyMarker, positionOrComputedKeys } from '../data/constants.js';
 
 import { hasCategoryAdditions, getExpansionCategoryValueDeltaData, getContractionCategoryValueDeltaData } from './CategoryAnimationData.js';
 
 import { mapMap } from '../utils/utils.js';
 
-import { SCALE_LOG, SCALE_ORDINAL, DOMAIN_CHANGE_COMBINED, DOMAIN_CHANGE_STAGED } from '../config/core/constants.js';
+import { NONE, SCALE_LOG, SCALE_ORDINAL, DOMAIN_CHANGE_COMBINED, DOMAIN_CHANGE_STAGED } from '../config/core/constants.js';
 import type { DomainChange } from '../config/core/constants.js';
 import type { AxisDomains, ChartData, CategoryAxisDomain, DomainValue, NullableDomain, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObjects } from '../types/data.js';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
@@ -23,9 +23,6 @@ import type {
 } from '../types/animation.js';
 
 // Various constants
-
-// nothing draws from the label and tooltip ranges, so their changes must not stretch an expansion or contraction
-const pacedDomainKeys = domainKeys.filter(key => key !== keyLabel && key !== keyTooltip);
 
 // factories, not shared singletons: setDeltaFactor stamps deltaFactor onto whatever these hand back
 function emptyCategoryAxisDomainDelta(): DomainDelta {
@@ -416,8 +413,8 @@ export function getTransitionAxisExpansionData(mochartConfig: EnhancedMochartCon
   adjustFilteredAxisDomainDeltas(valueAxisConfigs, rawSet.valueAxisDomainDeltas, filteredSet.valueAxisDomainDeltas);
 
   // series hidden at the start of the expansion render nothing during it, so they must not stretch its duration
-  const rawSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(rawSet.seriesDomainDeltas, prevChartData.seriesData.filtered.values);
-  const filteredSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(filteredSet.seriesDomainDeltas, prevChartData.seriesData.filtered.values);
+  const rawSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(seriesConfigs, rawSet.seriesDomainDeltas, prevChartData.seriesData.filtered.values);
+  const filteredSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(seriesConfigs, filteredSet.seriesDomainDeltas, prevChartData.seriesData.filtered.values);
 
   return createAxisDeltaData(startChartData, endChartData, finalChartData, categoryAxisDomainDelta, rawSet.valueAxisDomainDeltas,
     filteredSet.valueAxisDomainDeltas, rawSet.seriesDomainDeltas, filteredSet.seriesDomainDeltas, rawSeriesPacingDeltaPercentage, filteredSeriesPacingDeltaPercentage, categoryValueDeltaData);
@@ -466,8 +463,8 @@ export function getTransitionAxisContractionData(mochartConfig: EnhancedMochartC
   adjustFilteredAxisDomainDeltas(valueAxisConfigs, rawSet.valueAxisDomainDeltas, filteredSet.valueAxisDomainDeltas);
 
   // series hidden at the end of the contraction render nothing during it, so they must not stretch its duration
-  const rawSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(rawSet.seriesDomainDeltas, newChartData.seriesData.filtered.values);
-  const filteredSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(filteredSet.seriesDomainDeltas, newChartData.seriesData.filtered.values);
+  const rawSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(seriesConfigs, rawSet.seriesDomainDeltas, newChartData.seriesData.filtered.values);
+  const filteredSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(seriesConfigs, filteredSet.seriesDomainDeltas, newChartData.seriesData.filtered.values);
 
   return invertAxisDeltas(createAxisDeltaData(startChartData, endChartData, newChartData, categoryAxisDomainDelta,
     rawSet.valueAxisDomainDeltas, filteredSet.valueAxisDomainDeltas, rawSet.seriesDomainDeltas, filteredSet.seriesDomainDeltas, rawSeriesPacingDeltaPercentage, filteredSeriesPacingDeltaPercentage, categoryValueDeltaData));
@@ -519,18 +516,18 @@ function getSeriesDataWithAllDomains(seriesData: SeriesData, rawValueAxisDomains
   return getSeriesDataWithDomains(getSeriesDataWithRenderAxisDomains(seriesData, rawValueAxisDomains, filteredValueAxisDomains), rawSeriesDomains, filteredSeriesDomains);
 }
 
-// pacing max over visible series only; the map keeps every entry so end/final domain bookkeeping still covers hidden series
-function getVisibleSeriesPacingDeltaPercentage(seriesDomainDeltas: SeriesDomainDeltaMap, filteredSeriesValues: SeriesValueObjects): number {
+// while the axes move, only the marker (when drawn) and color ranges should change what is drawn; hidden series stay in the map for end/final bookkeeping
+function getVisibleSeriesPacingDeltaPercentage(seriesConfigs: EnhancedSeriesConfig[], seriesDomainDeltas: SeriesDomainDeltaMap, filteredSeriesValues: SeriesValueObjects): number {
   if (seriesDomainDeltas.deltas === null) {
     return 0;
   }
   let pacingDeltaPercentage = 0;
-  const seriesIds = Object.keys(seriesDomainDeltas.deltas);
-  for (const seriesId of seriesIds) {
-    if (filteredSeriesValues[seriesId].plain !== null) {
-      const seriesDomainDelta = seriesDomainDeltas.deltas[seriesId];
-      for (const key of pacedDomainKeys) {
-        pacingDeltaPercentage = Math.max(pacingDeltaPercentage, seriesDomainDelta[key].deltaPercentage);
+  for (const seriesConfig of seriesConfigs) {
+    if (filteredSeriesValues[seriesConfig.id].plain !== null) {
+      const seriesDomainDelta = seriesDomainDeltas.deltas[seriesConfig.id];
+      pacingDeltaPercentage = Math.max(pacingDeltaPercentage, seriesDomainDelta[keyColor].deltaPercentage);
+      if (seriesConfig.marker.shape !== NONE) {
+        pacingDeltaPercentage = Math.max(pacingDeltaPercentage, seriesDomainDelta[keyMarker].deltaPercentage);
       }
     }
   }
