@@ -6,7 +6,7 @@ import { getChartDataWithData, getChartDataWithRenderAxisDomains, getChartDataWi
 
 import { getSeriesDataWithRenderAxisDomains, getSeriesDataWithSeriesBases, getSeriesDataWithDomains, getSeriesBases } from '../data/SeriesData.js';
 
-import { domainKeys, keyDomain, positionOrComputedKeys } from '../data/constants.js';
+import { domainKeys, keyDomain, keyLabel, keyTooltip, positionOrComputedKeys } from '../data/constants.js';
 
 import { hasCategoryAdditions, getExpansionCategoryValueDeltaData, getContractionCategoryValueDeltaData } from './CategoryAnimationData.js';
 
@@ -23,6 +23,9 @@ import type {
 } from '../types/animation.js';
 
 // Various constants
+
+// nothing draws from the label and tooltip ranges, so their changes must not stretch an expansion or contraction
+const pacedDomainKeys = domainKeys.filter(key => key !== keyLabel && key !== keyTooltip);
 
 // factories, not shared singletons: setDeltaFactor stamps deltaFactor onto whatever these hand back
 function emptyCategoryAxisDomainDelta(): DomainDelta {
@@ -525,7 +528,10 @@ function getVisibleSeriesPacingDeltaPercentage(seriesDomainDeltas: SeriesDomainD
   const seriesIds = Object.keys(seriesDomainDeltas.deltas);
   for (const seriesId of seriesIds) {
     if (filteredSeriesValues[seriesId].plain !== null) {
-      pacingDeltaPercentage = Math.max(pacingDeltaPercentage, seriesDomainDeltas.deltas[seriesId].deltaPercentage);
+      const seriesDomainDelta = seriesDomainDeltas.deltas[seriesId];
+      for (const key of pacedDomainKeys) {
+        pacingDeltaPercentage = Math.max(pacingDeltaPercentage, seriesDomainDelta[key].deltaPercentage);
+      }
     }
   }
   return pacingDeltaPercentage;
