@@ -281,10 +281,10 @@ describe('legend icon color-scale gradients', () => {
     expect(legendIcons(container)[0].getAttribute('fill')).not.toMatch(/^url\(/);
   });
 
-  it('stripes a line series with the stroke palette, since the flat icon takes its stroke colour', () => {
+  it('stripes a hollow bar series with the stroke palette, since the flat icon takes its stroke colour', () => {
     const container = mountChart({
       colorPalette: { shape: { normal: { fillColors: ['#a00', '#0a0'], strokeColors: ['#123', '#456'] } } },
-      series: [{ id: 'S0', property: 'sales', renderer: 'line', shapeStyle: { normal: { strokeColor: 'categoryIndex' } } }, plainSeries]
+      series: [{ id: 'S0', property: 'sales', renderer: 'bar', shapeStyle: { normal: { strokeColor: 'categoryIndex', fillOpacity: 0, strokeWidth: 2 } } }, plainSeries]
     });
     const gradients = chartGradients(container);
 
