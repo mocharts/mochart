@@ -30,14 +30,14 @@ export default class AxisBaseContainer extends Renderer<AxisBaseContainerProps> 
   sync() {
     const { front, mochartConfig, seriesLayoutInfo, focusData, seriesData } = this.props;
     const { plot: plotConfig, valueAxes: valueAxisConfigs } = mochartConfig;
-    const { filtered, raw } = seriesData;
+    const { filtered, raw, axisSeriesCounts } = seriesData;
     const { renderAxisDomains: filteredDomains } = filtered;
     const { renderAxisDomains: rawDomains } = raw;
 
     this.root.set({ className: mochartCssClasses['axisBaseContainer'] });
 
     this.baseLines.sync(getValueAxisFocusContexts(valueAxisConfigs, focusData)
-      .filter(({ axisConfig }) => axisConfig.baseLine.front === front)
+      .filter(({ axisConfig, id }) => axisConfig.baseLine.front === front && (axisConfig.visibleWhenAllFiltered || axisSeriesCounts[id] !== 0))
       .map(({ axisConfig, id, key, axisFocusPercentage, seriesFocusPercentage }) => {
         const { base, adjustForFiltering, scale } = axisConfig;
         const axisDomain = adjustForFiltering ? filteredDomains[id] : rawDomains[id];

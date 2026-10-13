@@ -174,4 +174,11 @@ describe('filtering', () => {
   it('stays on the raw domain when adjustForFiltering is off', () => {
     expect(filteredBaseY(false, true)).toBe(filteredBaseY(false, false));
   });
+
+  it('hides with the axis when every series is filtered and visibleWhenAllFiltered is off', () => {
+    const allFiltered = (visibleWhenAllFiltered: boolean) =>
+      baseLine(mount({ valueAxes: [{ ...axis, visibleWhenAllFiltered }] }, { filteredSeriesIds: { v: true } }).container);
+    expect(allFiltered(false)).toBeNull();
+    expect(allFiltered(true)).not.toBeNull();
+  });
 });
