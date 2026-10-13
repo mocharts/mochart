@@ -126,7 +126,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
   }
 
   private syncLabel(band: Band, edge: EdgeKey, bounds: Bounds, depths: BandDepths, label: string | null): void {
-    if (label === NONE) {
+    if (!hasText(label)) {
       band.text.node.remove();
       return;
     }

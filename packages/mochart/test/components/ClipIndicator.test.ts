@@ -119,7 +119,9 @@ describe('band geometry', () => {
   // Regression: with no label the automatic depth read the font size of the root group, which carried no font,
   // so a configured font size only changed the depth of a labelled band
   it('derives an automatic depth from the configured font size when there is no label', () => {
-    expect(bands(mount(makeConfig({ chart: { font: { size: 40 } }, clipIndicator: { label: null, labelPadding: 5 } })))[0].height).toBe(40 + 5 * 2);
+    for (const label of [null, '']) {
+      expect(bands(mount(makeConfig({ chart: { font: { size: 40 } }, clipIndicator: { label, labelPadding: 5 } })))[0].height).toBe(40 + 5 * 2);
+    }
   });
 
   // Regression: the resolved font was written on the label as well as on the root, so a relative size such as
