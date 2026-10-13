@@ -3,6 +3,7 @@ import { describe, it, beforeAll, expect, vi } from 'vitest';
 import { installSvgMeasurementShims } from '../components/svgShims';
 import { installFakeFrameClock, runFrames, advanceFrames, mountContainer, mockBoundingClientRect } from '../components/helpers';
 import { getCssSelector } from '../../src/utils/ChartDom';
+import { createPie } from '../../src/data/Pie';
 import type { MochartInputConfig } from '../../src/types/config';
 
 let mochart: typeof import('../../src');
@@ -74,5 +75,18 @@ describe.each([
 
   it('moves the line from the first frame when the update is reversed', () => {
     expectNoStillFrames(traceUpdate(config, to, from, getCssSelector('seriesLine')));
+  });
+});
+
+describe.each([['grows', [80, 20, 18]], ['shrinks', [40, 20, 18]]])('a pie slice that %s', (_name, values) => {
+  const pie = (sliceValues: number[]) => createPie(sliceValues.map((value, index) => ({ label: 'L' + index, value })));
+  const { chart, pie: pieConfig, categoryAxis, series, data } = pie([62, 20, 18]);
+
+  it('moves the slices from the first frame until they settle', () => {
+    expectNoStillFrames(traceUpdate({ chart, pie: pieConfig, categoryAxis, series }, data, pie(values).data, getCssSelector('seriesSlice')));
+  });
+
+  it('moves the slices from the first frame when the update is reversed', () => {
+    expectNoStillFrames(traceUpdate({ chart, pie: pieConfig, categoryAxis, series }, pie(values).data, data, getCssSelector('seriesSlice')));
   });
 });

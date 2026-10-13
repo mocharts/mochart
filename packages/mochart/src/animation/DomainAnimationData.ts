@@ -12,7 +12,7 @@ import { hasCategoryAdditions, getExpansionCategoryValueDeltaData, getContractio
 
 import { mapMap } from '../utils/utils.js';
 
-import { NONE, SCALE_LOG, SCALE_ORDINAL, DOMAIN_CHANGE_COMBINED, DOMAIN_CHANGE_STAGED } from '../config/core/constants.js';
+import { CHART_TYPE_PIE, NONE, SCALE_LOG, SCALE_ORDINAL, DOMAIN_CHANGE_COMBINED, DOMAIN_CHANGE_STAGED } from '../config/core/constants.js';
 import type { DomainChange } from '../config/core/constants.js';
 import type { AxisDomains, ChartData, CategoryAxisDomain, DomainValue, NullableDomain, SeriesData, SeriesDataSet, SeriesDomainObject, SeriesDomainObjects, SeriesValueObjects } from '../types/data.js';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
@@ -416,7 +416,7 @@ export function getTransitionAxisExpansionData(mochartConfig: EnhancedMochartCon
   const rawSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(seriesConfigs, rawSet.seriesDomainDeltas, prevChartData.seriesData.filtered.values);
   const filteredSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(seriesConfigs, filteredSet.seriesDomainDeltas, prevChartData.seriesData.filtered.values);
 
-  return createAxisDeltaData(startChartData, endChartData, finalChartData, categoryAxisDomainDelta, rawSet.valueAxisDomainDeltas,
+  return createAxisDeltaData(mochartConfig, startChartData, endChartData, finalChartData, categoryAxisDomainDelta, rawSet.valueAxisDomainDeltas,
     filteredSet.valueAxisDomainDeltas, rawSet.seriesDomainDeltas, filteredSet.seriesDomainDeltas, rawSeriesPacingDeltaPercentage, filteredSeriesPacingDeltaPercentage, categoryValueDeltaData);
 }
 
@@ -466,7 +466,7 @@ export function getTransitionAxisContractionData(mochartConfig: EnhancedMochartC
   const rawSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(seriesConfigs, rawSet.seriesDomainDeltas, newChartData.seriesData.filtered.values);
   const filteredSeriesPacingDeltaPercentage = getVisibleSeriesPacingDeltaPercentage(seriesConfigs, filteredSet.seriesDomainDeltas, newChartData.seriesData.filtered.values);
 
-  return invertAxisDeltas(createAxisDeltaData(startChartData, endChartData, newChartData, categoryAxisDomainDelta,
+  return invertAxisDeltas(createAxisDeltaData(mochartConfig, startChartData, endChartData, newChartData, categoryAxisDomainDelta,
     rawSet.valueAxisDomainDeltas, filteredSet.valueAxisDomainDeltas, rawSet.seriesDomainDeltas, filteredSet.seriesDomainDeltas, rawSeriesPacingDeltaPercentage, filteredSeriesPacingDeltaPercentage, categoryValueDeltaData));
 }
 
@@ -639,10 +639,11 @@ function isAxisDomainKey(key: DomainKey): boolean {
   return key === keyDomain || (positionOrComputedKeys as readonly string[]).includes(key);
 }
 
-function createAxisDeltaData(startChartData: ChartData, endChartData: ChartData, finalChartData: ChartData, categoryAxisDomainDelta: DomainDelta, rawValueAxisDomainDeltas: DomainDeltaMap,
+function createAxisDeltaData(mochartConfig: EnhancedMochartConfig, startChartData: ChartData, endChartData: ChartData, finalChartData: ChartData, categoryAxisDomainDelta: DomainDelta, rawValueAxisDomainDeltas: DomainDeltaMap,
                              filteredValueAxisDomainDeltas: DomainDeltaMap, rawSeriesDomainDeltas: SeriesDomainDeltaMap, filteredSeriesDomainDeltas: SeriesDomainDeltaMap,
                              rawSeriesPacingDeltaPercentage: number, filteredSeriesPacingDeltaPercentage: number, categoryValueDeltaData: CompleteNumericArrayDelta | null): AxisDeltaData {
-  const deltaPercentage = Math.max(categoryAxisDomainDelta.deltaPercentage, rawValueAxisDomainDeltas.deltaPercentage,
+  // a pie draws no axes, so its expansion and contraction would move nothing
+  const deltaPercentage = mochartConfig.chart.type === CHART_TYPE_PIE ? 0 : Math.max(categoryAxisDomainDelta.deltaPercentage, rawValueAxisDomainDeltas.deltaPercentage,
     filteredValueAxisDomainDeltas.deltaPercentage, rawSeriesPacingDeltaPercentage, filteredSeriesPacingDeltaPercentage,
     categoryValueDeltaData ? categoryValueDeltaData.deltaPercentage : 0);
   setDeltaFactor(categoryAxisDomainDelta, deltaPercentage);
