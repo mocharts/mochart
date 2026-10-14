@@ -203,7 +203,7 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
       this.rangeRect.set({ className: mochartCssClasses['axisThresholdRange'],
         x: vertical ? seriesLayoutInfo.x : seriesLayoutInfo.x + rangeStart, y: vertical ? seriesLayoutInfo.y + rangeStart : seriesLayoutInfo.y,
         width: vertical ? seriesLayoutInfo.width : rangeEnd - rangeStart, height: vertical ? rangeEnd - rangeStart : seriesLayoutInfo.height,
-        fill: fillReference ?? fill, fillOpacity: fillReference !== null ? null : fillOpacity, stroke: 'none' });
+        fill: fillReference ?? fill, fillOpacity, stroke: 'none' });
     }
     else if (this.rangeRect !== null) {
       this.root.node.removeChild(this.rangeRect.node);

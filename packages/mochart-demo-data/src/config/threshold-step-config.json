@@ -30,6 +30,7 @@
       "pattern": "hatch",
       "style": {
         "normal": {
+          "fillOpacity": 1,
           "strokeOpacity": 0
         }
       }

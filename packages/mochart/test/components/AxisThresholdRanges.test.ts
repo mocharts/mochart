@@ -118,17 +118,20 @@ describe('threshold ranges on a value axis', () => {
   });
 
   it('fills with a pattern or gradient definition by id', () => {
-    const patterned = valueThresholds([{ value: 20, rangeValue: 60, pattern: 'hatch', style: { normal: { fillColor: 'purple' } } }],
+    const patterned = valueThresholds([{ value: 20, rangeValue: 60, pattern: 'hatch', style: { normal: { fillColor: 'purple', fillOpacity: 0.3 } } }],
       { patterns: [{ id: 'hatch', type: 'lines' }] });
-    const patternFill = rect(patterned)!.fill!;
+    const { fill: patternFill, fillOpacity: patternOpacity } = rect(patterned)!;
     expect(patternFill).toMatch(/^url\(#/);
-    const patternId = patternFill.slice(5, -1);
+    const patternId = patternFill!.slice(5, -1);
     expect(patterned.querySelector('pattern[id="' + patternId + '"]')).not.toBeNull();
-    const gradiented = valueThresholds([{ value: 20, rangeValue: 60, gradient: 'fade' }],
+    // the fill opacity applies over a pattern or gradient fill as it does over a plain one
+    expect(patternOpacity).toBe('0.3');
+    const gradiented = valueThresholds([{ value: 20, rangeValue: 60, gradient: 'fade', style: { normal: { fillOpacity: 0.3 } } }],
       { linearGradients: [{ id: 'fade', stops: [{ offset: 0, color: 'red', opacity: 1 }, { offset: 1, color: 'blue', opacity: 1 }] }] });
-    const gradientFill = rect(gradiented)!.fill!;
+    const { fill: gradientFill, fillOpacity: gradientOpacity } = rect(gradiented)!;
     expect(gradientFill).toMatch(/^url\(#/);
-    expect(gradiented.querySelector('linearGradient[id="' + gradientFill.slice(5, -1) + '"]')).not.toBeNull();
+    expect(gradiented.querySelector('linearGradient[id="' + gradientFill!.slice(5, -1) + '"]')).not.toBeNull();
+    expect(gradientOpacity).toBe('0.3');
   });
 
   it('centres an inside title within the band and a middle-anchored one along it', () => {
