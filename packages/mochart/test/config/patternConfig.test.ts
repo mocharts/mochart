@@ -112,6 +112,20 @@ describe('built-in pattern config', () => {
     });
     expect(colorProperty.validation.valid).toBe(true);
     expect(colorProperty.series[0].gradient).toBeNull();
+
+    const patternColorProperty = enhance({ ...base,
+      patterns: [{ type: 'lines' }],
+      series: [{ property: 'v', renderer: 'bar', colorProperty: 'color' }]
+    });
+    expect(patternColorProperty.validation.valid).toBe(true);
+    expect(patternColorProperty.series[0].pattern).toBeNull();
+
+    const categoryIndexFill = enhance({ ...base,
+      patterns: [{ type: 'lines' }],
+      series: [{ property: 'v', renderer: 'bar', shapeStyle: { normal: { fillColor: 'categoryIndex' } } }]
+    });
+    expect(categoryIndexFill.validation.valid).toBe(true);
+    expect(categoryIndexFill.series[0].pattern).toBeNull();
   });
 
   it('rejects patterns and gradients on non-fill renderers', () => {
@@ -180,7 +194,7 @@ describe('built-in pattern config', () => {
     expect(gradient.series[0].gradient).toBe('fade');
   });
 
-  it('rejects gradients but permits patterns when colorProperty is set', () => {
+  it('rejects gradients and patterns when colorProperty is set', () => {
     const gradient = enhance({ ...base,
       linearGradients: [{ id: 'fade', stops: [{ offset: 0, color: '#000', opacity: 1 }] }],
       series: [{ property: 'v', renderer: 'bar', colorProperty: 'color', gradient: 'fade' }]
@@ -193,7 +207,9 @@ describe('built-in pattern config', () => {
       patterns: [{ id: 'dots', type: 'dots' }],
       series: [{ property: 'v', renderer: 'bar', colorProperty: 'color', pattern: 'dots' }]
     });
-    expect(pattern.validation.valid).toBe(true);
+    expect(pattern.validation.errors).toContain(
+      'series[0] - pattern - should be equal to null when colorProperty is not null: "dots"'
+    );
   });
 
   it('validates spacing, rotation, opacity, and radius bounds', () => {

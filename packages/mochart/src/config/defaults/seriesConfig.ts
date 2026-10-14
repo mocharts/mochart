@@ -135,10 +135,12 @@ function isCategoryIndexFilled({ shapeStyle }: SeriesConfig): boolean {
   return STYLE_STATES.some(state => states[state]?.fillColor === COLOR_CATEGORY_INDEX);
 }
 
-function supportsAutomaticGradient(config: SeriesConfig, pieMode: boolean): boolean {
+// a gradient or pattern fills the whole series one way, so it never joins a per-category fill
+function supportsAutomaticFill(config: SeriesConfig, pieMode: boolean): boolean {
   return usesFillRenderer(config, pieMode) && config.colorProperty === NONE && !isCategoryIndexFilled(config);
 }
 
+const automaticFillSuffix = 'when chart type is pie or renderer is area or bar, colorProperty is null, and no shapeStyle fillColor is ' + COLOR_CATEGORY_INDEX;
 const followSeriesSuffix = 'when followSeries is not ' + NONE;
 const followSeriesNoneSuffix = 'when followSeries is ' + NONE;
 const nonColorRendererSuffix = 'when chart type is not xy or renderer is not bar';
@@ -162,11 +164,11 @@ export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, 
       { ...defaultRule, default: soleSeriesGroupId, defaultText: 'sole group id' }
     ], configWithRegularDefaults, index),
     gradient: conditionalDefault([
-      { condition: config => supportsAutomaticGradient(config, pieMode), suffix: 'when chart type is pie or renderer is area or bar, colorProperty is null, and no shapeStyle fillColor is ' + COLOR_CATEGORY_INDEX, default: soleGradientConfigId, defaultText: 'sole gradient id' },
+      { condition: config => supportsAutomaticFill(config, pieMode), suffix: automaticFillSuffix, default: soleGradientConfigId, defaultText: 'sole gradient id' },
       { ...defaultRule, default: NONE }
     ], configWithRegularDefaults, index),
     pattern: conditionalDefault([
-      { condition: config => usesFillRenderer(config, pieMode), suffix: 'when chart type is pie or renderer is area or bar', default: solePatternConfigId, defaultText: 'sole pattern id' },
+      { condition: config => supportsAutomaticFill(config, pieMode), suffix: automaticFillSuffix, default: solePatternConfigId, defaultText: 'sole pattern id' },
       { ...defaultRule, default: NONE }
     ], configWithRegularDefaults, index),
     animateBaseFromAdjacent: conditionalDefault([

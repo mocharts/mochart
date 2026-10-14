@@ -4379,7 +4379,8 @@ export interface SeriesConfig {
    * a pie slice (use null for none; cannot be combined with gradient).
    *
    * Default:
-   * - `sole pattern id`: when chart type is pie or renderer is area or bar
+   * - `sole pattern id`: when chart type is pie or renderer is area or bar,
+   *   colorProperty is null, and no shapeStyle fillColor is categoryIndex
    */
   pattern: string | null;
   /**

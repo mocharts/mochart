@@ -48,9 +48,8 @@ import * as colorByValueBase from '../examples/colorByValueBase'
 - The tooltip shows the series value, not the color value; point
   [`tooltipProperty`](/reference/series#series.tooltipProperty) at the color
   property to surface it, as the [heatmap](/recipes/heatmap) does.
-- `colorProperty` cannot be combined with a [gradient](/recipes/gradients). A
-  [pattern](/recipes/patterns) replaces the per-category fill; the per-category
-  stroke color still applies.
+- `colorProperty` cannot be combined with a [gradient](/recipes/gradients) or
+  a [pattern](/recipes/patterns).
 
 ## Diverging around a base
 

@@ -31,8 +31,10 @@ import * as patterns from '../examples/patterns'
   background is transparent (the default).
 - Only the common properties can go in `patternDefaults`; `type`, `id`,
   `ignore`, `rotation`, `lineWidth`, and `radius` belong on individual entries.
-- A series cannot use both `pattern` and `gradient`. Set `pattern: null` to opt
-  a series out of an automatically applied sole pattern.
-- With [`colorProperty`](/recipes/color-by-value), the pattern replaces the
-  per-category fill while the per-category stroke color still applies. Legend
-  and tooltip swatches reproduce the pattern.
+- A series cannot combine `pattern` with `gradient` or
+  [`colorProperty`](/recipes/color-by-value), and a series whose `shapeStyle`
+  fill color is [`categoryIndex`](/guide/theming#series-color-palettes) in any
+  state cannot set one either, because that fill already varies per category.
+  Set `pattern: null` to opt a series out of an automatically applied sole
+  pattern.
+- Legend and tooltip swatches reproduce the pattern.

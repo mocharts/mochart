@@ -964,6 +964,27 @@ describe('categoryIndex color validation', () => {
   });
 });
 
+// a patterned bar is filled by its pattern, so a categoryIndex or colorProperty fill color was silently ignored
+describe('series pattern validation', () => {
+  const errorsWith = (series: Record<string, unknown>) =>
+    errorsFor({ version: V, categoryAxis: { property: 'p' }, patterns: [{ id: 'hatch', type: 'lines' }],
+      series: [{ property: 'v', renderer: 'bar', pattern: 'hatch', ...series }] });
+
+  it('rejects a pattern on a bar series with a categoryIndex fill color', () => {
+    expect(errorsWith({ shapeStyle: { focused: { fillColor: 'categoryIndex' } } }))
+      .toContainEqual(expect.stringContaining('series[0] - pattern - '));
+  });
+
+  it('rejects a pattern on a bar series with a colorProperty', () => {
+    expect(errorsWith({ colorProperty: 'c' }))
+      .toContainEqual(expect.stringContaining('series[0] - pattern - '));
+  });
+
+  it('accepts a pattern on a bar series with a categoryIndex stroke color', () => {
+    expect(errorsWith({ shapeStyle: { normal: { strokeColor: 'categoryIndex' } } })).toEqual([]);
+  });
+});
+
 // Regression: curve alone used the exact-shape validator, so { param } (type from the default) was
 // rejected and unknown members were hard errors instead of the single unknown-key warning.
 describe('series curve validation', () => {

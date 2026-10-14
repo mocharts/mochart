@@ -217,6 +217,8 @@ export default function getValidators(config: DeepPartial<SeriesConfig>, pieMode
     pattern: validators.conditional([
       { ...nonFillRendererRule, validator: validators.equal(NONE) },
       { ...gradientRule, validator: validators.equal(NONE) },
+      { ...colorPropertyRule, validator: validators.equal(NONE) },
+      { ...categoryIndexFillRule, validator: validators.equal(NONE) },
       { ...fillRendererWithoutGradientRule, validator: validators.string().orEqual(NONE) }
     ], config),
     colorScale: validators.partialObjectWithShape({
