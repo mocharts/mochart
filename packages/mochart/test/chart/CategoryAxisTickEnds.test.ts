@@ -1,6 +1,7 @@
 /**
- * The ends of an ordinal category axis: a parallel label that would spill past either end is hidden, each kind
- * tested with its own width and anchor, and the single-label fallback shows once no label of either kind does.
+ * The ends of a category axis: a parallel label that would spill past either end is hidden, each kind tested with
+ * its own width and anchor on ordinal and linear axes alike, and the single-label fallback shows once no label of
+ * either kind does.
  */
 import { describe, it, beforeAll, expect } from 'vitest';
 import { installTextMetrics } from '../golden/textMetrics';
@@ -15,7 +16,7 @@ beforeAll(async () => {
   mochart = await import('../../src');
 });
 
-function renderChart(categoryAxisConfig: Record<string, unknown>, labels: string[], width: number) {
+function renderChart(categoryAxisConfig: Record<string, unknown>, labels: (string | number)[], width: number) {
   const { createChart, enhanceConfig, ArrayOfObjectsDataProvider } = mochart;
   const mochartConfig = enhanceConfig({
     version: '1.0.0',
@@ -63,6 +64,29 @@ describe('minor tick labels at the axis ends', () => {
     // the wide labels are the majors here; the short minor labels sit well inside the ends
     const { container, chart } = renderChart({ tickStep: { every: 2 }, tickLabel: { truncation: { enabled: false }, anchor: 'start' }, minorTickLabel: { visible: true } }, [wide, 'a', wide + 'w', 'b'], 1200);
     expect(getKindLabels(container, true)).toEqual(['a', 'b']);
+    chart.destroy();
+  });
+});
+
+describe('minor tick labels at the ends of a linear axis', () => {
+  // a 20-decimal format makes a label far wider than the plain one; categories 0 to 40 with no slot padding put 40 on the plot edge, and tickCount 3 keeps every step tick
+  const wide = '.20f';
+  const linear = { type: 'number', scale: 'linear', min: 0, max: 40, categoryCountPadding: 0, tickCount: 3, tickStep: { interval: 20, minorSteps: 2 } };
+  const values = [0, 10, 20, 30, 40];
+
+  it('hides a minor label that would spill past the axis end by its own width and anchor', () => {
+    // the minor labels start at their tick, so the one at 30 runs past the end while the narrow major labels would not; the end majors spill by half their width
+    const { container, chart } = renderChart({ ...linear, tickLabel: { format: '.0f' }, minorTickLabel: { visible: true, format: wide, anchor: 'start' } }, values, 600);
+    expect(getKindLabels(container, false)).toEqual(['20']);
+    expect(getKindLabels(container, true)).toEqual([(10).toFixed(20)]);
+    chart.destroy();
+  });
+
+  it('keeps a minor label the major width would have hidden', () => {
+    // the wide labels are the majors here, anchored at their tick; the short minor labels sit well inside the ends
+    const { container, chart } = renderChart({ ...linear, tickLabel: { format: wide, anchor: 'start' }, minorTickLabel: { visible: true, format: '.0f' } }, values, 600);
+    expect(getKindLabels(container, false)).toEqual([(0).toFixed(20), (20).toFixed(20)]);
+    expect(getKindLabels(container, true)).toEqual(['10', '30']);
     chart.destroy();
   });
 });

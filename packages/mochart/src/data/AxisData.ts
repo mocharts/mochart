@@ -702,12 +702,17 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
       // a step's ticks can far outnumber the fitting ticks, so they thin to every k-th while their labels are drawn; generated ticks at most halve
       const tickInterval = stepTicks.majors !== null ? (fits.major.visible ? Math.max(1, Math.ceil(scaleTicks.length / tickCount)) : 1) : (scaleTicks.length > tickCount ? 2 : 1);
 
+      // a parallel label that would spill past either axis end is hidden, each kind tested with its own width and anchor
+      const outsideEnds = (tickLabelSpace: number, tickLabelAnchor: Anchor) => {
+        const [minPosition, maxPosition] = getEdgeRange(axisLayoutInfo, tickLabelSpace, tickLabelAnchor);
+        return ({ position }: Omit<AxisTick, 'hidden'>) => position < minPosition || position > maxPosition;
+      };
+      const outside = axisLayoutInfo.tickLabelParallel ? outsideEnds(axisLayoutInfo.tickLabelSpace, axisLayoutInfo.tickLabelAnchor) : () => false;
+      const minorOutside = fits.minor.visible && axisLayoutInfo.minorTickLabelParallel ? outsideEnds(axisLayoutInfo.minorTickLabelSpace, axisLayoutInfo.minorTickLabelAnchor) : () => false;
+      ticks = createLinearTicks(scaleTicks, stepTicks.minors, axisScale, tickLabelFormatter, minorTickLabelFormatter, (i, tick) => i % tickInterval !== 0 || outside(tick), minorOutside);
+
       if (axisLayoutInfo.tickLabelParallel) {
         const { tickLabelAnchor } = axisLayoutInfo;
-        const [minPosition, maxPosition] = getEdgeRange(axisLayoutInfo, axisLayoutInfo.tickLabelSpace, tickLabelAnchor);
-        const outside = ({ position }: Omit<AxisTick, 'hidden'>) => position < minPosition || position > maxPosition;
-
-        ticks = createLinearTicks(scaleTicks, stepTicks.minors, axisScale, tickLabelFormatter, minorTickLabelFormatter, (i, tick) => i % tickInterval !== 0 || outside(tick), outside);
         // no sizing tick on an empty domain: every category value at or below 0 on a log axis
         if (categoryValues.length > 0 && axisDomain[0] !== null && axisDomain[1] !== null) {
           // the middle of the axis, which on a log one is the geometric mean of its ends
@@ -717,9 +722,6 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
           singleTick = createLinearTickObject(singleTickValue, axisScale, tickLabelFormatter, () => true);
           ticks.push(singleTick);
         }
-      }
-      else {
-        ticks = createLinearTicks(scaleTicks, stepTicks.minors, axisScale, tickLabelFormatter, minorTickLabelFormatter, i => i % tickInterval !== 0, () => false);
       }
 
       if (preTicks.length > 0) {
