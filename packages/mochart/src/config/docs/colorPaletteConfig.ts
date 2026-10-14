@@ -1,23 +1,26 @@
 import { colorPaletteDescriptions } from './shared.js';
-import type { NestedDescription } from './shared.js';
+import type { DescriptionMap, NestedDescription } from './shared.js';
 
-function palettes(element: string): NestedDescription {
+function palettes(element: string, descriptions: DescriptionMap = colorPaletteDescriptions): NestedDescription {
   return {
     description: 'the color palettes to use for series ' + element + ' that are colored by series or category index',
     properties: {
-      normal: { description: 'the palette to use while nothing has focus', properties: colorPaletteDescriptions },
-      focused: { description: 'the palette to use for the focused ' + element, properties: colorPaletteDescriptions },
-      defocused: { description: 'the palette to use for the defocused ' + element, properties: colorPaletteDescriptions }
+      normal: { description: 'the palette to use while nothing has focus', properties: descriptions },
+      focused: { description: 'the palette to use for the focused ' + element, properties: descriptions },
+      defocused: { description: 'the palette to use for the defocused ' + element, properties: descriptions }
     }
   };
 }
+
+// error bars draw strokes only, so their palettes hold no fill colors
+const strokePaletteDescriptions: DescriptionMap = { strokeColors: colorPaletteDescriptions.strokeColors! };
 
 export default function getDescriptions() {
   return {
     shape: palettes('shapes'),
     marker: palettes('markers'),
     label: palettes('labels'),
-    errorBar: palettes('error bars')
+    errorBar: palettes('error bars', strokePaletteDescriptions)
   };
 }
 export function getDetails() {

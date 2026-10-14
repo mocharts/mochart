@@ -2,6 +2,7 @@
 import validators from './validators.js';
 
 const palette = () => validators.partialObjectWith(['strokeColors', 'fillColors'], validators.arrayOf(validators.color(), false));
+const strokePalette = () => validators.partialObjectWith(['strokeColors'], validators.arrayOf(validators.color(), false));
 
 const paletteStates = () => validators.partialObjectWithShape({
   normal: palette(),
@@ -9,11 +10,17 @@ const paletteStates = () => validators.partialObjectWithShape({
   defocused: palette()
 }, true);
 
+const strokePaletteStates = () => validators.partialObjectWithShape({
+  normal: strokePalette(),
+  focused: strokePalette(),
+  defocused: strokePalette()
+}, true);
+
 export default function getValidators() {
   return {
     shape: paletteStates(),
     marker: paletteStates(),
     label: paletteStates(),
-    errorBar: paletteStates()
+    errorBar: strokePaletteStates()
   };
 }

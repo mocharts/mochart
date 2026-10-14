@@ -12,11 +12,20 @@ const defaultPalette = () => ({
   defocused: defaultState()
 });
 
+// error bars draw strokes only
+const defaultStrokeState = () => ({ strokeColors: [...defaultColors] });
+
+const defaultStrokePalette = () => ({
+  normal: defaultStrokeState(),
+  focused: defaultStrokeState(),
+  defocused: defaultStrokeState()
+});
+
 export default function getDefaults() {
   return {
     shape: defaultPalette(),
     marker: defaultPalette(),
     label: defaultPalette(),
-    errorBar: defaultPalette()
+    errorBar: defaultStrokePalette()
   };
 }

@@ -9,7 +9,7 @@ import {
 import { getFocusedDefocused } from './FocusValue.js';
 import { isMissingValue } from './utils.js';
 import type { FocusPercentage } from '../types/animation.js';
-import type { ColorPaletteConfig, SeriesColor } from '../types/config.js';
+import type { ColorPalette, ColorPaletteConfig, SeriesColor } from '../types/config.js';
 import type { EnhancedSeriesConfig } from '../types/enhanced.js';
 import type { NumericValues, SeriesDomainObject, SeriesValueObject } from '../types/data.js';
 
@@ -40,6 +40,11 @@ interface ColorScale {
   interpolate(interpolator: ColorInterpolator): ColorScale;
 }
 
+/** The palette list a color index reads; the stroke-only error bar palette is never asked for fills, as error bars have none. */
+function readPalette(colorPaletteConfig: ColorPaletteConfig, mapKey: ColorMapKey, focusKey: FocusKey, fillOrStrokeKey: FillOrStrokeKey): string[] {
+  return (colorPaletteConfig[elementKeys[mapKey].paletteKey][focusKey] as ColorPalette)[fillOrStrokeKey];
+}
+
 function readColor(seriesConfig: EnhancedSeriesConfig, mapKey: ColorMapKey, focusKey: FocusKey, member: 'strokeColor' | 'fillColor'): SeriesColor {
   const styleStates = elementKeys[mapKey].readStyle(seriesConfig) as unknown as StyleStateRecord;
   return styleStates[focusKey][member] as SeriesColor;
@@ -65,12 +70,12 @@ function getColor(fillOrStrokeKey: FillOrStrokeKey, mapKey: ColorMapKey, colorPa
   }
   const color = readColor(seriesConfig, mapKey, focusKey, member);
   if (color === COLOR_SERIES_INDEX) {
-    const colors = colorPaletteConfig[elementKeys[mapKey].paletteKey][focusKey][fillOrStrokeKey];
+    const colors = readPalette(colorPaletteConfig, mapKey, focusKey, fillOrStrokeKey);
     return colors[seriesIndex % colors.length]!;
   }
   else if (color === COLOR_CATEGORY_INDEX) {
     if (categoryIndex !== undefined) {
-      const colors = colorPaletteConfig[elementKeys[mapKey].paletteKey][focusKey][fillOrStrokeKey];
+      const colors = readPalette(colorPaletteConfig, mapKey, focusKey, fillOrStrokeKey);
       return colors[categoryIndex % colors.length]!;
     }
     return defaultColor;

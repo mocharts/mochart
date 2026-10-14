@@ -77,6 +77,8 @@ const sharedInterfaceSources: SharedInterfaceSource[] = [
   { interfaceName: 'FontConfig', sectionId: 'chart', propertyKey: 'font' },
   { interfaceName: 'ColorPaletteStates', sectionId: 'colorPalette', propertyKey: 'shape' },
   { interfaceName: 'ColorPalette', sectionId: 'colorPalette', propertyKey: 'shape.normal' },
+  { interfaceName: 'ColorPaletteStrokeStates', sectionId: 'colorPalette', propertyKey: 'errorBar' },
+  { interfaceName: 'ColorPaletteStrokes', sectionId: 'colorPalette', propertyKey: 'errorBar.normal' },
   { interfaceName: 'SeriesCurve', sectionId: 'series', propertyKey: 'curve' },
   { interfaceName: 'SeriesColorScale', sectionId: 'series', propertyKey: 'colorScale' },
   { interfaceName: 'SeriesColorScaleBase', sectionId: 'series', propertyKey: 'colorScale.base' },

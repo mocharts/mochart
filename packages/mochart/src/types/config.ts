@@ -901,6 +901,15 @@ export interface ColorPalette {
   fillColors: string[];
 }
 
+/** A color palette for an element drawn with strokes only, such as error bars. */
+export interface ColorPaletteStrokes {
+  /**
+   * The colors to use for strokes, taken by series or category index and
+   * wrapping around when there are more series than colors.
+   */
+  strokeColors: string[];
+}
+
 /**
  * A color palette in each of the three focus states. Unlike a style, a palette
  * entry is never `'same'`: the states hold whole arrays, so each one names its
@@ -913,6 +922,16 @@ export interface ColorPaletteStates {
   focused: ColorPalette;
   /** The palette to use for the defocused shapes. */
   defocused: ColorPalette;
+}
+
+/** A stroke-only color palette in each of the three focus states. */
+export interface ColorPaletteStrokeStates {
+  /** The palette to use while nothing has focus. */
+  normal: ColorPaletteStrokes;
+  /** The palette to use for the focused error bars. */
+  focused: ColorPaletteStrokes;
+  /** The palette to use for the defocused error bars. */
+  defocused: ColorPaletteStrokes;
 }
 
 export interface ColorPaletteConfig {
@@ -950,7 +969,7 @@ export interface ColorPaletteConfig {
    *
    * @default { normal: { … }, focused: { … }, defocused: { … } }
    */
-  errorBar: ColorPaletteStates;
+  errorBar: ColorPaletteStrokeStates;
 }
 
 /** One kind of crosshair line: the lines drawn for the focused category, or for the focused series. */

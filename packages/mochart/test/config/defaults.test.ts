@@ -160,13 +160,14 @@ describe('color palette defaults', () => {
     const defaults = getDefaults({
       version: '1.0.0',
       categoryAxis: { property: 'p' }
-    }) as { colorPalette: Record<string, Record<string, { strokeColors: string[]; fillColors: string[] }>> };
+    }) as { colorPalette: Record<string, Record<string, { strokeColors: string[]; fillColors?: string[] }>> };
     const tolBright = ['#4477aa', '#ee6677', '#228833', '#ccbb44', '#66ccee', '#aa3377', '#bbbbbb'];
 
-    for (const palettes of Object.values(defaults.colorPalette)) {
+    for (const [element, palettes] of Object.entries(defaults.colorPalette)) {
       for (const palette of Object.values(palettes)) {
         expect(palette.strokeColors).toEqual(tolBright);
-        expect(palette.fillColors).toEqual(tolBright);
+        // error bars draw strokes only, so their palettes carry no fill colors
+        expect(palette.fillColors).toEqual(element === 'errorBar' ? undefined : tolBright);
       }
     }
   });
@@ -175,7 +176,7 @@ describe('color palette defaults', () => {
   it('hands out a fresh color list per state and per call', () => {
     const config = { version: '1.0.0', categoryAxis: { property: 'p' } };
     const first = getDefaults(config) as { colorPalette: Record<string, Record<string, { strokeColors: string[]; fillColors: string[] }>> };
-    const lists = Object.values(first.colorPalette).flatMap(palettes => Object.values(palettes).flatMap(palette => [palette.strokeColors, palette.fillColors]));
+    const lists = Object.values(first.colorPalette).flatMap(palettes => Object.values(palettes).flatMap(palette => [palette.strokeColors, ...(palette.fillColors === undefined ? [] : [palette.fillColors])]));
     expect(new Set(lists).size).toBe(lists.length);
     first.colorPalette.shape.normal.strokeColors.push('#000000');
     const second = getDefaults(config) as typeof first;
