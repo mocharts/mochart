@@ -153,6 +153,29 @@ describe('gradient id validation across both lists', () => {
   });
 });
 
+// Regression: stop colors used the d3-parseable validator although they are written straight to stop-color, where the browser resolves them
+describe('gradient stop color validation', () => {
+  const series = [{ property: 'a', renderer: 'bar', gradient: 'G' }];
+
+  it('accepts the css color functions and currentColor the other dom-written colors take, on linear and radial stops', () => {
+    for (const color of ['oklch(0.7 0.1 200)', 'var(--brand)', 'currentColor', '#ff0000']) {
+      const stops = [{ offset: 0, color, opacity: 1 }, { offset: 1, color: '#ffffff', opacity: 1 }];
+      expect(errorsFor({ version: V, categoryAxis: { property: 'p' }, series, linearGradients: [{ id: 'G', stops }] }), color).toEqual([]);
+      expect(errorsFor({ version: V, categoryAxis: { property: 'p' }, series, radialGradients: [{ id: 'G', stops }] }), color).toEqual([]);
+    }
+  });
+
+  it('rejects "none" and malformed colors', () => {
+    for (const color of ['none', 'not-a-color']) {
+      const stops = [{ offset: 0, color, opacity: 1 }, { offset: 1, color: '#ffffff', opacity: 1 }];
+      expect(errorsFor({ version: V, categoryAxis: { property: 'p' }, series, linearGradients: [{ id: 'G', stops }] }))
+        .toContain('linearGradients[0] - stops[0].color - should be a valid css color (or "currentColor"): "' + color + '"');
+      expect(errorsFor({ version: V, categoryAxis: { property: 'p' }, series, radialGradients: [{ id: 'G', stops }] }))
+        .toContain('radialGradients[0] - stops[0].color - should be a valid css color (or "currentColor"): "' + color + '"');
+    }
+  });
+});
+
 describe('id character validation', () => {
   const stops = [{ offset: 0, color: '#000000', opacity: 1 }, { offset: 1, color: '#ffffff', opacity: 1 }];
   const message = 'should be a string of letters, digits, dashes and underscores';

@@ -11,7 +11,7 @@ export default function getValidators() {
     rotation: validators.numberMinMax(-360, 360),
     stops: validators.arrayOf(validators.objectWithShape({
       offset: validators.numberMinMax(0, 1),
-      color: validators.color(),
+      color: validators.cssColor(),
       opacity: validators.numberMinMax(0, 1)
     }))
   };
