@@ -571,6 +571,26 @@ describe('tooltip', () => {
     expect(focuses[focuses.length - 1].focusedCategoryIndex).toBe(rows.length - 1);
   });
 
+  it('ignores plot clicks on a pie with the tooltip hidden, since a pie draws no crosshair', () => {
+    const focuses: ChartFocus[] = [];
+    const pie = { chart: { type: 'pie' }, series: [{ property: 'sales' }, { property: 'costs' }] };
+    const container = mountChart(makeConfig({ ...pie, tooltip: { visible: false }, crosshair: { visible: true } }), {
+      onFocus: focus => { focuses.push(focus); }
+    }, rows.slice(0, 1));
+    const root = chartRoot(container);
+    mouse(root, 'mouseenter', 100, 100);
+    mouse(root, 'click', 100, 100);
+    expect(focuses).toEqual([]);
+
+    // the same pie with its tooltip shown still opens it and focuses its one category on a click
+    const shown = mountChart(makeConfig({ ...pie, crosshair: { visible: true } }), {
+      onFocus: focus => { focuses.push(focus); }
+    }, rows.slice(0, 1));
+    mouse(chartRoot(shown), 'click', 100, 100);
+    expect(shown.querySelector(getCssSelector('tooltip'))).not.toBeNull();
+    expect(focuses[focuses.length - 1].focusedCategoryIndex).toBe(0);
+  });
+
   it('never drives focus from a followPointer tooltip with applyFocus off', () => {
     const focuses: ChartFocus[] = [];
     const container = mountChart(makeConfig({

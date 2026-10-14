@@ -3,7 +3,7 @@ import type { ElSlot, RendererItem, RendererList, Slot } from '../render/index.j
 
 import { getVersionString } from '../version.js';
 import { hasConfigStructureChange } from '../config/core/mochartConfig.js';
-import { tooltipFocusApplies } from '../utils/TooltipFocus.js';
+import { crosshairInteractive, tooltipFocusApplies } from '../utils/TooltipFocus.js';
 import { isDataProviderValid, getCategorySeriesValueObject, getChartDataCategoryCount } from '../data/ChartData.js';
 import { indexOfCategoryValue } from '../animation/CategoryAnimationData.js';
 import type { CategorySeriesValueObject } from '../data/ChartData.js';
@@ -929,8 +929,8 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   setTooltipOpen(open: boolean, { categoryIndex, categoryFraction, valueFraction: seriesPercentage }: Pick<ChartEventPayload, 'categoryIndex' | 'categoryFraction' | 'valueFraction'>): void {
     const { onFocus, chartData } = this.props;
     const mochartConfig = this.renderedConfig();
-    const { tooltip: tooltipConfig, crosshair: crosshairConfig } = mochartConfig;
-    if (tooltipConfig.visible || crosshairConfig.visible) {
+    const { tooltip: tooltipConfig } = mochartConfig;
+    if (tooltipConfig.visible || crosshairInteractive(mochartConfig)) {
       let { tooltipVisible, tooltipCategoryIndex, tooltipSeriesPercentage, tooltipCategoryPercentage, tooltipLayoutInfo, tooltipBounds, tooltipValueObject } = this.state;
       tooltipSeriesPercentage = open ? seriesPercentage : null;
       tooltipCategoryPercentage = open ? categoryFraction : null;
@@ -1560,8 +1560,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
       // keyboard tab stop on the series-area rect: Enter/Space toggles the tooltip, arrows step, Escape closes;
       // kept during loading, because dropping tabindex would dump keyboard focus to <body>
-      const plotInteractive = mochartConfig.tooltip.visible ||
-        (mochartConfig.chart.type !== CHART_TYPE_PIE && mochartConfig.crosshair.visible);
+      const plotInteractive = mochartConfig.tooltip.visible || crosshairInteractive(mochartConfig);
       const plotA11yProps = accessibility && plotInteractive
         ? this.getPlotA11yProps(accessibilityConfig.plotLabel, String(tooltipVisible))
         : null;
