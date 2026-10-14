@@ -327,6 +327,28 @@ describe('getSeriesPositionData', () => {
       expect(data.getSeriesExtent(null, 1)).toBe(0);
     });
 
+    // Regression: a missing stacked value under missingValueMode base ran from the top of the series below down to the base
+    it('collapses a missing value under missingValueMode base onto the top of the series below, for bars and areas', () => {
+      // the stack keeps the prior top under a missing value, here 20 for the missing category
+      const missingMiddle = values([30, NA, 50, 60, 70], [10, 20, 20, 40, 60]);
+      for (const renderer of ['bar', 'area']) {
+        const config = stacked({ missingValueMode: 'base', renderer });
+        const data = getSeriesPositionData(config.categoryAxis, config.series[1], categoryValueData, uprightScale,
+          missingMiddle, upright);
+        expect(data.seriesPositions).toEqual([140, 160, 100, 80, 60]);
+        expect(data.seriesPriorPositions).toEqual([180, 160, 160, 120, 80]);
+        expect(data.getCurrentSeriesPosition(null, 1)).toBe(160);
+        expect(data.getPriorSeriesPosition(null, 1)).toBe(160);
+        expect(data.getSeriesExtent(null, 1)).toBe(0);
+        expect(data.getDefined(null, 1)).toBe(true);
+      }
+      // the bottom series has the base below it, so its missing value still sits on the base
+      const bottomConfig = stacked({ missingValueMode: 'base' });
+      const bottom = getSeriesPositionData(bottomConfig.categoryAxis, bottomConfig.series[0], categoryValueData, uprightScale,
+        values([10, NA, 20, 40, 60], [0, 0, 0, 0, 0]), upright);
+      expect(bottom.seriesPositions[1]).toBe(200);
+    });
+
     it('does not swap current and prior on an inverted layout', () => {
       const config = stacked();
       const data = getSeriesPositionData(config.categoryAxis, config.series[1], categoryValueData, invertedScale,

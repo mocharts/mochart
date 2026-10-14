@@ -131,6 +131,15 @@ export function getSeriesPositionData(categoryAxisConfig: CategoryAxisConfig, se
     }
   }
 
+  // a stacked series' missing value sits on the top of the series below it, as an explicit 0 does, not down at the base
+  if (stack !== NONE && !skip && missingValueMode === MISSING_VALUE_MODE_BASE && seriesPriorPositions !== null) {
+    for (i=0; i<length; i++) {
+      if (isMissingValue(max[i]) && seriesPriorPositions[i] !== undefined) {
+        seriesPositions[i] = seriesPriorPositions[i];
+      }
+    }
+  }
+
   if (stack === NONE || skip) {
     // back-fill either side per category value; only unstacked bar pairs get sorted (a stack top below its prior is a
     // negative segment), and a ranged line/area keeps property on the series side so its lines, labels and markers don't swap
