@@ -55,6 +55,28 @@ describe('getStackData', () => {
     expect(stackData.outerNegativeSeriesIds.SS0).toEqual([undefined, undefined]);
   });
 
+  it('names the last bar series when a line or area series is stacked above it, since only a bar draws the cap', () => {
+    const config = makeConfig({
+      categoryAxis: { property: 'c', type: 'number', scale: 'ordinal' },
+      series: [
+        { stack: 'SS0', property: 'a', renderer: 'bar' },
+        { stack: 'SS0', property: 'b', renderer: 'line' },
+        { stack: 'SS0', property: 'd', renderer: 'area' }
+      ],
+      seriesStacks: [{ id: 'SS0' }]
+    });
+    // category 0: the line and area are outermost by value, the bar below caps; category 1: the bar is 0, so no cap
+    const chartData = getChartData(config, new ArrayOfObjectsDataProvider([
+      { c: 0, a: 5, b: 3, d: 2 },
+      { c: 1, a: 0, b: 3, d: 2 },
+      { c: 2, a: -2, b: -4, d: -1 }
+    ]), {});
+    const stackData = getStackData(config, chartData);
+    expect(stackData.outerPositiveSeriesIds.SS0).toEqual(['S0', undefined, undefined]);
+    expect(stackData.outerNegativeSeriesIds.SS0).toEqual([undefined, undefined, 'S0']);
+    expect(stackData.filteredOuterPositiveSeriesIds.SS0).toEqual(['S0', undefined, undefined]);
+  });
+
   it('mirrors raw ids into the filtered ids when nothing is filtered', () => {
     const { config, chartData } = stackedSetup([
       { c: 0, a: 5, b: 3 }

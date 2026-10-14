@@ -1,5 +1,6 @@
 import { getWithMutations } from '../utils/WithMutations.js';
 import { keyPlain } from './constants.js';
+import { RENDERER_BAR } from '../config/core/constants.js';
 import type { EnhancedMochartConfig, EnhancedSeriesConfig, EnhancedSeriesStackConfig } from '../types/enhanced.js';
 import type { ChartData, NumericValues, StackData } from '../types/data.js';
 
@@ -59,6 +60,10 @@ export function getStackData(mochartConfig: EnhancedMochartConfig, chartData: Ch
     stackNegativeIds = outerNegativeSeriesIds[stackId];
     stackNegativeFilteredIds = filteredOuterNegativeSeriesIds[stackId];
     for (const seriesConfig of seriesConfigs) {
+      // only a bar draws the outer cap, so a line or area series above the last bar leaves the cap with that bar
+      if (seriesConfig.renderer !== RENDERER_BAR) {
+        continue;
+      }
       id = seriesConfig.id;
       // by the series' own contribution, not the cumulative stack: a zero-value series must not take the outer cap from the bar below it
       assignIdIfPositive(stackPositiveIds, seriesConfig, rawValues[id][keyPlain]);
