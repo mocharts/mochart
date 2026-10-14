@@ -161,6 +161,25 @@ describe('tick label anchoring and rotation', () => {
 
 });
 
+// Regression: the axis spacing was added to the axis size but its contents packed from the box edge, so the room landed on the inner side of a start-side axis while the background inset by the margins
+describe('axis spacing', () => {
+  const leftAxis = (spacing: Record<string, unknown>) => mount({ valueAxes: [{ side: 'start', title: { text: 'Left value' }, ...spacing }] });
+  const numbers = (element: Element | null, names: string[]) => names.map(name => Number(element!.getAttribute(name)));
+  const titleX = (container: Element) => numbers(container.querySelector(getDescendantCssSelector('valueAxis', 'axisTitleBackground') + ' rect'), ['x'])[0];
+
+  it('draws a start-side axis title in by the outer spacing and its axis line on the inner edge of the padding box', () => {
+    const plain = leftAxis({});
+    const spaced = leftAxis({ marginOuter: 10, marginInner: 6 });
+    const background = (container: Element) => numbers(container.querySelector(getDescendantCssSelector('valueAxis', 'axisBackground') + ' rect'), ['x', 'width']);
+    const [x, width] = background(spaced);
+    expect(x).toBe(10);
+    // the title keeps its own margin from the padding box, which the outer spacing moves in
+    expect(titleX(spaced)).toBe(x + titleX(plain) - background(plain)[0]);
+    expect(numbers(spaced.querySelector(getDescendantCssSelector('valueAxis', 'axisLine') + ' line'), ['x1'])[0]).toBe(x + width);
+    expect(numbers(spaced.querySelector(getDescendantCssSelector('valueAxis', 'axisTickMark') + ' line'), ['x1'])[0]).toBe(x + width);
+  });
+});
+
 describe('explicit axis sizing', () => {
   // a measured size would be identical in both mounts, so the plot must shrink by exactly the difference
   it('uses an explicit tickLabelSize instead of measuring', () => {
