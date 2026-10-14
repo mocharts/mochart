@@ -271,6 +271,18 @@ describe('threshold styling', () => {
   });
 
 
+  // a horizontal title's text is rotated 90° clockwise, so its top faces right and its spacing rotates with it
+  it('puts the top spacing of a rotated title on the right, where the text\'s top faces', () => {
+    const titleParts = (title: Record<string, unknown>) => {
+      const titleEl = categoryThreshold({ value: 50, title: { text: 'Target', ...title } }).querySelector(getCssSelector('axisThresholdTitle'))!;
+      return { textX: translation(titleEl.querySelector('text')).x,
+        backgroundX: Number(titleEl.querySelector(getCssSelector('axisThresholdTitleBackground'))!.getAttribute('x')) };
+    };
+    const spacing = (top: number, bottom: number) => ({ top, right: 0, bottom, left: 0 });
+    expect(titleParts({ padding: spacing(0, 10) }).textX - titleParts({ padding: spacing(10, 0) }).textX).toBe(10);
+    expect(titleParts({ margin: spacing(0, 10) }).backgroundX - titleParts({ margin: spacing(10, 0) }).backgroundX).toBe(10);
+  });
+
   function mountOrphanAxis(visibleWhenAllFiltered: boolean): Element {
     const container = mountContainer();
     trackHandle(createDefaultChart(container, {

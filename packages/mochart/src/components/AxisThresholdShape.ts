@@ -300,7 +300,8 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
       }
     }
     else {
-      paddingX += paddingHeight / 2.0;
+      // rotated 90° clockwise, the text's top faces right, so its cross offset is measured from the right edge
+      paddingX = width - paddingX - paddingHeight / 2.0;
       if (alongMiddle) {
         titleY += (seriesLayoutInfo.height - height) / 2;
       }
@@ -348,9 +349,10 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
       return group;
     }) as ThresholdTitleEl;
     titleGroup.set({ className: mochartCssClasses['axisThresholdTitle'] + thresholdIndex, transform: translate(titleX, titleY) });
-    // a horizontal title is rotated 90°, so its background takes the swapped bounds like the text does
+    // a horizontal title is rotated 90° clockwise, so its background takes the rotated bounds like the text does
     titleGroup.backgroundHandle.set({ className: mochartCssClasses['axisThresholdTitleBackground'],
-      x: vertical ? marginRelativeBounds.x : marginRelativeBounds.y, y: vertical ? marginRelativeBounds.y : marginRelativeBounds.x,
+      x: vertical ? marginRelativeBounds.x : thresholdTitleLayoutInfo.height - marginRelativeBounds.y - marginRelativeBounds.height,
+      y: vertical ? marginRelativeBounds.y : marginRelativeBounds.x,
       width: vertical ? marginRelativeBounds.width : marginRelativeBounds.height, height: vertical ? marginRelativeBounds.height : marginRelativeBounds.width,
       ...styleToAttributes(threshold.title.backgroundStyle) });
     titleGroup.textHandle.set({ transform: translateRotate(paddingX, paddingY, vertical ? 0 : 90),
