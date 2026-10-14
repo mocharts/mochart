@@ -413,6 +413,10 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   /** the no-data/error/loading message region while it is focusable: the fallback stop when a teardown removes the plot */
   messageRef: HTMLElement | null = null;
   isMouseWithinChart = false;
+  /** whether the tooltip was open at the last pointerdown: a tap's enter and move open a following tooltip before its click lands */
+  tooltipVisibleAtPointerDown: boolean | null = null;
+  /** a following tooltip closed by a click stays closed through moves until the next click or a leave */
+  tooltipDismissed = false;
   chartEventHandler: Record<string, (event: ChartPointerEvent) => void>;
   _simpleFactory: ChartContentFactory | null = null;
   _simpleFactoryContext: ChartFactoryContext | null = null;
@@ -439,6 +443,9 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       },
       onMouseLeave: (event: ChartPointerEvent) => {
         this.processChartMotionEvent(event);
+      },
+      onPointerDown: () => {
+        this.tooltipVisibleAtPointerDown = this.state.tooltipVisible;
       },
       onClick: (event: ChartPointerEvent) => {
         this.processChartEvent(event, this.onChartClick);
@@ -938,6 +945,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       tooltipBounds = null;
       tooltipVisible = open;
       tooltipCategoryIndex = open ? categoryIndex : -1;
+      this.tooltipDismissed = false;
       if (tooltipVisible) {
         this.lastTooltipCategoryIndex = tooltipCategoryIndex;
       }
@@ -999,9 +1007,11 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     if (mochartConfig.tooltip.followPointer && !this.isLoading()) {
       const { tooltip: tooltipConfig } = mochartConfig;
       const { valueFraction: seriesPercentage, categoryFraction, categoryIndex } = eventPayload;
-      // a closed follow tooltip opens on the move, as it does on entry: the pointer entered during a load, or a click closed it
+      // a closed follow tooltip opens on the move, as it does on entry (the pointer entered during a load), unless a click closed it
       if (tooltipConfig.visible && !this.state.tooltipVisible) {
-        this.setTooltipOpen(true, eventPayload);
+        if (!this.tooltipDismissed) {
+          this.setTooltipOpen(true, eventPayload);
+        }
         return;
       }
       // same applyFocus gate as setTooltipOpen: enter, move and leave must agree on whether pointer interactions may change the focused category
@@ -1041,9 +1051,17 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     const { onChartClick } = this.props;
     const eventPayload = this.getChartEventPayload(chartX, chartY);
     onChartClick?.(eventPayload);
-    if (!this.renderedConfig().tooltip.followPointer) {
+    const { tooltip: tooltipConfig } = this.renderedConfig();
+    if (!tooltipConfig.followPointer) {
       this.setTooltipOpen(!this.state.tooltipVisible, eventPayload);
     }
+    else if (tooltipConfig.closeOnClick) {
+      // toggled from the state at pointerdown, since a tap's enter and move have opened the box by the time its click lands
+      const open = !(this.tooltipVisibleAtPointerDown ?? this.state.tooltipVisible);
+      this.setTooltipOpen(open, eventPayload);
+      this.tooltipDismissed = !open;
+    }
+    this.tooltipVisibleAtPointerDown = null;
   }
 
   // no in-bounds gate: markers/labels can overflow the plot rect

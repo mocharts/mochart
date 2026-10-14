@@ -439,7 +439,13 @@ describe('tooltip', () => {
     mouse(root, 'mouseenter', 100, 100);
     expect(container.querySelector(getCssSelector('tooltip'))).not.toBeNull();
 
-    container.querySelector(getCssSelector('tooltipContent'))!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    // the box takes no pointer events under followPointer, so the click lands on the chart root
+    mouse(root, 'pointerdown', 100, 100);
+    mouse(root, 'click', 100, 100);
+    expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
+
+    // a closed box stays closed through moves until the pointer leaves
+    mouse(root, 'mousemove', 250, 100);
     expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
 
     // the leave that follows must stay a close, not re-open a pinned tooltip
@@ -449,6 +455,37 @@ describe('tooltip', () => {
     // and the next enter must still open
     mouse(root, 'mouseenter', 100, 100);
     expect(container.querySelector(getCssSelector('tooltip'))).not.toBeNull();
+  });
+
+  it('toggles a following tooltip with each tap, from its state at pointerdown', () => {
+    const container = mountChart(makeConfig({ tooltip: { followPointer: true, closeOnClick: true } }));
+    const root = chartRoot(container);
+    // a tap's compatibility mouse events follow its pointerdown, so the enter and move open the box before the click lands
+    const tap = (x: number) => {
+      mouse(root, 'pointerdown', x, 100);
+      mouse(root, 'mouseenter', x, 100);
+      mouse(root, 'mousemove', x, 100);
+      mouse(root, 'click', x, 100);
+    };
+
+    tap(100);
+    expect(container.querySelector(getCssSelector('tooltip'))).not.toBeNull();
+    expect(container.querySelector(getCssSelector('tooltip'))!.textContent).toContain('Jan');
+
+    tap(250);
+    expect(container.querySelector(getCssSelector('tooltip'))).toBeNull();
+
+    tap(400);
+    expect(container.querySelector(getCssSelector('tooltip'))).not.toBeNull();
+    expect(container.querySelector(getCssSelector('tooltip'))!.textContent).toContain('Feb');
+
+    // without closeOnClick a tap leaves the following box alone
+    const sticky = mountChart(makeConfig({ tooltip: { followPointer: true, closeOnClick: false } }));
+    const stickyRoot = chartRoot(sticky);
+    mouse(stickyRoot, 'mouseenter', 100, 100);
+    mouse(stickyRoot, 'pointerdown', 100, 100);
+    mouse(stickyRoot, 'click', 100, 100);
+    expect(sticky.querySelector(getCssSelector('tooltip'))).not.toBeNull();
   });
 
   it('keeps enter opening after the tooltip is opened from the keyboard', () => {
