@@ -34,7 +34,8 @@ export default tseslint.config(
       '**/test-results/**',
       '**/playwright-report/**',
       'site/**',
-      'scripts/screenshots/refs/**'
+      'scripts/screenshots/refs/**',
+      'scratch/**'
     ]
   },
 
