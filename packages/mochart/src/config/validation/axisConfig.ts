@@ -216,11 +216,11 @@ export default function getValidators(thresholdValue = validators.number(), tick
   };
 }
 
-/** min above max is a mistake (axis.reversed is the way to invert an axis); min === max stays legal, as auto produces it from flat data. */
 function getAxisBoundsRule(maxKey: string): string {
   return 'should not be above the ' + maxKey + ' property of the same axis';
 }
 
+/** min above max is a mistake (axis.reversed is the way to invert an axis); min === max stays legal, as auto produces it from flat data. */
 export function getAxisBoundsMessage(maxKey: string, max: unknown): string {
   return getAxisBoundsRule(maxKey) + ': ' + JSON.stringify(max);
 }
