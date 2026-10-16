@@ -217,8 +217,12 @@ export default function getValidators(thresholdValue = validators.number(), tick
 }
 
 /** min above max is a mistake (axis.reversed is the way to invert an axis); min === max stays legal, as auto produces it from flat data. */
+function getAxisBoundsRule(maxKey: string): string {
+  return 'should not be above the ' + maxKey + ' property of the same axis';
+}
+
 export function getAxisBoundsMessage(maxKey: string, max: unknown): string {
-  return 'should not be above the ' + maxKey + ' property of the same axis: ' + JSON.stringify(max);
+  return getAxisBoundsRule(maxKey) + ': ' + JSON.stringify(max);
 }
 
 export function validateAxisBounds(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {
@@ -357,6 +361,34 @@ const minorIntervalNeedsNumberMessage = 'should be a number when interval is a n
 const minorIntervalTooLongMessage = 'should be a shorter period than interval';
 const minorIntervalTooLargeMessage = 'should be smaller than interval';
 const duplicateTickMessage = 'should not repeat the value of another ticks entry';
+
+/** The rules the dedicated axis passes check, by member path, listed as cross rules so the reference docs show them; minorInterval is the category axis's own. */
+export function getAxisCrossRules(categoryAxis: boolean): Record<string, () => string[]> {
+  const stepRules = () => [stepNeedsPlacementMessage, stepOnLogMessage];
+  const offsetRules = () => [stepNeedsPlacementMessage, stepOnLogMessage, offsetNeedsEveryMessage];
+  const patternRules = () => [thresholdPatternMessage, thresholdPatternGradientMessage];
+  const gradientRules = () => [thresholdGradientMessage];
+  const crossRules: Record<string, () => string[]> = {
+    min: () => [getAxisBoundsRule('max')],
+    softMin: () => [getAxisBoundsRule('softMax')],
+    'thresholds[].value': () => [thresholdLogValueMessage, thresholdLogRangeMessage],
+    'thresholds[].pattern': patternRules,
+    'thresholds[].gradient': gradientRules,
+    'thresholds[].title.side': () => [thresholdInsideMessage],
+    'thresholdStep.every': stepRules,
+    'thresholdStep.offset': offsetRules,
+    'thresholdStep.pattern': patternRules,
+    'thresholdStep.gradient': gradientRules,
+    'ticks[].value': () => [duplicateTickMessage],
+    'tickStep.every': stepRules,
+    'tickStep.offset': offsetRules,
+    'tickStep.minorSteps': () => [minorNeedsIntervalMessage]
+  };
+  if (categoryAxis) {
+    crossRules['tickStep.minorInterval'] = () => [minorNeedsIntervalMessage, minorIntervalNeedsPeriodMessage, minorIntervalNeedsNumberMessage, minorIntervalTooLongMessage, minorIntervalTooLargeMessage];
+  }
+  return crossRules;
+}
 
 /** The step rules that cross members, in tickStep and thresholdStep alike: what every and offset count on a linear axis, and what the minor members need. */
 export function validateStepRules(config: ConfigObject, configWithoutDefaults: ConfigObject, errors: string[], errorDetails: LocatedValidationMessage[]): void {

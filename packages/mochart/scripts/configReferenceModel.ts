@@ -161,7 +161,7 @@ interface SectionValidatorInfo {
   allExcludedKeys?: string[];
   references?: Record<string, SectionReference>;
   commonReferences?: Record<string, SectionReference>;
-  crossRules?: Record<string, () => string>;
+  crossRules?: Record<string, () => string | string[]>;
 }
 type SectionValidatorMap = Record<string, SectionValidatorInfo>;
 
@@ -606,7 +606,7 @@ function getSectionKeyRules(sectionValidator: SectionValidatorInfo): Record<stri
   const crossRules = sectionValidator.crossRules;
   if (crossRules) {
     Object.keys(crossRules).forEach(crossRuleKey => {
-      safeAdd(sectionKeyRules, crossRuleKey, crossRules[crossRuleKey]!());
+      ([] as string[]).concat(crossRules[crossRuleKey]!()).forEach(rule => safeAdd(sectionKeyRules, crossRuleKey, rule));
     });
   }
   return sectionKeyRules;
@@ -791,8 +791,8 @@ interface PropertySource {
   detail: DescriptionEntry | undefined;
   regularDefault: unknown;
   conditionalDefault: ConditionalDefaultLeaf | ConditionalDefaults | undefined;
-  /** Section-level rules (uniqueness, references); top-level properties only. */
-  sectionRules: string[] | undefined;
+  /** Section-level rules (uniqueness, references, cross rules) by path within the section. */
+  sectionRules: Record<string, string[]>;
   /** Id reference constraint; top-level properties only. */
   reference?: SectionReference;
   /** Defaults merged under each element of this property, when it holds an array of objects. */
@@ -807,7 +807,7 @@ function buildPropertyDoc(source: PropertySource): PropertyDoc {
   const property: PropertyDoc = {
     key,
     description: descriptionText(description) as string,
-    rules: getPropertyRules(validator, source.sectionRules),
+    rules: getPropertyRules(validator, source.sectionRules[source.path]),
     editor: buildEditorValue(validator)
   };
   if (source.whitelist[source.path] === 'required') {
@@ -850,7 +850,7 @@ function buildPropertyDoc(source: PropertySource): PropertyDoc {
       detail: memberDetails[memberKey],
       regularDefault: nestedRegular[memberKey],
       conditionalDefault: nestedConditional[memberKey],
-      sectionRules: undefined,
+      sectionRules: source.sectionRules,
       whitelist: source.whitelist
     }));
   }
@@ -867,7 +867,7 @@ function buildPropertyDoc(source: PropertySource): PropertyDoc {
       detail: memberDetails[memberKey],
       regularDefault: entryDefaults[memberKey],
       conditionalDefault: undefined,
-      sectionRules: undefined,
+      sectionRules: source.sectionRules,
       whitelist: source.whitelist
     }));
   }
@@ -892,7 +892,7 @@ function buildSectionDoc(source: SectionSource, sectionValidators: SectionValida
     detail: details[key],
     regularDefault: source.regularDefaults[key],
     conditionalDefault: source.conditionalDefaults?.[key],
-    sectionRules: sectionKeyRules[key],
+    sectionRules: sectionKeyRules,
     // A common reference is the more specific form: it points at the same
     // source collection but additionally constrains candidates by commonKey.
     reference: sectionValidator.commonReferences?.[key] ?? sectionValidator.references?.[key],
@@ -978,6 +978,23 @@ function checkSectionCoverage(sources: SectionSource[], errors: string[]) {
   }
 }
 
+/** A section rule whose path names no documented property would be left out of the docs without a word. */
+function checkSectionRulePaths(section: SectionDoc, sectionValidator: SectionValidatorInfo, errors: string[]) {
+  const paths = new Set<string>();
+  const collect = (properties: PropertyDoc[] | undefined, prefix: string) => {
+    for (const property of properties ?? []) {
+      paths.add(prefix + property.key);
+      collect(property.properties, prefix + property.key + (property.itemShape ? '[].' : '.'));
+    }
+  };
+  collect(section.properties, '');
+  for (const path of Object.keys(getSectionKeyRules(sectionValidator))) {
+    if (!paths.has(path)) {
+      errors.push(section.id + '.' + path + ': section rule names no documented property');
+    }
+  }
+}
+
 export function buildConfigReference(): ConfigReferenceResult {
   const integrityErrors: string[] = [];
   const sources = getSectionSources();
@@ -989,6 +1006,9 @@ export function buildConfigReference(): ConfigReferenceResult {
   const sections = sources
     .filter(source => sectionValidators[source.id] !== undefined)
     .map(source => buildSectionDoc(source, sectionValidators));
+  for (const section of sections) {
+    checkSectionRulePaths(section, sectionValidators[section.id]!, integrityErrors);
+  }
   const topLevel = buildTopLevel(new Set(sections.map(section => section.id)));
   return {
     model: { topLevel, sections },

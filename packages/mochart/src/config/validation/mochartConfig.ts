@@ -13,7 +13,7 @@ import colorPaletteValidators from './colorPaletteConfig.js';
 import clipIndicatorValidators from './clipIndicatorConfig.js';
 import crosshairValidators from './crosshairConfig.js';
 import categoryAxisValidators from './categoryAxisConfig.js';
-import { validateAxisBounds, validateThresholdEntries, validateStepRules, validateTickEntries } from './axisConfig.js';
+import { getAxisCrossRules, validateAxisBounds, validateThresholdEntries, validateStepRules, validateTickEntries } from './axisConfig.js';
 import legendValidators from './legendConfig.js';
 import linearGradientValidators from './linearGradientConfig.js';
 import patternValidators from './patternConfig.js';
@@ -40,7 +40,7 @@ interface ConfigSectionValidator {
   allExcludedKeys?: string[];
   references?: Record<string, SectionReference>;
   commonReferences?: Record<string, SectionReference>;
-  crossRules?: Record<string, () => string>; // rules checked by dedicated passes below, listed here so the reference docs show them
+  crossRules?: Record<string, () => string | string[]>; // rules checked by dedicated passes below, by member path, listed here so the reference docs show them
   allKey?: string;
 }
 
@@ -144,7 +144,8 @@ export const configWithoutAllValidators: Record<string, ConfigSectionValidator> 
     validators: (configSection: ConfigRecord, config?: ConfigRecord) => {
       const chart = config?.chart;
       return categoryAxisValidators(configSection, isConfigRecord(chart) && chart.type === CHART_TYPE_PIE);
-    }
+    },
+    crossRules: getAxisCrossRules(true)
   },
   legend: {
     validator: objectValidator,
@@ -193,7 +194,8 @@ export const configWithoutAllValidators: Record<string, ConfigSectionValidator> 
       return valueAxisValidators(configSection, isConfigRecord(chart) && chart.type === CHART_TYPE_PIE, hasStackOnAxis(configSection, config));
     },
     uniqueKeys: ['id', 'order'],
-    allExcludedKeys: ['ignore']
+    allExcludedKeys: ['ignore'],
+    crossRules: getAxisCrossRules(false)
   },
   series: {
     list: true,
