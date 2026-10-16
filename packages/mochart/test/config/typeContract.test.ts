@@ -189,7 +189,7 @@ describe('DeepPartial', () => {
     };
     expect(errorsFor(config)).toEqual([
       'linearGradients[0] - stops[0] - should be an object with exact properties'
-      + ' { offset: should be a number >= to 0 and <= 1, color: should be a valid color, opacity: should be a number >= to 0 and <= 1 }: { offset: 0 }'
+      + ' { offset: should be a number >= to 0 and <= 1, color: should be a valid css color (or "currentColor"), opacity: should be a number >= to 0 and <= 1 }: { offset: 0 }'
     ]);
   });
 
