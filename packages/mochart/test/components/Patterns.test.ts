@@ -92,16 +92,16 @@ describe('built-in SVG patterns', () => {
     expect(new Set(fills)).toEqual(new Set(patternIds.map(id => `url(#${id})`)));
   });
 
-  it('keeps a pattern fill when per-datum colors change the bar stroke', () => {
+  it('keeps the per-datum fills on a colorProperty series instead of the sole pattern', () => {
     const container = mount(base({
       patterns: [{ type: 'dots' }],
       series: [{ id: 'A', property: 'a', renderer: 'bar', colorProperty: 'color',
         colorScale: { min: '#ff0000', max: '#0000ff' } }]
     }));
     const bars = [...container.querySelectorAll(getCssSelector('seriesBar'))];
-    expect(bars[0].getAttribute('fill')).toMatch(/^url\(#series__pattern__/);
-    expect(bars[1].getAttribute('fill')).toBe(bars[0].getAttribute('fill'));
-    expect(bars[1].getAttribute('stroke')).not.toBe(bars[0].getAttribute('stroke'));
+    expect(bars[0].getAttribute('fill')).not.toMatch(/^url\(/);
+    expect(bars[1].getAttribute('fill')).not.toMatch(/^url\(/);
+    expect(bars[1].getAttribute('fill')).not.toBe(bars[0].getAttribute('fill'));
   });
 
   it('uses patterns for areas but leaves plot markers solid', () => {
