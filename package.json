@@ -48,6 +48,7 @@
     "screenshots:compare": "node scripts/screenshots/compare.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "lint:cached": "eslint . --cache --cache-location node_modules/.cache/eslint/",
     "deadcode": "knip",
     "typecheck": "node scripts/typecheck.mjs"
   },
