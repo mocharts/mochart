@@ -192,19 +192,21 @@ function arrayCandidates(value: EditorValue): unknown[] {
   return [[], [first], [first, second]];
 }
 
-/** The values to try for one property: its enum members first, then samples drawn from its types. */
+/**
+ * The values to try for one property: every enum member, then samples drawn from its types. The
+ * limit never cuts an enum member, so a long enum raises the property's count past it.
+ */
 export function candidateValues(spec: PropertySpec, limit: number): Candidate[] {
   const value = spec.value;
   if (value.format !== undefined && SKIPPED_FORMATS.has(value.format)) {
     return [];
   }
-  // a large enum must not crowd out the other families: each keeps one slot inside the limit,
-  // or an svgColor member with a six-member enum would never see a literal color
+  // each other family keeps one slot, or an svgColor member with a six-member enum would never see a literal color
   const { enumValues, families } = scalarValueGroups(value);
   const reserved = Math.min(families.filter(family => family.length > 0).length, Math.max(0, limit - 1));
-  const values = [...enumValues.slice(0, Math.max(1, limit - reserved)),
-    ...families.filter(family => family.length > 0).map(family => family[0]),
-    ...enumValues.slice(Math.max(1, limit - reserved)), ...families.flatMap(family => family.slice(1))];
+  const count = Math.max(limit, new Set(enumValues.map(member => JSON.stringify(member))).size + reserved);
+  const values = [...enumValues, ...families.filter(family => family.length > 0).map(family => family[0]),
+    ...families.flatMap(family => family.slice(1))];
   if (new Set(value.types).has('array')) {
     values.push(...arrayCandidates(value));
   }
@@ -217,7 +219,7 @@ export function candidateValues(spec: PropertySpec, limit: number): Candidate[] 
     }
     seen.add(label);
     candidates.push({ label, value: candidate });
-    if (candidates.length === limit) {
+    if (candidates.length === count) {
       break;
     }
   }

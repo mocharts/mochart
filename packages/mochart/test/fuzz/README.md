@@ -71,7 +71,7 @@ contract rather than a bug. Without the gate, moving `categoryAxis.type` to
 | `--bases=a,b` / `--bases=all` | ten demos spanning bar, line, multi-axis, gradient, pattern, text-heavy, missing-data, pie and heatmap charts | which demo configs to sweep against |
 | `--sections=legend,tooltip` | every section | restrict to config sections |
 | `--property=tickLabel` | none | substring filter on the dotted property id |
-| `--values=6` | 6 | candidate values per property |
+| `--values=6` | 6 | candidate values per property; enum members are never cut, so a longer enum adds more |
 | `--frames=600` | 600 | frame cap per settle |
 | `--width`, `--height` | 800×600 | chart size |
 | `--no-animation` | animation on | render without tweens |
