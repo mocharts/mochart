@@ -6,7 +6,8 @@ import { mochartVersionAttribute } from '../../src/utils/ChartDom';
 
 const UNIQUE_ID_PREFIXES = [
   '__mochart__chart__', 'tooltip__clippath__', 'title__clippath__', 'legend__clippath__',
-  'categoryaxistitle__clippath__', 'categoryaxisticklabel__clippath__', 'seriesaxistitle__clippath__',
+  'categoryaxistitle__clippath__', 'categoryaxisticklabel__clippath__', 'categoryaxisminorticklabel__clippath__',
+  'valueaxistitle__clippath__',
   'series__clippath__', 'clipindicator__pattern__', 'linear__gradient__', 'radial__gradient__',
   'series__pattern__', 'seriescolor__gradient__'
 ];

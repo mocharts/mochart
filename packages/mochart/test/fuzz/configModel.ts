@@ -46,8 +46,10 @@ export interface PropertySpec {
   configKey: string;
   /** Whether the section is a list, so the value is written into its first entry. */
   isList: boolean;
-  /** Key path within the section entry. */
+  /** Key path within the section entry, or within the list entry when `listPath` is set. */
   path: string[];
+  /** For a member of a list-valued property's entries (a threshold, a tick, a gradient stop): the list's key path within the section entry; the value is written into its first entry. */
+  listPath?: string[];
   value: EditorValue;
 }
 
@@ -60,6 +62,8 @@ export interface Candidate {
 export const SKIPPED_FORMATS = new Set(['propertyRequired', 'propertyOptional']);
 
 const COLOR_VALUES = ['#c02942', 'rgb(30 120 200)'];
+// a color format value must parse in d3-color, which predates space-separated rgb(), so the same color is written in hex
+const D3_COLOR_VALUES = ['#c02942', '#1e78c8'];
 const DASH_ARRAY_VALUES = ['4 2', '6,3,1,3'];
 const NUMBER_FORMAT_VALUES = [',.1f', '.0%'];
 const STRING_VALUES = ['Fuzzed', 'A considerably longer string, long enough to need truncating'];
@@ -71,21 +75,26 @@ function readModel(): ConfigModel {
   return JSON.parse(fs.readFileSync(modelPath, 'utf8')) as ConfigModel;
 }
 
-function walkValue(value: EditorValue, prefix: string[], section: ModelSection, configKey: string, out: PropertySpec[]): void {
+function walkValue(value: EditorValue, prefix: string[], section: ModelSection, configKey: string, out: PropertySpec[], listPath?: string[]): void {
   if (value.properties) {
     for (const [key, nested] of Object.entries(value.properties)) {
-      walkValue(nested, prefix.concat(key), section, configKey, out);
+      walkValue(nested, prefix.concat(key), section, configKey, out, listPath);
     }
     return;
   }
   out.push({
-    id: [section.id].concat(prefix).join('.'),
+    id: [section.id].concat(listPath ? [listPath.join('.') + '[]'] : [], prefix).join('.'),
     sectionId: section.id,
     configKey,
     isList: section.shape === 'array',
     path: prefix,
+    ...(listPath ? { listPath } : {}),
     value
   });
+  // the members of a list of objects are swept one by one as well as the list as a whole
+  if (!listPath && value.types.includes('array') && value.items?.properties) {
+    walkValue(value.items, [], section, configKey, out, prefix);
+  }
 }
 
 /** Every leaf config value in the model, in a stable order (sharding and resume index into it). */
@@ -131,8 +140,8 @@ function numberCandidates(value: EditorValue): number[] {
 function stringCandidates(value: EditorValue): string[] {
   switch (value.format) {
     case 'svgColor':
-    case 'cssColor':
-    case 'color': return COLOR_VALUES;
+    case 'cssColor': return COLOR_VALUES;
+    case 'color': return D3_COLOR_VALUES;
     case 'dashArray': return DASH_ARRAY_VALUES;
     case 'numberFormat': return NUMBER_FORMAT_VALUES;
     default: return STRING_VALUES;
@@ -241,7 +250,8 @@ export function entryCount(config: Record<string, unknown>, spec: PropertySpec):
 
 /**
  * Write `value` at the spec's path in a raw config, creating missing groups. Returns false when the
- * config has nowhere to put it: a list section the base never declares that entry for.
+ * config has nowhere to put it: a list section the base never declares that entry for, or a list
+ * property with no first entry for a member to go in.
  */
 export function applyValue(config: Record<string, unknown>, spec: PropertySpec, value: unknown, entryIndex = 0): boolean {
   let target: Record<string, unknown>;
@@ -257,6 +267,16 @@ export function applyValue(config: Record<string, unknown>, spec: PropertySpec, 
       config[spec.configKey] = {};
     }
     target = config[spec.configKey] as Record<string, unknown>;
+  }
+  if (spec.listPath) {
+    let list: unknown = target;
+    for (const key of spec.listPath) {
+      list = isRecord(list) ? list[key] : undefined;
+    }
+    if (!Array.isArray(list) || !isRecord(list[0])) {
+      return false;
+    }
+    target = list[0];
   }
   for (const key of spec.path.slice(0, -1)) {
     if (!isRecord(target[key])) {

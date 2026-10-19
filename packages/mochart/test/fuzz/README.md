@@ -5,7 +5,7 @@ bugs in core. Every leaf config property from `generated/config-reference.json`
 is moved to each of its candidate values on each of several base configs, and
 the result is checked by four oracles. Nothing here needs an expected output to
 be written by hand: every check is a property the library must satisfy for any
-config, which is what lets it cover ~976 properties.
+config, which is what lets it cover ~1,300 properties.
 
 ```
 npm run fuzz -w @mochart/core                       # the default sweep, hours long
@@ -29,6 +29,26 @@ rewritten every few seconds, so a long run can be read while it is still going.
    failed to clean up. This is the oracle with the most reach.
 4. **input-mutation**: the raw config, the enhanced config and the data rows
    handed to the library come back byte-identical.
+
+## List-valued properties
+
+A property whose value is a list (thresholds, explicit ticks, gradient stops,
+color lists) is swept two ways:
+
+- **As a whole list.** Explicit `ticks` and `thresholds` take their values from
+  the base: the axis's first, middle and last category (and on a date axis the
+  same instant written the other way), or the range of the series values on a
+  value axis, plus one value that matches nothing, so the hidden case is
+  covered too. The thresholds include a line, a range and a titled line, each
+  drawn visibly. Every other list gets an empty, a one-entry and a two-entry
+  list built from its item model.
+- **Member by member.** Each member of a list entry, such as
+  `categoryAxis.thresholds[].style.normal.strokeColor`, is a property of its
+  own, written into the first entry of a list the base already declares, so it
+  only runs on bases that have one. `category-ticks`, `threshold-range`,
+  `threshold-category-line`, `heatmap` and `gradients` are default bases for
+  this reason. The `value` and `rangeValue` members also take the values
+  derived from the base.
 
 ## Shape changes
 
@@ -68,7 +88,7 @@ contract rather than a bug. Without the gate, moving `categoryAxis.type` to
 
 | option | default | meaning |
 | --- | --- | --- |
-| `--bases=a,b` / `--bases=all` | ten demos spanning bar, line, multi-axis, gradient, pattern, text-heavy, missing-data, pie and heatmap charts | which demo configs to sweep against |
+| `--bases=a,b` / `--bases=all` | thirteen demos spanning bar, line, multi-axis, gradient, pattern, text-heavy, missing-data, pie and heatmap charts, and charts with explicit ticks and thresholds | which demo configs to sweep against |
 | `--sections=legend,tooltip` | every section | restrict to config sections |
 | `--property=tickLabel` | none | substring filter on the dotted property id |
 | `--values=6` | 6 | candidate values per property; enum members are never cut, so a longer enum adds more |
@@ -101,9 +121,7 @@ they must not count as differences.
 - **Invalid values**: filtered out, not fed in. Checking that the validator
   rejects them and that the chart survives them is a separate oracle.
 - **Data property names**: a made-up one changes which data the chart reads,
-  which is a different experiment. Array-valued properties (thresholds, tick
-  lists, colour lists) *are* swept: each gets an empty list, a one-entry list
-  and a two-entry list, with object entries built from the item model.
+  which is a different experiment.
 - **List entries past the first**: `--list-entries` sweeps them, but the default
   is entry `[0]` only, because sweeping every declared entry costs roughly
   another 7,200 units.

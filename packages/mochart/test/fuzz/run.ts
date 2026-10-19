@@ -6,7 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { installEnvironment } from './environment';
 import { candidateValues, entryCount, loadPropertySpecs, SKIPPED_FORMATS, type PropertySpec } from './configModel';
 import { structuralCases, type StructuralCase } from './structure';
+import { listCandidates } from './listValues';
 import { Fuzzer, type BaseCase, type FindingGroup, type Library } from './runner';
+import type { EnhancedMochartConfig } from '../../src/types/enhanced';
 import { writeReport, type RunSummary } from './report';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -16,10 +18,11 @@ const demosDir = path.resolve(here, '../../../mochart-demo-data/src');
 const startedAt = new Date().toISOString();
 const startedNs = process.hrtime.bigint();
 
-/** A spread of chart types, axis shapes, text loads and style features. */
+/** A spread of chart types, axis shapes, text loads and style features, and the explicit ticks and thresholds whose entries are swept. */
 const DEFAULT_BASES = [
   'grouped', 'stacked', 'axis-multiple', 'curved', 'gradients',
-  'patterns', 'truncated-text', 'undefined-values', 'pie', 'heatmap'
+  'patterns', 'truncated-text', 'undefined-values', 'pie', 'heatmap',
+  'category-ticks', 'threshold-range', 'threshold-category-line'
 ];
 
 interface Options {
@@ -127,7 +130,8 @@ function loadBases(library: Library, options: Options): BaseCase[] {
       console.warn('skipping base ' + id + ': its own config does not validate: ' + validation.errors.join('; '));
       continue;
     }
-    bases.push({ id, config: raw, data: loadJson(dataPaths[demo.data]!) });
+    const enhanced = library.enhanceConfig(structuredClone(raw)) as unknown as EnhancedMochartConfig;
+    bases.push({ id, config: raw, enhanced, data: loadJson(dataPaths[demo.data]!) });
   }
   return bases;
 }
@@ -252,7 +256,7 @@ async function main(): Promise<void> {
       }
     }
     else {
-      for (const candidate of candidateValues(spec, options.values)) {
+      for (const candidate of listCandidates(spec, base, entry) ?? candidateValues(spec, options.values)) {
         if (fuzzer.runCase(base, spec, candidate, entry) === 'ran') {
           swept.add(spec.id);
         }

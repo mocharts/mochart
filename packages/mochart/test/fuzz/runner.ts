@@ -4,6 +4,7 @@ import { applyValue, type Candidate, type PropertySpec } from './configModel';
 import { differencePath, diffSignature, diffSummary, scanGeometry, serializeDom } from './oracles';
 import { mountContainer, pendingTimerCount, resetClock, runFrames, unmountContainer } from './environment';
 import type { ChartHandle } from '../../src/createChart';
+import type { EnhancedMochartConfig } from '../../src/types/enhanced';
 import type { ArrayOfObjectsData, DataProvider, ManagedChartProps, ObjectOfArraysData } from '../../src';
 
 export type Library = typeof import('../../src');
@@ -33,6 +34,8 @@ export interface BaseCase {
   id: string;
   /** Raw (migrated) config, the input every case clones. */
   config: Record<string, unknown>;
+  /** The config with its defaults and cross-references, read for base-derived values; never rendered. */
+  enhanced: EnhancedMochartConfig;
   data: unknown;
 }
 
