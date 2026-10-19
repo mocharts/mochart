@@ -302,8 +302,12 @@ export class Fuzzer {
   }
 }
 
-// warnings a valid config is meant to log: a log axis names the series values at or below 0 it draws as missing
-const expectedConsoleMessages = [/^mochart value axis .* is a log axis, so it draws series values at or below 0 as missing/];
+// warnings a valid config is meant to log: log axis values at or below 0, and tickStep or thresholdStep below minSpacing
+const expectedConsoleMessages = [
+  /^mochart value axis .* is a log axis, so it draws series values at or below 0 as missing/,
+  /^mochart .* tickStep creates no (minor )?ticks: they would be closer together than minSpacing/,
+  /^mochart .* thresholdStep draws nothing: its thresholds would be closer together than minSpacing/
+];
 
 /** A config holding something unclonable cannot be guarded; skip its mutation check rather than fail the case. */
 function safeClone<T>(value: T): T | undefined {
