@@ -9,7 +9,7 @@ import { indexOfCategoryValue } from '../animation/CategoryAnimationData.js';
 import type { CategorySeriesValueObject } from '../data/ChartData.js';
 import { getChartLayoutInfo, getChartLayoutInfoWithMutations } from '../layout/ChartLayout.js';
 import { getTooltipLayoutInfo, getTooltipLayoutInfoWithMutations } from '../layout/TooltipLayout.js';
-import { getAxisData, getAxisDataWithMutations, getAxisDataForCategoryChange, getAxisDataForSeriesChange } from '../data/AxisData.js';
+import { axisTickLabelsChanged, getAxisData, getAxisDataWithMutations, getAxisDataForCategoryChange, getAxisDataForSeriesChange } from '../data/AxisData.js';
 import { getStackData, getStackDataWithMutations } from '../data/StackData.js';
 import { getChartTextBoundsData, getChartTextBoundsDataWithMutations, getTooltipBounds, getBoundsWithMutations } from '../utils/TextMeasurement.js';
 import { mochartCssClasses, mochartVersionAttribute, getDomAccessors } from '../utils/ChartDom.js';
@@ -836,6 +836,8 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
   /** the mount pass measures the tick labels before they truncate; one follow-up pass re-reads them once they have */
   private remeasureAfterMount = false;
+  /** set while an update's measure re-renders: the measured widths can pick ticks with other labels, which one follow-up pass re-reads */
+  private remeasureIfTickLabelsChange = false;
 
   measure(prevProps: ChartProps | null, prevState: ChartState | null): void {
     this.flushSeriesLayoutBoundsChange();
@@ -881,11 +883,15 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
           if (mochartConfigChanged || sizeChanged || fontsChanged || (dataChanged && textMayHaveChanged)) {
             this.remeasureAfterMount = false;
+            // its setState flushes the re-render synchronously, so the flag is only seen by that render's measure
+            this.remeasureIfTickLabelsChange = true;
             this.calculateInitialTextSizes();
+            this.remeasureIfTickLabelsChange = false;
           }
-          else if (this.remeasureAfterMount) {
+          else if (this.remeasureAfterMount || (this.remeasureIfTickLabelsChange && axisTickLabelsChanged(oldAxisData, axisData))) {
             // bounded to one pass: the truncation resets whenever the plot extent moves, so chasing it could ping-pong
             this.remeasureAfterMount = false;
+            this.remeasureIfTickLabelsChange = false;
             this.calculateInitialTextSizes();
           }
 

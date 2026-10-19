@@ -77,6 +77,30 @@ export function getAxisDataWithMutations(axisData: AxisData | null, mochartConfi
   return getWithMutations(axisData, getAxisData(mochartConfig, chartLayoutInfo, chartData), scaleMutator);
 }
 
+function tickLabelsDiffer(oldTicks: AxisTick[] | undefined, newTicks: AxisTick[] | undefined): boolean {
+  if (oldTicks === newTicks) {
+    return false;
+  }
+  if (oldTicks === undefined || newTicks === undefined || oldTicks.length !== newTicks.length) {
+    return true;
+  }
+  return newTicks.some((tick, index) => String(tick.label) !== String(oldTicks[index]!.label) || tick.minor !== oldTicks[index]!.minor);
+}
+
+/** Whether any axis draws different tick label text, so labels measured from the old axis data no longer match the DOM. */
+export function axisTickLabelsChanged(oldAxisData: AxisData | null, newAxisData: AxisData | null): boolean {
+  if (oldAxisData === newAxisData) {
+    return false;
+  }
+  if (tickLabelsDiffer(oldAxisData?.category?.axisTickData, newAxisData?.category?.axisTickData)) {
+    return true;
+  }
+  const oldValueTicks = oldAxisData?.value?.axisTickData ?? {};
+  const newValueTicks = newAxisData?.value?.axisTickData ?? {};
+  const ids = new Set([...Object.keys(oldValueTicks), ...Object.keys(newValueTicks)]);
+  return [...ids].some(id => tickLabelsDiffer(oldValueTicks[id], newValueTicks[id]));
+}
+
 export function getAxisDataForCategoryChange(axisData: AxisData, mochartConfig: EnhancedMochartConfig, chartLayoutInfo: ChartLayoutInfo, chartData: ChartData | null): AxisData {
   const categoryAxisData = getCategoryAxisData(mochartConfig.categoryAxis, chartLayoutInfo.categoryAxisLayoutInfo, chartData, hasStepWarnings(mochartConfig));
   return getWithMutations(axisData, Object.assign({}, axisData, { category: categoryAxisData }), scaleMutator);
