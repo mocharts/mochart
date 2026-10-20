@@ -14,9 +14,10 @@ const UNIQUE_ID_PREFIXES = [
 const uniqueIdPattern = new RegExp('(' + UNIQUE_ID_PREFIXES.join('|') + ')(\\d+)', 'g');
 
 /**
- * Line-per-node serialization with attributes sorted by name and the per-instance id counters
- * flattened. Two chart instances built from the same config must produce the same text. Attribute
- * write order is not observable, so it must not be compared.
+ * Line-per-node serialization with attributes, and the declarations in each style attribute, sorted
+ * by name and the per-instance id counters flattened. Two chart instances built from the same config
+ * must produce the same text. Attribute and style write order is not observable, so it must not be
+ * compared.
  */
 export function serializeDom(root: Element): string {
   const lines: string[] = [];
@@ -39,12 +40,23 @@ function writeNode(node: Node, lines: string[]): void {
   const attributes = element.getAttributeNames()
     .filter(name => name !== mochartVersionAttribute)
     .sort()
-    .map(name => name + '="' + (element.getAttribute(name) ?? '').replace(uniqueIdPattern, '$1N') + '"');
+    .map(name => name + '="' + (name === 'style' ? styleText(element) : element.getAttribute(name) ?? '').replace(uniqueIdPattern, '$1N') + '"');
   lines.push('<' + element.tagName + (attributes.length > 0 ? ' ' + attributes.join(' ') : '') + '>');
   for (const child of node.childNodes) {
     writeNode(child, lines);
   }
   lines.push('</' + element.tagName + '>');
+}
+
+function styleText(element: Element): string {
+  const style = (element as HTMLElement).style;
+  const declarations: string[] = [];
+  for (let i = 0; i < style.length; i++) {
+    const name = style.item(i);
+    const priority = style.getPropertyPriority(name);
+    declarations.push(name + ': ' + style.getPropertyValue(name) + (priority !== '' ? ' !' + priority : '') + ';');
+  }
+  return declarations.sort().join(' ');
 }
 
 /** Attributes carrying geometry: a non-numeric value here is always a bug, never user text. */
