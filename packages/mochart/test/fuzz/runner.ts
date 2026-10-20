@@ -3,6 +3,7 @@
 import { applyValue, type Candidate, type PropertySpec } from './configModel';
 import { differencePath, diffSignature, diffSummary, scanGeometry, serializeDom } from './oracles';
 import { mountContainer, pendingTimerCount, resetClock, runFrames, unmountContainer } from './environment';
+import { MAX_SAMPLES, sortFindings } from './report';
 import type { ChartHandle } from '../../src/createChart';
 import type { EnhancedMochartConfig } from '../../src/types/enhanced';
 import type { ArrayOfObjectsData, DataProvider, ManagedChartProps, ObjectOfArraysData } from '../../src';
@@ -47,8 +48,6 @@ export interface RunnerOptions {
 
 export type CaseStatus = 'ran' | 'inapplicable' | 'invalid' | 'no-op' | 'data-mismatch';
 
-const MAX_SAMPLES = 3;
-
 export class Fuzzer {
   readonly stats = {
     cases: 0,
@@ -75,7 +74,7 @@ export class Fuzzer {
   }
 
   getFindings(): FindingGroup[] {
-    return [...this.groups.values()].sort((a, b) => b.count - a.count || a.property.localeCompare(b.property));
+    return sortFindings([...this.groups.values()]);
   }
 
   private record(oracle: Oracle, property: string, signature: string, sample: FindingSample): void {

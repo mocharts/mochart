@@ -109,6 +109,33 @@ contract rather than a bug. Without the gate, moving `categoryAxis.type` to
 
 `Ctrl-C` writes the report and stops cleanly.
 
+## Running on GitHub
+
+`.github/workflows/fuzz.yml` runs the sweep as 20 parallel shards on GitHub
+Actions, then merges their reports into one. A shard never fails on findings;
+the merge job does, so a run with findings shows as failed and GitHub emails
+whoever started it.
+
+Until the workflow file reaches main, a run starts with a push to the `fuzz`
+branch, which only exists on GitHub:
+
+```
+git push -f origin develop:fuzz   # fuzz develop's tip
+gh run watch                      # follow it
+gh run download --name fuzz-report
+```
+
+A push run uses the default bases and every section. Once the file is on main,
+the Actions tab can start it by hand with a shard count, bases and sections,
+and the push trigger can go.
+
+The merged report is also on the run's summary page. Each shard's own output is
+kept for 7 days as `fuzz-shard-N`. To merge shard reports locally:
+
+```
+npm run fuzz:merge -w @mochart/core -- --out=merged shard1 shard2
+```
+
 ## Determinism
 
 The harness installs its own jsdom, a virtual clock (`requestAnimationFrame`,

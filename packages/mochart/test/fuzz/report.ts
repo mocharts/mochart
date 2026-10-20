@@ -12,6 +12,13 @@ export interface RunSummary {
   stats: Record<string, number>;
 }
 
+/** Samples kept per finding group. */
+export const MAX_SAMPLES = 3;
+
+export function sortFindings(findings: FindingGroup[]): FindingGroup[] {
+  return findings.sort((a, b) => b.count - a.count || a.property.localeCompare(b.property));
+}
+
 const ORACLE_TITLES: Record<Oracle, string> = {
   'error': 'Errors: a throw, a console error, or a chart that never settles',
   'geometry': 'Impossible geometry: NaN, Infinity, missing values or negative extents in the DOM',

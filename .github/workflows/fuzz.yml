@@ -1,0 +1,108 @@
+name: Fuzz
+
+# The tier 1 config fuzzer (packages/mochart/test/fuzz), split into parallel
+# shards whose reports one final job merges. See "Running on GitHub" in its
+# README. workflow_dispatch only works once this file is on the default
+# branch; until then a run starts with a push to the fuzz branch:
+#   git push -f origin develop:fuzz
+on:
+  push:
+    branches: [fuzz]
+  workflow_dispatch:
+    inputs:
+      shards:
+        description: Number of parallel shards (20 run at once on the free plan)
+        default: '20'
+      bases:
+        description: Base configs, comma separated, or all (empty for the default set)
+        default: ''
+      sections:
+        description: Config sections, comma separated (empty for every section)
+        default: ''
+
+permissions:
+  contents: read
+
+# A new push to the fuzz branch replaces the run in progress.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# inputs is empty on a push, so a push run takes the defaults.
+env:
+  SHARDS: ${{ inputs.shards || '20' }}
+  BASES: ${{ inputs.bases }}
+  SECTIONS: ${{ inputs.sections }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.shards.outputs.list }}
+    steps:
+      - id: shards
+        run: echo "list=[$(seq -s, 1 "$SHARDS")]" >> "$GITHUB_OUTPUT"
+
+  fuzz:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      # the fuzzer reads generated/config-reference.json, which is not committed
+      - run: npm run generate-docs -w @mochart/core
+      # Below the job's 6-hour limit, so a shard that runs long still uploads
+      # its report, which the fuzzer rewrites every few seconds. Findings do
+      # not fail a shard; the merge job fails on them.
+      - name: Fuzz
+        timeout-minutes: 330
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          args=(--shard="$SHARD/$SHARDS" --out="$GITHUB_WORKSPACE/fuzz-out")
+          if [ -n "$BASES" ]; then args+=(--bases="$BASES"); fi
+          if [ -n "$SECTIONS" ]; then args+=(--sections="$SECTIONS"); fi
+          npm run fuzz -w @mochart/core -- "${args[@]}"
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fuzz-shard-${{ matrix.shard }}
+          path: fuzz-out
+          retention-days: 7
+
+  merge:
+    needs: [plan, fuzz]
+    # merges whatever shards uploaded, even when one of them failed
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: fuzz-shard-*
+          path: shards
+      - name: Merge
+        run: npm run fuzz:merge -w @mochart/core -- --out="$GITHUB_WORKSPACE/fuzz-report" --fail-on-findings "$GITHUB_WORKSPACE"/shards/*
+      # the run summary page takes at most 1 MiB per step
+      - if: always() && hashFiles('fuzz-report/report.md') != ''
+        run: head -c 1000000 fuzz-report/report.md >> "$GITHUB_STEP_SUMMARY"
+      - if: always() && hashFiles('fuzz-report/report.md') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: fuzz-report
+          path: fuzz-report
+          retention-days: 30

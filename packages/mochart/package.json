@@ -68,6 +68,7 @@
     "prepack": "npm run stamp-version && npm run build",
     "test": "vitest run --coverage",
     "fuzz": "tsx --conditions=development test/fuzz/run.ts",
+    "fuzz:merge": "tsx test/fuzz/merge.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p test/tsconfig.json && tsc --noEmit -p scripts/tsconfig.json",
     "lint": "eslint .",
     "generate-docs": "tsx scripts/generator.ts",
