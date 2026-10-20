@@ -262,12 +262,26 @@ describe('colorProperty renderer validation', () => {
     expect(withDefaults.series[1].colorScale).not.toBeNull();
   });
 
-  // and a ramp without a colorProperty was already rejected, on any renderer
+  // and a ramp without a colorProperty is still rejected member by member
   it('still rejects a colorScale with no colorProperty', () => {
     expect(errorsFor({
       version: V, categoryAxis: { property: 'p' },
-      series: [{ property: 'a', renderer: 'line', colorScale: { min: '#0000ff', max: '#ff0000' } }]
+      series: [{ property: 'a', renderer: 'bar', colorScale: { min: '#0000ff', max: '#ff0000' } }]
     })).toContainEqual(expect.stringContaining('series[0] - colorScale.min - should be equal to null when colorProperty is null'));
+  });
+
+  // a colorScale of null members on a series that draws none crashed the legend swatch
+  it('rejects a colorScale on a series that draws none', () => {
+    const colorScaleSeries = (renderer: string, pie = false) => ({
+      version: V, ...(pie ? { chart: { type: 'pie' } } : {}), categoryAxis: { property: 'p' },
+      series: [{ property: 'a', renderer, colorScale: { min: null } }]
+    });
+    const message = 'colorScale - should be equal to null when chart type is not xy or renderer is not bar, and colorProperty is null: { min: null }';
+    for (const renderer of ['line', 'area', 'none']) {
+      expect(errorsFor(colorScaleSeries(renderer))).toEqual([`series[0] - ${message}`]);
+    }
+    expect(errorsFor(colorScaleSeries('bar', true))).toEqual([`series[0] - ${message}`]);
+    expect(errorsFor(colorScaleSeries('bar'))).toEqual([]);
   });
 });
 

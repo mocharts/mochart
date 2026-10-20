@@ -17,7 +17,8 @@ can both check values and report readable errors:
 - `allowedValues` and `isEnum`: the literal values it accepts, and whether it
   accepts only those
 - `rangeValues`: the numeric bounds of the `*Min` / `*Max` validators
-- `nestedValues`: the per-property validators of the object shape validators
+- `nestedValues`: the per-property validators of the object shape validators,
+  and of a `conditional` whose matched rule is one
 - `itemValidator`: the element validator of `arrayOf`
 - `alternativeValidators`: the validators `or` and `conditional` combine
 

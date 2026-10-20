@@ -166,6 +166,17 @@ export default function getValidators(config: DeepPartial<SeriesConfig>, pieMode
     condition: (condition: ColorRendererCondition) => !supportsColorProperty(condition),
     suffix: 'when chart type is not xy or renderer is not bar, or colorScale is ' + NONE
   };
+  // a colorProperty set where it cannot be drawn is reported on its own, so its colorScale does not pile on
+  const supportsColorScale = ({ renderer, colorProperty }: RendererCondition & ColorCondition) =>
+    (!pieMode && renderer === RENDERER_BAR) || colorProperty !== NONE;
+  const colorScaleRule = {
+    condition: supportsColorScale,
+    suffix: 'when chart type is xy and renderer is bar, or colorProperty is not ' + NONE
+  };
+  const colorScaleNoneRule = {
+    condition: (condition: RendererCondition & ColorCondition) => !supportsColorScale(condition),
+    suffix: 'when chart type is not xy or renderer is not bar, and colorProperty is ' + NONE
+  };
   const fillRendererWithoutGradientRule = {
     condition: (condition: PatternCondition) => supportsFill(condition) && condition.gradient === NONE,
     suffix: 'when chart type is pie or renderer is area or bar, and gradient is ' + NONE
@@ -221,48 +232,53 @@ export default function getValidators(config: DeepPartial<SeriesConfig>, pieMode
       { ...categoryIndexFillRule, validator: validators.equal(NONE) },
       { ...fillRendererWithoutGradientRule, validator: validators.string().orEqual(NONE) }
     ], config),
-    colorScale: validators.partialObjectWithShape({
-      interpolation: validators.conditional([
-        { ...colorPropertyRule, validator: validators.oneOf(COLOR_INTERPOLATIONS) },
-        { ...colorPropertyNoneRule, validator: validators.equal(NONE) }
-      ], config),
-      min: validators.conditional([
-        { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
-        { ...colorBaseRule, validator: validators.equal(NONE) },
-        { ...colorBaseNoneRule, validator: validators.color() },
-      ], config),
-      max: validators.conditional([
-        { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
-        { ...colorBaseRule, validator: validators.equal(NONE) },
-        { ...colorBaseNoneRule, validator: validators.color() },
-      ], config),
-      missing: validators.conditional([
-        { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
-        { ...colorPropertyRule, validator: validators.color().orEqual(NONE) },
-      ], config),
-      base: validators.partialObjectWithShape({
-        value: validators.number().orEqual(NONE),
-        aboveMin: validators.conditional([
-          { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
-          { ...colorBaseNoneRule, validator: validators.equal(NONE) },
-          { ...colorBaseRule, validator: validators.color() },
-        ], config),
-        aboveMax: validators.conditional([
-          { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
-          { ...colorBaseNoneRule, validator: validators.equal(NONE) },
-          { ...colorBaseRule, validator: validators.color() },
-        ], config),
-        belowMin: validators.conditional([
-          { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
-          { ...colorBaseNoneRule, validator: validators.equal(NONE) },
-          { ...colorBaseRule, validator: validators.color() },
-        ], config),
-        belowMax: validators.conditional([
-          { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
-          { ...colorBaseNoneRule, validator: validators.equal(NONE) },
-          { ...colorBaseRule, validator: validators.color() },
-        ], config)
-      }, true)
-    }, true).orEqual(NONE),
+    colorScale: validators.conditional([
+      {
+        ...colorScaleRule, validator: validators.partialObjectWithShape({
+          interpolation: validators.conditional([
+            { ...colorPropertyRule, validator: validators.oneOf(COLOR_INTERPOLATIONS) },
+            { ...colorPropertyNoneRule, validator: validators.equal(NONE) }
+          ], config),
+          min: validators.conditional([
+            { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
+            { ...colorBaseRule, validator: validators.equal(NONE) },
+            { ...colorBaseNoneRule, validator: validators.color() },
+          ], config),
+          max: validators.conditional([
+            { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
+            { ...colorBaseRule, validator: validators.equal(NONE) },
+            { ...colorBaseNoneRule, validator: validators.color() },
+          ], config),
+          missing: validators.conditional([
+            { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
+            { ...colorPropertyRule, validator: validators.color().orEqual(NONE) },
+          ], config),
+          base: validators.partialObjectWithShape({
+            value: validators.number().orEqual(NONE),
+            aboveMin: validators.conditional([
+              { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
+              { ...colorBaseNoneRule, validator: validators.equal(NONE) },
+              { ...colorBaseRule, validator: validators.color() },
+            ], config),
+            aboveMax: validators.conditional([
+              { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
+              { ...colorBaseNoneRule, validator: validators.equal(NONE) },
+              { ...colorBaseRule, validator: validators.color() },
+            ], config),
+            belowMin: validators.conditional([
+              { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
+              { ...colorBaseNoneRule, validator: validators.equal(NONE) },
+              { ...colorBaseRule, validator: validators.color() },
+            ], config),
+            belowMax: validators.conditional([
+              { ...colorPropertyNoneRule, validator: validators.equal(NONE) },
+              { ...colorBaseNoneRule, validator: validators.equal(NONE) },
+              { ...colorBaseRule, validator: validators.color() },
+            ], config)
+          }, true)
+        }, true).orEqual(NONE)
+      },
+      { ...colorScaleNoneRule, validator: validators.equal(NONE) },
+    ], config),
   };
 }

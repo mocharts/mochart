@@ -1809,6 +1809,16 @@ describe("validators", () => {
       expect(baseValidators.conditional(rules, { type: "string" }).alternativeValidators).toEqual(alternatives);
     });
 
+    it("exposes the nested validators of the matched rule", () => {
+      const shape = { a: baseValidators.number() };
+      const rules: ConditionalRule[] = [
+        { condition: ({ type }) => type === "object", validator: baseValidators.partialObjectWithShape(shape) },
+        { condition: () => true, validator: baseValidators.equal(null) }
+      ];
+      expect(baseValidators.conditional(rules, { type: "object" }).nestedValues).toEqual(shape);
+      expect(baseValidators.conditional(rules, { type: "other" }).nestedValues).toBeNull();
+    });
+
     it("should allow values that are allowed by the validator for the matched rule", () => {
       const rules: ConditionalRule[] = [
         {

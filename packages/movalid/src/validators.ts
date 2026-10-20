@@ -24,7 +24,7 @@ export interface Validator {
   extensionNames: string[] | null;
   /** The literal values it accepts, for `equal`, `oneOf`, `oneIn` and the `or` extensions, or null. */
   allowedValues: any[] | null;
-  /** The validator for each property, for the object shape validators, or null. */
+  /** The validator for each property, for the object shape validators and a `conditional` whose matched rule is one, or null. */
   nestedValues: Record<string, Validator> | null;
   /** The validator for each element, for `arrayOf`, or null. */
   itemValidator: Validator | null;
@@ -844,7 +844,7 @@ validators.conditional = (rules: ConditionalRule[], object: any): Validator => {
   validatorFunction.customName = null;
   validatorFunction.extensionNames = null;
   validatorFunction.allowedValues = null;
-  validatorFunction.nestedValues = null;
+  validatorFunction.nestedValues = matchedRule !== undefined ? matchedRule.validator.nestedValues : null;
   validatorFunction.itemValidator = null;
   validatorFunction.alternativeValidators = rules.map(rule => rule.validator);
   validatorFunction.rangeValues = null;
