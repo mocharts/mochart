@@ -308,11 +308,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
     this.syncSizeLabel(this.minorSizeTickLabel, ordinal && minorPresent && minorTruncation?.enabled === true, mochartCssClasses['axisMinorSizeTickLabel'], this.minorSizeTickTextStyle, minorTruncation?.text ?? '', accessibility);
   }
 
-  measure(prevProps: AxisTickLabelsProps | null) {
-    if (prevProps === null) {
-      // truncation is only rechecked after updates; the initial sync renders untruncated
-      return;
-    }
+  measure() {
     if (this.truncation.check) {
       const domElements = this.tickLabelsGroup.node.querySelectorAll<SVGTextContentElement>(getAxisTickLabelsCssSelector());
       // the labels only seed fresh truncation data; an existing entry set is refined in place

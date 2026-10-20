@@ -373,11 +373,7 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
     this.textRawValue.set(seriesLabel);
   }
 
-  measure(prevProps: LegendItemProps | null) {
-    if (prevProps === null) {
-      // truncation is only rechecked after updates; the initial sync renders untruncated
-      return;
-    }
+  measure() {
     if (this.truncation.check) {
       const domElement = this.root.node.querySelector<SVGTextContentElement>(getLegendItemTextCssSelector());
       const { legendConfig, seriesConfig, legendItemTextLayoutInfo } = this.props;

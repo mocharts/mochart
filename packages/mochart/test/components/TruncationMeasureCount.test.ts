@@ -1,7 +1,7 @@
 /**
  * Guards the cost of text truncation: every getComputedTextLength call forces layout, so the number
- * of calls each truncating host makes across an animated update sequence is pinned here. The counts
- * were recorded before the truncation state machine moved into TruncationTracker and must not grow.
+ * of calls each truncating host makes across an animated update sequence is pinned here. Raise a count
+ * only for a fix that needs the extra measuring.
  */
 import { describe, it, beforeAll, expect } from 'vitest';
 import { installFakeFrameClock, runFrames, mountContainer } from './helpers';
@@ -121,8 +121,8 @@ describe('truncation measurement cost', () => {
     chart.destroy();
 
     expect({ initial, valuesAnimated, resized, categoriesChurned }).toEqual({
-      // the mount includes one bounded follow-up measure once the tick labels have truncated
-      initial: { tickLabels: 1264, title: 247, axisTitle: 136, legendItem: 492, other: 0 },
+      // the mount includes each host's truncation check after mounting and one bounded follow-up measure once the tick labels have truncated
+      initial: { tickLabels: 1307, title: 247, axisTitle: 148, legendItem: 504, other: 0 },
       valuesAnimated: { tickLabels: 5608, title: 936, axisTitle: 496, legendItem: 1872, other: 0 },
       resized: { tickLabels: 136, title: 14, axisTitle: 22, legendItem: 26, other: 0 },
       categoriesChurned: { tickLabels: 3792, title: 516, axisTitle: 272, legendItem: 1032, other: 0 }

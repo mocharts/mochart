@@ -576,8 +576,7 @@ export function describeRotatedTickLabelGoldens(): void {
         height: HEIGHT
       });
 
-      // before any frame runs: the first sync renders untruncated, so the clip rect is the only
-      // thing bounding the labels here
+      // before any frame runs: the labels have already truncated in the renders createChart runs itself
       await expectSnapshot(container, demo.id, stage + '-mount');
       settle();
       await expectSnapshot(container, demo.id, stage + '-settled');

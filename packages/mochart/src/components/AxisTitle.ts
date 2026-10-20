@@ -99,11 +99,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
     }
   }
 
-  measure(prevProps: AxisTitleProps | null) {
-    if (prevProps === null) {
-      // truncation is only rechecked after updates; the initial sync renders untruncated
-      return;
-    }
+  measure() {
     if (this.truncation.check && this.present) {
       const domElement = this.root.node.querySelector<SVGTextContentElement>(getAxisTitleCssSelector());
       const { axisConfig, axisLayoutInfo } = this.props;
