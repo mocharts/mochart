@@ -2,7 +2,7 @@
 // tier-1 oracles. Findings are grouped as they are produced so a single bug reports once.
 import { applyValue, type Candidate, type PropertySpec } from './configModel';
 import { differencePath, diffSignature, diffSummary, scanGeometry, serializeDom } from './oracles';
-import { mountContainer, pendingTimerCount, resetClock, runFrames, unmountContainer } from './environment';
+import { mountContainer, resetClock, runFrames, unmountContainer } from './environment';
 import { MAX_SAMPLES, sortFindings } from './report';
 import type { ChartHandle } from '../../src/createChart';
 import type { EnhancedMochartConfig } from '../../src/types/enhanced';
@@ -257,9 +257,7 @@ export class Fuzzer {
       this.destroy(chartB, property, base.id, value);
       unmountContainer(containerA as HTMLDivElement);
       unmountContainer(containerB as HTMLDivElement);
-      if (pendingTimerCount() > 0) {
-        this.stats.timersLeftAfterDestroy++;
-      }
+      this.drainAfterDestroy(property, base.id, value);
       resetClock();
       for (const message of consoleMessages.filter(message => !expectedConsoleMessages.some(pattern => pattern.test(message)))) {
         this.record('error', property, 'console:' + message.slice(0, 80), {
@@ -285,6 +283,25 @@ export class Fuzzer {
       this.record('input-mutation', property, target + ' @ ' + difference, {
         base, value, stage: 'input-mutation',
         detail: 'the library mutated ' + target + ' at `' + difference + '`'
+      });
+    }
+  }
+
+  /** Run what is still pending, such as a frame the shared tween loop booked: wiping it would leave the loop believing a frame is booked, so no later chart animates. */
+  private drainAfterDestroy(property: string, base: string, value: string): void {
+    try {
+      const { frames, settled } = runFrames(this.options.maxFrames);
+      if (!settled) {
+        this.stats.timersLeftAfterDestroy++;
+        this.record('error', property, 'timers-after-destroy', {
+          base, value, stage: 'destroy',
+          detail: 'still had pending timers ' + frames + ' frames after both charts were destroyed'
+        });
+      }
+    }
+    catch (error) {
+      this.record('error', property, 'after-destroy:' + errorSignature(error), {
+        base, value, stage: 'destroy', detail: errorDetail(error)
       });
     }
   }

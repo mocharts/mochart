@@ -22,8 +22,8 @@ rewritten every few seconds, so a long run can be read while it is still going.
 ## The oracles
 
 1. **error**: nothing throws, nothing reaches `console.error`/`warn`, and every
-   chart settles inside the frame cap. A chart that never settles is an
-   animation that never ends.
+   chart settles inside the frame cap, also after both charts are destroyed.
+   A chart that never settles is an animation that never ends.
 2. **geometry**: no `NaN`, `Infinity`, `undefined`/`null` or negative extent
    reaches a rendered attribute, and no text node reads as `NaN`. Catches most
    scale and domain edge cases.

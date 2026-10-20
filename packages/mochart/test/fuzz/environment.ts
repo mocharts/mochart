@@ -71,10 +71,6 @@ export function runFrames(maxFrames: number): { frames: number; settled: boolean
   return { frames, settled: timers.size === 0 };
 }
 
-export function pendingTimerCount(): number {
-  return timers.size;
-}
-
 /** Drop anything still scheduled and rewind the clock, so one case cannot perturb the next. */
 export function resetClock(): void {
   timers.clear();
