@@ -7,6 +7,10 @@ the result is checked by four oracles. Nothing here needs an expected output to
 be written by hand: every check is a property the library must satisfy for any
 config, which is what lets it cover ~1,300 properties.
 
+Each base is normalized before the sweep: a list section written as a single
+object is wrapped in a one-entry list, and a base with no `valueAxes` gets
+`[{}]`, the default axis the library draws anyway.
+
 ```
 npm run fuzz -w @mochart/core                       # the default sweep, hours long
 npm run fuzz -w @mochart/core -- --sections=legend  # one section, seconds
@@ -122,6 +126,10 @@ they must not count as differences.
   rejects them and that the chart survives them is a separate oracle.
 - **Data property names**: a made-up one changes which data the chart reads,
   which is a different experiment.
+- **List sections a base does not declare**: `series`, `seriesGroups`,
+  `seriesStacks`, gradients and patterns are only swept on bases that declare
+  at least one entry. Adding an empty entry would be a different experiment,
+  because the library adds no default one; only `valueAxes` is default-filled.
 - **List entries past the first**: `--list-entries` sweeps them, but the default
   is entry `[0]` only, because sweeping every declared entry costs roughly
   another 7,200 units.

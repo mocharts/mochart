@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { installEnvironment } from './environment';
-import { candidateValues, entryCount, loadPropertySpecs, SKIPPED_FORMATS, type PropertySpec } from './configModel';
+import { candidateValues, entryCount, listSectionKeys, loadPropertySpecs, SKIPPED_FORMATS, type PropertySpec } from './configModel';
 import { structuralCases, type StructuralCase } from './structure';
 import { listCandidates } from './listValues';
 import { Fuzzer, type BaseCase, type FindingGroup, type Library } from './runner';
@@ -111,6 +111,19 @@ function loadJson(file: string): unknown {
 
 interface DemoEntry { id: string; config: string; data: string }
 
+/** Wrap list sections written as a single object and default-fill `valueAxes`, so list properties have an entry to go in. */
+function normalizeListSections(raw: Record<string, unknown>): void {
+  for (const key of listSectionKeys()) {
+    const section = raw[key];
+    if (typeof section === 'object' && section !== null && !Array.isArray(section)) {
+      raw[key] = [section];
+    }
+  }
+  if (raw.valueAxes === undefined) {
+    raw.valueAxes = [{}];
+  }
+}
+
 function loadBases(library: Library, options: Options): BaseCase[] {
   const demos = loadJson(path.join(demosDir, 'demos.json')) as { demos: DemoEntry[]; testDemos: DemoEntry[] };
   const all = [...demos.demos, ...demos.testDemos];
@@ -124,6 +137,7 @@ function loadBases(library: Library, options: Options): BaseCase[] {
       throw new Error('Unknown base config: ' + id);
     }
     const raw = library.migrateConfig(loadJson(configPaths[demo.config]!) as Record<string, unknown>) as Record<string, unknown>;
+    normalizeListSections(raw);
     raw.animation = { ...(raw.animation as object), enabled: options.animation };
     const validation = library.validateConfig(raw);
     if (!validation.valid) {

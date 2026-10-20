@@ -119,6 +119,13 @@ export function loadPropertySpecs(): PropertySpec[] {
   return specs;
 }
 
+/** The top-level config keys of the list sections, such as `valueAxes` and `series`. */
+export function listSectionKeys(): string[] {
+  const model = readModel();
+  const listIds = new Set(model.sections.filter(section => section.shape === 'array').map(section => section.id));
+  return model.topLevel.filter(entry => entry.sectionId !== undefined && listIds.has(entry.sectionId)).map(entry => entry.key);
+}
+
 function roundValue(value: number): number {
   return Math.round(value * 100) / 100;
 }
