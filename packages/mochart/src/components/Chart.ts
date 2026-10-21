@@ -926,7 +926,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
 
   /** Closing unmounts the tooltip's own tab stops; the render's teardown restore hands focus back to the plot stop. */
   closeTooltip = () => {
-    // the same close as Escape on the plot: applyFocus releases the pinned category with it
+    // the same close as Escape on the plot: the focus returns to the pinned category, if any
     this.setTooltipOpenAtCategory(false, this.state.tooltipCategoryIndex);
   }
 
