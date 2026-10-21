@@ -636,9 +636,13 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
     let stepTicks = noStepTicks;
     // set when log ticks fell back to linear ones, which are labelled the way a linear axis labels them
     let linearTickScale: AxisScale | null = null;
-    // a lone tick at the first category value with a position: on a log axis a value above 0, which a custom data provider can fail to pass
+    // a lone tick at the first category value inside the tick domain, else at the domain's low end (a collapsed domain's one
+    // value): on a log axis a value above 0, which a custom data provider can fail to pass
     const singleCategoryTicks = (): AxisValue[] => {
-      const value = axisConfig.scale === SCALE_LOG ? categoryValues.find(categoryValue => +categoryValue! > 0) : categoryValues[0];
+      const [domainMin, domainMax] = axisDomain;
+      const inside = (categoryValue: CategoryValue) => (axisConfig.scale !== SCALE_LOG || +categoryValue! > 0)
+        && (domainMin === null || domainMax === null || (+categoryValue! >= +domainMin && +categoryValue! <= +domainMax));
+      const value = categoryValues.find(inside) ?? (domainMin === null ? undefined : domainMin);
       return value === undefined ? [] : [value as AxisValue];
     };
 

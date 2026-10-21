@@ -60,3 +60,20 @@ describe('single-category linear axis ticks', () => {
     chart.destroy();
   });
 });
+
+// Regression: the lone tick took the first category value even when the bounds left it out, so it was
+// drawn off the chart (with parallel labels the edge rule hid it) beside the tick at the bounds' value
+describe('lone category tick outside the bounds', () => {
+  it('draws the collapsed bounds value when the one category lies outside them', () => {
+    const { container, chart } = renderChart({ type: 'number', min: 0, max: 0, tickLabel: { rotation: 45 } }, [{ x: 5, value: 1 }]);
+    expect(categoryTickLabels(container)).toEqual(['0']);
+    chart.destroy();
+  });
+
+  it('draws the collapsed bounds value when every category lies outside them', () => {
+    const data = Array.from({ length: 26 }, (_, i) => ({ x: i + 1, value: (i * 7) % 11 }));
+    const { container, chart } = renderChart({ type: 'number', min: -2, max: -2, tickLabel: { rotation: 45 } }, data);
+    expect(categoryTickLabels(container)).toEqual(['\u22122.0']);
+    chart.destroy();
+  });
+});
