@@ -95,7 +95,7 @@ export function getGradientIdMessage(): string {
   return 'should be unique across linearGradients and radialGradients';
 }
 
-/** Whether a series stack draws on the value axis: a stack with no axis uses the first one, as the base default reads it. */
+/** Whether a series stack draws on the value axis: a stack with no axis is on the sole value axis, since an axis is required on the stack when there are more. */
 function hasStackOnAxis(valueAxis: ConfigRecord, config?: ConfigRecord): boolean {
   const stacks = config?.seriesStacks;
   const valueAxes = config?.valueAxes;
