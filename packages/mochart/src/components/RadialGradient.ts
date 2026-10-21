@@ -36,7 +36,7 @@ export default class RadialGradient extends Renderer<RadialGradientProps> {
       fx: toPercent(radialGradientConfig.fx),
       fy: toPercent(radialGradientConfig.fy),
       r: toPercent(radialGradientConfig.r),
-      gradientTransform: 'rotate(' + radialGradientConfig.rotation + ')'
+      gradientTransform: 'rotate(' + radialGradientConfig.rotation + ', 0.5, 0.5)'
     });
     this.stops.sync(radialGradientConfig.stops ?? [], stopAdapter);
   }

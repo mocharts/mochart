@@ -22,8 +22,8 @@ import * as gradients from '../examples/gradients'
 
 - The gradient vector runs from `x1`/`y1` to `x2`/`y2` in 0–1 shape coordinates:
   `0,0 → 0,1` is a top-to-bottom fade (the default is the diagonal `0,0 → 1,1`).
-  Add [`rotation`](/reference/linearGradients#linearGradients.rotation) to angle
-  it.
+  Add [`rotation`](/reference/linearGradients#linearGradients.rotation) to turn
+  it around the center of the shape.
 - Each stop sets `offset` (0–1 along the vector), `color`, and `opacity`;
   `stops` is the one property without a default.
 - Radial gradients take `cx`/`cy`/`r` (circle) and `fx`/`fy` (focal point)

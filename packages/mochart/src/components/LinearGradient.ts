@@ -35,7 +35,7 @@ export default class LinearGradient extends Renderer<LinearGradientProps> {
       y1: toPercent(linearGradientConfig.y1),
       x2: toPercent(linearGradientConfig.x2),
       y2: toPercent(linearGradientConfig.y2),
-      gradientTransform: 'rotate(' + linearGradientConfig.rotation + ')'
+      gradientTransform: 'rotate(' + linearGradientConfig.rotation + ', 0.5, 0.5)'
     });
     this.stops.sync(linearGradientConfig.stops ?? [], stopAdapter);
   }
