@@ -232,6 +232,21 @@ describe('pie-mode conditional defaults', () => {
     expect(plain.pie.endAngle).toBe(360);
   });
 
+  it('gives a pie series the same shapeStyle defaults whatever its renderer', () => {
+    const shapeStyleFor = (renderer?: string) => (getDefaults({
+      version: '1.0.0', chart: { type: 'pie' }, categoryAxis: { property: 'p' },
+      series: [{ property: 'a', ...(renderer ? { renderer } : {}) }]
+    } as never) as { series: { shapeStyle: unknown }[] }).series[0]!.shapeStyle;
+    const pieStyle = {
+      normal: expect.objectContaining({ strokeOpacity: 0.9, strokeWidth: 3, fillOpacity: 0.9 }),
+      focused: expect.objectContaining({ strokeOpacity: 1, strokeWidth: 4, fillOpacity: 1 }),
+      defocused: expect.objectContaining({ strokeOpacity: 0.8, strokeWidth: 2, fillOpacity: 0.8 })
+    };
+    for (const renderer of [undefined, 'line', 'area', 'bar', 'none']) {
+      expect(shapeStyleFor(renderer)).toEqual(pieStyle);
+    }
+  });
+
   it('keeps the xy defaults when chartConfig.type is omitted', () => {
     const defaults = getDefaults({ version: '1.0.0', categoryAxis: { property: 'p' } }) as {
       categoryAxis: { visible: boolean };

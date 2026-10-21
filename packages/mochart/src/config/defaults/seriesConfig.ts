@@ -145,6 +145,7 @@ const followSeriesSuffix = 'when followSeries is not ' + NONE;
 const followSeriesNoneSuffix = 'when followSeries is ' + NONE;
 const nonColorRendererSuffix = 'when chart type is not xy or renderer is not bar';
 const colorRendererSuffix = 'when chart type is xy and renderer is bar';
+const pieChartSuffix = 'when chart type is pie';
 
 export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, index: number, soleValueAxisId: string | null, soleSeriesStackId: string | null, soleSeriesGroupId: string | null, soleGradientConfigId: string | null, solePatternConfigId: string | null, pieMode = false) {
   return {
@@ -181,6 +182,7 @@ export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, 
     shapeStyle: {
       normal: {
         strokeOpacity: conditionalDefault([
+          { condition: () => pieMode, suffix: pieChartSuffix, default: 0.9 },
           { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: 0.8 },
           { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: 0.9 },
           { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: 0.8 },
@@ -188,6 +190,7 @@ export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, 
           { ...defaultRule, default: 0.8 }
         ], configWithRegularDefaults, index),
         strokeWidth: conditionalDefault([
+          { condition: () => pieMode, suffix: pieChartSuffix, default: 3 },
           { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: 0 },
           { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: 3 },
           { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: 0 },
@@ -195,15 +198,15 @@ export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, 
           { ...defaultRule, default: 1 }
         ], configWithRegularDefaults, index),
         fillOpacity: conditionalDefault([
+          { condition: () => pieMode, suffix: pieChartSuffix, default: 0.9 },
           { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: 0.8 },
-          { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: 0.9 },
           { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: 0.8 },
-          { condition: ({ renderer }) => renderer === RENDERER_NONE, suffix: 'when renderer is ' + RENDERER_NONE, default: 0.9 },
           { ...defaultRule, default: 0.8 }
         ], configWithRegularDefaults, index)
       },
       focused: {
         strokeOpacity: conditionalDefault([
+          { condition: () => pieMode, suffix: pieChartSuffix, default: 1 },
           { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: 1 },
           { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: 1 },
           { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: 1 },
@@ -211,6 +214,7 @@ export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, 
           { ...defaultRule, default: 1 }
         ], configWithRegularDefaults, index),
         strokeWidth: conditionalDefault([
+          { condition: () => pieMode, suffix: pieChartSuffix, default: 4 },
           { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: 1 },
           { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: 4 },
           { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: 1 },
@@ -218,15 +222,15 @@ export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, 
           { ...defaultRule, default: 1 }
         ], configWithRegularDefaults, index),
         fillOpacity: conditionalDefault([
+          { condition: () => pieMode, suffix: pieChartSuffix, default: 1 },
           { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: 1 },
-          { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: 1 },
           { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: 1 },
-          { condition: ({ renderer }) => renderer === RENDERER_NONE, suffix: 'when renderer is ' + RENDERER_NONE, default: 1 },
           { ...defaultRule, default: 1 }
         ], configWithRegularDefaults, index)
       },
       defocused: {
         strokeOpacity: conditionalDefault([
+          { condition: () => pieMode, suffix: pieChartSuffix, default: 0.8 },
           { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: 0.5 },
           { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: 0.8 },
           { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: 0.5 },
@@ -234,6 +238,7 @@ export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, 
           { ...defaultRule, default: 1 }
         ], configWithRegularDefaults, index),
         strokeWidth: conditionalDefault([
+          { condition: () => pieMode, suffix: pieChartSuffix, default: 2 },
           { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: 0 },
           { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: 2 },
           { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: 0 },
@@ -241,10 +246,9 @@ export function getConditionalDefaults(configWithRegularDefaults: SeriesConfig, 
           { ...defaultRule, default: 1 }
         ], configWithRegularDefaults, index),
         fillOpacity: conditionalDefault([
+          { condition: () => pieMode, suffix: pieChartSuffix, default: 0.8 },
           { condition: ({ renderer }) => renderer === RENDERER_BAR, suffix: 'when renderer is ' + RENDERER_BAR, default: 0.5 },
-          { condition: ({ renderer }) => renderer === RENDERER_LINE, suffix: 'when renderer is ' + RENDERER_LINE, default: 0.8 },
           { condition: ({ renderer }) => renderer === RENDERER_AREA, suffix: 'when renderer is ' + RENDERER_AREA, default: 0.5 },
-          { condition: ({ renderer }) => renderer === RENDERER_NONE, suffix: 'when renderer is ' + RENDERER_NONE, default: 0.8 },
           { ...defaultRule, default: 1 }
         ], configWithRegularDefaults, index)
       }
