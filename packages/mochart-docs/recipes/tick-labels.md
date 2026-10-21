@@ -67,6 +67,18 @@ import * as tickLabelsDense from '../examples/tickLabelsDense'
   the text in its `normal`, `focused` and
   `defocused` [states](/guide/config-model#styles-and-focus-states); the default
   `currentColor` fill follows the host page's colour.
+- [`minorTickLabel`](/reference/categoryAxis#categoryAxis.minorTickLabel)
+  labels the minor ticks, such as the weekdays between the weekly ticks of a
+  [date axis](/recipes/date-axis). It holds a copy of every `tickLabel` setting
+  under the same name, most defaulting to `"major"`, which uses the value of the
+  `tickLabel` setting, so the minor labels match the tick labels in size. To
+  make them smaller, set the `size` of
+  [`minorTickLabel.font`](/reference/categoryAxis#categoryAxis.minorTickLabel.font).
+  A relative size such as `'0.85em'` resolves against the page font, not
+  against `tickLabel.font.size`. With `minorTickLabel.font.size` left at
+  `"major"` and no size in `tickLabel.font` or `chart.font`, the chart writes no
+  font size on the minor labels, so a CSS rule on the
+  `mochart-axis-minor-tick-label` class can set it instead.
 - The
   [`marginInner`](/reference/categoryAxis#categoryAxis.tickLabel.marginInner) /
   [`paddingInner`](/reference/categoryAxis#categoryAxis.tickLabel.paddingInner)
