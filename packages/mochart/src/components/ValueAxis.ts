@@ -90,7 +90,7 @@ export default class ValueAxis extends Renderer<ValueAxisProps, ValueAxisState> 
       const axisId = valueAxisConfig.id;
       this.axis!.set(Axis, { front, fontsVersion: this.props.fontsVersion, axisClass: mochartCssClasses['valueAxis'] + axisId, axisConfig: valueAxisConfig,
         axisLayoutInfo: valueAxisLayoutInfo, plotLayoutInfo,
-        focusPercentages, axisTicks: valueAxisData.axisTickData[axisId],
+        focusPercentages, axisTicks: valueAxisData.axisTickData[axisId], tickCountLabels: valueAxisData.tickCountLabels[axisId],
         axisFocusPercentage, seriesFocusPercentage,
         titleClipPathUniqueId, onPointerEnter: onValueAxisEnter,
         onPointerLeave: onValueAxisLeave, onClick: onValueAxisClick, accessibility, accessibleLabel, chartFont });

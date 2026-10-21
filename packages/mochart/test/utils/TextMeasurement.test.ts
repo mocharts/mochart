@@ -135,7 +135,8 @@ describe('empty rendered text', () => {
       getTitleTextDomElement: () => textElement('', 0, 0),
       getTitleTextRawDomElement: () => textElement('', 0, 0),
       getValueAxisMajorTicksDomElementsForId: () => [textElement('1', 8, 10)],
-      getValueAxisThresholdTitleDomElementsForId: () => []
+      getValueAxisThresholdTitleDomElementsForId: () => [],
+      getValueAxisTickCountLabelDomElementsForId: () => []
     } as unknown as ChartDomAccessors;
     expect(getTitleTextBounds(mochartConfig, domAccessors)).toEqual({ width: 0, height: 0, empty: true });
     expect(getChartTextBoundsData(mochartConfig, domAccessors).hasDefault).toBe(false);
@@ -154,7 +155,8 @@ describe('empty rendered text', () => {
     const domAccessors = {
       getValueAxisMajorTicksDomElementsForId: (id: string) => id === 'v1' ? [textElement('1', 8, 10)] : [],
       getValueAxisTitleDomElementForId: () => null,
-      getValueAxisThresholdTitleDomElementsForId: () => []
+      getValueAxisThresholdTitleDomElementsForId: () => [],
+      getValueAxisTickCountLabelDomElementsForId: () => []
     } as unknown as ChartDomAccessors;
 
     // v2 draws while it still has a series, so its missing elements are a measurement to retry
@@ -175,7 +177,8 @@ describe('empty rendered text', () => {
       getTitleTextDomElement: () => textElement('Title', 0, 0),
       getTitleTextRawDomElement: () => textElement('Title', 0, 0),
       getValueAxisMajorTicksDomElementsForId: () => [textElement('1', 8, 10)],
-      getValueAxisThresholdTitleDomElementsForId: () => []
+      getValueAxisThresholdTitleDomElementsForId: () => [],
+      getValueAxisTickCountLabelDomElementsForId: () => []
     } as unknown as ChartDomAccessors;
     expect(getTitleTextBounds(mochartConfig, domAccessors)).toEqual({ width: 20, height: 20, default: true });
     expect(getChartTextBoundsData(mochartConfig, domAccessors).hasDefault).toBe(true);

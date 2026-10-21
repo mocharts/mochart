@@ -22,6 +22,8 @@ export interface ChartDataSourceInput {
  */
 export interface ChartDataSource {
   readonly animated: boolean;
+  /** Whether a data tween is between its first and last frame: the next frame will measure again anyway. */
+  readonly tweening: boolean;
   /** Current output; the animated source advances these on tween frames. */
   readonly chartData: ChartData | null;
   readonly focusData: FocusData | null;

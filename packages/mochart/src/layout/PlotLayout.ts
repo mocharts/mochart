@@ -156,6 +156,16 @@ function getTickLabelKindInfo(contentOffset: number, tickLabel: TickLabelLayoutS
   };
 }
 
+/** The room along the axis each tick count label takes, read the way the drawn labels' room is. */
+function getTickCountLabelSpaces(tickCountLabelBounds: Record<string, TextBounds>, parallel: boolean): Record<string, number> {
+  const spaces: Record<string, number> = {};
+  for (const text of Object.keys(tickCountLabelBounds)) {
+    const bounds = tickCountLabelBounds[text]!;
+    spaces[text] = parallel ? bounds.width : bounds.height;
+  }
+  return spaces;
+}
+
 function setTickMarkInfo(innerSpacing: number, tickMark: Pick<MinorTickMark, 'visible' | 'size' | 'marginInner'>, width: number, height: number, vertical: boolean, notAfter: boolean): [number, number, number, number] {
   if (!tickMark.visible) {
     return [0, 0, 0, 0];
@@ -174,7 +184,7 @@ export function getPlotHeight(innerHeight: number, titleHeight: number, legendHe
   return Math.max(0, innerHeight - titleHeight - legendHeight);
 }
 
-export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: AxisConfigBase, axisTickInfo: AxisTickInfo, minorTickInfo: AxisTickInfo, tickBounds: TextBounds, rotatedTickBounds: Bounds, minorTickBounds: TextBounds, minorRotatedTickBounds: Bounds, titleBounds: TextBounds, thresholdTitleBounds: Record<number, TextBounds>, vertical: boolean, inverted: boolean): void {
+export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: AxisConfigBase, axisTickInfo: AxisTickInfo, minorTickInfo: AxisTickInfo, tickBounds: TextBounds, rotatedTickBounds: Bounds, minorTickBounds: TextBounds, minorRotatedTickBounds: Bounds, tickCountLabelBounds: Record<string, TextBounds>, contentExtent: number, titleBounds: TextBounds, thresholdTitleBounds: Record<number, TextBounds>, vertical: boolean, inverted: boolean): void {
   const { side, collapsed, focusRange } = axisConfig;
   const { marginInner: titleMarginInner, marginOuter: titleMarginOuter, paddingInner: titlePaddingInner, paddingOuter: titlePaddingOuter, text: title } = axisConfig.title;
   const { marginInner: tickLabelMarginInner, marginOuter: tickLabelMarginOuter, paddingInner: tickLabelPaddingInner, paddingOuter: tickLabelPaddingOuter } = axisConfig.tickLabel;
@@ -199,6 +209,8 @@ export function setExtraAxisInfo(axisLayoutInfo: AxisLayoutInfo, axisConfig: Axi
   axisLayoutInfo.tickLabelParallel = major.parallel;
   axisLayoutInfo.tickLabelSize = major.size;
   axisLayoutInfo.tickLabelSpace = major.space;
+  axisLayoutInfo.tickCountLabelSpaces = getTickCountLabelSpaces(tickCountLabelBounds, major.parallel);
+  axisLayoutInfo.contentExtent = contentExtent;
   axisLayoutInfo.tickHeight = major.tickHeight;
   axisLayoutInfo.tickLabelAnchor = major.anchor;
   axisLayoutInfo.tickTextX = major.textX;
@@ -437,8 +449,11 @@ export function getPlotLayoutInfo(mochartConfig: EnhancedMochartConfig, chartTex
   const seriesLayoutInfo = createLayoutInfo(categoryY + categoryAxesOffset.before,
     valueY + valueAxesOffset.before, categoryInnerExtent, valueInnerExtent, inverted);
 
-  const categoryAxisLayoutInfo = createCategoryAxisLayoutInfo(mochartConfig, chartTextBoundsData, categoryAxisRotatedTickBounds, categoryAxisMinorRotatedTickBounds, axisTickInfos, categoryY, valueY, categoryInnerExtent, valueInnerExtent, categoryAxesOffset, categoryAxisSize);
-  const valueAxisLayoutInfos = createValueAxisLayoutInfos(mochartConfig, chartTextBoundsData, chartData, valueAxisRotatedTickBounds, valueAxisMinorRotatedTickBounds, axisTickInfos, categoryY, valueY, categoryInnerExtent, valueInnerExtent, categoryAxesOffset, valueAxesOffset, valueAxisSizes, valueAxisVisibleSeriesCounts, valueAxesCollapsedAfter);
+  // the content extents, not the plot's: the tick counts an axis is sized for must not move with the measured text
+  const categoryContentExtent = inverted ? contentBounds.height : width;
+  const valueContentExtent = inverted ? width : contentBounds.height;
+  const categoryAxisLayoutInfo = createCategoryAxisLayoutInfo(mochartConfig, chartTextBoundsData, categoryAxisRotatedTickBounds, categoryAxisMinorRotatedTickBounds, axisTickInfos, categoryY, valueY, categoryInnerExtent, valueInnerExtent, categoryContentExtent, categoryAxesOffset, categoryAxisSize);
+  const valueAxisLayoutInfos = createValueAxisLayoutInfos(mochartConfig, chartTextBoundsData, chartData, valueAxisRotatedTickBounds, valueAxisMinorRotatedTickBounds, axisTickInfos, categoryY, valueY, categoryInnerExtent, valueInnerExtent, valueContentExtent, categoryAxesOffset, valueAxesOffset, valueAxisSizes, valueAxisVisibleSeriesCounts, valueAxesCollapsedAfter);
 
   const plotLayoutInfo = createInvertedSpacingLayoutInfo({ x, y: plotY, width, height: plotHeight }, inverted, margin, padding);
 

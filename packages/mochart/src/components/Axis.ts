@@ -24,6 +24,7 @@ interface AxisProps {
   plotLayoutInfo: SpacingLayoutInfo;
   axisClass: string;
   axisTicks: AxisTick[];
+  tickCountLabels: string[];
   axisFocusPercentage?: number | null;
   seriesFocusPercentage?: number | null;
   focusPercentages: number[];
@@ -57,7 +58,7 @@ export default class Axis extends Renderer<AxisProps> {
   }
 
   sync() {
-    const { front, axisConfig, axisLayoutInfo, plotLayoutInfo, axisClass, axisTicks, axisFocusPercentage, seriesFocusPercentage,
+    const { front, axisConfig, axisLayoutInfo, plotLayoutInfo, axisClass, axisTicks, tickCountLabels, axisFocusPercentage, seriesFocusPercentage,
       focusPercentages, tickSpacing, minorTickSpacing, titleClipPathUniqueId, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId,
       onPointerEnter, onPointerLeave, onClick, accessibility, accessibleLabel, chartFont } = this.props;
     if (axisConfig.visible) {
@@ -115,7 +116,7 @@ export default class Axis extends Renderer<AxisProps> {
       else {
         this.tickLabelsSlot.set(AxisTickLabels, { front, fontsVersion: this.props.fontsVersion, axisLayoutInfo, plotLayoutInfo,
           axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null,
-          axisConfig, axisTicks,
+          axisConfig, axisTicks, tickCountLabels,
           tickSpacing: tickSpacing ?? null, minorTickSpacing: minorTickSpacing ?? null, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, accessibility, chartFont });
       }
 

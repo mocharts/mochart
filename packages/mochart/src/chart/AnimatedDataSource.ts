@@ -41,6 +41,9 @@ export class AnimatedDataSource implements ChartDataSource {
   private hasCategoryRemovals = false;
   private hasCategoryReorder = false;
   private dataTweening = false;
+  get tweening(): boolean {
+    return this.dataTweening;
+  }
   private valuesTweening = false;
   private valuesTweened = false;
   private focusTweening = false;

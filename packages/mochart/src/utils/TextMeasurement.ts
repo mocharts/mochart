@@ -26,10 +26,12 @@ export function getChartTextBoundsData(mochartConfig: EnhancedMochartConfig, dom
   const categoryAxisMinorTickBounds = getCategoryAxisMinorTickLabelBounds(mochartConfig, domAccessors);
   const categoryAxisSizeTickBounds = getCategoryAxisSizeTickLabelBounds(mochartConfig, domAccessors);
   const categoryAxisMinorSizeTickBounds = getCategoryAxisMinorSizeTickLabelBounds(mochartConfig, domAccessors);
+  const categoryAxisTickCountLabelBounds = getCategoryAxisTickCountLabelBounds(mochartConfig, domAccessors);
   const categoryAxisTitleBounds = getCategoryAxisTitleBounds(mochartConfig, domAccessors);
   const categoryAxisThresholdTitleBounds = getCategoryAxisThresholdTitleBounds(mochartConfig, domAccessors);
   const valueAxisTickBounds = getValueAxisTickLabelBounds(mochartConfig, domAccessors, axisSeriesCounts);
   const valueAxisMinorTickBounds = getValueAxisMinorTickLabelBounds(mochartConfig, domAccessors, axisSeriesCounts);
+  const valueAxisTickCountLabelBounds = getValueAxisTickCountLabelBounds(mochartConfig, domAccessors, axisSeriesCounts);
   const valueAxisTitleBounds = getValueAxisTitleBounds(mochartConfig, domAccessors, axisSeriesCounts);
   const valueAxisThresholdTitleBounds = getValueAxisThresholdTitleBounds(mochartConfig, domAccessors);
   const legendBounds = getLegendBounds(mochartConfig, domAccessors);
@@ -46,10 +48,12 @@ export function getChartTextBoundsData(mochartConfig: EnhancedMochartConfig, dom
     categoryAxisMinorTickBounds,
     categoryAxisSizeTickBounds,
     categoryAxisMinorSizeTickBounds,
+    categoryAxisTickCountLabelBounds,
     categoryAxisTitleBounds,
     categoryAxisThresholdTitleBounds,
     valueAxisTickBounds,
     valueAxisMinorTickBounds,
+    valueAxisTickCountLabelBounds,
     valueAxisTitleBounds,
     valueAxisThresholdTitleBounds,
     legendBounds,
@@ -344,6 +348,27 @@ function getCategoryAxisMinorSizeTickLabelBounds(mochartConfig: EnhancedMochartC
   return emptyBounds;
 }
 
+/** The tick count labels in the DOM by their text, width only (they sit along the axis); one that cannot be measured is a default to retry. */
+function getTickCountLabelBounds(elements: ArrayLike<SVGGraphicsElement>): Record<string, TextBounds> {
+  const boundsByText: Record<string, TextBounds> = {};
+  const count = elements.length;
+  for (let i = 0; i < count; i++) {
+    const element = elements[i];
+    // ceil like getSvgWidthAndHeight; the height is never read, so no box is taken
+    const width = hasEmptyText(element) ? 0 : Math.ceil(getSvgWidth(element, { width: 0 }));
+    boundsByText[element.textContent ?? ''] = width > 0 || hasEmptyText(element) ? { width, height: 0 } : defaultBounds;
+  }
+  return boundsByText;
+}
+
+function getCategoryAxisTickCountLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): Record<string, TextBounds> {
+  const { categoryAxis } = mochartConfig;
+  if (!domAccessors || !categoryAxis.visible || !categoryAxis.tickLabel.visible) {
+    return {};
+  }
+  return getTickCountLabelBounds(domAccessors.getCategoryAxisTickCountLabelDomElements());
+}
+
 export function getCategoryAxisTitleBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null): TextBounds {
   const { categoryAxis: categoryAxisConfig } = mochartConfig;
   let categoryAxisTitleBounds: TextBounds = emptyBounds;
@@ -415,6 +440,16 @@ function getValueAxisMinorTickLabelBounds(mochartConfig: EnhancedMochartConfig, 
     }
     const { id } = valueAxisConfig;
     return getMinorTickLabelBounds(domAccessors, () => domAccessors!.getValueAxisMinorTicksDomElementsForId(id), () => domAccessors!.getValueAxisTicksDomElementsForId(id));
+  });
+}
+
+function getValueAxisTickCountLabelBounds(mochartConfig: EnhancedMochartConfig, domAccessors?: ChartDomAccessors | null, axisSeriesCounts?: Record<string, number>): Record<string, Record<string, TextBounds>> {
+  const { valueAxes: valueAxisConfigs } = mochartConfig;
+  return arrayToMap(valueAxisConfigs, idAccessor, valueAxisConfig => {
+    if (!domAccessors || !axisIsDrawn(valueAxisConfig, axisSeriesCounts) || !valueAxisConfig.tickLabel.visible) {
+      return {};
+    }
+    return getTickCountLabelBounds(domAccessors.getValueAxisTickCountLabelDomElementsForId(valueAxisConfig.id));
   });
 }
 

@@ -55,11 +55,13 @@ export interface ChartDomAccessors {
   getCategoryAxisMinorTicksDomElements(): NodeListOf<SVGGraphicsElement>;
   getCategoryAxisSizeTickDomElement(): SVGGraphicsElement | null;
   getCategoryAxisMinorSizeTickDomElement(): SVGGraphicsElement | null;
+  getCategoryAxisTickCountLabelDomElements(): NodeListOf<SVGGraphicsElement>;
   getCategoryAxisTitleDomElement(): SVGGraphicsElement | null;
   getCategoryAxisThresholdTitleDomElements(): NodeListOf<SVGGraphicsElement>;
   getValueAxisTicksDomElementsForId(axisId: string): NodeListOf<SVGGraphicsElement>;
   getValueAxisMajorTicksDomElementsForId(axisId: string): NodeListOf<SVGGraphicsElement>;
   getValueAxisMinorTicksDomElementsForId(axisId: string): NodeListOf<SVGGraphicsElement>;
+  getValueAxisTickCountLabelDomElementsForId(axisId: string): NodeListOf<SVGGraphicsElement>;
   getValueAxisTitleDomElementForId(axisId: string): SVGGraphicsElement | null;
   getValueAxisThresholdTitleDomElementsForId(axisId: string): NodeListOf<SVGGraphicsElement>;
   getLegendDomElement(): HTMLElement | null;

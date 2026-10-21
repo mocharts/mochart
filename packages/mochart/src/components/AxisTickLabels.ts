@@ -41,6 +41,8 @@ interface AxisTickLabelsProps {
   axisLayoutInfo: AxisLayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
   axisTicks: AxisTick[];
+  /** The tick count labels to draw hidden for measuring (see CategoryAxisData.tickCountLabels). */
+  tickCountLabels: string[];
   tickSpacing: number | null;
   minorTickSpacing: number | null;
   tickLabelClipPathUniqueId?: string;
@@ -53,6 +55,7 @@ interface AxisTickLabelsProps {
 type AxisTickLabelsState = TruncationState;
 type SizeLabelEl = El & { textHandle: El; valueHandle: TextEl };
 interface TickLabelHandle { root: El; text: El; value: TextEl; tooltip: TruncationTooltip }
+interface TickCountLabelHandle { root: El; text: El; value: TextEl }
 
 /** The kinds of label a pass draws: those visible in the config and drawn in front or behind like the pass. */
 function getPasses(props: AxisTickLabelsProps): { majorPass: boolean; minorPass: boolean; minorTickLabel: MinorTickLabel } {
@@ -96,6 +99,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
   tickLabels = this.elList<PassTick, TickLabelHandle>(this.tickLabelsGroup);
   sizeTickLabel = this.elSlot(this.tickLabelsGroup);
   minorSizeTickLabel = this.elSlot(this.tickLabelsGroup);
+  tickCountLabels = this.elList<string, TickCountLabelHandle>(this.tickLabelsGroup);
   truncation = new TruncationTracker();
   // rebuilt only when the ticks or the pass change; sync runs every focus-tween frame
   passTicks = emptyPassTicks;
@@ -228,7 +232,7 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
   }
 
   sync() {
-    const { axisConfig, axisLayoutInfo, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, accessibility, chartFont } = this.props;
+    const { axisConfig, axisLayoutInfo, tickCountLabels, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, accessibility, chartFont } = this.props;
     const { truncationData } = this.state;
     const { majorPass, minorPass, minorTickLabel } = getPasses(this.props);
     const { vertical, tickLabelAnchor, tickTextX, tickTextY, minorTickLabelAnchor, minorTickTextX, minorTickTextY } = axisLayoutInfo;
@@ -304,6 +308,23 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
     });
 
     const ordinal = axisConfig.scale === SCALE_ORDINAL;
+    // width probes like the size label: the widest label of each tick set the automatic count could draw
+    this.tickCountLabels.sync(majorPass ? tickCountLabels : emptyArray, {
+      key: label => label,
+      create: () => {
+        const root = svgEl('g');
+        const text = svgEl('text');
+        const value = textEl();
+        text.append(value);
+        root.append(text);
+        return { root, text, value };
+      },
+      update: (handle, label) => {
+        handle.root.set({ className: mochartCssClasses['axisTickCountLabel'], ariaHidden: accessibility ? 'true' : null });
+        handle.text.set({ style: this.sizeTickTextStyle });
+        handle.value.set(label);
+      }
+    });
     this.syncSizeLabel(this.sizeTickLabel, ordinal && majorTruncation?.enabled === true, mochartCssClasses['axisSizeTickLabel'], this.sizeTickTextStyle, majorTruncation?.text ?? '', accessibility);
     this.syncSizeLabel(this.minorSizeTickLabel, ordinal && minorPresent && minorTruncation?.enabled === true, mochartCssClasses['axisMinorSizeTickLabel'], this.minorSizeTickTextStyle, minorTruncation?.text ?? '', accessibility);
   }

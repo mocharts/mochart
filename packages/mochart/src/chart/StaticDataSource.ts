@@ -7,6 +7,7 @@ import type { ChartDataSource, ChartDataSourceInput, InternalFocus } from './Cha
 /** Computes chartData/focusData directly, with no animation (was StaticChart). */
 export class StaticDataSource implements ChartDataSource {
   readonly animated = false;
+  readonly tweening = false;
   chartData: ChartData | null = null;
   focusData: FocusData | null = null;
   readonly initialAnimationPercentage = null;

@@ -101,6 +101,20 @@ export function axisTickLabelsChanged(oldAxisData: AxisData | null, newAxisData:
   return [...ids].some(id => tickLabelsDiffer(oldValueTicks[id], newValueTicks[id]));
 }
 
+/** Whether any axis draws different tick count labels, so a count picked from the measured ones may change once these are. */
+export function axisTickCountLabelsChanged(oldAxisData: AxisData | null, newAxisData: AxisData | null): boolean {
+  if (oldAxisData === newAxisData) {
+    return false;
+  }
+  if (!areArraysAndEqual(oldAxisData?.category?.tickCountLabels ?? noTickCountLabels, newAxisData?.category?.tickCountLabels ?? noTickCountLabels)) {
+    return true;
+  }
+  const oldLabels = oldAxisData?.value?.tickCountLabels ?? {};
+  const newLabels = newAxisData?.value?.tickCountLabels ?? {};
+  const ids = new Set([...Object.keys(oldLabels), ...Object.keys(newLabels)]);
+  return [...ids].some(id => !areArraysAndEqual(oldLabels[id] ?? noTickCountLabels, newLabels[id] ?? noTickCountLabels));
+}
+
 export function getAxisDataForCategoryChange(axisData: AxisData, mochartConfig: EnhancedMochartConfig, chartLayoutInfo: ChartLayoutInfo, chartData: ChartData | null): AxisData {
   const categoryAxisData = getCategoryAxisData(mochartConfig.categoryAxis, chartLayoutInfo.categoryAxisLayoutInfo, chartData, hasStepWarnings(mochartConfig));
   return getWithMutations(axisData, Object.assign({}, axisData, { category: categoryAxisData }), scaleMutator);
@@ -120,12 +134,12 @@ function getCategoryAxisData(categoryAxisConfig: CategoryAxisConfig, axisLayoutI
     const positions = getCategoryValuePositions(categoryAxisConfig, axisScale, categoryData.values);
     // a collapsed domain (one category, or explicit min === max) draws its single tick at the value, not at the widened render bounds
     const tickDomain = isCollapsedDomain(categoryData.axisDomain) ? categoryData.axisDomain : categoryData.renderAxisDomain;
-    const { ticks: axisTickData, minorTickLabelLength } = buildCategoryAxisTickData(categoryAxisConfig, axisLayoutInfo, axisScale, tickDomain, categoryData.values.parsed, categoryData.values.key, positions, stepWarnings);
+    const { ticks: axisTickData, tickCountLabels, minorTickLabelLength } = buildCategoryAxisTickData(categoryAxisConfig, axisLayoutInfo, axisScale, tickDomain, categoryData.values.parsed, categoryData.values.key, positions, stepWarnings);
     const maxTickLabelLength = getMaxTickLabelLength(categoryAxisConfig, categoryData.values.parsed, axisTickData, spacingInfo);
 
     categoryAxisData = {
       // a minor label with no labelled neighbour, or no minor label, has no room of its own: it takes a tick's share
-      axisScale, axisTickData, maxTickLabelLength, maxMinorTickLabelLength: Number.isFinite(minorTickLabelLength) ? minorTickLabelLength : maxTickLabelLength,
+      axisScale, axisTickData, tickCountLabels, maxTickLabelLength, maxMinorTickLabelLength: Number.isFinite(minorTickLabelLength) ? minorTickLabelLength : maxTickLabelLength,
       valueData: { spacingInfo, positions }
     };
   }
@@ -138,10 +152,10 @@ function getValueAxisData(plotConfig: PlotConfig, valueAxisConfigs: EnhancedValu
     const vertical = !plotConfig.inverted;
     const { seriesData } = chartData;
     const axisScales = getValueAxisScales(valueAxisConfigs, seriesData.raw.renderAxisDomains, seriesData.filtered.renderAxisDomains, axisLayoutInfoArray, vertical);
-    const axisTickData = getValueAxisTickData(valueAxisConfigs, axisLayoutInfoArray, seriesData, axisScales, vertical, stepWarnings);
+    const { axisTickData, tickCountLabels } = getValueAxisTickData(valueAxisConfigs, axisLayoutInfoArray, seriesData, axisScales, vertical, stepWarnings);
 
     valueAxisData = {
-      axisScales, axisTickData
+      axisScales, axisTickData, tickCountLabels
     };
   }
   return valueAxisData;
@@ -599,14 +613,15 @@ export function getCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayo
   return buildCategoryAxisTickData(axisConfig, axisLayoutInfo, axisScale, axisDomain, categoryValues, categoryKeys, categoryPositions, stepWarnings).ticks;
 }
 
-function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[], stepWarnings: boolean): { ticks: AxisTick[]; minorTickLabelLength: number } {
+function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInfo: CategoryAxisLayoutInfo, axisScale: AxisScale, axisDomain: CategoryAxisDomain, categoryValues: readonly CategoryValue[], categoryKeys: readonly CategoryValue[], categoryPositions: number[], stepWarnings: boolean): { ticks: AxisTick[]; tickCountLabels: string[]; minorTickLabelLength: number } {
   const minorTickLabel = getMinorTickLabel(axisConfig);
   const fits = getTickLabelFits(axisConfig, axisLayoutInfo, minorTickLabel);
   if (axisConfig.ticks !== NONE) {
     const ticks = getExplicitCategoryAxisTickData(axisConfig, minorTickLabel, axisConfig.ticks, axisScale, categoryValues, categoryKeys, categoryPositions);
-    return { ticks, minorTickLabelLength: fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing) };
+    return { ticks, tickCountLabels: noTickCountLabels, minorTickLabelLength: fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing) };
   }
   let ticks: AxisTick[] = [];
+  let tickCountLabels = noTickCountLabels;
   // the single-label fallback: shown once no other label of either kind is, decided after the minor fit
   let singleTick: AxisTick | null = null;
   // magnitude: a reversed axis has a descending range, and tick counting needs a positive extent
@@ -652,9 +667,22 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
         tickCount = categoryValues.length;
       }
 
+      // parallel labels pick the count from the measured label each tick set would draw, so no two sets keep picking each other
+      let picked: PickedTickCount | null = null;
+      if (axisConfig.scale === SCALE_LINEAR && axisConfig.tickCount === AUTO && fits.major.visible && axisLayoutInfo.tickLabelParallel && !hasTickStep(axisConfig)) {
+        const candidates = getTickCountCandidates(axisConfig, axisScale, axisLayoutInfo.contentExtent, categoryAxisDomainExtent, singleCategoryTicks,
+          candidateTicks => getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, candidateTicks.length));
+        tickCountLabels = getTickCountLabels(candidates);
+        picked = pickTickCountCandidate(axisConfig, categoryAxisRangeExtent, categoryAxisDomainExtent, candidates, axisLayoutInfo.tickCountLabelSpaces);
+      }
+
       // a step rule picks from every category (or period boundary), whatever the fit count; a lone fitting tick
       // otherwise keeps its single-tick formatting
-      if (tickCount === 1 && !hasTickStep(axisConfig)) {
+      if (picked !== null) {
+        tickCount = picked.tickCount;
+        scaleTicks = picked.ticks;
+      }
+      else if (tickCount === 1 && !hasTickStep(axisConfig)) {
         if (axisConfig.scale === SCALE_ORDINAL) {
           scaleTicks = [0];
         }
@@ -762,7 +790,7 @@ function buildCategoryAxisTickData(axisConfig: CategoryAxisConfig, axisLayoutInf
     const single = singleTick;
     single.hidden = ticks.some(tick => tick !== single && tick.hidden === false);
   }
-  return { ticks, minorTickLabelLength };
+  return { ticks, tickCountLabels, minorTickLabelLength };
 }
 
 /** The positions a parallel label of one kind may sit at without spilling past an axis end, from that kind's widest label and anchor. */
@@ -884,8 +912,8 @@ function getMaxTickLabelLength(_categoryAxisConfig: CategoryAxisConfig, category
   return categoryValues.length / visibleTickCount * spacingInfo.categoryValueExtent;
 }
 
-function getValueAxisTickData(axisConfigArray: EnhancedValueAxisConfig[], axisLayoutInfoArray: ChartLayoutInfo['valueAxisLayoutInfos'], seriesData: ChartData['seriesData'], axisScaleArray: Record<string, AxisScale>, vertical: boolean, stepWarnings: boolean): Record<string, AxisTick[]> {
-  return arrayToMap(axisConfigArray, idAccessor, axisConfig => {
+function getValueAxisTickData(axisConfigArray: EnhancedValueAxisConfig[], axisLayoutInfoArray: ChartLayoutInfo['valueAxisLayoutInfos'], seriesData: ChartData['seriesData'], axisScaleArray: Record<string, AxisScale>, vertical: boolean, stepWarnings: boolean): Pick<ValueAxisData, 'axisTickData' | 'tickCountLabels'> {
+  const tickDataObjects = arrayToMap(axisConfigArray, idAccessor, axisConfig => {
     const axisId = axisConfig.id;
     // explicit min === max: the single tick belongs at the configured value, not at the widened render bounds
     const explicitCollapsed = isExplicitCollapsedDomain(axisConfig, seriesData.raw.axisDomains[axisId]);
@@ -893,10 +921,15 @@ function getValueAxisTickData(axisConfigArray: EnhancedValueAxisConfig[], axisLa
     const filteredDomain = explicitCollapsed ? seriesData.filtered.axisDomains[axisId] : seriesData.filtered.renderAxisDomains[axisId];
     return getValueAxisTickDataObject(axisConfig, axisLayoutInfoArray[axisId], rawDomain, filteredDomain, seriesData.raw.renderAxisDomains[axisId], seriesData.axisSeriesCounts[axisId], axisScaleArray[axisId], vertical, stepWarnings);
   });
+  return {
+    axisTickData: arrayToMap(axisConfigArray, idAccessor, axisConfig => tickDataObjects[axisConfig.id].ticks),
+    tickCountLabels: arrayToMap(axisConfigArray, idAccessor, axisConfig => tickDataObjects[axisConfig.id].tickCountLabels)
+  };
 }
 
-function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLayoutInfo: AxisLayoutInfo, rawValueAxisDomain: NullableDomain, filteredValueAxisDomain: NullableDomain, rawRenderValueAxisDomain: NullableDomain, visibleSeriesCount: number, axisScale: AxisScale, vertical: boolean, stepWarnings: boolean): AxisTick[] {
+function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLayoutInfo: AxisLayoutInfo, rawValueAxisDomain: NullableDomain, filteredValueAxisDomain: NullableDomain, rawRenderValueAxisDomain: NullableDomain, visibleSeriesCount: number, axisScale: AxisScale, vertical: boolean, stepWarnings: boolean): { ticks: AxisTick[]; tickCountLabels: string[] } {
   let ticks: AxisTick[] = [];
+  let tickCountLabels = noTickCountLabels;
   const minorTickLabel = getMinorTickLabel(axisConfig);
   const fits = getTickLabelFits(axisConfig, axisLayoutInfo, minorTickLabel);
   if (axisConfig.ticks !== NONE) {
@@ -907,7 +940,7 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
       ticks = createExplicitLinearTicks(axisConfig, axisConfig.ticks, axisScale, tickLabelFormatter, minorTickLabelFormatter);
       fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing);
     }
-    return ticks;
+    return { ticks, tickCountLabels };
   }
   if (axisConfig.visibleWhenAllFiltered || visibleSeriesCount > 0) {
     let tickCount = axisConfig.tickCount;
@@ -940,8 +973,20 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
       const valueAxisDomainExtent = valueAxisDomain[1]! - valueAxisDomain[0]!;
       tickCount = getTickCount(axisConfig, axisLayoutInfo.valueExtent, valueAxisDomainExtent, fits.major.space);
       stepTicks = getLinearStepTicks(axisConfig, axisScale.domain() as [AxisValue, AxisValue], axisLayoutInfo.valueExtent, 'value axis ' + axisConfig.id, stepWarnings);
+      // parallel labels pick the count from the measured label each tick set would draw, as on the category axis
+      let picked: PickedTickCount | null = null;
+      if (stepTicks.majors === null && axisConfig.tickCount === AUTO && fits.major.visible && axisLayoutInfo.tickLabelParallel) {
+        const candidates = getTickCountCandidates(axisConfig, axisScale, axisLayoutInfo.contentExtent, valueAxisDomainExtent, () => [valueAxisDomain[0]!],
+          candidateTicks => getLinearScaleTickLabelFormatter(axisConfig, axisConfig.tickLabel, axisScale, candidateTicks.length));
+        tickCountLabels = getTickCountLabels(candidates);
+        picked = pickTickCountCandidate(axisConfig, axisLayoutInfo.valueExtent, valueAxisDomainExtent, candidates, axisLayoutInfo.tickCountLabelSpaces);
+      }
       if (stepTicks.majors !== null) {
         scaleTicks = stepTicks.majors;
+      }
+      else if (picked !== null) {
+        tickCount = picked.tickCount;
+        scaleTicks = picked.ticks;
       }
       else if (tickCount === 1) {
         scaleTicks = [valueAxisDomain[0]!];
@@ -970,7 +1015,7 @@ function getValueAxisTickDataObject(axisConfig: EnhancedValueAxisConfig, axisLay
     }
     fitMinorLabels(ticks, fits.major, fits.minor, axisConfig.minTickSpacing);
   }
-  return ticks;
+  return { ticks, tickCountLabels };
 }
 
 function getLinearAxisExtraTicks(axisDomain: CategoryAxisDomain, _axisScale: AxisScale, scaleTicks: AxisValue[]): { preTicks: AxisValue[]; postTicks: AxisValue[] } {
@@ -1024,6 +1069,98 @@ function getLinearAxisExtraTicks(axisDomain: CategoryAxisDomain, _axisScale: Axi
     }
   }
   return { preTicks, postTicks };
+}
+
+const noTickCountLabels: string[] = [];
+
+/** A tick set the automatic count can draw: the smallest count that draws it, its ticks and the longest of its labels. */
+interface TickCountCandidate {
+  count: number;
+  ticks: AxisValue[];
+  label: string;
+}
+
+interface PickedTickCount {
+  tickCount: number;
+  ticks: AxisValue[];
+}
+
+function sameTickValues(a: AxisValue[], b: AxisValue[]): boolean {
+  return a.length === b.length && a.every((value, i) => +value === +b[i]!);
+}
+
+/**
+ * The tick sets the scale draws for the counts up to the most the content extent holds, densest first, each with its
+ * longest label (the widest wherever digits share a width). Measured by shape, those labels pick the count from the
+ * labels it draws rather than from the labels drawn before, which can leave two sets picking each other on every pass.
+ */
+function getTickCountCandidates(axisConfig: AxisConfigBase, axisScale: AxisScale, contentExtent: number, axisDomainExtent: number, getSingleTicks: () => AxisValue[], getFormatter: (ticks: AxisValue[]) => TickLabelFormatter): TickCountCandidate[] {
+  const maxCount = getTickCount(axisConfig, contentExtent, axisDomainExtent, 0);
+  const sets: { count: number; ticks: AxisValue[] }[] = [{ count: 1, ticks: getSingleTicks() }];
+  // the set only grows with the count, so a range whose ends draw the same set draws it throughout; the others halve until each set's smallest count is found
+  const collect = (lowCount: number, lowTicks: AxisValue[], highCount: number, highTicks: AxisValue[]): void => {
+    if (sameTickValues(lowTicks, highTicks)) {
+      return;
+    }
+    if (highCount === lowCount + 1) {
+      sets.push({ count: highCount, ticks: highTicks });
+      return;
+    }
+    const midCount = Math.floor((lowCount + highCount) / 2);
+    const midTicks = axisScale.ticks(midCount);
+    collect(lowCount, lowTicks, midCount, midTicks);
+    collect(midCount, midTicks, highCount, highTicks);
+  };
+  if (maxCount > 1) {
+    collect(1, sets[0]!.ticks, maxCount, axisScale.ticks(maxCount));
+  }
+  const candidates: TickCountCandidate[] = [];
+  for (const { count, ticks } of sets) {
+    if (ticks.length === 0) {
+      continue;
+    }
+    const formatter = getFormatter(ticks);
+    let label = '';
+    for (const tick of ticks) {
+      const text = String(formatter(tick));
+      if (text.length > label.length) {
+        label = text;
+      }
+    }
+    candidates.push({ count, ticks, label });
+  }
+  return candidates.reverse();
+}
+
+/** A label with its digits as zeros: what the tick count labels draw, since digits share a width in most fonts and the zeros outlast a tween's changing values. */
+function getTickLabelShape(label: string): string {
+  return label.replace(/\d/g, '0');
+}
+
+/** The distinct label shapes to draw for measuring, densest set first. */
+function getTickCountLabels(candidates: TickCountCandidate[]): string[] {
+  const labels: string[] = [];
+  for (const { label } of candidates) {
+    const shape = getTickLabelShape(label);
+    if (!labels.includes(shape)) {
+      labels.push(shape);
+    }
+  }
+  return labels;
+}
+
+/** The densest candidate whose measured label shape leaves room for the count that draws it, with that room's count; null while none is measured. */
+function pickTickCountCandidate(axisConfig: AxisConfigBase, axisRangeExtent: number, axisDomainExtent: number, candidates: TickCountCandidate[], tickCountLabelSpaces: Record<string, number>): PickedTickCount | null {
+  for (const candidate of candidates) {
+    const space = tickCountLabelSpaces[getTickLabelShape(candidate.label)];
+    if (space !== undefined) {
+      const tickCount = getTickCount(axisConfig, axisRangeExtent, axisDomainExtent, space);
+      if (candidate.count <= tickCount) {
+        return { tickCount, ticks: candidate.ticks };
+      }
+    }
+  }
+  return null;
 }
 
 function getTickCount(axisConfig: AxisConfigBase, axisRangeExtent: number, axisDomainExtent: number, tickLabelSpace: number): number {

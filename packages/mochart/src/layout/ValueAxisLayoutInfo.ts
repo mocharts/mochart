@@ -38,9 +38,9 @@ export function getValueAxisSizes(axisConfigs: EnhancedValueAxisConfig[], axisDa
   });
 }
 
-export function createValueAxisLayoutInfos(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, _chartData: ChartDataForLayout | null, valueAxisRotatedTickBounds: Record<string, Bounds>, valueAxisMinorRotatedTickBounds: Record<string, Bounds>, axisTickInfos: AxisTickInfos, categoryY: number, valueY: number, categoryInnerExtent: number, valueInnerExtent: number, categoryAxesOffset: BeforeAfter, valueAxesOffset: BeforeAfter, valueAxisSizes: Record<string, number>, _valueAxisVisibleSeriesCounts: Record<string, number>, valueAxesCollapsedAfter: number): Record<string, AxisLayoutInfo> {
+export function createValueAxisLayoutInfos(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, _chartData: ChartDataForLayout | null, valueAxisRotatedTickBounds: Record<string, Bounds>, valueAxisMinorRotatedTickBounds: Record<string, Bounds>, axisTickInfos: AxisTickInfos, categoryY: number, valueY: number, categoryInnerExtent: number, valueInnerExtent: number, contentExtent: number, categoryAxesOffset: BeforeAfter, valueAxesOffset: BeforeAfter, valueAxisSizes: Record<string, number>, _valueAxisVisibleSeriesCounts: Record<string, number>, valueAxesCollapsedAfter: number): Record<string, AxisLayoutInfo> {
   const { plot: plotConfig, valueAxes: valueAxisConfigs } = mochartConfig;
-  const { valueAxisTitleBounds, valueAxisTickBounds, valueAxisMinorTickBounds, valueAxisThresholdTitleBounds } = chartTextBoundsData;
+  const { valueAxisTitleBounds, valueAxisTickBounds, valueAxisMinorTickBounds, valueAxisTickCountLabelBounds, valueAxisThresholdTitleBounds } = chartTextBoundsData;
   const { valueAxisTickInfos, valueAxisMinorTickInfos } = axisTickInfos;
   const { inverted } = plotConfig;
   const vertical = !inverted;
@@ -70,7 +70,7 @@ export function createValueAxisLayoutInfos(mochartConfig: EnhancedMochartConfig,
       height: inverted ? valueAxisSize : valueInnerExtent
     },
       vertical, inverted, notAfter, marginInner, marginOuter, paddingInner, paddingOuter) as AxisLayoutInfo;
-    setExtraAxisInfo(valueAxisLayoutInfo, valueAxisConfig, valueAxisTickInfos[id], valueAxisMinorTickInfos[id], valueAxisTickBounds[id], valueAxisRotatedTickBounds[id], valueAxisMinorTickBounds[id], valueAxisMinorRotatedTickBounds[id], valueAxisTitleBounds[id], valueAxisThresholdTitleBounds[id], vertical, inverted);
+    setExtraAxisInfo(valueAxisLayoutInfo, valueAxisConfig, valueAxisTickInfos[id], valueAxisMinorTickInfos[id], valueAxisTickBounds[id], valueAxisRotatedTickBounds[id], valueAxisMinorTickBounds[id], valueAxisMinorRotatedTickBounds[id], valueAxisTickCountLabelBounds[id] ?? {}, contentExtent, valueAxisTitleBounds[id], valueAxisThresholdTitleBounds[id], vertical, inverted);
     if (collapsed) {
       currentSeriesCollapsedOffsetBefore += before === true ? valueAxisSize : 0;
       currentSeriesCollapsedOffsetAfter += before === false ? valueAxisSize : 0;

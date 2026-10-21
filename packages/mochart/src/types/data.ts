@@ -96,6 +96,8 @@ export interface CategorySpacingInfo {
 export interface CategoryAxisData {
   axisScale: AxisScale;
   axisTickData: AxisTick[];
+  /** The widest label of each tick set the automatic tick count could draw, drawn hidden so the count is picked from measured labels. */
+  tickCountLabels: string[];
   maxTickLabelLength: number;
   /** The length a truncated minor tick label may take, the room the narrowest-placed one has. */
   maxMinorTickLabelLength: number;
@@ -133,6 +135,8 @@ export interface SeriesPositionData extends ArrayLike<unknown> {
 export interface ValueAxisData {
   axisScales: Record<string, AxisScale>;
   axisTickData: Record<string, AxisTick[]>;
+  /** Per axis id, the widest label of each tick set the automatic tick count could draw (see CategoryAxisData). */
+  tickCountLabels: Record<string, string[]>;
 }
 
 export interface AxisData {

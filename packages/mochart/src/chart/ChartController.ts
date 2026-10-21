@@ -199,7 +199,7 @@ export class ChartController {
     // readDataProvider gets a fresh identity per refresh(), so the Chart re-syncs its loading/error reads even when chartData stays null
     // the pointer callbacks are wrapped only when the host set them: the Chart reads their presence to decide what is interactive
     return { mochartConfig: this.enhancedConfig(), dataProvider, readDataProvider: this.readDataProvider, loading, error, style, width, height, standalone: true,
-      chartData: this.source.chartData, focusData: this.source.focusData,
+      chartData: this.source.chartData, focusData: this.source.focusData, tweening: this.source.tweening,
       initialAnimationPercentage: this.source.initialAnimationPercentage, fontsVersion: this.fontsVersion,
       onFocus: this.handleFocus, onSeriesFilter: this.handleSeriesFilter,
       onChartClick: onChartClick && this.handleChartClick, onSliceClick,

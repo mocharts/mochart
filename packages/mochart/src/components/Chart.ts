@@ -9,7 +9,7 @@ import { indexOfCategoryValue } from '../animation/CategoryAnimationData.js';
 import type { CategorySeriesValueObject } from '../data/ChartData.js';
 import { getChartLayoutInfo, getChartLayoutInfoWithMutations } from '../layout/ChartLayout.js';
 import { getTooltipLayoutInfo, getTooltipLayoutInfoWithMutations } from '../layout/TooltipLayout.js';
-import { axisTickLabelsChanged, getAxisData, getAxisDataWithMutations, getAxisDataForCategoryChange, getAxisDataForSeriesChange } from '../data/AxisData.js';
+import { axisTickCountLabelsChanged, axisTickLabelsChanged, getAxisData, getAxisDataWithMutations, getAxisDataForCategoryChange, getAxisDataForSeriesChange } from '../data/AxisData.js';
 import { getStackData, getStackDataWithMutations } from '../data/StackData.js';
 import { getChartTextBoundsData, getChartTextBoundsDataWithMutations, getTooltipBounds, getBoundsWithMutations } from '../utils/TextMeasurement.js';
 import { mochartCssClasses, mochartVersionAttribute, getDomAccessors } from '../utils/ChartDom.js';
@@ -56,6 +56,8 @@ export interface ChartProps {
   /** What the chart's own loading/error reads use; a fresh identity per refresh() so they re-run. Defaults to dataProvider. */
   readDataProvider?: DataProvider | null;
   chartData: ChartData | null;
+  /** True on the frames of a data tween before its last: a follow-up measure can wait for the next frame. */
+  tweening?: boolean;
   focusData: FocusData | null;
   /** 0..1 while the initial value tween runs (pie sweep-in), else null. */
   initialAnimationPercentage?: number | null;
@@ -888,8 +890,10 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
             this.calculateInitialTextSizes();
             this.remeasureIfTickLabelsChange = false;
           }
-          else if (this.remeasureAfterMount || (this.remeasureIfTickLabelsChange && axisTickLabelsChanged(oldAxisData, axisData))) {
+          else if (this.remeasureAfterMount || (this.remeasureIfTickLabelsChange && (axisTickLabelsChanged(oldAxisData, axisData) ||
+            (this.props.tweening !== true && axisTickCountLabelsChanged(oldAxisData, axisData))))) {
             // bounded to one pass: the truncation resets whenever the plot extent moves, so chasing it could ping-pong
+            // (new tick count labels mid-tween wait for the next frame's measure; the tween's last frame is emitted settled)
             this.remeasureAfterMount = false;
             this.remeasureIfTickLabelsChange = false;
             this.calculateInitialTextSizes();

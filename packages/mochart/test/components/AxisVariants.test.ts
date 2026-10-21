@@ -45,7 +45,7 @@ function mountChart(config: MochartInputConfig, data: readonly unknown[]): Eleme
 }
 
 function tickLabels(container: Element): string[] {
-  const labels = container.querySelectorAll(getDescendantCssSelector('categoryAxis', 'axisTickLabels') + ' text');
+  const labels = container.querySelectorAll(getDescendantCssSelector('categoryAxis', 'axisTickLabels', 'axisTickLabel') + ' text');
   return Array.from(labels).map(label => label.textContent ?? '');
 }
 

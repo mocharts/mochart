@@ -47,6 +47,10 @@ export interface AxisLayoutInfo extends SpacingLayoutInfo, LayoutInfo {
   tickLabelParallel: boolean;
   tickLabelSize: number;
   tickLabelSpace: number;
+  /** The room along the axis each measured tick count label takes, by its text (see CategoryAxisData.tickCountLabels). */
+  tickCountLabelSpaces: Record<string, number>;
+  /** The chart content's extent along the axis: the most room any tick count could be sized for, fixed before any text is measured. */
+  contentExtent: number;
   titleSize: number;
   totalTickLabelSize: number;
   totalTitleSize: number;
@@ -143,10 +147,13 @@ export interface ChartTextBoundsData {
   categoryAxisMinorTickBounds: TextBounds;
   categoryAxisSizeTickBounds: TextBounds;
   categoryAxisMinorSizeTickBounds: TextBounds;
+  /** The tick count labels by their text (see CategoryAxisData.tickCountLabels). */
+  categoryAxisTickCountLabelBounds: Record<string, TextBounds>;
   categoryAxisTitleBounds: TextBounds;
   categoryAxisThresholdTitleBounds: Record<number, TextBounds>;
   valueAxisTickBounds: Record<string, TextBounds>;
   valueAxisMinorTickBounds: Record<string, TextBounds>;
+  valueAxisTickCountLabelBounds: Record<string, Record<string, TextBounds>>;
   valueAxisTitleBounds: Record<string, TextBounds>;
   valueAxisThresholdTitleBounds: Record<string, Record<number, TextBounds>>;
   legendBounds: TextBounds;

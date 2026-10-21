@@ -36,7 +36,7 @@ export default class CategoryAxis extends Renderer<CategoryAxisProps> {
       categoryAxisData, titleClipPathUniqueId, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, accessibility, accessibleLabel, chartFont } = this.props;
 
     this.axis!.set(Axis, { front, fontsVersion: this.props.fontsVersion, axisClass: mochartCssClasses['categoryAxis'], axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
-      plotLayoutInfo, axisTicks: categoryAxisData.axisTickData,
+      plotLayoutInfo, axisTicks: categoryAxisData.axisTickData, tickCountLabels: categoryAxisData.tickCountLabels,
       focusPercentages, tickSpacing: categoryAxisData.maxTickLabelLength, minorTickSpacing: categoryAxisData.maxMinorTickLabelLength,
       titleClipPathUniqueId, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, accessibility, accessibleLabel, chartFont });
   }

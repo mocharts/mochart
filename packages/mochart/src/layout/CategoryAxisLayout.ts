@@ -38,9 +38,9 @@ export function getCategoryAxisRotatedTickBounds(mochartConfig: EnhancedMochartC
   return getRotatedTickBounds(categoryAxisConfig.tickLabel, categoryAxisTickBounds, categoryAxisTickInfo);
 }
 
-export function createCategoryAxisLayoutInfo(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, categoryAxisRotatedTickBounds: Bounds, categoryAxisMinorRotatedTickBounds: Bounds, axisTickInfos: AxisTickInfos, categoryY: number, valueY: number, categoryInnerExtent: number, valueInnerExtent: number, categoryAxesOffset: BeforeAfter, categoryAxisSize: number): CategoryAxisLayoutInfo {
+export function createCategoryAxisLayoutInfo(mochartConfig: EnhancedMochartConfig, chartTextBoundsData: ChartTextBoundsData, categoryAxisRotatedTickBounds: Bounds, categoryAxisMinorRotatedTickBounds: Bounds, axisTickInfos: AxisTickInfos, categoryY: number, valueY: number, categoryInnerExtent: number, valueInnerExtent: number, contentExtent: number, categoryAxesOffset: BeforeAfter, categoryAxisSize: number): CategoryAxisLayoutInfo {
   const { plot: plotConfig, categoryAxis: categoryAxisConfig } = mochartConfig;
-  const { categoryAxisTitleBounds, categoryAxisTickBounds, categoryAxisMinorTickBounds, categoryAxisSizeTickBounds, categoryAxisMinorSizeTickBounds, categoryAxisThresholdTitleBounds } = chartTextBoundsData;
+  const { categoryAxisTitleBounds, categoryAxisTickBounds, categoryAxisMinorTickBounds, categoryAxisSizeTickBounds, categoryAxisMinorSizeTickBounds, categoryAxisTickCountLabelBounds, categoryAxisThresholdTitleBounds } = chartTextBoundsData;
   const { categoryAxisTickInfo, categoryAxisMinorTickInfo } = axisTickInfos;
   const { inverted } = plotConfig;
   const vertical = inverted;
@@ -57,7 +57,7 @@ export function createCategoryAxisLayoutInfo(mochartConfig: EnhancedMochartConfi
       height: inverted ? categoryInnerExtent : categoryAxisSize
     },
     vertical, inverted, notAfter, marginInner, marginOuter, paddingInner, paddingOuter) as CategoryAxisLayoutInfo;
-  setExtraAxisInfo(categoryAxisLayoutInfo, categoryAxisConfig, categoryAxisTickInfo, categoryAxisMinorTickInfo, categoryAxisTickBounds, categoryAxisRotatedTickBounds, categoryAxisMinorTickBounds, categoryAxisMinorRotatedTickBounds, categoryAxisTitleBounds, categoryAxisThresholdTitleBounds, vertical, inverted);
+  setExtraAxisInfo(categoryAxisLayoutInfo, categoryAxisConfig, categoryAxisTickInfo, categoryAxisMinorTickInfo, categoryAxisTickBounds, categoryAxisRotatedTickBounds, categoryAxisMinorTickBounds, categoryAxisMinorRotatedTickBounds, categoryAxisTickCountLabelBounds, contentExtent, categoryAxisTitleBounds, categoryAxisThresholdTitleBounds, vertical, inverted);
   categoryAxisLayoutInfo.position = categoryY;
   categoryAxisLayoutInfo.before = categoryAxesOffset.before;
   categoryAxisLayoutInfo.after = categoryAxesOffset.after;
