@@ -3,7 +3,7 @@ import { Renderer, svgEl, textEl } from '../render/index.js';
 import { getSeriesLabelFormat } from '../utils/ValueFormat.js';
 import { getScaledValue, getValueOffsetByDomainFraction } from '../data/DomainFraction.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
-import { NONE, AUTO, LABEL_POSITION_CENTER, LABEL_POSITION_INSIDE, RENDERER_BAR, SCALE_LOG } from '../config/core/constants.js';
+import { NONE, AUTO, LABEL_POSITION_CENTER, LABEL_POSITION_INSIDE, MISSING_VALUE_MODE_BASE, RENDERER_BAR, SCALE_LOG } from '../config/core/constants.js';
 import { translate, isMissingValue } from '../utils/utils.js';
 import { getSeriesLabelFillColor, getSeriesLabelStrokeColor } from '../utils/SeriesColors.js';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
@@ -213,10 +213,15 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
           else {
             // an unstacked value with no rangeProperty spans from where the bars start, like a stacked one
             const unstackedMin = hasBase ? base : domainMin;
+            // a missing range end is drawn at the base only under missingValueMode base, and not when partialRangeIsMissing collapses the shape
+            const missingRangeEndAtBase = seriesConfig.missingValueMode === MISSING_VALUE_MODE_BASE && !seriesConfig.partialRangeIsMissing;
             withinPercentages = (maxSeriesValue: number, minSeriesValue?: number | null) => {
               let valueMin = maxSeriesValue;
               if (minSeriesValue !== undefined) {
                 valueMin = minSeriesValue ?? unstackedMin;
+              }
+              else if (missingRangeEndAtBase) {
+                valueMin = unstackedMin;
               }
               return oldWithinPercentages(maxSeriesValue) && spansEnough(maxSeriesValue, valueMin);
             };
@@ -246,7 +251,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
 
         for (let i = 0; i < length; i++) {
           const skipI = skipped ? skipCategoryIndexMap[i] : i;
-          // a missing prior (NaN) reads as undefined here so the base/domain fallbacks above apply
+          // a missing prior (NaN) reads as undefined here, so the missing-value fallbacks above apply
           const minValue = minValues ? (isMissingValue(minValues[skipI]) ? undefined : minValues[skipI]) : null;
           if (getDefined(null, i) && !isMissingValue(labelValues[skipI]) && withinPercentages(maxValues[skipI]!, minValue)) {
             aboveBase = !hasBase || maxValues[skipI]! >= base;

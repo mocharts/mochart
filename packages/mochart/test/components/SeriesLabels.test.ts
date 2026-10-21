@@ -129,6 +129,21 @@ describe('series label fraction guards', () => {
       [{ base: null }]
     )).toEqual(['100']);
   });
+
+  it('measures a missing range end from the base only when missingValueMode base draws it there', () => {
+    const rangeRows = [
+      { month: 'Jan', sales: 100, floor: 90 },
+      { month: 'Feb', sales: 80, floor: null },
+      { month: 'Mar', sales: 60, floor: 0 }
+    ];
+    const ranged = (overrides: Record<string, unknown>) =>
+      labelTexts({ rangeProperty: 'floor', label: { minRangeFraction: 0.2 }, ...overrides }, [{ base: 0 }], rangeRows);
+    // Feb's bar runs from 80 down to the base, past a fifth of the 0-100 domain
+    expect(ranged({ missingValueMode: 'base' })).toEqual(['80', '60']);
+    // collapsed to nothing: break draws no extent, partialRangeIsMissing drops the whole range
+    expect(ranged({ missingValueMode: 'break' })).toEqual(['60']);
+    expect(ranged({ missingValueMode: 'base', partialRangeIsMissing: true })).toEqual(['60']);
+  });
 });
 
 describe('series label fraction guards split at the axis base', () => {
