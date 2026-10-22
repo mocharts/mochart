@@ -338,15 +338,14 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
       const { textWidthCache, textGroup } = this.props;
       const domElements = this.tickLabelsGroup.node.querySelectorAll<SVGTextContentElement>(getAxisTickLabelsCssSelector());
       // the labels only seed fresh truncation data; an existing entry set is refined in place
-      const axisTickLabels = this.state.truncationData === null ? this.tickLabelStrings : emptyArray;
+      const axisTickLabels = this.truncation.data === null ? this.tickLabelStrings : emptyArray;
       // the major and minor labels each take their font key from the first label of their kind
       const fontKeys: (string | null)[] = [null, null];
-      const readWidth = (textElement: SVGTextContentElement, index: number): number => {
+      const fontKey = (textElement: SVGTextContentElement, index: number): string => {
         const kind = this.passTicks[index].tick.minor === true ? 1 : 0;
-        const fontKey = fontKeys[kind] ?? (fontKeys[kind] = textWidthCache.fontKey(axisTicksTextGroup(textGroup, kind === 1), textElement));
-        return textWidthCache.width(fontKey, textElement);
+        return fontKeys[kind] ?? (fontKeys[kind] = textWidthCache.fontKey(axisTicksTextGroup(textGroup, kind === 1), textElement));
       };
-      this.truncation.update(this, this.truncationTexts, axisTickLabels, this.truncationLengths, domElements, readWidth);
+      this.truncation.update(this, this.truncationTexts, axisTickLabels, this.truncationLengths, domElements, { cache: textWidthCache, fontKey });
     }
   }
 }

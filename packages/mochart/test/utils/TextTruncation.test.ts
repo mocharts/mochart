@@ -1,17 +1,88 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import {
   prepareTruncation,
   getTruncatedText,
-  truncateSVGText,
   updateTruncation,
-  type TruncationData
+  type TruncationData,
+  type TruncationMeasure
 } from '../../src/utils/TextTruncation';
-
-// jsdom does not implement getComputedTextLength; stub the one method the
-// truncation logic reads off an SVGTextContentElement.
-const el = (len: number) => ({ getComputedTextLength: () => len } as unknown as SVGTextContentElement);
+import { TextWidthCache } from '../../src/utils/TextWidthCache';
+import { getRenderedText } from '../golden/textMetrics';
 
 const ELLIPSIS = '…';
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const UNIT = 10;
+
+// A synthetic font: every code point advances UNIT, and the pairs in `kerns` kern. getSubStringLength books half of a
+// pair's kern on each of its glyphs, as Chromium does, so a prefix read off the full run carries half the kern the cut removes.
+let kerns: Record<string, number> = {};
+const kern = (a: string, b: string): number => kerns[a + b] ?? 0;
+
+function runWidth(text: string): number {
+  const codePoints = Array.from(text);
+  let width = 0;
+  for (let i = 0; i < codePoints.length; i++) {
+    width += UNIT + (i > 0 ? kern(codePoints[i - 1], codePoints[i]) : 0);
+  }
+  return width;
+}
+
+function subStringWidth(text: string, charnum: number, nchars: number): number {
+  const codePoints = Array.from(text);
+  let width = 0;
+  let charCount = 0;
+  for (let i = 0; i < codePoints.length; i++) {
+    if (charCount >= charnum && charCount < charnum + nchars) {
+      width += UNIT + (i > 0 ? kern(codePoints[i - 1], codePoints[i]) / 2 : 0) + (i + 1 < codePoints.length ? kern(codePoints[i], codePoints[i + 1]) / 2 : 0);
+    }
+    charCount += codePoints[i].length;
+  }
+  return width;
+}
+
+beforeAll(() => {
+  const svgProto = globalThis.SVGElement.prototype as any;
+  svgProto.getComputedTextLength = function (this: SVGElement): number { return runWidth(getRenderedText(this)); };
+  svgProto.getSubStringLength = function (this: SVGElement, charnum: number, nchars: number): number { return subStringWidth(getRenderedText(this), charnum, nchars); };
+  svgProto.getBBox = function (this: SVGElement) { return { x: 0, y: 0, width: runWidth(getRenderedText(this)), height: 12 }; };
+});
+
+let svg: SVGSVGElement;
+
+beforeEach(() => {
+  kerns = {};
+  svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
+  document.body.appendChild(svg);
+});
+
+afterEach(() => {
+  svg.remove();
+});
+
+/** A drawn label: a <text> in its own <g>, as the hosts lay them out. */
+function label(text: string): SVGTextContentElement {
+  const group = document.createElementNS(SVG_NS, 'g');
+  const element = document.createElementNS(SVG_NS, 'text') as SVGTextContentElement;
+  element.textContent = text;
+  group.appendChild(element);
+  svg.appendChild(group);
+  return element;
+}
+
+function measureWith(cache = new TextWidthCache()): TruncationMeasure {
+  cache.beginPass(true, 0);
+  return { cache, fontKey: () => 'synthetic' };
+}
+
+/** The nodes a pass appended beside the label and the nodes it left there. */
+function probesOf(element: SVGTextContentElement, run: () => void): { appended: number; left: number } {
+  const observer = new MutationObserver(() => {});
+  observer.observe(element.parentNode!, { childList: true });
+  run();
+  const appended = observer.takeRecords().reduce((count, record) => count + record.addedNodes.length, 0);
+  observer.disconnect();
+  return { appended, left: element.parentNode!.childNodes.length - 1 };
+}
 
 describe('prepareTruncation', () => {
   it('does nothing when truncation is disabled', () => {
@@ -103,129 +174,153 @@ describe('getTruncatedText', () => {
   });
 });
 
-describe('truncateSVGText', () => {
-  it('settles empty text immediately', () => {
-    expect(truncateSVGText(el(0), 100, ELLIPSIS, { text: '' })).toEqual({ text: '', truncatedText: '', lastText: '' });
+describe('updateTruncation', () => {
+  it('seeds single truncation data and skips measuring when there is no dom element', () => {
+    const { checkTruncation, changed, truncationData } = updateTruncation(ELLIPSIS, null, 'Hello', 100, null, measureWith());
+    expect(checkTruncation).toBe(false);
+    expect(changed).toBe(false);
+    expect(truncationData).toEqual({ text: 'Hello' });
   });
 
-  it('returns unchanged once truncatedText equals lastText (settled)', () => {
-    const data: TruncationData = { text: 'Hello', truncatedText: 'Hel', lastText: 'Hel' };
-    expect(truncateSVGText(el(50), 100, ELLIPSIS, data)).toBe(data);
+  it('settles empty text at once', () => {
+    const { checkTruncation, truncationData } = updateTruncation(ELLIPSIS, null, '', 100, label(''), measureWith());
+    expect(checkTruncation).toBe(false);
+    expect(truncationData).toEqual({ text: '', truncatedText: '', lastText: '' });
   });
 
-  it('makes an initial proportional guess when over the limit for the first time', () => {
-    // length 200, max 100 => keep ~half minus the suffix: floor((100/200)*11)-1=4 chars of "Hello World"
-    const out = truncateSVGText(el(200), 100, ELLIPSIS, { text: 'Hello World' });
-    expect(out).toEqual({ text: 'Hello World', truncatedText: 'Hell', lastText: 'Hel' });
+  it('settles a full text that fits without a second pass', () => {
+    const { checkTruncation, changed, truncationData } = updateTruncation(ELLIPSIS, null, 'Hello', 100, label('Hello'), measureWith());
+    expect(checkTruncation).toBe(false);
+    expect(changed).toBe(false);
+    expect(truncationData).toEqual({ text: 'Hello', truncatedText: 'Hello', lastText: 'Hello' });
   });
 
-  it('guesses from the rendered truncated length after a reset', () => {
-    // rendered is "Hello Wo" + ellipsis (9 chars) at length 180, max 60 => floor((60/180)*9)-1=2 chars
-    const out = truncateSVGText(el(180), 60, ELLIPSIS, { text: 'Hello World', truncatedText: 'Hello Wo' });
-    expect(out).toEqual({ text: 'Hello World', truncatedText: 'He', lastText: 'H' });
+  it('fits the longest prefix whose width with the suffix fits, in one pass, and removes its probes', () => {
+    const element = label('Hello World');
+    let result!: ReturnType<typeof updateTruncation>;
+    const probes = probesOf(element, () => { result = updateTruncation(ELLIPSIS, null, 'Hello World', 60, element, measureWith()); });
+    // five units and the suffix make 60; the fit is drawn next and verified after
+    expect(result.truncationData).toEqual({ text: 'Hello World', truncatedText: 'Hello', lastText: 'Hello World' });
+    expect(result.changed).toBe(true);
+    expect(result.checkTruncation).toBe(true);
+    expect(probes.appended).toBeGreaterThan(0);
+    expect(probes.left).toBe(0);
   });
 
-  // Regression: "Finance" (7 units) in a room of 30 at width 57 guessed floor(3.69)-1=2 with a one-unit
-  // suffix but 0 with a three-unit "...", and a zero guess pointed lastText at the full text, so the fitting
-  // bare suffix read as settled and the label never grew to the "Fi..." that fits
-  it('guesses at least one unit so a fitting bare suffix grows to a real prefix', () => {
-    const first = truncateSVGText(el(57), 30, '...', { text: 'Finance' });
-    expect(first).toEqual({ text: 'Finance', truncatedText: 'F', lastText: '' });
-    const second = truncateSVGText(el(20), 30, '...', first);
-    expect(second).toEqual({ text: 'Finance', truncatedText: 'Fi', lastText: 'F' });
+  it('verifies the drawn fit on the settled pass and settles it as drawn', () => {
+    const measure = measureWith();
+    const element = label('Hello World');
+    const fitted = updateTruncation(ELLIPSIS, null, 'Hello World', 60, element, measure).truncationData;
+    element.textContent = 'Hello' + ELLIPSIS;
+    const { checkTruncation, changed, truncationData } = updateTruncation(ELLIPSIS, fitted, 'Hello World', 60, element, measure);
+    expect(truncationData).toEqual({ text: 'Hello World', truncatedText: 'Hello', lastText: 'Hello' });
+    expect(checkTruncation).toBe(false);
+    expect(changed).toBe(false);
   });
 
-  it('still guesses zero for a one-unit text, which has no shorter prefix to grow from', () => {
-    const out = truncateSVGText(el(57), 30, '...', { text: 'F' });
-    expect(out).toEqual({ text: 'F', truncatedText: '', lastText: 'F' });
-    expect(truncateSVGText(el(13), 30, '...', out)).toEqual({ text: 'F', truncatedText: '', lastText: '' });
+  it('leaves a drawn fit as it is until a settled pass verifies it', () => {
+    const measure = measureWith();
+    const element = label('Hello World');
+    const fitted = updateTruncation(ELLIPSIS, null, 'Hello World', 60, element, measure).truncationData;
+    element.textContent = 'Hello' + ELLIPSIS;
+    measure.cache.beginPass(false, 0);
+    const pending = updateTruncation(ELLIPSIS, fitted, 'Hello World', 60, element, measure);
+    expect(pending.truncationData).toBe(fitted);
+    expect(pending.checkTruncation).toBe(true);
+    expect(pending.changed).toBe(false);
+    measure.cache.beginPass(true, 0);
+    expect((updateTruncation(ELLIPSIS, fitted, 'Hello World', 60, element, measure).truncationData as TruncationData).lastText).toBe('Hello');
   });
 
-  it('shrinks by one character on a subsequent over-limit pass', () => {
-    const out = truncateSVGText(el(150), 100, ELLIPSIS, { text: 'Hello World', truncatedText: 'Hello', lastText: 'Hello World' });
-    expect(out).toEqual({ text: 'Hello World', truncatedText: 'Hell', lastText: 'Hello' });
+  it('shrinks the drawn fit by one unit when it overflows at rest', () => {
+    const measure = measureWith();
+    const element = label('Hello World');
+    const fitted = updateTruncation(ELLIPSIS, null, 'Hello World', 60, element, measure).truncationData;
+    element.textContent = 'Hello' + ELLIPSIS;
+    // a shaping the prefix table cannot see (a ligature across the cut) makes the drawn text a hair wider
+    (element as any).getSubStringLength = () => 60.5;
+    const { checkTruncation, changed, truncationData } = updateTruncation(ELLIPSIS, fitted, 'Hello World', 60, element, measure);
+    expect(truncationData).toEqual({ text: 'Hello World', truncatedText: 'Hell', lastText: 'Hell' });
+    expect(checkTruncation).toBe(false);
+    expect(changed).toBe(true);
   });
 
-  // Regression: shrinking past an empty truncatedText sliced to -1 (the whole text minus one) and the
-  // state cycled forever whenever the bare suffix still overflowed
-  it('settles empty instead of cycling when the suffix alone is wider than the limit', () => {
-    const out = truncateSVGText(el(8), 5, ELLIPSIS, { text: 'Hello', truncatedText: '', lastText: 'H' });
-    expect(out).toEqual({ text: 'Hello', truncatedText: '', lastText: '' });
-    expect(truncateSVGText(el(8), 5, ELLIPSIS, out)).toBe(out);
+  it('settles on the bare suffix when not even one unit fits with it', () => {
+    const measure = measureWith();
+    const element = label('Hello');
+    const fitted = updateTruncation(ELLIPSIS, null, 'Hello', 5, element, measure);
+    expect(fitted.truncationData).toEqual({ text: 'Hello', truncatedText: '', lastText: 'Hello' });
+    element.textContent = ELLIPSIS;
+    const { checkTruncation, truncationData } = updateTruncation(ELLIPSIS, fitted.truncationData, 'Hello', 5, element, measure);
+    expect(truncationData).toEqual({ text: 'Hello', truncatedText: '', lastText: '' });
+    expect(checkTruncation).toBe(false);
   });
 
-  it('grows by one character when back under the limit', () => {
-    const out = truncateSVGText(el(50), 100, ELLIPSIS, { text: 'Hello', truncatedText: 'He', lastText: 'H' });
-    expect(out).toEqual({ text: 'Hello', truncatedText: 'Hel', lastText: 'He' });
+  it('fits each label of a list to its own room', () => {
+    const elements = [label('Hello World'), label('Hi')];
+    const { checkTruncation, changed, truncationData } = updateTruncation(ELLIPSIS, null, ['Hello World', 'Hi'], [60, 100], elements, measureWith());
+    expect(truncationData).toEqual([
+      { text: 'Hello World', truncatedText: 'Hello', lastText: 'Hello World' },
+      { text: 'Hi', truncatedText: 'Hi', lastText: 'Hi' }
+    ]);
+    expect(checkTruncation).toBe(true);
+    expect(changed).toBe(true);
   });
 
-  it('settles when under the limit and no longer growing', () => {
-    const out = truncateSVGText(el(50), 100, ELLIPSIS, { text: 'Hello', truncatedText: 'He', lastText: 'Hel' });
-    expect(out).toEqual({ text: 'Hello', truncatedText: 'He', lastText: 'He' });
+  it('reads the unit and suffix widths once per font', () => {
+    const measure = measureWith();
+    const first = label('Hello World');
+    const firstProbes = probesOf(first, () => updateTruncation(ELLIPSIS, null, 'Hello World', 60, first, measure));
+    // eight distinct units, the suffix, and each unit joined to the suffix
+    expect(firstProbes.appended).toBe(17);
+    const second = label('World Hello');
+    const secondProbes = probesOf(second, () => updateTruncation(ELLIPSIS, null, 'World Hello', 60, second, measure));
+    expect(secondProbes.appended).toBe(0);
+  });
+
+  // the prefix widths come off the full run, which kerns across the cut and not with the suffix; both are corrected,
+  // so the fit lands on the prefix whose drawn width fits where the plain prefix table would be one unit off
+  describe('kerning', () => {
+    it('removes the kern the cut takes away', () => {
+      kerns = { Te: -4 };
+      // "T." is 20 wide drawn alone; the run's "T" reads 8, which would have fitted a 19 px room and then overflowed it
+      const element = label('Tea party');
+      const result = updateTruncation('.', null, 'Tea party', 19, element, measureWith());
+      expect(result.truncationData).toEqual({ text: 'Tea party', truncatedText: '', lastText: 'Tea party' });
+      expect((updateTruncation('.', null, 'Tea party', 20, label('Tea party'), measureWith()).truncationData as TruncationData).truncatedText).toBe('T');
+    });
+
+    it('adds the kern the suffix brings', () => {
+      kerns = { 'r.': -2 };
+      // "Er..." is 48 wide drawn alone; the prefix table says 50 and would have stopped at "E"
+      const element = label('Error bars');
+      const result = updateTruncation('...', null, 'Error bars', 48, element, measureWith());
+      expect(result.truncationData).toEqual({ text: 'Error bars', truncatedText: 'Er', lastText: 'Error bars' });
+    });
   });
 
   // slicing by UTF-16 code unit cut astral characters in half and emitted a lone surrogate, which renders as U+FFFD; every cut lands on a user-perceived character boundary instead
   describe('multi-code-unit characters', () => {
-    // a high surrogate not followed by a low one, or a low one not preceded by a high one
     const loneSurrogate = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/;
-    const noLoneSurrogate = (text: string) => expect(text).not.toMatch(loneSurrogate);
+    const fit = (text: string, maxLength: number): string => {
+      const truncatedText = (updateTruncation(ELLIPSIS, null, text, maxLength, label(text), measureWith()).truncationData as TruncationData).truncatedText!;
+      expect(truncatedText).not.toMatch(loneSurrogate);
+      return truncatedText;
+    };
 
-    it('never splits an emoji on the initial proportional guess', () => {
-      // five emoji, each two code units: the old code kept 2.5 of them
-      const out = truncateSVGText(el(130), 65, ELLIPSIS, { text: '😀😀😀😀😀' });
-      noLoneSurrogate(out.truncatedText!);
-      expect(Array.from(out.truncatedText!).every(unit => unit === '😀')).toBe(true);
-    });
-
-    it('never splits an emoji when shrinking by one', () => {
-      const out = truncateSVGText(el(150), 100, ELLIPSIS, { text: '😀😀😀', truncatedText: '😀😀', lastText: '😀😀😀' });
-      expect(out.truncatedText).toBe('😀');
-      noLoneSurrogate(out.truncatedText!);
-    });
-
-    it('never splits an emoji when growing by one', () => {
-      const out = truncateSVGText(el(50), 100, ELLIPSIS, { text: '😀😀😀', truncatedText: '😀', lastText: '' });
-      expect(out.truncatedText).toBe('😀😀');
-      noLoneSurrogate(out.truncatedText!);
+    it('never splits an emoji', () => {
+      expect(fit('😀😀😀😀😀', 35)).toBe('😀😀');
     });
 
     // a flag is two regional-indicator code points, so this one needs grapheme segmentation
     it('keeps a flag whole', () => {
-      // 7 characters ("🇺🇸", "🇺🇸", " ", f, l, a, g): floor((100/200)*7)-1 = 2
-      const out = truncateSVGText(el(200), 100, ELLIPSIS, { text: '🇺🇸🇺🇸 flag' });
-      expect(out.truncatedText).toBe('🇺🇸🇺🇸');
-      noLoneSurrogate(out.truncatedText!);
+      expect(fit('🇺🇸🇺🇸 flag', 55)).toBe('🇺🇸🇺🇸');
     });
 
     it('keeps a combining mark with its base character', () => {
-      const acuteE = 'e\u0301';
-      const out = truncateSVGText(el(120), 60, ELLIPSIS, { text: acuteE.repeat(3) });
-      // a whole number of base+mark pairs, so nothing is left holding a dangling accent
-      expect(out.truncatedText!.split(acuteE).join('')).toBe('');
+      const acuteE = 'é';
+      const truncatedText = fit(acuteE.repeat(3), 35);
+      expect(truncatedText).toBe(acuteE);
     });
   });
-});
-
-describe('updateTruncation', () => {
-  it('seeds single truncation data and skips measuring when there is no dom element', () => {
-    const { checkTruncation, truncationData } = updateTruncation(ELLIPSIS, null, 'Hello', 100, null);
-    expect(checkTruncation).toBe(false);
-    expect(truncationData).toEqual({ text: 'Hello' });
-  });
-
-  it('measures and truncates a single element that overflows', () => {
-    const { checkTruncation, truncationData } = updateTruncation(ELLIPSIS, null, 'Hello World', 100, el(200));
-    expect(checkTruncation).toBe(true);
-    expect(truncationData).toEqual({ text: 'Hello World', truncatedText: 'Hell', lastText: 'Hel' });
-  });
-
-  // Regression: the single path pushed a settled first pass through setState while the array path did not
-  it('asks for no further check when a first pass already fits, single or array', () => {
-    const single = updateTruncation(ELLIPSIS, null, 'Hello', 100, el(50));
-    expect(single.checkTruncation).toBe(false);
-    expect(single.truncationData).toEqual({ text: 'Hello', truncatedText: 'Hello', lastText: 'Hello' });
-    const array = updateTruncation(ELLIPSIS, null, ['ab', 'cd'], 100, [el(50), el(50)]);
-    expect(array.checkTruncation).toBe(false);
-  });
-
 });

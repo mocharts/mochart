@@ -1,7 +1,9 @@
 // TextTruncation fits text with getComputedTextLength(), so every width a layout reserves must come from the same call, because getBBox().width is not interchangeable (Gecko inflates text boxes by 2px per side, making Firefox reserve more than it needs)
 import { describe, it, expect } from 'vitest';
 import { getSvgMaxWidthAndHeight, getSvgWidthAndHeight } from '../../src/utils/TextMeasurement';
-import { truncateSVGText } from '../../src/utils/TextTruncation';
+import { updateTruncation } from '../../src/utils/TextTruncation';
+import type { TruncationData } from '../../src/utils/TextTruncation';
+import { TextWidthCache } from '../../src/utils/TextWidthCache';
 import { getTextHeight, measureTextWidth } from '../golden/textMetrics';
 
 /** Gecko's text-bbox width inflation, 2px per side, measured live in Firefox, exactly 4.00 for every label. */
@@ -12,13 +14,17 @@ const BOX_HEIGHT_EXCESS = 3;
 
 const strings = ['M', 'MMMMMMMMMM', 'iiii', 'Hello world', 'Total revenue (millions)'];
 
-/** A <text> whose advance and box disagree exactly the way Gecko's do. */
+/** A drawn <text> whose advance and box disagree exactly the way Gecko's do. */
 function geckoTextElement(text: string): SVGTextContentElement {
   const advance = measureTextWidth(text);
-  return {
-    getComputedTextLength: () => advance,
-    getBBox: () => ({ x: -2, y: -2, width: advance + GECKO_BBOX_WIDTH_INFLATION, height: getTextHeight() + BOX_HEIGHT_EXCESS })
-  } as unknown as SVGTextContentElement;
+  const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  const element = document.createElementNS('http://www.w3.org/2000/svg', 'text') as SVGTextContentElement;
+  element.textContent = text;
+  group.appendChild(element);
+  document.body.appendChild(group);
+  (element as any).getComputedTextLength = () => advance;
+  (element as any).getBBox = () => ({ x: -2, y: -2, width: advance + GECKO_BBOX_WIDTH_INFLATION, height: getTextHeight() + BOX_HEIGHT_EXCESS });
+  return element;
 }
 
 describe('svg text width measurement', () => {
@@ -44,10 +50,12 @@ describe('svg text width measurement', () => {
   });
 
   it('leaves text untruncated at exactly its reserved width', () => {
+    const cache = new TextWidthCache();
     for (const text of strings) {
       const element = geckoTextElement(text);
       const reservedWidth = getSvgWidthAndHeight(element).width;
-      expect(truncateSVGText(element, reservedWidth, '...', { text }).truncatedText).toBe(text);
+      const { truncationData } = updateTruncation('...', null, text, reservedWidth, element, { cache, fontKey: () => 'gecko' });
+      expect((truncationData as TruncationData).truncatedText).toBe(text);
     }
   });
 

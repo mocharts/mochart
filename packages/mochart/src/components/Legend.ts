@@ -386,7 +386,7 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
       const title = getSeriesTitle(seriesConfig);
       const maxLength = Math.max(width, 0);
       this.truncation.update(this, truncationText, title, maxLength, domElement,
-        textElement => textWidthCache.width(textWidthCache.fontKey(textGroups.legendItem, textElement), textElement));
+        { cache: textWidthCache, fontKey: textElement => textWidthCache.fontKey(textGroups.legendItem, textElement) });
     }
   }
 }

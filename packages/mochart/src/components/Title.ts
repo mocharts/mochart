@@ -231,7 +231,7 @@ export default class Title extends Renderer<TitleProps, TitleState> {
       const { text: title, truncation: { text: truncationText }, textMargin, textPadding } = titleConfig;
       const maxLength = Math.max(width - getSpacingWidth(textMargin, textPadding), 0);
       this.truncation.update(this, truncationText, title!, maxLength, domElement,
-        textElement => textWidthCache.width(textWidthCache.fontKey(textGroups.title, textElement), textElement));
+        { cache: textWidthCache, fontKey: textElement => textWidthCache.fontKey(textGroups.title, textElement) });
     }
   }
 

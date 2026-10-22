@@ -27,8 +27,12 @@ export function axisThresholdTitleTextGroup(axisGroup: string, index: number): s
 }
 
 interface WidthEntry { width: number; generation: number }
-interface FontEntry { widths: Map<string, WidthEntry>; height: number; generation: number }
+/** What a one-shot fit reads about a text: its grapheme units, the code units each prefix spans, and the prefix advances read so far (NaN until read). */
+export interface FitTables { units: string[]; charCounts: number[]; prefixes: number[]; generation: number }
+interface FontEntry { widths: Map<string, WidthEntry>; fits: Map<string, FitTables>; height: number; generation: number }
 interface GroupEntry { key: string; fontSize: number; pass: number; inlineStyle: string | null }
+
+const XML_NS = 'http://www.w3.org/XML/1998/namespace';
 
 // typed locally rather than from lib.esnext.intl, so the package's TS lib target is unaffected
 interface GraphemeSegmenter {
@@ -48,6 +52,34 @@ export function textUnits(text: string): string[] {
   return graphemeSegmenter === null
     ? Array.from(text)
     : Array.from(graphemeSegmenter.segment(text), segment => segment.segment);
+}
+
+/** A <text> beside `host` with its style and class, so host css applies the same way, holding `content` with its spaces kept; the caller removes it. */
+export function appendProbe(host: SVGTextContentElement, content: string): SVGTextContentElement {
+  const probe = host.ownerDocument.createElementNS(SVG_NS, 'text') as SVGTextContentElement;
+  const style = host.getAttribute('style');
+  if (style !== null) {
+    probe.setAttribute('style', style);
+  }
+  const className = host.getAttribute('class');
+  if (className !== null) {
+    probe.setAttribute('class', className);
+  }
+  probe.setAttributeNS(XML_NS, 'xml:space', 'preserve');
+  probe.textContent = content;
+  host.parentNode!.appendChild(probe);
+  return probe;
+}
+
+// jsdom has no getSubStringLength unless a test installs one: a probe holding the prefix stands in
+function readPrefixWidth(source: SVGTextContentElement, text: string, charCount: number): number {
+  if (typeof source.getSubStringLength === 'function') {
+    return source.getSubStringLength(0, charCount);
+  }
+  const probe = appendProbe(source, text.slice(0, charCount));
+  const width = readWidth(probe, text.slice(0, charCount));
+  probe.remove();
+  return width;
 }
 
 /** The text the browser lays out: the direct text nodes; null when an element child other than the tooltip <title> would also draw. */
@@ -114,6 +146,11 @@ export class TextWidthCache {
   private settled = true;
   private sweepPending = false;
   private fontsVersion = 0;
+
+  /** Whether the current pass is settled (no tween frame): the pass a fitted label is verified on. */
+  get settledPass(): boolean {
+    return this.settled;
+  }
 
   /** The pass one controller update starts (its sync, the hosts' measures and the setState flushes they cause); a settled one that measures is a generation. */
   beginPass(settled: boolean, fontsVersion: number): void {
@@ -205,6 +242,77 @@ export class TextWidthCache {
     return font.height;
   }
 
+  /** The advance of `text` in the font `fontKey` names, if a label or probe holding it has been read; NaN otherwise. */
+  widthOf(fontKey: string, text: string): number {
+    const entry = this.font(fontKey).widths.get(text);
+    if (entry === undefined) {
+      return NaN;
+    }
+    entry.generation = this.generation;
+    return entry.width;
+  }
+
+  /** Probes beside `host` for every text of `texts` not yet read in `fontKey`, read in one layout and kept for the font's lifetime; the returned function removes them. */
+  fillWidths(fontKey: string, host: SVGTextContentElement, texts: Iterable<string>): () => void {
+    const font = this.font(fontKey);
+    const probes: SVGTextContentElement[] = [];
+    for (const text of texts) {
+      if (text !== '' && !font.widths.has(text)) {
+        probes.push(appendProbe(host, text));
+      }
+    }
+    for (const probe of probes) {
+      this.width(fontKey, probe);
+      // a unit, join or suffix width serves every fit in the font: kept as long as the font is, not swept with the texts
+      const entry = font.widths.get(getDirectText(probe)!);
+      if (entry !== undefined) {
+        entry.generation = Infinity;
+      }
+    }
+    return () => {
+      for (const probe of probes) {
+        probe.remove();
+      }
+    };
+  }
+
+  /** The fit tables of `text` in the font `fontKey` names, segmented once; `fullWidth` seeds the last prefix. */
+  fitTables(fontKey: string, text: string, fullWidth = NaN): FitTables {
+    const font = this.font(fontKey);
+    let tables = font.fits.get(text);
+    if (tables === undefined) {
+      const units = textUnits(text);
+      const charCounts: number[] = [0];
+      const prefixes: number[] = [0];
+      for (let i = 0; i < units.length; i++) {
+        charCounts.push(charCounts[i] + units[i].length);
+        prefixes.push(NaN);
+      }
+      tables = { units, charCounts, prefixes, generation: this.generation };
+      font.fits.set(text, tables);
+    }
+    else {
+      tables.generation = this.generation;
+    }
+    if (fullWidth > 0 && Number.isNaN(tables.prefixes[tables.units.length])) {
+      tables.prefixes[tables.units.length] = fullWidth;
+    }
+    return tables;
+  }
+
+  /** The advance of the first `unitCount` units of `text`, read from `source` (a <text> drawing the full text) on first sight. */
+  prefixWidth(fontKey: string, text: string, unitCount: number, source: SVGTextContentElement): number {
+    const tables = this.fitTables(fontKey, text);
+    let width = tables.prefixes[unitCount];
+    if (Number.isNaN(width)) {
+      width = readPrefixWidth(source, text, tables.charCounts[unitCount]);
+      if (width > 0) {
+        tables.prefixes[unitCount] = width;
+      }
+    }
+    return width;
+  }
+
   clear(): void {
     this.fonts.clear();
     this.groups.clear();
@@ -219,7 +327,7 @@ export class TextWidthCache {
     }
     let font = this.fonts.get(fontKey);
     if (font === undefined) {
-      font = { widths: new Map(), height: 0, generation: this.generation };
+      font = { widths: new Map(), fits: new Map(), height: 0, generation: this.generation };
       this.fonts.set(fontKey, font);
     }
     else {
@@ -239,6 +347,11 @@ export class TextWidthCache {
         for (const [text, entry] of font.widths) {
           if (entry.generation < oldest) {
             font.widths.delete(text);
+          }
+        }
+        for (const [text, tables] of font.fits) {
+          if (tables.generation < oldest) {
+            font.fits.delete(text);
           }
         }
       }

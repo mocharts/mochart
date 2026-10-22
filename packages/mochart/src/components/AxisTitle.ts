@@ -110,7 +110,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
       const maxLength = axisLayoutInfo.vertical ? axisLayoutInfo.height : axisLayoutInfo.width;
       const { text: title, truncation: { text: titleTruncationText } } = axisConfig.title;
       this.truncation.update(this, titleTruncationText, title!, maxLength, domElement,
-        textElement => textWidthCache.width(textWidthCache.fontKey(axisTitleTextGroup(textGroup), textElement), textElement));
+        { cache: textWidthCache, fontKey: textElement => textWidthCache.fontKey(axisTitleTextGroup(textGroup), textElement) });
     }
   }
 }
