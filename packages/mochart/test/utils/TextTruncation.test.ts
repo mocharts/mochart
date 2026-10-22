@@ -4,6 +4,7 @@ import {
   getTruncatedText,
   updateTruncation,
   type TruncationData,
+  type TruncationDataValue,
   type TruncationMeasure
 } from '../../src/utils/TextTruncation';
 import { TextWidthCache } from '../../src/utils/TextWidthCache';
@@ -13,9 +14,13 @@ const ELLIPSIS = '…';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const UNIT = 10;
 
-// A synthetic font: every code point advances UNIT, and the pairs in `kerns` kern. getSubStringLength books half of a
-// pair's kern on each of its glyphs, as Chromium does, so a prefix read off the full run carries half the kern the cut removes.
+// A synthetic font: every code point advances UNIT, and the pairs in `kerns` kern. Where getSubStringLength books a pair's
+// kern is the engine's choice (half on each glyph in Chromium and Firefox, or all on the first or the second), so a prefix
+// read off the full run carries some share of the kern the cut removes; the fit must land on the same prefix under each.
+type KernBooking = 'half' | 'first' | 'second';
+const KERN_BOOKINGS: KernBooking[] = ['half', 'first', 'second'];
 let kerns: Record<string, number> = {};
+let kernBooking: KernBooking = 'half';
 const kern = (a: string, b: string): number => kerns[a + b] ?? 0;
 
 function runWidth(text: string): number {
@@ -29,11 +34,13 @@ function runWidth(text: string): number {
 
 function subStringWidth(text: string, charnum: number, nchars: number): number {
   const codePoints = Array.from(text);
+  const before = kernBooking === 'half' ? 0.5 : kernBooking === 'second' ? 1 : 0;
+  const after = kernBooking === 'half' ? 0.5 : kernBooking === 'first' ? 1 : 0;
   let width = 0;
   let charCount = 0;
   for (let i = 0; i < codePoints.length; i++) {
     if (charCount >= charnum && charCount < charnum + nchars) {
-      width += UNIT + (i > 0 ? kern(codePoints[i - 1], codePoints[i]) / 2 : 0) + (i + 1 < codePoints.length ? kern(codePoints[i], codePoints[i + 1]) / 2 : 0);
+      width += UNIT + (i > 0 ? kern(codePoints[i - 1], codePoints[i]) * before : 0) + (i + 1 < codePoints.length ? kern(codePoints[i], codePoints[i + 1]) * after : 0);
     }
     charCount += codePoints[i].length;
   }
@@ -51,6 +58,7 @@ let svg: SVGSVGElement;
 
 beforeEach(() => {
   kerns = {};
+  kernBooking = 'half';
   svg = document.createElementNS(SVG_NS, 'svg') as SVGSVGElement;
   document.body.appendChild(svg);
 });
@@ -72,6 +80,26 @@ function label(text: string): SVGTextContentElement {
 function measureWith(cache = new TextWidthCache()): TruncationMeasure {
   cache.beginPass(true, 0);
   return { cache, fontKey: () => 'synthetic' };
+}
+
+/** Renders a label until its truncation settles, as a host does: each pass measures, a changed drawn text is drawn before the next. */
+function settle(text: string, maxLength: number, suffix = ELLIPSIS, measure = measureWith()): { drawn: string; renders: number; truncatedText: string } {
+  const element = label(text);
+  let truncationData: TruncationDataValue = null;
+  let renders = 0;
+  for (let pass = 0; pass < 10; pass++) {
+    const result = updateTruncation(suffix, truncationData, text, maxLength, element, measure);
+    truncationData = result.truncationData;
+    if (result.changed) {
+      renders++;
+      element.textContent = getTruncatedText(true, suffix, text, truncationData);
+    }
+    if (!result.checkTruncation) {
+      return { drawn: element.textContent!, renders, truncatedText: (truncationData as TruncationData).truncatedText! };
+    }
+    measure.cache.beginPass(true, 0);
+  }
+  throw new Error('did not settle');
 }
 
 /** The nodes a pass appended beside the label and the nodes it left there. */
@@ -207,15 +235,46 @@ describe('updateTruncation', () => {
     expect(probes.left).toBe(0);
   });
 
-  it('verifies the drawn fit on the settled pass and settles it as drawn', () => {
+  it('verifies the drawn fit on the next pass with one probe of the next longer candidate and settles it as drawn', () => {
     const measure = measureWith();
     const element = label('Hello World');
     const fitted = updateTruncation(ELLIPSIS, null, 'Hello World', 60, element, measure).truncationData;
     element.textContent = 'Hello' + ELLIPSIS;
-    const { checkTruncation, changed, truncationData } = updateTruncation(ELLIPSIS, fitted, 'Hello World', 60, element, measure);
-    expect(truncationData).toEqual({ text: 'Hello World', truncatedText: 'Hello', lastText: 'Hello' });
-    expect(checkTruncation).toBe(false);
-    expect(changed).toBe(false);
+    let result!: ReturnType<typeof updateTruncation>;
+    // "Hello W" with the suffix, 80, is the next prefix that draws longer: "Hello " draws as "Hello"
+    const probes = probesOf(element, () => { result = updateTruncation(ELLIPSIS, fitted, 'Hello World', 60, element, measure); });
+    expect(result.truncationData).toEqual({ text: 'Hello World', truncatedText: 'Hello', lastText: 'Hello' });
+    expect(result.checkTruncation).toBe(false);
+    expect(result.changed).toBe(false);
+    expect(probes).toEqual({ appended: 1, left: 0 });
+  });
+
+  it('grows the drawn fit to the next longer candidate when that fits too, and settles it on the next pass with no further growth', () => {
+    // the suffix kerns tight against an r, which the prefix table cannot see: "Er." draws 15 wide, "Err." 25
+    kerns = { 'r.': -15 };
+    const measure = measureWith();
+    const element = label('Error bars');
+    const fitted = updateTruncation('.', null, 'Error bars', 26, element, measure).truncationData;
+    expect(fitted).toEqual({ text: 'Error bars', truncatedText: 'E', lastText: 'Error bars' });
+    element.textContent = 'E.';
+    const grown = updateTruncation('.', fitted, 'Error bars', 26, element, measure);
+    expect(grown.truncationData).toEqual({ text: 'Error bars', truncatedText: 'Er', lastText: 'E' });
+    expect(grown.changed).toBe(true);
+    expect(grown.checkTruncation).toBe(true);
+    element.textContent = 'Er.';
+    let settled!: ReturnType<typeof updateTruncation>;
+    const probes = probesOf(element, () => { settled = updateTruncation('.', grown.truncationData, 'Error bars', 26, element, measure); });
+    expect(settled.truncationData).toEqual({ text: 'Error bars', truncatedText: 'Er', lastText: 'Er' });
+    expect(settled.checkTruncation).toBe(false);
+    expect(settled.changed).toBe(false);
+    expect(probes.appended).toBe(0);
+  });
+
+  it('costs a label at most two renders after its fit', () => {
+    kerns = { 'r.': -15, Te: -4 };
+    expect(settle('Error bars', 26, '.').renders).toBe(2);
+    expect(settle('Tea party', 19, '.').renders).toBe(2);
+    expect(settle('Hello World', 60).renders).toBe(1);
   });
 
   // Regression: a verification deferred to a settled pass never ran for a host whose props stood still through a build's last
@@ -225,7 +284,7 @@ describe('updateTruncation', () => {
     const element = label('Hello World');
     const fitted = updateTruncation(ELLIPSIS, null, 'Hello World', 60, element, measure).truncationData;
     element.textContent = 'Hello' + ELLIPSIS;
-    (element as any).getComputedTextLength = () => 60.5;
+    (element as any).getSubStringLength = () => 60.5;
     measure.cache.beginPass(false, 0);
     const verified = updateTruncation(ELLIPSIS, fitted, 'Hello World', 60, element, measure);
     expect(verified.truncationData).toEqual({ text: 'Hello World', truncatedText: 'Hell', lastText: 'Hell' });
@@ -267,35 +326,41 @@ describe('updateTruncation', () => {
     expect(changed).toBe(true);
   });
 
-  it('reads the unit and suffix widths once per font', () => {
+  it('reads the suffix width once per font', () => {
     const measure = measureWith();
     const first = label('Hello World');
     const firstProbes = probesOf(first, () => updateTruncation(ELLIPSIS, null, 'Hello World', 60, first, measure));
-    // eight distinct units, the suffix, and each unit joined to the suffix
-    expect(firstProbes.appended).toBe(17);
+    expect(firstProbes.appended).toBe(1);
     const second = label('World Hello');
     const secondProbes = probesOf(second, () => updateTruncation(ELLIPSIS, null, 'World Hello', 60, second, measure));
     expect(secondProbes.appended).toBe(0);
   });
 
-  // the prefix widths come off the full run, which kerns across the cut and not with the suffix; both are corrected,
-  // so the fit lands on the prefix whose drawn width fits where the plain prefix table would be one unit off
-  describe('kerning', () => {
+  // the prefix widths come off the full run, which kerns across the cut and not with the suffix; the verification corrects
+  // both, so every booking of a pair's kern lands on the prefix whose drawn width fits
+  describe.each(KERN_BOOKINGS)('kerning booked %s', booking => {
+    beforeEach(() => {
+      kernBooking = booking;
+    });
+
     it('removes the kern the cut takes away', () => {
       kerns = { Te: -4 };
-      // "T." is 20 wide drawn alone; the run's "T" reads 8, which would have fitted a 19 px room and then overflowed it
-      const element = label('Tea party');
-      const result = updateTruncation('.', null, 'Tea party', 19, element, measureWith());
-      expect(result.truncationData).toEqual({ text: 'Tea party', truncatedText: '', lastText: 'Tea party' });
-      expect((updateTruncation('.', null, 'Tea party', 20, label('Tea party'), measureWith()).truncationData as TruncationData).truncatedText).toBe('T');
+      // "T." is 20 wide drawn alone; the run's "T" reads 6 to 10, which fits a 19 px room on paper and then overflows it
+      expect(settle('Tea party', 19, '.').drawn).toBe('.');
+      expect(settle('Tea party', 20, '.').drawn).toBe('T.');
     });
 
     it('adds the kern the suffix brings', () => {
       kerns = { 'r.': -2 };
-      // "Er..." is 48 wide drawn alone; the prefix table says 50 and would have stopped at "E"
-      const element = label('Error bars');
-      const result = updateTruncation('...', null, 'Error bars', 48, element, measureWith());
-      expect(result.truncationData).toEqual({ text: 'Error bars', truncatedText: 'Er', lastText: 'Error bars' });
+      // "Er..." is 48 wide drawn alone; the prefix table says 50 and stops at "E", which the verification grows
+      expect(settle('Error bars', 48, '...').drawn).toBe('Er...');
+    });
+
+    it('cuts after a space as the one unit shorter', () => {
+      kerns = { 'a.': -3 };
+      // "Tea" is 30 and "Tea." 37 drawn; "Tea " with the suffix is the same candidate, so a 37 px room fits "Tea."
+      expect(settle('Tea party', 37, '.').drawn).toBe('Tea.');
+      expect(settle('Tea party', 36, '.').drawn).toBe('Te.');
     });
   });
 

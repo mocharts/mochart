@@ -128,11 +128,11 @@ describe('truncation measurement cost', () => {
 
     expect({ initial, valuesAnimated, resized, categoriesChurned }).toEqual({
       // the mount includes each host's truncation check after mounting and one bounded follow-up measure once the tick labels have truncated;
-      // every count is a first sight of a text in its font or a prefix read of a fit: the one-shot fit's probes (each unit, each unit
-      // with the suffix, the suffix) land in the title's and the legend's counts once, and the value tween and the churn re-read only the tick texts they bring in
-      initial: { tickLabels: 91, title: 73, axisTitle: 25, legendItem: 60, other: 0 },
+      // every count is a first sight of a text in its font, a prefix read of a fit's binary search, or a probe (the suffix once per font,
+      // the next longer candidate of a verified fit); the value tween and the churn re-read only the tick texts they bring in
+      initial: { tickLabels: 74, title: 10, axisTitle: 15, legendItem: 25, other: 0 },
       valuesAnimated: { tickLabels: 110, title: 0, axisTitle: 0, legendItem: 0, other: 0 },
-      resized: { tickLabels: 19, title: 19, axisTitle: 17, legendItem: 30, other: 0 },
+      resized: { tickLabels: 25, title: 9, axisTitle: 13, legendItem: 16, other: 0 },
       categoriesChurned: { tickLabels: 55, title: 0, axisTitle: 0, legendItem: 0, other: 0 }
     });
   });

@@ -247,7 +247,7 @@ export class TextWidthCache {
     return entry.width;
   }
 
-  /** Probes beside `host` for every text of `texts` not yet read in `fontKey`, read in one layout and kept for the font's lifetime; the returned function removes them. */
+  /** Probes beside `host` for every text of `texts` not yet read in `fontKey`, read in one layout and kept like any text; the returned function removes them. */
   fillWidths(fontKey: string, host: SVGTextContentElement, texts: Iterable<string>): () => void {
     const font = this.font(fontKey);
     const probes: SVGTextContentElement[] = [];
@@ -258,11 +258,6 @@ export class TextWidthCache {
     }
     for (const probe of probes) {
       this.width(fontKey, probe);
-      // a unit, join or suffix width serves every fit in the font: kept as long as the font is, not swept with the texts
-      const entry = font.widths.get(getDirectText(probe)!);
-      if (entry !== undefined) {
-        entry.generation = Infinity;
-      }
     }
     return () => {
       for (const probe of probes) {
