@@ -3,7 +3,7 @@ import { Renderer, svgEl, textEl, Slot } from '../render/index.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
 import { layoutInfoExtentChanged } from '../layout/LayoutInfo.js';
 import { getTruncatedText, TruncationTracker, TruncationTooltip } from '../utils/TextTruncation.js';
-import { onClickDisabled, centerTextY, translate, translateObject, hasText } from '../utils/utils.js';
+import { onClickDisabled, centerTextY, translate, translateObject, hasText, trimText } from '../utils/utils.js';
 import { getClipPathReference } from '../utils/svgUtils.js';
 import { styleToAttributes } from '../utils/style.js';
 import { resolveFontStyle } from '../utils/font.js';
@@ -145,12 +145,15 @@ export default class Title extends Renderer<TitleProps, TitleState> {
     const { title: titleConfig } = mochartConfig;
 
     if (hasText(titleConfig.text)) {
-      const { text: title, prefix, suffix, truncation, link, linkDisabled,
+      const { prefix, suffix, truncation, link, linkDisabled,
         textBackgroundStyle: titleBackgroundStyle, textStyle: titleTextStyle
       } = titleConfig;
       const { enabled: truncationEnabled, text: truncationText, tooltipEnabled: truncationTooltipEnabled } = truncation;
-      const { text: titlePrefix, backgroundStyle: prefixBackgroundStyle, textStyle: prefixTextStyle } = prefix;
-      const { text: titleSuffix, backgroundStyle: suffixBackgroundStyle, textStyle: suffixTextStyle } = suffix;
+      const { backgroundStyle: prefixBackgroundStyle, textStyle: prefixTextStyle } = prefix;
+      const { backgroundStyle: suffixBackgroundStyle, textStyle: suffixTextStyle } = suffix;
+      const title = trimText(titleConfig.text);
+      const titlePrefix = trimText(prefix.text);
+      const titleSuffix = trimText(suffix.text);
       const chartFont = mochartConfig.chart.font;
       const titleFont = resolveFontStyle(titleConfig.font, chartFont);
       const prefixFont = resolveFontStyle(prefix.font, chartFont);

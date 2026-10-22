@@ -42,6 +42,7 @@ function at<T>(value: T | T[], index: number): T {
   return Array.isArray(value) ? value[index]! : value;
 }
 
+// a prefix cut after a space joins the suffix without it: "Tea...", never "Tea ..."
 export function getTruncatedText(truncationEnabled: boolean, truncationText: string, text: string, truncationData: TruncationDataValue): string;
 export function getTruncatedText(truncationEnabled: boolean, truncationText: string | string[], text: string[], truncationData: TruncationDataValue): string[];
 export function getTruncatedText(truncationEnabled: boolean, truncationText: string | string[], text: string | string[], truncationData: TruncationDataValue): string | string[] {
@@ -51,7 +52,7 @@ export function getTruncatedText(truncationEnabled: boolean, truncationText: str
       text = text.map((aText, i) => {
         aTruncationData = (truncationData as TruncationData[])[i];
         if (aTruncationData.truncatedText !== undefined && aTruncationData.text !== aTruncationData.truncatedText) {
-          aText = aTruncationData.truncatedText + at(truncationText, i);
+          aText = aTruncationData.truncatedText.trimEnd() + at(truncationText, i);
         }
         return aText;
       });
@@ -59,7 +60,7 @@ export function getTruncatedText(truncationEnabled: boolean, truncationText: str
     else {
       const singleTruncationData = truncationData as TruncationData;
       if (singleTruncationData.truncatedText !== undefined && singleTruncationData.text !== singleTruncationData.truncatedText) {
-        text = singleTruncationData.truncatedText + at(truncationText, 0);
+        text = singleTruncationData.truncatedText.trimEnd() + at(truncationText, 0);
       }
     }
   }

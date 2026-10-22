@@ -23,11 +23,22 @@ import {
   hasMissingForRange,
   getMaxAbsoluteValue,
   getArrayDeltas,
-  MISSING_VALUE
+  MISSING_VALUE,
+  trimText
 } from '../../src/utils/utils';
 
 // toEqual treats the missing value (NaN) as equal to itself
 const M = MISSING_VALUE;
+
+describe('trimText', () => {
+  it('coerces and drops surrounding whitespace, including non-breaking spaces', () => {
+    expect(trimText('  padded label\u00a0')).toBe('padded label');
+    expect(trimText(' \t\n ')).toBe('');
+    expect(trimText(5)).toBe('5');
+    expect(trimText(null)).toBe('');
+    expect(trimText(undefined)).toBe('');
+  });
+});
 
 describe('arrayToMap', () => {
   it('keys elements by an accessor, defaulting the value to the element', () => {

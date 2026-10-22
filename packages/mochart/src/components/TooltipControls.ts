@@ -1,4 +1,5 @@
 import { tooltipFocusApplies } from '../utils/TooltipFocus.js';
+import { trimText } from '../utils/utils.js';
 import { Renderer, htmlEl, textEl } from '../render/index.js';
 
 import { mochartCssClasses } from '../utils/ChartDom.js';
@@ -145,9 +146,9 @@ export default class TooltipControls extends Renderer<TooltipControlsProps> {
       this.modeButton.set({ type: 'button', style: { ...buttonStyle, ...targetStyle }, tabindex: buttonTabindex, onClick: this.onTooltipModeClick });
       this.modeStack.set({ style: modeStackStyle });
       this.modeLabel.set({ style: modeLabelStyle });
-      this.modeText.set(mode === MODE_FILTER ? tooltipConfig.filterModeText : tooltipConfig.focusModeText);
+      this.modeText.set(trimText(mode === MODE_FILTER ? tooltipConfig.filterModeText : tooltipConfig.focusModeText));
       this.modeAlt.set({ style: modeAltStyle });
-      this.modeAltText.set(sizing ? (mode === MODE_FILTER ? tooltipConfig.focusModeText : tooltipConfig.filterModeText) : '');
+      this.modeAltText.set(sizing ? trimText(mode === MODE_FILTER ? tooltipConfig.focusModeText : tooltipConfig.filterModeText) : '');
       this.nextContainer.set({ style: containerStyle });
       this.nextButton.set({ type: 'button', style: { ...(nextDisabled ? disabledButtonStyle : buttonStyle), ...targetStyle },
         title: accessibilityConfig.tooltipNextLabel, 'aria-label': accessibilityConfig.tooltipNextLabel,

@@ -4,7 +4,7 @@ import { getSeriesLabelFormat } from '../utils/ValueFormat.js';
 import { getScaledValue, getValueOffsetByDomainFraction } from '../data/DomainFraction.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
 import { NONE, AUTO, LABEL_POSITION_CENTER, LABEL_POSITION_INSIDE, MISSING_VALUE_MODE_BASE, RENDERER_BAR, SCALE_LOG } from '../config/core/constants.js';
-import { translate, isMissingValue } from '../utils/utils.js';
+import { translate, isMissingValue, trimText } from '../utils/utils.js';
 import { getSeriesLabelFillColor, getSeriesLabelStrokeColor } from '../utils/SeriesColors.js';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
 import { getFocusStyle, getCategoryFocusPercentage } from '../utils/FocusValue.js';
@@ -271,7 +271,7 @@ export default class SeriesLabels extends Renderer<SeriesLabelsProps> {
               textAnchor, dy, stroke: labelStrokeColor, fill: labelFillColor, fillOpacity: labelFillOpacity, strokeOpacity: labelStrokeOpacity,
               strokeWidth: labelStrokeWidth, strokeDasharray: labelStrokeDashArray, onPointerEnter: label.onPointerEnter, onPointerLeave: label.onPointerLeave, onClick: label.onClick,
               style: labelFontStyle };
-            label.text = String(valueFormat(labelValues[skipI]!));
+            label.text = trimText(valueFormat(labelValues[skipI]!));
             labels.push(label);
           }
         }

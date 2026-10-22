@@ -1,5 +1,5 @@
 import { Renderer, svgEl, textEl } from '../render/index.js';
-import { hasText } from '../utils/utils.js';
+import { hasText, trimText } from '../utils/utils.js';
 
 import { mochartCssClasses } from '../utils/ChartDom.js';
 import { layoutInfoExtentChanged } from '../layout/LayoutInfo.js';
@@ -69,7 +69,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
     if (hasText(axisConfig.title.text)) {
       const { axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage, seriesFocusPercentage, chartFont } = this.props;
       const { truncationData } = this.state;
-      const title = getTruncatedText(axisConfig.title.truncation.enabled, axisConfig.title.truncation.text, axisConfig.title.text!, truncationData);
+      const title = getTruncatedText(axisConfig.title.truncation.enabled, axisConfig.title.truncation.text, trimText(axisConfig.title.text), truncationData);
 
       const titleTextDY = '0.35em'; // more or less centers the text vertically http://stackoverflow.com/questions/12250403/vertical-alignment-of-text-element-in-svg
       const titleTextAnchor = 'middle';
@@ -92,7 +92,7 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
         stroke, strokeOpacity,
         fill, fillOpacity, strokeWidth, strokeDasharray, style: resolveFontStyle(axisConfig.title.font, chartFont) });
       this.textValue.set(title);
-      this.tooltip.sync(this.text, axisConfig.title.truncation.tooltipEnabled, axisConfig.title.text!, title);
+      this.tooltip.sync(this.text, axisConfig.title.truncation.tooltipEnabled, trimText(axisConfig.title.text), title);
     }
     else {
       this.setPresent(false);

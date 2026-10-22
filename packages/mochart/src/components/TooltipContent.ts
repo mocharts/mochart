@@ -6,7 +6,7 @@ import { getSeriesText } from '../utils/TooltipFormat.js';
 import type { PieTooltipValues } from '../utils/TooltipFormat.js';
 import { getSeriesFocusPercentage } from '../utils/SeriesFocus.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
-import { accessibilityActive, activeElementIn, focusRestored, isHoverPointer, isKeyboardFocus, hasText } from '../utils/utils.js';
+import { accessibilityActive, activeElementIn, focusRestored, isHoverPointer, isKeyboardFocus, hasText, trimText } from '../utils/utils.js';
 import { moveRovingFocus, resolveRovingId } from '../utils/RovingFocus.js';
 import { getPieSliceFractionMap } from '../data/PieData.js';
 import { getPieTooltipPercentFormat, pieLabelTypeUsesPercent } from '../data/PieLabel.js';
@@ -525,14 +525,14 @@ export default class TooltipContent extends Renderer<TooltipContentProps, Toolti
     if (tooltipConfig.showCategory) {
       const categoryText = category.values.parsed;
       const categoryFormat = getCategoryFormat(categoryAxisConfig);
-      const categoryLabel = hasText(categoryAxisConfig.valueLabel) ? categoryAxisConfig.valueLabel + ": " : "";
+      const categoryLabel = hasText(categoryAxisConfig.valueLabel) ? trimText(categoryAxisConfig.valueLabel) + ": " : "";
       if (categoryRowInteractive) {
         interactiveRowKeys.push('category');
       }
       tooltipLines.push({
         key: 'category',
         ctor: TooltipCategoryLine,
-        props: { lineStyle: categoryRowClickable ? targetLineStyle : lineStyle, categoryLabel, categoryText: categoryFormat(categoryText!),
+        props: { lineStyle: categoryRowClickable ? targetLineStyle : lineStyle, categoryLabel, categoryText: trimText(categoryFormat(categoryText!)),
           rowKey: 'category', interactive: categoryRowInteractive, tabStop: false,
           onPointerEnter: this.onCategoryPointerEnter, onPointerLeave: this.onCategoryPointerLeave, onClick: this.onCategoryClick }
       });

@@ -7,7 +7,7 @@ import { isCollapsedDomain, isExplicitCollapsedDomain } from './AxisDomainData.j
 import { getCategoryValueKey } from './CategoryValue.js';
 import { getScaledValue } from './DomainFraction.js';
 import { getAutoPerValueNumberFormat, getPerValueNumberFormat } from '../utils/ValueFormat.js';
-import { areArraysAndEqual, arrayToMap, idAccessor, hasText } from '../utils/utils.js';
+import { areArraysAndEqual, arrayToMap, idAccessor, hasText, trimText } from '../utils/utils.js';
 import { AUTO, NONE, CHART_TYPE_PIE, SCALE_ORDINAL, SCALE_LINEAR, SCALE_LOG, TYPE_DATE, TYPE_NUMBER, ANCHOR_START, ANCHOR_END, ANCHOR_MIDDLE } from '../config/core/constants.js';
 import type { Anchor } from '../config/core/constants.js';
 import { getMinorTickLabel } from '../config/core/minorConfig.js';
@@ -897,7 +897,7 @@ function createExplicitLinearTicks(axisConfig: Pick<CategoryAxisConfig, 'type'>,
     const axisValue: AxisValue = axisConfig.type === TYPE_DATE ? new Date(value) : value as number;
     const position = axisScale(axisValue);
     const tick: AxisTick = {
-      label: label ?? (minor === true ? minorTickLabelFormatter : tickLabelFormatter)(axisValue),
+      label: label === undefined ? (minor === true ? minorTickLabelFormatter : tickLabelFormatter)(axisValue) : trimText(label),
       position,
       value: axisValue,
       hidden: !Number.isFinite(position) || position < rangeMin || position > rangeMax
@@ -1343,5 +1343,7 @@ function getTickLabelFormatterForPrefixAndSuffix(tickLabel: TickLabelSettings, t
       tickLabelFormatter = (tick: CategoryValue) => (oldTickLabelFormatter(tick) + suffix);
     }
   }
-  return tickLabelFormatter;
+  const formatter = tickLabelFormatter;
+  // the drawn label and the tick count probes derived from it are trimmed at birth, so the two stay one string
+  return (tick: CategoryValue) => trimText(formatter(tick));
 }

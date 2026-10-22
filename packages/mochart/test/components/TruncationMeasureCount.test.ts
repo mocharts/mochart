@@ -122,11 +122,12 @@ describe('truncation measurement cost', () => {
 
     expect({ initial, valuesAnimated, resized, categoriesChurned }).toEqual({
       // the mount includes each host's truncation check after mounting and one bounded follow-up measure once the tick labels have truncated;
-      // the title's first pass has a 20 px room, where the one-unit minimum guess costs one measure more than a zero guess
-      initial: { tickLabels: 1307, title: 248, axisTitle: 148, legendItem: 504, other: 0 },
-      valuesAnimated: { tickLabels: 5608, title: 936, axisTitle: 496, legendItem: 1872, other: 0 },
-      resized: { tickLabels: 136, title: 14, axisTitle: 22, legendItem: 26, other: 0 },
-      categoriesChurned: { tickLabels: 3792, title: 516, axisTitle: 272, legendItem: 1032, other: 0 }
+      // the title's first pass has a 20 px room, where the one-unit minimum guess costs one measure more than a zero guess;
+      // a growing step onto a prefix ending in a space draws the same text as the step before it and costs one measure more
+      initial: { tickLabels: 1311, title: 248, axisTitle: 148, legendItem: 504, other: 0 },
+      valuesAnimated: { tickLabels: 5616, title: 936, axisTitle: 496, legendItem: 1872, other: 0 },
+      resized: { tickLabels: 139, title: 14, axisTitle: 23, legendItem: 26, other: 0 },
+      categoriesChurned: { tickLabels: 3818, title: 516, axisTitle: 272, legendItem: 1032, other: 0 }
     });
   });
 

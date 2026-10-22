@@ -85,6 +85,15 @@ describe('getTruncatedText', () => {
     expect(getTruncatedText(true, ELLIPSIS, 'Hi', { text: 'Hi', truncatedText: 'Hi' })).toBe('Hi');
   });
 
+  it('drops the whitespace a prefix ends in before the suffix', () => {
+    expect(getTruncatedText(true, ELLIPSIS, 'Tea party', { text: 'Tea party', truncatedText: 'Tea ' })).toBe('Tea' + ELLIPSIS);
+    const data: TruncationData[] = [
+      { text: 'Tea party', truncatedText: 'Tea ' },
+      { text: 'Error bars', truncatedText: 'Er' }
+    ];
+    expect(getTruncatedText(true, ELLIPSIS, ['Tea party', 'Error bars'], data)).toEqual(['Tea' + ELLIPSIS, 'Er' + ELLIPSIS]);
+  });
+
   it('truncates only the entries that changed in an array', () => {
     const data: TruncationData[] = [
       { text: 'Hello', truncatedText: 'Hel' },

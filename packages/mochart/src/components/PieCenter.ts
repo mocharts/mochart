@@ -3,7 +3,7 @@ import { format } from 'd3-format';
 import { Renderer, svgEl, textEl } from '../render/index.js';
 
 import { mochartCssClasses } from '../utils/ChartDom.js';
-import { translate, textDY, hasText } from '../utils/utils.js';
+import { translate, textDY, hasText, trimText } from '../utils/utils.js';
 import { styleToAttributes } from '../utils/style.js';
 import { resolveFontStyle } from '../utils/font.js';
 import { AUTO } from '../config/core/constants.js';
@@ -64,7 +64,7 @@ export default class PieCenter extends Renderer<PieCenterProps> {
       });
       labelEl!.set({ ...styleToAttributes(centerLabelTextStyle), className: mochartCssClasses['pieCenterLabel'],
         textAnchor: 'middle', dy: showCenterTotal ? '-0.35em' : textDY, style: resolveFontStyle(pieConfig.centerLabel.font, chartFont) });
-      this.labelText.set(centerLabel!);
+      this.labelText.set(trimText(centerLabel));
     }
     else {
       this.label.set(null);
@@ -79,7 +79,7 @@ export default class PieCenter extends Renderer<PieCenterProps> {
       });
       totalEl!.set({ ...styleToAttributes(centerTotalTextStyle), className: mochartCssClasses['pieCenterTotal'],
         textAnchor: 'middle', dy: showLabel ? '1.0em' : textDY, style: resolveFontStyle(pieConfig.centerTotal.font, chartFont) });
-      this.totalText.set(format(specifier)(total));
+      this.totalText.set(trimText(format(specifier)(total)));
     }
     else {
       this.total.set(null);

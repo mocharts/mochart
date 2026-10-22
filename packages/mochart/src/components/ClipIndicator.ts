@@ -1,5 +1,5 @@
 import { path } from 'd3-path';
-import { hasText } from '../utils/utils.js';
+import { hasText, trimText } from '../utils/utils.js';
 
 import { Renderer, svgEl, textEl } from '../render/index.js';
 
@@ -77,7 +77,7 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
 
     // The library's only <title>: one string serves as both the accessible name and the hidden
     // label's fallback text, since aria-label would win for AT and let the two drift apart.
-    const label = clipIndicatorConfig.label;
+    const label = trimText(clipIndicatorConfig.label);
     if (hasText(label)) {
       this.root.append(this.title);
       this.titleValue.set(label);
@@ -187,7 +187,8 @@ export default class ClipIndicator extends Renderer<ClipIndicatorProps, ClipIndi
 
   /** The band's depth: an explicit size, or the measured label height plus padding on both sides. */
   getSize(): number {
-    const { size, labelPadding, label } = this.props.mochartConfig.clipIndicator;
+    const { size, labelPadding } = this.props.mochartConfig.clipIndicator;
+    const label = trimText(this.props.mochartConfig.clipIndicator.label);
     if (size !== AUTO) {
       return size;
     }

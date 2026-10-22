@@ -26,6 +26,11 @@ export function onClickDisabled(e: Event): void {
 }
 
 /** Whether a text setting names any text: null and '' both mean none, wherever a text, label, prefix or suffix takes null for none. */
+/** A string as the chart draws it: coerced, without surrounding whitespace (margins and padding are the way to space text). */
+export function trimText(value: string | number | Date | null | undefined): string {
+  return value == null ? '' : String(value).trim();
+}
+
 export function hasText(value: string | null | undefined): value is string {
   return value !== null && value !== undefined && value !== '';
 }

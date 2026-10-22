@@ -12,7 +12,7 @@ import { getFocusStyle } from '../utils/FocusValue.js';
 import { resolveFontStyle } from '../utils/font.js';
 import { getGradientReference, getPatternReference } from '../utils/svgUtils.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
-import { translate, textDY, isHoverPointer } from '../utils/utils.js';
+import { translate, textDY, isHoverPointer, trimText } from '../utils/utils.js';
 import { NONE } from '../config/core/constants.js';
 import { formatPieLabelType, getPieLabelFormats } from '../data/PieLabel.js';
 import type { PieLabelFormats } from '../data/PieLabel.js';
@@ -77,8 +77,8 @@ function getPieLabelText(pieConfig: PieConfig, { valueFormat, percentFormat }: P
     sliceAngles: PieSliceAngles, labelFraction: number): string {
   return formatPieLabelType(pieConfig.label.type, {
     title: getSeriesTitle(seriesConfig),
-    value: valueFormat(sliceAngles.value),
-    percent: percentFormat(labelFraction)
+    value: trimText(valueFormat(sliceAngles.value)),
+    percent: trimText(percentFormat(labelFraction))
   });
 }
 

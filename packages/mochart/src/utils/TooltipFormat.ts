@@ -1,5 +1,5 @@
 import { NONE, PIE_TOOLTIP_VALUE_TYPE_PERCENT, MISSING_VALUE_MODE_CONNECT, CHART_TYPE_PIE } from '../config/core/constants.js';
-import { hasText } from './utils.js';
+import { hasText, trimText } from './utils.js';
 import { getSeriesLabel } from './SeriesTitle.js';
 import { getCategoryFormat, getSeriesFormats } from './ValueFormat.js';
 import { formatPieLabelType, pieLabelTypeUsesPercent, getPieTooltipPercentFormat } from '../data/PieLabel.js';
@@ -22,7 +22,7 @@ interface CategorySeriesSlice {
 function getFilteredValueText(tooltipConfig: TooltipConfig, defaultValueText: string): string {
   let seriesValueText: string;
   if (tooltipConfig.filteredValueText !== NONE) {
-    seriesValueText = tooltipConfig.filteredValueText;
+    seriesValueText = trimText(tooltipConfig.filteredValueText);
   }
   else if (tooltipConfig.filteredValueCharacter !== NONE) {
     const filteredCharacter = tooltipConfig.filteredValueCharacter;
@@ -50,24 +50,24 @@ function getValueText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSeries
   if (seriesValueObject[key] !== undefined) {
     if (adjusted) {
       if (hasFilterValue) {
-        seriesValueText = String(valueFormat(filterValueObject[key]!));
+        seriesValueText = trimText(valueFormat(filterValueObject[key]!));
       }
       else {
         const seriesBase = seriesBases[seriesConfig.id];
         seriesValueText = getFilteredValueText(tooltipConfig,
-          seriesBase !== null && seriesBase !== undefined ? String(valueFormat(seriesBase)) : tooltipConfig.missingValueText);
+          seriesBase !== null && seriesBase !== undefined ? trimText(valueFormat(seriesBase)) : trimText(tooltipConfig.missingValueText));
       }
     }
     else {
-      seriesValueText = String(valueFormat(seriesValueObject[key]!));
+      seriesValueText = trimText(valueFormat(seriesValueObject[key]!));
     }
   }
   else if (tooltipConfig.showMissingValues) {
     if (hasFilterValue || !adjusted) {
-      seriesValueText = tooltipConfig.missingValueText;
+      seriesValueText = trimText(tooltipConfig.missingValueText);
     }
     else {
-      seriesValueText = getFilteredValueText(tooltipConfig, tooltipConfig.missingValueText);
+      seriesValueText = getFilteredValueText(tooltipConfig, trimText(tooltipConfig.missingValueText));
     }
   }
   return seriesValueText;
@@ -104,7 +104,7 @@ function getPieValueText(tooltipConfig: TooltipConfig, seriesConfig: EnhancedSer
   // A filtered slice's filtered fraction is 0, so show the same placeholder
   // the values use, sized from the slice's share of the full total.
   const percentText = adjustForFiltering && tooltipConfig.adjustForFiltering && filtered ?
-    getFilteredValueText(tooltipConfig, percentFormat(rawFraction)) : percentFormat(fraction);
+    getFilteredValueText(tooltipConfig, trimText(percentFormat(rawFraction))) : trimText(percentFormat(fraction));
 
   if (valueType === PIE_TOOLTIP_VALUE_TYPE_PERCENT) {
     return percentText;
@@ -210,8 +210,8 @@ export function getTooltipAnnouncement(mochartConfig: EnhancedMochartConfig, too
   let categoryPart = '';
   if (tooltipConfig.showCategory) {
     const categoryFormat = getCategoryFormat(categoryAxisConfig);
-    const categoryLabel = hasText(categoryAxisConfig.valueLabel) ? categoryAxisConfig.valueLabel + ': ' : '';
-    categoryPart = categoryLabel + String(categoryFormat(category.values.parsed!));
+    const categoryLabel = hasText(categoryAxisConfig.valueLabel) ? trimText(categoryAxisConfig.valueLabel) + ': ' : '';
+    categoryPart = categoryLabel + trimText(categoryFormat(category.values.parsed!));
   }
 
   const rows: string[] = [];

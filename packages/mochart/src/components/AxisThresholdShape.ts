@@ -1,6 +1,6 @@
 import { Renderer, svgEl, textEl } from '../render/index.js';
 
-import { translate, translateRotate, hasText } from '../utils/utils.js';
+import { translate, translateRotate, hasText, trimText } from '../utils/utils.js';
 import { mochartCssClasses } from '../utils/ChartDom.js';
 import { styleToAttributes } from '../utils/style.js';
 import { getCategoryValueKey } from '../data/CategoryValue.js';
@@ -358,6 +358,6 @@ export default class AxisThresholdShape extends Renderer<AxisThresholdShapeProps
     titleGroup.textHandle.set({ transform: translateRotate(paddingX, paddingY, vertical ? 0 : 90),
       fill: titleFill, fillOpacity: titleFillOpacity,
       stroke: titleStroke, strokeOpacity: titleStrokeOpacity, strokeWidth: titleStrokeWidth, strokeDasharray: titleStrokeDashArray, dy: '0.35em', style: titleFontStyle });
-    titleGroup.valueHandle.set(threshold.title.text);
+    titleGroup.valueHandle.set(trimText(threshold.title.text));
   }
 }
