@@ -10,6 +10,7 @@ import AxisFocusRange from './AxisFocusRange.js';
 
 import { translateObject } from '../utils/utils.js';
 import { getMinorTickLabel, getMinorTickMark } from '../config/core/minorConfig.js';
+import type { TextWidthCache } from '../utils/TextWidthCache.js';
 import type { CategoryAxisConfig, FontConfig } from '../types/config.js';
 import type { EnhancedValueAxisConfig } from '../types/enhanced.js';
 import type { AxisTick } from '../types/data.js';
@@ -19,6 +20,9 @@ interface AxisProps {
   front: boolean;
   /** Bumped when a web font finishes loading: the fitted tick labels and title belong to the font they were measured in. */
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
+  /** The group the axis's texts take their font key from (see TextWidthCache). */
+  textGroup: string;
   axisConfig: CategoryAxisConfig | EnhancedValueAxisConfig;
   axisLayoutInfo: AxisLayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
@@ -114,7 +118,7 @@ export default class Axis extends Renderer<AxisProps> {
         this.tickLabelsSlot.set(null);
       }
       else {
-        this.tickLabelsSlot.set(AxisTickLabels, { front, fontsVersion: this.props.fontsVersion, axisLayoutInfo, plotLayoutInfo,
+        this.tickLabelsSlot.set(AxisTickLabels, { front, fontsVersion: this.props.fontsVersion, textWidthCache: this.props.textWidthCache, textGroup: this.props.textGroup, axisLayoutInfo, plotLayoutInfo,
           axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null,
           axisConfig, axisTicks, tickCountLabels,
           tickSpacing: tickSpacing ?? null, minorTickSpacing: minorTickSpacing ?? null, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, accessibility, chartFont });
@@ -125,7 +129,7 @@ export default class Axis extends Renderer<AxisProps> {
       }
       else {
         // the named group (in whichever half) already reads the title, so the drawn title stays hidden even when it draws in the other half
-        this.titleSlot.set(AxisTitle, { fontsVersion: this.props.fontsVersion, axisConfig, axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null, ariaHidden: accessibility && labelFront !== null, chartFont });
+        this.titleSlot.set(AxisTitle, { fontsVersion: this.props.fontsVersion, textWidthCache: this.props.textWidthCache, textGroup: this.props.textGroup, axisConfig, axisLayoutInfo, titleClipPathUniqueId, axisFocusPercentage: axisFocusPercentage ?? null, seriesFocusPercentage: seriesFocusPercentage ?? null, ariaHidden: accessibility && labelFront !== null, chartFont });
       }
 
       if (front !== focusTickMarkFront) {

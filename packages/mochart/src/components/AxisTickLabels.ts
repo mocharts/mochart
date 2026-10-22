@@ -10,6 +10,8 @@ import { getClipPathReference } from '../utils/svgUtils.js';
 import { getAxisFocusStyle } from '../utils/FocusValue.js';
 import { styleToAttributes } from '../utils/style.js';
 import { fontStylesEqual, resolveFontStyle } from '../utils/font.js';
+import { axisTicksTextGroup } from '../utils/TextWidthCache.js';
+import type { TextWidthCache } from '../utils/TextWidthCache.js';
 import Background from './Background.js';
 import { getPassTicks } from './AxisLines.js';
 import type { PassTick } from './AxisLines.js';
@@ -37,6 +39,8 @@ type AxisDisplayConfig = Omit<AxisConfigBase, 'tickLabel' | 'minorTickLabel'> &
 interface AxisTickLabelsProps {
   front: boolean;
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
+  textGroup: string;
   axisConfig: AxisDisplayConfig;
   axisLayoutInfo: AxisLayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
@@ -331,10 +335,18 @@ export default class AxisTickLabels extends Renderer<AxisTickLabelsProps, AxisTi
 
   measure() {
     if (this.truncation.check) {
+      const { textWidthCache, textGroup } = this.props;
       const domElements = this.tickLabelsGroup.node.querySelectorAll<SVGTextContentElement>(getAxisTickLabelsCssSelector());
       // the labels only seed fresh truncation data; an existing entry set is refined in place
       const axisTickLabels = this.state.truncationData === null ? this.tickLabelStrings : emptyArray;
-      this.truncation.update(this, this.truncationTexts, axisTickLabels, this.truncationLengths, domElements);
+      // the major and minor labels each take their font key from the first label of their kind
+      const fontKeys: (string | null)[] = [null, null];
+      const readWidth = (textElement: SVGTextContentElement, index: number): number => {
+        const kind = this.passTicks[index].tick.minor === true ? 1 : 0;
+        const fontKey = fontKeys[kind] ?? (fontKeys[kind] = textWidthCache.fontKey(axisTicksTextGroup(textGroup, kind === 1), textElement));
+        return textWidthCache.width(fontKey, textElement);
+      };
+      this.truncation.update(this, this.truncationTexts, axisTickLabels, this.truncationLengths, domElements, readWidth);
     }
   }
 }

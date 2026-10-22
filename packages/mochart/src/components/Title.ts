@@ -8,6 +8,8 @@ import { getClipPathReference } from '../utils/svgUtils.js';
 import { styleToAttributes } from '../utils/style.js';
 import { resolveFontStyle } from '../utils/font.js';
 import { getSpacingWidth } from '../layout/SpacingLayoutInfo.js';
+import { textGroups } from '../utils/TextWidthCache.js';
+import type { TextWidthCache } from '../utils/TextWidthCache.js';
 import Background from './Background.js';
 import type { El, TextEl } from '../render/index.js';
 import type { Style } from '../types/config.js';
@@ -27,6 +29,7 @@ interface TitleSection {
 }
 interface TitleProps {
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
   mochartConfig: EnhancedMochartConfig;
   titleLayoutInfo: SpacingLayoutInfo;
   titlePrefixLayoutInfo: SpacingLayoutInfo;
@@ -222,12 +225,13 @@ export default class Title extends Renderer<TitleProps, TitleState> {
   refreshTruncation() {
     if (this.truncation.check && this.present) {
       const domElement = this.root.node.querySelector<SVGTextContentElement>(getTitleTextCssSelector());
-      const { mochartConfig, titleTextLayoutInfo } = this.props;
+      const { mochartConfig, titleTextLayoutInfo, textWidthCache } = this.props;
       const { title: titleConfig } = mochartConfig;
       const { width } = titleTextLayoutInfo;
       const { text: title, truncation: { text: truncationText }, textMargin, textPadding } = titleConfig;
       const maxLength = Math.max(width - getSpacingWidth(textMargin, textPadding), 0);
-      this.truncation.update(this, truncationText, title!, maxLength, domElement);
+      this.truncation.update(this, truncationText, title!, maxLength, domElement,
+        textElement => textWidthCache.width(textWidthCache.fontKey(textGroups.title, textElement), textElement));
     }
   }
 

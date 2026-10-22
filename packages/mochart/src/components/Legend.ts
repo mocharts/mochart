@@ -13,6 +13,8 @@ import { getSeriesFocusPercentage, leaderSeriesId } from '../utils/SeriesFocus.j
 import { CHART_TYPE_PIE } from '../config/core/constants.js';
 import { styleToAttributes } from '../utils/style.js';
 import { resolveFontStyle } from '../utils/font.js';
+import { textGroups } from '../utils/TextWidthCache.js';
+import type { TextWidthCache } from '../utils/TextWidthCache.js';
 import Background from './Background.js';
 import SeriesColorIcon from './SeriesColorIcon.js';
 import type { ColorPaletteConfig, LegendConfig } from '../types/config.js';
@@ -31,6 +33,7 @@ interface LegendItemUniqueIds {
 
 interface LegendProps {
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
   mochartConfig: EnhancedMochartConfig;
   // the layout leaves these undefined when there is nothing to place (no series), legend.visible notwithstanding
   legendLayoutInfo: SpacingLayoutInfo | undefined;
@@ -48,6 +51,7 @@ interface LegendProps {
 
 interface LegendItemProps {
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
   legendConfig: LegendConfig;
   pieMode: boolean;
   seriesConfig: EnhancedSeriesConfig;
@@ -186,7 +190,7 @@ export default class Legend extends Renderer<LegendProps, LegendState> {
           items.push({
             key: id,
             ctor: LegendItem,
-            props: { fontsVersion: this.props.fontsVersion, legendConfig, seriesConfig, legendLayoutInfo, pieMode: mochartConfig.chart.type === CHART_TYPE_PIE,
+            props: { fontsVersion: this.props.fontsVersion, textWidthCache: this.props.textWidthCache, legendConfig, seriesConfig, legendLayoutInfo, pieMode: mochartConfig.chart.type === CHART_TYPE_PIE,
               legendItemLayoutInfo: legendItemLayoutInfos[i],
               legendItemRawLayoutInfo: legendItemRawLayoutInfos[i], legendItemTextLayoutInfo,
               uniqueIds, colorPaletteConfig, seriesIndex,
@@ -376,12 +380,13 @@ class LegendItem extends Renderer<LegendItemProps, LegendItemState> {
   measure() {
     if (this.truncation.check) {
       const domElement = this.root.node.querySelector<SVGTextContentElement>(getLegendItemTextCssSelector());
-      const { legendConfig, seriesConfig, legendItemTextLayoutInfo } = this.props;
+      const { legendConfig, seriesConfig, legendItemTextLayoutInfo, textWidthCache } = this.props;
       const { width } = legendItemTextLayoutInfo;
       const { text: truncationText } = legendConfig.truncation;
       const title = getSeriesTitle(seriesConfig);
       const maxLength = Math.max(width, 0);
-      this.truncation.update(this, truncationText, title, maxLength, domElement);
+      this.truncation.update(this, truncationText, title, maxLength, domElement,
+        textElement => textWidthCache.width(textWidthCache.fontKey(textGroups.legendItem, textElement), textElement));
     }
   }
 }

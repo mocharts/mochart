@@ -5,6 +5,8 @@ import { mochartCssClasses } from '../utils/ChartDom.js';
 
 import Axis from './Axis.js';
 import { getAxisAccessibleLabel } from './AxisContainer.js';
+import { textGroups, valueAxisTextGroup } from '../utils/TextWidthCache.js';
+import type { TextWidthCache } from '../utils/TextWidthCache.js';
 import { accessibilityActive } from '../utils/utils.js';
 import type { EnhancedMochartConfig, EnhancedValueAxisConfig } from '../types/enhanced.js';
 import type { AxisTick } from '../types/data.js';
@@ -16,6 +18,7 @@ const emptyTickCountLabels: string[] = [];
 
 interface PlotEmptyProps {
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
   mochartConfig: EnhancedMochartConfig;
   categoryAxisLayoutInfo: CategoryAxisLayoutInfo;
   valueAxisLayoutInfos: Record<string, AxisLayoutInfo>;
@@ -52,13 +55,14 @@ export default class PlotEmpty extends Renderer<PlotEmptyProps> {
       axisTicks: emptyTicks, tickCountLabels: emptyTickCountLabels,
       accessibility: accessibilityActive(accessibilityConfig),
       chartFont: mochartConfig.chart.font,
-      fontsVersion: this.props.fontsVersion
+      fontsVersion: this.props.fontsVersion,
+      textWidthCache: this.props.textWidthCache
     };
 
     this.root.set({ className: mochartCssClasses['plot'] });
 
     const syncAxes = (front: boolean, categoryAxis: Slot, valueAxes: RendererList) => {
-      categoryAxis.set(Axis, { front, axisClass: mochartCssClasses['categoryAxis'], axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
+      categoryAxis.set(Axis, { front, axisClass: mochartCssClasses['categoryAxis'], textGroup: textGroups.categoryAxis, axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
         titleClipPathUniqueId: categoryAxisTitleClipPathUniqueId, tickLabelClipPathUniqueId: categoryAxisTickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId: categoryAxisMinorTickLabelClipPathUniqueId,
         accessibleLabel: getAxisAccessibleLabel(categoryAxisConfig.title.text, accessibilityConfig.categoryAxisLabel),
         ...commonProps });
@@ -69,7 +73,7 @@ export default class PlotEmpty extends Renderer<PlotEmptyProps> {
         return {
           key: 'value-axis-' + id,
           ctor: Axis,
-          props: { front, axisClass: mochartCssClasses['valueAxis'] + id, axisConfig,
+          props: { front, axisClass: mochartCssClasses['valueAxis'] + id, textGroup: valueAxisTextGroup(id), axisConfig,
             axisLayoutInfo: valueAxisLayoutInfos[id], titleClipPathUniqueId: valueAxisTitleClipPathUniqueIds[id],
             accessibleLabel: getAxisAccessibleLabel(axisConfig.title.text, accessibilityConfig.valueAxisLabel),
             ...commonProps }

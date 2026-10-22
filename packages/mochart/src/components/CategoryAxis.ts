@@ -1,6 +1,8 @@
 import { Renderer, Slot } from '../render/index.js';
 
 import { mochartCssClasses } from '../utils/ChartDom.js';
+import { textGroups } from '../utils/TextWidthCache.js';
+import type { TextWidthCache } from '../utils/TextWidthCache.js';
 
 import Axis from './Axis.js';
 import type { CategoryAxisConfig, FontConfig } from '../types/config.js';
@@ -10,6 +12,7 @@ import type { CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.
 interface CategoryAxisProps {
   front: boolean;
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
   categoryAxisConfig: CategoryAxisConfig;
   categoryAxisLayoutInfo: CategoryAxisLayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
@@ -35,7 +38,7 @@ export default class CategoryAxis extends Renderer<CategoryAxisProps> {
     const { front, categoryAxisConfig, categoryAxisLayoutInfo, plotLayoutInfo, focusPercentages,
       categoryAxisData, titleClipPathUniqueId, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, accessibility, accessibleLabel, chartFont } = this.props;
 
-    this.axis!.set(Axis, { front, fontsVersion: this.props.fontsVersion, axisClass: mochartCssClasses['categoryAxis'], axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
+    this.axis!.set(Axis, { front, fontsVersion: this.props.fontsVersion, textWidthCache: this.props.textWidthCache, textGroup: textGroups.categoryAxis, axisClass: mochartCssClasses['categoryAxis'], axisConfig: categoryAxisConfig, axisLayoutInfo: categoryAxisLayoutInfo,
       plotLayoutInfo, axisTicks: categoryAxisData.axisTickData, tickCountLabels: categoryAxisData.tickCountLabels,
       focusPercentages, tickSpacing: categoryAxisData.maxTickLabelLength, minorTickSpacing: categoryAxisData.maxMinorTickLabelLength,
       titleClipPathUniqueId, tickLabelClipPathUniqueId, minorTickLabelClipPathUniqueId, accessibility, accessibleLabel, chartFont });

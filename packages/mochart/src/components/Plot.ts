@@ -11,6 +11,7 @@ import SeriesContainer from './SeriesContainer.js';
 import type { SeriesShapeA11yProps } from './SeriesBackground.js';
 import Crosshair from './Crosshair.js';
 import ClipIndicator from './ClipIndicator.js';
+import type { TextWidthCache } from '../utils/TextWidthCache.js';
 import type { EnhancedMochartConfig } from '../types/enhanced.js';
 import type { ClippedEdges } from '../types/data.js';
 import type { InternalFocus } from '../types/chart.js';
@@ -23,6 +24,7 @@ type CompleteAxisData = AxisData & { category: CategoryAxisData; value: ValueAxi
 interface PlotFrontBackProps {
   front: boolean;
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
   mochartConfig: EnhancedMochartConfig;
   categoryAxisLayoutInfo: CategoryAxisLayoutInfo;
   valueAxisLayoutInfos: Record<string, AxisLayoutInfo>;
@@ -80,7 +82,7 @@ class PlotFrontBack extends Renderer<PlotFrontBackProps> {
     this.baseContainer.set(AxisBaseContainer, { front, mochartConfig, seriesLayoutInfo,
       seriesData, focusData });
 
-    this.axisContainer.set(AxisContainer, { front, fontsVersion: this.props.fontsVersion, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos,
+    this.axisContainer.set(AxisContainer, { front, fontsVersion: this.props.fontsVersion, textWidthCache: this.props.textWidthCache, mochartConfig, categoryAxisLayoutInfo, valueAxisLayoutInfos,
       plotLayoutInfo, seriesData, focusData, axisData,
       categoryAxisTitleClipPathUniqueId, categoryAxisTickLabelClipPathUniqueId, categoryAxisMinorTickLabelClipPathUniqueId,
       valueAxisTitleClipPathUniqueIds, onFocus });
@@ -115,6 +117,7 @@ export default class Plot extends Renderer<PlotProps> {
 
     const frontBackProps = (front: boolean) => ({
       front,
+      textWidthCache: this.props.textWidthCache,
       mochartConfig,
       categoryAxisLayoutInfo,
       valueAxisLayoutInfos,

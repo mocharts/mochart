@@ -11,10 +11,12 @@ import type { EnhancedMochartConfig } from '../types/enhanced.js';
 import type { AxisData, CategoryAxisData, ValueAxisData, SeriesData } from '../types/data.js';
 import type { FocusData } from '../types/animation.js';
 import type { AxisLayoutInfo, CategoryAxisLayoutInfo, SpacingLayoutInfo } from '../types/layout.js';
+import type { TextWidthCache } from '../utils/TextWidthCache.js';
 
 interface AxisContainerProps {
   front: boolean;
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
   mochartConfig: EnhancedMochartConfig;
   categoryAxisLayoutInfo: CategoryAxisLayoutInfo;
   valueAxisLayoutInfos: Record<string, AxisLayoutInfo>;
@@ -50,7 +52,7 @@ export default class AxisContainer extends Renderer<AxisContainerProps> {
 
     this.root.set({ className: mochartCssClasses['axisContainer'] });
 
-    this.categoryAxis.set(CategoryAxis, { front, fontsVersion: this.props.fontsVersion, categoryAxisConfig, categoryAxisLayoutInfo,
+    this.categoryAxis.set(CategoryAxis, { front, fontsVersion: this.props.fontsVersion, textWidthCache: this.props.textWidthCache, categoryAxisConfig, categoryAxisLayoutInfo,
       focusPercentages: categoryFocusDomainPercentages, categoryAxisData,
       titleClipPathUniqueId: categoryAxisTitleClipPathUniqueId,
       tickLabelClipPathUniqueId: categoryAxisTickLabelClipPathUniqueId,
@@ -62,7 +64,7 @@ export default class AxisContainer extends Renderer<AxisContainerProps> {
       return {
         key,
         ctor: ValueAxis,
-        props: { front, fontsVersion: this.props.fontsVersion, valueAxisConfig: axisConfig,
+        props: { front, fontsVersion: this.props.fontsVersion, textWidthCache: this.props.textWidthCache, valueAxisConfig: axisConfig,
           valueAxisLayoutInfo: valueAxisLayoutInfos[id], seriesCount: seriesData.axisSeriesCounts[id],
           focusPercentages: valueAxisComputedFocusDomainPercentages[id] ?? [], valueAxisData,
           axisFocusPercentage, seriesFocusPercentage,

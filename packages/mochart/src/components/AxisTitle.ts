@@ -8,6 +8,8 @@ import { getClipPathReference } from '../utils/svgUtils.js';
 import { getAxisFocusStyle } from '../utils/FocusValue.js';
 import { styleToAttributes } from '../utils/style.js';
 import { fontStylesEqual, resolveFontStyle } from '../utils/font.js';
+import { axisTitleTextGroup } from '../utils/TextWidthCache.js';
+import type { TextWidthCache } from '../utils/TextWidthCache.js';
 import Background from './Background.js';
 import type { AxisConfigBase, FontConfig } from '../types/config.js';
 import type { EnhancedValueAxisConfig } from '../types/enhanced.js';
@@ -19,6 +21,8 @@ type AxisTitleConfig = AxisConfigBase & Partial<Pick<EnhancedValueAxisConfig, 'u
 
 interface AxisTitleProps {
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
+  textGroup: string;
   axisConfig: AxisTitleConfig;
   axisLayoutInfo: AxisLayoutInfo;
   titleClipPathUniqueId: string;
@@ -102,10 +106,11 @@ export default class AxisTitle extends Renderer<AxisTitleProps, AxisTitleState> 
   measure() {
     if (this.truncation.check && this.present) {
       const domElement = this.root.node.querySelector<SVGTextContentElement>(getAxisTitleCssSelector());
-      const { axisConfig, axisLayoutInfo } = this.props;
+      const { axisConfig, axisLayoutInfo, textWidthCache, textGroup } = this.props;
       const maxLength = axisLayoutInfo.vertical ? axisLayoutInfo.height : axisLayoutInfo.width;
       const { text: title, truncation: { text: titleTruncationText } } = axisConfig.title;
-      this.truncation.update(this, titleTruncationText, title!, maxLength, domElement);
+      this.truncation.update(this, titleTruncationText, title!, maxLength, domElement,
+        textElement => textWidthCache.width(textWidthCache.fontKey(axisTitleTextGroup(textGroup), textElement), textElement));
     }
   }
 }

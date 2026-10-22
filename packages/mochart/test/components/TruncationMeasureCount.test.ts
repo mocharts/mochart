@@ -1,7 +1,8 @@
 /**
- * Guards the cost of text truncation: every getComputedTextLength call forces layout, so the number
- * of calls each truncating host makes across an animated update sequence is pinned here. Raise a count
- * only for a fix that needs the extra measuring.
+ * Guards the cost of text truncation: every getComputedTextLength call that reaches the DOM forces layout,
+ * so the number each truncating host makes across an animated update sequence is pinned here. The counter sits
+ * on the prototype, below the chart's TextWidthCache, so a text already seen in its font costs nothing; raise a
+ * count only for a fix that needs the extra measuring.
  */
 import { describe, it, beforeAll, expect } from 'vitest';
 import { installFakeFrameClock, runFrames, mountContainer } from './helpers';
@@ -122,12 +123,11 @@ describe('truncation measurement cost', () => {
 
     expect({ initial, valuesAnimated, resized, categoriesChurned }).toEqual({
       // the mount includes each host's truncation check after mounting and one bounded follow-up measure once the tick labels have truncated;
-      // the title's first pass has a 20 px room, where the one-unit minimum guess costs one measure more than a zero guess;
-      // a growing step onto a prefix ending in a space draws the same text as the step before it and costs one measure more
-      initial: { tickLabels: 1311, title: 248, axisTitle: 148, legendItem: 504, other: 0 },
-      valuesAnimated: { tickLabels: 5616, title: 936, axisTitle: 496, legendItem: 1872, other: 0 },
-      resized: { tickLabels: 139, title: 14, axisTitle: 23, legendItem: 26, other: 0 },
-      categoriesChurned: { tickLabels: 3818, title: 516, axisTitle: 272, legendItem: 1032, other: 0 }
+      // every count is a first sight of a text in its font: the value tween and the churn re-read only the tick texts they bring in
+      initial: { tickLabels: 42, title: 5, axisTitle: 8, legendItem: 11, other: 0 },
+      valuesAnimated: { tickLabels: 110, title: 0, axisTitle: 0, legendItem: 0, other: 0 },
+      resized: { tickLabels: 17, title: 3, axisTitle: 9, legendItem: 5, other: 0 },
+      categoriesChurned: { tickLabels: 42, title: 0, axisTitle: 0, legendItem: 0, other: 0 }
     });
   });
 

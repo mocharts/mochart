@@ -13,6 +13,7 @@ import { axisTickCountLabelsChanged, axisTickLabelsChanged, getAxisData, getAxis
 import { getStackData, getStackDataWithMutations } from '../data/StackData.js';
 import { getChartTextBoundsData, getChartTextBoundsDataWithMutations, getTooltipBounds, getBoundsWithMutations } from '../utils/TextMeasurement.js';
 import { mochartCssClasses, mochartVersionAttribute, getDomAccessors } from '../utils/ChartDom.js';
+import { TextWidthCache } from '../utils/TextWidthCache.js';
 import { CHART_TYPE_PIE, NONE } from '../config/core/constants.js';
 
 import Background from './Background.js';
@@ -410,6 +411,8 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   simpleContent = this.elSlot(this.root);
   body = this.slot(this.root);
   uniqueId: string;
+  /** the widths of the chart's text by font and text, shared by the measure passes and the truncating hosts */
+  textWidthCache = new TextWidthCache();
   chartRef: Element | null = null;
   chartRectRef: Element | null = null;
   /** the no-data/error/loading message region while it is focusable: the fallback stop when a teardown removes the plot */
@@ -594,7 +597,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       if (valid) {
         const uniqueIdState = this.constructUniqueIds(mochartConfig);
         const domAccessors = this.chartRef ? getDomAccessors(this.chartRef) : null;
-        const chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts);
+        const chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts, this.textWidthCache);
 
         const layoutInfo = getChartLayoutInfo(mochartConfig, chartData, chartTextBoundsData, width, height);
         let axisData = null;
@@ -658,7 +661,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       const { chartData, width, height } = this.props;
       const mochartConfig = this.renderedConfig();
       const domAccessors = getDomAccessors(this.chartRef);
-      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts);
+      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts, this.textWidthCache);
       chartTextBoundsData = getChartTextBoundsDataWithMutations(this.state.chartTextBoundsData, chartTextBoundsData);
       let layoutInfo = this.state.layoutInfo;
       if (chartTextBoundsData !== this.state.chartTextBoundsData || layoutInfo === null) {
@@ -706,7 +709,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       const { chartData, width, height } = this.props;
       const mochartConfig = this.renderedConfig();
       const domAccessors = getDomAccessors(this.chartRef);
-      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts);
+      let chartTextBoundsData = getChartTextBoundsData(mochartConfig, domAccessors, chartData?.seriesData.axisSeriesCounts, this.textWidthCache);
       chartTextBoundsData = getChartTextBoundsDataWithMutations(this.state.chartTextBoundsData, chartTextBoundsData);
       if (chartTextBoundsData !== this.state.chartTextBoundsData) {
         let layoutInfo = getChartLayoutInfo(mochartConfig, chartData, chartTextBoundsData, width, height);
@@ -718,6 +721,8 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
   }
 
   derive(nextProps: ChartProps, _state: ChartState, prevProps: ChartProps | null): ChartStateUpdate | null {
+    // every update from the controller is one pass of the cache: this derive, the sync, the hosts' measures and the setState flushes they cause
+    this.textWidthCache.beginPass(nextProps.tweening !== true, nextProps.fontsVersion ?? 0);
     if (prevProps === null) {
       return this.init(nextProps, true);
     }
@@ -1577,7 +1582,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
     this.setLiveRegionNode(liveRegion !== null ? liveRegion.node : null);
     body.clips.sync(clips);
     body.background.set(Background, { config: mochartConfig.chart, classKey: 'background', spacingRelative: false, spacingLayoutInfo: chartContentLayoutInfo });
-    body.title.set(Title, { fontsVersion: this.props.fontsVersion ?? 0, mochartConfig, titleLayoutInfo, titlePrefixLayoutInfo,
+    body.title.set(Title, { fontsVersion: this.props.fontsVersion ?? 0, textWidthCache: this.textWidthCache, mochartConfig, titleLayoutInfo, titlePrefixLayoutInfo,
       titleTextLayoutInfo, titleTextRawLayoutInfo, titleSuffixLayoutInfo,
       titleClipPathUniqueId, accessibility, onClick: this.props.onTitleClick ? this.onTitleClick : undefined });
     body.contentGroup.set({ transform: chartTransform });
@@ -1601,7 +1606,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
           shapeRef: this.setChartRectRef, a11yProps: plotA11yProps });
       }
       else {
-        body.plot.set(Plot, { fontsVersion: this.props.fontsVersion ?? 0, mochartConfig, gradientIdMap, patternIdMap, categoryAxisLayoutInfo,
+        body.plot.set(Plot, { fontsVersion: this.props.fontsVersion ?? 0, textWidthCache: this.textWidthCache, mochartConfig, gradientIdMap, patternIdMap, categoryAxisLayoutInfo,
           valueAxisLayoutInfos, seriesLayoutInfo,
           plotLayoutInfo, chartData: chartData!, focusData, axisData: axisData!,
           stackData: stackData!, categoryValueData, onFocus: onFocus ?? (() => {}),
@@ -1655,7 +1660,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       body.tooltip.set(null);
       body.noSeriesSlot.set(null);
 
-      body.plotEmpty.set(PlotEmpty, { fontsVersion: this.props.fontsVersion ?? 0, mochartConfig, categoryAxisLayoutInfo,
+      body.plotEmpty.set(PlotEmpty, { fontsVersion: this.props.fontsVersion ?? 0, textWidthCache: this.textWidthCache, mochartConfig, categoryAxisLayoutInfo,
         valueAxisLayoutInfos, plotLayoutInfo,
         valueAxisSeriesCounts: hasChartData ? chartData.seriesData.axisSeriesCounts : emptyAxisSeriesCounts,
         categoryAxisTitleClipPathUniqueId,
@@ -1691,7 +1696,7 @@ export default class Chart extends Renderer<ChartProps, ChartState> {
       }
     }
 
-    body.legend.set(Legend, { fontsVersion: this.props.fontsVersion ?? 0, mochartConfig, filteredFlags, focusedSeriesId,
+    body.legend.set(Legend, { fontsVersion: this.props.fontsVersion ?? 0, textWidthCache: this.textWidthCache, mochartConfig, filteredFlags, focusedSeriesId,
       valueAxisFocusPercentages, seriesFocusPercentages, onFocus: onFocus ?? (() => {}),
       uniqueIds: uniqueIds!, onSeriesFilter: onSeriesFilter ?? (() => {}), legendLayoutInfo, legendItemTextLayoutInfo,
       legendItemLayoutInfos, legendItemRawLayoutInfos });

@@ -67,7 +67,12 @@ export function getTruncatedText(truncationEnabled: boolean, truncationText: str
   return text;
 }
 
-export function updateTruncation(truncationText: string | string[], oldTruncationData: TruncationDataValue, text: string | string[], maxLength: number | number[], domElement: SVGTextContentElement | ArrayLike<SVGTextContentElement> | null) {
+/** The advance of a drawn label; the hosts read it through the chart's TextWidthCache, a bare read is the default. */
+export type TextWidthReader = (textElement: SVGTextContentElement, index: number) => number;
+
+const readTextWidth: TextWidthReader = textElement => textElement.getComputedTextLength();
+
+export function updateTruncation(truncationText: string | string[], oldTruncationData: TruncationDataValue, text: string | string[], maxLength: number | number[], domElement: SVGTextContentElement | ArrayLike<SVGTextContentElement> | null, readWidth: TextWidthReader = readTextWidth) {
   let truncationData: TruncationDataValue = oldTruncationData;
   let needsTruncation = false;
   let checkTruncation = true;
@@ -80,7 +85,7 @@ export function updateTruncation(truncationText: string | string[], oldTruncatio
     if (domElements !== null && domElements.length > 0) {
       let aTruncateData;
       for (let i = 0; i < domElements.length; i++) {
-        aTruncateData = truncateSVGText(domElements[i], at(maxLength, i), at(truncationText, i), (truncationData as TruncationData[])[i]);
+        aTruncateData = truncateSVGText(domElements[i], at(maxLength, i), at(truncationText, i), (truncationData as TruncationData[])[i], readWidth, i);
         if (aTruncateData.truncatedText !== aTruncateData.lastText) {
           needsTruncation = true;
         }
@@ -94,7 +99,7 @@ export function updateTruncation(truncationText: string | string[], oldTruncatio
       truncationData = { text: text };
     }
     if (domElement !== null) {
-      truncationData = truncateSVGText(domElement as SVGTextContentElement, at(maxLength, 0), at(truncationText, 0), truncationData as TruncationData);
+      truncationData = truncateSVGText(domElement as SVGTextContentElement, at(maxLength, 0), at(truncationText, 0), truncationData as TruncationData, readWidth, 0);
       if (truncationData.truncatedText !== truncationData.lastText) {
         needsTruncation = true;
       }
@@ -143,8 +148,8 @@ export class TruncationTracker {
   }
 
   /** measure(): one refinement step, re-rendering through setState while more are needed */
-  update(host: TruncationHost, truncationText: string | string[], text: string | string[], maxLength: number | number[], domElement: SVGTextContentElement | ArrayLike<SVGTextContentElement> | null): void {
-    const { checkTruncation, truncationData } = updateTruncation(truncationText, host.state.truncationData, text, maxLength, domElement);
+  update(host: TruncationHost, truncationText: string | string[], text: string | string[], maxLength: number | number[], domElement: SVGTextContentElement | ArrayLike<SVGTextContentElement> | null, readWidth?: TextWidthReader): void {
+    const { checkTruncation, truncationData } = updateTruncation(truncationText, host.state.truncationData, text, maxLength, domElement, readWidth);
     // fields must be written before setState: its commit flush runs the next measure pass synchronously
     this.data = truncationData;
     this.check = checkTruncation;
@@ -223,7 +228,7 @@ function suffixUnitLength(truncationText: string): number {
   return cachedSuffixUnitCount;
 }
 
-export function truncateSVGText(textElement: SVGTextContentElement, maxTextLength: number, truncationText: string, truncationData: TruncationData): TruncationData {
+export function truncateSVGText(textElement: SVGTextContentElement, maxTextLength: number, truncationText: string, truncationData: TruncationData, readWidth: TextWidthReader = readTextWidth, index = 0): TruncationData {
   const { text, truncatedText = text, lastText } = truncationData;
   if (text.length === 0) {
     return {
@@ -235,7 +240,7 @@ export function truncateSVGText(textElement: SVGTextContentElement, maxTextLengt
   else if (lastText !== undefined && truncatedText === lastText) {
     return truncationData;
   }
-  const textLength = textElement.getComputedTextLength();
+  const textLength = readWidth(textElement, index);
   if (textLength > maxTextLength) {
     const textUnitList = textUnits(text);
     if (lastText === undefined) {

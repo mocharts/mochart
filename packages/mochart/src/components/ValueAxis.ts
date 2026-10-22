@@ -1,6 +1,8 @@
 import { Renderer, Slot } from '../render/index.js';
 
 import { mochartCssClasses } from '../utils/ChartDom.js';
+import { valueAxisTextGroup } from '../utils/TextWidthCache.js';
+import type { TextWidthCache } from '../utils/TextWidthCache.js';
 import { isHoverPointer } from '../utils/utils.js';
 
 import Axis from './Axis.js';
@@ -13,6 +15,7 @@ interface ValueAxisFocus { valueAxisId: string | null; pin?: boolean }
 interface ValueAxisProps {
   front: boolean;
   fontsVersion: number;
+  textWidthCache: TextWidthCache;
   valueAxisConfig: EnhancedValueAxisConfig;
   valueAxisLayoutInfo: AxisLayoutInfo;
   plotLayoutInfo: SpacingLayoutInfo;
@@ -88,7 +91,7 @@ export default class ValueAxis extends Renderer<ValueAxisProps, ValueAxisState> 
     const { onValueAxisEnter, onValueAxisLeave, onValueAxisClick } = this.state;
     if (valueAxisConfig.visibleWhenAllFiltered || seriesCount > 0) {
       const axisId = valueAxisConfig.id;
-      this.axis!.set(Axis, { front, fontsVersion: this.props.fontsVersion, axisClass: mochartCssClasses['valueAxis'] + axisId, axisConfig: valueAxisConfig,
+      this.axis!.set(Axis, { front, fontsVersion: this.props.fontsVersion, textWidthCache: this.props.textWidthCache, textGroup: valueAxisTextGroup(axisId), axisClass: mochartCssClasses['valueAxis'] + axisId, axisConfig: valueAxisConfig,
         axisLayoutInfo: valueAxisLayoutInfo, plotLayoutInfo,
         focusPercentages, axisTicks: valueAxisData.axisTickData[axisId], tickCountLabels: valueAxisData.tickCountLabels[axisId],
         axisFocusPercentage, seriesFocusPercentage,
