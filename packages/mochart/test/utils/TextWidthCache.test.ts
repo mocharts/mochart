@@ -151,6 +151,49 @@ describe('TextWidthCache letter-spacing', () => {
   });
 });
 
+describe('TextWidthCache writing direction', () => {
+  const svgProto = globalThis.SVGElement.prototype as any;
+  const nativeGetSubStringLength = svgProto.getSubStringLength;
+  const rightToLeft = (char: string): boolean => /[\u0590-\u08ff]/.test(char);
+
+  afterEach(() => {
+    svgProto.getSubStringLength = nativeGetSubStringLength;
+  });
+
+  /** A text in its own document, since the probe's answer is kept per document; one unit per character on every read. */
+  function textIn(text: string): Probe {
+    const doc = document.implementation.createHTMLDocument('direction');
+    const result = probe(text);
+    doc.body.appendChild(doc.adoptNode(result.element));
+    return result;
+  }
+
+  it('reads a right-to-left text whole when getSubStringLength stops at the change of direction', () => {
+    // WebKit: getSubStringLength spans the run the first character is in, so "שלום..." reads as "שלום"
+    svgProto.getSubStringLength = function (this: SVGElement, charnum: number, nchars: number): number {
+      const text = this.textContent!;
+      let width = 0;
+      for (let i = charnum; i < charnum + nchars && rightToLeft(text[i]) === rightToLeft(text[charnum]); i++) {
+        width++;
+      }
+      return width;
+    };
+    const hebrew = textIn('שלום...');
+    expect(cache.width(KEY, hebrew.element)).toBe(7);
+    expect(hebrew.widthReads).toBe(1);
+    const latin = textIn('Hello...');
+    expect(cache.width(KEY, latin.element)).toBe(8);
+    expect(latin.widthReads).toBe(0);
+  });
+
+  it('keeps the kerned read for a right-to-left text when getSubStringLength spans it whole', () => {
+    svgProto.getSubStringLength = function (this: SVGElement, _charnum: number, nchars: number): number { return nchars; };
+    const hebrew = textIn('שלום...');
+    expect(cache.width(KEY, hebrew.element)).toBe(7);
+    expect(hebrew.widthReads).toBe(0);
+  });
+});
+
 describe('TextWidthCache heights', () => {
   it('reads the box once per font key, whatever the text', () => {
     const hello = probe('Hello');

@@ -400,6 +400,37 @@ describe('updateTruncation', () => {
     });
   });
 
+  // WebKit's getSubStringLength spans one run of writing direction, so a right-to-left label with its suffix reads as the
+  // label alone; the cache reads such a text with getComputedTextLength and a prefix from a probe holding it
+  describe('right-to-left text whose reads stop at the suffix', () => {
+    const svgProto = globalThis.SVGElement.prototype as any;
+    const rightToLeft = (char: string): boolean => /[\u0590-\u08ff]/.test(char);
+    let wholeGetSubStringLength: unknown;
+
+    beforeEach(() => {
+      wholeGetSubStringLength = svgProto.getSubStringLength;
+      svgProto.getSubStringLength = function (this: SVGElement, charnum: number, nchars: number): number {
+        const text = getRenderedText(this);
+        let run = 0;
+        while (run < nchars && rightToLeft(text[charnum + run]) === rightToLeft(text[charnum])) {
+          run++;
+        }
+        return subStringWidth(text, charnum, run);
+      };
+    });
+
+    afterEach(() => {
+      svgProto.getSubStringLength = wholeGetSubStringLength;
+    });
+
+    it('fits the prefix whose drawn width with the suffix is the longest in the room', () => {
+      // "القاه..." is 80 drawn; the one-run read says 50, which would let the verification grow it to "القاهر..." at 90
+      const settled = settle('القاهرة الإسكندرية', 80, '...');
+      expect(settled.drawn).toBe('القاه...');
+      expect(settled.renders).toBe(1);
+    });
+  });
+
   // slicing by UTF-16 code unit cut astral characters in half and emitted a lone surrogate, which renders as U+FFFD; every cut lands on a user-perceived character boundary instead
   describe('multi-code-unit characters', () => {
     const loneSurrogate = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/;

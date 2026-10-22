@@ -71,9 +71,9 @@ export function appendProbe(host: SVGTextContentElement, content: string): SVGTe
   return probe;
 }
 
-// jsdom has no getSubStringLength unless a test installs one: a probe holding the prefix stands in
+// jsdom has no getSubStringLength unless a test installs one, and WebKit reads one run of a right-to-left text: a probe holding the prefix stands in
 function readPrefixWidth(source: SVGTextContentElement, text: string, charCount: number): number {
-  if (typeof source.getSubStringLength === 'function') {
+  if (readsWhole(source, text)) {
     return source.getSubStringLength(0, charCount);
   }
   const probe = appendProbe(source, text.slice(0, charCount));
@@ -96,10 +96,37 @@ function getDirectText(element: Element): string | null {
   return text;
 }
 
+// Hebrew, Arabic, Syriac, Thaana, NKo and the Arabic presentation forms, plus the right-to-left marks
+const RIGHT_TO_LEFT = /[\u0590-\u08ff\ufb1d-\ufdff\ufe70-\ufeff\u200f\u202b\u202e]/;
+
+const subStringSpansOneRun = new WeakMap<Document, boolean>();
+
+/** Whether getSubStringLength stops at the first change of writing direction (WebKit), so a right-to-left text with its "..." suffix reads short: one probe per document. */
+function spansOneRun(document: Document): boolean {
+  let oneRun = subStringSpansOneRun.get(document);
+  if (oneRun === undefined) {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('style', 'position:absolute;width:1px;height:1px;overflow:hidden;visibility:hidden');
+    const text = document.createElementNS(SVG_NS, 'text') as SVGTextContentElement;
+    text.textContent = '\u05d0.';
+    svg.appendChild(text);
+    (document.body ?? document.documentElement).appendChild(svg);
+    oneRun = text.getSubStringLength(0, 2) < text.getSubStringLength(0, 1) + text.getSubStringLength(1, 1) - 0.5;
+    svg.remove();
+    subStringSpansOneRun.set(document, oneRun);
+  }
+  return oneRun;
+}
+
+/** Whether getSubStringLength reads `text` whole: not in an engine that stops at a change of writing direction when the text has a right-to-left character. */
+function readsWhole(element: SVGTextContentElement, text: string): boolean {
+  return typeof element.getSubStringLength === 'function' && !(RIGHT_TO_LEFT.test(text) && spansOneRun(element.ownerDocument));
+}
+
 /** The advance of `text`, the element's direct text, or of the whole element when `text` is null. */
 function readWidth(element: SVGGraphicsElement, text: string | null): number {
   const textElement = element as SVGTextContentElement;
-  if (text !== null && typeof textElement.getSubStringLength === 'function') {
+  if (text !== null && readsWhole(textElement, text)) {
     // the kerned advance in every engine, where WebKit's getComputedTextLength is the unkerned, wider width; an empty text throws
     return text.length === 0 ? 0 : textElement.getSubStringLength(0, text.length);
   }
