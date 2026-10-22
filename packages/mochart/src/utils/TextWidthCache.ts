@@ -147,11 +147,6 @@ export class TextWidthCache {
   private sweepPending = false;
   private fontsVersion = 0;
 
-  /** Whether the current pass is settled (no tween frame): the pass a fitted label is verified on. */
-  get settledPass(): boolean {
-    return this.settled;
-  }
-
   /** The pass one controller update starts (its sync, the hosts' measures and the setState flushes they cause); a settled one that measures is a generation. */
   beginPass(settled: boolean, fontsVersion: number): void {
     if (fontsVersion !== this.fontsVersion) {

@@ -123,8 +123,8 @@ interface FitJob {
  * truncates at all, then a binary search over the candidate widths picks the longest prefix that fits with the suffix.
  * A candidate's width comes from the prefix advances of the full text, corrected for the kerning the cut removes and the
  * kerning the suffix adds, from unit and join widths read off probes; the probes for every label are appended and read in
- * one batch per font, and removed at the end of the pass. A fitted label is verified on the settled pass: one read of
- * the drawn result, which settles as drawn or one unit shorter.
+ * one batch per font, and removed at the end of the pass. A fitted label is verified by the pass after its render: one
+ * read of the drawn result, which settles as drawn or one unit shorter.
  */
 class TruncationPass {
   private readonly jobs: FitJob[] = [];
@@ -170,10 +170,8 @@ class TruncationPass {
       this.jobs.push({ index, text, suffix, maxLength, fontKey, source });
       return null;
     }
-    // a fit awaiting verification: on the settled pass, one read of the drawn prefix plus suffix, then settled as drawn or one unit shorter
-    if (!cache.settledPass) {
-      return truncationData;
-    }
+    // a fit awaiting verification: one read of the drawn prefix plus suffix, then settled as drawn or one unit shorter. Not deferred to a
+    // settled pass: a host whose props stand still through a tween's last frame measures no more, and a hair of overflow would stay
     if (cache.width(fontKey, textElement) <= maxLength) {
       return { text, truncatedText, lastText: truncatedText };
     }

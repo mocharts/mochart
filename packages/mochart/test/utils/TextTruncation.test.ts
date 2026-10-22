@@ -218,18 +218,18 @@ describe('updateTruncation', () => {
     expect(changed).toBe(false);
   });
 
-  it('leaves a drawn fit as it is until a settled pass verifies it', () => {
+  // Regression: a verification deferred to a settled pass never ran for a host whose props stood still through a build's last
+  // frame, and a fit a hair wider than its room ("Fi..." at 26.672 px in 26.667) stayed drawn
+  it('verifies a drawn fit on a tween pass too', () => {
     const measure = measureWith();
     const element = label('Hello World');
     const fitted = updateTruncation(ELLIPSIS, null, 'Hello World', 60, element, measure).truncationData;
     element.textContent = 'Hello' + ELLIPSIS;
+    (element as any).getComputedTextLength = () => 60.5;
     measure.cache.beginPass(false, 0);
-    const pending = updateTruncation(ELLIPSIS, fitted, 'Hello World', 60, element, measure);
-    expect(pending.truncationData).toBe(fitted);
-    expect(pending.checkTruncation).toBe(true);
-    expect(pending.changed).toBe(false);
-    measure.cache.beginPass(true, 0);
-    expect((updateTruncation(ELLIPSIS, fitted, 'Hello World', 60, element, measure).truncationData as TruncationData).lastText).toBe('Hello');
+    const verified = updateTruncation(ELLIPSIS, fitted, 'Hello World', 60, element, measure);
+    expect(verified.truncationData).toEqual({ text: 'Hello World', truncatedText: 'Hell', lastText: 'Hell' });
+    expect(verified.checkTruncation).toBe(false);
   });
 
   it('shrinks the drawn fit by one unit when it overflows at rest', () => {
