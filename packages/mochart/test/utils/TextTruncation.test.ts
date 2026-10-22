@@ -68,10 +68,13 @@ afterEach(() => {
 });
 
 /** A drawn label: a <text> in its own <g>, as the hosts lay them out. */
-function label(text: string): SVGTextContentElement {
+function label(text: string, style?: string): SVGTextContentElement {
   const group = document.createElementNS(SVG_NS, 'g');
   const element = document.createElementNS(SVG_NS, 'text') as SVGTextContentElement;
   element.textContent = text;
+  if (style !== undefined) {
+    element.setAttribute('style', style);
+  }
   group.appendChild(element);
   svg.appendChild(group);
   return element;
@@ -83,8 +86,8 @@ function measureWith(cache = new TextWidthCache()): TruncationMeasure {
 }
 
 /** Renders a label until its truncation settles, as a host does: each pass measures, a changed drawn text is drawn before the next. */
-function settle(text: string, maxLength: number, suffix = ELLIPSIS, measure = measureWith()): { drawn: string; renders: number; truncatedText: string } {
-  const element = label(text);
+function settle(text: string, maxLength: number, suffix = ELLIPSIS, measure = measureWith(), style?: string): { drawn: string; renders: number; truncatedText: string } {
+  const element = label(text, style);
   let truncationData: TruncationDataValue = null;
   let renders = 0;
   for (let pass = 0; pass < 10; pass++) {
@@ -361,6 +364,39 @@ describe('updateTruncation', () => {
       // "Tea" is 30 and "Tea." 37 drawn; "Tea " with the suffix is the same candidate, so a 37 px room fits "Tea."
       expect(settle('Tea party', 37, '.').drawn).toBe('Tea.');
       expect(settle('Tea party', 36, '.').drawn).toBe('Te.');
+    });
+  });
+
+  // the synthetic font leaves letter-spacing out of every read, as WebKit does; the cache adds a gap after every unit
+  // but the last to a whole text, and the fit must add the same gaps to a prefix and one more before the suffix
+  describe('letter-spacing the engine leaves out of its reads', () => {
+    const nativeGetComputedStyle = globalThis.getComputedStyle;
+
+    beforeEach(() => {
+      globalThis.getComputedStyle = function (element: Element, pseudoElement?: string | null) {
+        const style = nativeGetComputedStyle.call(globalThis, element, pseudoElement ?? undefined);
+        style.fontSize = '16px';
+        style.letterSpacing = (element as HTMLElement).style.letterSpacing || 'normal';
+        return style;
+      } as typeof globalThis.getComputedStyle;
+    });
+
+    afterEach(() => {
+      globalThis.getComputedStyle = nativeGetComputedStyle;
+    });
+
+    function spacedMeasure(): TruncationMeasure {
+      const cache = new TextWidthCache();
+      cache.beginPass(true, 0);
+      return { cache, fontKey: element => cache.fontKey('ticks', element) };
+    }
+
+    it('fits the prefix whose drawn width, gaps included, is the longest in the room', () => {
+      // without spacing "Hello Wor…" is 100; with 3px gaps it draws 127 and "Hello…" 75, the longest under 100 ("Hello W…" is 101)
+      expect(settle('Hello World', 100).drawn).toBe('Hello Wor…');
+      const spaced = settle('Hello World', 100, ELLIPSIS, spacedMeasure(), 'letter-spacing: 3px');
+      expect(spaced.drawn).toBe('Hello…');
+      expect(spaced.renders).toBe(1);
     });
   });
 

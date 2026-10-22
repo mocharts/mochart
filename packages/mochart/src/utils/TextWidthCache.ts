@@ -215,14 +215,16 @@ export class TextWidthCache {
     }
     let width = readWidth(element, text);
     if (width > 0) {
-      const spacing = this.spacings.get(fontKey);
-      // WebKit draws the spacing after every character but the last and reports none of it
-      if (spacing !== undefined && advanceDropsLetterSpacing(element.ownerDocument)) {
-        width += spacing * (textUnits(text).length - 1);
-      }
+      width += this.droppedSpacing(fontKey, element.ownerDocument) * (textUnits(text).length - 1);
       font.widths.set(text, { width, generation: this.generation });
     }
     return width;
+  }
+
+  /** The letter-spacing of the font `fontKey` names that the engine's advance reads leave out (WebKit draws it after every character but the last and reports none of it); 0 where the reads count it. */
+  droppedSpacing(fontKey: string, document: Document): number {
+    const spacing = this.spacings.get(fontKey);
+    return spacing !== undefined && advanceDropsLetterSpacing(document) ? spacing : 0;
   }
 
   /** The box height of a line in the font `fontKey` names: one read per font, since a line's height does not depend on its text. */
@@ -290,13 +292,14 @@ export class TextWidthCache {
     return tables;
   }
 
-  /** The advance of the first `unitCount` units of `text`, read from `source` (a <text> drawing the full text) on first sight. */
+  /** The advance of the first `unitCount` units of `text` drawn alone, read from `source` (a <text> drawing the full text) on first sight. */
   prefixWidth(fontKey: string, text: string, unitCount: number, source: SVGTextContentElement): number {
     const tables = this.fitTables(fontKey, text);
     let width = tables.prefixes[unitCount];
     if (Number.isNaN(width)) {
       width = readPrefixWidth(source, text, tables.charCounts[unitCount]);
       if (width > 0) {
+        width += this.droppedSpacing(fontKey, source.ownerDocument) * (unitCount - 1);
         tables.prefixes[unitCount] = width;
       }
     }

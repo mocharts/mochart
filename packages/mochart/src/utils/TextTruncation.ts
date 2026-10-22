@@ -255,10 +255,12 @@ class TruncationPass {
     const { cache } = this.measure;
     const { units } = cache.fitTables(fontKey, text);
     const suffixWidth = suffix === '' ? 0 : cache.widthOf(fontKey, suffix);
+    // the drawn candidate has one more letter-spacing gap, between the prefix and the suffix
+    const joinWidth = suffix === '' ? 0 : cache.droppedSpacing(fontKey, source.ownerDocument);
     // nondecreasing in the unit count, so the search is a binary one
     const candidateWidth = (unitCount: number): number => {
       const drawn = trimmedUnitCount(units, unitCount);
-      return (drawn === 0 ? 0 : cache.prefixWidth(fontKey, text, drawn, source)) + suffixWidth;
+      return drawn === 0 ? suffixWidth : cache.prefixWidth(fontKey, text, drawn, source) + joinWidth + suffixWidth;
     };
     let low = 0;
     let high = units.length - 1;
