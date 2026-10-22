@@ -116,6 +116,22 @@ describe('truncateSVGText', () => {
     expect(out).toEqual({ text: 'Hello World', truncatedText: 'He', lastText: 'H' });
   });
 
+  // Regression: "Finance" (7 units) in a room of 30 at width 57 guessed floor(3.69)-1=2 with a one-unit
+  // suffix but 0 with a three-unit "...", and a zero guess pointed lastText at the full text, so the fitting
+  // bare suffix read as settled and the label never grew to the "Fi..." that fits
+  it('guesses at least one unit so a fitting bare suffix grows to a real prefix', () => {
+    const first = truncateSVGText(el(57), 30, '...', { text: 'Finance' });
+    expect(first).toEqual({ text: 'Finance', truncatedText: 'F', lastText: '' });
+    const second = truncateSVGText(el(20), 30, '...', first);
+    expect(second).toEqual({ text: 'Finance', truncatedText: 'Fi', lastText: 'F' });
+  });
+
+  it('still guesses zero for a one-unit text, which has no shorter prefix to grow from', () => {
+    const out = truncateSVGText(el(57), 30, '...', { text: 'F' });
+    expect(out).toEqual({ text: 'F', truncatedText: '', lastText: 'F' });
+    expect(truncateSVGText(el(13), 30, '...', out)).toEqual({ text: 'F', truncatedText: '', lastText: '' });
+  });
+
   it('shrinks by one character on a subsequent over-limit pass', () => {
     const out = truncateSVGText(el(150), 100, ELLIPSIS, { text: 'Hello World', truncatedText: 'Hello', lastText: 'Hello World' });
     expect(out).toEqual({ text: 'Hello World', truncatedText: 'Hell', lastText: 'Hello' });

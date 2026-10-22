@@ -241,10 +241,10 @@ export function truncateSVGText(textElement: SVGTextContentElement, maxTextLengt
       const suffixUnitCount = suffixUnitLength(truncationText);
       // ratio against what is actually rendered (truncatedText + suffix after a reset, not the full text)
       const renderedLength = truncatedText === text ? textUnitList.length : prefixUnitCount(textUnitList, truncatedText) + suffixUnitCount;
+      // at least one unit: the suffix counts as units though it is narrower than them, so a ratio of zero can still fit a prefix
       const initialTruncatedLength = Math.min(textUnitList.length - 1,
-        Math.max(0, Math.floor((maxTextLength / textLength) * renderedLength) - suffixUnitCount));
-      // lastText marks the guess as a growing step, so a guess that fits grows on to the longest fitting
-      // prefix; a zero-length guess has nothing shorter to point at, and must not read as already settled
+        Math.max(1, Math.floor((maxTextLength / textLength) * renderedLength) - suffixUnitCount));
+      // lastText, one unit shorter, marks the guess as a growing step, so a guess that fits grows on to the longest fitting prefix
       return {
         text,
         truncatedText: joinUnits(textUnitList, initialTruncatedLength),
