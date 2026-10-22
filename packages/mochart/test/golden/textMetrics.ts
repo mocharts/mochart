@@ -105,6 +105,11 @@ export function installTextMetrics(): void {
     return measureTextWidth(getTextContent(this), getElementFontSize(this));
   };
 
+  // the advance of a prefix, by UTF-16 code unit count as in the browsers; the width cache reads the whole text through it
+  svgProto.getSubStringLength = function (this: SVGTextContentElement, charnum: number, nchars: number): number {
+    return measureTextWidth(getTextContent(this).substring(charnum, charnum + nchars), getElementFontSize(this));
+  };
+
   // Only text carries metrics here: the library measures bounds of <text> nodes
   // exclusively, and shapes would need a real layout engine to box correctly.
   svgProto.getBBox = function (this: SVGGraphicsElement) {

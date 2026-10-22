@@ -1,6 +1,6 @@
 /**
- * Guards the cost of text truncation: every getComputedTextLength call that reaches the DOM forces layout,
- * so the number each truncating host makes across an animated update sequence is pinned here. The counter sits
+ * Guards the cost of text truncation: every getComputedTextLength or getSubStringLength call that reaches the DOM
+ * forces layout, so the number each truncating host makes across an animated update sequence is pinned here. The counter sits
  * on the prototype, below the chart's TextWidthCache, so a text already seen in its font costs nothing; raise a
  * count only for a fix that needs the extra measuring.
  */
@@ -56,6 +56,11 @@ beforeAll(async () => {
     counts[hostOf(this)]++;
     return measure.call(this);
   };
+  const measurePrefix = svgProto.getSubStringLength as (this: SVGElement, charnum: number, nchars: number) => number;
+  svgProto.getSubStringLength = function (this: SVGElement, charnum: number, nchars: number): number {
+    counts[hostOf(this)]++;
+    return measurePrefix.call(this, charnum, nchars);
+  };
   installFakeFrameClock();
   mochart = await import('../../src');
 });
@@ -84,7 +89,7 @@ function scaleValues(mochartConfig: EnhancedMochartConfig, rows: Record<string, 
 }
 
 describe('truncation measurement cost', () => {
-  it('makes a fixed number of getComputedTextLength calls per host across an animated update sequence', () => {
+  it('makes a fixed number of width reads per host across an animated update sequence', () => {
     const mochartConfig = buildConfig();
     const rows: Record<string, any>[] = loadJson(dataPath);
     const container = mountContainer();

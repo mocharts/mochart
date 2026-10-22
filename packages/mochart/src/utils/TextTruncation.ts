@@ -1,4 +1,5 @@
 import { svgEl, textEl } from '../render/index.js';
+import { textUnits } from './TextWidthCache.js';
 import type { El } from '../render/index.js';
 
 export interface TruncationData {
@@ -181,26 +182,6 @@ export class TruncationTooltip {
       this.title.node.remove();
     }
   }
-}
-
-// typed locally rather than from lib.esnext.intl, so the package's TS lib target is unaffected
-interface GraphemeSegmenter {
-  segment(text: string): Iterable<{ segment: string }>;
-}
-
-const segmenterIntl = Intl as unknown as {
-  Segmenter?: new (locales: undefined, options: { granularity: 'grapheme' }) => GraphemeSegmenter;
-};
-
-const graphemeSegmenter: GraphemeSegmenter | null = typeof segmenterIntl.Segmenter === 'function'
-  ? new segmenterIntl.Segmenter(undefined, { granularity: 'grapheme' })
-  : null;
-
-// user-perceived characters, never UTF-16 code units: the Array.from fallback still never splits a surrogate pair, and Intl.Segmenter also keeps modifiers and combining marks attached
-function textUnits(text: string): string[] {
-  return graphemeSegmenter === null
-    ? Array.from(text)
-    : Array.from(graphemeSegmenter.segment(text), segment => segment.segment);
 }
 
 function joinUnits(units: string[], unitCount: number): string {

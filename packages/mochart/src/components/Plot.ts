@@ -117,6 +117,7 @@ export default class Plot extends Renderer<PlotProps> {
 
     const frontBackProps = (front: boolean) => ({
       front,
+      fontsVersion: this.props.fontsVersion,
       textWidthCache: this.props.textWidthCache,
       mochartConfig,
       categoryAxisLayoutInfo,

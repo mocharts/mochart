@@ -79,6 +79,78 @@ describe('TextWidthCache widths', () => {
   });
 });
 
+describe('TextWidthCache width reads', () => {
+  it('reads the direct text through getSubStringLength when the engine has it, else getComputedTextLength, else getBBox', () => {
+    const prefixed = probe('Hello');
+    const reads: [number, number][] = [];
+    (prefixed.element as any).getSubStringLength = (charnum: number, nchars: number) => { reads.push([charnum, nchars]); return 7; };
+    expect(cache.width(KEY, prefixed.element)).toBe(7);
+    expect(reads).toEqual([[0, 5]]);
+    expect(prefixed.widthReads).toBe(0);
+    const advance = probe('Hello');
+    expect(cache.width('advance', advance.element)).toBe(5);
+    expect(advance.widthReads).toBe(1);
+    const boxed = document.createElementNS(SVG_NS, 'text') as SVGTextContentElement;
+    boxed.textContent = 'Hello';
+    (boxed as any).getBBox = () => ({ x: 0, y: 0, width: 9, height: 12 });
+    expect(cache.width('box', boxed)).toBe(9);
+  });
+
+  // getSubStringLength(0, 0) throws IndexSizeError in every engine
+  it('reads an empty text as zero without a read', () => {
+    const empty = probe('');
+    (empty.element as any).getSubStringLength = () => { throw new Error('IndexSizeError'); };
+    expect(cache.width(KEY, empty.element)).toBe(0);
+    expect(empty.widthReads).toBe(0);
+  });
+});
+
+describe('TextWidthCache letter-spacing', () => {
+  const svgProto = globalThis.SVGElement.prototype as any;
+  const nativeGetComputedStyle = globalThis.getComputedStyle;
+  const nativeGetSubStringLength = svgProto.getSubStringLength;
+  const spacingOf = (element: Element): number => parseFloat((element as HTMLElement).style.letterSpacing) || 0;
+
+  beforeEach(() => {
+    globalThis.getComputedStyle = function (element: Element, pseudoElement?: string | null) {
+      const style = nativeGetComputedStyle.call(globalThis, element, pseudoElement ?? undefined);
+      style.fontSize = '16px';
+      style.letterSpacing = (element as HTMLElement).style.letterSpacing || 'normal';
+      return style;
+    } as typeof globalThis.getComputedStyle;
+  });
+
+  afterEach(() => {
+    globalThis.getComputedStyle = nativeGetComputedStyle;
+    svgProto.getSubStringLength = nativeGetSubStringLength;
+  });
+
+  /** A spaced text in its own document, since the probe's answer is kept per document. */
+  function spacedText(text: string, spacing: string): SVGGraphicsElement {
+    const doc = document.implementation.createHTMLDocument('spaced');
+    const element = doc.createElementNS(SVG_NS, 'text') as SVGTextContentElement;
+    element.textContent = text;
+    element.setAttribute('style', 'letter-spacing: ' + spacing);
+    doc.body.appendChild(element);
+    return element;
+  }
+
+  it('adds the spacing to a width when the engine leaves it out of its reads, once per gap', () => {
+    // WebKit: the advance reads ignore letter-spacing, the ink has a gap after every character but the last
+    svgProto.getSubStringLength = function (this: SVGElement, _charnum: number, nchars: number): number { return nchars * 10; };
+    const element = spacedText('Hello', '2px');
+    expect(cache.width(cache.fontKey('ticks', element), element)).toBe(58);
+    const plain = spacedText('Hello', 'normal');
+    expect(cache.width(cache.fontKey('title', plain), plain)).toBe(50);
+  });
+
+  it('leaves a width alone when the engine counts the spacing itself', () => {
+    svgProto.getSubStringLength = function (this: SVGElement, _charnum: number, nchars: number): number { return nchars * (10 + spacingOf(this)); };
+    const element = spacedText('Hello', '2px');
+    expect(cache.width(cache.fontKey('ticks', element), element)).toBe(60);
+  });
+});
+
 describe('TextWidthCache heights', () => {
   it('reads the box once per font key, whatever the text', () => {
     const hello = probe('Hello');

@@ -1,4 +1,5 @@
 const TEXT_NODE = 3;
+const SVG_NS = 'http://www.w3.org/2000/svg';
 
 /** The host groups whose font key TextMeasurement and the truncating hosts share. */
 export const textGroups = {
@@ -29,6 +30,26 @@ interface WidthEntry { width: number; generation: number }
 interface FontEntry { widths: Map<string, WidthEntry>; height: number; generation: number }
 interface GroupEntry { key: string; fontSize: number; pass: number; inlineStyle: string | null }
 
+// typed locally rather than from lib.esnext.intl, so the package's TS lib target is unaffected
+interface GraphemeSegmenter {
+  segment(text: string): Iterable<{ segment: string }>;
+}
+
+const segmenterIntl = Intl as unknown as {
+  Segmenter?: new (locales: undefined, options: { granularity: 'grapheme' }) => GraphemeSegmenter;
+};
+
+const graphemeSegmenter: GraphemeSegmenter | null = typeof segmenterIntl.Segmenter === 'function'
+  ? new segmenterIntl.Segmenter(undefined, { granularity: 'grapheme' })
+  : null;
+
+// user-perceived characters, never UTF-16 code units: the Array.from fallback still never splits a surrogate pair, and Intl.Segmenter also keeps modifiers and combining marks attached
+export function textUnits(text: string): string[] {
+  return graphemeSegmenter === null
+    ? Array.from(text)
+    : Array.from(graphemeSegmenter.segment(text), segment => segment.segment);
+}
+
 /** The text the browser lays out: the direct text nodes; null when an element child other than the tooltip <title> would also draw. */
 function getDirectText(element: Element): string | null {
   let text = '';
@@ -43,9 +64,37 @@ function getDirectText(element: Element): string | null {
   return text;
 }
 
-function readWidth(element: SVGGraphicsElement): number {
+/** The advance of `text`, the element's direct text, or of the whole element when `text` is null. */
+function readWidth(element: SVGGraphicsElement, text: string | null): number {
   const textElement = element as SVGTextContentElement;
+  if (text !== null && typeof textElement.getSubStringLength === 'function') {
+    // the kerned advance in every engine, where WebKit's getComputedTextLength is the unkerned, wider width; an empty text throws
+    return text.length === 0 ? 0 : textElement.getSubStringLength(0, text.length);
+  }
   return typeof textElement.getComputedTextLength === 'function' ? textElement.getComputedTextLength() : element.getBBox().width;
+}
+
+const letterSpacingDropped = new WeakMap<Document, boolean>();
+
+/** Whether the engine's advance reads leave letter-spacing out (WebKit): one probe per document, two glyphs read with a wide spacing and without. */
+function advanceDropsLetterSpacing(document: Document): boolean {
+  let dropped = letterSpacingDropped.get(document);
+  if (dropped === undefined) {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('style', 'position:absolute;width:1px;height:1px;overflow:hidden;visibility:hidden');
+    const spaced = document.createElementNS(SVG_NS, 'text');
+    spaced.setAttribute('style', 'letter-spacing:100px');
+    spaced.textContent = 'ab';
+    const plain = document.createElementNS(SVG_NS, 'text');
+    plain.textContent = 'ab';
+    svg.append(spaced, plain);
+    (document.body ?? document.documentElement).appendChild(svg);
+    const plainWidth = readWidth(plain, 'ab');
+    dropped = plainWidth > 0 && readWidth(spaced, 'ab') === plainWidth;
+    svg.remove();
+    letterSpacingDropped.set(document, dropped);
+  }
+  return dropped;
 }
 
 /**
@@ -58,6 +107,8 @@ function readWidth(element: SVGGraphicsElement): number {
 export class TextWidthCache {
   private readonly fonts = new Map<string, FontEntry>();
   private readonly groups = new Map<string, GroupEntry>();
+  /** the letter-spacing of each font key that has one, in pixels */
+  private readonly spacings = new Map<string, number>();
   private generation = 0;
   private pass = 0;
   private settled = true;
@@ -92,6 +143,10 @@ export class TextWidthCache {
       const style = getComputedStyle(element);
       key = style.fontStyle + '|' + style.fontWeight + '|' + style.fontSize + '|' + style.fontFamily + '|' + style.letterSpacing + '|' + this.fontsVersion;
       fontSize = parseFloat(style.fontSize);
+      const letterSpacing = parseFloat(style.letterSpacing);
+      if (letterSpacing !== 0 && !Number.isNaN(letterSpacing)) {
+        this.spacings.set(key, letterSpacing);
+      }
     }
     else {
       key = (inlineStyle ?? '') + '|' + this.fontsVersion;
@@ -118,7 +173,7 @@ export class TextWidthCache {
   width(fontKey: string, element: SVGGraphicsElement): number {
     const text = getDirectText(element);
     if (text === null) {
-      return readWidth(element);
+      return readWidth(element, null);
     }
     const font = this.font(fontKey);
     const entry = font.widths.get(text);
@@ -126,8 +181,13 @@ export class TextWidthCache {
       entry.generation = this.generation;
       return entry.width;
     }
-    const width = readWidth(element);
+    let width = readWidth(element, text);
     if (width > 0) {
+      const spacing = this.spacings.get(fontKey);
+      // WebKit draws the spacing after every character but the last and reports none of it
+      if (spacing !== undefined && advanceDropsLetterSpacing(element.ownerDocument)) {
+        width += spacing * (textUnits(text).length - 1);
+      }
       font.widths.set(text, { width, generation: this.generation });
     }
     return width;
@@ -148,6 +208,7 @@ export class TextWidthCache {
   clear(): void {
     this.fonts.clear();
     this.groups.clear();
+    this.spacings.clear();
   }
 
   private font(fontKey: string): FontEntry {
